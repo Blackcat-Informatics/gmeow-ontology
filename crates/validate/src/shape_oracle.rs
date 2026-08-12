@@ -72,6 +72,11 @@ const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_ISDEFINEDBY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 /// `rdfs:comment` — a documentation annotation the reader absorbs.
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+/// `logic:formalizes` — a migration-provenance back-reference a hand-authored shape may carry to
+/// name the canonical `logic:` constraint that replaces it (a forward self-annotation). It carries
+/// NO enforcement over the accepted graph, so the reader absorbs it exactly like `rdfs:isDefinedBy`
+/// — routing it to residue would spuriously disqualify every grounding-credit path for the shape.
+const LOGIC_FORMALIZES_ANNOTATION: &str = "https://blackcatinformatics.ca/logic/formalizes";
 /// Typed conformance-failure metadata. It does not alter the accepted graph, but the reader
 /// preserves it so migration tooling can verify that a projected replacement raises the same
 /// failure class and can reject ambiguous distinct declarations.
@@ -118,6 +123,7 @@ fn is_presentation(pred: &str) -> bool {
     pred == RDFS_LABEL
         || pred == RDFS_ISDEFINEDBY
         || pred == RDFS_COMMENT
+        || pred == LOGIC_FORMALIZES_ANNOTATION
         || pred.starts_with(SKOS)
         || matches!(
             shacl_local(pred),

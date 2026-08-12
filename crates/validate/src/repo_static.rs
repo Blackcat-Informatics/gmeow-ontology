@@ -88,11 +88,11 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
-    // The BLANKET declarative-shape peer (`check_declarative_shape_purity`) is deliberately NOT
-    // wired here yet: it is activated at the terminal migration increment once the legacy shape
-    // corpus is deleted; until then it would red on the ~245 coexisting legacy shapes by design.
-    // Its production semantics are proven now over the live tree by
-    // `declarative_gate_flags_the_live_legacy_corpus`.
+    // The BLANKET declarative-shape peer: the hand-authored shape corpus has been retired, so this
+    // is now armed. It reds on any authored `sh:NodeShape`/`sh:PropertyShape` (in
+    // slices/shapes/dsl/governance) lacking a `logic:formalizes` back-reference — the terminal
+    // single-source-of-truth invariant (Principle 17).
+    check_declarative_shape_purity(root, &mut report);
     check_authored_shex_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
     check_gmeow_shapes_drained(root, &mut report);
@@ -104,6 +104,9 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_no_unmanaged_temp_dir(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
+    check_slice_ttl_trailing_newline(root, &mut report);
+    check_wasm_bindgen_pin_parity(root, &mut report);
+    check_gts_emit_chokepoint(root, &mut report);
     report
 }
 
@@ -194,7 +197,7 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
 /// A construct without such a back-reference is a hand-authored second source of truth and fails.
 fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -313,7 +316,7 @@ const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
 /// `slices/` + `dsl/`.
 fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["shapes", "slices", "dsl"] {
+    for sub in ["shapes", "slices", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -416,19 +419,36 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// legacy shape corpus is deleted; until then it would (correctly, by design) red on the ~245
 /// coexisting legacy shapes that have not yet migrated. Its production semantics are proven now
 /// over the live tree by `declarative_gate_flags_the_live_legacy_corpus`.
-// Not yet reachable from a non-test build (activation is deferred to the terminal migration
-// increment); its live-tree production semantics are exercised by the gate test below.
-#[allow(dead_code)]
+///
+/// One exemption applies: a file's construct subjects are skipped when the file itself is a
+/// registered `gmeow:saFailWitness` for its enclosing slice ([`registered_fail_witnesses`]). A
+/// `mustNot` structural assertion (e.g. `ex:saNoHandAuthoredShapes`) proves its ban is non-vacuous
+/// by committing a fixture that DELIBERATELY hand-authors the banned shape; without the fixture the
+/// ban would pass whether or not its pattern is even correct. The exemption is keyed on the
+/// REGISTRATION, not a blanket `tests/counter-examples/` directory skip, so an unregistered
+/// hand-authored shape parked in the same directory is still caught.
+// Wired into `check_repo_static` once the hand-authored shape corpus is retired: reds on any
+// authored `sh:NodeShape`/`sh:PropertyShape` (in slices/shapes/dsl/governance) lacking a
+// `logic:formalizes` back-reference. Backed residue / boundary-kept shapes carry one and pass.
 fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
         }
     }
     ttl_files.sort();
+    let mut witness_cache: BTreeMap<PathBuf, BTreeSet<PathBuf>> = BTreeMap::new();
     for path in ttl_files {
+        if let Some(slice_dir) = enclosing_slice_dir(&path) {
+            let witnesses = witness_cache
+                .entry(slice_dir.clone())
+                .or_insert_with(|| registered_fail_witnesses(&slice_dir));
+            if witnesses.contains(&path) {
+                continue;
+            }
+        }
         let text = match fs::read_to_string(&path) {
             Ok(text) => text,
             Err(err) => {
@@ -472,6 +492,55 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
                 parents.entry(q.o).or_default().insert(q.s);
             }
         }
+        // Boolean-combinator members → their owning subject, so a `logic:formalizes` on a node
+        // shape legalizes a construct nested inside its logical combinators — the gate's own
+        // semantics ("on it or its owning shape"): the shape is the migration-tracking unit and
+        // its back-reference covers its whole logical structure, not only direct `sh:property`
+        // children. `sh:and`/`sh:or`/`sh:xone` take an RDF list of shapes; `sh:not` a single shape.
+        let rdf_first = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
+        let rdf_rest = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+        let rdf_nil = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
+        let list_members = |head: TermId| -> Vec<TermId> {
+            let (Some(first), Some(rest)) = (rdf_first, rdf_rest) else {
+                return Vec::new();
+            };
+            let mut out = Vec::new();
+            let mut node = Some(head);
+            let mut guard = 0usize;
+            while let Some(n) = node {
+                if Some(n) == rdf_nil || guard > 100_000 {
+                    break;
+                }
+                guard += 1;
+                if let Some(q) = ds
+                    .quads_for_pattern(Some(n), Some(first), None, GraphMatch::Any)
+                    .next()
+                {
+                    out.push(q.o);
+                }
+                node = ds
+                    .quads_for_pattern(Some(n), Some(rest), None, GraphMatch::Any)
+                    .next()
+                    .map(|q| q.o);
+            }
+            out
+        };
+        for comb in ["and", "or", "xone"] {
+            if let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{comb}")) {
+                for q in ds.quads_for_pattern(None, Some(cid), None, GraphMatch::Any) {
+                    for member in list_members(q.o) {
+                        construct_subjects.insert(member);
+                        parents.entry(member).or_default().insert(q.s);
+                    }
+                }
+            }
+        }
+        if let Some(nid) = iri_id_static(&ds, &format!("{SHACL_NS}not")) {
+            for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
+                construct_subjects.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
         if construct_subjects.is_empty() {
             continue;
         }
@@ -506,7 +575,7 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// it enforces the invariant going forward.
 fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut shex_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_shex_files(&dir, report, &mut shex_files);
@@ -674,9 +743,143 @@ fn check_hand_authored_shapes_ratchet(root: &Path, report: &mut RepoStaticReport
     }
 }
 
+/// Every authored Turtle surface under `slices/` ends with exactly one newline.
+///
+/// A bulk authoring pass once appended records to 67 slice `module.ttl` files
+/// without a terminating newline, and the state survived across several commits
+/// because the ONLY thing that noticed was the pre-commit `end-of-file-fixer`
+/// hook — which the offending commits bypassed, and which *rewrites* files
+/// rather than failing a lane. Every branch that subsequently ran the lint
+/// inherited 67 modified files it had not touched.
+///
+/// The renderer is not the culprit and needs no fix: `turtle_render::render`
+/// emits every statement with `writeln!`, so `gmeow-dev normalize` always
+/// terminates its output. The gap was purely the absence of an authority.
+///
+/// So: the pre-commit hook is the FIXER, this gate is the AUTHORITY. The scope
+/// here is deliberately a SUPERSET of the hook's selection over `slices/` — it
+/// covers every `.ttl` (not merely `module.ttl`), because the same bulk-edit
+/// failure mode reaches `shapes.ttl`, `examples/`, `tests/`, and `mappings/`,
+/// and a gate narrower than its fixer just relocates the recurrence into the
+/// uncovered set. "Exactly one" matches what the fixer normalizes to, so the two
+/// cannot disagree about what correct looks like.
+fn check_slice_ttl_trailing_newline(root: &Path, report: &mut RepoStaticReport) {
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut files);
+    files.sort();
+    for path in files {
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .display()
+            .to_string();
+        let bytes = match fs::read(&path) {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        if bytes.is_empty() {
+            report.error(format!(
+                "{rel}: is empty — an authored Turtle surface must carry content"
+            ));
+            continue;
+        }
+        if !bytes.ends_with(b"\n") {
+            report.error(format!(
+                "{rel}: has no trailing newline — authored Turtle surfaces end with exactly one, \
+                 which is what the renderer emits and what the end-of-file hook normalizes to; a \
+                 file without one makes every later branch that runs the lint inherit a \
+                 modification it did not author"
+            ));
+            continue;
+        }
+        if bytes.ends_with(b"\n\n") {
+            report.error(format!(
+                "{rel}: ends with a blank line — authored Turtle surfaces end with EXACTLY one \
+                 trailing newline, so the gate and the end-of-file hook agree on what correct is"
+            ));
+        }
+    }
+}
+
 /// Resolve an IRI to its interned [`TermId`] in `ds`, if present.
 fn iri_id_static(ds: &RdfDataset, iri: &str) -> Option<TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
+}
+
+/// The predicate a `gmeow:StructuralAssertion` cell uses to name the fixture that DELIBERATELY
+/// commits the pattern its `mustNot` polarity bans — the fail-witness that proves the ban is
+/// non-vacuous (a ban over a module that, by construction, never contains the banned pattern
+/// would otherwise pass whether or not the pattern is even correctly stated). Its object is a
+/// literal path relative to the assertion's OWN slice root, e.g.
+/// `"tests/counter-examples/hand-authored-shape.ttl"`.
+const GMEOW_SA_FAIL_WITNESS_IRI: &str = "https://blackcatinformatics.ca/gmeow/saFailWitness";
+
+/// The enclosing slice directory of `start` — the nearest ancestor carrying a `manifest.ttl` — or
+/// `None` when `start` is outside any slice. A `gmeow:saFailWitness` registration is authored
+/// relative to its OWN slice, so a registration lookup must first resolve which slice `start`
+/// belongs to rather than assume a single repo-wide `tests/` root.
+///
+/// Shared by [`registered_fail_witnesses`]'s two callers — the `crate-check` projection-purity
+/// scan ([`check_declarative_shape_purity`]) and `gmeow-validate`'s `shape_census` test — so the
+/// two gates the same failing fixture must satisfy agree on exactly one exemption rule rather
+/// than drifting into two independently-maintained ones.
+pub fn enclosing_slice_dir(start: &Path) -> Option<PathBuf> {
+    let mut cursor = if start.is_dir() {
+        Some(start.to_path_buf())
+    } else {
+        start.parent().map(Path::to_path_buf)
+    };
+    while let Some(dir) = cursor {
+        if dir.join("manifest.ttl").is_file() {
+            return Some(dir);
+        }
+        cursor = dir.parent().map(Path::to_path_buf);
+    }
+    None
+}
+
+/// Every path `slice_dir`'s `tests/*.ttl` cells register as a `gmeow:saFailWitness`, resolved to
+/// absolute paths under `slice_dir` so callers can test scanned-file membership directly.
+///
+/// This is the ONLY legitimate exemption from the shape-purity scans: keyed on the REGISTRATION,
+/// never on a blanket `tests/counter-examples/` directory skip. A blanket directory exclusion
+/// would make any unregistered hand-authored shape parked in that same directory invisible to the
+/// gate; keying on the specific fixture a structural assertion actually cites as its witness
+/// closes that hole while still letting the assertion prove its ban is exercised.
+pub fn registered_fail_witnesses(slice_dir: &Path) -> BTreeSet<PathBuf> {
+    let mut out = BTreeSet::new();
+    let Ok(entries) = fs::read_dir(slice_dir.join("tests")) else {
+        return out;
+    };
+    let mut cells: Vec<PathBuf> = entries
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("ttl"))
+        .collect();
+    cells.sort();
+    for cell in cells {
+        let Ok(bytes) = fs::read(&cell) else {
+            continue;
+        };
+        let Ok(ds) = purrdf::parse_dataset(&bytes, "text/turtle", None) else {
+            continue;
+        };
+        let Some(p) = iri_id_static(&ds, GMEOW_SA_FAIL_WITNESS_IRI) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any) {
+            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                out.insert(slice_dir.join(lexical));
+            }
+        }
+    }
+    out
 }
 
 fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
@@ -1819,6 +2022,38 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     }
 
     let lock_path = root.join("Cargo.lock");
+
+    // The manifest pin and the RESOLVED lock version must agree. `purrdf_source_key`
+    // above only proves the two MANIFESTS match each other; it cannot see the lock, so
+    // "the manifest pins one version, the lock resolves another" was undetectable.
+    //
+    // The pin must be EXACT (`=x.y.z`). A default caret requirement admits any compatible
+    // release, so `cargo update` can relink native — and any rebuilt wasm — against a
+    // different purrdf while every version string in the tree still reads the same. The
+    // substrate record keys off the LOCK for that reason; requiring an exact pin here keeps
+    // the manifest from silently disagreeing with it in the first place.
+    if lock_path.is_file()
+        && let Some(declared) = purrdf_declared_version(&root_manifest)
+    {
+        match declared.strip_prefix('=') {
+            None => report.error(format!(
+                "Cargo.toml pins purrdf {declared:?}, a range — it must be an EXACT pin \
+                 (=x.y.z). A caret requirement lets `cargo update` relink the RDF core \
+                 under a manifest that still reads the same"
+            )),
+            Some(exact) => {
+                if let Some(locked) = locked_package_version(&lock_path, "purrdf", report)
+                    && exact != locked
+                {
+                    report.error(format!(
+                        "Cargo.toml pins purrdf {exact} but Cargo.lock resolves {locked} — the \
+                         manifest and the lock must name the same version"
+                    ));
+                }
+            }
+        }
+    }
+
     if lock_path.is_file()
         && let Some(version) = locked_package_version(&lock_path, "structured-zstd", report)
     {
@@ -1836,6 +2071,320 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     }
 }
 
+/// The plain crates.io version `Cargo.toml` pins purrdf at, if it is a registry pin.
+///
+/// Returns `None` for a git/path source (which carries no comparable version) or when the
+/// manifest cannot be read — the lock comparison then simply does not bind.
+fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
+    let text = fs::read_to_string(manifest_path).ok()?;
+    let manifest = text.parse::<toml::Value>().ok()?;
+    let dep = manifest
+        .get("workspace")?
+        .as_table()?
+        .get("dependencies")?
+        .as_table()?
+        .get("purrdf")?;
+    match dep {
+        toml::Value::String(version) => Some(version.clone()),
+        toml::Value::Table(table) if !table.contains_key("git") && !table.contains_key("path") => {
+            table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
+        }
+        _ => None,
+    }
+}
+
+/// The CI-installed `wasm-bindgen-cli` and the binaryen pin CI provisions.
+///
+/// Split out and called on EVERY path of [`check_wasm_bindgen_pin_parity`], including the
+/// ones that could not read the workspace pin. When it was inline, an unreadable or absent
+/// root manifest returned early and took this with it — so a genuinely wrong CI version went
+/// unreported because a DIFFERENT file was missing. `expected` is `None` exactly when the
+/// library pin could not be established; the CI surface is still checked for its own sake.
+fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut RepoStaticReport) {
+    let workflow = root.join(".github").join("workflows").join("ci.yml");
+    let ci = match fs::read_to_string(&workflow) {
+        Ok(ci) => ci,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen CLI version cannot be checked \
+                 against the workspace pin, which is a failure, not agreement",
+                workflow.display()
+            ));
+            return;
+        }
+    };
+    // EVERY occurrence, not the first: a second install step pinned to another version is
+    // exactly the drift this exists to catch, and `nth(1)` would never have seen it.
+    let installs: Vec<String> = ci
+        .split("wasm-bindgen-cli@")
+        .skip(1)
+        .map(|rest| {
+            rest.chars()
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect::<String>()
+        })
+        .collect();
+    if installs.is_empty() {
+        report.error(format!(
+            "{}: installs no `wasm-bindgen-cli@<version>` — the Node parity lanes cannot \
+             generate bindings without it",
+            workflow.display()
+        ));
+    }
+    for installed in &installs {
+        if expected.is_some() && Some(installed.as_str()) != expected {
+            report.error(format!(
+                "{} installs wasm-bindgen-cli@{installed} but [workspace.dependencies] pins \
+                 wasm-bindgen {} — the CLI refuses any library version it does not match \
+                 byte-for-byte, so the wasm build fails naming a version mismatch rather than \
+                 this drift",
+                workflow.display(),
+                expected.unwrap_or("<unreadable>")
+            ));
+        }
+    }
+
+    // The binaryen pin has ONE home (the Makefile's `BINARYEN_VER`), and CI must keep
+    // READING it rather than repeating the literal. Those two constants drifted once
+    // already: CI provisioned a release predating `--enable-bulk-memory-opt`, and every
+    // wasm-opt rule died on an unknown option. Nothing stopped the literal coming back.
+    if !ci.contains("print-binaryen-ver") {
+        report.error(format!(
+            "{}: does not read the binaryen pin from `make print-binaryen-ver` — the Makefile \
+             is its single source of truth, and a literal `version_NNN` here is the two-constant \
+             drift that broke the wasm lanes",
+            workflow.display()
+        ));
+    }
+    // ANY binaryen release literal is the drift, whatever idiom carries it. The first
+    // version of this detector matched only the YAML-mapping form (`BINARYEN_VER:`) —
+    // which this repository no longer contains, because the fix that introduced the
+    // detector also replaced that mapping with a shell read of `print-binaryen-ver`. A
+    // detector keyed to a retired idiom matches nothing; the literal itself is the
+    // invariant.
+    match Regex::new(r"version_[0-9]+") {
+        Ok(literal) => {
+            if let Some(m) = literal.find(&ci) {
+                report.error(format!(
+                    "{}: carries the binaryen release literal {:?} — read the pin from \
+                     `make print-binaryen-ver` instead; two copies of this version drifted \
+                     once and took every wasm parity lane with them",
+                    workflow.display(),
+                    m.as_str()
+                ));
+            }
+        }
+        Err(err) => report.error(format!("binaryen literal pattern failed to compile: {err}")),
+    }
+}
+
+/// `purrdf::gts_compose::emit_gts` may be called from exactly ONE place: the mandated
+/// authorship profile in `crates/gts-profile`.
+///
+/// That crate exists because the claim "`emit_gmeow_gts` is the only production entry to the
+/// GTS writer" was false — three crates called the writer directly, so bundles shipped
+/// without the mandated transform chain and compression level. Extracting the profile fixed
+/// the instances; nothing stopped the next one. A chokepoint nothing enforces is a
+/// convention, and this file already scans for three sibling structural invariants.
+///
+/// Test code is exempt: a test may legitimately build a deliberately non-conforming bundle
+/// to prove the profile's audit rejects it. The scan walks `crates/` — the standalone
+/// `fuzz/` workspace sits outside it by design: fuzz targets are harness code that drives
+/// the writer deliberately, the same exemption test crates get.
+fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    for file in files {
+        // The profile crate IS the permitted entry.
+        if file.starts_with(crates_dir.join("gts-profile")) {
+            continue;
+        }
+        // Integration-test crates and benches are test code: their files carry no
+        // `#[cfg(test)]` module for the scrubber to blank, but a test may legitimately
+        // build a deliberately non-conforming bundle to prove the audit rejects it.
+        if file
+            .components()
+            .any(|c| matches!(c.as_os_str().to_str(), Some("tests" | "benches")))
+        {
+            continue;
+        }
+        let Ok(text) = fs::read_to_string(&file) else {
+            report.error(format!("{}: cannot read", file.display()));
+            continue;
+        };
+        let scrubbed = blank_comments_strings_and_cfg_test_modules(&text);
+        let lines: Vec<&str> = scrubbed.lines().collect();
+        for (idx, line) in lines.iter().enumerate() {
+            // `#[cfg(test)] use ...::emit_gts;` attaches the attribute to the item, not to a
+            // module, so the module scrubber cannot see it.
+            let test_gated = idx
+                .checked_sub(1)
+                .and_then(|prev| lines.get(prev))
+                .is_some_and(|prev| prev.trim() == "#[cfg(test)]");
+            if test_gated {
+                continue;
+            }
+            if line.contains("gts_compose::emit_gts") || line.contains("emit_gts(") {
+                let rel = file.strip_prefix(root).unwrap_or(&file);
+                report.error(format!(
+                    "{}:{}: calls the GTS writer directly — every production bundle must be \
+                     emitted through `gmeow_gts_profile::emit_gmeow_gts`, the single entry \
+                     that applies the mandated transform chain and compression level",
+                    rel.display(),
+                    idx + 1
+                ));
+            }
+        }
+    }
+}
+
+/// The `wasm-bindgen` library pin, the per-crate declarations, and the CLI CI installs must
+/// all name ONE version.
+///
+/// The CLI that generates the JS bindings refuses to run against a library version it does
+/// not match byte-for-byte, and one CLI is on PATH for the whole build. The pin therefore
+/// lives in `[workspace.dependencies]` and every `crates/*-wasm` manifest must consume it
+/// with `wasm-bindgen.workspace = true`; a crate that redeclares its own version reopens
+/// the disagreement the single declaration exists to make unrepresentable.
+///
+/// The remaining live drift is the CLI: CI installs `wasm-bindgen-cli@<version>` by literal,
+/// and a bump to the library pin that forgets that line produces a build failure naming a
+/// version mismatch rather than the drift that caused it. Both halves are checked here.
+fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
+    let root_manifest = root.join("Cargo.toml");
+    // The root manifest is a REQUIRED repository input: absent or unreadable, the guard
+    // could not run, and reporting agreement it never established is the silent
+    // degradation this file exists to prevent. The CI half is still checked on every
+    // path, so a missing manifest can never swallow a real CLI drift.
+    let text = match fs::read_to_string(&root_manifest) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen pin cannot be checked, which is a \
+                 failure, not agreement",
+                root_manifest.display()
+            ));
+            check_wasm_bindgen_ci_pin(root, None, report);
+            return;
+        }
+    };
+    let Ok(manifest) = text.parse::<toml::Value>() else {
+        report.error(format!("{}: cannot parse", root_manifest.display()));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let declared = manifest
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|ws| ws.get("dependencies"))
+        .and_then(toml::Value::as_table)
+        .and_then(|deps| deps.get("wasm-bindgen"))
+        .and_then(|dep| match dep {
+            toml::Value::String(version) => Some(version.clone()),
+            toml::Value::Table(table) => table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned),
+            _ => None,
+        });
+    let Some(declared) = declared else {
+        report.error(
+            "the root [workspace.dependencies] declares no wasm-bindgen — every `crates/*-wasm` \
+             crate must consume ONE pin from there, so the wasm-bindgen CLI on PATH can match \
+             all of them"
+                .to_owned(),
+        );
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let Some(exact) = declared.strip_prefix('=') else {
+        report.error(format!(
+            "[workspace.dependencies] pins wasm-bindgen {declared:?}, a range — it must be an \
+             EXACT pin (=x.y.z); the CLI refuses any library version it does not match \
+             byte-for-byte"
+        ));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+
+    // No `crates/*-wasm` crate may redeclare the version.
+    // An ABSENT crates/ directory means no members to check (minimal fixtures); a
+    // directory that exists but cannot be read is a failed check.
+    let crates_dir = root.join("crates");
+    let entries = if crates_dir.exists() {
+        match fs::read_dir(&crates_dir) {
+            Ok(entries) => Some(entries),
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read: {err} — the `*-wasm` members cannot be checked against \
+                     the workspace pin",
+                    crates_dir.display()
+                ));
+                None
+            }
+        }
+    } else {
+        None
+    };
+    if let Some(entries) = entries {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if !name.ends_with("-wasm") {
+                continue;
+            }
+            let manifest_path = entry.path().join("Cargo.toml");
+            if !manifest_path.is_file() {
+                continue;
+            }
+            let member = match fs::read_to_string(&manifest_path) {
+                Ok(member) => member,
+                Err(err) => {
+                    report.error(format!("{}: cannot read: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let parsed = match member.parse::<toml::Value>() {
+                Ok(parsed) => parsed,
+                Err(err) => {
+                    report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let dep = parsed
+                .get("dependencies")
+                .and_then(toml::Value::as_table)
+                .and_then(|deps| deps.get("wasm-bindgen"));
+            let uses_workspace = matches!(
+                dep,
+                Some(toml::Value::Table(table))
+                    if table.get("workspace").and_then(toml::Value::as_bool) == Some(true)
+            );
+            match dep {
+                None => report.error(format!(
+                    "{}: a `*-wasm` crate that declares no wasm-bindgen dependency",
+                    manifest_path.display()
+                )),
+                Some(_) if uses_workspace => {}
+                Some(other) => report.error(format!(
+                    "{}: redeclares wasm-bindgen as {other} — it must read the single \
+                     workspace pin with `wasm-bindgen.workspace = true`, so the version cannot \
+                     disagree with its sibling crates or with the CLI CI installs",
+                    manifest_path.display()
+                )),
+            }
+        }
+    }
+
+    check_wasm_bindgen_ci_pin(root, Some(exact), report);
+}
+
 /// A stable, order-independent key for a `purrdf` dependency declaration, so the root and fuzz
 /// manifests compare equal iff they name the same source. Returns `None` (with a parse error
 /// recorded) only when the manifest itself is unreadable/unparsable; a missing `purrdf` key
@@ -1845,20 +2394,40 @@ fn purrdf_source_key(
     workspace: bool,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(manifest_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", manifest_path.display()));
-            return None;
+    match purrdf_source_key_of(manifest_path, workspace) {
+        Ok(key) => Some(key),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let manifest = match text.parse::<toml::Value>() {
-        Ok(manifest) => manifest,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The same `purrdf` source key as [`purrdf_source_key`], as a hard failure rather than a
+/// recorded finding.
+///
+/// This is the ONE parser for the declared purrdf pin — a real TOML parse, never a line
+/// scanner, so a dotted key, a table-form `[workspace.dependencies.purrdf]`, or a commented
+/// header cannot silently read as "no pin". The docs-asset substrate gate keys off the LOCK
+/// via [`workspace_substrate_key`] rather than any manifest reader, so this stays private:
+/// visibility it earns only when a consumer outside this report actually exists.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the manifest cannot be read or parsed. A manifest that parses but
+/// declares no `purrdf` is NOT an error — it yields the distinct `absent` key, so a drift to
+/// "no purrdf at all" still compares unequal instead of vanishing.
+fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(manifest_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", manifest_path.display()),
+        })
+    })?;
+    let manifest = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", manifest_path.display()),
+        })
+    })?;
     let deps = if workspace {
         manifest
             .get("workspace")
@@ -1870,7 +2439,7 @@ fn purrdf_source_key(
     let dep = deps
         .and_then(toml::Value::as_table)
         .and_then(|t| t.get("purrdf"));
-    Some(match dep {
+    Ok(match dep {
         None => "absent".to_owned(),
         Some(toml::Value::String(version)) => format!("registry;version={version}"),
         Some(toml::Value::Table(table)) => {
@@ -1900,26 +2469,114 @@ fn locked_package_version(
     name: &str,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(lock_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", lock_path.display()));
-            return None;
+    match locked_package_version_of(lock_path, name) {
+        Ok(version) => Some(version),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let lock = match text.parse::<toml::Value>() {
-        Ok(lock) => lock,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", lock_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The RESOLVED version of `name` in `Cargo.lock`, as a hard failure rather than a recorded
+/// finding, for callers outside this report.
+///
+/// The lock is the only place the version that actually got COMPILED is written down. A
+/// manifest requirement is a range: `purrdf = "0.12.0"` admits `0.12.1`, so a key derived from
+/// the manifest compares equal across a substrate change the lock can see.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or when it resolves no package
+/// named `name` — an absent package is a hard failure here, not a silent skip, because the
+/// caller asked for an identity it cannot substitute.
+pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(lock_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", lock_path.display()),
+        })
+    })?;
+    let lock = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", lock_path.display()),
+        })
+    })?;
     lock.get("package")
-        .and_then(toml::Value::as_array)?
-        .iter()
-        .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        .and_then(toml::Value::as_array)
+        .and_then(|packages| {
+            packages
+                .iter()
+                .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        })
         .and_then(|pkg| pkg.get("version").and_then(toml::Value::as_str))
         .map(str::to_owned)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: resolves no package named {name:?}",
+                    lock_path.display()
+                ),
+            })
+        })
+}
+
+/// The identity of the substrate a wasm engine built from this workspace statically links.
+///
+/// Both components are read from `Cargo.lock`, never from a manifest requirement: the lock
+/// records what was RESOLVED and therefore what was compiled into the `.wasm`, while a
+/// manifest requirement is a range that compares equal across the very bump this key exists
+/// to catch.
+///
+/// - `purrdf` is the RDF/SHACL/SPARQL core the browser and native engines must share.
+/// - `wasm-bindgen` fixes the JS glue ABI; a glue/library skew produces bindings that load
+///   but misbehave, which the digest manifest cannot see either.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or resolves neither package.
+pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
+    let lock_path = root.join("Cargo.lock");
+    let purrdf = locked_package_version_of(&lock_path, "purrdf")?;
+    let bindgen = locked_package_version_of(&lock_path, "wasm-bindgen")?;
+    let binaryen = declared_binaryen_version(root)?;
+    Ok(format!(
+        "purrdf {purrdf}; wasm-bindgen {bindgen}; binaryen {binaryen}"
+    ))
+}
+
+/// The binaryen release the Makefile pins, as `BINARYEN_VER`.
+///
+/// Read from the Makefile because that is where the pin lives — CI provisions exactly this
+/// via `make print-binaryen-ver`, and every `wasm-opt` rule refuses a binary reporting a
+/// different version.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the Makefile cannot be read or declares no `BINARYEN_VER`.
+fn declared_binaryen_version(root: &Path) -> gmeow_errors::Result<String> {
+    let makefile = root.join("Makefile");
+    let text = fs::read_to_string(&makefile).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", makefile.display()),
+        })
+    })?;
+    text.lines()
+        .find_map(|line| {
+            let rest = line.strip_prefix("BINARYEN_VER")?;
+            let rest = rest.trim_start().strip_prefix(":=")?;
+            Some(rest.trim().to_owned())
+        })
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: declares no `BINARYEN_VER := <release>` — the wasm engines' bytes \
+                     depend on the binaryen that optimized them, so the substrate they were \
+                     built against cannot be stated without it",
+                    makefile.display()
+                ),
+            })
+        })
 }
 
 /// Parse a `major.minor.patch` version prefix (ignoring any `-pre`/`+build` suffix) into a
@@ -3387,6 +4044,256 @@ fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<P
 mod tests {
     use super::*;
 
+    /// Build a minimal tree carrying just the wasm-bindgen pin surface the parity guard
+    /// reads: the workspace pin, one `*-wasm` member, and the CI CLI install line.
+    fn write_wasm_bindgen_tree(root: &Path, workspace_pin: &str, member: &str, cli: &str) {
+        write(
+            &root.join("Cargo.toml"),
+            &format!("[workspace.dependencies]\nwasm-bindgen = {workspace_pin}\n"),
+        );
+        write(
+            &root.join("crates/query-wasm/Cargo.toml"),
+            &format!("[dependencies]\n{member}\n"),
+        );
+        write(&root.join("Makefile"), "BINARYEN_VER := version_130\n");
+        write(
+            &root.join(".github/workflows/ci.yml"),
+            &format!(
+                "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@{cli}\n      - run: make print-binaryen-ver\n"
+            ),
+        );
+    }
+
+    fn wasm_bindgen_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_wasm_bindgen_pin_parity(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_accepts_one_workspace_pin_matching_the_ci_cli() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        assert!(
+            wasm_bindgen_errors(tmp.path()).is_empty(),
+            "the agreeing arrangement must pass"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_member_that_redeclares_the_version() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen = \"=0.2.100\"",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("redeclares wasm-bindgen")),
+            "a member redeclaring the pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_cli_that_disagrees_with_the_library_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.100",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("installs wasm-bindgen-cli@0.2.100")),
+            "a CLI disagreeing with the library pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_an_absent_ci_workflow() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        fs::remove_file(tmp.path().join(".github/workflows/ci.yml")).unwrap();
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("cannot read")),
+            "an absent CI workflow must red — the CLI version cannot be checked, which is a \
+             failure, not agreement: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_never_passes_silently_on_an_unparsable_root_manifest() {
+        // The sharp case the old shape got wrong: `let Ok(text) = … else { return; }` made an
+        // unreadable manifest a SILENT pass, so a tree with a real CLI drift reported nothing
+        // at all. The comparison against the library pin genuinely cannot be performed
+        // without the manifest — but the run must red saying so, never go quiet.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.99",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "this is not valid toml = = =\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            !errors.is_empty(),
+            "an unparsable root manifest must not be a silent pass"
+        );
+        assert!(
+            errors.iter().any(|e| e.contains("cannot parse")),
+            "the failure must name the manifest it could not read: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_binaryen_literal() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - env:\n          BINARYEN_VER: version_119\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("binaryen release literal")),
+            "a literal binaryen pin in CI must red — it is the two-constant drift that broke \
+             the wasm lanes: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_shell_form_binaryen_literal() {
+        // The idiom the repository actually uses is a shell assignment; a detector keyed
+        // to the YAML-mapping form alone matches nothing here.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n      - run: BINARYEN_VER=\"version_119\" ./install.sh\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("version_119")),
+            "a shell-form binaryen literal must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_rejects_a_direct_production_emit_gts_call() {
+        let tmp = tempfile::tempdir().unwrap();
+        write(
+            &tmp.path().join("crates/rogue/src/lib.rs"),
+            "pub fn ship(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("calls the GTS writer directly")),
+            "a production emit_gts call outside the profile crate must red: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_permits_the_profile_crate_and_test_code() {
+        let tmp = tempfile::tempdir().unwrap();
+        // The permitted entry itself.
+        write(
+            &tmp.path().join("crates/gts-profile/src/lib.rs"),
+            "pub fn emit(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        // An integration-test crate driving the writer deliberately.
+        write(
+            &tmp.path().join("crates/consumer/tests/audit.rs"),
+            "fn nonconforming() { let _ = purrdf::gts_compose::emit_gts(&x); }\n",
+        );
+        // A `#[cfg(test)]`-gated import inside production source.
+        write(
+            &tmp.path().join("crates/consumer/src/lib.rs"),
+            "#[cfg(test)]\nuse purrdf::gts_compose::emit_gts;\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report.errors.is_empty(),
+            "the profile crate and test code are the permitted callers: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_workspace_without_the_declaration() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "[workspace.dependencies]\nserde = \"1\"\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("declares no wasm-bindgen")),
+            "a workspace without the declaration must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_range_workspace_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("a range")),
+            "a caret pin must red — the CLI matches one version only: {errors:?}"
+        );
+    }
+
     fn write(path: &Path, text: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).unwrap();
@@ -3399,9 +4306,15 @@ mod tests {
         // real src/gmeow_tools package with NO upstream-rdflib import anywhere (it
         // uses the purrdf.compat.rdflib facade instead).
         write(&root.join("src/gmeow_tools/sparql.py"), "import purrdf\n");
+        // The wasm-bindgen parity guard treats the root manifest and the CI pin lines as
+        // REQUIRED inputs, so the minimal repo carries an agreeing set of all three.
+        write(
+            &root.join("Cargo.toml"),
+            "[workspace.dependencies]\nwasm-bindgen = \"=0.2.125\"\n",
+        );
         write(
             &root.join(".github/workflows/ci.yml"),
-            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
+            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         // The Docker-free reality: no target reaches Docker/Java. The ELK/HermiT
         // lane and its maint-reason-hermit / maint-verify-docker / maint-pull-images
@@ -3587,6 +4500,104 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    /// Write one slice-owned Turtle surface with exactly the given bytes.
+    fn write_slice_ttl(root: &Path, rel: &str, body: &str) {
+        write(&root.join("slices").join(rel), body);
+    }
+
+    #[test]
+    fn a_slice_ttl_without_a_trailing_newline_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("no trailing newline")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn the_gate_covers_every_slice_ttl_not_only_module_ttl() {
+        // The bulk-edit failure mode reaches shapes.ttl, examples/, tests/ and
+        // mappings/ too; a gate narrower than its fixer only moves the recurrence.
+        for rel in [
+            "core/demo/shapes.ttl",
+            "core/demo/examples/sample.ttl",
+            "core/demo/tests/structural.ttl",
+            "core/demo/mappings/align.ttl",
+        ] {
+            let temp = tempfile::tempdir().unwrap();
+            write_minimal_repo(temp.path());
+            write_slice_ttl(temp.path(), rel, "ex:A a ex:B .");
+            let report = check_repo_static(temp.path());
+            assert!(
+                report
+                    .errors
+                    .iter()
+                    .any(|e| e.contains(rel) && e.contains("no trailing newline")),
+                "{rel} must be covered; got {:?}",
+                report.errors
+            );
+        }
+    }
+
+    #[test]
+    fn a_slice_ttl_ending_in_a_blank_line_is_rejected() {
+        // "Exactly one" is what the end-of-file hook normalizes to; accepting two
+        // would let the gate and the fixer disagree about what correct looks like.
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n\n");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("blank line")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn an_empty_slice_ttl_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("is empty")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn a_correctly_terminated_slice_ttl_passes() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n");
+        let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn the_real_repository_holds_the_trailing_newline_invariant() {
+        // The production surface, not a fixture. This is the assertion whose
+        // absence let the 67-file state persist across several commits.
+        let mut report = RepoStaticReport::default();
+        check_slice_ttl_trailing_newline(live_repo_root(), &mut report);
         assert!(report.ok(), "{:?}", report.errors);
     }
 
@@ -3870,24 +4881,21 @@ mod tests {
     }
 
     #[test]
-    fn declarative_gate_flags_the_live_legacy_corpus() {
-        // The BLANKET declarative-shape gate is not yet wired into `check_repo_static` (it
-        // activates at the terminal migration increment). This test proves its PRODUCTION
-        // semantics NOW: run it over the real corpus and confirm it reds on the coexisting legacy
-        // shapes that carry no `logic:formalizes` back-reference.
+    fn declarative_gate_is_clean_on_the_migrated_tree() {
+        // The BLANKET declarative-shape gate is now wired into `check_repo_static` (terminal
+        // migration increment): the hand-authored shape corpus has been retired to the `logic:`
+        // canon. Every authored `sh:NodeShape`/`sh:PropertyShape` remaining under the scanned
+        // roots (slices/shapes/dsl/governance) is either deleted (grounded + re-projected) or a
+        // backed boundary-kept residue carrying a `logic:formalizes` back-reference. So the gate
+        // must be GREEN on the live tree — this is the terminal single-source-of-truth invariant.
         let mut report = RepoStaticReport::default();
         check_declarative_shape_purity(live_repo_root(), &mut report);
         assert!(
-            !report.errors.is_empty(),
-            "the blanket declarative-shape gate must red on the live legacy corpus"
-        );
-        // `shapes/gmeow-shapes.ttl` is fully drained (zero hand-authored shapes) and is no
-        // longer a known-legacy unbacked file; `slices/core/inhabitation/shapes.ttl` still is.
-        let legacy = "slices/core/inhabitation/shapes.ttl";
-        assert!(
-            report.errors.iter().any(|e| e.contains(legacy)),
-            "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
-            report.errors.len()
+            report.errors.is_empty(),
+            "declarative-shape purity gate must be clean on the migrated tree; an unbacked \
+             authored shape remains (ground it in logic: and re-project, or add a \
+             logic:formalizes back-reference to the boundary-kept residue): {:?}",
+            report.errors
         );
     }
 
@@ -3929,6 +4937,51 @@ mod tests {
             backed.errors.is_empty(),
             "a logic:formalizes-backed node shape must pass; got {:?}",
             backed.errors
+        );
+    }
+
+    #[test]
+    fn declarative_gate_exempts_only_a_registered_fail_witness() {
+        // Two hand-authored node shapes in the SAME `counter-examples/` directory. One is
+        // registered as the slice's `gmeow:saFailWitness` for a `mustNot` structural assertion,
+        // one is not. The registration is the whole difference: a witness that proves the ban
+        // has teeth must not be punished by the scan, and a shape nobody registered must not
+        // hide behind sharing its directory with one that was.
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let ce = root.join("slices/z/tests/counter-examples");
+        std::fs::create_dir_all(&ce).unwrap();
+        write(
+            &root.join("slices/z/manifest.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://example.org/slice> a gmeow:Slice .\n",
+        );
+        write(
+            &root.join("slices/z/tests/structural.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://example.org/saNoShapes> a gmeow:StructuralAssertion ;\n\
+             \x20\x20gmeow:saFailWitness \"tests/counter-examples/registered.ttl\" .\n",
+        );
+        let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a sh:NodeShape ; sh:targetClass ex:C .\n";
+        write(&ce.join("registered.ttl"), declarer);
+        write(&ce.join("smuggled.ttl"), declarer);
+
+        let mut report = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut report);
+
+        assert!(
+            report.errors.iter().any(|e| e.contains("smuggled.ttl")),
+            "an UNREGISTERED hand-authored shape in counter-examples/ must still be flagged — a \
+             blanket directory exclusion is exactly the hole this closes: {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(|e| e.contains("registered.ttl")),
+            "a REGISTERED gmeow:saFailWitness must stay exempt, or a mustNot structural \
+             assertion could never carry non-vacuous evidence of its own ban: {:?}",
+            report.errors
         );
     }
 

@@ -1,14 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared vendored-wasm-asset harness.
+//! Shared wasm-asset harness.
 //!
-//! The docs site ships one or more **prebuilt** wasm engines (the offline SPARQL
-//! playground runtime, purrdf; the repo-free Tier-1 validator, gmeow-validate-wasm)
-//! as pinned `include_bytes!` build inputs under `crates/docs/assets/<name>/`. The
-//! regeneration pipeline never rebuilds wasm, so nothing structurally forces a
-//! vendored blob to stay in step with its source crate. Each such asset therefore
-//! shares one ritual:
+//! The docs site ships four wasm engines — the query engine behind the offline
+//! SPARQL playground (`gmeow-query-wasm`), the repo-free Tier-1 validator
+//! (`gmeow-validate-wasm`), the structured-DL reasoner (`gmeow-reason-wasm`), and
+//! the GMN codec (`gmeow-gmn-wasm`) — as pinned `include_bytes!` build inputs under
+//! `crates/docs/assets/<name>/`. **Every one is built in this repository** from the
+//! workspace `purrdf` pin by its own `make` target.
+//!
+//! The regeneration pipeline never rebuilds wasm, so nothing in the pipeline forces
+//! a committed blob to stay in step with its source crate; that is what the
+//! substrate record and [`attestation_status`](VendoredWasmAsset::attestation_status)
+//! exist to catch. Each asset shares one ritual:
 //!
 //! 1. a set of vendored files (the wasm module, its wasm-bindgen JS glue, and the
 //!    `.d.ts` type surface), each carrying a `.license` REUSE sidecar;
@@ -19,7 +24,7 @@
 //!    glue still exposes the expected export surface, and the pinned digests match.
 //!
 //! This module captures that ritual ONCE. Each asset is a single [`VendoredWasmAsset`]
-//! constant ([`PURRDF_ASSET`], [`VALIDATE_ASSET`]): the renderer calls
+//! constant ([`QUERY_ASSET`], [`VALIDATE_ASSET`]): the renderer calls
 //! [`VendoredWasmAsset::emit_into`] to write it into the site, and the asset's
 //! integration test calls [`VendoredWasmAsset::verify`] to gate it. There is exactly
 //! one definition per asset — the emission descriptor and the anti-rot verifier read
@@ -34,6 +39,47 @@ use crate::formats::{Capability, DocFormat, format_capabilities};
 
 /// The digest-manifest filename pinning the vendored bytes, in every asset dir.
 pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
+
+/// The substrate-identity record filename, in every asset dir.
+///
+/// Holds the RESOLVED `purrdf` and `wasm-bindgen` versions the engine's bytes were built
+/// against — purrdf because it is the RDF/SHACL/SPARQL core the browser and native engines
+/// must share, wasm-bindgen because it fixes the JS glue ABI. `DIGESTS.blake3` compares
+/// committed bytes to committed bytes and therefore cannot see either drift; this record can.
+/// See [`VendoredWasmAsset::substrate_status`].
+pub const SUBSTRATE_RECORD: &str = "SUBSTRATE.txt";
+
+/// The workspace root, derived from this crate's manifest directory.
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .expect("crates/docs sits two levels below the workspace root")
+        .to_path_buf()
+}
+
+/// The substrate identity the workspace currently RESOLVES, as a stable comparison key.
+///
+/// Reads `Cargo.lock` through the repo-static gate's parser rather than a compiled-in
+/// constant, because the thing being checked is the live resolution — a compiled constant
+/// would be rebuilt from the same source it is meant to police.
+///
+/// This delegates instead of reading the manifest itself. The reader here was previously a
+/// hand-rolled line scanner returning `Option`, and every way it could fail to understand the
+/// manifest — a dotted key, a table-form `[workspace.dependencies.purrdf]`, a comment after
+/// the header, an unreadable file — produced `None`, which
+/// [`substrate_status`](VendoredWasmAsset::substrate_status) turned into "asset current". The
+/// one gate that can see a substrate bump disarmed itself on any layout change.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read, cannot be parsed, or resolves neither
+/// `purrdf` nor `wasm-bindgen`. An unreadable substrate is a HARD FAILURE: a comparison that
+/// cannot read its own input has not been performed, and reporting agreement for it is the
+/// silent degradation this record exists to prevent.
+pub fn workspace_substrate_key() -> gmeow_errors::Result<String> {
+    gmeow_validate::repo_static::workspace_substrate_key(&workspace_root())
+}
 
 /// One expected export-surface probe: `needle` must appear verbatim in the vendored
 /// `file`. Its absence means the vendored bindings predate (or drifted from) the API
@@ -84,12 +130,10 @@ pub struct VendoredWasmAsset {
     /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.nq`): the
     /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
-    /// (F4/F5). For the three gmeow-owned engines (validate/reason/gmn) the byte-identity
-    /// is additionally EXECUTED on every pull request by their Node parity lanes
-    /// (the required CI `make heavy` → `wasm-parity`); the vendored sibling-repo
-    /// purrdf engine's witness is its native
-    /// `describe` output, with wasm parity owned upstream in the purrdf repo. `Option`
-    /// so a future non-witnessed asset need not reshape the descriptor.
+    /// (F4/F5). For ALL FOUR engines the byte-identity is additionally EXECUTED on
+    /// every pull request by their Node parity lanes (the required CI `make heavy` →
+    /// `wasm-parity`). `Option` so a future non-witnessed asset need not reshape the
+    /// descriptor.
     pub witness_attestation: Option<&'static str>,
 }
 
@@ -193,7 +237,28 @@ impl VendoredWasmAsset {
                 self.name, self.refresh_target
             ));
         }
-        None
+        self.substrate_status()
+    }
+
+    /// Whether this asset was built against the substrate the workspace CURRENTLY pins.
+    ///
+    /// This closes a drift class the digest manifest structurally cannot see. Every
+    /// engine statically links `purrdf`, but `DIGESTS.blake3` compares committed bytes
+    /// to committed bytes — so bumping the workspace `purrdf` pin leaves each committed
+    /// `.wasm` carrying the OLD engine while every gate stays green. The browser would
+    /// then run a different RDF/SHACL core than native, silently.
+    ///
+    /// Each asset therefore records the substrate identity it was built against, and
+    /// this compares that record to the live root manifest. A mismatch names the
+    /// refresh target rather than describing a symptom.
+    pub fn substrate_status(&self) -> Option<String> {
+        let recorded = std::fs::read_to_string(self.asset_dir().join(SUBSTRATE_RECORD));
+        substrate_verdict(
+            self.name,
+            self.refresh_target,
+            recorded.as_deref().map(str::trim),
+            workspace_substrate_key().as_deref(),
+        )
     }
 
     /// The full anti-rot gate for this asset: the vendored `.wasm` is a real module
@@ -250,8 +315,22 @@ impl VendoredWasmAsset {
         let manifest_path = dir.join(DIGEST_MANIFEST);
         let current = self.current_manifest();
         if std::env::var_os(self.bless_env).is_some() {
+            // Resolve the substrate BEFORE pinning anything. Writing the digests first and
+            // failing here would leave bytes pinned with no record of what they were built
+            // against — which every later run reads as "current". This runs only on the
+            // refresh path, which depends on the Node parity lane, so a substrate record
+            // can only ever describe bytes that passed parity.
+            let key = workspace_substrate_key().unwrap_or_else(|e| {
+                panic!(
+                    "cannot compute the substrate key to stamp {} — refusing to bless \
+                     {DIGEST_MANIFEST} for bytes whose substrate would go unrecorded: {e}",
+                    self.name
+                )
+            });
             std::fs::write(&manifest_path, &current)
                 .unwrap_or_else(|e| panic!("write {DIGEST_MANIFEST} for {}: {e}", self.name));
+            std::fs::write(dir.join(SUBSTRATE_RECORD), format!("{key}\n"))
+                .unwrap_or_else(|e| panic!("write {SUBSTRATE_RECORD} for {}: {e}", self.name));
             return;
         }
         let committed = std::fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
@@ -270,57 +349,179 @@ impl VendoredWasmAsset {
     }
 }
 
-/// The vendored purrdf wasm engine — the offline docs SPARQL playground runtime.
+/// The gmeow-query-wasm engine — the offline docs SPARQL playground + bundle
+/// explorer runtime, built HERE from the workspace `purrdf` pin.
 ///
-/// Emitted under `assets/purrdf/`; refreshed by `make maint-refresh-purrdf-asset`.
-/// Behaviour (does a query actually evaluate?) is covered by the purrdf Node lane;
-/// this descriptor drives the structural + digest anti-rot gate
-/// (`crates/docs/tests/purrdf_asset.rs`).
-pub static PURRDF_ASSET: VendoredWasmAsset = VendoredWasmAsset {
-    name: "purrdf",
+/// Emitted under `assets/query/`; refreshed by `make maint-refresh-query-asset`.
+/// Behaviour (does a query actually evaluate?) is covered by the crate's Node parity
+/// lane; this descriptor drives the structural + digest anti-rot gate
+/// (`crates/docs/tests/query_asset.rs`).
+/// The substrate comparison itself, separated from reading the two inputs so its failure
+/// branches can be exercised.
+///
+/// Every branch that is not "the two agree" is a FAILURE. In particular an unreadable
+/// workspace key is not silence: a comparison that could not read its own input has not been
+/// performed, and reporting the asset current for it is the exact degradation this record
+/// exists to prevent.
+fn substrate_verdict<E: std::fmt::Display, F: std::fmt::Display>(
+    name: &str,
+    refresh_target: &str,
+    recorded: Result<&str, E>,
+    current: Result<&str, F>,
+) -> Option<String> {
+    let recorded = match recorded {
+        Ok(recorded) => recorded,
+        Err(e) => {
+            return Some(format!(
+                "engine '{name}' has no {SUBSTRATE_RECORD}, so nothing proves it was built \
+                 against the substrate the workspace pins (run make {refresh_target}): {e}"
+            ));
+        }
+    };
+    let current = match current {
+        Ok(current) => current,
+        Err(e) => {
+            return Some(format!(
+                "engine '{name}' cannot be checked against the workspace substrate: {e} — an \
+                 unreadable pin is a failed comparison, not agreement"
+            ));
+        }
+    };
+    if recorded != current {
+        return Some(format!(
+            "engine '{name}' was built against substrate [{recorded}] but the workspace now \
+             pins [{current}] — the shipped browser engine links a DIFFERENT substrate than \
+             native (run make {refresh_target})"
+        ));
+    }
+    None
+}
+
+/// The F4/F5 attestation gate. [`format_capabilities`] declares the per-format capability
+/// partition statically; this is a SEPARATE guard that HARD-FAILS the build if any format
+/// REPRESENTS an interactive capability whose backing engine lacks a present, current
+/// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
+/// with two other gate-enforced facts — the `wasm-parity` lane, which RUNS the native≡wasm
+/// parity for ALL FOUR engines (query/validate/reason/gmn) on the required CI `make heavy`
+/// lane (every pull request; lifted off the local `make check` only because four release
+/// wasm builds plus four Node suites are breadth-dominated), and the digest
+/// pin, which ties the shipped bytes to the attested build (the `maint-refresh-*-asset`
+/// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
+/// "the format declares the capability AND its engine's parity is proven-and-current."
+/// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
+/// a missing or stale attestation is a HARD FAIL that forbids the capability, never a silent
+/// drop. (Every engine's parity is executed by its own Node lane; the query engine's witness is
+/// the native `Dataset::query` corpus results, digest-pinned here.)
+///
+/// Returns one message per (format, capability, engine) violation; an empty vector is a
+/// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
+#[must_use]
+pub fn check_capability_attestations() -> Vec<String> {
+    let mut errors = Vec::new();
+    for fmt in DocFormat::ALL {
+        for cap in format_capabilities(fmt).representable {
+            for asset in capability_backing_assets(cap) {
+                if let Some(e) = asset.attestation_status() {
+                    errors.push(format!(
+                        "format '{}' represents interactive capability '{}', but its backing \
+                         engine's witness-attestation is not current: {e}",
+                        fmt.slug(),
+                        cap.slug(),
+                    ));
+                }
+            }
+        }
+    }
+    errors
+}
+
+/// EVERY wasm engine this repository ships, and the ONE list of them.
+///
+/// Both the renderer (which emits them into the site) and the gates that police them
+/// iterate this. When the list was copied per consumer, a gate could assert over four
+/// engines while the renderer shipped five, and its own docstring claimed a fifth engine
+/// "cannot" be added without reddening it — a claim the copy made false. Adding an engine
+/// here reaches every consumer at once.
+pub static ALL_ASSETS: &[&VendoredWasmAsset] =
+    &[&QUERY_ASSET, &VALIDATE_ASSET, &REASON_ASSET, &GMN_ASSET];
+
+pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "query",
     emitted_files: &[
         (
-            "gmeow_rdf_wasm.js",
-            include_bytes!("../assets/purrdf/gmeow_rdf_wasm.js"),
+            "gmeow_query_wasm.js",
+            include_bytes!("../assets/query/gmeow_query_wasm.js"),
         ),
         (
-            "gmeow_rdf_wasm_bg.wasm",
-            include_bytes!("../assets/purrdf/gmeow_rdf_wasm_bg.wasm"),
+            "gmeow_query_wasm_bg.wasm",
+            include_bytes!("../assets/query/gmeow_query_wasm_bg.wasm"),
         ),
     ],
     vendored_files: &[
-        "gmeow_rdf_wasm.d.ts",
-        "gmeow_rdf_wasm.js",
-        "gmeow_rdf_wasm_bg.wasm",
-        "gmeow_rdf_wasm_bg.wasm.d.ts",
+        "gmeow_query_wasm.d.ts",
+        "gmeow_query_wasm.js",
+        "gmeow_query_wasm_bg.wasm",
+        "gmeow_query_wasm_bg.wasm.d.ts",
+        // BOTH committed attestations are pinned. An attestation the digest manifest does
+        // not cover can be edited to match a drifted engine without any gate noticing,
+        // which is the failure the manifest exists to make impossible.
+        "WITNESS.query.txt",
+        "WITNESS.describe.nt",
     ],
-    wasm_file: "gmeow_rdf_wasm_bg.wasm",
-    min_wasm_len: 100_000,
+    wasm_file: "gmeow_query_wasm_bg.wasm",
+    min_wasm_len: 2_300_000,
     export_checks: &[
         ExportCheck {
-            file: "gmeow_rdf_wasm.js",
+            file: "gmeow_query_wasm.js",
             needle: "query(sparql, base)",
             hint: "vendored bindings lack the Dataset.query method",
         },
         ExportCheck {
-            file: "gmeow_rdf_wasm.js",
+            file: "gmeow_query_wasm.js",
             needle: "dataset_query",
             hint: "vendored bindings lack the dataset_query wasm import",
         },
         ExportCheck {
-            file: "gmeow_rdf_wasm.d.ts",
+            file: "gmeow_query_wasm.d.ts",
             needle: "query(sparql: string, base?: string | null): string",
             hint: "vendored .d.ts lacks the query type signature",
         },
+        ExportCheck {
+            file: "gmeow_query_wasm.js",
+            needle: "static fromGts(gts)",
+            hint: "vendored bindings lack the Dataset.fromGts static method — the bundle explorer's load path",
+        },
+        ExportCheck {
+            file: "gmeow_query_wasm.d.ts",
+            needle: "static fromGts(gts: Uint8Array): Dataset;",
+            hint: "vendored .d.ts lacks the fromGts type signature",
+        },
+        ExportCheck {
+            file: "gmeow_query_wasm.js",
+            needle: "function blake3Hex(",
+            hint: "vendored bindings lack blake3Hex — the site would have no way to verify the \
+                   fetched bundle against the manifest's content address",
+        },
+        ExportCheck {
+            file: "gmeow_query_wasm.d.ts",
+            needle: "function blake3Hex(bytes: Uint8Array): string;",
+            hint: "vendored .d.ts lacks the blake3Hex type signature",
+        },
     ],
-    refresh_target: "maint-refresh-purrdf-asset",
-    bless_env: "GMEOW_PURRDF_BLESS",
-    // The bundle-explorer describe attestation (`WITNESS.describe.nt`): the native
-    // purrdf describe of a deterministic term over the object-level core bundle the
-    // wasm engine reproduces (proven by `crates/validate/tests/witness_explore.rs`;
-    // the vendored engine IS purrdf's parity-proven wasm build). Task 14 consumes it
-    // to gate the explorer's interactive capability.
-    witness_attestation: Some("WITNESS.describe.nt"),
+    refresh_target: "maint-refresh-query-asset",
+    bless_env: "GMEOW_QUERY_BLESS",
+    // The query-engine parity attestation (`WITNESS.query.txt`): the native
+    // `Dataset::query` results over the committed corpus
+    // (`crates/query-wasm/js/tests/corpus.trig` + `queries.json`), which the shipped
+    // wasm engine must reproduce byte-for-byte. Proven by
+    // `crates/query-wasm/tests/witness_query.rs` (native) and
+    // `crates/query-wasm/js/tests/shipped.test.mjs`, which loads the COMMITTED engine
+    // under this directory — not a freshly-built package — and compares against the
+    // same file. Also listed in `vendored_files` above, so `DIGESTS.blake3` pins its
+    // exact bytes alongside the engine's: a stale witness (one that no longer matches
+    // the corpus it claims to attest) cannot slip through re-vendoring undetected.
+    // Task 14 consumes this to gate the explorer's interactive capability.
+    witness_attestation: Some("WITNESS.query.txt"),
 };
 
 /// The vendored gmeow-validate-wasm engine — the repo-free Tier-1 GMEOW validator
@@ -349,7 +550,7 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         "gmeow_validate_wasm_bg.wasm.d.ts",
     ],
     wasm_file: "gmeow_validate_wasm_bg.wasm",
-    min_wasm_len: 100_000,
+    min_wasm_len: 3_600_000,
     export_checks: &[
         ExportCheck {
             file: "gmeow_validate_wasm.js",
@@ -405,7 +606,7 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         "gmeow_reason_wasm_bg.wasm.d.ts",
     ],
     wasm_file: "gmeow_reason_wasm_bg.wasm",
-    min_wasm_len: 100_000,
+    min_wasm_len: 3_100_000,
     export_checks: &[
         ExportCheck {
             file: "gmeow_reason_wasm.js",
@@ -460,7 +661,7 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         "gmeow_gmn_wasm_bg.wasm.d.ts",
     ],
     wasm_file: "gmeow_gmn_wasm_bg.wasm",
-    min_wasm_len: 100_000,
+    min_wasm_len: 1_800_000,
     export_checks: &[
         ExportCheck {
             file: "gmeow_gmn_wasm.js",
@@ -508,8 +709,8 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
 /// not engine-backed, so they require no attestation.
 #[must_use]
 pub fn capability_backing_assets(cap: Capability) -> &'static [&'static VendoredWasmAsset] {
-    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&PURRDF_ASSET];
-    const INTERACTIVITY: &[&VendoredWasmAsset] = &[&PURRDF_ASSET, &VALIDATE_ASSET];
+    const LIVE_SPARQL: &[&VendoredWasmAsset] = &[&QUERY_ASSET];
+    const INTERACTIVITY: &[&VendoredWasmAsset] = &[&QUERY_ASSET, &VALIDATE_ASSET];
     const LIVE_REASONING: &[&VendoredWasmAsset] = &[&REASON_ASSET, &GMN_ASSET];
     const NONE: &[&VendoredWasmAsset] = &[];
     match cap {
@@ -520,40 +721,58 @@ pub fn capability_backing_assets(cap: Capability) -> &'static [&'static Vendored
     }
 }
 
-/// The F4/F5 attestation gate. [`format_capabilities`] declares the per-format capability
-/// partition statically; this is a SEPARATE guard that HARD-FAILS the build if any format
-/// REPRESENTS an interactive capability whose backing engine lacks a present, current
-/// native↔wasm witness-attestation ([`VendoredWasmAsset::attestation_status`]). Composed
-/// with two other gate-enforced facts — the `wasm-parity` lane, which RUNS the native≡wasm
-/// parity for the gmeow-owned engines (validate/reason/gmn) on the required CI `make heavy`
-/// lane (every pull request; lifted off the local `make check` only because four release
-/// wasm builds plus three Node suites are breadth-dominated), and the digest
-/// pin, which ties the shipped bytes to the attested build (the `maint-refresh-*-asset`
-/// targets re-pin only after `*-pkg-test` passes) — it enforces the conjunction
-/// "the format declares the capability AND its engine's parity is proven-and-current."
-/// So a represented interactive `logic:preservationKind` cannot ship without proven parity:
-/// a missing or stale attestation is a HARD FAIL that forbids the capability, never a silent
-/// drop. (The vendored sibling-repo purrdf engine's parity is owned upstream; its witness is
-/// the native `describe` output, digest-pinned here.)
-///
-/// Returns one message per (format, capability, engine) violation; an empty vector is a
-/// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
-#[must_use]
-pub fn check_capability_attestations() -> Vec<String> {
-    let mut errors = Vec::new();
-    for fmt in DocFormat::ALL {
-        for cap in format_capabilities(fmt).representable {
-            for asset in capability_backing_assets(cap) {
-                if let Some(e) = asset.attestation_status() {
-                    errors.push(format!(
-                        "format '{}' represents interactive capability '{}', but its backing \
-                         engine's witness-attestation is not current: {e}",
-                        fmt.slug(),
-                        cap.slug(),
-                    ));
-                }
-            }
-        }
+#[cfg(test)]
+mod substrate_tests {
+    use super::*;
+
+    const OK: Result<&str, &str> = Ok("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130");
+
+    #[test]
+    fn agreeing_substrate_is_current() {
+        assert!(
+            substrate_verdict("query", "maint-refresh-query-asset", OK, OK).is_none(),
+            "matching records must report current"
+        );
     }
-    errors
+
+    #[test]
+    fn a_missing_stamp_is_a_failure() {
+        let out = substrate_verdict::<&str, &str>(
+            "query",
+            "maint-refresh-query-asset",
+            Err("No such file or directory"),
+            OK,
+        )
+        .expect("a missing stamp must not report current");
+        assert!(out.contains("has no SUBSTRATE.txt"), "{out}");
+        assert!(out.contains("maint-refresh-query-asset"), "{out}");
+    }
+
+    #[test]
+    fn a_mismatched_stamp_is_a_failure() {
+        let out = substrate_verdict::<&str, &str>(
+            "query",
+            "maint-refresh-query-asset",
+            Ok("purrdf 0.11.0; wasm-bindgen 0.2.125; binaryen version_130"),
+            OK,
+        )
+        .expect("a stale stamp must not report current");
+        assert!(out.contains("0.11.0"), "{out}");
+        assert!(out.contains("DIFFERENT substrate"), "{out}");
+    }
+
+    #[test]
+    fn an_unreadable_workspace_pin_is_a_failure_not_agreement() {
+        let out = substrate_verdict::<&str, &str>(
+            "query",
+            "maint-refresh-query-asset",
+            OK,
+            Err("Cargo.lock: cannot read"),
+        )
+        .expect("an unreadable pin must not report current");
+        assert!(
+            out.contains("failed comparison, not agreement"),
+            "the unreadable-pin branch must say so plainly: {out}"
+        );
+    }
 }

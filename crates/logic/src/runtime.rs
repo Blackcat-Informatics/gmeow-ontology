@@ -418,6 +418,10 @@ const EXTERNAL_BACKWARD_SOURCE: &[(&str, &str)] = &[
 #[cfg(test)]
 const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
+        "physical/interning.rs",
+        "#[cfg(test)] generating proptest suite for math: expression interning and alpha-equivalence identity — it DRIVES physical/lower.rs's production entry points but is itself test scaffolding with no production caller; the lowering it exercises is pinned as a BACKWARD_SOURCE member in its own right",
+    ),
+    (
         "physical/term_dag_tests.rs",
         "#[cfg(test)] invariant suite for the relocated shared term arena (injectivity, alpha-collapse, metavariable identity, and the DAG <-> logic: IR congruence) — test scaffolding with no production caller; the arena's own source is pinned in EXTERNAL_BACKWARD_SOURCE",
     ),
@@ -505,6 +509,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "math_dimension.rs",
         "the math: measure-and-dimension reasoned-graph gate over an already-reasoned graph — post-hoc verify-time enforcement, not backward-dispatch decision logic",
+    ),
+    (
+        "math_expression.rs",
+        "the math: expression-identity reasoned-graph gate over an already-reasoned graph — post-hoc verify-time enforcement (structuralKey drift/leak/rejection), not backward-dispatch decision logic",
     ),
     (
         "nary.rs",

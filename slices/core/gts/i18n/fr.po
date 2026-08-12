@@ -772,3 +772,11 @@ msgstr "Schéma inconnu d'un médium"
 msgctxt "https://blackcatinformatics.ca/gmeow/MediumUnknownSchema|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a blob's rep does not resolve to a registered gmeow:PayloadSchema. HARD FAIL, and the reason the registry exists at all: if the schema were merely derived from the frame, an unregistered rep would decode as an unclassified blob with an UNDEFINED medium assignment, which is exactly the silent capability degradation the no-optionality rule forbids. Adding an archive to the carrier without registering its schema raises this rather than shipping an unmediated payload."
 msgstr "L'échec levé lorsque la représentation d'un blob ne se résout pas en un gmeow:PayloadSchema référencé. ÉCHEC BLOQUANT, et la raison d'être même du registre : si le schéma était simplement dérivé de la trame, une représentation non référencée se décoderait comme un blob non classé doté d'une affectation de médium INDÉFINIE, ce qui est exactement la dégradation silencieuse de capacité que la règle de non-optionalité interdit. Ajouter une archive au porteur sans référencer son schéma lève cet échec plutôt que de livrer une charge utile sans médium."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS head-id canonical pattern constraint"
+msgstr "contrainte de motif canonique de l'identifiant de tête GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."
+msgstr "Une contrainte d'intégrité en monde clos : une valeur de gmeow:gtsHeadId doit être canonique — le préfixe littéral « blake3: » suivi d'exactement 64 chiffres hexadécimaux minuscules (spécification GTS §3.1, §9.1)."

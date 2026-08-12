@@ -26,29 +26,26 @@
 //!
 //! [`validate_mandated_frames`] is the wire-level audit that proves any of them.
 //!
-//! It is deliberately a LEAF crate: `gmeow-pipeline` depends on `gmeow-math` and
-//! `gmeow-music`, so hosting the profile inside `gmeow-pipeline` would make it
-//! unreachable from exactly the producers that need it. The `Transform`
-//! diagnostic kind lives here for the same reason — leaving it in
-//! `gmeow-pipeline` would merely relocate the cycle.
+//! It is deliberately a LEAF crate — `purrdf` + `gmeow-errors` + `ciborium`, nothing
+//! else — precisely so that every bundle author can depend on it. The profile
+//! previously lived inside `gmeow-pipeline`, which put it out of reach of
+//! `gmeow-math` (which `gmeow-pipeline` itself depends on, so the edge cannot be
+//! reversed) and of `gmeow-music`; both consequently called the writer directly and
+//! the single-entry claim was false. A narrow-waist leaf is what makes the claim true
+//! rather than aspirational.
+//!
+//! Its diagnostics live in [`error`] under the leaf's own `gts-profile.*` code
+//! namespace. Raising `gmeow-pipeline`'s `pipeline.transform` from here would either
+//! relocate the very dependency cycle the extraction breaks, or leave a code whose
+//! name misreports which crate owns it.
+
+pub mod error;
 
 use ciborium::value::Value;
-use gmeow_errors::{FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 use purrdf::gts::model::{Quad, Term};
 use purrdf::gts::wire::{SELF_DESCRIBE_TAG, iter_items, map_get, unwrap_header};
 use purrdf::gts::writer::{FrameOptions, Writer, term_to_wire};
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
-
-define_diag_kind! {
-    /// A hard defect raised inside the native MAXIMAL(G) transform (skolemization,
-    /// saturation, projection, GTS emission): a malformed cell, an unparsable
-    /// input graph, or a serialization failure. The RDF value is invalid or the
-    /// codec refused — a HARD FAIL, never papered over.
-    pub struct Transform { message: String }
-    code = "pipeline.transform";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "transform error: {}", message;
-}
 
 /// Required transform on every payload-bearing GMEOW GTS frame.
 pub const GMEOW_GTS_FRAME_TRANSFORM: &str = "zstd-rsyncable";
@@ -62,7 +59,7 @@ pub const GMEOW_GTS_ZSTD_LEVEL: i32 = 12;
 const _: () = assert!(purrdf::gts_compose::DIST_ZSTD_LEVEL == GMEOW_GTS_ZSTD_LEVEL);
 
 fn profile_error(message: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(Transform {
+    gmeow_errors::Diag::of_kind(error::Profile {
         message: message.into(),
     })
 }
@@ -341,7 +338,7 @@ pub fn emit_gmeow_gts_with_medium(
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
         medium,
     )
-    .map_err(|message| gmeow_errors::Diag::of_kind(Transform { message }))
+    .map_err(|message| gmeow_errors::Diag::of_kind(error::Profile { message }))
 }
 
 /// Serialize a frozen carrier [`RdfDataset`](purrdf::RdfDataset) to GMEOW GTS
@@ -363,7 +360,7 @@ pub fn dataset_to_gmeow_gts(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     let mut builder = SnapshotBuilder::new();
     builder
         .add_dataset(dataset)
-        .map_err(|message| gmeow_errors::Diag::of_kind(Transform { message }))?;
+        .map_err(|message| gmeow_errors::Diag::of_kind(error::Profile { message }))?;
     emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
 }
 
@@ -495,7 +492,7 @@ impl GmeowGtsWriter {
         self.inner
             .add_frame_with_options(frame_type, options)
             .map_err(|err| {
-                gmeow_errors::Diag::of_kind(Transform {
+                gmeow_errors::Diag::of_kind(error::Profile {
                     message: format!("{frame_type} frame: {err}"),
                 })
             })
@@ -743,9 +740,13 @@ mod tests {
         validate_mandated_frames(&bytes).expect("fixture uses mandated frame profile");
     }
 
+    /// The leaf raises its OWN code namespace. A profile violation reported under
+    /// `pipeline.transform` would name a crate that does not own this check — and
+    /// depending on `gmeow-pipeline` to borrow that kind would reinstate the very
+    /// cycle this crate was extracted to break.
     #[test]
-    fn transform_kind_keeps_its_registered_code() {
-        assert_eq!(Transform::CODE, "pipeline.transform");
+    fn profile_kind_keeps_its_registered_code() {
+        assert_eq!(error::Profile::CODE, "gts-profile.frame");
     }
 
     #[test]

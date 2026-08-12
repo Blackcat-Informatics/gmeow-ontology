@@ -6,43 +6,18 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # =========================================================================== #
 # NOTATION PROJECTION SHAPES
 # =========================================================================== #
-
-gmeow:NotationProjectionProfileShape
-    a sh:NodeShape ;
-    rdfs:label "Notation projection profile shape"@x-gmeow-english ;
-    skos:definition "A NotationProjectionProfile must describe exactly one NotationSystem, must reference at least one projection function, and must declare at least one representable parameter or one incurred loss."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
-    sh:targetClass gmeow:NotationProjectionProfile ;
-    sh:property [
-        sh:path gmeow:notationSystemOf ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:class gmeow:NotationSystem ;
-        sh:severity sh:Violation ;
-        sh:message "A NotationProjectionProfile must describe exactly one NotationSystem." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:projectionFunction ;
-        sh:minCount 1 ;
-        sh:nodeKind sh:IRI ;
-        sh:severity sh:Violation ;
-        sh:message "A NotationProjectionProfile must reference at least one FnO projection function (Principle 12)." ;
-    ] ;
-    sh:or (
-        [ sh:property [ sh:path gmeow:representableParameter ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ] ]
-        [ sh:property [ sh:path gmeow:declaredLoss ; sh:minCount 1 ; sh:nodeKind sh:IRI ; sh:class gmeow:ProjectionLoss ; sh:severity sh:Violation ] ]
-    ) ;
-    sh:message "A NotationProjectionProfile must declare at least one representableParameter or one declaredLoss." .
 
 gmeow:ProjectionLossNoSubclassShape
     a sh:NodeShape ;
     rdfs:label "ProjectionLoss no-subclass shape"@x-gmeow-english ;
     skos:definition "ProjectionLoss is a value vocabulary; no subclasses are allowed (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    logic:formalizes gmeow:ProjectionLossNoSubclassConstraint ;
     sh:targetNode gmeow:ProjectionLoss ;
     sh:sparql [
         sh:select """
@@ -61,6 +36,7 @@ gmeow:NotationSystemSMuFLShape
     rdfs:label "Notation system SMuFL codepoint shape"@x-gmeow-english ;
     skos:definition "When a notation system carries a SMuFL codepoint annotation, the value must be a Unicode codepoint string."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    logic:formalizes gmeow:NotationSystemSMuFLPatternConstraint ;
     sh:targetClass gmeow:NotationSystem ;
     sh:property [
         sh:path gmeow:smuflCodepoint ;

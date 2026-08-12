@@ -2,9 +2,9 @@
 source: crates/docs/tests/render_golden.rs
 expression: head
 ---
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14442 24246" width="100%" role="img" aria-labelledby="purrdf-title purrdf-desc" data-purrdf-schema="purrdf-viz-export-1">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14458 24350" width="100%" role="img" aria-labelledby="purrdf-title purrdf-desc" data-purrdf-schema="purrdf-viz-export-1">
 <title id="purrdf-title">Slice dependency graph</title>
-<desc id="purrdf-desc">Compact resource graph mode RDF 1.2 visualization with 86 terms, 868 structural statements, 868 assertions, and 0 statement-layer relations.</desc>
+<desc id="purrdf-desc">Compact resource graph mode RDF 1.2 visualization with 86 terms, 872 structural statements, 872 assertions, and 0 statement-layer relations.</desc>
 <defs>
 <marker id="arrow-assertion" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#147d8a"/></marker>
 <marker id="arrow-role" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>

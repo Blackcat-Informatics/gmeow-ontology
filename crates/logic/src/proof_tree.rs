@@ -52,6 +52,13 @@
 //! Predicates, constants, and rule identities are IRIs, so they ride as TPTP **single-quoted
 //! atoms** (`'https://…#c'('https://…#w')`) rather than being lossily shortened to a local
 //! name: quoting is total and injective, a local-name projection is neither.
+//!
+//! [`ProofTree::of_answer`]: crate::proof_tree::ProofTree::of_answer
+//! [`ProofTree::to_tstp`]: crate::proof_tree::ProofTree::to_tstp
+//! [`ProofStepView`]: crate::proof_tree::ProofStepView
+//! [`ProofStepView::derivation_iri`]: crate::proof_tree::ProofStepView::derivation_iri
+//! [`tstp_step_name`]: crate::proof_tree::tstp_step_name
+//! [`tstp_step_derivation_iri`]: crate::proof_tree::tstp_step_derivation_iri
 
 use std::collections::{BTreeMap, HashMap};
 

@@ -18502,6 +18502,78 @@ msgctxt "https://blackcatinformatics.ca/logic/ContinuationRepeatExcludesReviseCo
 msgid "The logic:Constraint rejecting a continuation record typed as BOTH logic:ContinuationRepeat and logic:ContinuationRevise. It completes the pairwise disjointness of the three continuation kinds, whose resume leg logic:ContinuationKindDisjointnessConstraint carries: repeat mints a new logic:Enactment against a new snapshot and leaves the prescription untouched, revise mints a new logic:PrescriptionVersion and leaves in-flight enactments on the version they pinned, and a record asserting both has said neither which occurrence continued nor which prescription governs it."
 msgstr "拒斥同时被类型化为 logic:ContinuationRepeat 与 logic:ContinuationRevise 的续行记录的 logic:Constraint。它补全了三种续行类别的两两互斥，其中「恢复」那一支由 logic:ContinuationKindDisjointnessConstraint 承担：重复会针对一份新快照铸出一个新的 logic:Enactment，而处方原封不动；修订会铸出一个新的 logic:PrescriptionVersion，而在飞的执行仍停留在各自所固定的版本上；一条同时断言两者的记录，既没说清是哪一次发生在延续，也没说清由哪份处方治理它。"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceJustificationRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence justification requiredness constraint"
+msgstr "GroundingCorrespondence 理据必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceJustificationRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued gmeow:justification."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个以 IRI 为值的 gmeow:justification。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceSourceEndpointRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence source-endpoint requiredness constraint"
+msgstr "GroundingCorrespondence 源端点必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceSourceEndpointRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:sourceEndpoint."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个以 IRI 为值的 logic:sourceEndpoint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceTargetEndpointRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence target-endpoint requiredness constraint"
+msgstr "GroundingCorrespondence 目标端点必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceTargetEndpointRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one IRI-valued logic:targetEndpoint."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个以 IRI 为值的 logic:targetEndpoint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismClassRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence morphismClass requiredness constraint"
+msgstr "GroundingCorrespondence 态射类必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismClassRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismClass."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个 logic:morphismClass。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismKindRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence morphismKind requiredness constraint"
+msgstr "GroundingCorrespondence 态射种类必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondenceMorphismKindRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:morphismKind."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个 logic:morphismKind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondencePreservationKindRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GroundingCorrespondence preservationKind requiredness constraint"
+msgstr "GroundingCorrespondence 保持种类必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingCorrespondencePreservationKindRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a logic:GroundingCorrespondence must explicitly declare one logic:preservationKind."
+msgstr "一条封闭世界必需性约束：logic:GroundingCorrespondence 必须显式声明一个 logic:preservationKind。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "String Pattern Constraint"
+msgstr "字符串模式约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Compact sugar for a per-value string-pattern constraint: a logic:onClass target (optional — omitted, the guard is the value path's own presence), a logic:valuePath predicate, a logic:stringOp mode (regexRequired / regexForbidden / prefixRequired / prefixForbidden), and a literal logic:stringPattern every (or no) value on that path must satisfy. Expands to a canonical logic:Constraint carrying an honest reified FOL integrity using logic:termRegex / logic:termStrStarts, lowered to a sh:SPARQLConstraint — regex is out of the EL/OWL restriction fragment, so this stays procedural rather than a native declarative sh:pattern facet. Frontend-only authoring shortcut."
+msgstr "逐值字符串模式约束的紧凑语法糖：一个 logic:onClass 目标（可选——省略时，守卫即为值路径自身的存在）、一个 logic:valuePath 谓词、一个 logic:stringOp 模式（regexRequired / regexForbidden / prefixRequired / prefixForbidden），以及一个字面量 logic:stringPattern，该路径上的每个值（或没有任何值）都必须满足它。它展开为规范的 logic:Constraint，借助 logic:termRegex / logic:termStrStarts 承载诚实的具体化一阶逻辑完整性条件，并下降为 sh:SPARQLConstraint——正则表达式落在 EL/OWL 限制片段之外，因此这一形式保持为过程式，而非原生的声明式 sh:pattern 侧面。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/minExclusiveBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "min exclusive bound"
+msgstr "最小排除界"
+
+msgctxt "https://blackcatinformatics.ca/logic/minExclusiveBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exclusive lower literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly greater than this literal (projected to sh:minExclusive on the target class shape). The open-bound peer of logic:minInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."
+msgstr "logic:ValueRangeConstraint 的排除式字面量下界：约束的 logic:valuePath 上的每个值都必须严格大于该字面量（投影到目标类形状上的 sh:minExclusive）。它是 logic:minInclusiveBound 的开界对应物；在同一端点上，包含式界限优先于排除式界限。"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxExclusiveBound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "max exclusive bound"
+msgstr "最大排除界"
+
+msgctxt "https://blackcatinformatics.ca/logic/maxExclusiveBound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be strictly less than this literal (projected to sh:maxExclusive on the target class shape). The open-bound peer of logic:maxInclusiveBound; an inclusive bound wins over the exclusive one on the same endpoint."
+msgstr "logic:ValueRangeConstraint 的排除式字面量上界：约束的 logic:valuePath 上的每个值都必须严格小于该字面量（投影到目标类形状上的 sh:maxExclusive）。它是 logic:maxInclusiveBound 的开界对应物；在同一端点上，包含式界限优先于排除式界限。"
+
 msgctxt "https://blackcatinformatics.ca/logic/RefinementPinComesFromCandidateSetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a selected pin was in the roster it was selected from"
 msgstr "所选定的固定项必须出自它被选出的那份名录"
@@ -18509,3 +18581,291 @@ msgstr "所选定的固定项必须出自它被选出的那份名录"
 msgctxt "https://blackcatinformatics.ca/logic/RefinementPinComesFromCandidateSetConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The logic:Constraint rejecting a logic:RefinementEpisode whose logic:selectedPin is not a logic:refinementCandidate of the logic:RefinementCandidateSet it produced. A roster is a claim about what the search FOUND, and a commitment to something outside it says the roster describes some other search — after which its closedness, its budget and its declared fragment all certify a deliberation that did not produce this decision. The failure is invisible to any check over one record, since the episode, the roster and the pin are each individually well-formed."
 msgstr "拒斥这样一个 logic:RefinementEpisode 的 logic:Constraint：它的 logic:selectedPin 并不是它所产出的那个 logic:RefinementCandidateSet 的 logic:refinementCandidate。名录是关于搜索「找到了什么」的主张；承诺于名录之外的东西，等于说这份名录描述的是另一次搜索——此后它的封闭性、它的预算与它所声明的片段，所证明的都是一场并未产生这个决定的审议。这项失败在任何针对单条记录的检查下都不可见，因为该情节、该名录与该固定项各自都是良构的。"
+
+# --- GMN logic glyph-plane enrichment: truth constants, turnstiles, modal & DL operators, sequents, Belnap values ---
+
+msgctxt "https://blackcatinformatics.ca/logic/TruthConstant|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Truth Constant"
+msgstr "真值常量"
+
+msgctxt "https://blackcatinformatics.ca/logic/TruthConstant|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed class of the two nullary logical truth constants — logic:Top (⊤, verum) and logic:Bottom (⊥, falsum) — the sentential identities of the propositional fragment. A truth constant is a nullary sentence: it carries NONE of the logic:FormulaConstructorConstraint constructor predicates (logic:and / logic:or / logic:not / logic:antecedent / logic:iff / logic:forall / logic:exists / logic:relation), so it is deliberately NOT a logic:Formula node (which selects exactly one such constructor) and is a distinct, sibling sentential kind — the constructed-formula grammar reaches a truth constant by reference, never by folding a constructor over it. It is DISTINCT from the raw logic:TruthValue algebra values (logic:BelnapTrue …), which are bilattice values rather than sentences, and from the logic:InformationState verdicts, which are result-level grades. The set is closed."
+msgstr "两个零元逻辑真值常量的闭合类——logic:Top（⊤，恒真）与 logic:Bottom（⊥，恒假）——命题片段的语句层单位元。真值常量是零元语句：它不携带 logic:FormulaConstructorConstraint 的任何构造子谓词（logic:and / logic:or / logic:not / logic:antecedent / logic:iff / logic:forall / logic:exists / logic:relation），故它有意地不是 logic:Formula 节点（后者恰好选取一个此类构造子），而是一个相异的、同级的语句种类——被构造的公式文法通过引用抵达真值常量，绝不通过在其上折叠构造子。它与原始 logic:TruthValue 代数值（logic:BelnapTrue …）相异，后者是双格值而非语句，也与 logic:InformationState 裁决相异，后者是结果级等级。该集合是闭合的。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Top|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "top"
+msgstr "顶（真，⊤）"
+
+msgctxt "https://blackcatinformatics.ca/logic/Top|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verum truth constant ⊤: the nullary logic:TruthConstant true under every interpretation — the identity a vacuous logic:and folds to. Paired with logic:Bottom (⊥). Because it carries no constructor predicate it is deliberately NOT a constructed logic:Formula node (see logic:TruthConstant). It is NOT a logic:InformationState verdict such as logic:InfoSupported (a result-level Belnap grade, not a sentence), NOT a raw logic:TruthValue such as logic:BelnapTrue (an algebra value, not a sentence), and NOT owl:Thing, the universal class expression rather than a truth-valued sentence."
+msgstr "verum（恒真）真值常量 ⊤：在每一种解释下均为真的零元 logic:TruthConstant——空的 logic:and 归约所得的单位元。与 logic:Bottom（⊥）成对。由于它不携带任何构造子谓词，故它有意地不是被构造的 logic:Formula 节点（见 logic:TruthConstant）。它不是诸如 logic:InfoSupported 之类的 logic:InformationState 裁决（那是结果级的 Belnap 等级，而非语句），不是诸如 logic:BelnapTrue 之类的原始 logic:TruthValue（那是代数值，而非语句），也不是 owl:Thing（全域类表达式，而非具真值的语句）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Bottom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bottom"
+msgstr "底（假，⊥）"
+
+msgctxt "https://blackcatinformatics.ca/logic/Bottom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The falsum truth constant ⊥: the nullary logic:TruthConstant false under every interpretation — the identity a vacuous logic:or folds to. Paired with logic:Top (⊤). Because it carries no constructor predicate it is deliberately NOT a constructed logic:Formula node (see logic:TruthConstant). It is NOT a logic:InformationState verdict such as logic:InfoOpposed or logic:InfoNeither (result-level grades, not sentences), NOT a raw logic:TruthValue such as logic:BelnapFalse (an algebra value, not a sentence), and NOT owl:Nothing, the empty class expression rather than a truth-valued sentence."
+msgstr "falsum（恒假）真值常量 ⊥：在每一种解释下均为假的零元 logic:TruthConstant——空的 logic:or 归约所得的单位元。与 logic:Top（⊤）成对。由于它不携带任何构造子谓词，故它有意地不是被构造的 logic:Formula 节点（见 logic:TruthConstant）。它不是诸如 logic:InfoOpposed 或 logic:InfoNeither 之类的 logic:InformationState 裁决（那是结果级的等级，而非语句），不是诸如 logic:BelnapFalse 之类的原始 logic:TruthValue（那是代数值，而非语句），也不是 owl:Nothing（空类表达式，而非具真值的语句）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/derives|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derives"
+msgstr "可推导（⊢）"
+
+msgctxt "https://blackcatinformatics.ca/logic/derives|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Syntactic derivability — the proof-theoretic turnstile ⊢: relates a premise context Γ to a logic:Formula obtainable from it by a finite proof in the governing calculus, established by exhibiting a derivation. It is NEVER the semantic logic:entails (⊨): derivability is provability in a fixed calculus while entailment is truth in every model, so the two are DISTINCT relations that MUST NOT be conflated or collapsed onto one edge — soundness and completeness are the separate meta-theorems relating them, per the ISO/IEC 24707 Common Logic model-theoretic semantics against which a calculus is judged. Domain a premise context (a logic:Sequent antecedent), range logic:Formula (stated in prose, matching the kernel convention)."
+msgstr "语法可推导性——证明论断定符号 ⊢：将前提语境 Γ 关联到可在支配演算中由有限证明得到的 logic:Formula，通过展示一个推导而确立。它绝不是语义的 logic:entails（⊨）：可推导性是在固定演算中的可证性，而蕴涵是在每个模型中的真；二者因此是必不可混淆、也不可塌缩到同一条边上的相异关系——可靠性与完全性是关联二者的各自独立的元定理，依据据以评判演算的 ISO/IEC 24707 Common Logic 模型论语义。定义域为前提语境（logic:Sequent 的前件），值域为 logic:Formula（以散文陈述，遵循内核约定）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/entails|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entails"
+msgstr "蕴涵（⊨）"
+
+msgctxt "https://blackcatinformatics.ca/logic/entails|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Semantic entailment — the model-theoretic double turnstile ⊨: relates a premise context Γ to a logic:Formula true in every model of Γ, established by the absence of a countermodel. It is NEVER the syntactic logic:derives (⊢): entailment is truth in every model while derivability is provability in a fixed calculus, so the two are DISTINCT relations that MUST NOT be conflated or collapsed onto one edge — ISO/IEC 24707 Common Logic fixes this model-theoretic notion of entailment, which a sound and complete calculus's derivability then matches. Domain a premise context (a logic:Sequent antecedent), range logic:Formula (stated in prose, matching the kernel convention)."
+msgstr "语义蕴涵——模型论双断定符号 ⊨：将前提语境 Γ 关联到在 Γ 的每个模型中均为真的 logic:Formula，通过不存在反模型而确立。它绝不是语法的 logic:derives（⊢）：蕴涵是在每个模型中的真，而可推导性是在固定演算中的可证性；二者因此是必不可混淆、也不可塌缩到同一条边上的相异关系——ISO/IEC 24707 Common Logic 固定了这一模型论的蕴涵概念，可靠且完全的演算之可推导性便与之相符。定义域为前提语境（logic:Sequent 的前件），值域为 logic:Formula（以散文陈述，遵循内核约定）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/necessarily|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "necessarily"
+msgstr "必然（□）"
+
+msgctxt "https://blackcatinformatics.ca/logic/necessarily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The box modality □ as a type-parameterized standard translation: relates a modal logic:Formula to the body formula that must hold in EVERY context accessible under the single typed accessibility relation the node names on logic:overAccessibility — necessity is truth in every accessible context of that declared type (its dual logic:possibly is truth in some). It is NEVER evaluated over the bare logic:accessibleFrom union of the typed accessibility relations, whose generic superproperty licenses no cross-type entailment, so a well-formed box node always pins one typed relation through logic:overAccessibility. It is the object-level standard-translation modal operator over the finite materialized contextual index (standard Kripke standard-translation semantics), DISTINCT from the standpoint-slice claim-modal-force register gmeow:modalForceNecessary / gmeow:modalForcePossible / gmeow:modalForceActual, which grades an assertion's force rather than translating a modal sentence."
+msgstr "方盒模态 □ 作为按类型参数化的标准翻译：将模态 logic:Formula 关联到必须在该节点于 logic:overAccessibility 上所命名的唯一带类型可达关系下的每一个可达语境中成立的主体公式——必然即在该声明类型的每个可达语境中为真（其对偶 logic:possibly 为在某个可达语境中为真）。它绝不在带类型可达关系的裸并集 logic:accessibleFrom 上求值，该泛化超属性不许可任何跨类型蕴涵；因此良构的方盒节点总是通过 logic:overAccessibility 钉定一个带类型关系。它是有限物化语境索引之上的对象级标准翻译模态算子（标准 Kripke 标准翻译语义），与 standpoint 分片的主张模态力度语域 gmeow:modalForceNecessary / gmeow:modalForcePossible / gmeow:modalForceActual 相异，后者衡量断言的力度，而非翻译模态语句。"
+
+msgctxt "https://blackcatinformatics.ca/logic/possibly|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "possibly"
+msgstr "可能（◇）"
+
+msgctxt "https://blackcatinformatics.ca/logic/possibly|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The diamond modality ◇ as a type-parameterized standard translation: relates a modal logic:Formula to the body formula that must hold in SOME context accessible under the single typed accessibility relation the node names on logic:overAccessibility — possibility is truth in some accessible context of that declared type, the dual of logic:necessarily (truth in every). It is NEVER evaluated over the bare logic:accessibleFrom union of the typed accessibility relations, whose generic superproperty licenses no cross-type entailment, so a well-formed diamond node always pins one typed relation through logic:overAccessibility. It is the object-level standard-translation modal operator over the finite materialized contextual index (standard Kripke standard-translation semantics), DISTINCT from the standpoint-slice claim-modal-force register gmeow:modalForceNecessary / gmeow:modalForcePossible / gmeow:modalForceActual, which grades an assertion's force rather than translating a modal sentence."
+msgstr "菱形模态 ◇ 作为按类型参数化的标准翻译：将模态 logic:Formula 关联到必须在该节点于 logic:overAccessibility 上所命名的唯一带类型可达关系下的某个可达语境中成立的主体公式——可能即在该声明类型的某个可达语境中为真，是 logic:necessarily（在每个语境中为真）的对偶。它绝不在带类型可达关系的裸并集 logic:accessibleFrom 上求值，该泛化超属性不许可任何跨类型蕴涵；因此良构的菱形节点总是通过 logic:overAccessibility 钉定一个带类型关系。它是有限物化语境索引之上的对象级标准翻译模态算子（标准 Kripke 标准翻译语义），与 standpoint 分片的主张模态力度语域 gmeow:modalForceNecessary / gmeow:modalForcePossible / gmeow:modalForceActual 相异，后者衡量断言的力度，而非翻译模态语句。"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibility|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "over accessibility"
+msgstr "在可达关系上"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibility|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The carrier that types a modal logic:Formula (a logic:necessarily or logic:possibly node) with the ONE typed accessibility relation its standard translation is evaluated over — one of logic:epistemicallyPossible, logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds, logic:counterfactuallyCloser, or gmeow:sharpens. Its range is the typed accessibility relations, NOT the bare logic:accessibleFrom union: a modal node evaluated over the blurred superproperty would manufacture the cross-type entailment the kernel forbids, so this edge pins the single type. Domain a modal logic:Formula, range a typed accessibility relation (stated in prose, matching the kernel convention)."
+msgstr "为模态 logic:Formula（logic:necessarily 或 logic:possibly 节点）赋予类型的载体，指定其标准翻译据以求值的那一个带类型可达关系——为 logic:epistemicallyPossible、logic:doxasticallyAccessible、logic:deonticallyIdeal、logic:temporallySucceeds、logic:counterfactuallyCloser 或 gmeow:sharpens 之一。其值域为带类型可达关系，而非裸并集 logic:accessibleFrom：在被模糊化的超属性上求值的模态节点会制造出内核所禁止的跨类型蕴涵，因此此边钉定唯一类型。定义域为模态 logic:Formula，值域为带类型可达关系（以散文陈述，遵循内核约定）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/conceptIntersection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "concept intersection"
+msgstr "概念交（⊓）"
+
+msgctxt "https://blackcatinformatics.ca/logic/conceptIntersection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Description Logic concept-intersection constructor ⊓ (Concept × Concept → Concept): relates a conjunction concept expression to each operand concept its instances must simultaneously satisfy, so its extension is the intersection of the operands'. A concept-FORMING operator that builds a new complex concept, paired with logic:conceptUnion (⊔). It is NOT the sentence connective logic:and (which conjoins logic:Formula truth values, not concepts) and NOT logic:subClassOf or logic:equivalentClass (which ASSERT a relation between concepts rather than forming one). Domain and range concept expressions (stated in prose); the Description Logic Handbook fixes the constructor's semantics."
+msgstr "描述逻辑的概念交构造子 ⊓（概念 × 概念 → 概念）：将一个合取概念表达式关联到其实例必须同时满足的每个操作数概念，使其外延为诸操作数外延之交。它是一个构造概念的算子，用以构建新的复合概念，与 logic:conceptUnion（⊔）成对。它不是语句连接词 logic:and（合取 logic:Formula 的真值，而非概念），也不是 logic:subClassOf 或 logic:equivalentClass（断言概念间的关系，而非构造概念）。定义域与值域为概念表达式（以散文陈述）；Description Logic Handbook 固定了该构造子的语义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/conceptUnion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "concept union"
+msgstr "概念并（⊔）"
+
+msgctxt "https://blackcatinformatics.ca/logic/conceptUnion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Description Logic concept-union constructor ⊔ (Concept × Concept → Concept): relates a disjunction concept expression to each operand concept, so its extension is the union of the operands' extensions. A concept-FORMING operator that builds a new complex concept, paired with logic:conceptIntersection (⊓). It is NOT the sentence connective logic:or (which disjoins logic:Formula truth values, not concepts) and NOT logic:subClassOf or logic:equivalentClass (which ASSERT a relation between concepts rather than forming one). Domain and range concept expressions (stated in prose); the Description Logic Handbook fixes the constructor's semantics."
+msgstr "描述逻辑的概念并构造子 ⊔（概念 × 概念 → 概念）：将一个析取概念表达式关联到每个操作数概念，使其外延为诸操作数外延之并。它是一个构造概念的算子，用以构建新的复合概念，与 logic:conceptIntersection（⊓）成对。它不是语句连接词 logic:or（析取 logic:Formula 的真值，而非概念），也不是 logic:subClassOf 或 logic:equivalentClass（断言概念间的关系，而非构造概念）。定义域与值域为概念表达式（以散文陈述）；Description Logic Handbook 固定了该构造子的语义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/compose|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "compose"
+msgstr "复合（∘）"
+
+msgctxt "https://blackcatinformatics.ca/logic/compose|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Lens / correspondence composition ∘: relates a composite logic:Lens to the component lenses whose logic:getLeg and logic:putLeg legs it sequences — the operator behind the u ∘ d = id round-trip family, where composing a down-projection with its up-projection witnesses a section/retraction law, and where composition can only weaken the logic:morphismClass rung, never strengthen it. It is a DISTINCT concept from math:functionComposition (the mathematical composition of two functions) to which it is related only by a separately authored coherence law; the two MUST NOT be conflated, since a lens leg is a logic:TransactionProgram over path semantics, not a bare function. Domain and range logic:Lens (stated in prose, matching the kernel convention)."
+msgstr "透镜／对应复合 ∘：将复合的 logic:Lens 关联到其所串接 logic:getLeg 与 logic:putLeg 支腿的诸分量透镜——即 u ∘ d = id 往返族背后的算子，其中将下投影与其上投影相复合见证了一条截面／收缩律，而复合只能削弱 logic:morphismClass 等级，绝不能增强。它是与 math:functionComposition（两个函数的数学复合）相异的概念，二者仅由一条单独撰写的相干律相关联；二者必不可混淆，因为透镜支腿是路径语义之上的 logic:TransactionProgram，而非裸函数。定义域与值域为 logic:Lens（以散文陈述，遵循内核约定）。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Sequent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Sequent"
+msgstr "相继式"
+
+msgctxt "https://blackcatinformatics.ca/logic/Sequent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A proof-obligation node Γ ⊢ φ: a reified judgment pairing an antecedent context Γ (its premise formulae, carried by logic:sequentContext) with a single succedent logic:Formula φ (its conclusion, carried by logic:sequentSuccedent). It is the unit a logic:derives claim is checked against — the syntactic obligation whose discharge is a proof — DISTINCT from a logic:Formula (a sentence, not an obligation) and from a logic:Rule (a productive Horn+NAF derivation, not a one-off proof goal). Its turnstile is the syntactic logic:derives (⊢); the matching semantic obligation reads with logic:entails (⊨)."
+msgstr "一个证明义务节点 Γ ⊢ φ：将前件语境 Γ（其前提公式，由 logic:sequentContext 承载）与唯一的后承 logic:Formula φ（其结论，由 logic:sequentSuccedent 承载）配对的具体化判断。它是一个 logic:derives 主张据以校验的单位——其了结即为一个证明的语法义务——与 logic:Formula（一个语句，而非义务）以及 logic:Rule（一条产生式的 Horn+NAF 推导，而非一次性的证明目标）相异。其断定符号为语法的 logic:derives（⊢）；相应的语义义务以 logic:entails（⊨）读出。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sequentContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sequent context"
+msgstr "相继式前件语境"
+
+msgctxt "https://blackcatinformatics.ca/logic/sequentContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:Sequent to a premise formula in its antecedent context Γ — multi-valued, since a context is a set (or, in a substructural calculus, an ordered multiset) of premises. The antecedent side of the Γ ⊢ φ obligation, paired with the single succedent logic:sequentSuccedent. Domain logic:Sequent, range logic:Formula."
+msgstr "将 logic:Sequent 关联到其前件语境 Γ 中的一个前提公式——多值的，因为语境是前提的集合（或在子结构演算中为有序多重集）。义务 Γ ⊢ φ 的前件一侧，与唯一后承 logic:sequentSuccedent 配对。定义域 logic:Sequent，值域 logic:Formula。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sequentSuccedent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sequent succedent"
+msgstr "相继式后承"
+
+msgctxt "https://blackcatinformatics.ca/logic/sequentSuccedent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a logic:Sequent to its single succedent logic:Formula φ — the conclusion the obligation Γ ⊢ φ must discharge. Single-valued, the counterpart of the multi-valued logic:sequentContext. Domain logic:Sequent, range logic:Formula."
+msgstr "将 logic:Sequent 关联到其唯一的后承 logic:Formula φ——义务 Γ ⊢ φ 必须了结的结论。单值的，是多值 logic:sequentContext 的对应物。定义域 logic:Sequent，值域 logic:Formula。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TruthValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Truth Value"
+msgstr "真值"
+
+msgctxt "https://blackcatinformatics.ca/logic/TruthValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed class of the four RAW truth values of the logic:BelnapBilattice algebra: logic:BelnapTrue, logic:BelnapFalse, logic:BelnapBoth (glut) and logic:BelnapNeither (gap). These are the algebra's carrier values, each bound to the logic:InformationState verdict that reports it through logic:realizedAsVerdict so there is no floating duplicate canon. They are DISTINCT from the logic:InformationState verdicts, which are result-level fields carrying two extra non-results (logic:InfoUndetermined, logic:InfoNotEvaluated) the raw algebra has no value for, and DISTINCT from the classical truth constants logic:Top / logic:Bottom (logic:TruthConstant), which are nullary sentences rather than algebra values. The set is closed."
+msgstr "logic:BelnapBilattice 代数四个原始真值的闭合类：logic:BelnapTrue、logic:BelnapFalse、logic:BelnapBoth（过定）与 logic:BelnapNeither（欠定）。它们是该代数的载体值，各自通过 logic:realizedAsVerdict 绑定到报告它的 logic:InformationState 裁决，从而不存在游离的重复正典。它们与 logic:InformationState 裁决相异，后者是结果级字段，另携两个原始代数无对应值的非结果（logic:InfoUndetermined、logic:InfoNotEvaluated）；也与经典真值常量 logic:Top / logic:Bottom（logic:TruthConstant）相异，后者是零元语句而非代数值。该集合是闭合的。"
+
+msgctxt "https://blackcatinformatics.ca/logic/realizedAsVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "realized as verdict"
+msgstr "实现为裁决"
+
+msgctxt "https://blackcatinformatics.ca/logic/realizedAsVerdict|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a raw logic:TruthValue of the logic:BelnapBilattice to the logic:InformationState verdict that reports it at the result level — logic:BelnapTrue to logic:InfoSupported, logic:BelnapFalse to logic:InfoOpposed, logic:BelnapBoth to logic:InfoBoth, logic:BelnapNeither to logic:InfoNeither. It binds the algebra value to its verdict so the two never float as duplicate canon; it stops at the four Belnap grades and never reaches the non-results logic:InfoUndetermined or logic:InfoNotEvaluated, which the raw algebra has no value for. Domain logic:TruthValue, range logic:InformationState."
+msgstr "将 logic:BelnapBilattice 的一个原始 logic:TruthValue 关联到在结果级报告它的 logic:InformationState 裁决——logic:BelnapTrue 对应 logic:InfoSupported，logic:BelnapFalse 对应 logic:InfoOpposed，logic:BelnapBoth 对应 logic:InfoBoth，logic:BelnapNeither 对应 logic:InfoNeither。它将代数值绑定到其裁决，使二者绝不作为重复正典游离；它止于四个 Belnap 等级，绝不触及原始代数无对应值的非结果 logic:InfoUndetermined 或 logic:InfoNotEvaluated。定义域 logic:TruthValue，值域 logic:InformationState。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapTrue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Belnap true"
+msgstr "Belnap 真"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapTrue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The raw logic:BelnapBilattice value true — told true and not told false. The algebra value that logic:InfoSupported reports at the result level; DISTINCT from that verdict and from the truth constant logic:Top. Bound to its verdict by logic:realizedAsVerdict."
+msgstr "logic:BelnapBilattice 的原始值「真」——被断言为真且未被断言为假。logic:InfoSupported 在结果级所报告的代数值；与该裁决及真值常量 logic:Top 相异。由 logic:realizedAsVerdict 绑定到其裁决。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapFalse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Belnap false"
+msgstr "Belnap 假"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapFalse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The raw logic:BelnapBilattice value false — told false and not told true. The algebra value that logic:InfoOpposed reports at the result level; DISTINCT from that verdict and from the truth constant logic:Bottom. Bound to its verdict by logic:realizedAsVerdict."
+msgstr "logic:BelnapBilattice 的原始值「假」——被断言为假且未被断言为真。logic:InfoOpposed 在结果级所报告的代数值；与该裁决及真值常量 logic:Bottom 相异。由 logic:realizedAsVerdict 绑定到其裁决。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapBoth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Belnap both"
+msgstr "Belnap 二者皆"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapBoth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The raw logic:BelnapBilattice value both — the over-determined glut, told true AND told false. The algebra value that the conclusive logic:InfoBoth reports at the result level; DISTINCT from that verdict and never globalized to owl:Nothing. Bound to its verdict by logic:realizedAsVerdict."
+msgstr "logic:BelnapBilattice 的原始值「二者皆」——过定盈余（glut），被断言为真且被断言为假。定论性的 logic:InfoBoth 在结果级所报告的代数值；与该裁决相异，且绝不全局化为 owl:Nothing。由 logic:realizedAsVerdict 绑定到其裁决。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapNeither|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Belnap neither"
+msgstr "Belnap 二者皆非"
+
+msgctxt "https://blackcatinformatics.ca/logic/BelnapNeither|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The raw logic:BelnapBilattice value neither — the under-determined gap, told neither true nor false. The algebra value that the conclusive logic:InfoNeither reports at the result level; DISTINCT from that verdict and from the non-results logic:InfoUndetermined and logic:InfoNotEvaluated, which are not raw algebra values. Bound to its verdict by logic:realizedAsVerdict."
+msgstr "logic:BelnapBilattice 的原始值「二者皆非」——欠定空缺（gap），既未被断言为真也未被断言为假。定论性的 logic:InfoNeither 在结果级所报告的代数值；与该裁决及非结果 logic:InfoUndetermined 和 logic:InfoNotEvaluated 相异，后二者并非原始代数值。由 logic:realizedAsVerdict 绑定到其裁决。"
+
+# --- Modal evaluation plane: worlds, ground body atoms, and the two accessibility constraints ---
+
+msgctxt "https://blackcatinformatics.ca/logic/actualWorld|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actual world"
+msgstr "现实世界"
+
+msgctxt "https://blackcatinformatics.ca/logic/actualWorld|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The shared base logic:PossibleWorld — the evaluation world from which a modal claim is read when no other is pinned. It is one materialized context of the finite world set the modal operators quantify over, never the unbounded space of all logically possible worlds."
+msgstr "共享的基底 logic:PossibleWorld——当未固定其他世界时，模态断言据以读取的求值世界。它是模态算子所量化的有限世界集合中的一个已物化语境，绝非所有逻辑可能世界构成的无界空间。"
+
+msgctxt "https://blackcatinformatics.ca/logic/atomSubject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "atom subject"
+msgstr "原子主语"
+
+msgctxt "https://blackcatinformatics.ca/logic/atomSubject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Binds the subject of the ground body atom P = (s, p, o) on a modal body logic:Formula node. All-IRI, because the reasoner's all-IRI contract forbids the blank-node logic:argument body representation: a modal body is scoped to a single ground atom, pinned by logic:atomSubject / logic:atomPredicate / logic:atomObject. Single-valued."
+msgstr "在模态体 logic:Formula 节点上绑定基态体原子 P = (s, p, o) 的主语。全部采用 IRI，因为推理器的全 IRI 契约禁止使用空节点的 logic:argument 体表示：模态体被限定为单个基态原子，由 logic:atomSubject / logic:atomPredicate / logic:atomObject 固定。单值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/atomPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "atom predicate"
+msgstr "原子谓词"
+
+msgctxt "https://blackcatinformatics.ca/logic/atomPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Binds the predicate of the ground body atom P = (s, p, o) on a modal body logic:Formula node. Companion of logic:atomSubject / logic:atomObject; the three pin a modal body's single ground atom all-IRI. Single-valued."
+msgstr "在模态体 logic:Formula 节点上绑定基态体原子 P = (s, p, o) 的谓词。logic:atomSubject / logic:atomObject 的同伴；三者以全 IRI 方式固定模态体的单个基态原子。单值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/atomObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "atom object"
+msgstr "原子宾语"
+
+msgctxt "https://blackcatinformatics.ca/logic/atomObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Binds the object of the ground body atom P = (s, p, o) on a modal body logic:Formula node. Companion of logic:atomSubject / logic:atomPredicate; the three pin a modal body's single ground atom all-IRI. Single-valued."
+msgstr "在模态体 logic:Formula 节点上绑定基态体原子 P = (s, p, o) 的宾语。logic:atomSubject / logic:atomPredicate 的同伴；三者以全 IRI 方式固定模态体的单个基态原子。单值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalEvalWorld|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal evaluation world"
+msgstr "模态求值世界"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalEvalWorld|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Carries the evaluation world w0 on a modal logic:Formula node: the world from which its □ / ◇ is read, i.e. the source of the pinned typed accessibility relation. Single-valued; the reasoner's modal post-pass hard-fails a modal formula that carries none or several. The typed relation itself is pinned by logic:overAccessibility."
+msgstr "在模态 logic:Formula 节点上承载求值世界 w0：其 □ / ◇ 据以读取的世界，即所固定的带类型可及关系的源点。单值；推理器的模态后置遍历对携带零个或多个此值的模态公式硬性失败。带类型关系本身由 logic:overAccessibility 固定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalCounterexampleWorld|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal counterexample world"
+msgstr "模态反例世界"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalCounterexampleWorld|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived companion of a logic:modalNecessityFails verdict: names the least (lexicographically smallest) world accessible from w0 over the pinned typed relation in which the body atom is absent — the witness that refutes the necessity. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "logic:modalNecessityFails 裁决的推理器派生同伴：指明经所固定的带类型关系自 w0 可及、且其中体原子缺失的最小世界（按字典序最小）——反驳该必然性的见证。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityFails|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal necessity fails"
+msgstr "模态必然性不成立"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityFails|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity fails — some world accessible from w0 over the pinned typed relation lacks the body atom. The least such world is recorded by a companion logic:modalCounterexampleWorld row. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 □ 模态 logic:Formula 指向其体的推理器派生裁决边：必然性不成立——经所固定的带类型关系自 w0 可及的某个世界缺少该体原子。此类世界中的最小者由同伴 logic:modalCounterexampleWorld 行记录。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ModalNecessityAccessibilityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Modal Necessity Accessibility Constraint"
+msgstr "模态必然性可及性约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ModalNecessityAccessibilityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires a logic:Formula carrying logic:necessarily (a box modal node) to pin its standard translation to a logic:overAccessibility relation. Without one declared typed accessibility relation the box has no world set to quantify over, so the necessity claim is undefined; this structural integrity condition forbids the untyped box. Paired with logic:ModalPossibilityAccessibilityConstraint for the diamond, and bounded above by the at-most-one characteristic logic:overAccessibilityFunctionality so a modal node pins EXACTLY one; the value-set (one of the six typed accessibility relations, never the blurred logic:accessibleFrom union or a modal-force value) is enforced by the modal-accessibility-typed verify gate."
+msgstr "要求携带 logic:necessarily 的 logic:Formula（方框模态节点）将其标准翻译固定到一个 logic:overAccessibility 关系上。若无一个已声明的带类型可及关系，方框便没有可供量化的世界集合，必然性断言因而无定义；此结构完整性条件禁止未带类型的方框。与用于菱形的 logic:ModalPossibilityAccessibilityConstraint 成对，并由至多一个的特征 logic:overAccessibilityFunctionality 从上方限界，使模态节点恰好固定一个；其值集（六个带类型可及关系之一，绝非模糊的 logic:accessibleFrom 并集，也非模态力值）由 modal-accessibility-typed 验证门强制执行。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ModalNecessityAccessibilityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A logic:necessarily node carrying no logic:overAccessibility violates this constraint."
+msgstr "不携带任何 logic:overAccessibility 的 logic:necessarily 节点违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ModalPossibilityAccessibilityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Modal Possibility Accessibility Constraint"
+msgstr "模态可能性可及性约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ModalPossibilityAccessibilityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Requires a logic:Formula carrying logic:possibly (a diamond modal node) to pin its standard translation to a logic:overAccessibility relation. Without one declared typed accessibility relation the diamond has no world set to quantify over, so the possibility claim is undefined; this structural integrity condition forbids the untyped diamond. The dual of logic:ModalNecessityAccessibilityConstraint; the value-set of the relation is enforced by the modal-accessibility-typed verify gate."
+msgstr "要求携带 logic:possibly 的 logic:Formula（菱形模态节点）将其标准翻译固定到一个 logic:overAccessibility 关系上。若无一个已声明的带类型可及关系，菱形便没有可供量化的世界集合，可能性断言因而无定义；此结构完整性条件禁止未带类型的菱形。它是 logic:ModalNecessityAccessibilityConstraint 的对偶；该关系的值集由 modal-accessibility-typed 验证门强制执行。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ModalPossibilityAccessibilityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A logic:possibly node carrying no logic:overAccessibility violates this constraint."
+msgstr "不携带任何 logic:overAccessibility 的 logic:possibly 节点违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal necessity holds"
+msgstr "模态必然性成立"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityHolds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity holds — the body atom is present in every world accessible from w0 over the pinned typed relation (or the accessible set is empty under a non-serial relation, a vacuous hold). Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 □ 模态 logic:Formula 指向其体的推理器派生裁决边：必然性成立——体原子出现在经所固定的带类型关系自 w0 可及的每一个世界中（或在非序列关系下可及集合为空，属空洞成立）。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityUndetermined|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal necessity undetermined"
+msgstr "模态必然性未定"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalNecessityUndetermined|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a □ modal logic:Formula to its body: the necessity is undetermined — the pinned typed relation is the SERIAL logic:deonticallyIdeal and its accessible set is empty, so the 'holds in every ideal world' condition is not vacuously true but undetermined. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 □ 模态 logic:Formula 指向其体的推理器派生裁决边：必然性未定——所固定的带类型关系是序列性的 logic:deonticallyIdeal 且其可及集合为空，故「在每个理想世界中成立」这一条件并非空洞为真，而是未定。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityHolds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal possibility holds"
+msgstr "模态可能性成立"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityHolds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility holds — the body atom is present in at least one world accessible from w0 over the pinned typed relation. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 ◇ 模态 logic:Formula 指向其体的推理器派生裁决边：可能性成立——体原子至少出现在经所固定的带类型关系自 w0 可及的一个世界中。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityFails|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modal possibility fails"
+msgstr "模态可能性不成立"
+
+msgctxt "https://blackcatinformatics.ca/logic/modalPossibilityFails|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Reasoner-derived verdict edge from a ◇ modal logic:Formula to its body: the possibility fails — no world accessible from w0 over the pinned typed relation carries the body atom. Emitted by the native modal-evaluation post-pass, not hand-authored."
+msgstr "自 ◇ 模态 logic:Formula 指向其体的推理器派生裁决边：可能性不成立——经所固定的带类型关系自 w0 可及的世界中没有任何一个携带该体原子。由原生模态求值后置遍历发出，而非手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "overAccessibility is functional"
+msgstr "overAccessibility 是函数性的"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that logic:overAccessibility is functional: a modal formula pins exactly one typed accessibility relation — the single world set its standard translation quantifies over — so a box or diamond can never be read against two accessibility relations at once. Presence is required of a modal node by the two guarded modal constraints; this assertion supplies the at-most-one half. A non-modal formula carries none, which the characteristic permits."
+msgstr "在规范载体上断言 logic:overAccessibility 是函数性的：模态公式恰好固定一个带类型的可及关系——其标准翻译所量化的唯一世界集合——因此方框或菱形绝不可能同时依两个可及关系来读取。模态节点须具备该关系，这由两条受保护的模态约束要求；本断言提供「至多一个」的那一半。非模态公式不携带任何该关系，此特征允许如此。"
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：本记录仅承载关于 logic:overAccessibility 的一项完整性义务，别无其他。它不是 logic:overAccessibility 的定义（定义位于该术语本身），不是形状，也不是陈述该术语含义的第二处——应停用该记录，而非扩大其范围。"

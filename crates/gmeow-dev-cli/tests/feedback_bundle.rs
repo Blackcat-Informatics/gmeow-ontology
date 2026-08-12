@@ -172,7 +172,7 @@ fn verify_returns_false_when_snapshot_id_is_tampered() {
         None,
         None,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-        &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("re-emit bundle");
 

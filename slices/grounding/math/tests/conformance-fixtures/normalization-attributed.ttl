@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Positive fixture: a math:NormalizationDeclaration held at math:commutativeNormalization
+# (coarser than structural) that carries its math:normalizationProcedure, is named by a
+# gmeow:Observation (through gmeow:observationResult) that itself carries a gmeow:vantage,
+# and carries a logic:preservationKind — the full attribution a coarser-than-structural
+# equivalence claim owes.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:attributedSource a math:NumberLiteral ;
+    math:normalForm ex:attributedTarget ;
+    math:literalValue "3"^^xsd:integer .
+
+ex:attributedTarget a math:NumberLiteral ;
+    math:literalValue "3"^^xsd:integer .
+
+ex:attributedDecl a math:NormalizationDeclaration ;
+    math:normalizes ex:attributedSource ;
+    math:normalizesTo ex:attributedTarget ;
+    math:normalizationStrength math:commutativeNormalization ;
+    math:normalizationProcedure ex:commutativityRewrite ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:commutativityRewrite a math:NormalizationProcedure .
+
+ex:attributedDeclObservation a gmeow:Observation ;
+    gmeow:observationResult ex:attributedDecl ;
+    gmeow:observedFeature ex:attributedSource ;
+    gmeow:vantage ex:analystStandpoint .
+
+ex:analystStandpoint a gmeow:Standpoint , gmeow:Entity .

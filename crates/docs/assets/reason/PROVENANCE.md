@@ -27,7 +27,7 @@ Each carries a `.license` REUSE sidecar (AGPL-3.0-only).
 
 The regeneration pipeline is Rust/Python only — it does not invoke `cargo` or `wasm-bindgen`.
 A browser-executable wasm engine cannot be produced during the synchronization pipeline (`make check-sync`), so it is pinned
-here as a build **input** (like `crates/docs/assets/gmeow.css` and the purrdf engine).
+here as a build **input** (like `crates/docs/assets/gmeow.css` and the query engine).
 Because it is a constant `include_bytes!` input, the rendered site stays byte-deterministic.
 
 ## Refreshing (after any change to `crates/reason-wasm` or `crates/logic`)

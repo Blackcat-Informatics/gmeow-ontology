@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:UndeclaredUnsupportedConstruct gate
+# (crates/validate/src/lint.rs, check_math_undeclared_unsupported_construct): a LOSSY
+# math:ProjectionRecord — it declares a logic:preservationKind other than
+# logic:ExactPreservation — that enumerates NO logic:unsupportedConstruct at all. A lossy
+# projection drops nothing or names everything it drops; a record claiming loss while
+# naming none has claimed a completeness its own preservation kind denies. The native gate
+# MUST emit math:UndeclaredUnsupportedConstruct.
+#
+# The source is a plain math:MathematicalObject, not a math:Distribution carrying a
+# parameterization and not a math:MathematicalExpression, so the two FINER unrecorded-drop
+# gates (math:ProjectionDroppedParameterization, math:UnrecordedProjectionLoss) have
+# nothing to key on and this fixture isolates the coarse obligation: a lossy record must
+# name SOMETHING.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:silentlyLossyProjection a math:ProjectionRecord ;
+    math:projectionSource ex:someObject ;
+    math:projectionTargetName "OWL annotation (label only)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+ex:someObject a math:MathematicalObject .

@@ -21,6 +21,8 @@ path = "src/main.rs"
 gmeow-cli-core = { path = "../cli-core" }
 clap = { version = "4", features = ["derive"] }
 gmeow-errors = { path = "../errors" }
+# The registered term namespaces and the ONE definition of a subsumption edge.
+gmeow-ns = { path = "../ns" }
 # Consumer-facing engines the `gmeow` commands drive. These are the runtime
 # libraries a wheel ships — NEVER a repo-maintenance crate (the wheel-only razor).
 gmeow-validate = { path = "../validate" }

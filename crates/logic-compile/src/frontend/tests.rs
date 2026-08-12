@@ -1615,6 +1615,69 @@ fn derived_shape_failure_class_dedupes_identical_values() {
     );
 }
 
+/// A domain shape's focus set is "every subject of P", so the PROPERTY is the only authored
+/// term the shape belongs to — the failure identity must be readable there, exactly as a
+/// class-targeted shape reads it off its class. Without this, the findings of a
+/// property-scoped law resolve to no failure class at all, and a conformance cell pinning
+/// `gmeow:expectedFailureClass` cannot say which class the gate just proved.
+#[test]
+fn derived_domain_shape_carries_the_propertys_failure_class() {
+    let ds = shape_dataset(
+        "g:lowersTo g:enforcesFailureClass g:UndeclaredLowering ;
+             rdfs:domain [ a owl:Restriction ; owl:onProperty g:kind ; owl:minCardinality 1 ] .
+         [] a logic:ClosureEntry ;
+             logic:closureKey \"https://blackcatinformatics.ca/gmeow/lowersTo\" ;
+             logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(
+            |shape| matches!(&shape.target, ShapeTarget::SubjectsOf(p) if p.ends_with("lowersTo")),
+        )
+        .expect("lowersTo domain shape");
+    assert_eq!(
+        shape.failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/UndeclaredLowering")
+    );
+}
+
+/// The range (`sh:targetObjectsOf`) counterpart reads the same term for the same reason.
+#[test]
+fn derived_range_shape_carries_the_propertys_failure_class() {
+    let ds = shape_dataset(
+        "g:Formula a owl:Class .
+         g:lowersTo g:enforcesFailureClass g:UndeclaredLowering ; rdfs:range g:Formula .
+         [] a logic:ClosureEntry ;
+             logic:closureKey \"https://blackcatinformatics.ca/gmeow/lowersTo\" ;
+             logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|shape| matches!(&shape.target, ShapeTarget::ObjectsOf(p) if p.ends_with("lowersTo")))
+        .expect("lowersTo range shape");
+    assert_eq!(
+        shape.failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/UndeclaredLowering")
+    );
+}
+
+/// A property carrying two distinct failure identities is as malformed as a class carrying
+/// two: the shape would have to claim it proves both, so it is a hard error, never a pick.
+#[test]
+fn derived_domain_shape_rejects_distinct_property_failure_classes() {
+    let ds = shape_dataset(
+        "g:lowersTo g:enforcesFailureClass g:FailureA, g:FailureB ;
+             rdfs:domain [ a owl:Restriction ; owl:onProperty g:kind ; owl:minCardinality 1 ] .
+         [] a logic:ClosureEntry ;
+             logic:closureKey \"https://blackcatinformatics.ca/gmeow/lowersTo\" ;
+             logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let err = derive_validation_shapes(ds.as_ref()).expect_err("distinct metadata must fail");
+    assert!(err.message().contains("distinct"), "{err}");
+}
+
 #[test]
 fn derived_shape_failure_class_rejects_distinct_values() {
     let ds = shape_dataset(
@@ -2422,9 +2485,16 @@ fn functional_carrier_integrity_flags_duplicate_carrier() {
 #[test]
 fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
     // Prove the completeness ledger is NON-VACUOUS: a small store carries NONE of the frozen
-    // ledger's 720 properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
+    // ledger's properties, so every ledger entry surfaces as a LedgerMissing that NAMES it —
     // the exact "a property silently lost its carrier" hard-fail. The store's own lone carrier
     // (g:unexpectedProp, absent from the ledger) surfaces as a LedgerUnexpected that names it.
+    //
+    // The expected count is READ FROM THE LEDGER, never restated as a literal here. The claim is
+    // "EVERY entry surfaces", which is a statement about the ledger's own size; a second copy of
+    // that size drifts silently the moment the ledger is re-blessed (it did, and this test then
+    // failed for a reason that had nothing to do with the behaviour it guards). Non-vacuity is
+    // carried by the two assertions below — a non-empty ledger naming a specific property — not
+    // by a hand-copied number.
     let ds = shape_dataset(
         "g:unexpectedProp a owl:ObjectProperty . \
          [] a logic:PropertyCharacteristicAssertion ; \
@@ -2439,9 +2509,14 @@ fn functional_carrier_ledger_drift_names_missing_and_unexpected() {
             _ => None,
         })
         .collect();
+    let ledger_size = super::functional_carrier_ledger().len();
+    assert!(
+        ledger_size > 0,
+        "non-vacuity: the frozen functional-carrier ledger must not be empty"
+    );
     assert_eq!(
         missing.len(),
-        720,
+        ledger_size,
         "every frozen ledger entry with no live carrier is named as LedgerMissing"
     );
     assert!(
@@ -4391,5 +4466,248 @@ fn reasoning_program_identical_clauses_distinct_sorts_are_accepted_and_scoped() 
             .collect(),
         "each occurrence carries its OWN authored sort (Nat and Real): {:?}",
         rp.variable_sorts
+    );
+}
+
+// ── Modal operators: parse-time STANDARD-TRANSLATION into the FOL Formula IR ───────────────────
+
+const ACTUAL_WORLD: &str = "https://blackcatinformatics.ca/logic/actualWorld";
+const EPISTEMICALLY_POSSIBLE: &str = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
+const DOXASTICALLY_ACCESSIBLE: &str = "https://blackcatinformatics.ca/logic/doxasticallyAccessible";
+
+#[test]
+fn box_atom_expands_via_standard_translation() {
+    use crate::ir::{Formula, Term};
+    // □P(a) over logic:epistemicallyPossible ↦ ∀ __w0 . R(actualWorld, __w0) → P(__w0, a).
+    // No new Formula IR variant — the modal node expands into Forall/Implies/Atom at parse time,
+    // and the body atom must NOT ALSO surface as a top-level formula.
+    let (prog, diags) = parse(
+        "ex:nec a logic:Formula ;
+            logic:necessarily [ a logic:Formula ; logic:relation ex:P ;
+                logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:a ] ] ;
+            logic:overAccessibility logic:epistemicallyPossible .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.severity == Severity::Error),
+        "a well-formed □ node must not emit any error diagnostic: {diags:?}"
+    );
+    assert_eq!(
+        prog.formulas.len(),
+        1,
+        "the modal node is the sole top-level formula; its body is a component: {:?}",
+        prog.formulas
+    );
+
+    let ex = "https://example.org/test/";
+    let Formula::Forall { vars, body } = &prog.formulas[0] else {
+        panic!("□ expands to a Forall, got {:?}", prog.formulas[0]);
+    };
+    assert_eq!(
+        vars,
+        &vec!["__w0".to_owned()],
+        "box binds a fresh world var"
+    );
+    let Formula::Implies(acc, head) = body.as_ref() else {
+        panic!("□ body is an Implies(accessibility, head), got {body:?}");
+    };
+    let Formula::Atom { relation, args } = acc.as_ref() else {
+        panic!("accessibility guard is an atom, got {acc:?}");
+    };
+    assert_eq!(
+        *relation,
+        Term::Iri(EPISTEMICALLY_POSSIBLE.to_owned()),
+        "the guard uses the pinned typed accessibility relation"
+    );
+    assert_eq!(
+        args,
+        &vec![
+            Term::Iri(ACTUAL_WORLD.to_owned()),
+            Term::Var("__w0".to_owned())
+        ],
+        "the guard runs from the actual world to the bound world var"
+    );
+    let Formula::Atom { relation, args } = head.as_ref() else {
+        panic!("head is the relativized atom, got {head:?}");
+    };
+    assert_eq!(*relation, Term::Iri(format!("{ex}P")), "relation preserved");
+    assert_eq!(
+        args.len(),
+        2,
+        "the world is prepended to the atom arguments"
+    );
+    assert_eq!(
+        args[0],
+        Term::Var("__w0".to_owned()),
+        "the prepended world is the bound world var, not the actual world"
+    );
+    assert_eq!(
+        args[1],
+        Term::Iri(format!("{ex}a")),
+        "the original argument follows the prepended world"
+    );
+}
+
+#[test]
+fn diamond_atom_expands_via_standard_translation() {
+    use crate::ir::{Formula, Term};
+    // ◇P(a) over logic:epistemicallyPossible ↦ ∃ __w0 . R(actualWorld, __w0) ∧ P(__w0, a).
+    let (prog, diags) = parse(
+        "ex:pos a logic:Formula ;
+            logic:possibly [ a logic:Formula ; logic:relation ex:P ;
+                logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:a ] ] ;
+            logic:overAccessibility logic:epistemicallyPossible .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.severity == Severity::Error),
+        "a well-formed ◇ node must not emit any error diagnostic: {diags:?}"
+    );
+    assert_eq!(
+        prog.formulas.len(),
+        1,
+        "the modal node is the sole top-level formula: {:?}",
+        prog.formulas
+    );
+
+    let ex = "https://example.org/test/";
+    let Formula::Exists { vars, body } = &prog.formulas[0] else {
+        panic!("◇ expands to an Exists, got {:?}", prog.formulas[0]);
+    };
+    assert_eq!(
+        vars,
+        &vec!["__w0".to_owned()],
+        "diamond binds a fresh world var"
+    );
+    let Formula::And(parts) = body.as_ref() else {
+        panic!("◇ body is an And(accessibility, head), got {body:?}");
+    };
+    assert_eq!(parts.len(), 2, "the ∧ pairs the guard with the body");
+    let Formula::Atom { relation, args } = &parts[0] else {
+        panic!(
+            "first conjunct is the accessibility guard, got {:?}",
+            parts[0]
+        );
+    };
+    assert_eq!(*relation, Term::Iri(EPISTEMICALLY_POSSIBLE.to_owned()));
+    assert_eq!(
+        args,
+        &vec![
+            Term::Iri(ACTUAL_WORLD.to_owned()),
+            Term::Var("__w0".to_owned())
+        ],
+    );
+    let Formula::Atom { relation, args } = &parts[1] else {
+        panic!(
+            "second conjunct is the relativized atom, got {:?}",
+            parts[1]
+        );
+    };
+    assert_eq!(*relation, Term::Iri(format!("{ex}P")));
+    assert_eq!(args.len(), 2);
+    assert_eq!(args[0], Term::Var("__w0".to_owned()));
+    assert_eq!(args[1], Term::Iri(format!("{ex}a")));
+}
+
+#[test]
+fn nested_modal_threads_inner_world() {
+    use crate::ir::{Formula, Term};
+    // □◇P(a): the outer □ binds __w0, and the inner ◇ (at depth 1) binds __w1. The INNER
+    // accessibility atom must run from the OUTER bound world __w0, never from the actual-world
+    // constant — that is what "threading the inner world" means.
+    let (prog, diags) = parse(
+        "ex:outer a logic:Formula ;
+            logic:necessarily ex:inner ;
+            logic:overAccessibility logic:epistemicallyPossible .
+         ex:inner a logic:Formula ;
+            logic:possibly [ a logic:Formula ; logic:relation ex:P ;
+                logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:a ] ] ;
+            logic:overAccessibility logic:doxasticallyAccessible .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.severity == Severity::Error),
+        "a well-formed □◇ nest must not emit any error diagnostic: {diags:?}"
+    );
+    assert_eq!(
+        prog.formulas.len(),
+        1,
+        "only the outer modal node is top-level: {:?}",
+        prog.formulas
+    );
+
+    let ex = "https://example.org/test/";
+    let Formula::Forall { vars, body } = &prog.formulas[0] else {
+        panic!("outer □ is a Forall, got {:?}", prog.formulas[0]);
+    };
+    assert_eq!(vars, &vec!["__w0".to_owned()]);
+    let Formula::Implies(acc_outer, inner_st) = body.as_ref() else {
+        panic!("outer □ body is an Implies, got {body:?}");
+    };
+    let Formula::Atom { relation, args } = acc_outer.as_ref() else {
+        panic!("outer guard is an atom, got {acc_outer:?}");
+    };
+    assert_eq!(*relation, Term::Iri(EPISTEMICALLY_POSSIBLE.to_owned()));
+    assert_eq!(
+        args,
+        &vec![
+            Term::Iri(ACTUAL_WORLD.to_owned()),
+            Term::Var("__w0".to_owned())
+        ],
+        "the outer guard runs from the actual world to __w0"
+    );
+
+    let Formula::Exists { vars, body } = inner_st.as_ref() else {
+        panic!("inner ◇ is an Exists at depth 1, got {inner_st:?}");
+    };
+    assert_eq!(vars, &vec!["__w1".to_owned()], "the inner ◇ binds __w1");
+    let Formula::And(parts) = body.as_ref() else {
+        panic!("inner ◇ body is an And, got {body:?}");
+    };
+    assert_eq!(parts.len(), 2);
+    let Formula::Atom { relation, args } = &parts[0] else {
+        panic!("inner guard is an atom, got {:?}", parts[0]);
+    };
+    assert_eq!(*relation, Term::Iri(DOXASTICALLY_ACCESSIBLE.to_owned()));
+    assert_eq!(
+        args[0],
+        Term::Var("__w0".to_owned()),
+        "the inner accessibility atom's source world is the OUTER bound world __w0, not the actual world"
+    );
+    assert_eq!(args[1], Term::Var("__w1".to_owned()));
+    let Formula::Atom { relation, args } = &parts[1] else {
+        panic!("inner head is an atom, got {:?}", parts[1]);
+    };
+    assert_eq!(*relation, Term::Iri(format!("{ex}P")));
+    assert_eq!(args.len(), 2);
+    assert_eq!(
+        args[0],
+        Term::Var("__w1".to_owned()),
+        "the head is relativized to the innermost world __w1"
+    );
+    assert_eq!(args[1], Term::Iri(format!("{ex}a")));
+}
+
+#[test]
+#[allow(non_snake_case)] // `accessibleFrom` names the rejected logic: property verbatim.
+fn modal_over_accessibleFrom_is_hard_error() {
+    // logic:accessibleFrom is the bare superproperty; the standard translation must be taken
+    // over a single TYPED accessibility relation, never the blurred union, so pinning it is a
+    // hard error, not a value to translate over.
+    let (prog, diags) = parse(
+        "ex:nec a logic:Formula ;
+            logic:necessarily [ a logic:Formula ; logic:relation ex:P ;
+                logic:argument [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termIri ex:a ] ] ;
+            logic:overAccessibility logic:accessibleFrom .",
+    );
+    assert!(
+        prog.formulas.is_empty(),
+        "a modal node pinning the bare superproperty must never enter the IR: {:?}",
+        prog.formulas
+    );
+    assert!(
+        diags.iter().any(|d| {
+            d.code == "MALFORMED_FORMULA"
+                && d.severity == Severity::Error
+                && d.message.contains("accessibleFrom")
+        }),
+        "expected an error-grade MALFORMED_FORMULA rejecting logic:accessibleFrom: {diags:?}"
     );
 }

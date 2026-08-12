@@ -1,0 +1,14 @@
+# Competency question (week cycle): "Which weekday positions does the temporal slice
+# seed, and which class closes that value vocabulary?" The seven ISO-8601 days are
+# individuals of gmeow:DayOfWeek — a CLOSED value vocabulary, closed because ISO 8601
+# closes it — so both the class and its complete membership must be answerable straight
+# from the asserted ontology, without a recurrence engine or a calendar conversion
+# (Principle 12 keeps computation out of the logic).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?dayClass ?day WHERE {
+    ?day a ?dayClass .
+    FILTER(?dayClass = gmeow:DayOfWeek)
+}
+ORDER BY ?day

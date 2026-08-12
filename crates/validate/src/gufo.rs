@@ -38,7 +38,7 @@ use std::collections::{BTreeSet, HashSet, VecDeque};
 use gmeow_errors::model::{Finding, Location, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
-use crate::model::{logic, owl, rdf, rdfs};
+use crate::model::{owl, rdf, rdfs};
 
 /// Resolve an IRI value to its dataset-local [`TermId`], if interned.
 #[inline]
@@ -206,13 +206,18 @@ fn gmeow_classes(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
 /// reflexive closure minus the start node. Traversing `logic:subClassOf` too is what
 /// lets a slice ground its SubKind→Kind edge as `logic:subClassOf` (zero ungrounded
 /// rdfs residue) while the OntoUML identity checks still trace it to its Kind.
-fn proper_ancestors(ds: &RdfDataset, cls: &str) -> HashSet<String> {
+///
+/// `pub(crate)`: also the Tier-1 consumer path's subclass-closure injection
+/// ([`crate::data_validate`]) reuses this exact BFS over the bundle's ontology dataset,
+/// so the `sh:targetClass` shortcut edges it synthesizes trace the SAME subsumption
+/// lattice (both `rdfs:subClassOf` and `logic:subClassOf`) these OntoUML checks do.
+pub(crate) fn proper_ancestors(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let mut seen: HashSet<String> = HashSet::new();
     let mut queue: VecDeque<String> = VecDeque::new();
     queue.push_back(cls.to_owned());
     let mut visited: HashSet<String> = HashSet::new();
     visited.insert(cls.to_owned());
-    let subclass_ids: Vec<_> = [rdfs::SUB_CLASS_OF, logic::SUB_CLASS_OF]
+    let subclass_ids: Vec<_> = gmeow_ns::SUB_CLASS_OF
         .iter()
         .filter_map(|p| iri_id(ds, p))
         .collect();
@@ -601,7 +606,7 @@ fn gmeow_subclasses(ds: &RdfDataset, cls: &str) -> HashSet<String> {
     let Some(object_id) = iri_id(ds, cls) else {
         return out;
     };
-    for pred in [rdfs::SUB_CLASS_OF, logic::SUB_CLASS_OF] {
+    for pred in gmeow_ns::SUB_CLASS_OF {
         let Some(subclass_id) = iri_id(ds, pred) else {
             continue;
         };
@@ -844,10 +849,15 @@ pub fn coequal_facet_orthogonality(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Fin
 /// where `b` is reachable from `a` or `a` from `b` over the
 /// subPropertyOf/equivalentProperty adjacency (mirrors the Python double loop).
 fn bridged_pairs(ds: &RdfDataset, axes: &[String]) -> Vec<(String, String)> {
-    // adjacency: directed subPropertyOf + symmetric equivalentProperty.
+    // adjacency: directed subPropertyOf (both the canonical `logic:subPropertyOf`
+    // edge and its `rdfs:` projection — gmeow_ns::SUB_PROPERTY_OF doctrine;
+    // crates/ns/src/lib.rs:106-166) + symmetric equivalentProperty.
     use std::collections::HashMap;
     let mut adjacency: HashMap<String, HashSet<String>> = HashMap::new();
-    if let Some(subprop_id) = iri_id(ds, rdfs::SUB_PROPERTY_OF) {
+    for pred in gmeow_ns::SUB_PROPERTY_OF {
+        let Some(subprop_id) = iri_id(ds, pred) else {
+            continue;
+        };
         for q in ds.quads_for_pattern(None, Some(subprop_id), None, GraphMatch::Any) {
             if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
                 adjacency
@@ -904,11 +914,16 @@ pub fn frame_declaration_completeness(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<
     let requires = format!("{}requiresFrame", cfg.namespace);
     let requires_id = iri_id(ds, &requires);
 
-    // props = sorted transitive_subjects(subPropertyOf, has_frame) minus has_frame.
-    let mut props: Vec<String> = transitive_subjects(ds, rdfs::SUB_PROPERTY_OF, &has_frame)
-        .into_iter()
-        .filter(|p| p != &has_frame)
-        .collect();
+    // props = sorted union of transitive_subjects(subPropertyOf, has_frame) over BOTH
+    // the canonical `logic:subPropertyOf` edge and its `rdfs:` projection
+    // (gmeow_ns::SUB_PROPERTY_OF doctrine; crates/ns/src/lib.rs:106-166), minus
+    // has_frame itself — a frame-pointing property re-authored to `logic:subPropertyOf`
+    // must still be found.
+    let mut props_set: HashSet<String> = HashSet::new();
+    for pred in gmeow_ns::SUB_PROPERTY_OF {
+        props_set.extend(transitive_subjects(ds, pred, &has_frame));
+    }
+    let mut props: Vec<String> = props_set.into_iter().filter(|p| p != &has_frame).collect();
     props.sort();
 
     let mut problems: Vec<Finding> = Vec::new();
@@ -1256,6 +1271,74 @@ mod tests {
             relator_mediation(&store, &cfg())
                 .iter()
                 .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond"))
+        );
+    }
+
+    /// The subsumption traversals see a CANONICAL `logic:subClassOf` edge — the
+    /// property the shared [`gmeow_ns::SUB_CLASS_OF`] definition guarantees, pinned
+    /// here so a future narrowing of it re-reds this crate too.
+    ///
+    /// `proper_ancestors` (via `identity_overlap`) and `gmeow_subclasses` (via
+    /// `relator_mediation`) must both trace an edge authored with NO `rdfs:`
+    /// spelling anywhere; an `rdfs:`-only read would report both fixtures clean by
+    /// simply not seeing the hierarchy.
+    #[test]
+    fn canonical_logic_subclass_edges_are_traversed() {
+        // MixIden: two logic:Kind ancestors reached ONLY over `logic:subClassOf`.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Animal a owl:Class , logic:Kind .\n\
+             gmeow:Machine a owl:Class , logic:Kind .\n\
+             gmeow:Cyborg a owl:Class , logic:SubKind ;\n\
+               logic:subClassOf gmeow:Animal , gmeow:Machine .\n"
+        ));
+        assert!(
+            identity_overlap(&store, &cfg())
+                .iter()
+                .any(|p| p.message.contains("MixIden") && p.message.contains("gmeow:Cyborg")),
+            "proper_ancestors must traverse the canonical subsumption edge"
+        );
+
+        // RelComp: a two-level chain — AbstractBond specializes logic:Relator, and
+        // LonelyBond specializes AbstractBond — with EVERY edge authored only over
+        // the canonical `logic:subClassOf` spelling (no `rdfs:` anywhere). This
+        // pins `gmeow_subclasses` (not just `proper_ancestors`): a mutation to
+        // RDFS-only `gmeow_subclasses` REDS this exact fixture, because AbstractBond
+        // would then look concrete (no subclass found) and wrongly earn its own
+        // RelComp finding instead of being skipped as the abstract base. (Verified:
+        // reverting `gmeow_subclasses` to `[gmeow_ns::RDFS_SUB_CLASS_OF]` alone kept
+        // the ORIGINAL single-level fixture green — LonelyBond had no subclasses
+        // either way, so it never exercised `gmeow_subclasses` at all — which is
+        // exactly why this fixture was extended to a second level.)
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:AbstractBond a owl:Class , logic:Kind ; logic:subClassOf logic:Relator .\n\
+             gmeow:LonelyBond a owl:Class , logic:Kind ; logic:subClassOf gmeow:AbstractBond .\n\
+             gmeow:bondParty a owl:ObjectProperty , owl:FunctionalProperty ;\n\
+               rdfs:domain gmeow:LonelyBond ; rdfs:range gmeow:Person .\n"
+        ));
+
+        let abstract_bond = format!("{NS}AbstractBond");
+        let lonely_bond = format!("{NS}LonelyBond");
+        assert!(
+            gmeow_subclasses(&store, &abstract_bond).contains(&lonely_bond),
+            "gmeow_subclasses must match LonelyBond as a subclass of AbstractBond over \
+             the canonical logic:subClassOf edge"
+        );
+
+        let findings = relator_mediation(&store, &cfg());
+        assert!(
+            findings
+                .iter()
+                .any(|p| p.message.contains("RelComp") && p.message.contains("gmeow:LonelyBond")),
+            "the concrete child LonelyBond must get the RelComp finding: {findings:?}"
+        );
+        assert!(
+            !findings
+                .iter()
+                .any(|p| p.message.contains("gmeow:AbstractBond")),
+            "the abstract base AbstractBond must NOT get its own finding — its concrete \
+             subtype carries the mediation: {findings:?}"
         );
     }
 

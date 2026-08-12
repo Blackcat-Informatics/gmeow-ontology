@@ -5,94 +5,11 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-# SHACL shapes for the expertise module (issue #263).
-
-gmeow:expertisePrefixes
-    sh:declare [
-        sh:prefix "gmeow" ;
-        sh:namespace "https://blackcatinformatics.ca/gmeow/"^^xsd:anyURI
-    ] .
-# These target instance data; they are dormant when validating the TBox alone.
-
-gmeow:SkillProficiencyShape
-    a sh:NodeShape ;
-    rdfs:label "SkillProficiency well-formedness shape"@x-gmeow-english ;
-    sh:targetClass gmeow:SkillProficiency ;
-    sh:property [
-        sh:path gmeow:skillProficiencyOf ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A SkillProficiency must reference exactly one Skill (gmeow:skillProficiencyOf)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:skillProficiencyLevel ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A SkillProficiency must carry exactly one ProficiencyLevel (gmeow:skillProficiencyLevel)." ;
-    ] .
-
-gmeow:SkillProficiencyScaleMismatchShape
-    a sh:NodeShape ;
-    rdfs:label "SkillProficiency level/scale consistency shape"@x-gmeow-english ;
-    sh:targetClass gmeow:SkillProficiency ;
-    sh:prefixes gmeow:expertisePrefixes ;
-    sh:sparql [
-        sh:severity sh:Warning ;
-        sh:message "The skillProficiencyLevel's levelScale should match the relator's skillProficiencyScale." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this gmeow:skillProficiencyLevel ?level .
-                $this gmeow:skillProficiencyScale ?scale .
-                ?level gmeow:levelScale ?expected .
-                FILTER(?scale != ?expected)
-            }
-        """ ;
-    ] .
-
-gmeow:CredentialAttestationShape
-    a sh:NodeShape ;
-    rdfs:label "Credential verifiable attestation shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Credential ;
-    sh:prefixes gmeow:expertisePrefixes ;
-    sh:sparql [
-        sh:severity sh:Warning ;
-        sh:message "A Credential intended to be verifiable should reference a gmeow:Attestation (via attestedSubject / hasAttestation)." ;
-        sh:select """
-            SELECT $this WHERE {
-                $this a gmeow:Credential .
-                FILTER NOT EXISTS {
-                    ?att a gmeow:Attestation .
-                    { ?att gmeow:attestedSubject $this . }
-                    UNION
-                    { $this gmeow:hasAttestation ?att . }
-                }
-            }
-        """ ;
-    ] .
-
-gmeow:CredentialIssuerShape
-    a sh:NodeShape ;
-    rdfs:label "Credential issuer organization shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Credential ;
-    sh:property [
-        sh:path gmeow:credentialIssuer ;
-        sh:class gmeow:Organization ;
-        sh:severity sh:Violation ;
-        sh:message "A Credential's credentialIssuer must be an Organization." ;
-    ] .
-
-gmeow:CredentialForShape
-    a sh:NodeShape ;
-    rdfs:label "Credential target range shape"@x-gmeow-english ;
-    sh:targetClass gmeow:Credential ;
-    sh:property [
-        sh:path gmeow:credentialFor ;
-        sh:or (
-            [ sh:class gmeow:Skill ]
-            [ sh:class gmeow:Occupation ]
-        ) ;
-        sh:severity sh:Violation ;
-        sh:message "A Credential's credentialFor must reference a Skill or Occupation." ;
-    ] .
+# The expertise module's validation surface (SkillProficiency well-formedness
+# and level/scale consistency, Credential attestation/issuer/target-range checks) is authored
+# entirely as logic: core content in slices/core/expertise/module.ttl and projected to
+# generated/shapes/validation-shapes.ttl + generated/shapes/procedural-constraints.ttl. This
+# file carries no hand-authored sh:NodeShape: every check is a canonical logic: constraint or
+# an EL-safe OWL/RDFS axiom whose SHACL image the pipeline derives. The file is retained (not
+# deleted) as the stable, intentionally shape-free anchor for the expertise validation
+# namespace.

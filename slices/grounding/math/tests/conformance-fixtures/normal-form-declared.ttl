@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The math:structuralKey values are the REAL recomputed digests of their own expressions,
+# equal on both ends because the two expressions are structurally identical — which is what
+# makes the math:structuralNormalization claim TRUE. An invented literal here would be
+# math:StructuralKeyDrift, a different failure, and this fixture is meant to CONFORM.
+#
+# Positive fixture: a math:normalForm edge (source, target) has a math:NormalizationDeclaration
+# naming that SAME pair, held at math:structuralNormalization with EQUAL math:structuralKey
+# values on both ends — clean of math:UndeclaredNormalForm (a matching declaration exists),
+# math:FalseStructuralNormalizationClaim (the keys agree), and math:UnattributedNormalization
+# (a structural-strength claim needs no procedure/attribution).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+ex:declaredSource a math:NumberLiteral ;
+    math:normalForm ex:declaredTarget ;
+    math:structuralKey "f1a2e8c63c86a71fe7b6bf55d731bfeed26a726f85123b2699de9d7748d2f604" ;
+    math:literalValue "1"^^xsd:integer .
+
+ex:declaredTarget a math:NumberLiteral ;
+    math:structuralKey "f1a2e8c63c86a71fe7b6bf55d731bfeed26a726f85123b2699de9d7748d2f604" ;
+    math:literalValue "1"^^xsd:integer .
+
+ex:declaredNormalization a math:NormalizationDeclaration ;
+    math:normalizes ex:declaredSource ;
+    math:normalizesTo ex:declaredTarget ;
+    math:normalizationStrength math:structuralNormalization .

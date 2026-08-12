@@ -32,11 +32,37 @@ ex:accelerationField a math:MeasurableFunction ;
 ex:realValues a math:Set .
 
 # The integral declares a result dimension whose time exponent is perturbed to −3.
-ex:netForce a math:Integral ;
+# math:Integral ⊑ math:BindingExpression, so ∫ a dm is authored as the binder it is: the
+# integration operator applied to a body over the bound integration variable m. Without
+# those parts the fixture would carry a SECOND, unrelated defect (an integral with no
+# bound variable and no body is math:MalformedBindingExpression), and the isolation this
+# counter-example claims would be false.
+# math:BindingExpression is asserted alongside math:Integral, not left to subsumption: the
+# expression grammar reads a node's ASSERTED math: types to decide which concrete form it
+# is, so an integral typed only math:Integral is not recognized as the binder that scopes
+# its own integration variable — and its bound occurrence would then read as unscoped.
+ex:netForce a math:Integral , math:BindingExpression ;
     math:integrand ex:accelerationField ;
     math:integrationDomain ex:bodySpace ;
     math:withRespectTo ex:massMeasure ;
+    math:operator ex:integrationOperator ;
+    math:boundVariable ex:massVariable ;
+    math:bindsOccurrence ex:massOccurrence ;
+    math:argumentSlot ex:integrandSlot ;
     math:hasDimension ex:forceDimBroken .
+
+ex:integrationOperator a math:IntegrationOperator .
+ex:massVariable a math:VariableDeclaration .
+
+ex:integrandSlot a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:massVariableExpression .
+
+ex:massVariableExpression a math:VariableExpression ;
+    math:variableOccurrence ex:massOccurrence .
+
+ex:massOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:massVariable .
 
 # force (broken): M¹L¹T⁻³  —  the single perturbed exponent (time −3, should be −2).
 ex:forceDimBroken a math:DerivedDimension ;

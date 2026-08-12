@@ -17,10 +17,10 @@ RDF 1.2 text ──parse──▶ LogicProgram (IR) ──project──▶ the s
 ```
 
 It carries **no reasoning-runtime dependencies**. The RDF parse/serialize path rides the
-wasm-clean `gmeow-rdf` `gts`
-surface (oxigraph-free, the same surface `crates/rdf-wasm` uses), so the entire
-compiler builds for `wasm32-unknown-unknown`. `make wasm` gates this and asserts
-the dependency tree stays free of the runtime crates.
+wasm-clean `purrdf` `gts` surface (oxigraph-free, the same surface this repo's
+`*-wasm` engine crates use), so the entire compiler builds for
+`wasm32-unknown-unknown`. `make wasm` gates this and asserts the dependency tree
+stays free of the runtime crates.
 
 The reasoning **runtime** — world-indexed stores, native forward/backward evaluation,
 certification, and counterfactuals — lives in the sibling `gmeow-logic` crate, which

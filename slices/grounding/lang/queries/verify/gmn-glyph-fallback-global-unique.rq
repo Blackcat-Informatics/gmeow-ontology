@@ -1,0 +1,27 @@
+# Negative test: GLOBALLY across every GMN plane (math @μ, logic @ℒ, linguistic, …), the
+# gmeow:gmnAsciiFallback keys form ONE shared ASCII notation stream. Two DISTINCT
+# candidates with DIFFERENT gmeow:gmnCandidateTarget values sharing one fallback key would
+# make that global stream ambiguous — a downstream ASCII reader could not tell which target
+# a key denotes. So each fallback MUST be unique across distinct targets everywhere, not
+# just within a plane. Any returned row is a genuine cross-plane collision.
+#
+# This is the guard on the codepoints deliberately reused across planes under the sigil
+# discipline: the math morphism arrow → and the logic implication → share codepoint U+2192,
+# and the math function-composition ∘ and the logic lens-composition ∘ share U+2218, but
+# each carries a DISTINCT ASCII fallback (the arrows split `arrow` vs `implies`, the rings
+# split `compose` vs `after`), so the shared Unicode never drags a shared ASCII key with it.
+# The shipped population declares no two distinct targets under one fallback, so this returns
+# no rows; a firing row is a real global key clash that must be fixed by re-keying one sign.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?fallback ?candA ?candB ?targetA ?targetB WHERE {
+    ?candA a gmeow:GmnSymbolCandidate ;
+           gmeow:gmnCandidateTarget ?targetA ;
+           gmeow:gmnAsciiFallback ?fallback .
+    ?candB a gmeow:GmnSymbolCandidate ;
+           gmeow:gmnCandidateTarget ?targetB ;
+           gmeow:gmnAsciiFallback ?fallback .
+    FILTER (STR(?candA) < STR(?candB))
+    FILTER (?targetA != ?targetB)
+}
+ORDER BY ?fallback ?candA ?candB

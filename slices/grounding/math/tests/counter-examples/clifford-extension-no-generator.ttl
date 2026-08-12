@@ -1,8 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 
+# Counter-example for math:CliffordExtension-shape: two FULLY framed math:CliffordAlgebra
+# individuals — each naming its carrier, scalar field, operation, axiom, basis, grading,
+# involution, basis blade, metric signature, and its math:spaceDimension as the
+# xsd:nonNegativeInteger the frame declares — related by a math:CliffordExtension that omits
+# ONLY math:extensionGenerator. The missing generator is therefore the single isolated
+# violation (math:IncompleteCliffordExtension). Bound by ex:ecCliffordExtensionNoGenerator.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/coverage/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 ex:extension a math:CliffordExtension ;
     math:baseAlgebra ex:base ;
@@ -13,13 +20,15 @@ ex:base a math:CliffordAlgebra ;
     math:structureOperation ex:product ; math:satisfiesAxiom ex:associativity ;
     math:hasBasis ex:basis ; math:hasGrading ex:grading ;
     math:cliffordInvolution ex:reversion ; math:hasBasisBlade ex:e1 ;
-    math:metricSignature ex:baseSignature ; math:spaceDimension 2 ; math:pseudoscalarSquare 1 .
+    math:metricSignature ex:baseSignature ;
+    math:spaceDimension "2"^^xsd:nonNegativeInteger ; math:pseudoscalarSquare 1 .
 ex:extended a math:CliffordAlgebra ;
     math:underlyingSet ex:extendedCarrier ; math:scalarField math:realNumbers ;
     math:structureOperation ex:product ; math:satisfiesAxiom ex:associativity ;
     math:hasBasis ex:basis ; math:hasGrading ex:grading ;
     math:cliffordInvolution ex:reversion ; math:hasBasisBlade ex:e1 ;
-    math:metricSignature ex:extendedSignature ; math:spaceDimension 4 ; math:pseudoscalarSquare -1 .
+    math:metricSignature ex:extendedSignature ;
+    math:spaceDimension "4"^^xsd:nonNegativeInteger ; math:pseudoscalarSquare -1 .
 ex:baseCarrier a math:Set .
 ex:extendedCarrier a math:Set .
 ex:product a math:GeometricProduct .

@@ -269,8 +269,8 @@ and **deterministically** on *this branch's own changes*. It moves to
 
 **The case.** Three lanes moved (commit `6bb22778d`). `bench-soak` is a
 repeat-for-confidence window (criterion 1). `acceptance` globs every external
-coverage fixture and round-trips each (criterion 2). `wasm-parity` builds four
-crates for `wasm32` in release plus `wasm-bindgen`, `wasm-opt` and three Node
+coverage fixture and round-trips each (criterion 2). `wasm-parity` builds five
+crates for `wasm32` in release plus `wasm-bindgen`, `wasm-opt` and four Node
 suites, and SKIPs outright when the target or `node` is absent — frequently a
 no-op occupying the critical path on a developer's gate (criterion 3), while
 hard-failing in CI so the parity criterion is never silently unverified on the

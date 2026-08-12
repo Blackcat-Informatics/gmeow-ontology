@@ -22,7 +22,7 @@ rayon = "1"
 # The project's canonical content-digest — the fingerprint the projected
 # quality-assessment corpus carries so a consumer can prove the record still
 # describes the working tree instead of re-scoring to find out. Pure-Rust.
-blake3 = "1"
+blake3.workspace = true
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 gmeow-errors = { path = "../errors" }

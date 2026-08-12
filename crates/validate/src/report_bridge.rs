@@ -13,7 +13,7 @@
 
 use gmeow_errors::{Finding, FindingCategory, Location, Report, Severity};
 
-use crate::findings::finding_from_shacl;
+use crate::findings::{FailureClassIndex, finding_from_shacl};
 
 /// Fold the cheap-lint string scratch plus the structured SHACL findings into
 /// ONE canonical [`Report`]. `from_legacy` turns each error/warning string into a
@@ -35,16 +35,20 @@ pub(crate) fn build_report(
 /// structured findings via the [`finding_from_shacl`] bridge, optionally tagging each
 /// with the example/DSL source (`origin`) as the finding's primary path so SARIF and
 /// the `gmeow:` RDF projection can attribute it.
+///
+/// `classes` is the shapes graph's `gmeow:enforcesFailureClass` index, so every finding
+/// NAMES the typed conformance failure its violated law declares.
 pub(crate) fn shacl_findings_from_report(
     report: &purrdf::shapes::report::ValidationReport,
     origin: Option<&str>,
+    classes: &FailureClassIndex,
 ) -> Vec<Finding> {
     let mut findings: Vec<Finding> = report
         .results
         .iter()
         .map(|result| {
-            let mut finding =
-                finding_from_shacl(result).with_category(FindingCategory::DataShapeViolation);
+            let mut finding = finding_from_shacl(result, classes)
+                .with_category(FindingCategory::DataShapeViolation);
             // Attribute the example/DSL source file as the finding's PRIMARY
             // physical location (a repo-relative path), keeping the focus-node
             // IRI as that location's logical anchor. SARIF `artifactLocation.uri`

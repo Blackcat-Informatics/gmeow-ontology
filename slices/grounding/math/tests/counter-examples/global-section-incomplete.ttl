@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:GlobalSectionShape (derived from the min-1 qualified
+# restrictions on math:GlobalSection's math:overSheaf and math:sectionRegion): a
+# math:GlobalSection naming neither its carrier sheaf nor the region it globalises
+# over. Validation MUST emit shacl.MinCountConstraintComponent
+# (math:IncompleteGlobalSection).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bareSection a math:GlobalSection .

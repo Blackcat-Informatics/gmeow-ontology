@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# The committed engine-parity corpus. Self-contained by design: engine parity is a
+# property of the engine, so it must not depend on the materialized bundle.
+#
+# It exercises the surfaces the playground actually reaches — the default graph, a
+# named graph, language-tagged and typed literals, and the RDF 1.2 statement layer
+# (a quoted triple in subject position), which is exactly what a flattened N-Quads
+# extract would have destroyed.
+
+@prefix ex:   <https://example.org/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:alice a ex:Person ;
+    rdfs:label "Alice"@en ;
+    ex:age "34"^^xsd:integer ;
+    ex:knows ex:bob .
+
+ex:bob a ex:Person ;
+    rdfs:label "Bob"@en ;
+    ex:age "29"^^xsd:integer .
+
+<https://example.org/graph/named> {
+    ex:carol a ex:Person ;
+        rdfs:label "Carol"@en ;
+        ex:knows ex:alice .
+}
+
+# RDF 1.2: a quoted triple as an annotated subject. A flattened extract cannot carry
+# this, which is why the playground reads the bundle rather than a core N-Quads dump.
+<< ex:alice ex:knows ex:bob >> ex:certainty "0.9"^^xsd:decimal .

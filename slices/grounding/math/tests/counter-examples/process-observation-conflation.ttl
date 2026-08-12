@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the OWL-axiom gate backing math:ProcessObservationConflation: a node
+# typed BOTH math:InferenceRun (a gmeow:Activity — the process half of the process / result
+# / claim separation) AND gmeow:Observation (the held claim). module.ttl asserts
+# `math:InferenceRun owl:disjointWith gmeow:Observation` directly, so the native DL
+# reasoner forces this individual into owl:Nothing — an inconsistency the reasoned closure
+# decides, not a structural heuristic. The generated `math:InferenceRun-shape` (`sh:not
+# [ sh:class gmeow:Observation ]`) is the SHACL projection of the same axiom and also fires
+# (shacl.NotConstraintComponent), a documented secondary gate.
+# Back-reference: math:InferenceRun owl:disjointWith gmeow:Observation /
+# math:ProcessObservationConflation (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:conflatedRun a math:InferenceRun , gmeow:Observation .

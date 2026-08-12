@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:CycleShape (derived from the min-1 qualified restriction on
+# math:Cycle's math:cycleOf): a math:Cycle naming no math:ChainComplex whose kernel of
+# the boundary operator it lies in. Validation MUST emit
+# shacl.QualifiedMinCountConstraintComponent (math:UngroundedCycle). math:Cycle also
+# inherits math:Chain's math:chainOf obligation, so ex:bareCycle is additionally typed
+# math:Chain and given a math:chainOf value to isolate the cycle-specific violation.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bareCycle a math:Cycle , math:Chain ;
+    math:chainOf ex:complex .
+
+ex:complex a math:ChainComplex .

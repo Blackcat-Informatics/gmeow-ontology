@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "17",
   "slice_count": 85,
-  "term_count": 6868,
-  "dependency_edge_count": 1393,
+  "term_count": 7045,
+  "dependency_edge_count": 1387,
   "term_count_by_category": {
-    "Class": 1881,
+    "Class": 1928,
     "Datatype": 1,
-    "Individual": 1694,
-    "Property": 3292
+    "Individual": 1745,
+    "Property": 3371
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -342,10 +342,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 109,
-  "linkage_count": 2119,
-  "example_count": 203,
+  "linkage_count": 2125,
+  "example_count": 207,
   "concern_count": 7,
-  "external_term_count": 1802,
+  "external_term_count": 1805,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -460,16 +460,15 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 144,
-  "competency_count": 342,
+  "shape_count": 52,
+  "competency_count": 348,
   "sample_shape": {
-    "shape_iri": "https://blackcatinformatics.ca/gmeow/AdequacyAssessmentShape",
-    "target_term": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment",
+    "shape_iri": "https://blackcatinformatics.ca/gmeow/AltPathShape",
+    "target_term": "https://blackcatinformatics.ca/gmeow/AltPath",
     "messages": [
-      "An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict (gmeow:meetsThreshold).",
-      "An AdequacyAssessment must name exactly one gmeow:EpistemicStandard (gmeow:adequacyUnderStandard)."
+      "AltPath must have exactly one gmeow:pathAlts (rdf:List)"
     ],
-    "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/epistemics"
+    "owner_slice": "root"
   },
   "sample_competency": {
     "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",

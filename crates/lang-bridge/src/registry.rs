@@ -2202,12 +2202,24 @@ mod pack_tests {
     };
 
     fn op(term: &str, label: &str, glyph: &str, fixity: &str, arity: u32) -> GmnOperatorForm {
+        op_scoped(term, label, glyph, fixity, arity, "")
+    }
+
+    fn op_scoped(
+        term: &str,
+        label: &str,
+        glyph: &str,
+        fixity: &str,
+        arity: u32,
+        sigil: &str,
+    ) -> GmnOperatorForm {
         GmnOperatorForm {
             term_iri: term.to_owned(),
             term_label: label.to_owned(),
             gmn_glyph: glyph.to_owned(),
             fixity: fixity.to_owned(),
             arity,
+            sigil: sigil.to_owned(),
         }
     }
 
@@ -2342,5 +2354,40 @@ mod pack_tests {
             artifact.bytes, perturbed_emission.artifacts[0].bytes,
             "perturbing a form's fixity must change its verbalization"
         );
+    }
+
+    /// The codebook's lawful cross-plane codepoint reuse survives the WHOLE emission, not just
+    /// the pair builder: `→` under `@ℒ` (material implication) and under `@μ` (the morphism
+    /// arrow) are two operators, and the shipped corpus states the scope each reads in — so
+    /// the emission is produced and MEASURES its inverse as exact rather than hard-failing on
+    /// a surface collision.
+    #[test]
+    fn one_glyph_under_two_sigils_emits_and_measures_exact() {
+        let forms = vec![
+            op_scoped("logic:consequent", "implies", "→", FIXITY_INFIX, 2, "@ℒ"),
+            op_scoped("math:Morphism", "maps to", "→", FIXITY_INFIX, 2, "@μ"),
+        ];
+        let (emission, _) = verbalizer_emission(forms.clone());
+        assert!(
+            crate::is_exact_correspondence(&emission.correspondence),
+            "cross-scope reuse still round-trips exactly"
+        );
+
+        let pairs = build_verbalization_pairs(&forms).expect("cross-scope reuse is lawful");
+        let surfaces: Vec<&str> = pairs.iter().map(|p| p.gmn_surface.as_str()).collect();
+        assert_eq!(surfaces, vec!["@ℒ arg1 → arg2", "@μ arg1 → arg2"]);
+
+        // Falsifiability: erase the scope and the SAME two forms collide — the emission that
+        // would ship an ambiguous training pair is refused.
+        let unscoped: Vec<GmnOperatorForm> = forms
+            .into_iter()
+            .map(|mut f| {
+                f.sigil = String::new();
+                f
+            })
+            .collect();
+        let err = build_verbalization_pairs(&unscoped)
+            .expect_err("scope-erased reuse must be refused, not silently shipped");
+        assert!(err.0.contains("injectivity"), "{err}");
     }
 }

@@ -6,7 +6,7 @@
 # sharing math:slotIndex 0 trip the SAME inherited uniqueness gate that guards every
 # application/binder — proving the AST is reused, not forked. Each slot is otherwise
 # well-formed, isolating the SPARQL uniqueness violation. Validation MUST emit
-# shacl.SPARQLConstraintComponent and NO other finding (math:MalformedArgumentSlot).
+# shacl.SPARQLConstraintComponent and NO other finding (math:DuplicateArgumentSlotIndex).
 # Bound by ex:ecTensorNodeDuplicateSlotIndex.
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .

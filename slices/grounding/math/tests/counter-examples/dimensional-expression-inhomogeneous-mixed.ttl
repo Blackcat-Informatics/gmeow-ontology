@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the reasoner-derived measure-and-dimension gate
+# (math:DimensionalHomogeneityConstraint, crates/logic/src/reason/math_gate.rs): a
+# math:DimensionalExpression combining two math:homogeneousOperand quantities whose
+# dimensions are NOT commensurable — one carries the base dimension math:lengthDimension,
+# the other math:massDimension, so their exact-rational ℚ⁷ exponent vectors differ (unit
+# vectors on distinct axes). The native forward chase over the authored
+# math:dimensionalHomogeneityLaw MUST raise math:DimensionalInhomogeneity. Both operands
+# resolve cleanly to a real base-dimension vector (no math:MalformedDimension noise); the
+# mismatch itself is the single isolated violation.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:mixedSum a math:DimensionalExpression ;
+    math:homogeneousOperand ex:lengthOperand , ex:massOperand .
+
+ex:lengthOperand a math:Quantity ;
+    math:hasDimension math:lengthDimension .
+
+ex:massOperand a math:Quantity ;
+    math:hasDimension math:massDimension .

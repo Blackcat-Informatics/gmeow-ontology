@@ -474,7 +474,54 @@ math:normalForm
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "normal form"@x-gmeow-english ;
-    skos:definition "Relates a math:MathematicalExpression to a declared normalized expression under an identified mathematical convention or procedure. Equality is never inferred from coincident strings: the normalized target is another AST, and any stronger semantic-equivalence claim remains attributable and preservation-judged."@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to a declared normalized expression under an identified mathematical convention or procedure. Equality is never inferred from coincident strings: the normalized target is another AST, and any stronger semantic-equivalence claim remains attributable and preservation-judged. The plain edge stays a plain edge — its own strength, procedure, attribution, and preservation are never hung directly onto it; they are carried by the mediating math:NormalizationDeclaration that names this same source/target pair (an unattributed edge is math:UndeclaredNormalForm)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it to point a math:MathematicalExpression at the expression it is claimed to normalize to under SOME identified convention — a computer-algebra canonical form, a Gröbner basis reduction, or plain α-equivalence — whenever an expression's normalized shape needs to be data, not prose."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author a bare math:normalForm edge with no accompanying math:NormalizationDeclaration naming the SAME (source, target) pair — an unattributed normal-form claim is ill-formed (math:UndeclaredNormalForm), even at the finest (structural) strength. Do not hang the strength, procedure, or attribution directly on this edge; those belong on the mediating declaration."@x-gmeow-english ;
+    gmeow:howToUse "Point it at the normalized target expression, then mint a math:NormalizationDeclaration naming the SAME source and target through math:normalizes/math:normalizesTo, holding it at a math:NormalizationStrength — structural claims need only equal math:structuralKey values; any coarser claim additionally needs a math:normalizationProcedure, a vantage-carrying gmeow:Observation, and a logic:preservationKind."@x-gmeow-english ;
+    skos:example "exf:sumXY math:normalForm exf:sumYX . exf:normDecl a math:NormalizationDeclaration ; math:normalizes exf:sumXY ; math:normalizesTo exf:sumYX ; math:normalizationStrength math:commutativeNormalization ; math:normalizationProcedure exf:commutativeRewrite ."@x-gmeow-english .
+
+math:structuralKey
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "structural key"@x-gmeow-english ;
+    skos:definition "The computed structural-identity digest of a math:MathematicalExpression: its α-equivalence class identity under structural (finest) normalization — same operator, same slot-indexed operands, same binding structure up to bound-variable renaming — computed over structural content alone, independent of rendering or notation. Domain math:MathematicalExpression, range xsd:string (stated in prose). Single-valued: an expression digests to exactly one structural key. A computed projection of the expression's own structure, never a divergent second source — exactly as math:dimensionVector is a computed projection of a dimension's structured exponent list, never an independent authored value. Two expressions with equal structural keys are structurally (α-)identical; math:FalseStructuralNormalizationClaim catches a math:structuralNormalization claim whose keys disagree or are absent."@x-gmeow-english ;
+    gmeow:useWhen "Reach for it to compare two expressions for structural (α-)identity by digest — e.g. to decide whether a math:structuralNormalization claim holds — or to give a reasoner-facing consumer a cheap string to join on, in place of the joinable math:AlphaEquivalenceClass individual math:alphaEquivalenceClass names."@x-gmeow-english ;
+    gmeow:avoidWhen "Never hand-author a structural key by guessing a hash string: it is a COMPUTED projection recomputed by the math: expression-identity reasoned gate, so an authored value that disagrees with the recomputation is drift (math:StructuralKeyDrift), never an independent second source. Do not assert two or more values, or a non-literal value, on one expression (math:MalformedStructuralKey)."@x-gmeow-english ;
+    gmeow:howToUse "Let the math: expression-identity reasoned gate compute and (re)assert it from an expression's own structure; read it back to compare two expressions' structural identity by string equality, or to check a math:structuralNormalization claim's math:FalseStructuralNormalizationClaimConstraint witness."@x-gmeow-english ;
+    skos:example "exf:oneLeaf math:structuralKey \"d41d8cd98f00b204e9800998ecf8427e\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# α-equivalence class — the structural-key digest promoted to a joinable node.
+# math:structuralKey is a literal: two structurally-identical expressions carry
+# two EQUAL strings, comparable only by string equality. math:AlphaEquivalenceClass
+# promotes that same identity to a first-class individual — content-addressed on
+# the IDENTICAL digest — so a reasoner-facing consumer can JOIN two α-equivalent
+# expressions through one shared node rather than re-deriving equality from a
+# literal comparison every time. Minted, never hand-authored, by the SAME `math:`
+# expression-identity reasoned gate that recomputes math:structuralKey
+# (crates/logic/src/math_expression.rs, via
+# crates/logic/src/physical/lower.rs's alpha_class_iri_for_digest).
+# =========================================================================== #
+
+math:AlphaEquivalenceClass
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Alpha-Equivalence Class"@x-gmeow-english ;
+    skos:definition "The equivalence class of every math:MathematicalExpression identical up to bound-variable renaming — the SAME class of expressions math:structuralKey digests identify, promoted from a literal to a first-class, content-addressed individual. Two expressions related to the SAME math:AlphaEquivalenceClass individual (through math:alphaEquivalenceClass) are, by construction, structurally (α-)identical: the individual's IRI is minted directly from the expression's own math:structuralKey digest, so equal digests mint the IDENTICAL individual and unequal digests mint distinct ones. This is the joinable-node counterpart of the plain-literal math:structuralKey, not a competing identity: an math:AlphaEquivalenceClass individual carries no state of its own beyond being the shared target every α-equivalent expression's math:alphaEquivalenceClass edge resolves to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it when two or more expressions' shared structural identity needs to be a graph node a query can JOIN on — grouping every expression alpha-equivalent to a given one, or asserting that a family of authored expressions denotes ONE underlying form — rather than a per-pair string comparison of math:structuralKey values."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not hand-author a math:AlphaEquivalenceClass individual or its IRI: it is minted ONLY by the math: expression-identity derivation from an expression's own recomputed math:structuralKey digest. Do not use it in place of math:structuralKey itself when only a per-expression digest string is needed (e.g. authoring or checking one expression's own key) — the class individual is for JOINING across expressions, the literal digest is for stating or verifying one."@x-gmeow-english ;
+    gmeow:howToUse "Read a math:MathematicalExpression's math:alphaEquivalenceClass edge to reach its class individual; two expressions sharing that same object are, by construction, α-equivalent. Never assert the class individual's IRI directly — it is a computed projection of math:structuralKey, materialized by the math: expression-identity derivation exactly as the digest itself is, and shipped in the reasoned closure so the join needs no reasoner."@x-gmeow-english ;
+    skos:example "exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 and exf:e2 share ONE α-equivalence-class individual because their digests agree"@x-gmeow-english ;
+    skos:scopeNote "A minted, content-addressed individual, never hand-authored: it exists so two α-equivalent expressions JOIN through one shared node instead of being compared by string equality on two math:structuralKey literals. It names an equivalence class, not a normal form — membership says the two expressions are structurally identical up to bound-variable naming, and says nothing about which of them any normalization prefers."@x-gmeow-english .
+
+math:alphaEquivalenceClass
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "alpha-equivalence class"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalExpression to its math:AlphaEquivalenceClass — the content-addressed individual named directly by the SAME digest math:structuralKey carries as a literal. Domain math:MathematicalExpression, range math:AlphaEquivalenceClass (stated in prose). Single-valued, exactly as math:structuralKey is: an expression's α-equivalence class is a computed projection of its own recomputed digest, materialized by the math: expression-identity derivation, never an independently authored edge. That derivation ships its edges in the reasoned closure, so the node is present in gmeow.gts and in generated/logic/inferred-closure.rdf12.ttl rather than only inside a gate process. Two α-equivalent expressions' math:alphaEquivalenceClass edges resolve to the SAME individual by construction, giving any consumer a graph node to JOIN on where math:structuralKey alone offers only a literal to compare."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
@@ -2790,8 +2837,20 @@ math:MalformedArgumentSlot
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Malformed Argument Slot"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:ArgumentSlot does not carry exactly one math:slotIndex and exactly one math:slotExpression, or when two slots of one application share an index. Operand order is carried by unique indexed slots; a slot missing its index or expression, or a duplicated index, is ill-formed."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ArgumentSlot does not carry exactly one math:slotIndex and exactly one math:slotExpression. Operand order is carried by unique indexed slots; a slot missing its index or expression is ill-formed. Distinct from math:DuplicateArgumentSlotIndex (two slots sharing one index) and math:NonContiguousArgumentSlots (a gap in the index sequence), which are each their own failure class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DuplicateArgumentSlotIndex
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Duplicate Argument Slot Index"@x-gmeow-english ;
+    skos:definition "The failure raised when two math:argumentSlot cells of one parent share the same math:slotIndex. Operand order is carried by unique indexed slots; a duplicated index makes that order ambiguous."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when two distinct math:argumentSlot cells of the same parent carry the same math:slotIndex."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:MalformedArgumentSlot (a slot missing its index or expression entirely) or math:NonContiguousArgumentSlots (a gap in the index sequence); this failure is specifically the sibling-uniqueness violation."@x-gmeow-english ;
+    gmeow:howToUse "Point math:ArgumentSlotIndexUniquenessConstraint (the self-join uniqueness rule over math:argumentSlot's math:slotIndex) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:app math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] , [ math:slotIndex 0 ; math:slotExpression exf:b ] . # duplicate index 0 -> math:DuplicateArgumentSlotIndex"@x-gmeow-english .
 
 math:NonContiguousArgumentSlots
     a owl:Class ;
@@ -2799,7 +2858,11 @@ math:NonContiguousArgumentSlots
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Non-Contiguous Argument Slots"@x-gmeow-english ;
     skos:definition "The failure raised when the math:argumentSlot indexes of a mathematical expression are not the strict zero-based contiguous sequence 0..n−1. Together with non-negativity and sibling-index uniqueness, the predecessor rule rejects leading gaps and interior gaps while preserving explicit operand order."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a mathematical expression's math:argumentSlot indexes skip a value — a leading gap (no slot at index 0) or an interior gap (e.g. indexes 0, 1, 3 with no 2) under one parent."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a duplicate index (that is math:DuplicateArgumentSlotIndex) or for a slot missing its index or expression entirely (that is math:MalformedArgumentSlot); this failure is specifically about a gap in an otherwise unique, non-negative index sequence."@x-gmeow-english ;
+    gmeow:howToUse "Point math:ArgumentSlotContiguityConstraint (the closed-world predecessor-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:app math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] , [ math:slotIndex 2 ; math:slotExpression exf:b ] . # index 1 missing -> math:NonContiguousArgumentSlots"@x-gmeow-english .
 
 math:UnresolvedSymbolReference
     a owl:Class ;
@@ -2807,7 +2870,11 @@ math:UnresolvedSymbolReference
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unresolved Symbol Reference"@x-gmeow-english ;
     skos:definition "The failure raised when a math:SymbolReference expression resolves to no math:MathematicalSymbol, resolves to more than one symbol, or points outside that class. A reference occurrence has exactly one local symbol identity; glyph and external-identifier ambiguity is represented on that symbol rather than by leaving the AST leaf unresolved."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:SymbolReference leaf carries zero math:hasMathematicalSymbol edges, more than one, or one whose target is not a math:MathematicalSymbol."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for glyph or external-identifier ambiguity on the resolved math:MathematicalSymbol itself — that ambiguity is represented ON the symbol, never by leaving the AST leaf unresolved."@x-gmeow-english ;
+    gmeow:howToUse "Point the exactly-one restriction on math:SymbolReference's math:hasMathematicalSymbol edge at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:xRef a math:SymbolReference . # no math:hasMathematicalSymbol edge -> math:UnresolvedSymbolReference"@x-gmeow-english .
 
 math:UnscopedVariableOccurrence
     a owl:Class ;
@@ -2817,6 +2884,18 @@ math:UnscopedVariableOccurrence
     skos:definition "The failure raised when a math:VariableOccurrence neither resolves to a math:VariableDeclaration through math:declaredVariable nor is marked free through a math:FreeVariableDeclaration. There is no implicit free variable; an occurrence that binds to nothing is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:UntypedFreeVariable
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Untyped Free Variable"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:FreeVariableDeclaration does not declare, through math:variableDomain, the math:Set it ranges over. A free variable is the explicit marker that an occurrence is not bound by a binder; without a declared domain it names no type/domain context and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:FreeVariableDeclaration omits its math:variableDomain — the declared type/domain context a free variable must carry since it is not introduced by a binder."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a math:VariableDeclaration introduced by a binder (through math:boundVariable): a bound declaration's scope comes from its binder, not from a declared domain; this failure is specific to the free, standalone case."@x-gmeow-english ;
+    gmeow:howToUse "Point the exactly-one restriction on math:FreeVariableDeclaration's math:variableDomain at it through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    skos:example "exf:xFree a math:FreeVariableDeclaration . # no math:variableDomain -> math:UntypedFreeVariable"@x-gmeow-english .
+
 math:MalformedBindingExpression
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
@@ -2825,6 +2904,32 @@ math:MalformedBindingExpression
     skos:definition "The failure raised when a math:BindingExpression does not name the math:VariableDeclaration it binds through math:boundVariable, or does not name its body through math:argumentSlot. A binder binds a variable over a body; a binder missing either is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:CyclicExpressionGraph
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cyclic Expression Graph"@x-gmeow-english ;
+    skos:definition "The failure raised when the math:argumentSlot / math:slotExpression graph of an application or binding expression loops back to a node already being lowered. A mathematical expression AST is a tree grounded in leaves, never a graph with a cycle through its own operand/body positions; a cycle makes the expression's structure — and therefore its structural identity — undecidable by any finite walk. Decided by the native math: expression lowering's own cycle guard (a graph-traversal computation over the authored math:argumentSlot/math:slotExpression edges), never a flat relational join the SHACL/Datalog fragment can express."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when an application or binding expression's math:argumentSlot/math:slotExpression chain loops back to a node still being lowered — the expression graph is not acyclic."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a merely DEEP but acyclic expression — that is math:ExpressionDepthExceeded, the sibling recursion-bound failure; this failure is specific to a genuine cycle."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); there is no SHACL/Datalog derivation to point at it — cycle detection over an authored graph is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:a math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression -> math:CyclicExpressionGraph"@x-gmeow-english ;
+    skos:scopeNote "Distinguished from math:ExpressionDepthExceeded by what terminates the walk: a cycle revisits a node the current traversal already holds, so no finite unfolding exists at all, while a depth breach unfolds finitely but past the guard. Every individual node in a cyclic component can be perfectly well-formed — SHACL, which reasons node by node, cannot see the defect, which is why this is decided by the lowering's traversal rather than by a derived shape."@x-gmeow-english .
+
+math:ExpressionDepthExceeded
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Expression Depth Exceeded"@x-gmeow-english ;
+    skos:definition "The failure raised when lowering an application or binding expression recurses past the native lowering's maximum supported expression-graph depth. A generous but finite recursion bound turns a pathologically deep (or, absent the sibling cycle guard, cyclic) authoring into a typed, catchable rejection rather than an unbounded stack dive. Decided by the native math: expression lowering's own recursion-depth guard, never a flat relational join the SHACL/Datalog fragment can express."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when an application or binding expression's math:argumentSlot/math:slotExpression nesting recurses past the native lowering's maximum supported depth."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a genuine CYCLE — that is math:CyclicExpressionGraph, the sibling cycle-detection failure (and fires first for a tight cycle, before the depth bound would otherwise be reached); this failure is specific to an acyclic but pathologically deep expression."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); there is no SHACL/Datalog derivation to point at it — an authored-graph recursion-depth bound is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "A chain of 501 nested math:ApplicationExpression nodes, each naming the next as its sole operand through math:argumentSlot/math:slotExpression — one level deeper than the native lowering's maximum supported depth -> math:ExpressionDepthExceeded"@x-gmeow-english ;
+    skos:scopeNote "A resource guard on a WELL-FORMED expression, not a claim that the expression is malformed: a chain one level past the bound denotes exactly what a chain one level inside it denotes. It is separate from math:CyclicExpressionGraph, where no finite unfolding exists at any bound, and it is never a substitute for a real structural defect elsewhere in the tree."@x-gmeow-english .
+
 math:UndeclaredLogicLowering
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
@@ -2832,6 +2937,277 @@ math:UndeclaredLogicLowering
     rdfs:label "Undeclared Logic Lowering"@x-gmeow-english ;
     skos:definition "The failure raised when a truth-valued math:MathematicalExpression is lowered into logic: (math:compilesToLogicFormula) without declaring its math:denotationKind and its math:logicLoweringPreservation. Silent promotion of a mathematical expression to a logical assertion is forbidden — an equation is a denotable object until something declares it a proposition and lowers it, with recorded preservation, into the reasoning layer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+math:StringOnlyComputableExpression
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "String-Only Computable Expression"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression participates in checking, normalization, evaluation, or content-projection — carrying a math:normalForm, a math:compilesToLogicFormula, or a math:expressionType edge — yet carries none of the four structured-child edges (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue). An expression represented only by a string is not a computable AST node; a computable expression's structure is data, never prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression that carries a math:normalForm, math:compilesToLogicFormula, or math:expressionType edge has no math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue child — i.e. it is represented only by a string literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an expression that merely lacks all three triggering edges (math:normalForm, math:compilesToLogicFormula, math:expressionType); an expression not yet checked, normalized, evaluated, or content-projected carries no obligation to be structured."@x-gmeow-english ;
+    gmeow:howToUse "Point math:StringOnlyComputableExpressionConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:normalized math:normalForm exf:nf . # no argumentSlot/boundVariable/hasMathematicalSymbol/literalValue child -> math:StringOnlyComputableExpression"@x-gmeow-english .
+
+# --- Normalization declarations (attributed, strength-graded equivalence) --- #
+#
+# math:normalForm stays a plain edge from an expression to its declared normal
+# form — it must not grow strength/procedure/attribution/preservation fields
+# directly, or an expression normalized at two different strengths would become
+# unrepresentable and every such edge would need heavier RDF-1.2 triple-term
+# reification than this obligation needs. Instead a math:NormalizationDeclaration
+# is the n-ary mediating node — the SAME idiom math:ArgumentSlot uses to carry an
+# index alongside an operand rather than putting the index directly on the
+# application-to-operand edge — naming the source (math:normalizes), the target
+# (math:normalizesTo, the SAME object a math:normalForm edge already names), the
+# strength (math:normalizationStrength), and, for a claim coarser than
+# structural, the procedure (math:normalizationProcedure) that licenses it. The
+# declaration is the reason FOR an existing math:normalForm edge, never a
+# replacement for it.
+
+math:NormalizationDeclaration
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Normalization Declaration"@x-gmeow-english ;
+    skos:definition "The attributed reason for a math:normalForm edge: the mediating node naming the source expression it normalizes (math:normalizes), the target expression it normalizes to (math:normalizesTo — the SAME object the corresponding math:normalForm edge names), the math:NormalizationStrength the claim is held at (math:normalizationStrength), and, for a claim coarser than structural, the math:NormalizationProcedure that licenses it (math:normalizationProcedure). 'These formulas are the same' is an inferential act, not a lexical fact: every math:normalForm edge needs a declaration naming its pair (an edge with none is math:UndeclaredNormalForm), and a coarser-than-structural declaration is additionally a claim held by a vantage, attributed and preservation-judged, never a bare edge (math:UnattributedNormalization)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it whenever a math:normalForm edge needs an attributed reason: mint one per (source, target) pair, name the strength the claim is held at, and — for anything coarser than structural — the procedure, vantage, and preservation kind that license it."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mint one that omits math:normalizationStrength (a strength-less declaration is ill-formed — every declaration is held at exactly one of the four ladder rungs) and do not point its math:normalizes/math:normalizesTo at a pair no math:normalForm edge also names; the declaration is the reason FOR an existing edge, never a free-standing claim."@x-gmeow-english ;
+    gmeow:howToUse "Name the source through math:normalizes and the target through math:normalizesTo (the SAME pair the math:normalForm edge itself names), set math:normalizationStrength to one of the four math:NormalizationStrength individuals, and — for anything coarser than math:structuralNormalization — add math:normalizationProcedure, a gmeow:Observation/gmeow:vantage pair naming it, and a logic:preservationKind."@x-gmeow-english ;
+    skos:example "exf:sumXY math:normalForm exf:sumYX . exf:normDecl a math:NormalizationDeclaration ; math:normalizes exf:sumXY ; math:normalizesTo exf:sumYX ; math:normalizationStrength math:structuralNormalization ."@x-gmeow-english .
+
+math:normalizes
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normalizes"@x-gmeow-english ;
+    skos:definition "Relates a math:NormalizationDeclaration to the source math:MathematicalExpression it normalizes. Domain math:NormalizationDeclaration, range math:MathematicalExpression (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it on a math:NormalizationDeclaration to name the SAME source expression its sibling math:normalForm edge already carries — the (source, target) pair the declaration attributes."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at an expression whose corresponding math:normalForm edge names a DIFFERENT target than this declaration's math:normalizesTo — the two must name the identical pair, or the declaration discharges no edge at all."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:NormalizationDeclaration to the SAME math:MathematicalExpression that carries the math:normalForm edge this declaration is the attributed reason for."@x-gmeow-english ;
+    skos:example "exf:normDecl math:normalizes exf:sumXY ."@x-gmeow-english .
+
+math:normalizesTo
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normalizes to"@x-gmeow-english ;
+    skos:definition "Relates a math:NormalizationDeclaration to the target math:MathematicalExpression it normalizes to — the SAME object the source expression's own math:normalForm edge names. Domain math:NormalizationDeclaration, range math:MathematicalExpression (stated in prose). The declaration is the attributed reason FOR that math:normalForm edge, never a second, competing target."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it on a math:NormalizationDeclaration to name the SAME target expression its source's math:normalForm edge already points at — never a second, competing target."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not point it at an expression the source's math:normalForm edge does not ALSO name — a declaration naming a different pair than the edge it is meant to attribute discharges nothing (math:UndeclaredNormalForm stays live on the real edge)."@x-gmeow-english ;
+    gmeow:howToUse "Set it on a math:NormalizationDeclaration to the SAME math:MathematicalExpression its math:normalizes source's math:normalForm edge already names as the normalized target."@x-gmeow-english ;
+    skos:example "exf:normDecl math:normalizesTo exf:sumYX ."@x-gmeow-english .
+
+math:normalizationStrength
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normalization strength"@x-gmeow-english ;
+    skos:definition "Relates a math:NormalizationDeclaration to the math:NormalizationStrength it is held at. Domain math:NormalizationDeclaration, range math:NormalizationStrength (stated in prose). Single-valued: one declaration is held at exactly one strength."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:useWhen "Reach for it on EVERY math:NormalizationDeclaration to grade how strong its equivalence claim is — one of the four closed math:NormalizationStrength rungs, from math:structuralNormalization (finest) to math:semanticNormalization (coarsest)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not omit it: a strength-less declaration is ill-formed (the unqualified min/max-cardinality-1 pair) — it satisfies neither the structural-key-equality guard nor the coarser-than-structural attribution guard, so a strength-less declaration would otherwise discharge the whole normal-form contract for free. Do not assert two different strengths on one declaration; it is single-valued."@x-gmeow-english ;
+    gmeow:howToUse "Set it to EXACTLY ONE of math:structuralNormalization, math:commutativeNormalization, math:algebraicNormalization, or math:semanticNormalization; anything coarser than structural additionally needs math:normalizationProcedure, a vantage-carrying gmeow:Observation, and a logic:preservationKind."@x-gmeow-english ;
+    skos:example "exf:normDecl math:normalizationStrength math:structuralNormalization ."@x-gmeow-english .
+
+math:normalizationProcedure
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normalization procedure"@x-gmeow-english ;
+    skos:definition "Relates a math:NormalizationDeclaration to the math:NormalizationProcedure that licenses it — the named convention or algorithm under which the source expression is claimed to reduce to the target. Domain math:NormalizationDeclaration, range math:NormalizationProcedure (stated in prose). Required for any declaration held at a strength coarser than math:structuralNormalization; a coarser declaration missing it is math:UnattributedNormalization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:NormalizationProcedure
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Normalization Procedure"@x-gmeow-english ;
+    skos:definition "A named normalization procedure or convention — a computer-algebra canonical form, a Gröbner basis reduction, a ring's normal-form rewrite system — that a math:NormalizationDeclaration cites through math:normalizationProcedure to license a claim coarser than structural identity. Deliberately open: new procedures are minted as individuals as needed, unlike the closed four-rung math:NormalizationStrength ladder they are attributed against."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it when a math:NormalizationDeclaration held at any strength coarser than math:structuralNormalization needs to name the specific convention or algorithm that licenses the claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mint one for a purely structural (α-equivalence) claim — math:structuralNormalization needs no procedure, since it is decided directly from math:structuralKey equality, never an attributed convention."@x-gmeow-english ;
+    gmeow:howToUse "Mint one math:NormalizationProcedure individual per named convention (e.g. a computer-algebra-system canonical form, a Gröbner basis reduction) and point a coarser-than-structural math:NormalizationDeclaration's math:normalizationProcedure at it."@x-gmeow-english ;
+    skos:example "ex:groebnerBasisReduction a math:NormalizationProcedure ; rdfs:label \"Gröbner basis reduction\"@en ."@x-gmeow-english .
+
+math:NormalizationStrength
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Normalization Strength"@x-gmeow-english ;
+    skos:definition "The closed, four-rung ladder grading how strong a declared equivalence between an expression and its math:normalForm is: math:structuralNormalization (finest — same operator, same slot-indexed operands, same binding structure up to bound-variable renaming), math:commutativeNormalization, math:algebraicNormalization, and math:semanticNormalization (coarsest), each a declared, attributed equivalence layered on top of the one beneath it and ordered by math:coarserNormalizationThan. The set is closed: a normalization claim is held at exactly one of these four rungs, never an unranked fifth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:structuralNormalization
+    a owl:NamedIndividual , math:NormalizationStrength ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "structural normalization"@x-gmeow-english ;
+    skos:definition "The finest normalization strength: the source and target are the SAME operator applied to the SAME slot-indexed operands with the SAME binding structure, up to bound-variable renaming (α-equivalence) — decided directly by comparing the two expressions' math:structuralKey digests, requiring no attributed math:normalizationProcedure."@x-gmeow-english .
+
+math:commutativeNormalization
+    a owl:NamedIndividual , math:NormalizationStrength ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "commutative normalization"@x-gmeow-english ;
+    skos:definition "The normalization strength one rung coarser than structural: the source and target agree once a commutative operator's slot-indexed operands are considered unordered — a·b and b·a are commutatively but not structurally equal. A declared, attributed equivalence layered on top of structural identity (math:coarserNormalizationThan math:structuralNormalization)."@x-gmeow-english .
+
+math:algebraicNormalization
+    a owl:NamedIndividual , math:NormalizationStrength ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "algebraic normalization"@x-gmeow-english ;
+    skos:definition "The normalization strength one rung coarser than commutative: the source and target agree under the algebraic laws of the ambient structure (associativity, distributivity, ring/field identities) — a rewrite an attributed math:normalizationProcedure such as a Gröbner basis reduction certifies, not a bare structural or commutative match. Layered on top of commutative equivalence (math:coarserNormalizationThan math:commutativeNormalization)."@x-gmeow-english .
+
+math:semanticNormalization
+    a owl:NamedIndividual , math:NormalizationStrength ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "semantic normalization"@x-gmeow-english ;
+    skos:definition "The coarsest normalization strength: the source and target denote the same value or truth under the domain's semantics even where no algebraic rewrite connects them syntactically (e.g. two closed forms proven equal by an external theorem). The strongest attribution obligation applies here — a semantic equivalence is a claim held by a vantage, never a lexical fact. Layered on top of algebraic equivalence (math:coarserNormalizationThan math:algebraicNormalization)."@x-gmeow-english .
+
+math:coarserNormalizationThan
+    a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "coarser normalization than"@x-gmeow-english ;
+    skos:definition "Orders the math:NormalizationStrength ladder: relates a normalization strength to the strictly finer strength it is layered on top of. Domain math:NormalizationStrength, range math:NormalizationStrength (stated in prose, matching every sibling property in this slice — a named-class rdfs:domain/rdfs:range pair would make a reasoner INFER math:NormalizationStrength membership from any use of the edge). Named after gmeow:coarserThan (the granularity-axis ordering relation over the differently-domained gmeow:GranularityLevel) as a naming precedent only — math:coarserNormalizationThan is not a sub-property of it and does not reuse its domain, since normalization strength and disclosure granularity are genuinely different axes. Transitive, so math:semanticNormalization math:coarserNormalizationThan math:structuralNormalization is entailed from the three adjacent links between the four rungs."@x-gmeow-english ;
+    skos:example "math:algebraicNormalization math:coarserNormalizationThan math:commutativeNormalization ."@x-gmeow-english .
+
+math:semanticNormalization math:coarserNormalizationThan math:algebraicNormalization .
+math:algebraicNormalization math:coarserNormalizationThan math:commutativeNormalization .
+math:commutativeNormalization math:coarserNormalizationThan math:structuralNormalization .
+
+math:UndeclaredNormalForm
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Normal Form"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:normalForm edge from a source expression to a target expression has no node TYPED math:NormalizationDeclaration naming that SAME pair (math:normalizes the source, math:normalizesTo the target). A normal-form claim is never a bare edge; it always has an attributed reason, even at the finest (structural) strength — and that reason must itself be a declared math:NormalizationDeclaration, never any node that merely happens to carry the two mediating edges."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:normalForm edge (source, target) has no node typed math:NormalizationDeclaration whose math:normalizes names the source and whose math:normalizesTo names the same target."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a math:NormalizationDeclaration that is merely coarser-than-structural and missing its procedure/attribution/preservation — that is math:UnattributedNormalization; this failure is specifically an undeclared math:normalForm edge with NO declaration naming its pair at all."@x-gmeow-english ;
+    gmeow:howToUse "Point math:UndeclaredNormalFormConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:e math:normalForm exf:nf . # no math:NormalizationDeclaration with math:normalizes exf:e / math:normalizesTo exf:nf -> math:UndeclaredNormalForm"@x-gmeow-english .
+
+math:UndeclaredNormalizationStrength
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Normalization Strength"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NormalizationDeclaration correctly names its (source, target) pair through math:normalizes/math:normalizesTo but does not hold that pair at exactly one of the four closed math:NormalizationStrength rungs — either naming no math:normalizationStrength at all, naming more than one, or naming an IRI outside the ladder. All three leave the declaration with no DECLARED strength: math:FalseStructuralNormalizationClaimConstraint's structural guard and math:UnattributedNormalizationConstraint's coarser-than-structural guard are both gated on an asserted rung before their existential body ever runs, so without this failure a bare or off-ladder declaration would silently satisfy the entire normal-form contract for free."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration does not name exactly one of the four ladder rungs — whether it omits math:normalizationStrength, repeats it, or points it at an IRI that is not one of math:structuralNormalization, math:commutativeNormalization, math:algebraicNormalization, or math:semanticNormalization. The rung is mandatory regardless of how well-formed the math:normalizes/math:normalizesTo pair is."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a declaration that DOES name exactly one ladder rung but fails that rung's own guard: a structural claim with mismatched or missing math:structuralKey values is math:FalseStructuralNormalizationClaim, and a coarser claim missing its procedure, attribution, or preservation judgment is math:UnattributedNormalization. This failure is about the rung itself being absent, ambiguous, or off-ladder — the antecedent both those guards need before they can engage."@x-gmeow-english ;
+    gmeow:howToUse "Bind it through gmeow:enforcesFailureClass from BOTH halves of the obligation: the unqualified min/max-cardinality-1 restriction pair on math:NormalizationDeclaration's math:normalizationStrength (the COUNT half) and math:NormalizationStrengthValueConstraint (the WHICH-FOUR half). Both are deliberately type-free — the count is unqualified and the value set is tested by IRI membership — because the four rung individuals are typed in this bundle rather than in a consumer's graph, and a type-dependent check would reject correct consumer data."@x-gmeow-english ;
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf . # no math:normalizationStrength at all -> math:UndeclaredNormalizationStrength"@x-gmeow-english ;
+    skos:scopeNote "About the RUNG itself — absent, repeated, or outside the closed ladder — never about a well-formed rung failing its own obligation. A declaration naming exactly one ladder rung and then failing it is math:FalseStructuralNormalizationClaim (structural) or math:UnattributedNormalization (coarser than structural). The two halves of this failure are enforced separately because they ask different questions: how MANY strengths are named, and WHICH IRIs are admissible."@x-gmeow-english .
+
+math:FalseStructuralNormalizationClaim
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "False Structural-Normalization Claim"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NormalizationDeclaration held at math:structuralNormalization has a math:normalizes source and a math:normalizesTo target whose math:structuralKey values disagree, or when either end carries no math:structuralKey at all. Structural identity is decided directly against the computed digests, never asserted on faith."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration's math:normalizationStrength is math:structuralNormalization yet its source and target expressions' math:structuralKey values differ, or either is missing."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a declaration held at math:commutativeNormalization, math:algebraicNormalization, or math:semanticNormalization: only a structural-strength claim is checked against structuralKey equality — a coarser claim is checked instead for attribution completeness (math:UnattributedNormalization)."@x-gmeow-english ;
+    gmeow:howToUse "Point math:FalseStructuralNormalizationClaimConstraint (the closed-world digest-equality rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf ; math:normalizationStrength math:structuralNormalization . exf:e math:structuralKey \"k1\" . exf:nf math:structuralKey \"k2\" . # k1 != k2 -> math:FalseStructuralNormalizationClaim"@x-gmeow-english .
+
+math:UnattributedNormalization
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unattributed Normalization"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NormalizationDeclaration held at any math:NormalizationStrength coarser than math:structuralNormalization lacks a math:normalizationProcedure, is not named by a gmeow:Observation (through gmeow:observationResult) that itself carries a gmeow:vantage, or lacks a logic:preservationKind. 'These formulas are the same' is an inferential act, not a lexical fact: a coarser-than-structural equivalence is a claim held by a vantage, attributed to a procedure, and preservation-judged, never asserted for free."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration's math:normalizationStrength is anything other than math:structuralNormalization and it omits its math:normalizationProcedure, its holding gmeow:Observation/gmeow:vantage pair, or its logic:preservationKind."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a declaration held at math:structuralNormalization: a structural claim is decided directly against math:structuralKey equality (math:FalseStructuralNormalizationClaim) and needs no procedure, observation, or preservation attribution."@x-gmeow-english ;
+    gmeow:howToUse "Point math:UnattributedNormalizationConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf ; math:normalizationStrength math:algebraicNormalization . # no math:normalizationProcedure, no holding gmeow:Observation, no logic:preservationKind -> math:UnattributedNormalization"@x-gmeow-english .
+
+# --- math: expression-identity reasoned-gate failures (native, no logic:Constraint) --- #
+#
+# The four classes below are decided by the SAME architectural shape as
+# math:MalformedDimension / math:NonPositiveDefiniteNorm / math:AsymmetricGramMatrix: a
+# plain Rust computation over the frozen reasoned graph (crates/logic/src/math_expression.rs),
+# run alongside math_dimension's own sweep at reason-verify speed. Each recomputes or
+# reads off the ONE `math:` expression lowering (crates/logic/src/physical/lower.rs) —
+# never a divergent second source — so, exactly like those three siblings, NONE of them
+# carries a backing logic:Constraint/logic:Formula: the invariant is a genuine
+# computation (a content-addressed digest recompute, a lowering accept/reject verdict),
+# not a flat relational join the SHACL/Datalog fragment can express.
+
+math:UnrecognizedExpressionType
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unrecognized Expression Type"@x-gmeow-english ;
+    skos:definition "The failure raised when a node in an expression position carries one or more math: types, none of which the expression grammar recognizes — a mistyped class, a math:MathematicalStatement, or a bare math:VariableOccurrence used where an expression belongs. It is distinct from a malformed argument slot: the SLOT may be perfectly well formed, carrying exactly one index and exactly one slot expression, and the fault lies in what that expression turned out to be."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when an operand or slot target carries a math: type the expression grammar does not recognize, including a blank node with no recognized expression type."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it when the ARGUMENT SLOT itself is ill-formed — a missing, repeated, non-integer or negative math:slotIndex, or a missing math:slotExpression — that is math:MalformedArgumentSlot. This failure is about the expression a well-formed slot points AT."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); recognizing an authored node's type against the expression grammar is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:slot math:slotIndex 0 ; math:slotExpression exf:v . exf:v a math:VariableOccurrence . # a well-formed slot pointing at a non-expression -> math:UnrecognizedExpressionType"@x-gmeow-english ;
+    skos:scopeNote "Concerns the NODE's own typing — a math: type the lowering has no production for — and is therefore raised at the operand, not at the structure holding it. An argument slot that is missing, repeated, or non-integer-indexed is math:MalformedArgumentSlot; an application with the wrong operator count is math:ApplicationOperatorCardinality. This class exists because accepting an unknown type as an opaque leaf would let a digest be computed over content the lowering never understood."@x-gmeow-english .
+
+math:NumberLiteralMissingValue
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Number Literal Missing Value"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NumberLiteral carries no math:literalValue. A number literal's entire content IS its value; without one there is nothing to intern, so the expression containing it has no computable structural identity. It is distinct from a malformed argument slot: the slot that reaches the literal may be entirely well formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NumberLiteral node carries no math:literalValue at all."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a slot-shape fault — a missing or repeated math:slotIndex or math:slotExpression is math:MalformedArgumentSlot; and do not raise it for a value that is present but wrongly typed, which the literal's own datatype constraints decide."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression lowering (crates/logic/src/physical/lower.rs); reading a literal's value out of the authored graph during interning is a graph-traversal computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:n a math:NumberLiteral . # no math:literalValue -> math:NumberLiteralMissingValue"@x-gmeow-english ;
+    skos:scopeNote "The literal-carrier counterpart of math:UnrecognizedExpressionType: the node's type IS recognized, but the one datum that type exists to carry is absent, so there is nothing to intern. It is not a cardinality failure on a structural edge — a math:NumberLiteral has no operands to count."@x-gmeow-english .
+
+math:MalformedStructuralKey
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Structural Key"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression's math:structuralKey usage is not a well-formed singleton literal: two or more asserted values (of any kind), or a single non-literal value. The key is a single computed digest string; a plural or wrongly-typed usage can never be safely read as \"the first value found\" without silently masking a contradictory or ill-typed second value, so it is reported once and excluded from the drift and rejected-expression populations rather than compared against an arbitrarily chosen candidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression's math:structuralKey predicate carries two or more asserted values (of any kind), or a single value that is not a literal — any usage that is not a clean singleton literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a single, well-formed literal value that merely disagrees with the recomputed digest — that is math:StructuralKeyDrift, the sibling drift failure; this failure is specific to a math:structuralKey usage that is not a well-formed singleton literal in the first place."@x-gmeow-english ;
+    gmeow:howToUse "CLASSIFIED only by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's classify_structural_key_usage / check_malformed_structural_key): reading a predicate's usage shape across every object it carries is a whole-population computation, not a flat relational join, so no SHACL/Datalog derivation decides it. Its flat CONSEQUENCES are nonetheless stated declaratively on math:MathematicalExpression (math:structuralKey allValuesFrom xsd:string; its max-qualified-1 sibling) and derived to math:MathematicalExpression-shape, which carries the class-scoped gmeow:enforcesFailureClass naming this class — so a non-literal key (shacl.DatatypeConstraintComponent) and a plural key (shacl.MaxCountConstraintComponent) resolve here too, and the two arms agree."@x-gmeow-english ;
+    skos:example "exf:e math:structuralKey \"k1\" , \"k2\" . # exf:e carries TWO math:structuralKey values -> math:MalformedStructuralKey"@x-gmeow-english ;
+    skos:scopeNote "Concerns the SHAPE of an authored key — absent, repeated, or not a literal — never its VALUE. A key whose value disagrees with the digest recomputed from the expression's own structure is math:StructuralKeyDrift, and a key authored on an expression the lowering rejects outright is math:StructuralKeyOnRejectedExpression."@x-gmeow-english .
+
+math:StructuralKeyDrift
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Structural Key Drift"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression's authored math:structuralKey does not equal the digest recomputed from its own structure by the math: expression lowering. The key is a computed projection of the expression's α-equivalence class identity — same operator, same slot-indexed operands, same binding structure up to bound-variable renaming — never an independent authored value; a divergent string is drift, exactly as a divergent math:dimensionVector string is math:MalformedDimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression carries a single, well-formed math:structuralKey literal whose value disagrees with the digest the math: expression lowering recomputes from that same expression's own structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an expression whose math: expression lowering rejects its own AST outright — no structural identity is even computable there, so an authored key on a rejected root is math:StructuralKeyOnRejectedExpression, never a drift. Do not raise it for a math:rendersAs predicate reaching a math:NormalizationDeclaration's structural-identity computation — that is the surface-stratum sibling, math:SurfaceLeakInNormalForm. And do not raise it for a math:structuralKey usage that is not a well-formed singleton literal in the first place — that is math:MalformedStructuralKey, excluded from this population before drift is even checked. This failure is specific to a well-formed, ACCEPTED expression whose single authored digest simply disagrees with the recomputed one."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_structural_key_drift); there is no SHACL/Datalog derivation to point at it — comparing an authored digest against a digest recomputed by the math: expression lowering over the expression's own structure is a content-addressed recomputation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:e math:structuralKey \"k1\" . # exf:e's math: expression lowering recomputes its structural digest as \"k2\" from exf:e's own structure, and k1 != k2 -> math:StructuralKeyDrift"@x-gmeow-english ;
+    skos:scopeNote "Compares an AUTHORED key against the digest recomputed from the expression's own structure, so it presupposes a well-formed key on a liftable expression. A key that is absent, repeated, or non-literal is math:MalformedStructuralKey; a key on an expression the lowering rejects is math:StructuralKeyOnRejectedExpression, where no digest exists to compare against."@x-gmeow-english .
+
+math:SurfaceLeakInNormalForm
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Surface Leak In Normal Form"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:NormalizationDeclaration's structural-identity computation is contaminated by surface-stratum material: the declaration itself, its math:normalizes source, or its math:normalizesTo target directly carries math:rendersAs. Normal-form identity — like the math:structuralKey it is decided from — is computed over structural content alone, independent of rendering or notation; a crossing that lets a rendered surface into that computation has leaked the surface into identity, mirroring lang:SurfaceLeakInContentKey one stratum over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:NormalizationDeclaration's structural-identity computation is reached by math:rendersAs — carried directly by the declaration itself, by its math:normalizes source, or by its math:normalizesTo target."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a declared math:structuralKey that merely disagrees with the recomputed digest on an otherwise clean, accepted expression — that is math:StructuralKeyDrift, the digest-mismatch sibling. Do not raise it for a math:structuralKey claimed on an expression the math: expression lowering rejects outright — that is math:StructuralKeyOnRejectedExpression, the grammar-refutation sibling. This failure is specific to a math:NormalizationDeclaration whose structural-identity computation is reached by math:rendersAs — a rendered-surface predicate contaminating an identity that must be computed over structural content alone."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_surface_leak_in_normal_form); there is no SHACL/Datalog derivation to point at it — tracing whether a rendered-surface predicate reaches a normalization declaration's own identity computation, through the declaration itself or either of its normalizes/normalizesTo endpoints, is a structural traversal, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:decl a math:NormalizationDeclaration ; math:normalizes exf:e ; math:normalizesTo exf:nf ; math:normalizationStrength math:structuralNormalization . exf:e math:rendersAs \"x^2\" . # exf:e, the normalizes source, directly carries math:rendersAs -> math:SurfaceLeakInNormalForm"@x-gmeow-english ;
+    skos:scopeNote "About the PROVENANCE of identity, not about rendering being wrong: an expression may carry math:rendersAs freely, and only becomes a leak when that same node participates in a normalization declaration, where identity must be computed from structural content alone. It has no SHACL derivation because it is a claim about which stratum a computation may read, not a shape a node either matches or does not."@x-gmeow-english .
+
+math:StructuralKeyOnRejectedExpression
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Structural Key On Rejected Expression"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalExpression carries an authored math:structuralKey while the math: expression lowering rejects its own AST — a malformed argument-slot family, an unscoped variable occurrence, a cyclic or over-deep math:slotExpression graph, or another ill-formed construct the grammar refutes. A structural identity is a claim about a well-formed expression's shape; it cannot be claimed for an expression the grammar itself says is not one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalExpression carries an authored math:structuralKey but the math: expression lowering rejects its own AST as ill-formed — a malformed argument-slot family, an unscoped variable occurrence, a cyclic or over-deep math:slotExpression graph, or another construct the grammar refutes."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an ACCEPTED expression whose declared math:structuralKey simply disagrees with the recomputed digest — that is math:StructuralKeyDrift, the digest-mismatch sibling, which only ever reads expressions the lowering accepts. Do not raise it for a math:rendersAs predicate reaching a math:NormalizationDeclaration's structural-identity computation — that is math:SurfaceLeakInNormalForm, the surface-stratum sibling; a rejected expression's key is refuted by the grammar itself, not contaminated by a rendered surface. This failure is specific to a math:structuralKey asserted on an expression whose own AST the math: expression lowering refutes."@x-gmeow-english ;
+    gmeow:howToUse "Decided ONLY by the native math: expression-identity reasoned gate (crates/logic/src/math_expression.rs's check_structural_key_on_rejected_expression); there is no SHACL/Datalog derivation to point at it — deciding whether the math: expression lowering accepts or rejects an expression's own AST is a whole-expression grammar computation, not a flat relational join."@x-gmeow-english ;
+    skos:example "exf:a math:structuralKey \"k1\" ; math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:b ] . exf:b math:argumentSlot [ math:slotIndex 0 ; math:slotExpression exf:a ] . # exf:a and exf:b cycle through math:slotExpression, so the lowering rejects exf:a, yet exf:a claims math:structuralKey \"k1\" -> math:StructuralKeyOnRejectedExpression"@x-gmeow-english ;
+    skos:scopeNote "The wrapper that makes a lowering rejection REPORTABLE: it fires only where an authored math:structuralKey claims an identity for an expression that has none, and it carries the lowering's own typed failure class alongside its own token. Without an authored key there is nothing claimed and nothing to contradict, so a rejected expression carrying no key raises nothing here."@x-gmeow-english .
 
 # --- Binder AST properties -------------------------------------------------- #
 
@@ -2846,7 +3222,7 @@ math:slotIndex
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "slot index"@x-gmeow-english ;
-    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; a family with a gap is math:NonContiguousArgumentSlots."@x-gmeow-english ;
+    skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; two slots sharing an index are math:DuplicateArgumentSlotIndex; a family with a gap is math:NonContiguousArgumentSlots."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:slotExpression
@@ -2875,6 +3251,13 @@ math:declaredVariable
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "declared variable"@x-gmeow-english ;
     skos:definition "Relates a math:VariableOccurrence to the math:VariableDeclaration it refers to — the binding site or free declaration that gives the occurrence its identity. Domain math:VariableOccurrence, range math:VariableDeclaration (stated in prose). Every occurrence resolves to exactly one declaration; an occurrence resolving to none and not marked free is ill-formed (math:UnscopedVariableOccurrence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:variableDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "variable domain"@x-gmeow-english ;
+    skos:definition "The declared type/domain context of a math:FreeVariableDeclaration — the math:Set (a number system or another set) the free variable ranges over. Domain math:FreeVariableDeclaration, range math:Set (stated in prose). Every math:FreeVariableDeclaration names exactly one; a free variable standing alone with no declared domain is untyped (math:UntypedFreeVariable)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:occursInScope
@@ -6809,6 +7192,18 @@ math:UngroundedTheoremClaim
     skos:definition "The failure raised when a theorem claim is stated as a truth bit rather than a theory-scoped, warranted claim: a math:Theorem (or a math:MathematicalStatement carrying math:statementRole math:roleTheorem) that lacks a theory context (math:roleInTheory), or that carries a theory context but neither a math:Proof (via math:provesStatement) nor a declared math:externalWarrant. A bare `a math:Theorem` with no theory context is ill-formed: theorem-hood is a role held under a named, versioned theory with a proof or external warrant, never a fact read off the type. Primary gate: the SHACL requirement (math:TheoremGroundingShape) that a theorem carry math:roleInTheory and a proof-or-warrant."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:UnscopedStatementRole
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unscoped Statement Role"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MathematicalStatement carries a math:statementRole yet does not itself carry a math:roleInTheory. A statement's epistemic role is always held under a named, versioned theory (math:roleInTheory) — theorem-hood, lemma-hood, and the rest are theory-scoped, never global; a statement with a role but no theory context is unscoped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:MathematicalStatement names a math:statementRole but omits the math:roleInTheory that scopes that role to a named, versioned theory."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:UngroundedTheoremClaim (specific to the theorem role, also requiring a proof or external warrant); this failure is the general role/theory-scoping gate shared by every math:StatementRole, not the theorem-specific warrant obligation."@x-gmeow-english ;
+    gmeow:howToUse "Point math:UnscopedStatementRoleConstraint (the closed-world conditional-existence rule) at it through gmeow:enforcesFailureClass; conformance mints the instance, it is never hand-authored."@x-gmeow-english ;
+    skos:example "exf:claim a math:MathematicalStatement ; math:statementRole math:roleLemma . # no math:roleInTheory -> math:UnscopedStatementRole"@x-gmeow-english .
+
 # --- Process / observation disjointness (process is never the claim) --------- #
 # The OWL-axiom gate backing math:ProcessObservationConflation: an inference or
 # analysis process is a gmeow:Activity and is NEVER typed as a gmeow:Observation —
@@ -6820,6 +7215,10 @@ math:IngestRun owl:disjointWith gmeow:Observation .
 math:PCAAnalysis owl:disjointWith gmeow:Observation .
 math:ProofCheckActivity owl:disjointWith gmeow:Observation .
 math:InferenceRun owl:disjointWith gmeow:Observation .
+# The class carrying the disjointness annotation for reconciliation purposes — any one of
+# the four disjoint subjects above would do; math:InferenceRun is picked because (unlike
+# math:IngestRun and math:PCAAnalysis) it carries no OTHER gmeow:enforcesFailureClass.
+math:InferenceRun gmeow:enforcesFailureClass math:ProcessObservationConflation .
 
 # --- Result-object / observation disjointness (result object is never the claim) - #
 # The OWL-axiom gate backing math:ResultRoleConflation for the statistical result
@@ -6840,6 +7239,10 @@ math:BayesianResult owl:disjointWith gmeow:Observation .
 math:Estimate owl:disjointWith gmeow:Observation .
 math:EffectSize owl:disjointWith gmeow:Observation .
 math:Estimand owl:disjointWith gmeow:Observation .
+# The class carrying the disjointness annotation for reconciliation purposes — math:Estimand
+# is picked because (unlike math:Estimate/math:EffectSize, each already committed to their
+# own distinct gmeow:enforcesFailureClass) it carries no other one.
+math:Estimand gmeow:enforcesFailureClass math:ResultRoleConflation .
 
 # --- Bridge failure classes -------------------------------------------------- #
 
@@ -10834,7 +11237,8 @@ math:Interval rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:lowerEndpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:upperEndpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:lowerInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] ,
-    [ a owl:Restriction ; owl:onProperty math:upperInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] .
+    [ a owl:Restriction ; owl:onProperty math:upperInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedInterval .
 
 math:Function rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:domain ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -10854,7 +11258,8 @@ math:Function rdfs:subClassOf
 # min-qualified siblings in the appendix below (exact-one; missing → math:UnboundClosedForm).
 math:ClosedFormFunction rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:definingExpression ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalExpression ] ,
-    [ a owl:Restriction ; owl:onProperty math:formalArgument ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VariableDeclaration ] .
+    [ a owl:Restriction ; owl:onProperty math:formalArgument ; owl:maxQualifiedCardinality 1 ; owl:onClass math:VariableDeclaration ] ;
+    gmeow:enforcesFailureClass math:UnboundClosedForm .
 
 # A math:ArithmeticOperation carries a signature over number systems: exactly one
 # math:operatorDomain and exactly one math:operatorCodomain, each a math:NumberSystem.
@@ -10863,7 +11268,8 @@ math:ClosedFormFunction rdfs:subClassOf
 # operator is math:UnframedOperator. The min-qualified siblings are in the appendix below.
 math:ArithmeticOperation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:operatorDomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] ,
-    [ a owl:Restriction ; owl:onProperty math:operatorCodomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] .
+    [ a owl:Restriction ; owl:onProperty math:operatorCodomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] ;
+    gmeow:enforcesFailureClass math:UnframedOperator .
 
 math:AlgebraicStructure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:underlyingSet ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -10910,7 +11316,8 @@ math:Measure rdfs:subClassOf
 math:MeasureEvaluation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:evaluatedMeasure ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Measure ] ,
     [ a owl:Restriction ; owl:onProperty math:measuredSubset ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MeasurableSet ] ,
-    [ a owl:Restriction ; owl:onProperty math:measureResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:measureResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedMeasureEvaluation .
 
 # A probability measure is exactly a measure of total mass one — a typed value-equality
 # obligation on the inherited math:totalMass, derived to sh:hasValue 1.
@@ -10964,6 +11371,120 @@ math:SymbolReference logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:hasMathematicalSymbol ; logic:maxQualifiedCardinality 1 ; logic:onClass math:MathematicalSymbol ] ;
     gmeow:enforcesFailureClass math:UnresolvedSymbolReference .
 
+math:FreeVariableDeclaration logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:allValuesFrom math:Set ] ,
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty math:variableDomain ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Set ] ;
+    gmeow:enforcesFailureClass math:UntypedFreeVariable .
+
+# math:structuralKey is declared functional (single-valued WHEN ASSERTED — it stays
+# OPTIONAL, since not every math:MathematicalExpression declares one) in prose; the
+# class-scoped max-qualified form below is the reasoner-safe way to say so — never a
+# global owl:FunctionalProperty claim, which the math: profile forbids (see
+# math:FiltrationStage's restriction further down in this file for the same idiom over
+# a bare owl:Thing range). The sibling logic:allValuesFrom restriction on
+# math:structuralKey carries the xsd:string datatype constraint the native reasoned
+# gate's exactly-one-singleton-literal check (crates/logic/src/math_expression.rs,
+# classify_structural_key_usage / math:MalformedStructuralKey) enforces procedurally —
+# without it the derived shape carries an sh:maxCount with no sh:datatype at all,
+# exactly the same "no flat relational join" reasoning that idiom's own
+# math:manifoldDimension sibling further down in this file already follows.
+#
+# The gmeow:enforcesFailureClass binding names the failure the DERIVED shape
+# (math:MathematicalExpression-shape) proves, exactly as math:SymbolReference's group above
+# binds math:UnresolvedSymbolReference: a non-literal key raises shacl.DatatypeConstraintComponent
+# and a plural key shacl.MaxCountConstraintComponent, and BOTH are the one class the native
+# classifier already names — math:MalformedStructuralKey, "a math:structuralKey usage that is not
+# a well-formed singleton literal". Without it those two findings resolve to no class at all
+# (`<unmapped>`) and ex:ecMalformedStructuralKey cannot say which class it just proved.
+#
+# The binding is CLASS-scoped, so it also covers the math:alphaEquivalenceClass group that
+# follows, which merges into the same one-shape-per-target node shape. That is the honest
+# reading, not a convenient one: an math:AlphaEquivalenceClass individual's IRI is minted
+# DIRECTLY from the expression's own math:structuralKey digest (see math:alphaEquivalenceClass's
+# own definition), so a plural or wrongly-typed alpha-class usage is a malformed usage of the
+# very same structural key, one projection over — the same class-scoped sharing
+# math:DimensionExponent's four restrictions already make under one math:MalformedDimension.
+math:MathematicalExpression logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty math:structuralKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ;
+    gmeow:enforcesFailureClass math:MalformedStructuralKey .
+
+# math:alphaEquivalenceClass carries the SAME single-valued discipline its own definition
+# promises ("Single-valued, exactly as math:structuralKey is"), stated here rather than left to
+# prose. It is deliberately NOT mandatory: the edge is materialized by the expression-identity
+# reasoned gate for every root that LOWERS CLEANLY, and a root the grammar refutes gets none —
+# a structural identity cannot be claimed for an expression that is not well formed, which is
+# the same reason math:StructuralKeyOnRejectedExpression exists. So max-1, never min-1.
+math:MathematicalExpression logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:alphaEquivalenceClass ; logic:allValuesFrom math:AlphaEquivalenceClass ] ,
+    [ a logic:Restriction ; logic:onProperty math:alphaEquivalenceClass ; logic:maxQualifiedCardinality 1 ; logic:onClass math:AlphaEquivalenceClass ] .
+
+# math:normalizationStrength, unlike math:structuralKey, is declared MANDATORY as well
+# as functional: every math:NormalizationDeclaration names exactly one strength — a
+# strength-less declaration is a bare, unattributed edge, exactly the vacuous-contract
+# gap this restriction closes (see the note on math:UndeclaredNormalFormConstraint
+# below). The gmeow:enforcesFailureClass binding names the class-scoped failure the
+# DERIVED shape raises for EITHER half of the exact-one pair (the min half is the one
+# reachable in practice — a declaration cannot easily acquire two strengths without
+# first acquiring one — but the binding is class-scoped, exactly like
+# math:DimensionExponent's four restrictions sharing one math:MalformedDimension): a
+# strength-less declaration is math:UndeclaredNormalizationStrength, never a bare,
+# anonymous cardinality violation.
+#
+# The cardinality is deliberately UNQUALIFIED, and that is the whole point.
+#
+# Qualifying it on math:NormalizationStrength makes the count depend on the VALUE'S TYPE, and
+# the four strength individuals are typed in this bundle, not in a consumer's graph. A qualified
+# count therefore sees zero conforming values in any graph that merely CITES them — so a
+# consumer who authors a normalization declaration exactly as this vocabulary specifies is told
+# by this ontology's own validator to repair data that is already correct — including this
+# slice's own shipped reference example, which cites the rungs without re-typing them.
+#
+# An unqualified min/max-1 asks only what is actually required — that exactly one strength be
+# named — and needs no type lookup, so it decides identically in the bundle and in a consumer's
+# graph. The value-set constraint below carries the "which four" half by IRI, again without
+# consulting a type, so the closed vocabulary is still closed.
+math:NormalizationDeclaration logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:maxCardinality 1 ] ,
+    [ a logic:Restriction ; logic:onProperty math:normalizationStrength ; logic:minCardinality 1 ] ;
+    gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
+
+# "Which four" is decided by IRI, never by the value's TYPE.
+#
+# logic:allValuesFrom here derived a bare sh:class, and sh:class asks what the VALUE is typed as.
+# The four rungs are typed in this bundle and not in a consumer's file, so any graph that merely
+# CITES a rung was told its correct data was wrong — the unqualified cardinality above fixes the
+# COUNT half of that, but a class-valued restriction reintroduces the same dependence, so it is
+# gone. A value-set names the admissible IRIs outright: it closes the vocabulary exactly as
+# tightly, and decides identically in the bundle and in a consumer's graph because there is
+# nothing to look up.
+math:NormalizationStrengthValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "normalization strength is one of the four rungs"@x-gmeow-english ;
+    skos:definition "A math:NormalizationDeclaration's math:normalizationStrength names one of the four closed math:NormalizationStrength rungs, tested by IRI membership rather than by the value's asserted type so the obligation decides the same way in the shipped bundle and in a consumer's own graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes math:normalizationStrength ;
+    logic:message "A math:NormalizationDeclaration's math:normalizationStrength must be one of math:structuralNormalization, math:commutativeNormalization, math:algebraicNormalization, or math:semanticNormalization (math:UndeclaredNormalizationStrength)." ;
+    logic:severity "Violation" ;
+    logic:integrity math:nsvForall ;
+    gmeow:enforcesFailureClass math:UndeclaredNormalizationStrength .
+math:nsvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "strength" ] ;
+    logic:forall math:nsvImpl .
+math:nsvImpl a logic:Formula ; logic:antecedent math:nsvGuard ; logic:consequent math:nsvIn .
+math:nsvGuard a logic:Formula ; logic:relation math:normalizationStrength ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "strength" ] .
+math:nsvIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "strength" ] ,
+                   [ logic:termIndex 1 ; logic:termIri math:structuralNormalization ] ,
+                   [ logic:termIndex 2 ; logic:termIri math:commutativeNormalization ] ,
+                   [ logic:termIndex 3 ; logic:termIri math:algebraicNormalization ] ,
+                   [ logic:termIndex 4 ; logic:termIri math:semanticNormalization ] .
+
 math:ApplicationExpression rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:operator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
     gmeow:enforcesFailureClass math:ApplicationOperatorCardinality .
@@ -10992,7 +11513,8 @@ math:Limit rdfs:subClassOf
 
 math:LimitResult rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:limitOutcome ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LimitOutcome ] ,
-    [ a owl:Restriction ; owl:onProperty math:limitResultValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:limitResultValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedLimitResult .
 
 math:Convergence rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:convergenceMode ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -11038,10 +11560,12 @@ math:Compactification rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:originalSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:compactifyingMap ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:compactifiedSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:boundaryAtInfinity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryAtInfinity ] .
+    [ a owl:Restriction ; owl:onProperty math:boundaryAtInfinity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryAtInfinity ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedCompactification .
 
 math:ConformalCompactification rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:conformalFactor ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:conformalFactor ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedCompactification .
 
 math:OrthogonalComplement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:definedByInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
@@ -11143,7 +11667,8 @@ math:ConfidenceInterval rdfs:subClassOf
 # math:UnderspecifiedPiecewiseFunction. Authored as a bare min-qualified restriction
 # exactly like math:Series/math:seriesTerm, so it needs no N-Triples max sibling.
 math:PiecewiseFunction rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:hasPiece ; owl:minQualifiedCardinality 1 ; owl:onClass math:FunctionPiece ] .
+    [ a owl:Restriction ; owl:onProperty math:hasPiece ; owl:minQualifiedCardinality 1 ; owl:onClass math:FunctionPiece ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedPiecewiseFunction .
 
 # A math:FunctionPiece requires EXACTLY ONE math:pieceDomain (a math:Interval — the
 # sub-domain the piece governs) and AT MOST ONE math:pieceExpression. The pieceDomain
@@ -12043,10 +12568,46 @@ math:ProjectionDroppedParameterization
     skos:definition "The failure raised when a projection silently drops a math:Distribution's parameterization — emitting a bare family label without its math:DistributionParameterization and roles, so which conventional form was meant is lost. A projection must declare such a drop as recorded loss rather than perform it silently; a silent drop is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:MissingPreservationKind
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Missing Preservation Kind"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProjectionRecord declares no logic:preservationKind — the record has entered the loss ledger without saying whether its lowering is exact, sound-but-incomplete, or complete-but-unsound. Every math: projection reuses the logic: loss-ledger vocabulary VERBATIM (Principle 17): a projection with an undeclared preservation judgment cannot be queried alongside every other GMEOW lowering, so it is ill-formed. Mirrors lang:MissingPreservationKind one stratum over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a math:ProjectionRecord carries no logic:preservationKind at all."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not confuse it with math:ExactPreservationViolated (a preservation claim that is present but false); this failure is about an ABSENT preservation judgment, not a wrong one."@x-gmeow-english ;
+    gmeow:howToUse "Detected natively when a math:ProjectionRecord declares no logic:preservationKind; declare one (logic:ExactPreservation, logic:SoundUnderApproximation, or logic:CompleteOverApproximation) to discharge it."@x-gmeow-english ;
+    skos:example "exf:proj a math:ProjectionRecord ; math:projectionSource exf:someExpr ; math:projectionTargetName \"OWL annotation surface\" . # no logic:preservationKind -> math:MissingPreservationKind"@x-gmeow-english .
+
+math:UndeclaredUnsupportedConstruct
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Undeclared Unsupported Construct"@x-gmeow-english ;
+    skos:definition "The failure raised when a LOSSY math:ProjectionRecord (a declared logic:preservationKind other than logic:ExactPreservation) enumerates no logic:unsupportedConstruct — the record claims a completeness its own preservation kind denies. A lossy projection either drops nothing (and so should declare logic:ExactPreservation) or names everything it drops; silently declaring lossiness with no enumerated residue hides the loss from the ledger. Mirrors lang:UndeclaredUnsupportedConstruct one stratum over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a lossy math:ProjectionRecord (preservation kind other than logic:ExactPreservation) names no logic:unsupportedConstruct entry."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for a record declaring logic:ExactPreservation (nothing to enumerate) or for one that already lists at least one dropped construct."@x-gmeow-english ;
+    gmeow:howToUse "Detected natively when a lossy math:ProjectionRecord names no logic:unsupportedConstruct; enumerate every construct the lowering drops to discharge it."@x-gmeow-english ;
+    skos:example "exf:proj a math:ProjectionRecord ; logic:preservationKind logic:SoundUnderApproximation . # no logic:unsupportedConstruct -> math:UndeclaredUnsupportedConstruct"@x-gmeow-english .
+
+math:UnrecordedProjectionLoss
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unrecorded Projection Loss"@x-gmeow-english ;
+    skos:definition "The failure raised when a LOSSY math:ProjectionRecord whose math:projectionSource is a math:MathematicalExpression — a structured AST, not a bare display string — flattens that expression to its string-only external target (math:projectionTargetName) without recording the flattening among its logic:unsupportedConstruct entries. Collapsing an expression's argument-slot/operator/symbol structure to an opaque string is exactly the kind of loss the ledger exists to make queryable; a projection that performs the flattening silently, rather than naming it as dropped structure, is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:useWhen "Reach for it as the typed violation object when a lossy math:ProjectionRecord's math:projectionSource is a math:MathematicalExpression whose AST structure is not named among the record's logic:unsupportedConstruct entries."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not raise it for an exact (non-lossy) projection, nor for one whose source is not itself a math:MathematicalExpression (e.g. a bare math:Number or math:Distribution, covered by the sibling projection gates)."@x-gmeow-english ;
+    gmeow:howToUse "Detected natively when a lossy math:ProjectionRecord's math:MathematicalExpression source's structural flattening is not named among its logic:unsupportedConstruct entries; record the flattened AST as dropped structure to discharge it."@x-gmeow-english ;
+    skos:example "exf:proj a math:ProjectionRecord ; math:projectionSource exf:sumExpr ; logic:preservationKind logic:SoundUnderApproximation . # exf:sumExpr a math:MathematicalExpression, no logic:unsupportedConstruct naming it -> math:UnrecordedProjectionLoss"@x-gmeow-english .
+
 # --- Projection loss carrier ------------------------------------------------ #
 # The bundle-data carrier for a math: projection's lowering into an external target,
 # reusing the logic: loss-ledger vocabulary VERBATIM (logic:preservationKind,
-# logic:unsupportedConstruct — Principle 17, no math: near-synonym). The two
+# logic:unsupportedConstruct — Principle 17, no math: near-synonym). The five
 # projection-side failure classes above are join-requiring NATIVE gates over these
 # records; the carrier deliberately takes no sh:targetClass shape and is referenced by
 # no sh:class, exactly like the four lang: native projection gates.
@@ -12056,7 +12617,7 @@ math:ProjectionRecord
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Projection Record"@x-gmeow-english ;
-    skos:definition "A record of a math: projection's lowering into an external target — the bundle-data carrier of its honest per-projection preservation judgment. It names the math: object it projects through math:projectionSource, the external target it lowers to through math:projectionTargetName, its logic:preservationKind, and — where lossy — the constructs it cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary VERBATIM (Principle 17, no math: near-synonym). A projection that converts a source confidence into a math:ProbabilityValue declares that conversion through math:projectsConfidenceAsProbability and licenses it with a math:declaredConfidenceMapping; a lossy projection that drops a math:Distribution's parameterization enumerates it as recorded loss rather than performing the drop silently. The projection-side gates (math:ProjectionConfidenceAsProbability, math:ProjectionDroppedParameterization) are join-requiring native checks over these records, carrying no SHACL target shape."@x-gmeow-english ;
+    skos:definition "A record of a math: projection's lowering into an external target — the bundle-data carrier of its honest per-projection preservation judgment. It names the math: object it projects through math:projectionSource, the external target it lowers to through math:projectionTargetName, its logic:preservationKind, and — where lossy — the constructs it cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary VERBATIM (Principle 17, no math: near-synonym). A projection that converts a source confidence into a math:ProbabilityValue declares that conversion through math:projectsConfidenceAsProbability and licenses it with a math:declaredConfidenceMapping; a lossy projection that drops a math:Distribution's parameterization enumerates it as recorded loss rather than performing the drop silently; a lossy projection whose source is a math:MathematicalExpression enumerates its structural flattening rather than silently collapsing the AST to a string. The projection-side gates (math:ProjectionConfidenceAsProbability, math:ProjectionDroppedParameterization, math:MissingPreservationKind, math:UndeclaredUnsupportedConstruct, math:UnrecordedProjectionLoss) are join-requiring native checks over these records, carrying no SHACL target shape."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:projectionSource
@@ -13064,6 +13625,7 @@ math:AnalyticPropertyBackedConstraint
     logic:triggerValue math:AnalyticProperty ;
     logic:requires math:definingLaw ;
     logic:formalizes math:AnalyticProperty ;
+    gmeow:enforcesFailureClass math:UnbackedAnalyticProperty ;
     logic:message "A math:AnalyticProperty must resolve to a real first-order logic:Formula or an honest logic:expressivenessBoundary through math:definingLaw; an analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty)." .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
@@ -13134,7 +13696,6 @@ math:AnalyticPropertyBackedConstraint
 # math:FunctionPiece — the min-qualified sibling restoring sh:minCount for the exact-one
 # math:pieceDomain antecedent (the max-qualified half is in the Turtle block above).
 <https://blackcatinformatics.ca/math/FunctionPiece> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/pieceDomain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Interval> ] .
-
 # A math:SetBuilderExpression's math:memberCondition must be a resource denoting a
 # logic: formula (a blank node or IRI), not an opaque literal string (a path node-kind
 # constraint).
@@ -13144,7 +13705,11 @@ math:SetBuilderMemberConditionNodeKindConstraint
     logic:valuePath math:memberCondition ;
     logic:nodeKind "BlankNodeOrIRI" ;
     logic:formalizes math:SetBuilderExpression ;
-    logic:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula (a blank node or IRI), not an opaque literal string." .
+    logic:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula (a blank node or IRI), not an opaque literal string." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:StringOnlyMemberCondition .
 
 # No two distinct math:argumentSlot cells of the same parent may share the same
 # math:slotIndex — a duplicate index makes operand order ambiguous (a self-join
@@ -13154,8 +13719,8 @@ math:ArgumentSlotIndexUniquenessConstraint
     logic:siblingPredicate math:argumentSlot ;
     logic:sharedPredicate math:slotIndex ;
     logic:formalizes math:SlotIndexUniquenessShape ;
-    gmeow:enforcesFailureClass math:MalformedArgumentSlot ;
-    logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous." .
+    gmeow:enforcesFailureClass math:DuplicateArgumentSlotIndex ;
+    logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous (math:DuplicateArgumentSlotIndex)." .
 
 # Every positive slot index must have a predecessor slot under the same parent.
 # The existing non-negative and sibling-uniqueness gates complete the proof:
@@ -13178,9 +13743,24 @@ math:ascForall a logic:Formula ;
 math:ascImpl a logic:Formula ;
     logic:antecedent math:ascGuard ;
     logic:consequent math:ascAllSlots .
-math:ascGuard a logic:Formula ; logic:relation rdf:type ;
+# The guard range-restricts `this` to nodes with AT LEAST ONE math:argumentSlot — the
+# same sh:targetSubjectsOf math:argumentSlot idiom math:ArgumentSlotIndexUniquenessConstraint
+# uses — rather than an explicit `rdf:type(this, math:MathematicalExpression)` test. A node
+# with an argumentSlot is already a math:MathematicalExpression by math:argumentSlot's own
+# rdfs:domain axiom, and a math:MathematicalExpression with NO argumentSlot trivially
+# satisfies math:ascAllSlots (its universal quantification ranges over zero slots), so the
+# two guards admit identical verdicts; this form additionally derives a
+# `sh:targetSubjectsOf` shape rather than a `sh:targetClass` one, which purrdf's SHACL
+# engine selects directly off the DATA graph's OWN asserted math:argumentSlot edges — no
+# `rdfs:subClassOf` walk needed — so the rule fires for every subclass-typed application
+# root without depending on the consumer's data graph restating the bundle's class
+# hierarchy.
+math:ascGuard a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "guardSlot" ] ;
+    logic:exists math:ascGuardHasSlot .
+math:ascGuardHasSlot a logic:Formula ; logic:relation math:argumentSlot ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
-        [ logic:termIndex 1 ; logic:termIri math:MathematicalExpression ] .
+        [ logic:termIndex 1 ; logic:termVariable "guardSlot" ] .
 math:ascAllSlots a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "slot" ] ,
         [ logic:termIndex 1 ; logic:termVariable "index" ] ;
@@ -13225,7 +13805,11 @@ math:FormalVerificationResultGroundingConstraint
     logic:onClass math:FormalVerificationResult ;
     logic:inversePredicate gmeow:observationResult ;
     logic:formalizes math:FormalVerificationResult ;
-    logic:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." .
+    logic:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:UngroundedVerificationResult .
 
 # The math: slice's THIN failure-range gate for gmeow:FlagshipScenario (the canonical
 # grounding of the retired math:FlagshipScenarioShape): a scenario whose
@@ -13547,18 +14131,24 @@ math:CollapsedMultiparameterFiltrationConstraint
     rdfs:label "Collapsed-multiparameter-filtration constraint (a stage must carry a multi-index)"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint enforcing non-collapse of a math:MultiparameterFiltration: for every multiparameter filtration there MUST exist a math:hasFiltrationStage whose math:multiIndex names a tuple in the parameter poset. A filtration whose stages carry only a single real math:filtrationThreshold and no math:multiIndex has collapsed to the one-parameter case (math:CollapsedMultiparameterFiltration). A positive existential consequent modelled on math:BoundarySquareZeroConstraint; the missing-frame case (no poset, no stage) is math:IncompleteMultiparameterFiltration."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint enforcing non-collapse of a math:MultiparameterFiltration: for every multiparameter filtration that already has at least one math:hasFiltrationStage, there MUST exist a math:hasFiltrationStage whose math:multiIndex names a tuple in the parameter poset. A filtration whose stages carry only a single real math:filtrationThreshold and no math:multiIndex has collapsed to the one-parameter case (math:CollapsedMultiparameterFiltration). A positive existential consequent modelled on math:BoundarySquareZeroConstraint; the missing-frame case (no poset, no stage) is math:IncompleteMultiparameterFiltration. This constraint only applies once at least one stage exists; a filtration with zero stages is exclusively covered by math:IncompleteMultiparameterFiltration — the guard's own stage-existence conjunct keeps this constraint from vacuously double-firing on a zero-stage filtration."@x-gmeow-english ;
     logic:formalizes math:MultiparameterFiltration ;
     gmeow:enforcesFailureClass math:CollapsedMultiparameterFiltration ;
     logic:severity "Violation" ;
-    logic:message "A math:MultiparameterFiltration must have at least one math:hasFiltrationStage carrying a math:multiIndex tuple; a filtration whose every stage is a bare one-parameter math:filtrationThreshold has collapsed to one parameter (math:CollapsedMultiparameterFiltration)." ;
+    logic:message "A math:MultiparameterFiltration that already has at least one math:hasFiltrationStage must have one carrying a math:multiIndex tuple; a filtration whose every stage is a bare one-parameter math:filtrationThreshold has collapsed to one parameter (math:CollapsedMultiparameterFiltration). This constraint only applies once at least one stage exists; a filtration with zero stages is exclusively covered by math:IncompleteMultiparameterFiltration." ;
     logic:integrity math:cmfForall .
 math:cmfForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall math:cmfImpl .
 math:cmfImpl a logic:Formula ; logic:antecedent math:cmfGuard ; logic:consequent math:cmfExists .
-math:cmfGuard a logic:Formula ; logic:relation rdf:type ;
+math:cmfGuard a logic:Formula ; logic:and math:cmfTypeGuard , math:cmfStageExistsGuard .
+math:cmfTypeGuard a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MultiparameterFiltration ] .
+math:cmfStageExistsGuard a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "anyStage" ] ;
+    logic:exists math:cmfStageExistsAtom .
+math:cmfStageExistsAtom a logic:Formula ; logic:relation math:hasFiltrationStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "anyStage" ] .
 math:cmfExists a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "stage" ] , [ logic:termIndex 1 ; logic:termVariable "mi" ] ;
     logic:exists math:cmfBody .
@@ -13828,7 +14418,11 @@ math:DimensionExponentDenominatorNonZeroConstraint
     logic:forbiddenPredicate math:exponentDenominator ;
     logic:forbiddenValue "0"^^xsd:integer ;
     logic:formalizes math:DimensionExponent ;
-    logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." .
+    logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:MalformedDimension .
 
 # A math:MeasureEvaluation's math:measureResult must be non-negative: a measure
 # assigns non-negative extended-real mass, so μ(A) is a finite non-negative number
@@ -13841,6 +14435,7 @@ math:MeasureResultNonNegativeConstraint
     logic:forbiddenPredicate math:measureResult ;
     logic:forbiddenValue math:NegativeInfinity ;
     logic:formalizes math:MeasureEvaluation ;
+    gmeow:enforcesFailureClass math:UnderspecifiedMeasureEvaluation ;
     logic:message "A math:MeasureEvaluation's math:measureResult must be a finite non-negative number or math:PositiveInfinity; a measure is non-negative, so the negative pole math:NegativeInfinity is not a mass (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)." .
 
 # A math:RationalValue's math:denominator must be non-zero: p/0 is undefined
@@ -13856,7 +14451,11 @@ math:RationalValueDenominatorNonZeroConstraint
     logic:forbiddenPredicate math:denominator ;
     logic:forbiddenValue "0"^^xsd:integer ;
     logic:formalizes math:RationalValue ;
-    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." .
+    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." ;
+    # Bound to its failure class: without this the constraint rejects ANONYMOUSLY — the
+    # violation carries no typed identity, so a conformance cell can only pin the SHACL
+    # component code and every SPARQL-derived gate shares one of those.
+    gmeow:enforcesFailureClass math:ZeroDenominator .
 
 # The three lower-bounded integer paths, as validation-only value-range records
 # (never OWL faceted-datatype antecedents: the native reasoner carries no datatype
@@ -13985,6 +14584,244 @@ math:cdA4 a logic:Formula ; logic:relation math:spaceDimension ;
 math:cdA5 a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "md" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
 
+# A math:MathematicalExpression that participates in checking, normalization,
+# evaluation, or content-projection — carrying a math:normalForm,
+# math:compilesToLogicFormula, or math:expressionType edge — must also carry at
+# least one structured-child edge (math:argumentSlot, math:boundVariable,
+# math:hasMathematicalSymbol, or math:literalValue); an expression carrying none
+# of the four is represented only by a string. The obligation is CONDITIONAL on
+# one of three alternative triggering edges rather than unconditional over the
+# whole class, so no single class-scoped OWL/RDFS restriction (EL-safe or
+# otherwise) can express it — a restriction binds unconditionally to every
+# instance of its class, never "if property A, B, or C, then property D, E, F,
+# or G". This is exactly the shape SHACL Core cannot express either (an
+# sh:or gated by another sh:or is a SHACL-SPARQL-shaped obligation), so it is
+# authored as a raw logic:Formula projecting to sh:SPARQLConstraint, mirroring
+# math:TheoremWarrantConstraint's guard/or-of-exists shape.
+math:StringOnlyComputableExpressionConstraint
+    a logic:Constraint ;
+    rdfs:label "String-only computable expression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:MathematicalExpression carrying a math:normalForm, math:compilesToLogicFormula, or math:expressionType edge must also carry at least one of math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue; an expression with none of the four is represented only by a string (math:StringOnlyComputableExpression)."@x-gmeow-english ;
+    logic:formalizes math:StringOnlyComputableExpressionShape ;
+    gmeow:enforcesFailureClass math:StringOnlyComputableExpression ;
+    logic:severity "Violation" ;
+    logic:message "A math:MathematicalExpression carrying a math:normalForm, math:compilesToLogicFormula, or math:expressionType edge must also carry at least one structured-child edge (math:argumentSlot, math:boundVariable, math:hasMathematicalSymbol, or math:literalValue); an expression represented only by a string is ill-formed (math:StringOnlyComputableExpression)." ;
+    logic:integrity math:sceForall .
+math:sceForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:sceImpl .
+math:sceImpl a logic:Formula ; logic:antecedent math:sceGuard ; logic:consequent math:sceOr .
+math:sceGuard a logic:Formula ; logic:and math:sceTypeGuard , math:sceTrigger .
+math:sceTypeGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MathematicalExpression ] .
+math:sceTrigger a logic:Formula ; logic:or math:sceTrigNormalForm , math:sceTrigLogicFormula , math:sceTrigExprType .
+math:sceTrigNormalForm a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nf" ] ;
+    logic:exists math:sceTrigNormalFormAtom .
+math:sceTrigNormalFormAtom a logic:Formula ; logic:relation math:normalForm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "nf" ] .
+math:sceTrigLogicFormula a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "lf" ] ;
+    logic:exists math:sceTrigLogicFormulaAtom .
+math:sceTrigLogicFormulaAtom a logic:Formula ; logic:relation math:compilesToLogicFormula ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lf" ] .
+math:sceTrigExprType a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "et" ] ;
+    logic:exists math:sceTrigExprTypeAtom .
+math:sceTrigExprTypeAtom a logic:Formula ; logic:relation math:expressionType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "et" ] .
+math:sceOr a logic:Formula ; logic:or math:sceHasArgSlot , math:sceHasBoundVar , math:sceHasSymbol , math:sceHasLiteral .
+math:sceHasArgSlot a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "slot" ] ;
+    logic:exists math:sceHasArgSlotAtom .
+math:sceHasArgSlotAtom a logic:Formula ; logic:relation math:argumentSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "slot" ] .
+math:sceHasBoundVar a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bv" ] ;
+    logic:exists math:sceHasBoundVarAtom .
+math:sceHasBoundVarAtom a logic:Formula ; logic:relation math:boundVariable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "bv" ] .
+math:sceHasSymbol a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sym" ] ;
+    logic:exists math:sceHasSymbolAtom .
+math:sceHasSymbolAtom a logic:Formula ; logic:relation math:hasMathematicalSymbol ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sym" ] .
+math:sceHasLiteral a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "lit" ] ;
+    logic:exists math:sceHasLiteralAtom .
+math:sceHasLiteralAtom a logic:Formula ; logic:relation math:literalValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lit" ] .
+
+# A math:MathematicalStatement's epistemic role (math:statementRole) is always
+# held under a named, versioned theory: math:roleInTheory is asserted on the
+# SAME statement subject that carries the role (see e.g. the bottleneck
+# stability theorem example, which carries both math:statementRole and
+# math:roleInTheory on one node) — a role individual such as math:roleTheorem is
+# a shared, closed-world value individual and cannot itself carry a
+# per-statement theory context. A statement that names a role but no theory is
+# unscoped. Guarded by type and by the statementRole edge (both quantified in
+# one forall, mirroring math:ArgumentSlotContiguityConstraint's ascAllSlots
+# double-quantifier idiom), requiring existence of math:roleInTheory.
+math:UnscopedStatementRoleConstraint
+    a logic:Constraint ;
+    rdfs:label "Unscoped statement-role constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:MathematicalStatement that carries a math:statementRole must also carry a math:roleInTheory; a statement with a role but no theory context is unscoped (math:UnscopedStatementRole)."@x-gmeow-english ;
+    logic:formalizes math:UnscopedStatementRoleShape ;
+    gmeow:enforcesFailureClass math:UnscopedStatementRole ;
+    logic:severity "Violation" ;
+    logic:message "A math:MathematicalStatement that carries a math:statementRole must also carry a math:roleInTheory; a statement with a role but no theory context is unscoped (math:UnscopedStatementRole)." ;
+    logic:integrity math:usrForall .
+math:usrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "role" ] ;
+    logic:forall math:usrImpl .
+math:usrImpl a logic:Formula ; logic:antecedent math:usrGuard ; logic:consequent math:usrExists .
+math:usrGuard a logic:Formula ; logic:and math:usrTypeGuard , math:usrRoleAtom .
+math:usrTypeGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MathematicalStatement ] .
+math:usrRoleAtom a logic:Formula ; logic:relation math:statementRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:usrExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "theory" ] ;
+    logic:exists math:usrTheoryAtom .
+math:usrTheoryAtom a logic:Formula ; logic:relation math:roleInTheory ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "theory" ] .
+
+# Every math:normalForm edge (source, target) must have a node TYPED
+# math:NormalizationDeclaration naming that SAME pair through
+# math:normalizes/math:normalizesTo — the attributed reason FOR the edge, never a
+# replacement for it. A guard/exists shape, mirroring
+# math:FormalVerificationResultVantageGroundingConstraint's fvrGuard/fvrExists idiom, with
+# the guard a direct relation atom (math:normalForm) rather than an rdf:type atom, as
+# math:ExtendedRealValueConstraint's erGuard does for math:extendedRealValue below. The
+# existential body itself DOES carry an rdf:type atom (math:unfDeclType, mirroring
+# math:pvfTestType's identical shape further down in this file) so that ANY node merely
+# carrying the two mediating edges — never mind whether it is actually declared a
+# math:NormalizationDeclaration — can no longer discharge this gate; only a genuine
+# declaration can.
+math:UndeclaredNormalFormConstraint
+    a logic:Constraint ;
+    rdfs:label "Undeclared normal-form constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every math:normalForm edge from a source expression to a target expression must have a node TYPED math:NormalizationDeclaration naming that SAME pair (math:normalizes the source, math:normalizesTo the target); a math:normalForm edge with no matching, correctly-typed declaration is undeclared (math:UndeclaredNormalForm)."@x-gmeow-english ;
+    logic:formalizes math:UndeclaredNormalFormShape ;
+    gmeow:enforcesFailureClass math:UndeclaredNormalForm ;
+    logic:severity "Violation" ;
+    logic:message "Every math:normalForm edge (source, target) must have a node typed math:NormalizationDeclaration naming that same pair through math:normalizes and math:normalizesTo; an edge with no matching, correctly-typed declaration is undeclared (math:UndeclaredNormalForm)." ;
+    logic:integrity math:unfForall .
+math:unfForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:forall math:unfImpl .
+math:unfImpl a logic:Formula ; logic:antecedent math:unfGuard ; logic:consequent math:unfExists .
+math:unfGuard a logic:Formula ; logic:relation math:normalForm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+math:unfExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "decl" ] ;
+    logic:exists math:unfBody .
+math:unfBody a logic:Formula ; logic:and math:unfDeclType , math:unfDeclSource , math:unfDeclTarget .
+math:unfDeclType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "decl" ] , [ logic:termIndex 1 ; logic:termIri math:NormalizationDeclaration ] .
+math:unfDeclSource a logic:Formula ; logic:relation math:normalizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "decl" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:unfDeclTarget a logic:Formula ; logic:relation math:normalizesTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "decl" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+
+# A math:NormalizationDeclaration held at math:structuralNormalization requires its
+# math:normalizes source and math:normalizesTo target to carry EQUAL math:structuralKey
+# values. Missing either key is folded into the SAME violation: the existential witness
+# the consequent requires (a source key, a target key, and their equality) simply has none
+# to find, so no separate disjunction is needed for the missing-key case (a deliberate
+# judgment call — mirroring how math:RiemannianSignatureConstraint's rieExists idiom
+# conjoins several existence atoms with the property they must jointly satisfy).
+math:FalseStructuralNormalizationClaimConstraint
+    a logic:Constraint ;
+    rdfs:label "False structural-normalization claim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:NormalizationDeclaration held at math:structuralNormalization requires its math:normalizes source and math:normalizesTo target to carry EQUAL math:structuralKey values. A mismatch is a false claim; so is either end carrying no math:structuralKey at all, since the existential witness the constraint requires (a source key, a target key, and their equality) simply has none to find — a structural claim is checked directly against the computed digests, never asserted on faith."@x-gmeow-english ;
+    logic:formalizes math:FalseStructuralNormalizationClaimShape ;
+    gmeow:enforcesFailureClass math:FalseStructuralNormalizationClaim ;
+    logic:severity "Violation" ;
+    logic:message "A math:NormalizationDeclaration held at math:structuralNormalization must have its math:normalizes source and math:normalizesTo target carry equal math:structuralKey values; a mismatch, or either end missing its key, is a false structural-normalization claim (math:FalseStructuralNormalizationClaim)." ;
+    logic:integrity math:fsnForall .
+math:fsnForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:fsnImpl .
+math:fsnImpl a logic:Formula ; logic:antecedent math:fsnGuard ; logic:consequent math:fsnExists .
+math:fsnGuard a logic:Formula ; logic:and math:fsnTypeGuard , math:fsnStrengthGuard .
+math:fsnTypeGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:NormalizationDeclaration ] .
+math:fsnStrengthGuard a logic:Formula ; logic:relation math:normalizationStrength ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:structuralNormalization ] .
+math:fsnExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "src" ] , [ logic:termIndex 1 ; logic:termVariable "tgt" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "srcKey" ] , [ logic:termIndex 3 ; logic:termVariable "tgtKey" ] ;
+    logic:exists math:fsnBody .
+math:fsnBody a logic:Formula ; logic:and math:fsnSrc , math:fsnTgt , math:fsnSrcKey , math:fsnTgtKey , math:fsnKeyEqual .
+math:fsnSrc a logic:Formula ; logic:relation math:normalizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "src" ] .
+math:fsnTgt a logic:Formula ; logic:relation math:normalizesTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "tgt" ] .
+math:fsnSrcKey a logic:Formula ; logic:relation math:structuralKey ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "src" ] , [ logic:termIndex 1 ; logic:termVariable "srcKey" ] .
+math:fsnTgtKey a logic:Formula ; logic:relation math:structuralKey ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "tgt" ] , [ logic:termIndex 1 ; logic:termVariable "tgtKey" ] .
+math:fsnKeyEqual a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "srcKey" ] , [ logic:termIndex 1 ; logic:termVariable "tgtKey" ] .
+
+# A math:NormalizationDeclaration held at any strength OTHER than
+# math:structuralNormalization must carry a math:normalizationProcedure, AND be named by a
+# gmeow:Observation (via gmeow:observationResult) that itself carries a gmeow:vantage, AND
+# carry a logic:preservationKind — the SAME attribution shape
+# math:FormalVerificationResultVantageGroundingConstraint requires of a
+# math:FormalVerificationResult, extended with the procedure and preservation-kind atoms a
+# normalization claim additionally owes. The "coarser than structural" guard is a single
+# logic:termDistinct atom against math:structuralNormalization rather than an enumerated
+# disjunction over the other three rungs, since the ladder may grow no further named rungs
+# without touching this formula.
+math:UnattributedNormalizationConstraint
+    a logic:Constraint ;
+    rdfs:label "Unattributed normalization constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:NormalizationDeclaration held at any math:NormalizationStrength coarser than math:structuralNormalization must carry a math:normalizationProcedure, must be named by a gmeow:Observation (through gmeow:observationResult) that itself carries a gmeow:vantage, and must carry a logic:preservationKind; a coarser-than-structural claim missing any of the three is unattributed (math:UnattributedNormalization)."@x-gmeow-english ;
+    logic:formalizes math:UnattributedNormalizationShape ;
+    gmeow:enforcesFailureClass math:UnattributedNormalization ;
+    logic:severity "Violation" ;
+    logic:message "A math:NormalizationDeclaration held at any strength coarser than math:structuralNormalization must carry a math:normalizationProcedure, be named by a gmeow:Observation (via gmeow:observationResult) that carries a gmeow:vantage, and carry a logic:preservationKind; missing any of the three is unattributed (math:UnattributedNormalization)." ;
+    logic:integrity math:uanForall .
+math:uanForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "str" ] ;
+    logic:forall math:uanImpl .
+math:uanImpl a logic:Formula ; logic:antecedent math:uanGuard ; logic:consequent math:uanExists .
+math:uanGuard a logic:Formula ; logic:and math:uanTypeGuard , math:uanStrengthGuard , math:uanNotStructural .
+math:uanTypeGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:NormalizationDeclaration ] .
+math:uanStrengthGuard a logic:Formula ; logic:relation math:normalizationStrength ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "str" ] .
+math:uanNotStructural a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "str" ] , [ logic:termIndex 1 ; logic:termIri math:structuralNormalization ] .
+math:uanExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "proc" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "obs" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "vantage" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "pres" ] ;
+    logic:exists math:uanBody .
+math:uanBody a logic:Formula ; logic:and math:uanProc , math:uanObsResult , math:uanObsVantage , math:uanPres .
+math:uanProc a logic:Formula ; logic:relation math:normalizationProcedure ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "proc" ] .
+math:uanObsResult a logic:Formula ; logic:relation gmeow:observationResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:uanObsVantage a logic:Formula ; logic:relation gmeow:vantage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "vantage" ] .
+math:uanPres a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pres" ] .
+
 # A signed-extended-real slot (math:extendedRealValue) holds a value on the extended real
 # line ℝ̄ = ℝ ∪ {−∞, +∞}: a finite numeric literal of either sign, or one of the two poles
 # math:PositiveInfinity / math:NegativeInfinity. The strongest cleanly-expressible logic:
@@ -14001,6 +14838,7 @@ math:ExtendedRealValueConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: the object of math:extendedRealValue — a value on the extended real line ℝ̄ = ℝ ∪ {−∞, +∞} — is a literal (its finite numeric branch) or one of the two poles math:PositiveInfinity / math:NegativeInfinity; a non-literal object that is neither pole is not a point of ℝ̄."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:MalformedExtendedReal ;
     logic:formalizes math:extendedRealValue ;
     logic:message "The object of math:extendedRealValue must be a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; a non-literal value (an IRI or blank node) that is neither pole is not a point of the extended real line ℝ̄ (math:MalformedExtendedReal)." ;
     logic:integrity math:erForall .
@@ -14038,6 +14876,7 @@ math:LimitResultOutcomeValueConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:LimitResult's math:limitResultValue agrees with its math:limitOutcome — a finite (literal) value for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value at all for math:divergesWithoutLimit."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:UnderspecifiedLimitResult ;
     logic:formalizes math:LimitResult ;
     logic:message "A math:LimitResult's math:limitResultValue must agree with its math:limitOutcome: a finite numeric literal for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value for math:divergesWithoutLimit; a value that disagrees with the declared outcome is ill-formed (math:UnderspecifiedLimitResult)." ;
     logic:integrity math:lrvForall .
@@ -14514,6 +15353,7 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotExpression" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotIndex" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/SymbolReference> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasMathematicalSymbol" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FreeVariableDeclaration> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/variableDomain" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/AutomorphismGroup> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/automorphismGroupOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/argumentSlot" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/boundVariable" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -15016,8 +15856,18 @@ math:pdnIri a logic:Formula ; logic:relation logic:termIsIri ;
 # The lowering declares its denotation and preservation (retires
 # math:LogicLoweringShape's declarative arm): the anonymous-restriction domains give
 # every subject of math:compilesToLogicFormula its two required companions, read
-# closed-world under the explicit opt-in below (the procedural twin,
-# math:LogicLoweringDeclaredConstraint, already carries the typed failure identity).
+# closed-world under the explicit opt-in below.
+#
+# The failure identity is bound on the PROPERTY, because the derived shape
+# (math:compilesToLogicFormula-domain-shape) is targeted by sh:targetSubjectsOf: its whole focus
+# set is "the subjects of math:compilesToLogicFormula", so the property is the only authored term
+# the shape belongs to, and the deriver reads it from exactly there (the class/property split in
+# crates/logic-compile/src/frontend.rs's derive_validation_shapes). Both minCount components on
+# that shape prove the SAME thing the procedural twin math:LogicLoweringDeclaredConstraint proves
+# and already names — a lowering with a missing companion is silent promotion — so the two arms
+# of the one law now agree on one class instead of the declarative arm reporting `<unmapped>`
+# and breaking ex:ecUndeclaredLogicLowering's single-class isolation.
+math:compilesToLogicFormula gmeow:enforcesFailureClass math:UndeclaredLogicLowering .
 math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:denotationKind ; owl:minCardinality "1"^^xsd:integer ] .
 math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:logicLoweringPreservation ; owl:minCardinality "1"^^xsd:integer ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/math/compilesToLogicFormula" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -15037,6 +15887,7 @@ math:ActivationFunction a logic:AbstractIndividualType .
 math:Algebra a logic:AbstractIndividualType .
 math:AlgebraicNumber a logic:AbstractIndividualType .
 math:AlgebraicStructure a logic:AbstractIndividualType .
+math:AlphaEquivalenceClass a logic:AbstractIndividualType .
 math:AlternativeHypothesis a logic:AbstractIndividualType .
 math:AnalysisPlan a logic:AbstractIndividualType .
 math:AnalyticProperty a logic:AbstractIndividualType .
@@ -15234,6 +16085,9 @@ math:NaturalNumber a logic:AbstractIndividualType .
 math:Neighbourhood a logic:AbstractIndividualType .
 math:NeuralLayer a logic:AbstractIndividualType .
 math:Norm a logic:AbstractIndividualType .
+math:NormalizationDeclaration a logic:AbstractIndividualType .
+math:NormalizationProcedure a logic:AbstractIndividualType .
+math:NormalizationStrength a logic:AbstractIndividualType .
 math:NullHypothesis a logic:AbstractIndividualType .
 math:Number a logic:AbstractIndividualType .
 math:NumberLiteral a logic:AbstractIndividualType .
@@ -15502,12 +16356,16 @@ math:AsymmetricGramMatrix a logic:Situation .
 math:CalibrationSenseConflation a logic:Situation .
 math:ConfidenceAsProbability a logic:Situation .
 math:ConstantAsDecimalLiteral a logic:Situation .
+math:CyclicExpressionGraph a logic:Situation .
 math:DimensionMismatch a logic:Situation .
 math:DimensionalInhomogeneity a logic:Situation .
 math:DistributionParameterConstraint a logic:Situation .
 math:DistributionParameterRoleCardinality a logic:Situation .
+math:DuplicateArgumentSlotIndex a logic:Situation .
 math:ExactApproximateConflation a logic:Situation .
 math:ExactPreservationViolated a logic:Situation .
+math:ExpressionDepthExceeded a logic:Situation .
+math:FalseStructuralNormalizationClaim a logic:Situation .
 math:IllFramedPValue a logic:Situation .
 math:ImplicitMissingness a logic:Situation .
 math:IncompleteAlgebraicStructure a logic:Situation .
@@ -15524,6 +16382,9 @@ math:MalformedArgumentSlot a logic:Situation .
 math:MalformedBindingExpression a logic:Situation .
 math:MalformedDimension a logic:Situation .
 math:MalformedExtendedReal a logic:Situation .
+math:UnrecognizedExpressionType a logic:Situation .
+math:NumberLiteralMissingValue a logic:Situation .
+math:MalformedStructuralKey a logic:Situation .
 math:MalformedTensorComputationGraph a logic:Situation .
 math:MathConformanceFailure a logic:Situation .
 math:MissingDistributionParameterization a logic:Situation .
@@ -15539,16 +16400,26 @@ math:ProbabilityScaleConflation a logic:Situation .
 math:ProcessObservationConflation a logic:Situation .
 math:ProjectionConfidenceAsProbability a logic:Situation .
 math:ProjectionDroppedParameterization a logic:Situation .
+math:MissingPreservationKind a logic:Situation .
+math:UndeclaredUnsupportedConstruct a logic:Situation .
+math:UnrecordedProjectionLoss a logic:Situation .
 math:ResidualMeaningAsProperty a logic:Situation .
 math:ResultRoleConflation a logic:Situation .
+math:StringOnlyComputableExpression a logic:Situation .
 math:StringOnlyMemberCondition a logic:Situation .
 math:StringOnlyPreservationLaw a logic:Situation .
+math:StructuralKeyDrift a logic:Situation .
+math:StructuralKeyOnRejectedExpression a logic:Situation .
+math:SurfaceLeakInNormalForm a logic:Situation .
 math:UnanchoredAutomorphismGroup a logic:Situation .
 math:UnanchoredDiagnostic a logic:Situation .
+math:UnattributedNormalization a logic:Situation .
 math:UnbackedAnalyticProperty a logic:Situation .
 math:UnboundClosedForm a logic:Situation .
 math:UnconditionedAssertion a logic:Situation .
 math:UndeclaredLogicLowering a logic:Situation .
+math:UndeclaredNormalForm a logic:Situation .
+math:UndeclaredNormalizationStrength a logic:Situation .
 math:UndeclaredTopologicalProperty a logic:Situation .
 math:UnderspecifiedChart a logic:Situation .
 math:UnderspecifiedCompactification a logic:Situation .
@@ -15590,8 +16461,10 @@ math:UnqualifiedComplement a logic:Situation .
 math:UnqualifiedOrthogonalComplement a logic:Situation .
 math:UnresolvedSymbolReference a logic:Situation .
 math:UnscopedRandomVariable a logic:Situation .
+math:UnscopedStatementRole a logic:Situation .
 math:UnscopedVariableOccurrence a logic:Situation .
 math:UnsituatedNumber a logic:Situation .
+math:UntypedFreeVariable a logic:Situation .
 math:UnwiredFlagshipScenario a logic:Situation .
 math:WrongE8WeylOrder a logic:Situation .
 math:IncompleteCell a logic:Situation .

@@ -119,7 +119,7 @@ fn gmn_digest_is_stable() {
         .assert()
         .success()
         .stdout(predicate::str::contains(
-            "codebook_digest blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43",
+            "codebook_digest blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce",
         ))
         .stdout(predicate::str::contains("content_digest blake3:"));
 }

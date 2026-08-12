@@ -10,11 +10,6 @@ pub mod certificate;
 /// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
 /// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
 pub mod conjecture;
-/// The pure, wasm-clean conjecture-evaluation orchestration
-/// ([`conjecture_eval::evaluate_conjecture_ttl`]): the single authority that parses a
-/// candidate `logic:` document + KB Turtle, runs the symmetric [`conjecture::conjecture_test`],
-/// and projects a deterministic verdict — shared by the native MCP/CLI surface and the
-/// browser conjecture playground so both produce byte-identical N-Triples.
 pub mod conjecture_eval;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
@@ -65,6 +60,12 @@ pub mod materialize;
 // all computed through the exact-rational (ℚ⁷) gmeow_math source at reason-verify
 // speed. Runs alongside the obligation checks in `verify`.
 pub mod math_dimension;
+// The `math:` expression-identity reasoned-graph gate — recomputed `math:structuralKey`
+// drift, `math:NormalizationDeclaration` surface leaks, and a claimed structural key on a
+// rejected expression, all decided over the ONE `math:` expression lowering
+// (`crate::physical::lower::math_expression_structural_keys`). Runs alongside
+// `math_dimension` in the same reason-verify pass.
+pub mod math_expression;
 // Fixed-arity n-ary predication → reified-binary lowering + the native n-ary
 // forward-chase ingestion entry. The reified encoding (`logic:instanceOf` /
 // `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,
@@ -81,15 +82,8 @@ mod physical;
 pub use physical::{BilinearFormError, bilinear_sqdist, compare_sqdist};
 pub mod probabilistic;
 pub mod profile_gate;
-/// The public STRUCTURED proof view: a checked backward-engine proof as a step TREE
-/// ([`proof_tree::ProofTree`]) with parent edges, asserted leaves, and content-addressed
-/// step identities, plus its TSTP derivation projection — the proof-as-process surface
-/// [`goal_directed`]'s single `derivation_iri` hash cannot carry.
 pub mod proof_tree;
 pub mod provenance;
-/// Verified PURREMB external-relation provider: a query-scoped nearest-neighbour relation
-/// over a fully verified embedding artifact, exposing retrieved RDF 1.2 identities to the
-/// native annotated relational evaluator as derived query inputs.
 pub mod purremb_relation;
 pub mod query_ir;
 pub mod reason;
@@ -112,7 +106,6 @@ pub mod rule_ir;
 /// backwards-compat freeze of the churning core.
 pub mod runtime;
 pub mod seam;
-pub mod slme;
 pub mod stablemodel;
 pub mod statement_lowering;
 pub mod store;
@@ -124,8 +117,8 @@ pub mod synth_corpus;
 pub mod teleology;
 /// The shared structured-term arena's façade (`ContentKey` / `TermArena` / `StructNode` /
 /// `InterningStats`, re-exported from the reasoner-free [`gmeow_term_arena`] crate) plus
-/// [`term_arena::MathGraphInterning`] — the thin `math:`-graph interning wrapper, which
-/// lives here because it needs this crate's `purrdf`-backed `math:` expression lowering.
+/// [`term_arena::intern_math_root`] — the `math:`-graph interning seam, which lives here
+/// because it needs this crate's `purrdf`-backed `math:` expression lowering.
 pub mod term_arena;
 mod term_codec;
 /// Termination-class ladder demonstrators shipped into `gmeow.gts` (one general

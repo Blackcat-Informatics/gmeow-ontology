@@ -138,9 +138,62 @@ fixtures accordingly live inline in that crate's Rust tests, not as `example-con
 cells; the projected validation rules keep their fixture cells. The split is intentional: each
 gate lives where the invariant it enforces can actually be stated.
 
+## Canonicalization & analyzer profiles
+
+The surface stratum carries a per-surface canonicalization frame — script (`lang:inScript`),
+encoding (`lang:encoding`), Unicode normalization (`lang:unicodeNormalization`), and collation
+locale (`lang:collationLocale`) — because a well-defined hash is sign-system-relative and must name
+the frame it folds under. `lang:CanonicalizationProfile` **reifies that frame into a single,
+first-class, versionable individual**, so a downstream engine (lillith_memetics) can mint a profile,
+pin its exact substrate, and cite it rather than repeat the four-tuple on every surface. The frame is
+held on profile-scoped twins — `lang:profileScript`, `lang:profileEncoding`,
+`lang:profileNormalization`, `lang:profileCollation` (all `rdfs:domain lang:CanonicalizationProfile`)
+— rather than by reusing the surface properties, whose domain is the `lang:SurfaceForm` stratum;
+keeping the two strata's frame properties distinct stops a profile from folding into a surface.
+
+- **The analyzer specialization.** `lang:AnalyzerProfile rdfs:subClassOf lang:CanonicalizationProfile`
+  adds the **ordered stage pipeline**. Each `lang:ProfileStage` (through `lang:hasStage`) names its
+  kind from the closed set `lang:stageKind` ∈ {`lang:stageKindSegmentation`,
+  `lang:stageKindNormalization`, `lang:stageKindStemming`, `lang:stageKindPhonetic`}, its position in
+  the profile's total order (`lang:stageOrder`, `xsd:nonNegativeInteger`), and its exact
+  implementation identity — `lang:stageImplementation` with `lang:stageVersion` and
+  `lang:stageDigest`. That implementation is pinned the **same oracle-not-authority way**
+  `lang:interpretationEngine` pins an NLP engine: the tool is named and version/digest-pinned as the
+  oracle that produced the stage output, never an authority whose output is a fact, so a re-run under a
+  different implementation is a different stage of a different profile version, not a silent
+  substitution.
+- **Attribution that composes, never replaces.** `lang:analyzedUnderProfile` relates a
+  `lang:SurfaceForm` or a `lang:AnalysisOutput` to the profile it ran under. It **composes with, and
+  never replaces, `lang:InterpretationAct` provenance**: the profile records the *canonicalization
+  substrate* a text was folded under (which frame, which ordered stages), while the interpretation act
+  and its `lang:interpretationEngine` record the *vantage-held reading* an engine produced over that
+  substrate. An output cites both — the profile for what it was comparable under, the act for who read
+  it and from what vantage — and neither subsumes the other.
+- **Comparability semantics.** The profile IRI plus its `lang:profileVersion` is the comparability
+  key: two outputs under the **same profile IRI at the same version** are directly comparable; any
+  mismatch of IRI or version is a distinct substrate whose outputs relate **only through a declared
+  correspondence**, never silently — the "no silent normalization of variants" rule
+  ([`LANG-TRANSLATION.md`](design/LANG-TRANSLATION.md)), where en-US/en-GB and every frame variant is a
+  declared map, not noise to collapse. A profile is versioned, not mutated in place, so a cited
+  `(IRI, version)` pin resolves to exactly one substrate forever.
+
+| Rule | Gate | Failure class |
+|---|---|---|
+| An analysis output cites a canonicalization profile with a declared pipeline | `lang:ProfileAttributionConstraint` | `lang:UnattributedAnalysisProfile` |
+
+`lang:ProfileAttributionConstraint` is authored in `logic:` (a `logic:Constraint` with a `logic:Formula`
+integrity body, never a hand-authored shape): a guarded universal over `lang:AnalysisOutput` whose
+existential body binds the cited `lang:CanonicalizationProfile` **and** at least one of its
+`lang:hasStage` stages, so both failure arms — naming no profile, or naming a profile with an
+undeclared pipeline — collapse to one missing witness. It is the analyzer-stratum twin of
+`lang:UnattributedEngineClaim`, the rule that an engine reading with no vantage is an unattributed
+fact.
+
 ## Competency
 
 The slice's competency questions (in `tests/competency.ttl`, backed by `queries/competency/*.rq`)
 demonstrate that the layer answers real questions: which surfaces are explicitly unanalyzed, the
 constituents of a composed form in index order, a word form's lexeme and morph features, sign systems
-by kind, and the surfaces that realize one form as its encoding fan-out widens.
+by kind, the surfaces that realize one form as its encoding fan-out widens, and — for the profile
+family — which analysis outputs cite a canonicalization/analyzer profile (and which one), with an
+output naming no profile rejected so it does not answer.

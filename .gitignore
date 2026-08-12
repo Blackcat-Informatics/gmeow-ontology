@@ -68,3 +68,32 @@ rustc-ice-*.txt
 # insta pending-snapshot temp files (never commit)
 *.snap.new
 .deficiencies
+
+# coding-ethos generated runtime output
+.claude/settings.local.json
+.coding-ethos/cache/
+.coding-ethos/code-intel.duckdb
+.coding-ethos/code-intel.duckdb.wal
+.coding-ethos/events/
+.coding-ethos/hook-runs/
+.coding-ethos/lint-runs/
+.coding-ethos/prune-runs/
+.coding-ethos/state/
+.gemini/settings.json
+.mcp.json
+# coding-ethos tooling source checked out into the worktree (not gmeow content)
+/coding-ethos/
+# coding-ethos agent tooling installed locally into the worktree — never gmeow
+# content: the local memory index, the Gemini extension payload, and the local
+# skill mirrors. The repo's own .agents/skills/gmeow-*/ and deficiency-cleanup
+# skills are real gmeow content and stay tracked (not matched below).
+.coding-ethos/memories/
+.gemini/extensions/
+.agents/skills/agent-operating-discipline/
+.agents/skills/coding-ethos-agent-workflow/
+.agents/skills/conditional-imports/
+.agents/skills/lint-remediation/
+.agents/skills/managed-lint-workflow/
+.agents/skills/managed-toolchain/
+.agents/skills/modern-web-guidance/
+.agents/skills/safe-git-workflow/

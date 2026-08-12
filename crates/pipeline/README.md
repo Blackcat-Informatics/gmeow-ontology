@@ -38,7 +38,7 @@ loader — the build is a first-class ontological citizen.
 
 ## Layering
 
-`gmeow-pipeline` sits at the top of the engine DAG: it may depend on the kernel
-and engine crates, and is depended on **only** by `crates/native`. It must never
-introduce a cycle, and it keeps the `gmeow-rdf-core` kernel pure
-(`make crate-check`).
+`gmeow-pipeline` sits at the top of the engine DAG: it may depend on the engine
+crates and on the `purrdf` substrate, and is depended on **only** by the two
+command surfaces, `gmeow-cli` and `gmeow-dev-cli`. It must never introduce a
+cycle (`make crate-check`).

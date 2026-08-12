@@ -1,0 +1,13 @@
+# Competency question (index-consumer contract): "Which typed literals and frame edges
+# may an interval index key over?" A rebuildable, generation-pinned index/retrieval
+# projection (gmeow:consumerIndexProjection, Principle 15) reads the published typed
+# literals and frame edges to build its accelerators; this query answers, straight from
+# the asserted ontology, exactly which temporal clocks are declared eligible via
+# gmeow:useForConsumer, so an index consumer never has to guess or re-derive eligibility.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?clock WHERE {
+    ?clock gmeow:useForConsumer gmeow:consumerIndexProjection .
+}
+ORDER BY ?clock

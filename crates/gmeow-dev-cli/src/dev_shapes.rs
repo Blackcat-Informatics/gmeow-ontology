@@ -1394,12 +1394,16 @@ pub fn shape_lift(path: Option<&Path>) -> i32 {
 
 // ─── Block classification + subsumption-lattice pre-analysis (the shape-lift report tail) ───
 
-const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-
-/// The merged authored `rdfs:subClassOf` hierarchy: the DIRECT named-class superclass edges
+/// The merged authored class-subsumption hierarchy: the DIRECT named-class superclass edges
 /// read from the root ontology plus every slice `module.ttl` (the same authored surfaces the
 /// sibling loaders [`class_owner_modules`] / [`object_property_iris`] parse), and its
 /// transitive closure. Blank-node class expressions (restrictions) are never hierarchy edges.
+///
+/// An edge counts under EITHER spelling of the subsumption predicate
+/// ([`gmeow_ns::SUB_CLASS_OF`]) — the canonical `logic:subClassOf` and its `rdfs:`
+/// projection. A slice re-authored onto the canonical spelling carries no `rdfs:`
+/// edge at all, so an `rdfs:`-only read would silently report a FLAT hierarchy for
+/// it and the lattice pre-analysis would miss every real target overlap.
 struct ClassHierarchy {
     /// class IRI → its DIRECT named superclasses.
     direct: BTreeMap<String, std::collections::BTreeSet<String>>,
@@ -1451,12 +1455,14 @@ impl ClassHierarchy {
         let mut direct: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
         for m in modules {
             let Ok(ds) = parse_ttl_file(&m) else { continue };
-            let Some(sco) = ds.term_id_by_value(&TermValue::iri(RDFS_SUBCLASSOF)) else {
-                continue;
-            };
-            for q in ds.quads_for_pattern(None, Some(sco), None, GraphMatch::Any) {
-                if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
-                    direct.entry(s.to_owned()).or_default().insert(o.to_owned());
+            for predicate in gmeow_ns::SUB_CLASS_OF {
+                let Some(sco) = ds.term_id_by_value(&TermValue::iri(predicate)) else {
+                    continue;
+                };
+                for q in ds.quads_for_pattern(None, Some(sco), None, GraphMatch::Any) {
+                    if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
+                        direct.entry(s.to_owned()).or_default().insert(o.to_owned());
+                    }
                 }
             }
         }
@@ -4077,6 +4083,62 @@ mod tests {
                 .insert((*sup).to_owned());
         }
         ClassHierarchy::from_direct(direct)
+    }
+
+    /// `ClassHierarchy::load` reads BOTH spellings of the subsumption predicate,
+    /// so a slice re-authored onto the canonical `logic:subClassOf` is not seen as
+    /// a FLAT hierarchy.
+    ///
+    /// The blinding regression this pins: an `rdfs:`-only read returned no edges
+    /// at all for a converted slice, so `focus_overlaps` / `target_covers` found
+    /// no class-target overlap and the lattice pre-analysis reported a clean
+    /// lattice over a hierarchy it simply could not see.
+    #[test]
+    fn class_hierarchy_load_reads_both_subsumption_spellings() {
+        let tmp_dir = tempfile::Builder::new()
+            .prefix("gmeow-class-hierarchy-")
+            .tempdir()
+            .expect("create temp dir");
+        let tmp = tmp_dir.path();
+        let canonical = tmp.join("slices").join("canonical");
+        let projected = tmp.join("slices").join("projected");
+        std::fs::create_dir_all(&canonical).expect("mkdir");
+        std::fs::create_dir_all(&projected).expect("mkdir");
+
+        // A slice authored entirely in the CANONICAL spelling — no `rdfs:` edge.
+        std::fs::write(
+            canonical.join("module.ttl"),
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             <https://ex/Cat> <https://blackcatinformatics.ca/logic/subClassOf> <https://ex/Animal> .\n\
+             <https://ex/Animal> logic:subClassOf <https://ex/Organism> .\n\
+             <https://ex/Blank> logic:subClassOf [ <https://ex/p> <https://ex/v> ] .\n",
+        )
+        .expect("write");
+        // A slice still authored in the projected spelling — must keep working.
+        std::fs::write(
+            projected.join("module.ttl"),
+            "<https://ex/Rock> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://ex/Mineral> .\n",
+        )
+        .expect("write");
+
+        let hier = ClassHierarchy::load(tmp);
+
+        assert!(
+            hier.class_covers("https://ex/Animal", "https://ex/Cat"),
+            "a direct `logic:subClassOf` edge is a hierarchy edge"
+        );
+        assert!(
+            hier.class_covers("https://ex/Organism", "https://ex/Cat"),
+            "the canonical edges saturate transitively"
+        );
+        assert!(
+            hier.class_covers("https://ex/Mineral", "https://ex/Rock"),
+            "the projected spelling still loads"
+        );
+        assert!(
+            !hier.direct.contains_key("https://ex/Blank"),
+            "a blank-node class expression is never a hierarchy edge"
+        );
     }
 
     #[test]

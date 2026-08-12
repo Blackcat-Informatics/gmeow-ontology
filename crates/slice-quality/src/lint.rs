@@ -22,7 +22,7 @@ use gmeow_errors::{Finding, Report, Rule, Severity};
 use gmeow_validate::rule_catalog::help_uri_for;
 
 use crate::gate;
-use crate::model::{AxisGrade, MeasurementStandard, Tier};
+use crate::model::{MeasurementStandard, Tier};
 use crate::report::{self, SliceReport};
 
 /// The tier-domination gate decision: does `measured` satisfy the `required`
@@ -90,51 +90,6 @@ pub fn declared_quality_tier(
     gate::declared_tier_against(slice_dir, &standard.tiers)
 }
 
-/// Best-effort axis attribution for grading an advisory's LINT severity: match
-/// the finding code's domain segment (the second `.`-delimited token, e.g.
-/// `"grounding"` in `slice-quality.grounding.no-stereotype`) against every
-/// graded axis's IRI local name, both normalized to bare lowercase
-/// alphanumerics so hyphenation/casing never matter (`"gmn1-coverage"` vs
-/// `axisGmn1Coverage`). Attribution succeeds only when EXACTLY ONE axis
-/// matches; an absent or ambiguous match returns `None`, so the caller falls
-/// back to the safe (`Warning`) default rather than guess.
-///
-/// This is severity-grading decoration only — it never affects the
-/// tier-domination gate (`passed`). True per-finding axis provenance is not
-/// recoverable from a bare [`Finding`] alone: [`SliceReport::advisories`] is a
-/// single ranked, flattened vector (advisories are re-sorted heaviest-axis-
-/// first, then grouped, losing any structured axis-IRI field on the `Finding`
-/// itself — see `report::score_slice_with_standard`), so this is a
-/// best-effort textual join, not a stored back-reference.
-fn attribute_axis<'a>(finding: &Finding, grades: &'a [AxisGrade]) -> Option<&'a AxisGrade> {
-    fn normalize(s: &str) -> String {
-        s.chars()
-            .filter(|c| c.is_ascii_alphanumeric())
-            .map(|c| c.to_ascii_lowercase())
-            .collect()
-    }
-    let mut segments = finding.code.split('.');
-    segments.next()?; // the "slice-quality" tool prefix
-    let domain = segments.next()?;
-    if domain.is_empty() {
-        return None;
-    }
-    let domain_norm = normalize(domain);
-    let mut matches = grades.iter().filter(|g| {
-        let local = g
-            .axis_iri
-            .rsplit(['/', '#'])
-            .next()
-            .unwrap_or(g.axis_iri.as_str());
-        normalize(local).contains(&domain_norm)
-    });
-    let only = matches.next()?;
-    if matches.next().is_some() {
-        return None; // ambiguous — more than one axis matches this domain token
-    }
-    Some(only)
-}
-
 /// The higher-rank of two optional tiers — `None` iff both are `None`. The
 /// effective lint bar is the stricter of the slice's own declared claim and an
 /// explicit `--min-tier`.
@@ -181,8 +136,8 @@ pub struct LintOutcome {
 /// least the bar's rank.
 ///
 /// Every advisory in `report.advisories` is re-stamped by severity: `Error`
-/// when it attributes (via [`attribute_axis`]) to an axis graded below the
-/// bar (actionable to reach it), else `Warning` — except
+/// when its stored producing axis ([`SliceReport::advisory_axis`]) is graded
+/// below the bar (actionable to reach it), else `Warning` — except
 /// `slice-quality.axis-advice.missing-template` (a bundle-rubric data gap,
 /// never the foreign author's fault), which always stays `Info` and never
 /// escalates. When the gate fails, one more synthetic
@@ -205,7 +160,7 @@ pub fn lint_report(
     // same discipline `SliceReport::to_report` follows.
     report::seed_finding_codes();
     let mut findings = Report::new("slice-quality");
-    for advisory in &report.advisories {
+    for (idx, advisory) in report.advisories.iter().enumerate() {
         let mut finding = advisory.clone();
         finding.severity = if finding.code == "slice-quality.axis-advice.missing-template" {
             // A rubric-provenance data gap, never the foreign author's fault —
@@ -213,7 +168,9 @@ pub fn lint_report(
             Severity::Info
         } else {
             let below_bar = effective_bar.as_ref().is_some_and(|bar| {
-                attribute_axis(&finding, &report.assessment.grades)
+                report
+                    .advisory_axis(idx)
+                    .and_then(|axis_iri| report.grade_for_axis_iri(axis_iri))
                     .is_some_and(|grade| grade.tier.rank < bar.rank)
             });
             if below_bar {
@@ -304,15 +261,20 @@ impl LintOutcome {
             ));
         }
 
-        // Advisories, grouped under their attributed axis — excludes the
-        // synthetic below-bar finding (it names no single axis).
+        // Advisories, grouped under their attributed axis — excludes the synthetic
+        // below-bar finding (it names no single axis). `self.findings.findings` is
+        // built by `lint_report` in the same order as `report.advisories`/
+        // `report.advisory_axis`, with the synthetic finding (when present) always
+        // appended last, so the pre-filter index still identifies the producing
+        // advisory exactly.
         let grouped: Vec<Grouped<'_>> = self
             .findings
             .findings
             .iter()
-            .filter(|f| f.code != "slice-quality.lint.below-min-tier")
-            .map(|f| Grouped {
-                axis: attribute_axis(f, &report.assessment.grades).map(|g| g.axis_iri.as_str()),
+            .enumerate()
+            .filter(|(_, f)| f.code != "slice-quality.lint.below-min-tier")
+            .map(|(idx, f)| Grouped {
+                axis: report.advisory_axis(idx),
                 severity: f.severity,
                 code: f.code.as_str(),
                 message: f.message.as_str(),
@@ -386,7 +348,7 @@ impl LintOutcome {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{Axis, ContextScope, SliceAssessment, Threshold};
+    use crate::model::{Axis, AxisGrade, ContextScope, SliceAssessment, Threshold};
     use std::collections::HashMap;
 
     fn tier(local: &str, rank: i64) -> Tier {
@@ -412,6 +374,14 @@ mod tests {
             tiers: ladder(),
             axes,
         }
+    }
+
+    /// The axis IRI an `axis(local)`/`grade(local, ..)` pair share — the exact
+    /// stored-back-reference value a real `advisory_axes` entry would carry for
+    /// that axis, so tests can pin genuine axis provenance instead of relying on
+    /// the finding code's text to line up with an axis's local name.
+    fn axis_iri(local: &str) -> String {
+        format!("https://blackcatinformatics.ca/gmeow/axis{local}")
     }
 
     fn axis(local: &str) -> Axis {
@@ -446,16 +416,21 @@ mod tests {
         }
     }
 
+    /// `advisory_axes` must be index-parallel to `advisories` (or empty, for a
+    /// test that does not care about axis attribution at all — see
+    /// [`SliceReport::for_test`]).
     fn report_with(
         axes: Vec<Axis>,
         grades: Vec<AxisGrade>,
         rollup: Tier,
         advisories: Vec<Finding>,
+        advisory_axes: Vec<String>,
     ) -> SliceReport {
         SliceReport::for_test(
             standard(axes),
             assessment(grades, rollup),
             advisories,
+            advisory_axes,
             HashMap::new(),
         )
     }
@@ -468,6 +443,7 @@ mod tests {
             vec![axis("Grounding")],
             vec![grade("Grounding", tier("Linked", 2), 0.9)],
             tier("Linked", 2),
+            vec![],
             vec![],
         );
         let outcome = lint_report(&report, None, None);
@@ -492,6 +468,7 @@ mod tests {
             vec![grade("Grounding", tier("Linked", 2), 0.9)],
             tier("Linked", 2),
             vec![],
+            vec![],
         );
         let declared = tier("Linked", 2);
         let outcome = lint_report(&report, Some(&declared), None);
@@ -507,6 +484,7 @@ mod tests {
             vec![axis("Grounding")],
             vec![grade("Grounding", tier("Grounded", 1), 0.6)],
             tier("Grounded", 1),
+            vec![],
             vec![],
         );
         let declared = tier("Exemplified", 3);
@@ -531,6 +509,7 @@ mod tests {
             vec![grade("Grounding", tier("Grounded", 1), 0.6)],
             tier("Grounded", 1),
             vec![],
+            vec![],
         );
         let required = tier("Maximal", 4);
         let outcome = lint_report(&report, None, Some(&required));
@@ -545,6 +524,7 @@ mod tests {
             vec![axis("Grounding")],
             vec![grade("Grounding", tier("Linked", 2), 0.9)],
             tier("Linked", 2),
+            vec![],
             vec![],
         );
         let low = tier("Grounded", 1);
@@ -586,6 +566,11 @@ mod tests {
                     "Grounding: axis is deficient but carries no advice template",
                 )
                 .with_tool("slice-quality"),
+            ],
+            vec![
+                axis_iri("Grounding"),
+                axis_iri("Prose"),
+                axis_iri("Grounding"),
             ],
         );
         let bar = tier("Linked", 2);
@@ -630,6 +615,47 @@ mod tests {
     }
 
     #[test]
+    fn stored_axis_provenance_attributes_even_when_the_code_textually_mismatches_the_axis() {
+        // The stored `advisory_axes` back-reference (report.rs) exists precisely to
+        // fix the case the removed `attribute_axis` textual join could not: a
+        // finding whose CODE's domain token ("testing") shares no substring with
+        // its producing axis's local name ("Grounding") — normalize("axisGrounding")
+        // == "axisgrounding" does not contain "testing", so the old best-effort join
+        // would have returned `None` and this advisory would have stayed the safe
+        // (never-escalating) `Warning` default even though it sits on a below-bar
+        // axis. The stored back-reference attributes it exactly, regardless of code
+        // spelling, so it correctly escalates to `Error`.
+        let report = report_with(
+            vec![axis("Grounding")],
+            vec![grade("Grounding", tier("Grounded", 1), 0.6)], // below the Linked bar
+            tier("Grounded", 1),
+            vec![
+                Finding::new(
+                    Severity::Warning,
+                    "slice-quality.testing.untested-term",
+                    "produced by the Grounding axis despite an unrelated code domain token",
+                )
+                .with_tool("slice-quality"),
+            ],
+            vec![axis_iri("Grounding")],
+        );
+        let bar = tier("Linked", 2);
+        let outcome = lint_report(&report, Some(&bar), None);
+        let finding = outcome
+            .findings
+            .findings
+            .iter()
+            .find(|f| f.code == "slice-quality.testing.untested-term")
+            .expect("finding present");
+        assert_eq!(
+            finding.severity,
+            Severity::Error,
+            "stored axis provenance escalates a below-bar advisory even though its \
+             code's domain token matches no axis textually: {finding:#?}"
+        );
+    }
+
+    #[test]
     fn resolve_min_tier_unknown_names_the_rungs() {
         // (g) An unknown --min-tier is a hard fail naming every known rung.
         let std = standard(vec![]);
@@ -658,7 +684,7 @@ mod tests {
         // `lattice::meet`, is the ladder bottom) must still lint without
         // panicking, and domination stays well-typed against a bar.
         let bottom = tier("Registered", 0);
-        let report = report_with(vec![], vec![], bottom.clone(), vec![]);
+        let report = report_with(vec![], vec![], bottom.clone(), vec![], vec![]);
 
         // No bar at all → trivially passes, no panic.
         let advisory_only = lint_report(&report, None, None);

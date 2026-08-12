@@ -525,15 +525,13 @@ gmeow:writingSystemAsNotation
 # =========================================================================== #
 
 gmeow:NotationProjectionProfile rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:notationSystemOf ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:NotationSystem ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:projectionFunction ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+gmeow:NotationProjectionProfile logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:notationSystemOf ; logic:allValuesFrom gmeow:NotationSystem ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:NotationProjectionProfile ; logic:closureKey "https://blackcatinformatics.ca/gmeow/notationSystemOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:NotationSystem rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:smuflCodepoint ; owl:allValuesFrom xsd:string ] .
-
-# exact-one minCount restoration: min-qualified sibling restrictions
-# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/notationSystemOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/NotationSystem> ] .
 
 # =========================================================================== #
 # Migrated procedural constraint: the closed-world no-subclass shape           #
@@ -567,8 +565,46 @@ logic:plnsEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-s
 logic:plnsDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 
+# gmeow:NotationSystemSMuFLShape — when present, gmeow:smuflCodepoint must match
+# the SMuFL Unicode-codepoint pattern U+HHHH(HH). sh:pattern has no ordinary-OWL
+# antecedent (the datatype half is already covered by the allValuesFrom xsd:string
+# restriction above); the regex half is authored as a logic:Constraint using
+# logic:termRegex, which "lowers to SPARQL REGEX ... and to sh:pattern" per its
+# own skos:definition in slices/grounding/logic/module.ttl.
+gmeow:NotationSystemSMuFLPatternConstraint
+    a logic:Constraint ;
+    rdfs:label "SMuFL codepoint pattern constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:smuflCodepoint value matches the SMuFL Unicode-codepoint pattern U+HHHH(HH)."@x-gmeow-english ;
+    logic:formalizes gmeow:NotationSystemSMuFLShape ;
+    logic:message "SMuFL codepoint must be a Unicode codepoint of the form U+HHHH(HH)." ;
+    logic:integrity logic:smufForall .
+logic:smufForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] ;
+    logic:forall logic:smufImpl .
+logic:smufImpl a logic:Formula ; logic:antecedent logic:smufHas ; logic:consequent logic:smufMatch .
+logic:smufHas a logic:Formula ; logic:relation gmeow:smuflCodepoint ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] .
+logic:smufMatch a logic:Formula ; logic:relation logic:termRegex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "cp" ] , [ logic:termIndex 1 ; logic:termLiteral "^U\\+[0-9A-F]{4,6}$" ] .
+
+# gmeow:NotationProjectionProfileShape — the sh:or residue (a profile must
+# declare at least one representableParameter OR one declaredLoss; the two are
+# not mutually exclusive, so this is disjunctive requiredness (P3), not a
+# choice-group cardinality).
+gmeow:NotationProjectionProfileLossOrParameterConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Notation projection profile loss-or-parameter constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:NotationProjectionProfile must declare at least one gmeow:representableParameter or one gmeow:declaredLoss."@x-gmeow-english ;
+    logic:onClass gmeow:NotationProjectionProfile ;
+    logic:anyOf gmeow:representableParameter , gmeow:declaredLoss ;
+    logic:formalizes gmeow:NotationProjectionProfileShape ;
+    logic:message "A NotationProjectionProfile must declare at least one representableParameter or one declaredLoss." .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/notationSystemOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/NotationSystem> ] .
 <https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/projectionFunction> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/NotationSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/smuflCodepoint> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
 

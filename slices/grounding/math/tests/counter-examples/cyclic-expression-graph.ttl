@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::CyclicExpressionGraph): TWO
+# math:ApplicationExpression nodes whose single math:argumentSlot each names the
+# OTHER as its math:slotExpression — a fully closed cycle through the
+# math:slotExpression graph. Neither ex:cycleA nor ex:cycleB is a
+# math:` expression "root" (`MathGraph::expression_roots`): each is referenced by the
+# other's math:argumentSlot, so neither is an "unreferenced" candidate — the lowering's
+# rootless-cyclic-component seeding path (`math_expression_structural_keys`) picks the
+# lexicographically-first still-unvisited expression-typed node as an orphan root and
+# walks into the cycle, and the cycle guard (`visiting`, a node reached while an
+# ancestor of the SAME call is still being lowered) raises
+# math:CyclicExpressionGraph on the second visit. The authored math:structuralKey on
+# BOTH nodes lets the reasoned-graph gate (check_structural_key_on_rejected_expression)
+# reach whichever one the deterministic orphan-seeding picks.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:cycleA a math:ApplicationExpression ;
+    math:operator ex:op ;
+    math:argumentSlot ex:cycleSlotA ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:cycleSlotA a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:cycleB .
+
+ex:cycleB a math:ApplicationExpression ;
+    math:operator ex:op ;
+    math:argumentSlot ex:cycleSlotB ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:cycleSlotB a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:cycleA .

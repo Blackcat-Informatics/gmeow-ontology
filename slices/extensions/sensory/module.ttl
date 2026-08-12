@@ -66,7 +66,6 @@ gmeow:SensoryQuantity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensory Quantity"@x-gmeow-english ;
     logic:subClassOf math:Quantity ;
-    rdfs:subClassOf math:Quantity ;
     skos:definition "A math:Quantity produced as the scalar numeric result of a sensory observation, further qualified by its dimension, any applicable unit and reference frame, determinacy, granularity, provenance, and uncertainty axes. It is a domain specialization of the math-owned quantity authority, not an equivalent alias."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -182,7 +181,7 @@ gmeow:sensoryObservationOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory observation of"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
+    logic:subPropertyOf gmeow:observedFeature ;
     skos:definition "The entity whose property is being observed — the observedFeature of a sensory observation. Subproperty of gmeow:observedFeature so generic consumers can query all observations without knowing the domain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -201,7 +200,7 @@ gmeow:sensoryResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory result"@x-gmeow-english ;
     rdfs:range gmeow:SensoryQuantity ;
-    rdfs:subPropertyOf gmeow:observationResult ;
+    logic:subPropertyOf gmeow:observationResult ;
     skos:definition "The scalar quantity result of a sensory observation — a value with unit, determinacy, and granularity. Subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain. The reference frame in which the quantity is expressed is carried on the observation via gmeow:hasReferenceFrame and propagates to the result via the existing isResultOf ∘ hasReferenceFrame chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

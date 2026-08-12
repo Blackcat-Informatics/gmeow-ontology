@@ -1446,3 +1446,1009 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnSymbolDispositionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:gmnSymbolDisposition and nothing else. It is not a definition of gmeow:gmnSymbolDisposition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gmnSymbolDisposition, et rien d'autre. Ce n'est pas une définition de gmeow:gmnSymbolDisposition (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingClosure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmn envelope security-ring closure"
+msgstr "clôture de l'anneau de sécurité d'une enveloppe gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingClosure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class-scoped closed-world authority requiring every gmeow:GmnEnvelope to carry gmeow:gmnSecurityRing; its paired universal restriction fixes the value type without creating an existential witness."
+msgstr "L'autorité en monde clos, portée par la classe, qui exige que chaque gmeow:GmnEnvelope porte un gmeow:gmnSecurityRing ; la restriction universelle qui lui est appariée fixe le type de la valeur sans créer de témoin existentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondenceClosure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmn envelope correspondence closure"
+msgstr "clôture de la correspondance d'une enveloppe gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondenceClosure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class-scoped closed-world authority requiring every gmeow:GmnEnvelope to carry gmeow:gmnEnvelopeCorrespondence; its paired universal restriction fixes the value type without creating an existential witness."
+msgstr "L'autorité en monde clos, portée par la classe, qui exige que chaque gmeow:GmnEnvelope porte une gmeow:gmnEnvelopeCorrespondence ; la restriction universelle qui lui est appariée fixe le type de la valeur sans créer de témoin existentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRingLevelClosure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmn ring level closure"
+msgstr "clôture du niveau d'anneau gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRingLevelClosure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The class-scoped closed-world authority requiring every gmeow:GmnSecurityRing to carry gmeow:gmnRingLevel; its paired universal restriction fixes the value type without creating an existential witness."
+msgstr "L'autorité en monde clos, portée par la classe, qui exige que chaque gmeow:GmnSecurityRing porte un gmeow:gmnRingLevel ; la restriction universelle qui lui est appariée fixe le type de la valeur sans créer de témoin existentiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gmnSecurityRing is functional"
+msgstr "gmnSecurityRing est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:gmnSecurityRing is functional: a gmeow:GmnEnvelope names exactly one admission ring, because the ring IS the single boundary class the serializer checked the payload against — two rings on one envelope would leave the admission decision undetermined. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:gmnSecurityRing est fonctionnelle : une gmeow:GmnEnvelope nomme exactement un anneau d'admission, car l'anneau EST l'unique classe frontière contre laquelle le sérialiseur a vérifié la charge utile — deux anneaux sur une même enveloppe laisseraient indéterminée la décision d'admission. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSecurityRingFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:gmnSecurityRing and nothing else. It is not a definition of gmeow:gmnSecurityRing (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:gmnSecurityRing, et rien d'autre. Il n'est pas une définition de gmeow:gmnSecurityRing (celle-ci réside sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+# --- GMN logic symbology plane: signature type discipline (sorts, arity, associativity, arg roles/slots) and the logic glyph sign chains ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgIndex|rdfs:label"
+msgid "gmn argument index"
+msgstr "index d'argument gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgIndex|skos:definition"
+msgid "The zero-based ordinal position of an operand slot in a GMN operator signature. Domain gmeow:GmnArgSlot, range xsd:nonNegativeInteger (stated in prose). Indexes are unique per operator and, in strict canonical mode, zero-based and contiguous; operand order is carried by this integer, never by RDF list ordering, mirroring lang:slotIndex."
+msgstr "La position ordinale à base zéro d'un emplacement d'opérande dans une signature d'opérateur GMN. Domaine gmeow:GmnArgSlot, codomaine xsd:nonNegativeInteger (énoncé en prose). Les index sont uniques par opérateur et, en mode canonique strict, à base zéro et contigus ; l'ordre des opérandes est porté par cet entier, jamais par l'ordonnancement d'une liste RDF, à l'image de lang:slotIndex."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgRole|rdfs:label"
+msgid "GMN Argument Role"
+msgstr "Rôle d'argument GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgRole|skos:definition"
+msgid "The closed argument-role vocabulary of GMN operator signatures: the named role an ordered operand slot fills. Its instances are exactly the six named individuals gmeow:gmnArgRoleAntecedent, gmeow:gmnArgRoleConsequent, gmeow:gmnArgRoleContext, gmeow:gmnArgRoleSuccedent, gmeow:gmnArgRoleOverAccessibility and gmeow:gmnArgRoleBody. A gmeow:GmnArgSlot names its role through gmeow:gmnArgRole, binding the slot to the canonical logic: carrier it fills (e.g. gmeow:gmnArgRoleAntecedent to logic:antecedent, gmeow:gmnArgRoleOverAccessibility to logic:overAccessibility) so an operator's operands are named, not merely positional. It is the slot's ROLE, NOT its syntactic sort gmeow:GmnSort and NOT its ordinal gmeow:gmnArgIndex."
+msgstr "Le vocabulaire clos des rôles d'argument des signatures d'opérateur GMN : le rôle nommé que remplit un emplacement d'opérande ordonné. Ses instances sont exactement les six individus nommés gmeow:gmnArgRoleAntecedent, gmeow:gmnArgRoleConsequent, gmeow:gmnArgRoleContext, gmeow:gmnArgRoleSuccedent, gmeow:gmnArgRoleOverAccessibility et gmeow:gmnArgRoleBody. Un gmeow:GmnArgSlot nomme son rôle via gmeow:gmnArgRole, liant l'emplacement au porteur canonique logic: qu'il remplit (p. ex. gmeow:gmnArgRoleAntecedent à logic:antecedent, gmeow:gmnArgRoleOverAccessibility à logic:overAccessibility) de sorte que les opérandes d'un opérateur soient nommés, non simplement positionnels. C'est le RÔLE de l'emplacement, NON sa sorte syntaxique gmeow:GmnSort et NON son ordinal gmeow:gmnArgIndex."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRole|rdfs:label"
+msgid "gmn argument role"
+msgstr "rôle d'argument gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRole|skos:definition"
+msgid "Names the role an operand slot fills. Domain gmeow:GmnArgSlot, range gmeow:GmnArgRole (stated in prose). Binds the slot to the canonical logic: carrier it renders (e.g. gmeow:gmnArgRoleAntecedent to logic:antecedent, gmeow:gmnArgRoleOverAccessibility to logic:overAccessibility) so an operator's operands are named, not merely positional."
+msgstr "Nomme le rôle que remplit un emplacement d'opérande. Domaine gmeow:GmnArgSlot, codomaine gmeow:GmnArgRole (énoncé en prose). Lie l'emplacement au porteur canonique logic: qu'il rend (p. ex. gmeow:gmnArgRoleAntecedent à logic:antecedent, gmeow:gmnArgRoleOverAccessibility à logic:overAccessibility) de sorte que les opérandes d'un opérateur soient nommés, non simplement positionnels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleAntecedent|rdfs:label"
+msgid "antecedent role"
+msgstr "rôle d'antécédent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleAntecedent|skos:definition"
+msgid "The antecedent role: the operand slot that fills the canonical logic:antecedent — the hypothesis of an implication. Paired with the consequent role."
+msgstr "Le rôle d'antécédent : l'emplacement d'opérande qui remplit le logic:antecedent canonique — l'hypothèse d'une implication. Apparié au rôle de conséquent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleBody|rdfs:label"
+msgid "body role"
+msgstr "rôle de corps"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleBody|skos:definition"
+msgid "The body role: the operand slot that fills the scoped body of a binder — the formula a quantifier (logic:forall / logic:exists) or a modal operator (logic:necessarily / logic:possibly) ranges over."
+msgstr "Le rôle de corps : l'emplacement d'opérande qui remplit le corps sous portée d'un lieur — la formule sur laquelle porte un quantificateur (logic:forall / logic:exists) ou un opérateur modal (logic:necessarily / logic:possibly)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleConsequent|rdfs:label"
+msgid "consequent role"
+msgstr "rôle de conséquent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleConsequent|skos:definition"
+msgid "The consequent role: the operand slot that fills the canonical logic:consequent — the conclusion of an implication. Paired with the antecedent role."
+msgstr "Le rôle de conséquent : l'emplacement d'opérande qui remplit le logic:consequent canonique — la conclusion d'une implication. Apparié au rôle d'antécédent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleContext|rdfs:label"
+msgid "context role"
+msgstr "rôle de contexte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleContext|skos:definition"
+msgid "The context role: the operand slot that fills the canonical logic:sequentContext — the premise context Γ of a sequent. Paired with the succedent role."
+msgstr "Le rôle de contexte : l'emplacement d'opérande qui remplit le logic:sequentContext canonique — le contexte de prémisses Γ d'un séquent. Apparié au rôle de succédent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleOverAccessibility|rdfs:label"
+msgid "over-accessibility role"
+msgstr "rôle sur-accessibilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleOverAccessibility|skos:definition"
+msgid "The over-accessibility role: the operand slot that fills the canonical logic:overAccessibility — the typed accessibility relation a modal operator is evaluated over. Its slot sort is the accessibility-type sort."
+msgstr "Le rôle sur-accessibilité : l'emplacement d'opérande qui remplit le logic:overAccessibility canonique — la relation d'accessibilité typée sur laquelle un opérateur modal est évalué. La sorte de son emplacement est la sorte type-d'accessibilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleSuccedent|rdfs:label"
+msgid "succedent role"
+msgstr "rôle de succédent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgRoleSuccedent|skos:definition"
+msgid "The succedent role: the operand slot that fills the canonical logic:sequentSuccedent — the conclusion φ of a sequent. Paired with the context role."
+msgstr "Le rôle de succédent : l'emplacement d'opérande qui remplit le logic:sequentSuccedent canonique — la conclusion φ d'un séquent. Apparié au rôle de contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgSlot|rdfs:label"
+msgid "GMN Argument Slot"
+msgstr "Emplacement d'argument GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArgSlot|skos:definition"
+msgid "An ordered, named operand slot in a GMN operator signature: a reified carrier holding exactly one zero-based gmeow:gmnArgIndex (operand position), one gmeow:gmnArgSort (the operand's syntactic sort, a gmeow:GmnSort), and one gmeow:gmnArgRole (the named role it fills, a gmeow:GmnArgRole). An operator declares its slots through gmeow:gmnOperandSorts; slot order is carried by the integer gmeow:gmnArgIndex, never by RDF list ordering, mirroring the lang:FormSlot idiom so two encodings of one signature are one signature. It is the position-and-role carrier, NOT the operand value itself and NOT the sort or role vocabularies it points at."
+msgstr "Un emplacement d'opérande ordonné et nommé dans une signature d'opérateur GMN : un porteur réifié détenant exactement un gmeow:gmnArgIndex à base zéro (position de l'opérande), une gmeow:gmnArgSort (la sorte syntaxique de l'opérande, une gmeow:GmnSort) et un gmeow:gmnArgRole (le rôle nommé qu'il remplit, un gmeow:GmnArgRole). Un opérateur déclare ses emplacements via gmeow:gmnOperandSorts ; l'ordre des emplacements est porté par l'entier gmeow:gmnArgIndex, jamais par l'ordonnancement d'une liste RDF, à l'image de l'idiome lang:FormSlot, de sorte que deux encodages d'une même signature soient une même signature. C'est le porteur de position-et-rôle, NON la valeur de l'opérande elle-même et NON les vocabulaires de sorte ou de rôle qu'il désigne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgSort|rdfs:label"
+msgid "gmn argument sort"
+msgstr "sorte d'argument gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArgSort|skos:definition"
+msgid "Names the syntactic sort of one operand slot. Domain gmeow:GmnArgSlot, range gmeow:GmnSort (stated in prose). Exactly one sort per slot; the operand-level counterpart of the operator-level gmeow:gmnResultSort."
+msgstr "Nomme la sorte syntaxique d'un emplacement d'opérande. Domaine gmeow:GmnArgSlot, codomaine gmeow:GmnSort (énoncé en prose). Exactement une sorte par emplacement ; le pendant au niveau opérande du gmeow:gmnResultSort de niveau opérateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArityKind|rdfs:label"
+msgid "GMN Arity Kind"
+msgstr "Type d'arité GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnArityKind|skos:definition"
+msgid "The closed arity-kind vocabulary of GMN operators: the shape of an operator's operand count. Its instances are exactly the three named individuals gmeow:gmnArityKindFixed (a fixed operand count carried by gmeow:gmnArity), gmeow:gmnArityKindVariadic (an unbounded operand run, as for flattened logic:and / logic:or) and gmeow:gmnArityKindBinder (a variable-binding operator such as logic:forall / logic:exists / the modal box and diamond, whose quantifier body scope is marked by gmeow:gmnMaximalScope). An operator names its arity kind through gmeow:gmnArityKind. It is the arity SHAPE, NOT the integer count gmeow:gmnArity, which a fixed-arity operator additionally carries."
+msgstr "Le vocabulaire clos des types d'arité des opérateurs GMN : la forme du nombre d'opérandes d'un opérateur. Ses instances sont exactement les trois individus nommés gmeow:gmnArityKindFixed (un nombre d'opérandes fixe porté par gmeow:gmnArity), gmeow:gmnArityKindVariadic (une suite d'opérandes non bornée, comme pour les logic:and / logic:or aplatis) et gmeow:gmnArityKindBinder (un opérateur liant des variables tel que logic:forall / logic:exists / le box et le diamant modaux, dont la portée du corps quantifié est marquée par gmeow:gmnMaximalScope). Un opérateur nomme son type d'arité via gmeow:gmnArityKind. C'est la FORME de l'arité, NON le nombre entier gmeow:gmnArity, qu'un opérateur d'arité fixe porte en sus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKind|rdfs:label"
+msgid "gmn arity kind"
+msgstr "type d'arité gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKind|skos:definition"
+msgid "Names the arity kind of a GMN operator — fixed, variadic, or binder. Domain a GMN operator sign, range gmeow:GmnArityKind (stated in prose). Exactly one arity kind per operator; a fixed operator additionally carries the integer gmeow:gmnArity, and a binder carries gmeow:gmnMaximalScope."
+msgstr "Nomme le type d'arité d'un opérateur GMN — fixe, variadique ou lieur. Domaine un signe d'opérateur GMN, codomaine gmeow:GmnArityKind (énoncé en prose). Exactement un type d'arité par opérateur ; un opérateur fixe porte en sus l'entier gmeow:gmnArity, et un lieur porte gmeow:gmnMaximalScope."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindBinder|rdfs:label"
+msgid "binder arity"
+msgstr "arité de lieur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindBinder|skos:definition"
+msgid "Binder arity: the operator binds one or more variables over a body — the shape of the quantifiers logic:forall and logic:exists and the modal operators logic:necessarily and logic:possibly, whose body-scope extent is marked by gmeow:gmnMaximalScope."
+msgstr "Arité de lieur : l'opérateur lie une ou plusieurs variables sur un corps — la forme des quantificateurs logic:forall et logic:exists et des opérateurs modaux logic:necessarily et logic:possibly, dont l'étendue de la portée du corps est marquée par gmeow:gmnMaximalScope."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindFixed|rdfs:label"
+msgid "fixed arity"
+msgstr "arité fixe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindFixed|skos:definition"
+msgid "Fixed arity: the operator takes a fixed operand count, carried by the integer gmeow:gmnArity — the shape of logic:not (one) or logic:antecedent+logic:consequent implication (two)."
+msgstr "Arité fixe : l'opérateur prend un nombre d'opérandes fixe, porté par l'entier gmeow:gmnArity — la forme de logic:not (un) ou de l'implication logic:antecedent+logic:consequent (deux)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindVariadic|rdfs:label"
+msgid "variadic arity"
+msgstr "arité variadique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnArityKindVariadic|skos:definition"
+msgid "Variadic arity: the operator takes an unbounded operand run — the shape of the flattened logic:and and logic:or, whose canonical identity absorbs nesting."
+msgstr "Arité variadique : l'opérateur prend une suite d'opérandes non bornée — la forme des logic:and et logic:or aplatis, dont l'identité canonique absorbe l'imbrication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocAssociative|rdfs:label"
+msgid "fully associative"
+msgstr "pleinement associatif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocAssociative|skos:definition"
+msgid "Full associativity: grouping is immaterial because the operator is semantically associative and flattens under its canonical identity — the reading of conjunction and disjunction."
+msgstr "Pleine associativité : le groupement est indifférent car l'opérateur est sémantiquement associatif et s'aplatit sous son identité canonique — la lecture de la conjonction et de la disjonction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnAssociativity|rdfs:label"
+msgid "GMN Associativity"
+msgstr "Associativité GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnAssociativity|skos:definition"
+msgid "The closed associativity value vocabulary of GMN operators: how a run of one operator at equal gmeow:gmnPrecedence groups. Its instances are exactly the four named individuals gmeow:gmnAssocLeft, gmeow:gmnAssocRight, gmeow:gmnAssocNone and gmeow:gmnAssocAssociative. An operator names its grouping through gmeow:gmnAssociativity, resolving precedence ties the integer gmeow:gmnPrecedence leaves open. It is a grouping discipline, NOT the binding-strength integer gmeow:gmnPrecedence and NOT the placement value gmeow:GmnFixity."
+msgstr "Le vocabulaire clos des valeurs d'associativité des opérateurs GMN : comment se groupe une suite d'un même opérateur à gmeow:gmnPrecedence égale. Ses instances sont exactement les quatre individus nommés gmeow:gmnAssocLeft, gmeow:gmnAssocRight, gmeow:gmnAssocNone et gmeow:gmnAssocAssociative. Un opérateur nomme son groupement via gmeow:gmnAssociativity, résolvant les égalités de précédence que l'entier gmeow:gmnPrecedence laisse ouvertes. C'est une discipline de groupement, NON l'entier de force de liaison gmeow:gmnPrecedence et NON la valeur de placement gmeow:GmnFixity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssociativity|rdfs:label"
+msgid "gmn associativity"
+msgstr "associativité gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssociativity|skos:definition"
+msgid "Names the associativity of a GMN operator. Domain a GMN operator sign, range gmeow:GmnAssociativity (stated in prose). Exactly one of the four closed associativity individuals per operator; resolves equal-gmeow:gmnPrecedence grouping the integer precedence leaves open."
+msgstr "Nomme l'associativité d'un opérateur GMN. Domaine un signe d'opérateur GMN, codomaine gmeow:GmnAssociativity (énoncé en prose). Exactement l'un des quatre individus d'associativité clos par opérateur ; résout le groupement à gmeow:gmnPrecedence égale que la précédence entière laisse ouvert."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocLeft|rdfs:label"
+msgid "left-associative"
+msgstr "associatif à gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocLeft|skos:definition"
+msgid "Left associativity: an equal-precedence run groups from the left, so a ∘ b ∘ c parses as (a ∘ b) ∘ c."
+msgstr "Associativité à gauche : une suite à précédence égale se groupe par la gauche, de sorte que a ∘ b ∘ c s'analyse comme (a ∘ b) ∘ c."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocNone|rdfs:label"
+msgid "non-associative"
+msgstr "non associatif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocNone|skos:definition"
+msgid "Non-associativity: an equal-precedence run does not chain, so a ∘ b ∘ c is a parse error requiring explicit bracketing."
+msgstr "Non-associativité : une suite à précédence égale ne s'enchaîne pas, de sorte que a ∘ b ∘ c est une erreur d'analyse exigeant un parenthésage explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocRight|rdfs:label"
+msgid "right-associative"
+msgstr "associatif à droite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnAssocRight|skos:definition"
+msgid "Right associativity: an equal-precedence run groups from the right, so a ∘ b ∘ c parses as a ∘ (b ∘ c) — the usual reading of implication."
+msgstr "Associativité à droite : une suite à précédence égale se groupe par la droite, de sorte que a ∘ b ∘ c s'analyse comme a ∘ (b ∘ c) — la lecture usuelle de l'implication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnBelnapBilatticeWork|rdfs:label"
+msgid "Belnap four-valued logic"
+msgstr "logique quadrivalente de Belnap"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnBelnapBilatticeWork|skos:definition"
+msgid "The four-valued relevance-logic reference cited for the raw truth values (told-true, told-false, the over-determined glut, the under-determined gap) and their result-level verdicts that the GMN logic glyph plane renders. GMN draws a coherent, visually-distinct geometric-shape family for the eight grade signs rather than a conventional notation, since the four-valued algebra has no single established typography; the Belnap reading supplies the semantics while the shapes stay pairwise non-confusable."
+msgstr "La référence de logique de la pertinence quadrivalente citée pour les valeurs de vérité brutes (dit-vrai, dit-faux, la surdétermination, la sous-détermination) et leurs verdicts de niveau résultat que rend le plan des glyphes logiques GMN. GMN dessine une famille cohérente et visuellement distincte de formes géométriques pour les huit signes de grade plutôt qu'une notation conventionnelle, puisque l'algèbre quadrivalente n'a pas de typographie unique établie ; la lecture de Belnap fournit la sémantique tandis que les formes restent non confondables deux à deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapBoth|rdfs:label"
+msgid "GMN candidate: Belnap both as ◉"
+msgstr "candidat GMN : Belnap les deux en ◉"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapBoth|skos:definition"
+msgid "The audited adoption record for rendering the raw glut value logic:BelnapBoth as ◉ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu de la valeur brute de surdétermination logic:BelnapBoth en ◉ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapFalse|rdfs:label"
+msgid "GMN candidate: Belnap false as ○"
+msgstr "candidat GMN : Belnap faux en ○"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapFalse|skos:definition"
+msgid "The audited adoption record for rendering the raw truth value logic:BelnapFalse as ○ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu de la valeur de vérité brute logic:BelnapFalse en ○ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapNeither|rdfs:label"
+msgid "GMN candidate: Belnap neither as ◌"
+msgstr "candidat GMN : Belnap aucun des deux en ◌"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapNeither|skos:definition"
+msgid "The audited adoption record for rendering the raw gap value logic:BelnapNeither as ◌ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu de la valeur brute de sous-détermination logic:BelnapNeither en ◌ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapTrue|rdfs:label"
+msgid "GMN candidate: Belnap true as ●"
+msgstr "candidat GMN : Belnap vrai en ●"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBelnapTrue|skos:definition"
+msgid "The audited adoption record for rendering the raw truth value logic:BelnapTrue as ● in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu de la valeur de vérité brute logic:BelnapTrue en ● dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBottom|rdfs:label"
+msgid "GMN candidate: falsum ⊥"
+msgstr "candidat GMN : falsum ⊥"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicBottom|skos:definition"
+msgid "The audited named-key ruling for the falsum constant logic:Bottom rendered ⊥."
+msgstr "La décision auditée de clé nommée pour la constante falsum logic:Bottom rendue ⊥."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicCompose|rdfs:label"
+msgid "GMN candidate: lens composition ∘"
+msgstr "candidat GMN : composition de lentilles ∘"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicCompose|skos:definition"
+msgid "The audited named-key ruling for lens / correspondence composition logic:compose rendered ∘, kept distinct from math:functionComposition by its @ℒ scope and `after` key."
+msgstr "La décision auditée de clé nommée pour la composition de lentilles / correspondances logic:compose rendue ∘, tenue distincte de math:functionComposition par sa portée @ℒ et sa clé « after »."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptIntersection|rdfs:label"
+msgid "GMN candidate: concept intersection ⊓"
+msgstr "candidat GMN : intersection de concepts ⊓"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptIntersection|skos:definition"
+msgid "The audited named-key ruling for the DL concept-intersection constructor logic:conceptIntersection rendered ⊓, kept distinct from the sentence connective logic:and."
+msgstr "La décision auditée de clé nommée pour le constructeur d'intersection de concepts de la LD logic:conceptIntersection rendu ⊓, tenu distinct du connecteur de phrases logic:and."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptUnion|rdfs:label"
+msgid "GMN candidate: concept union ⊔"
+msgstr "candidat GMN : union de concepts ⊔"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicConceptUnion|skos:definition"
+msgid "The audited named-key ruling for the DL concept-union constructor logic:conceptUnion rendered ⊔, kept distinct from the sentence connective logic:or."
+msgstr "La décision auditée de clé nommée pour le constructeur d'union de concepts de la LD logic:conceptUnion rendu ⊔, tenu distinct du connecteur de phrases logic:or."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicDerives|rdfs:label"
+msgid "GMN candidate: derivability turnstile ⊢"
+msgstr "candidat GMN : taquet de dérivabilité ⊢"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicDerives|skos:definition"
+msgid "The audited named-key ruling for the syntactic derivability turnstile logic:derives rendered ⊢, kept distinct from the semantic ⊨."
+msgstr "La décision auditée de clé nommée pour le taquet de dérivabilité syntaxique logic:derives rendu ⊢, tenu distinct du ⊨ sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEntails|rdfs:label"
+msgid "GMN candidate: entailment turnstile ⊨"
+msgstr "candidat GMN : taquet de conséquence ⊨"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEntails|skos:definition"
+msgid "The audited named-key ruling for the semantic entailment turnstile logic:entails rendered ⊨, kept distinct from the syntactic ⊢."
+msgstr "La décision auditée de clé nommée pour le taquet de conséquence sémantique logic:entails rendu ⊨, tenu distinct du ⊢ syntaxique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEquivalent|rdfs:label"
+msgid "GMN candidate: logic:equivalentClass as ≡"
+msgstr "candidat GMN : logic:equivalentClass en ≡"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicEquivalent|skos:definition"
+msgid "The audited adoption record for rendering canonical class equivalence logic:equivalentClass as ≡ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu de l'équivalence de classes canonique logic:equivalentClass en ≡ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicImplies|rdfs:label"
+msgid "GMN candidate: implication as →"
+msgstr "candidat GMN : implication en →"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicImplies|skos:definition"
+msgid "The audited adoption record for rendering the material-implication construction as → in @ℒ records; the two ordered operands are the antecedent and consequent formulae the form's slots name."
+msgstr "Le registre d'adoption audité pour le rendu de la construction d'implication matérielle en → dans les enregistrements @ℒ ; les deux opérandes ordonnés sont les formules antécédente et conséquente que nomment les emplacements de la forme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoBoth|rdfs:label"
+msgid "GMN candidate: info both as △"
+msgstr "candidat GMN : info les deux en △"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoBoth|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoBoth as △ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu du verdict de niveau résultat logic:InfoBoth en △ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoNeither|rdfs:label"
+msgid "GMN candidate: info neither as ▽"
+msgstr "candidat GMN : info aucun des deux en ▽"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoNeither|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoNeither as ▽ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu du verdict de niveau résultat logic:InfoNeither en ▽ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoOpposed|rdfs:label"
+msgid "GMN candidate: info opposed as ▼"
+msgstr "candidat GMN : info opposé en ▼"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoOpposed|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoOpposed as ▼ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu du verdict de niveau résultat logic:InfoOpposed en ▼ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoSupported|rdfs:label"
+msgid "GMN candidate: info supported as ▲"
+msgstr "candidat GMN : info soutenu en ▲"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicInfoSupported|skos:definition"
+msgid "The audited adoption record for rendering the result-level verdict logic:InfoSupported as ▲ in @ℒ records."
+msgstr "Le registre d'adoption audité pour le rendu du verdict de niveau résultat logic:InfoSupported en ▲ dans les enregistrements @ℒ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicNecessarily|rdfs:label"
+msgid "GMN candidate: necessity □"
+msgstr "candidat GMN : nécessité □"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicNecessarily|skos:definition"
+msgid "The audited named-key ruling for the type-parameterized necessity modality logic:necessarily rendered □."
+msgstr "La décision auditée de clé nommée pour la modalité de nécessité paramétrée par type logic:necessarily rendue □."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicPossibly|rdfs:label"
+msgid "GMN candidate: possibility ◇"
+msgstr "candidat GMN : possibilité ◇"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicPossibly|skos:definition"
+msgid "The audited named-key ruling for the type-parameterized possibility modality logic:possibly rendered ◇."
+msgstr "La décision auditée de clé nommée pour la modalité de possibilité paramétrée par type logic:possibly rendue ◇."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicTop|rdfs:label"
+msgid "GMN candidate: verum ⊤"
+msgstr "candidat GMN : verum ⊤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCandidateLogicTop|skos:definition"
+msgid "The audited named-key ruling for the verum constant logic:Top rendered ⊤."
+msgstr "La décision auditée de clé nommée pour la constante verum logic:Top rendue ⊤."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCl100kBaseTokenizerWork|rdfs:label"
+msgid "cl100k_base tokenizer vocabulary"
+msgstr "vocabulaire du tokeniseur cl100k_base"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnCl100kBaseTokenizerWork|skos:definition"
+msgid "The pinned cl100k_base byte-pair-encoding tokenizer vocabulary under which every GMN glyph token cost is measured. It is the single provenance identity of the measured costs the gmeow:gmnGlyphTokenCost feed carries: the crate-side glyph token-cost primitive encodes each glyph's rendering against this embedded, network-free vocabulary, so the measurement is deterministic and the authored cost bucket a cross-check re-verifies against it."
+msgstr "Le vocabulaire épinglé du tokeniseur à codage par paires d'octets cl100k_base sous lequel est mesuré le coût en jetons de chaque glyphe GMN. C'est l'identité de provenance unique des coûts mesurés que porte le flux gmeow:gmnGlyphTokenCost : la primitive de coût-en-jetons de glyphe côté crate encode le rendu de chaque glyphe contre ce vocabulaire embarqué et sans réseau, de sorte que la mesure est déterministe et que le seau de coût rédigé fait l'objet d'une revérification par recoupement contre elle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapBoth|rdfs:label"
+msgid "denotation of GMN Belnap both"
+msgstr "dénotation du GMN Belnap les deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapBoth|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ◉ form to the raw glut value logic:BelnapBoth."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ◉ vers la valeur brute de surdétermination logic:BelnapBoth."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapFalse|rdfs:label"
+msgid "denotation of GMN Belnap false"
+msgstr "dénotation du GMN Belnap faux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapFalse|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ○ form to the raw truth value logic:BelnapFalse."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ○ vers la valeur de vérité brute logic:BelnapFalse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapNeither|rdfs:label"
+msgid "denotation of GMN Belnap neither"
+msgstr "dénotation du GMN Belnap aucun des deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapNeither|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ◌ form to the raw gap value logic:BelnapNeither."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ◌ vers la valeur brute de sous-détermination logic:BelnapNeither."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapTrue|rdfs:label"
+msgid "denotation of GMN Belnap true"
+msgstr "dénotation du GMN Belnap vrai"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBelnapTrue|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ● form to the raw truth value logic:BelnapTrue."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ● vers la valeur de vérité brute logic:BelnapTrue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBottom|rdfs:label"
+msgid "denotation of the GMN falsum key"
+msgstr "dénotation de la clé falsum GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicBottom|skos:definition"
+msgid "The meaning assignment from `bot` to the constant logic:Bottom; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « bot » vers la constante logic:Bottom ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicCompose|rdfs:label"
+msgid "denotation of the GMN lens-composition key"
+msgstr "dénotation de la clé de composition de lentilles GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicCompose|skos:definition"
+msgid "The meaning assignment from `after` to lens / correspondence composition logic:compose; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « after » vers la composition de lentilles / correspondances logic:compose ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptIntersection|rdfs:label"
+msgid "denotation of the GMN concept-intersection key"
+msgstr "dénotation de la clé d'intersection de concepts GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptIntersection|skos:definition"
+msgid "The meaning assignment from `concept_and` to the concept-intersection constructor logic:conceptIntersection; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « concept_and » vers le constructeur d'intersection de concepts logic:conceptIntersection ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptUnion|rdfs:label"
+msgid "denotation of the GMN concept-union key"
+msgstr "dénotation de la clé d'union de concepts GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicConceptUnion|skos:definition"
+msgid "The meaning assignment from `concept_or` to the concept-union constructor logic:conceptUnion; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « concept_or » vers le constructeur d'union de concepts logic:conceptUnion ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicDerives|rdfs:label"
+msgid "denotation of the GMN derivability key"
+msgstr "dénotation de la clé de dérivabilité GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicDerives|skos:definition"
+msgid "The meaning assignment from `derives` to the syntactic derivability relation logic:derives; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « derives » vers la relation de dérivabilité syntaxique logic:derives ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEntails|rdfs:label"
+msgid "denotation of the GMN entailment key"
+msgstr "dénotation de la clé de conséquence GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEntails|skos:definition"
+msgid "The meaning assignment from `entails` to the semantic entailment relation logic:entails; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « entails » vers la relation de conséquence sémantique logic:entails ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEquivalent|rdfs:label"
+msgid "denotation of GMN class equivalence"
+msgstr "dénotation de l'équivalence de classes GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEquivalent|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ≡ form to canonical logic:equivalentClass. Its grounding correspondence lowers the relation to owl:equivalentClass without reversing semantic ownership."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ≡ vers le logic:equivalentClass canonique. Sa correspondance d'ancrage abaisse la relation vers owl:equivalentClass sans inverser la propriété sémantique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicImplies|rdfs:label"
+msgid "denotation of GMN implication"
+msgstr "dénotation de l'implication GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicImplies|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN → form to the material-implication construction, headed on the canonical logic:consequent carrier; the ordered antecedent operand is carried by the form's slot 0 through logic:antecedent."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN → vers la construction d'implication matérielle, ancrée sur le porteur canonique logic:consequent ; l'opérande antécédent ordonné est porté par l'emplacement 0 de la forme via logic:antecedent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoBoth|rdfs:label"
+msgid "denotation of GMN info both"
+msgstr "dénotation du GMN info les deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoBoth|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN △ form to the verdict logic:InfoBoth."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN △ vers le verdict logic:InfoBoth."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoNeither|rdfs:label"
+msgid "denotation of GMN info neither"
+msgstr "dénotation du GMN info aucun des deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoNeither|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ▽ form to the verdict logic:InfoNeither."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ▽ vers le verdict logic:InfoNeither."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoOpposed|rdfs:label"
+msgid "denotation of GMN info opposed"
+msgstr "dénotation du GMN info opposé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoOpposed|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ▼ form to the verdict logic:InfoOpposed."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ▼ vers le verdict logic:InfoOpposed."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoSupported|rdfs:label"
+msgid "denotation of GMN info supported"
+msgstr "dénotation du GMN info soutenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicInfoSupported|skos:definition"
+msgid "The executable scoped meaning assignment from the GMN ▲ form to the verdict logic:InfoSupported."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ▲ vers le verdict logic:InfoSupported."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicNecessarily|rdfs:label"
+msgid "denotation of the GMN necessity key"
+msgstr "dénotation de la clé de nécessité GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicNecessarily|skos:definition"
+msgid "The meaning assignment from `box` to the type-parameterized necessity modality logic:necessarily; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « box » vers la modalité de nécessité paramétrée par type logic:necessarily ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicPossibly|rdfs:label"
+msgid "denotation of the GMN possibility key"
+msgstr "dénotation de la clé de possibilité GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicPossibly|skos:definition"
+msgid "The meaning assignment from `dia` to the type-parameterized possibility modality logic:possibly; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « dia » vers la modalité de possibilité paramétrée par type logic:possibly ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicTop|rdfs:label"
+msgid "denotation of the GMN verum key"
+msgstr "dénotation de la clé verum GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicTop|skos:definition"
+msgid "The meaning assignment from `top` to the constant logic:Top; it deliberately carries no executable grapheme."
+msgstr "L'assignation de sens de « top » vers la constante logic:Top ; elle ne porte délibérément aucun graphème exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDefeater|rdfs:label"
+msgid "dict-v3 entry: gmeow:Attack to df"
+msgstr "entrée dict-v3 : gmeow:Attack vers df"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryDefeater|skos:definition"
+msgid "The version-3 alias binding for gmeow:Attack, the defeater a `@d` record carries: `df`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for a defeater and a named key beats an invented pseudo-glyph."
+msgstr "La liaison d'alias de version 3 pour gmeow:Attack, le réfutateur que porte un enregistrement « @d » : « df ». Une clé nommée structurelle — la clé ASCII est toute la notation, puisqu'aucun glyphe standard n'existe pour un réfutateur et qu'une clé nommée l'emporte sur un pseudo-glyphe inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvidenceStrength|rdfs:label"
+msgid "dict-v3 entry: logic:evidenceStrength to ev"
+msgstr "entrée dict-v3 : logic:evidenceStrength vers ev"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryEvidenceStrength|skos:definition"
+msgid "The version-3 alias binding for logic:evidenceStrength, the evidence a record's `ev` slot names by reference: `ev`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for evidence strength and a named key beats an invented pseudo-glyph."
+msgstr "La liaison d'alias de version 3 pour logic:evidenceStrength, la force probante que l'emplacement « ev » d'un enregistrement nomme par référence : « ev ». Une clé nommée structurelle — la clé ASCII est toute la notation, puisqu'aucun glyphe standard n'existe pour la force probante et qu'une clé nommée l'emporte sur un pseudo-glyphe inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryStandpoint|rdfs:label"
+msgid "dict-v3 entry: gmeow:Standpoint to st"
+msgstr "entrée dict-v3 : gmeow:Standpoint vers st"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictV3EntryStandpoint|skos:definition"
+msgid "The version-3 alias binding for gmeow:Standpoint, the claim-holder a record's `st` slot names by reference: `st`. A structural named key — the ASCII key is the whole notation, since no standard glyph exists for a standpoint and a named key beats an invented pseudo-glyph."
+msgstr "La liaison d'alias de version 3 pour gmeow:Standpoint, le porteur de la revendication que l'emplacement « st » d'un enregistrement nomme par référence : « st ». Une clé nommée structurelle — la clé ASCII est toute la notation, puisqu'aucun glyphe standard n'existe pour un point de vue et qu'une clé nommée l'emporte sur un pseudo-glyphe inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapBoth|rdfs:label"
+msgid "the GMN Belnap-both constant form"
+msgstr "la forme constante GMN Belnap-les-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapBoth|skos:definition"
+msgid "The nullary GMN constant form rendered by ◉ and denoting the raw over-determined glut value logic:BelnapBoth in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par ◉ et dénotant la valeur brute de surdétermination logic:BelnapBoth dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapFalse|rdfs:label"
+msgid "the GMN Belnap-false constant form"
+msgstr "la forme constante GMN Belnap-faux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapFalse|skos:definition"
+msgid "The nullary GMN constant form rendered by ○ and denoting the raw truth value logic:BelnapFalse in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par ○ et dénotant la valeur de vérité brute logic:BelnapFalse dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapNeither|rdfs:label"
+msgid "the GMN Belnap-neither constant form"
+msgstr "la forme constante GMN Belnap-aucun-des-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapNeither|skos:definition"
+msgid "The nullary GMN constant form rendered by ◌ and denoting the raw under-determined gap value logic:BelnapNeither in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par ◌ et dénotant la valeur brute de sous-détermination logic:BelnapNeither dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapTrue|rdfs:label"
+msgid "the GMN Belnap-true constant form"
+msgstr "la forme constante GMN Belnap-vrai"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBelnapTrue|skos:definition"
+msgid "The nullary GMN constant form rendered by ● and denoting the raw truth value logic:BelnapTrue in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par ● et dénotant la valeur de vérité brute logic:BelnapTrue dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBottom|rdfs:label"
+msgid "the GMN falsum key `bot`"
+msgstr "la clé falsum GMN « bot »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicBottom|skos:definition"
+msgid "The nullary GMN named-key form `bot` for the falsum constant logic:Bottom; the ⊥ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."
+msgstr "La forme à clé nommée GMN nullaire « bot » pour la constante falsum logic:Bottom ; le glyphe ⊥ reste notation d'affichage car il se fragmente sous le BPE épinglé. Une constante de vérité nullaire (logic:TruthConstant), elle ne porte donc aucune fixité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicCompose|rdfs:label"
+msgid "the GMN lens-composition key `after`"
+msgstr "la clé de composition de lentilles GMN « after »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicCompose|skos:definition"
+msgid "The binary infix GMN named-key form `after` for lens / correspondence composition logic:compose (∘); the ring-operator glyph remains display notation because the ASCII key is cheaper under the pinned BPE. Composition sequences two lens legs and is associative; it is distinct from math:functionComposition, so its @ℒ key `after` never collides with the math plane's `compose`."
+msgstr "La forme à clé nommée GMN binaire infixe « after » pour la composition de lentilles / correspondances logic:compose (∘) ; le glyphe de l'opérateur en anneau reste notation d'affichage car la clé ASCII est moins coûteuse sous le BPE épinglé. La composition enchaîne deux jambes de lentille et est associative ; elle est distincte de math:functionComposition, de sorte que sa clé @ℒ « after » n'entre jamais en collision avec le « compose » du plan mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptIntersection|rdfs:label"
+msgid "the GMN concept-intersection key `concept_and`"
+msgstr "la clé d'intersection de concepts GMN « concept_and »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptIntersection|skos:definition"
+msgid "The binary infix GMN named-key form `concept_and` for the Description-Logic concept-intersection constructor logic:conceptIntersection (⊓); the ⊓ glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A concept-forming operator: Concept × Concept → Concept, associative."
+msgstr "La forme à clé nommée GMN binaire infixe « concept_and » pour le constructeur d'intersection de concepts de la logique de description logic:conceptIntersection (⊓) ; le glyphe ⊓ reste notation d'affichage car la clé ASCII est moins coûteuse sous le BPE épinglé. Un opérateur qui forme un concept : Concept × Concept → Concept, associatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptUnion|rdfs:label"
+msgid "the GMN concept-union key `concept_or`"
+msgstr "la clé d'union de concepts GMN « concept_or »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicConceptUnion|skos:definition"
+msgid "The binary infix GMN named-key form `concept_or` for the Description-Logic concept-union constructor logic:conceptUnion (⊔); the ⊔ glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A concept-forming operator: Concept × Concept → Concept, associative."
+msgstr "La forme à clé nommée GMN binaire infixe « concept_or » pour le constructeur d'union de concepts de la logique de description logic:conceptUnion (⊔) ; le glyphe ⊔ reste notation d'affichage car la clé ASCII est moins coûteuse sous le BPE épinglé. Un opérateur qui forme un concept : Concept × Concept → Concept, associatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicDerives|rdfs:label"
+msgid "the GMN derivability key `derives`"
+msgstr "la clé de dérivabilité GMN « derives »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicDerives|skos:definition"
+msgid "The binary infix GMN named-key form `derives` for the syntactic proof-theoretic turnstile logic:derives (Γ ⊢ φ); the ⊢ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the semantic entailment turnstile ⊨."
+msgstr "La forme à clé nommée GMN binaire infixe « derives » pour le taquet syntaxique théorico-démonstratif logic:derives (Γ ⊢ φ) ; le glyphe ⊢ reste notation d'affichage car il se fragmente sous le BPE épinglé. Tenue structurellement distincte du taquet de conséquence sémantique ⊨."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEntails|rdfs:label"
+msgid "the GMN entailment key `entails`"
+msgstr "la clé de conséquence GMN « entails »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEntails|skos:definition"
+msgid "The binary infix GMN named-key form `entails` for the semantic model-theoretic turnstile logic:entails (Γ ⊨ φ); the ⊨ glyph remains display notation because it fragments under the pinned BPE. Kept structurally distinct from the syntactic derivability turnstile ⊢."
+msgstr "La forme à clé nommée GMN binaire infixe « entails » pour le taquet sémantique modèle-théorique logic:entails (Γ ⊨ φ) ; le glyphe ⊨ reste notation d'affichage car il se fragmente sous le BPE épinglé. Tenue structurellement distincte du taquet de dérivabilité syntaxique ⊢."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEquivalent|rdfs:label"
+msgid "the GMN class-equivalence operator"
+msgstr "l'opérateur d'équivalence de classes GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicEquivalent|skos:definition"
+msgid "The binary infix GMN form rendered by ≡ and denoting canonical logic:equivalentClass in the logic glyph context; its two operands are concept expressions and its result is a logic:Formula asserting their mutual subsumption."
+msgstr "La forme GMN binaire infixe rendue par ≡ et dénotant le logic:equivalentClass canonique dans le contexte des glyphes logiques ; ses deux opérandes sont des expressions de concept et son résultat est une logic:Formula affirmant leur subsomption mutuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicImplies|rdfs:label"
+msgid "the GMN implication operator"
+msgstr "l'opérateur d'implication GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicImplies|skos:definition"
+msgid "The binary infix GMN form rendered by → and denoting the material-implication construction in the logic glyph context. It builds no new logic: term: an implication formula is the logic:Formula node bearing logic:antecedent (slot 0) and logic:consequent (slot 1), and the arrow points at the consequent it heads, so its denotation target is the ordered, non-commutative logic:consequent carrier whose presence marks the node as an implication — distinct from the commutative logic:iff. Right-associative so a → b → c reads a → (b → c)."
+msgstr "La forme GMN binaire infixe rendue par → et dénotant la construction d'implication matérielle dans le contexte des glyphes logiques. Elle ne construit aucun nouveau terme logic: : une formule d'implication est le nœud logic:Formula portant logic:antecedent (emplacement 0) et logic:consequent (emplacement 1), et la flèche pointe vers le conséquent qu'elle ancre, de sorte que sa cible de dénotation est le porteur logic:consequent ordonné et non commutatif dont la présence marque le nœud comme une implication — distinct du logic:iff commutatif. Associatif à droite, de sorte que a → b → c se lit a → (b → c)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoBoth|rdfs:label"
+msgid "the GMN info-both verdict form"
+msgstr "la forme de verdict GMN info-les-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoBoth|skos:definition"
+msgid "The nullary GMN constant form rendered by △ and denoting the result-level verdict logic:InfoBoth in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par △ et dénotant le verdict de niveau résultat logic:InfoBoth dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoNeither|rdfs:label"
+msgid "the GMN info-neither verdict form"
+msgstr "la forme de verdict GMN info-aucun-des-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoNeither|skos:definition"
+msgid "The nullary GMN constant form rendered by ▽ and denoting the result-level verdict logic:InfoNeither in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par ▽ et dénotant le verdict de niveau résultat logic:InfoNeither dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoOpposed|rdfs:label"
+msgid "the GMN info-opposed verdict form"
+msgstr "la forme de verdict GMN info-opposé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoOpposed|skos:definition"
+msgid "The nullary GMN constant form rendered by ▼ and denoting the result-level verdict logic:InfoOpposed in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par ▼ et dénotant le verdict de niveau résultat logic:InfoOpposed dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoSupported|rdfs:label"
+msgid "the GMN info-supported verdict form"
+msgstr "la forme de verdict GMN info-soutenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicInfoSupported|skos:definition"
+msgid "The nullary GMN constant form rendered by ▲ and denoting the result-level verdict logic:InfoSupported in the logic glyph context."
+msgstr "La forme constante GMN nullaire rendue par ▲ et dénotant le verdict de niveau résultat logic:InfoSupported dans le contexte des glyphes logiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicNecessarily|rdfs:label"
+msgid "the GMN necessity key `box`"
+msgstr "la clé de nécessité GMN « box »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicNecessarily|skos:definition"
+msgid "The prefix GMN named-key form `box` for the type-parameterized necessity modality logic:necessarily (□); the ⊤-shaped box glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A type-parameterized fixed operator: its first operand is the typed accessibility relation (logic:overAccessibility), its second the body formula."
+msgstr "La forme à clé nommée GMN préfixe « box » pour la modalité de nécessité paramétrée par type logic:necessarily (□) ; le glyphe box en forme de ⊤ reste notation d'affichage car la clé ASCII est moins coûteuse sous le BPE épinglé. Un opérateur fixe paramétré par type : son premier opérande est la relation d'accessibilité typée (logic:overAccessibility), son second la formule-corps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicPossibly|rdfs:label"
+msgid "the GMN possibility key `dia`"
+msgstr "la clé de possibilité GMN « dia »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicPossibly|skos:definition"
+msgid "The prefix GMN named-key form `dia` for the type-parameterized possibility modality logic:possibly (◇); the diamond glyph remains display notation because the ASCII key is cheaper under the pinned BPE. A type-parameterized fixed operator: its first operand is the typed accessibility relation (logic:overAccessibility), its second the body formula."
+msgstr "La forme à clé nommée GMN préfixe « dia » pour la modalité de possibilité paramétrée par type logic:possibly (◇) ; le glyphe diamant reste notation d'affichage car la clé ASCII est moins coûteuse sous le BPE épinglé. Un opérateur fixe paramétré par type : son premier opérande est la relation d'accessibilité typée (logic:overAccessibility), son second la formule-corps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicTop|rdfs:label"
+msgid "the GMN verum key `top`"
+msgstr "la clé verum GMN « top »"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnFormLogicTop|skos:definition"
+msgid "The nullary GMN named-key form `top` for the verum constant logic:Top; the ⊤ glyph remains display notation because it fragments under the pinned BPE. A nullary truth constant (logic:TruthConstant), so it carries no fixity."
+msgstr "La forme à clé nommée GMN nullaire « top » pour la constante verum logic:Top ; le glyphe ⊤ reste notation d'affichage car il se fragmente sous le BPE épinglé. Une constante de vérité nullaire (logic:TruthConstant), elle ne porte donc aucune fixité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphInScope|rdfs:label"
+msgid "gmn glyph in scope"
+msgstr "glyphe gmn dans la portée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphInScope|skos:definition"
+msgid "Whether a canonical grounding term is in scope for a GMN glyph plane — the coverage marker a glyph-plane audit joins against to find which in-scope terms still lack a bound glyph. Domain a canonical grounding term (a logic:, math:, or gmeow: term the plane renders), range xsd:boolean (stated in prose). True asserts the term belongs to the plane's denominator; it is DISTINCT from gmeow:gmnGlyphNamedKeyRuled, which rules a term out of the gap denominator as a named-key / not-a-gap non-target."
+msgstr "Indique si un terme d'ancrage canonique est dans la portée d'un plan de glyphes GMN — le marqueur de couverture contre lequel un audit de plan de glyphes se joint pour trouver quels termes en portée manquent encore d'un glyphe lié. Domaine un terme d'ancrage canonique (un terme logic:, math: ou gmeow: que le plan rend), codomaine xsd:boolean (énoncé en prose). Vrai affirme que le terme appartient au dénominateur du plan ; c'est DISTINCT de gmeow:gmnGlyphNamedKeyRuled, qui exclut un terme du dénominateur des lacunes comme non-cible clé-nommée / non-lacune."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapBoth|rdfs:label"
+msgid "GMN Belnap-both glyph"
+msgstr "glyphe GMN Belnap-les-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapBoth|skos:definition"
+msgid "The NFC ◉ grapheme (U+25C9) in the @ℒ scope, adopted as the executable GMN sign for the raw over-determined glut value logic:BelnapBoth after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC ◉ (U+25C9) dans la portée @ℒ, adopté comme signe GMN exécutable pour la valeur brute de surdétermination logic:BelnapBoth après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapFalse|rdfs:label"
+msgid "GMN Belnap-false glyph"
+msgstr "glyphe GMN Belnap-faux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapFalse|skos:definition"
+msgid "The NFC ○ grapheme (U+25CB) in the @ℒ scope, adopted as the executable GMN sign for the raw truth value logic:BelnapFalse after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC ○ (U+25CB) dans la portée @ℒ, adopté comme signe GMN exécutable pour la valeur de vérité brute logic:BelnapFalse après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapNeither|rdfs:label"
+msgid "GMN Belnap-neither glyph"
+msgstr "glyphe GMN Belnap-aucun-des-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapNeither|skos:definition"
+msgid "The NFC ◌ grapheme (U+25CC) in the @ℒ scope, adopted as the executable GMN sign for the raw under-determined gap value logic:BelnapNeither after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC ◌ (U+25CC) dans la portée @ℒ, adopté comme signe GMN exécutable pour la valeur brute de sous-détermination logic:BelnapNeither après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapTrue|rdfs:label"
+msgid "GMN Belnap-true glyph"
+msgstr "glyphe GMN Belnap-vrai"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicBelnapTrue|skos:definition"
+msgid "The NFC ● grapheme (U+25CF) in the @ℒ scope, adopted as the executable GMN sign for the raw truth value logic:BelnapTrue after the pinned BPE measured it at one token."
+msgstr "Le graphème NFC ● (U+25CF) dans la portée @ℒ, adopté comme signe GMN exécutable pour la valeur de vérité brute logic:BelnapTrue après que le BPE épinglé l'a mesuré à un jeton."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicEquivalent|rdfs:label"
+msgid "GMN class-equivalence glyph"
+msgstr "glyphe d'équivalence de classes GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicEquivalent|skos:definition"
+msgid "The NFC ≡ grapheme (U+2261) in the @ℒ scope, adopted as the executable GMN sign for the canonical class-equivalence relation logic:equivalentClass after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC ≡ (U+2261) dans la portée @ℒ, adopté comme signe GMN exécutable pour la relation d'équivalence de classes canonique logic:equivalentClass après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicImplies|rdfs:label"
+msgid "GMN logical-implication glyph"
+msgstr "glyphe d'implication logique GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicImplies|skos:definition"
+msgid "The NFC → grapheme (U+2192) in the @ℒ scope, adopted as the executable GMN sign for the material-implication construction after the pinned BPE measured it at one token. Its @ℒ sigil scope keeps it distinct from the math plane's → morphism-arrow reading under @μ — the record-initial sigil discipline is the single lawful cross-plane reuse of the codepoint."
+msgstr "Le graphème NFC → (U+2192) dans la portée @ℒ, adopté comme signe GMN exécutable pour la construction d'implication matérielle après que le BPE épinglé l'a mesuré à un jeton. Sa portée de sigle @ℒ le tient distinct de la lecture → comme flèche de morphisme du plan mathématique sous @μ — la discipline du sigle en tête d'enregistrement est la seule réutilisation licite du point de code entre plans."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoBoth|rdfs:label"
+msgid "GMN info-both glyph"
+msgstr "glyphe GMN info-les-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoBoth|skos:definition"
+msgid "The NFC △ grapheme (U+25B3) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoBoth after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC △ (U+25B3) dans la portée @ℒ, adopté comme signe GMN exécutable pour le verdict de niveau résultat logic:InfoBoth après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoNeither|rdfs:label"
+msgid "GMN info-neither glyph"
+msgstr "glyphe GMN info-aucun-des-deux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoNeither|skos:definition"
+msgid "The NFC ▽ grapheme (U+25BD) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoNeither after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC ▽ (U+25BD) dans la portée @ℒ, adopté comme signe GMN exécutable pour le verdict de niveau résultat logic:InfoNeither après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoOpposed|rdfs:label"
+msgid "GMN info-opposed glyph"
+msgstr "glyphe GMN info-opposé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoOpposed|skos:definition"
+msgid "The NFC ▼ grapheme (U+25BC) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoOpposed after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC ▼ (U+25BC) dans la portée @ℒ, adopté comme signe GMN exécutable pour le verdict de niveau résultat logic:InfoOpposed après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoSupported|rdfs:label"
+msgid "GMN info-supported glyph"
+msgstr "glyphe GMN info-soutenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphLogicInfoSupported|skos:definition"
+msgid "The NFC ▲ grapheme (U+25B2) in the @ℒ scope, adopted as the executable GMN sign for the result-level verdict logic:InfoSupported after the pinned BPE measured it at two tokens."
+msgstr "Le graphème NFC ▲ (U+25B2) dans la portée @ℒ, adopté comme signe GMN exécutable pour le verdict de niveau résultat logic:InfoSupported après que le BPE épinglé l'a mesuré à deux jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphNamedKeyRuled|rdfs:label"
+msgid "gmn glyph named-key ruled"
+msgstr "glyphe gmn réglé clé-nommée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnGlyphNamedKeyRuled|skos:definition"
+msgid "Whether a canonical grounding term is explicitly ruled a named-key / not-a-gap non-target of a GMN glyph plane — a term that is deliberately rendered by its named key rather than a dedicated glyph, so a coverage anti-join must NOT false-fire on it as a missing glyph. Domain a canonical grounding term, range xsd:boolean (stated in prose). True excludes the term from the gap denominator; it is DISTINCT from gmeow:gmnGlyphInScope, which enrols an in-scope term that DOES want a glyph."
+msgstr "Indique si un terme d'ancrage canonique est explicitement réglé comme non-cible clé-nommée / non-lacune d'un plan de glyphes GMN — un terme délibérément rendu par sa clé nommée plutôt que par un glyphe dédié, de sorte qu'une anti-jointure de couverture ne DOIT PAS le signaler à tort comme glyphe manquant. Domaine un terme d'ancrage canonique, codomaine xsd:boolean (énoncé en prose). Vrai exclut le terme du dénominateur des lacunes ; c'est DISTINCT de gmeow:gmnGlyphInScope, qui enrôle un terme en portée qui VEUT un glyphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnMaximalScope|rdfs:label"
+msgid "gmn maximal scope"
+msgstr "portée maximale gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnMaximalScope|skos:definition"
+msgid "Whether a binder GMN operator (arity kind gmeow:gmnArityKindBinder — a quantifier logic:forall / logic:exists or a modal logic:necessarily / logic:possibly) takes MAXIMAL scope, extending its body as far to the right as the grammar allows rather than stopping at the next operator. Domain a binder operator sign, range xsd:boolean (stated in prose). True marks the standard maximal-scope reading; its absence or false marks a bracket-delimited binder."
+msgstr "Indique si un opérateur GMN lieur (type d'arité gmeow:gmnArityKindBinder — un quantificateur logic:forall / logic:exists ou un modal logic:necessarily / logic:possibly) prend une portée MAXIMALE, étendant son corps aussi loin vers la droite que la grammaire l'autorise plutôt que de s'arrêter au prochain opérateur. Domaine un signe d'opérateur lieur, codomaine xsd:boolean (énoncé en prose). Vrai marque la lecture standard à portée maximale ; son absence ou faux marque un lieur délimité par des crochets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnModalLogicNotationWork|rdfs:label"
+msgid "modal-logic box and diamond notation"
+msgstr "notation box et diamant de la logique modale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnModalLogicNotationWork|skos:definition"
+msgid "The established modal-logic notation practice cited for the box □ and diamond ◇ signs as the necessity and possibility operators of the standard Kripke translation. GMN binds those signs to the canonical type-parameterized logic:necessarily and logic:possibly, each evaluated over the single typed accessibility relation its logic:overAccessibility names; Unicode supplies the character identity while the modal-logic reading supplies the operator semantics."
+msgstr "La pratique de notation établie de la logique modale citée pour les signes box □ et diamant ◇ comme opérateurs de nécessité et de possibilité de la traduction standard de Kripke. GMN lie ces signes aux logic:necessarily et logic:possibly canoniques paramétrés par type, chacun évalué sur l'unique relation d'accessibilité typée que nomme son logic:overAccessibility ; Unicode fournit l'identité des caractères tandis que la lecture de la logique modale fournit la sémantique des opérateurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnOperandSorts|rdfs:label"
+msgid "gmn operand sorts"
+msgstr "sortes d'opérandes gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnOperandSorts|skos:definition"
+msgid "Relates a GMN operator sign to each of its ordered operand slots — the gmeow:GmnArgSlot carriers whose gmeow:gmnArgIndex fixes operand position and whose gmeow:gmnArgSort and gmeow:gmnArgRole name each operand's sort and role. Multi-valued; the operand-sort list is realized as indexed slot carriers rather than RDF list ordering, mirroring lang:formSlot, so two encodings of one signature are one signature. Domain a GMN operator sign, range gmeow:GmnArgSlot (stated in prose)."
+msgstr "Relie un signe d'opérateur GMN à chacun de ses emplacements d'opérande ordonnés — les porteurs gmeow:GmnArgSlot dont le gmeow:gmnArgIndex fixe la position de l'opérande et dont les gmeow:gmnArgSort et gmeow:gmnArgRole nomment la sorte et le rôle de chaque opérande. Multivalué ; la liste des sortes d'opérandes est réalisée comme des porteurs d'emplacement indexés plutôt que par l'ordonnancement d'une liste RDF, à l'image de lang:formSlot, de sorte que deux encodages d'une même signature soient une même signature. Domaine un signe d'opérateur GMN, codomaine gmeow:GmnArgSlot (énoncé en prose)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnResultSort|rdfs:label"
+msgid "gmn result sort"
+msgstr "sorte de résultat gmn"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnResultSort|skos:definition"
+msgid "Names the syntactic sort a GMN operator produces. Domain a GMN operator sign (a lang:Form or lang:Lexeme of the gmeow:gmnModelNotation sign system), range gmeow:GmnSort (stated in prose). Exactly one result sort per operator; paired with the ordered operand sorts of gmeow:gmnOperandSorts to make the operator's signature checkable data."
+msgstr "Nomme la sorte syntaxique que produit un opérateur GMN. Domaine un signe d'opérateur GMN (une lang:Form ou un lang:Lexeme du système de signes gmeow:gmnModelNotation), codomaine gmeow:GmnSort (énoncé en prose). Exactement une sorte de résultat par opérateur ; appariée aux sortes d'opérandes ordonnées de gmeow:gmnOperandSorts pour faire de la signature de l'opérateur des données vérifiables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesContext|rdfs:label"
+msgid "derivability context slot"
+msgstr "emplacement de contexte de dérivabilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesContext|skos:definition"
+msgid "The first operand slot of the derivability turnstile: the premise context Γ, at index 0 in the context role."
+msgstr "Le premier emplacement d'opérande du taquet de dérivabilité : le contexte de prémisses Γ, à l'index 0 dans le rôle de contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesSuccedent|rdfs:label"
+msgid "derivability succedent slot"
+msgstr "emplacement de succédent de dérivabilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotDerivesSuccedent|skos:definition"
+msgid "The second operand slot of the derivability turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."
+msgstr "Le second emplacement d'opérande du taquet de dérivabilité : la logic:Formula succédente φ, à l'index 1 dans le rôle de succédent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsContext|rdfs:label"
+msgid "entailment context slot"
+msgstr "emplacement de contexte de conséquence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsContext|skos:definition"
+msgid "The first operand slot of the entailment turnstile: the premise context Γ, at index 0 in the context role."
+msgstr "Le premier emplacement d'opérande du taquet de conséquence : le contexte de prémisses Γ, à l'index 0 dans le rôle de contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsSuccedent|rdfs:label"
+msgid "entailment succedent slot"
+msgstr "emplacement de succédent de conséquence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotEntailsSuccedent|skos:definition"
+msgid "The second operand slot of the entailment turnstile: the succedent logic:Formula φ, at index 1 in the succedent role."
+msgstr "Le second emplacement d'opérande du taquet de conséquence : la logic:Formula succédente φ, à l'index 1 dans le rôle de succédent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotExistsBody|rdfs:label"
+msgid "exists body slot"
+msgstr "emplacement de corps de l'existentielle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotExistsBody|skos:definition"
+msgid "The single operand slot of the existential quantifier: the scoped body logic:Formula the binder ranges over, at index 0 in the body role."
+msgstr "L'unique emplacement d'opérande du quantificateur existentiel : la logic:Formula-corps sous portée sur laquelle porte le lieur, à l'index 0 dans le rôle de corps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotForallBody|rdfs:label"
+msgid "forall body slot"
+msgstr "emplacement de corps de l'universelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotForallBody|skos:definition"
+msgid "The single operand slot of the universal quantifier: the scoped body logic:Formula the binder ranges over, at index 0 in the body role."
+msgstr "L'unique emplacement d'opérande du quantificateur universel : la logic:Formula-corps sous portée sur laquelle porte le lieur, à l'index 0 dans le rôle de corps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesAntecedent|rdfs:label"
+msgid "implication antecedent slot"
+msgstr "emplacement d'antécédent de l'implication"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesAntecedent|skos:definition"
+msgid "The first operand slot of the implication construction: the antecedent logic:Formula (the hypothesis), at index 0 in the antecedent role."
+msgstr "Le premier emplacement d'opérande de la construction d'implication : la logic:Formula antécédente (l'hypothèse), à l'index 0 dans le rôle d'antécédent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesConsequent|rdfs:label"
+msgid "implication consequent slot"
+msgstr "emplacement de conséquent de l'implication"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotImpliesConsequent|skos:definition"
+msgid "The second operand slot of the implication construction: the consequent logic:Formula (the conclusion), at index 1 in the consequent role."
+msgstr "Le second emplacement d'opérande de la construction d'implication : la logic:Formula conséquente (la conclusion), à l'index 1 dans le rôle de conséquent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyAccess|rdfs:label"
+msgid "necessity accessibility slot"
+msgstr "emplacement d'accessibilité de la nécessité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyAccess|skos:definition"
+msgid "The first operand slot of the box modality: the typed accessibility relation it is evaluated over, at index 0 in the over-accessibility role."
+msgstr "Le premier emplacement d'opérande de la modalité box : la relation d'accessibilité typée sur laquelle elle est évaluée, à l'index 0 dans le rôle sur-accessibilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyBody|rdfs:label"
+msgid "necessity body slot"
+msgstr "emplacement de corps de la nécessité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotNecessarilyBody|skos:definition"
+msgid "The second operand slot of the box modality: the body logic:Formula that must hold in every accessible context of the declared type, at index 1 in the body role."
+msgstr "Le second emplacement d'opérande de la modalité box : la logic:Formula-corps qui doit valoir dans tout contexte accessible du type déclaré, à l'index 1 dans le rôle de corps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyAccess|rdfs:label"
+msgid "possibility accessibility slot"
+msgstr "emplacement d'accessibilité de la possibilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyAccess|skos:definition"
+msgid "The first operand slot of the diamond modality: the typed accessibility relation it is evaluated over, at index 0 in the over-accessibility role."
+msgstr "Le premier emplacement d'opérande de la modalité diamant : la relation d'accessibilité typée sur laquelle elle est évaluée, à l'index 0 dans le rôle sur-accessibilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyBody|rdfs:label"
+msgid "possibility body slot"
+msgstr "emplacement de corps de la possibilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSlotPossiblyBody|skos:definition"
+msgid "The second operand slot of the diamond modality: the body logic:Formula that must hold in some accessible context of the declared type, at index 1 in the body role."
+msgstr "Le second emplacement d'opérande de la modalité diamant : la logic:Formula-corps qui doit valoir dans quelque contexte accessible du type déclaré, à l'index 1 dans le rôle de corps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnSort|rdfs:label"
+msgid "GMN Sort"
+msgstr "Sorte GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GmnSort|skos:definition"
+msgid "The closed sort (syntactic category) vocabulary of the GMN signature type discipline: what kind of thing a GMN operator consumes or produces. Its instances are exactly the eight named individuals gmeow:gmnSortFormula, gmeow:gmnSortConcept, gmeow:gmnSortTerm, gmeow:gmnSortVariable, gmeow:gmnSortJudgment, gmeow:gmnSortContext, gmeow:gmnSortTruthValue and gmeow:gmnSortAccessibilityType. An operator names its produced sort through gmeow:gmnResultSort and its ordered operand sorts through the gmeow:GmnArgSlot carriers of gmeow:gmnOperandSorts, making the signature machine-checkable data rather than parser lore. It is a sort of the notation's type discipline, NOT a gmeow:GmnSigilRole (a record-kind sigil) and NOT a gmeow:GmnFixity (an operand-placement value)."
+msgstr "Le vocabulaire clos des sortes (catégories syntaxiques) de la discipline de type des signatures GMN : quel genre de chose un opérateur GMN consomme ou produit. Ses instances sont exactement les huit individus nommés gmeow:gmnSortFormula, gmeow:gmnSortConcept, gmeow:gmnSortTerm, gmeow:gmnSortVariable, gmeow:gmnSortJudgment, gmeow:gmnSortContext, gmeow:gmnSortTruthValue et gmeow:gmnSortAccessibilityType. Un opérateur nomme la sorte qu'il produit via gmeow:gmnResultSort et ses sortes d'opérandes ordonnées via les porteurs gmeow:GmnArgSlot de gmeow:gmnOperandSorts, faisant de la signature des données vérifiables par machine plutôt qu'un savoir d'analyseur. C'est une sorte de la discipline de type de la notation, NON un gmeow:GmnSigilRole (un sigle de genre d'enregistrement) et NON une gmeow:GmnFixity (une valeur de placement d'opérande)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortAccessibilityType|rdfs:label"
+msgid "accessibility-type sort"
+msgstr "sorte type-d'accessibilité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortAccessibilityType|skos:definition"
+msgid "The accessibility-type sort: a typed accessibility relation (logic:epistemicallyPossible, logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds, logic:counterfactuallyCloser, or gmeow:sharpens), the sort of the operand a modal operator carries on logic:overAccessibility. It is a relation-type parameter, never the bare logic:accessibleFrom union."
+msgstr "La sorte type-d'accessibilité : une relation d'accessibilité typée (logic:epistemicallyPossible, logic:doxasticallyAccessible, logic:deonticallyIdeal, logic:temporallySucceeds, logic:counterfactuallyCloser ou gmeow:sharpens), la sorte de l'opérande qu'un opérateur modal porte sur logic:overAccessibility. C'est un paramètre de type de relation, jamais l'union nue logic:accessibleFrom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortConcept|rdfs:label"
+msgid "concept sort"
+msgstr "sorte de concept"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortConcept|skos:definition"
+msgid "The concept sort: a Description Logic concept expression. The operand and result sort of the concept-forming operators logic:conceptIntersection and logic:conceptUnion."
+msgstr "La sorte de concept : une expression de concept de la logique de description. La sorte d'opérande et de résultat des opérateurs formant des concepts logic:conceptIntersection et logic:conceptUnion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortContext|rdfs:label"
+msgid "context sort"
+msgstr "sorte de contexte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortContext|skos:definition"
+msgid "The context sort: a premise context Γ — a set or ordered multiset of formulae, the antecedent side of a logic:Sequent carried by logic:sequentContext. Distinct from the formula sort, which is a single sentence."
+msgstr "La sorte de contexte : un contexte de prémisses Γ — un ensemble ou multiensemble ordonné de formules, le côté antécédent d'un logic:Sequent porté par logic:sequentContext. Distincte de la sorte de formule, qui est une phrase unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortFormula|rdfs:label"
+msgid "formula sort"
+msgstr "sorte de formule"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortFormula|skos:definition"
+msgid "The formula sort: a truth-valued sentence, the sort of a logic:Formula. The result sort of the connectives, quantifiers, and modal operators."
+msgstr "La sorte de formule : une phrase à valeur de vérité, la sorte d'une logic:Formula. La sorte de résultat des connecteurs, des quantificateurs et des opérateurs modaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortJudgment|rdfs:label"
+msgid "judgment sort"
+msgstr "sorte de jugement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortJudgment|skos:definition"
+msgid "The judgment sort: a proof-obligation or entailment judgment, the sort of a logic:Sequent (Γ ⊢ φ). The result sort of the derivability and entailment turnstiles logic:derives and logic:entails. Distinct from the formula sort, which is a sentence rather than an obligation."
+msgstr "La sorte de jugement : un jugement d'obligation de preuve ou de conséquence, la sorte d'un logic:Sequent (Γ ⊢ φ). La sorte de résultat des taquets de dérivabilité et de conséquence logic:derives et logic:entails. Distincte de la sorte de formule, qui est une phrase plutôt qu'une obligation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTerm|rdfs:label"
+msgid "term sort"
+msgstr "sorte de terme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTerm|skos:definition"
+msgid "The term sort: a first-order term — an individual, a literal, or a compound function term. Distinct from the variable sort, which is the bindable subclass of terms."
+msgstr "La sorte de terme : un terme du premier ordre — un individu, un littéral ou un terme fonctionnel composé. Distincte de la sorte de variable, qui est la sous-classe des termes susceptible d'être liée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTruthValue|rdfs:label"
+msgid "truth-value sort"
+msgstr "sorte de valeur de vérité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortTruthValue|skos:definition"
+msgid "The truth-value sort: a raw logic:BelnapBilattice value (a logic:TruthValue). Distinct from the formula sort — a truth value is an algebra element, not a sentence — and from the concept sort."
+msgstr "La sorte de valeur de vérité : une valeur brute du logic:BelnapBilattice (une logic:TruthValue). Distincte de la sorte de formule — une valeur de vérité est un élément de l'algèbre, non une phrase — et de la sorte de concept."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortVariable|rdfs:label"
+msgid "variable sort"
+msgstr "sorte de variable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnSortVariable|skos:definition"
+msgid "The variable sort: a bindable first-order variable, the sort a binder operator (quantifier or modal) binds. The specialized bindable counterpart of the term sort."
+msgstr "La sorte de variable : une variable du premier ordre susceptible d'être liée, la sorte qu'un opérateur lieur (quantificateur ou modal) lie. Le pendant spécialisé, susceptible d'être lié, de la sorte de terme."

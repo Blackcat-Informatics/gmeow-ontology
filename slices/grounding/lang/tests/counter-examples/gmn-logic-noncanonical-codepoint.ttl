@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a LOGIC-plane forcing-turnstile grapheme (⊩) of the GMN script whose
+# gmeow:gmnCodepoints value is NOT the canonical "U+XXXX" spelling — "22A9" drops the "U+"
+# prefix (fires lang:GmnNonCanonicalCodepoint via the sh:pattern of
+# lang:GmnCodepointCanonicalShape). The grapheme is otherwise well-formed: grounded in the
+# script's repertoire (lang:hasGrapheme, so lang:GraphemeGroundedShape stays quiet), its
+# codepoints are PRESENT (so the presence branch, lang:GmnScriptCodepointPresenceShape, stays
+# quiet), it shares no codepoint with any other grapheme (so lang:GmnGlyphCollisionShape stays
+# quiet), and it carries its measured gmeow:gmnGlyphTokenCost feed (so
+# lang:GmnScriptGlyphCoverageShape stays satisfied and lang:GmnUncostedScriptGlyph stays quiet)
+# — exactly the one non-canonical-codepoint finding fires. It is the logic-plane sibling of
+# tests/counter-examples/gmn-noncanonical-codepoint.ttl.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/logic/> .
+
+gmeow:gmnScript lang:hasGrapheme ex:gLogicBadSpelling .
+
+ex:gLogicBadSpelling a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "22A9" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:qCostOne a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .

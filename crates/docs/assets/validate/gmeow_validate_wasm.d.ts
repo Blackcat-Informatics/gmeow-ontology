@@ -3,7 +3,7 @@
 
 /**
  * Extract a `gmeow.gts` bundle's RDF as **graph-preserving N-Quads text**, so an
- * in-browser RDF engine (the vendored purrdf wasm) can parse and query the SAME
+ * in-browser RDF engine (gmeow-query-wasm) can parse and query the SAME
  * bundle the pipeline shipped — the browser source of truth for the documentation
  * playground and bundle explorer, replacing any second curated data path.
  *
@@ -20,6 +20,45 @@
  * be folded, or the dataset cannot be serialized.
  */
 export function bundle_dataset(gts: Uint8Array): string;
+
+/**
+ * The blake3 content digest of the embedded GMN-1 codebook (`module.ttl`), as lowercase
+ * hex. Lets a JS caller pin the EXACT codebook their document was validated against — the
+ * same content address the codec's codebook-digest layer and the `gmeow gmn digest` CLI
+ * report over the carrier bytes.
+ */
+export function gmn_codebook_digest(): string;
+
+/**
+ * Validate a GMN-1 document against the EMBEDDED codebook, returning a canonical JSON
+ * verdict.
+ *
+ * The `bytes` are the raw GMN-1 surface text (the `@gmn{…}` header plus one record per
+ * line). They are read through [`gmn1_read`] — the production codec's reader — against the
+ * dictionary/glyph registry resolved from the embedded [`GMN_CODEBOOK_TTL`]. Because the
+ * codebook is embedded, glyphs, dictionary aliases, and prefixed terms are actually
+ * RESOLVED: a document whose grammar is well-formed but which names a term the codebook
+ * does not cover is rejected as `lang:GmnUncoveredTerm`, and every other codec-tier
+ * violation resolves to its one typed `lang:LangConformanceFailure` class.
+ *
+ * # Returns
+ *
+ * A JSON object:
+ * - conformant: `{ "conformant": true }` — the document read back cleanly.
+ * - non-conformant: `{ "conformant": false, "failureClass":
+ *   "https://blackcatinformatics.ca/lang/Gmn…", "detail": "…" }` — `failureClass` is the
+ *   full `lang:` IRI from [`gmeow_lang_bridge::Gmn1Error::failure_class`] (the ONE
+ *   canonical classifier), `detail` its human-readable rendering.
+ *
+ * # Errors
+ *
+ * Throws a JS exception only if the document text is not valid UTF-8. A build-integrity
+ * failure of the EMBEDDED codebook (it fails to parse or to resolve `gmeow:gmnDictV3`) is not
+ * a runtime condition — the codebook is a pinned build constant (see [`embedded_dictionary`])
+ * — so it hard-fails as a panic / wasm trap, never a document defect and never a silent
+ * degradation to a syntax-only check.
+ */
+export function gmn_validate(bytes: Uint8Array): string;
 
 /**
  * Run Tier-1 conformance of `data` (RDF text in `format`) against the SHACL shapes
@@ -58,6 +97,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly bundle_dataset: (a: number, b: number) => [number, number, number, number];
+    readonly gmn_codebook_digest: () => [number, number];
+    readonly gmn_validate: (a: number, b: number) => [number, number, number, number];
     readonly validate: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => [number, number, number, number];
     readonly version: () => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;

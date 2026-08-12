@@ -129,7 +129,7 @@ fn build_test_bundle() -> Vec<u8> {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
-        &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit test gts bundle")
 }

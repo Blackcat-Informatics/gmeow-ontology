@@ -1,13 +1,24 @@
 #!/bin/sh
 # scripts/lint-issue-refs.sh
-# Reject issue/PR number references of the form #NNN in Rust comments and
-# developer-facing Markdown documentation.
+# Reject issue/PR number references of the form #NNN in Rust comments,
+# developer-facing Markdown documentation, the build surface (Makefiles and shell
+# scripts), and TOML manifests/config.
+#
+# The build surface and TOML were both added after references survived in them
+# precisely because nothing scanned them: process-flow information belongs in
+# GitHub, not in the repository, and a rule enforced on only some file types is a
+# rule that migrates to the unenforced ones.
 #
 # This script is intentionally POSIX-shell and ripgrep-based so it adds no
 # Python/Rust runtime dependency beyond what the repository already uses.
+#
+# Usage: lint-issue-refs.sh [ROOT]   (ROOT defaults to the current directory;
+# an explicit ROOT lets the gate be exercised against a fixture tree.)
 set -eu
 
 command -v rg >/dev/null 2>&1 || { echo "ripgrep (rg) is required" >&2; exit 2; }
+
+cd "${1:-.}"
 
 status=0
 
@@ -17,17 +28,21 @@ status=0
 # already clean, so simple regexes are sufficient to catch regressions.  Any
 # false positives can be handled by refining the patterns or the allow-list
 # below.
-rust_line_code=0
-rust_line_matches=$(rg -n --type rust \
-    -e '//.*#\d{3,}' \
-    crates/) || rust_line_code=$?
-if [ "$rust_line_code" -eq 2 ]; then exit 2; fi
+rust_line_matches=''
+rust_block_matches=''
+if [ -d crates ]; then
+    rust_line_code=0
+    rust_line_matches=$(rg -n --type rust \
+        -e '//.*#\d{3,}' \
+        crates/) || rust_line_code=$?
+    if [ "$rust_line_code" -eq 2 ]; then exit 2; fi
 
-rust_block_code=0
-rust_block_matches=$(rg -n --type rust -U \
-    -e '(?m)(?:^|[^\S\n])/\*[\s\S]*?#\d{3,}[\s\S]*?\*/' \
-    crates/) || rust_block_code=$?
-if [ "$rust_block_code" -eq 2 ]; then exit 2; fi
+    rust_block_code=0
+    rust_block_matches=$(rg -n --type rust -U \
+        -e '(?m)(?:^|[^\S\n])/\*[\s\S]*?#\d{3,}[\s\S]*?\*/' \
+        crates/) || rust_block_code=$?
+    if [ "$rust_block_code" -eq 2 ]; then exit 2; fi
+fi
 
 if [ -n "$rust_line_matches" ] || [ -n "$rust_block_matches" ]; then
     echo "Found issue/PR number references in Rust comments:" >&2
@@ -97,6 +112,18 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
     #
     # Committed changes AND the working tree, so the rule fires before a commit is
     # made rather than only after.
+    #
+    # TWO exclusions beyond the shared set, each because the reference IS the content:
+    #   * `.deficiencies` — a descope ledger whose own mandated entry format is
+    #     "## From #<issue> — <title>" with a `Decided-by:` line. The rule exists to keep
+    #     process references out of SHIPPED ontology and documentation; this file ships
+    #     nowhere, and stripping the issue number would destroy the only pointer back to
+    #     the decision that authorized the descope.
+    #   * `crates/xtask/tests/issue_refs_lint.rs` — this lint's OWN test fixtures, which
+    #     must embed the very reference shape the rule rejects in order to prove it is
+    #     rejected. Scanning them means the gate fails exactly when its negative tests
+    #     are present, so the test proving the rule works would be indistinguishable
+    #     from a violation of it.
     diff_matches=$(
         {
             # --src-prefix/--dst-prefix are pinned rather than defaulted: a checkout
@@ -122,7 +149,8 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
                 line = line + 1
                 if ($0 ~ /#[0-9][0-9][0-9]/) { printf "%s:%d:%s\n", file, line, substr($0, 2) }
             }
-        ' | grep -v -e '^generated/' -e '^vendor/' -e '^\.github/' -e '^docs/BRAND\.md:'
+        ' | grep -v -e '^generated/' -e '^vendor/' -e '^\.github/' -e '^docs/BRAND\.md:' \
+              -e '^\.deficiencies:' -e '^crates/xtask/tests/issue_refs_lint\.rs:'
     ) || true
     if [ -n "$diff_matches" ]; then
         echo "Found issue/PR number references in lines this branch ADDED:" >&2
@@ -132,6 +160,52 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
 else
     echo "lint-issue-refs: origin/main is not present in this checkout, so the" >&2
     echo "  branch-diff leg was skipped. The file-scoped Rust/Markdown scans ran." >&2
+fi
+
+# --- Build surface: Makefiles and shell scripts --------------------------------
+# Makefile and shell comments are documentation too, and they were the blind spot
+# that let references persist.  Exclude the vendored and generated trees for the
+# same reason Markdown does.
+build_code=0
+build_matches=$(rg -n -e '#\d{3,}' \
+    --glob 'Makefile' \
+    --glob '*.mk' \
+    --glob '*.sh' \
+    --glob '!.github/**' \
+    --glob '!generated/**' \
+    --glob '!vendor/**' \
+    .) || build_code=$?
+if [ "$build_code" -eq 2 ]; then exit 2; fi
+
+if [ -n "$build_matches" ]; then
+    echo "Found issue/PR number references in Makefiles or shell scripts:" >&2
+    echo "$build_matches" >&2
+    status=1
+fi
+
+# --- TOML manifests and config -------------------------------------------------
+# Scan Cargo manifests and other repo-authored TOML (mutants.toml,
+# rust-toolchain.toml, ...) for the same banned issue/PR references. Exclude
+# generated artifacts, vendored trees, and GitHub workflow config, mirroring the
+# Markdown section above. Cargo.lock is excluded defensively even though it is
+# not named *.toml and so would not match the glob anyway: it is a machine-written
+# lockfile, never a place to author prose. No other exclusion is needed — unlike
+# Markdown's brand-colour hex codes, no legitimate `#NNN`-shaped content (hex
+# colours, port numbers, etc.) exists in any tracked TOML file today.
+toml_code=0
+toml_matches=$(rg -n -e '#\d{3,}' \
+    --glob '*.toml' \
+    --glob '!Cargo.lock' \
+    --glob '!.github/**' \
+    --glob '!generated/**' \
+    --glob '!vendor/**' \
+    .) || toml_code=$?
+if [ "$toml_code" -eq 2 ]; then exit 2; fi
+
+if [ -n "$toml_matches" ]; then
+    echo "Found issue/PR number references in TOML manifests:" >&2
+    echo "$toml_matches" >&2
+    status=1
 fi
 
 exit "$status"

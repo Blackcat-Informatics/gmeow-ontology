@@ -209,7 +209,8 @@ pub fn full_spec() -> PipelineSpec {
         // one being the executable r_lift — plus the probability-model seam, p-value
         // tri-slice, Clifford, and the ONNX / proof lift producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
-        // stage-snapshot).
+        // stage-snapshot). It reads nothing off disk: every slice's examples/*.ttl
+        // positive-demonstrator ABox is loaded by stage-source-load into graph/examples.
         st("stage-math-producers", "math_producers", &[]),
         // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
         // #21/#20). A productive functor over the glyph signature: it consumes

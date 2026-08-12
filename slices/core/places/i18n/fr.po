@@ -1300,3 +1300,41 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/what3wordsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:what3words and nothing else. It is not a definition of gmeow:what3words (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:what3words, et rien d'autre. Ce n'est pas une définition de gmeow:what3words (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+# H3 geospatial-index terms (H3 cell index, resolution, axis, reference frame).
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisH3Cell|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 cell index"
+msgstr "index de cellule H3"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisH3Cell|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The H3 cell index axis of a reference frame — a coordinate axis used by a reference frame to name one dimension of a value space."
+msgstr "L'axe d'index de cellule H3 d'un repère de référence — un axe de coordonnées employé par un repère de référence pour nommer une dimension d'un espace de valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 cell index"
+msgstr "index de cellule H3"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An H3 cell index string — Uber's hierarchical hexagonal spatial indexing system encoding a location as a single 64-bit cell address at a declared resolution (e.g. '8928308280fffff'). It names a whole hexagonal cell, not a raw latitude/longitude point, and is not interchangeable with a geohash or an MGRS string — unlike those grids, an H3 address is hexagonal and hierarchical, and encodes its own resolution in the index itself."
+msgstr "Une chaîne d'index de cellule H3 — le système d'indexation spatiale hexagonale hiérarchique d'Uber, qui encode une localisation sous la forme d'une unique adresse de cellule sur 64 bits à une résolution déclarée (p. ex. '8928308280fffff'). Elle nomme une cellule hexagonale entière, et non un point brut de latitude/longitude, et n'est pas interchangeable avec une chaîne geohash ou MGRS — contrairement à ces grilles, une adresse H3 est hexagonale et hiérarchique, et encode sa propre résolution dans l'index lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3Resolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 resolution"
+msgstr "résolution H3"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3Resolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The H3 resolution of a gmeow:h3 cell index — an integer from 0 (coarsest, ~1107 km average hexagon edge) to 15 (finest, ~0.5 m average hexagon edge) fixing the granularity of the addressed cell. It is a discrete cell-resolution level, not a metric distance and not a count of cells — a coarser resolution names a larger hexagon rather than a more precise point."
+msgstr "La résolution H3 d'un index de cellule gmeow:h3 — un entier de 0 (le plus grossier, ~1107 km de longueur d'arête hexagonale moyenne) à 15 (le plus fin, ~0,5 m de longueur d'arête moyenne) fixant la granularité de la cellule adressée. C'est un niveau discret de résolution de cellule, non une distance métrique ni un décompte de cellules — une résolution plus grossière nomme un hexagone plus grand plutôt qu'un point plus précis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/h3Resolution|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Relates the H3 resolution ladder to the spatial gmeow:GranularityLevel disclosure ladder (gmeow:granularityPoint … gmeow:granularityCountry, Principle 10): a high H3 resolution (fine cells) sits at or near gmeow:granularityPoint and is precision-bearing, while a low resolution (coarse cells) corresponds to coarser GranularityLevel steps. Coarsening to a lower resolution is the H3-native analogue of stepping up the GranularityLevel ladder; a public projection MUST NOT emit a resolution finer than the declared disclosure granularity permits."
+msgstr "Met en relation l'échelle de résolution H3 avec l'échelle de divulgation spatiale gmeow:GranularityLevel (gmeow:granularityPoint … gmeow:granularityCountry, Principe 10) : une résolution H3 élevée (cellules fines) se situe au niveau de gmeow:granularityPoint ou à proximité et porte de la précision, tandis qu'une résolution basse (cellules grossières) correspond à des paliers GranularityLevel plus grossiers. Grossir vers une résolution inférieure est l'analogue H3-natif de la montée d'un cran sur l'échelle GranularityLevel ; une projection publique NE DOIT PAS émettre une résolution plus fine que ce que la granularité de divulgation déclarée permet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceFrameH3|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "H3 Reference Frame"
+msgstr "repère de référence H3"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/referenceFrameH3|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The H3 reference frame — Uber's hierarchical hexagonal geospatial indexing system, partitioning the Earth's surface into hexagonal (and pentagonal) cells at sixteen resolutions (0-15), each cell addressed by a single 64-bit index string."
+msgstr "Le repère de référence H3 — le système d'indexation géospatiale hexagonale hiérarchique d'Uber, qui partitionne la surface de la Terre en cellules hexagonales (et pentagonales) à seize résolutions (0-15), chaque cellule étant adressée par une unique chaîne d'index sur 64 bits."

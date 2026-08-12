@@ -148,15 +148,16 @@ pub fn crate_check() -> i32 {
         );
     }
     // F4/F5 attestation gate: no documentation format may REPRESENT an interactive
-    // capability (LiveSparql / Interactivity / LiveReasoning) unless every vendored engine
+    // capability (LiveSparql / Interactivity / LiveReasoning) unless every shipped engine
     // backing it carries a present, current native↔wasm witness-attestation. Composed with
     // the `wasm-parity` lane on the required CI `make heavy` lane (which RUNS the parity
-    // for the gmeow-owned engines — validate/reason/gmn, on every pull request; it is off
+    // for ALL FOUR engines — query/validate/reason/gmn, on every pull request; it is off
     // the local `make check` only because its cost is breadth, not the change under test)
     // and the digest pin, this enforces the conjunction "the format
     // declares the capability AND its engine's parity is proven-and-current", so the
-    // interactive preservation-kind is not a decorative self-claim. (purrdf's parity is
-    // owned upstream; its witness is the native describe output, digest-pinned here.) A
+    // interactive preservation-kind is not a decorative self-claim. Every engine is built
+    // in this repository from the workspace purrdf pin; the query engine's witness is the
+    // digest-pinned native query attestation its own Node lane byte-compares. A
     // missing/stale attestation HARD-FAILS here.
     for message in gmeow_docs::vendored_asset::check_capability_attestations() {
         report.add_finding(

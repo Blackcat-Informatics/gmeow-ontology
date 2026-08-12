@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Raw structural fixture (NOT a conformance fixture — no example-conformance.ttl cell;
+# loaded via include_str!() by crates/logic/src/math_expression/tests.rs and by the
+# runnable demonstration crates/logic/examples/alpha_class_join.rs). Two INDEPENDENTLY
+# named binder expressions, ex:sumBinderI (∑ᵢ i) and ex:sumBinderJ (∑ⱼ j): the SAME
+# operator (math:summationBinder), the SAME single slot-indexed operand at index 0, the
+# SAME binding shape — differing ONLY in the IRI of the bound-variable declaration
+# (ex:iDecl vs ex:jDecl), exactly the alpha-equivalent-pair-a.ttl / alpha-equivalent-
+# pair-b.ttl shape, merged into ONE dataset under distinct subject names so both roots
+# survive together.
+#
+# Each carries a deliberately WRONG math:structuralKey (a different wrong string each,
+# so agreement cannot be a string coincidence), so the reasoned-graph gate
+# (crates/logic/src/math_expression.rs, check_structural_key_drift) raises
+# math:StructuralKeyDrift for BOTH — and because the two expressions are structurally
+# alpha-equivalent, both drift findings cite the SAME recomputed α-equivalence-class IRI
+# (Finding::cited_iris), never the differing wrong authored strings. This is the
+# production-surface demonstration that alpha-equivalence identity is a joinable graph
+# node, not a bare literal.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:sumBinderI a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:iDecl ;
+    math:bindsOccurrence ex:iOccurrence ;
+    math:argumentSlot ex:bodySlotI ;
+    math:structuralKey "not-the-real-digest-i" .
+
+ex:iDecl a math:VariableDeclaration .
+
+ex:bodySlotI a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:iOccurrenceExpr .
+
+ex:iOccurrenceExpr a math:VariableExpression ;
+    math:variableOccurrence ex:iOccurrence .
+
+ex:iOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:iDecl ;
+    math:occursInScope ex:sumBinderI .
+
+ex:sumBinderJ a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:jDecl ;
+    math:bindsOccurrence ex:jOccurrence ;
+    math:argumentSlot ex:bodySlotJ ;
+    math:structuralKey "not-the-real-digest-j" .
+
+ex:jDecl a math:VariableDeclaration .
+
+ex:bodySlotJ a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:jOccurrenceExpr .
+
+ex:jOccurrenceExpr a math:VariableExpression ;
+    math:variableOccurrence ex:jOccurrence .
+
+ex:jOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:jDecl ;
+    math:occursInScope ex:sumBinderJ .

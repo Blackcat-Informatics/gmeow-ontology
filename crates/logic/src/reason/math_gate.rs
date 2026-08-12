@@ -30,6 +30,18 @@
 //! [`crate::reason::run_nary_head_chase`] already uses for its n-ary head chase), rather
 //! than through the literal-dropping [`crate::reason::build_edb_facts`] typed-fact-set
 //! path.
+//!
+//! # Module and [`dimension_gate_markers`] visibility
+//!
+//! Both are `pub`, not `pub(crate)`: [`crate::verify::verify_with_reasoning_result`]
+//! is the sole same-crate production caller, and
+//! `crates/pipeline/tests/math_conformance_discharge.rs` additionally pins
+//! `dimension_gate_markers` directly as one reasoned-graph gate producer of its
+//! whole-matrix conformance harness — the SAME "same-crate production function, ALSO
+//! pinned by a cross-crate discharge harness" shape as
+//! [`crate::correspondence_exec::leg_pair_verdict`] (see the `gmeow-logic`
+//! dev-dependency comment in `crates/pipeline/Cargo.toml`), not an unjustified
+//! visibility widening.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, OnceLock};
@@ -279,7 +291,7 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
 /// are (unexpectedly) not stratifiable, or if the native forward chase declines the
 /// program — every case a genuine internal-invariant failure, never a silent empty result
 /// standing in for an error.
-pub(crate) fn dimension_gate_markers(
+pub fn dimension_gate_markers(
     edb: &RdfDataset,
     derived: &[RdfQuad],
 ) -> gmeow_errors::Result<Vec<(String, String)>> {
