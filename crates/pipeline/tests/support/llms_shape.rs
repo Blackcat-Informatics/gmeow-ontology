@@ -696,7 +696,7 @@ const ROOT_ONTOLOGY: &str = "ontology/gmeow.ttl";
 ///
 /// The base side is enumerated from the base tree itself rather than from the working
 /// file list, so a module this change DELETES still contributes its base declarations —
-/// otherwise re-declaring a deleted module's term elsewhere would read as new vocabulary.
+/// otherwise redeclaring a deleted module's term elsewhere would read as new vocabulary.
 ///
 /// # Panics
 /// When git cannot list the base tree, when a base declaration file cannot be read for any

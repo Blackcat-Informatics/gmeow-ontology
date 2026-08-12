@@ -54,48 +54,48 @@ ex:shapeMediumFailureClasses a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowFailure01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumCorpusDrift ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumCorpusIdentityAgreementConstraint ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumCorpusDrift ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumCorpusIdentityAgreementConstraint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure02 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumDictionaryRegression ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumDictionaryRetentionConstraint ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumDictionaryRegression ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumDictionaryRetentionConstraint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure03 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumDigestMismatch ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumStrataDigestFormConstraint ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumDigestMismatch ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumStrataDigestFormConstraint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure04 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumOpaqueFrame ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumReaderCapabilityConstraint ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumOpaqueFrame ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumReaderCapabilityConstraint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure05 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUndeclaredDictionary ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUndeclaredDictionary ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure06 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUndeclaredDictionary ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:payloadSchemaMediumRangeClosure ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUndeclaredDictionary ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:payloadSchemaMediumRangeClosure ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure07 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownDictionary ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:envelopeDictionaryRangeClosure ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownDictionary ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:envelopeDictionaryRangeClosure ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure08 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownDictionary ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:payloadSchemaDictionaryRangeClosure ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownDictionary ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:payloadSchemaDictionaryRangeClosure ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure09 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownDictionary ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumDictionaryResolutionConstraint ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownDictionary ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumDictionaryResolutionConstraint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure10 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownSchema ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:envelopeSchemaRangeClosure ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownSchema ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:envelopeSchemaRangeClosure ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure11 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownSchema ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumSchemaMediumFunctionalityConstraint ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnknownSchema ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumSchemaMediumFunctionalityConstraint ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 
 # =========================================================================== #
@@ -154,118 +154,118 @@ ex:shapeMediumRecordContracts a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowContract01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:dictionaryId ] .
 ex:rowContract02 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:dictionaryStrategy ] .
 ex:rowContract03 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:dictionaryTargetLength ] .
 ex:rowContract04 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:dictionaryVersion ] .
 ex:rowContract05 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:trainsOverCorpus ] .
 ex:rowContract06 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:dictionaryByteLength ] .
 ex:rowContract07 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:dictionaryContentDigest ] .
 ex:rowContract08 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:dictionaryVersion ] .
 ex:rowContract09 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measuredCorpusDigest ] .
 ex:rowContract10 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measuredCorpusSampleCount ] .
 ex:rowContract11 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measuredDictionaryStrategy ] .
 ex:rowContract12 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measuredDictionaryTargetLength ] .
 ex:rowContract13 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:realizesDictionary ] .
 ex:rowContract14 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CompressionDictionaryRealization ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:zstdDictionaryId ] .
 ex:rowContract15 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CorpusTrainingSplit ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CorpusTrainingSplit ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:splitHeldOutOffset ] .
 ex:rowContract16 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CorpusTrainingSplit ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:CorpusTrainingSplit ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:splitHeldOutStride ] .
 ex:rowContract17 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GtsProducer ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GtsProducer ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:producerCallSite ] .
 ex:rowContract18 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GtsProducer ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:GtsProducer ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:producerMedium ] .
 ex:rowContract19 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:Medium ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:Medium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:mediumCodec ] .
 ex:rowContract20 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:Medium ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:Medium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:mediumCorrespondence ] .
 ex:rowContract21 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:Medium ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:Medium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:mediumSourceKind ] .
 ex:rowContract22 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measurementBytesOnDisk ] .
 ex:rowContract23 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measurementBytesOnDiskBaseline ] .
 ex:rowContract24 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measurementCorpusSampleCount ] .
 ex:rowContract25 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measurementDictionaryInBandBytes ] .
 ex:rowContract26 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measurementEvaluatedFrameCount ] .
 ex:rowContract27 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measurementPopulation ] .
 ex:rowContract28 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measurementTwoPartCodeBytes ] .
 ex:rowContract29 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumDictionaryEffectMeasurement ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:measuresDictionary ] .
 ex:rowContract30 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:contentDigest ] .
 ex:rowContract31 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:envelopeDigestStratum ] .
 ex:rowContract32 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:envelopeMedium ] .
 ex:rowContract33 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:envelopePayloadFrame ] .
 ex:rowContract34 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:envelopeSchema ] .
 ex:rowContract35 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:strataDigest ] .
 ex:rowContract36 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:PayloadSchema ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:PayloadSchema ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:payloadSchemaId ] .
 ex:rowContract37 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:PayloadSchema ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:PayloadSchema ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:payloadSchemaMedium ] .
 ex:rowContract38 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:ZstdDictMedium ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "record" ; gmeow:cellValueIri gmeow:ZstdDictMedium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "coordinate" ; gmeow:cellValueIri gmeow:mediumZstdLevel ] .
 
 # =========================================================================== #
@@ -291,19 +291,19 @@ ex:shapeMediumGuardedObligations a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowGuard01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:Medium ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:mediumCodec ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:codecZstdRsyncable ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:Medium ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:mediumCodec ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:codecZstdRsyncable ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "required" ; gmeow:cellValueIri gmeow:requiresReaderCapability ] .
 ex:rowGuard02 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:envelopeMedium ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:MediumEnvelope ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:envelopeMedium ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "required" ; gmeow:cellValueIri gmeow:envelopeDictionary ] .
 ex:rowGuard03 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:PayloadSchema ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:payloadSchemaMedium ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:PayloadSchema ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:payloadSchemaMedium ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "required" ; gmeow:cellValueIri gmeow:payloadSchemaDictionary ] .
 
 # =========================================================================== #
@@ -344,64 +344,64 @@ ex:shapeMediumReferenceRanges a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowRange01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:corpusSelectsStageProduct ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:corpusSelectsStageProduct ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:PipelineStage ] .
 ex:rowRange02 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:dictionaryStrategy ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:dictionaryStrategy ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:DictionaryStrategy ] .
 ex:rowRange03 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:CompressionDictionary ] .
 ex:rowRange04 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeDigestStratum ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeDigestStratum ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:DigestStratum ] .
 ex:rowRange05 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeMedium ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeMedium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:Medium ] .
 ex:rowRange06 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopePayloadFrame ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopePayloadFrame ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:InformationObject ] .
 ex:rowRange07 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeSchema ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:envelopeSchema ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:PayloadSchema ] .
 ex:rowRange08 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:measuredDictionaryStrategy ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:measuredDictionaryStrategy ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:DictionaryStrategy ] .
 ex:rowRange09 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:measurementPopulation ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:measurementPopulation ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:MediumMeasurementPopulation ] .
 ex:rowRange10 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:measuresDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:measuresDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:CompressionDictionary ] .
 ex:rowRange11 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumCodec ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumCodec ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:TransformCodec ] .
 ex:rowRange12 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumComposedOf ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumComposedOf ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:Medium ] .
 ex:rowRange13 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumCorrespondence ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumCorrespondence ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri logic:Correspondence ] .
 ex:rowRange14 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:CompressionDictionary ] .
 ex:rowRange15 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumSourceKind ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:mediumSourceKind ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:MediumSourceKind ] .
 ex:rowRange16 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:payloadSchemaDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:payloadSchemaDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:CompressionDictionary ] .
 ex:rowRange17 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:payloadSchemaMedium ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:payloadSchemaMedium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:Medium ] .
 ex:rowRange18 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:producerMedium ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:producerMedium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:Medium ] .
 ex:rowRange19 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:realizesDictionary ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:realizesDictionary ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:CompressionDictionary ] .
 ex:rowRange20 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:trainsOverCorpus ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "reference" ; gmeow:cellValueIri gmeow:trainsOverCorpus ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "resolvesTo" ; gmeow:cellValueIri gmeow:DictionaryCorpus ] .
 
 # =========================================================================== #
@@ -435,52 +435,52 @@ ex:shapeDictionaryCorpusSelectors a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowSelector01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowClaimsV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowClaimsV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowClaimsV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowClaimsV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsBlobRep ] .
 ex:rowSelector02 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowCoreV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowCoreV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsBlobRep ] .
 ex:rowSelector03 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowCoreV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowCoreV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsPathPrefix ] .
 ex:rowSelector04 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLangAstV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLangAstV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLangAstV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLangAstV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsBlobRep ] .
 ex:rowSelector05 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLangAstV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLangAstV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLangAstV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLangAstV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsPathPrefix ] .
 ex:rowSelector06 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLogicV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLogicV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLogicV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLogicV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsBlobRep ] .
 ex:rowSelector07 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLogicV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLogicV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLogicV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLogicV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsPathPrefix ] .
 ex:rowSelector08 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryCompactV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryCompactV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsGraph ] .
 ex:rowSelector09 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryCompactV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryCompactV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsPathPrefix ] .
 ex:rowSelector10 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryHotV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryHotV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsGraph ] .
 ex:rowSelector11 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryHotV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryHotV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsPathPrefix ] .
 ex:rowSelector12 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowProoftraceV1 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowProoftraceV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowProoftraceV1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowProoftraceV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsStageProduct ] .
 
 # =========================================================================== #
@@ -511,40 +511,40 @@ ex:shapeMediumDictionaryInventory a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowInventory01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowClaimsV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowClaimsV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowClaimsV1 ] .
 ex:rowInventory02 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowCoreV1 ] .
 ex:rowInventory03 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLangAstV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLangAstV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLangAstV1 ] .
 ex:rowInventory04 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLogicV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowLogicV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowLogicV1 ] .
 ex:rowInventory05 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryCompactV1 ] .
 ex:rowInventory06 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryHotV1 ] .
 ex:rowInventory07 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowProoftraceV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowProoftraceV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowProoftraceV1 ] .
 ex:rowInventory08 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileStoreL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileStoreL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryCompactV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryCompactV1 ] .
 ex:rowInventory09 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileStoreL12 ] ,
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileStoreL12 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowMemoryHotV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowMemoryHotV1 ] .
 
 # =========================================================================== #
@@ -570,17 +570,17 @@ ex:shapeMediumDictionaryStageDataflow a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowStage01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-gts-sink ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-gts-sink ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upstream" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] .
 ex:rowStage02 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upstream" ; gmeow:cellValueIri gmeow:stage-archive-blobs ] .
 ex:rowStage03 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upstream" ; gmeow:cellValueIri gmeow:stage-reason ] .
 ex:rowStage04 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upstream" ; gmeow:cellValueIri gmeow:stage-snapshot ] .
 ex:rowStage05 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ,
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-medium-dictionaries ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upstream" ; gmeow:cellValueIri gmeow:stage-statements ] .

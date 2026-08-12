@@ -2606,6 +2606,23 @@ gmeow:GtsConformanceFailure
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the root of the gts slice's typed conformance-failure vocabulary."@x-gmeow-english .
 
+gmeow:GtsFrameProfileViolation
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS Frame Profile Violation"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when authored GTS bytes do not carry the ONE mandated frame profile: a payload-bearing frame whose transform chain is not zstd-rsyncable, a codec catalog entry that declares no level or a level other than the mandated one, a torn CBOR sequence, or bytes that do not begin with a segment header. HARD FAIL: the transform contract is a distribution invariant, not a preference — a consumer resolves a frame by the catalog the header declares, so a frame outside the profile is not a weaker bundle but an undecodable one. It is raised both by the single production emitter, which refuses to author such bytes, and by the wire-level audit that re-reads them."@x-gmeow-english ;
+    skos:example "ex:bundleWithGzipFrame a gmeow:GtsFrameProfileViolation ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this failure names a violation of the FRAME AUTHORSHIP profile — the transform, its declared level, and the wire framing that carries them. It is not a dictionary resolution failure (gmeow:MediumUnknownDictionary), not a digest disagreement (gmeow:MediumDigestMismatch), and not a judgment on the RDF the frames carry: the payload may be perfectly well-formed inside a frame nothing can decode."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid resolving it by widening the accepted transform set or by lowering the declared level to match the bytes — the profile is the contract the bytes must meet, not a description of them. Avoid using it for a frame whose transform is correct but whose declared dictionary does not resolve; that is gmeow:MediumUnknownDictionary."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by the mandated authorship emitter and by the wire-level frame audit that proves any producer's output; resolve it by re-authoring the bytes through the one production entry, never by relaxing the audit."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name GTS bytes that fall outside the mandated one-transform frame profile."@x-gmeow-english .
+
 gmeow:MediumCorpusDrift
     a logic:Category ,
         owl:Class ;
@@ -2784,6 +2801,32 @@ logic:MediumReaderCapabilityConstraint
     logic:formalizes gmeow:Medium ;
     gmeow:enforcesFailureClass gmeow:MediumOpaqueFrame ;
     logic:message "A gmeow:Medium using the non-baseline gmeow:codecZstdRsyncable must declare at least one gmeow:requiresReaderCapability — an undeclared requirement surfaces as opacity at decode time." .
+
+# The MANDATED FRAME PROFILE, stated as ontology rather than only as a wire audit.
+#
+# Every payload-bearing frame GMEOW authors carries one transform, gmeow:codecZstdRsyncable,
+# at the declared level 12. The byte-level half of that rule is enforced by the authorship
+# leaf, which refuses to emit non-conforming frames and re-reads them to prove it. This is
+# its GRAPH half: a medium that declares the mandated level must also declare the mandated
+# codec, so a medium claiming level-12 conformance while naming another codec is refused
+# HERE, at authoring time, rather than only once bytes exist.
+#
+# Guarded on the LEVEL and requiring the CODEC (not the reverse): the codec is legitimately
+# used at other levels by non-distribution media, whereas a medium that declares the
+# mandated level is claiming the mandated profile, and the profile is exactly the pair.
+logic:MediumMandatedFrameProfileConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Medium mandated frame-profile constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ZstdDictMedium declaring the mandated gmeow:mediumZstdLevel must name gmeow:mediumCodec. The mandated authorship profile is the PAIR (transform, level) — a medium that declares the level while leaving its codec unstated claims conformance to a profile it does not pin, and every artifact written through it would carry frames no reader can resolve from the declaration alone. HARD FAIL: the transform contract is a distribution invariant, never a preference."@x-gmeow-english ;
+    logic:onClass gmeow:ZstdDictMedium ;
+    logic:trigger gmeow:mediumZstdLevel ;
+    logic:triggerValue 12 ;
+    logic:requires gmeow:mediumCodec ;
+    logic:formalizes gmeow:ZstdDictMedium ;
+    gmeow:enforcesFailureClass gmeow:GtsFrameProfileViolation ;
+    logic:message "A gmeow:ZstdDictMedium declaring the mandated zstd level must name its gmeow:mediumCodec — the mandated frame profile is the (transform, level) pair, and half a pair pins nothing." .
 
 # The envelope's dictionary is exactly-one IFF its medium declares one. An
 # unconditional min-1 restriction on gmeow:envelopeDictionary would make
