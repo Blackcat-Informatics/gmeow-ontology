@@ -804,8 +804,9 @@ impl Stage for ArchiveBlobsStage {
         // so a JSON-LD-family consumer reads the statement layer out of the bundle.
         // v4: `statements-archive` joins the fold and the two non-RDF terminology surfaces
         // join `lang-projections-archive`, both off `generated-opaque-archive`. A rep is
-        // the unit a dictionary primes, so this is what gives gmeow-claims-v1 and
-        // gmeow-lang-ast-v1 the frame sets their names claim.
+        // the unit a dictionary primes, so this is what gave the claim dictionary and
+        // gmeow-lang-ast-v1 the frame sets their names claim. The claim dictionary was
+        // later retired for failing the two-part code; its reps ride unprimed.
         "archive-blobs.v4"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {

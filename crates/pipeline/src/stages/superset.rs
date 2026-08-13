@@ -1827,7 +1827,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            415,
+            416,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {
@@ -1972,7 +1972,7 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             .collect();
         assert_eq!(profiles.len(), 8, "profiles family membership drifted");
         assert_eq!(edoal.len(), 47, "edoal family membership drifted");
-        assert_eq!(dicts.len(), 7, "header-dict family membership drifted");
+        assert_eq!(dicts.len(), 6, "header-dict family membership drifted");
 
         // Equal authored/derived over the derivable families passes.
         let reconstructed: BTreeSet<String> = expected

@@ -49,8 +49,7 @@ const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 /// exists to give one instead, and manufacturing one by de-folding a named graph
 /// would trade queryable structure for compression. The mathematical content is
 /// primed in full by `gmeow-core-v1`, so nothing is lost.
-const SHIPPED_DICTIONARY_IDS: [&str; 7] = [
-    "gmeow-claims-v1",
+const SHIPPED_DICTIONARY_IDS: [&str; 6] = [
     "gmeow-core-v1",
     "gmeow-lang-ast-v1",
     "gmeow-logic-v1",
