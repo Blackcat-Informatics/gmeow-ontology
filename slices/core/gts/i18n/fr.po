@@ -836,3 +836,89 @@ msgstr "branche get du medium de stockage"
 msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrStoreL12Get|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The get leg of the append-only store medium's round-trip lens: the transaction program that reads a record back out of a segment written through the runtime store profile. A store is appended to over its whole life, so its recovery leg is what keeps every earlier record readable after a later append."
 msgstr "La branche get de la lentille d'aller-retour du medium de stockage en ajout seul : le programme de transaction qui relit un enregistrement hors d'un segment écrit via le profil de stockage d'exécution. Un stockage est complété tout au long de sa vie, de sorte que sa branche de récupération est ce qui maintient lisible chaque enregistrement antérieur après un ajout ultérieur."
+
+
+# --- Core GTS transport vocabulary: document, segment, profile, codec class, compaction ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CodecClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Codec Class"
+msgstr "Classe de codec"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CodecClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The capability class of a transform codec — encode, compress, or encrypt (spec §8). Determines the degradation path when the capability is missing: unknown-codec or missing-key opacity."
+msgstr "La classe de capacité d'un codec de transformation — encoder, compresser ou chiffrer (spéc. §8). Elle détermine le chemin de dégradation lorsque la capacité manque : opacité codec-inconnu ou clé-manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSCompaction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Compaction"
+msgstr "Compactage GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSCompaction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An activity that rewrites a GTS document's frame layout — e.g. into delivery order for streaming (spec §3.2) or into a snapshot. Compaction re-authors only the ORDERING: content claims (ordinary quads, including signed statement-level claims) are rewrite-invariant by construction; transport claims over the source chain become detached evidence about the source document. The compacted document gmeow:wasGeneratedBy the compaction and gmeow:wasDerivedFrom the source document, whose segment heads remain citable through gmeow:gtsHeadId. Evidence-profile documents SHOULD NOT be compacted (see shapes); sealing the source verbatim as a nested GTS blob preserves its attestation intact."
+msgstr "Une activité qui réécrit la disposition des trames d'un document GTS — par exemple en ordre de livraison pour le flux (spéc. §3.2) ou en instantané. Le compactage ne réécrit que l'ORDONNANCEMENT : les assertions de contenu (quads ordinaires, y compris les assertions signées au niveau des énoncés) sont invariantes par réécriture, par construction ; les assertions de transport portant sur la chaîne source deviennent des preuves détachées au sujet du document source. Le document compacté gmeow:wasGeneratedBy le compactage et gmeow:wasDerivedFrom le document source, dont les têtes de segment restent citables par gmeow:gtsHeadId. Les documents à profil de preuve NE DEVRAIENT PAS être compactés (voir les formes) ; sceller la source verbatim comme blob GTS imbriqué préserve son attestation intacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSDocument|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Document"
+msgstr "Document GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSDocument|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A single-file Graph Transport Substrate artifact (docs/GTS-SPEC.md): a CBOR Sequence of one or more append-only segments carrying an RDF 1.2 graph and any content-addressed binaries it references. A Manifestation in the WEMI sense — the packaged, shippable embodiment. Its composite identity is the ORDERED list of its segments' chain heads (spec §3.1); byte-concatenation of valid documents is a valid document, so a document's segment list grows by append, never by rewrite."
+msgstr "Un artefact Graph Transport Substrate en fichier unique (docs/GTS-SPEC.md) : une séquence CBOR d'un ou plusieurs segments en ajout seul portant un graphe RDF 1.2 et tous les binaires adressés par contenu qu'il référence. Une Manifestation au sens WEMI — l'incarnation empaquetée et expédiable. Son identité composite est la liste ORDONNÉE des têtes de chaîne de ses segments (spéc. §3.1) ; la concaténation d'octets de documents valides est un document valide, de sorte que la liste de segments d'un document croît par ajout, jamais par réécriture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Profile"
+msgstr "Profil GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named GTS profile (spec §13) — a purpose and requirement set a segment declares. An OPEN value vocabulary (individuals, never subclasses): extensions add their own profiles (e.g. a music package) without touching this module (Principle 9)."
+msgstr "Un profil GTS nommé (spéc. §13) — un ensemble d'objectif et d'exigences qu'un segment déclare. Un vocabulaire de valeurs OUVERT (des individus, jamais des sous-classes) : les extensions ajoutent leurs propres profils (par exemple un paquet musical) sans toucher à ce module (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:musicPackage a gmeow:GTSProfile ; rdfs:label \"music-package profile\"@en ."
+msgstr "Exemple : ex:musicPackage a gmeow:GTSProfile ; rdfs:label \"music-package profile\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSSegment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Segment"
+msgstr "Segment GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSSegment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One complete header-plus-frames log inside a GTS document — the unit of independent integrity (spec §3.1): a segment has its own genesis hash, its own id/prev chain, its own profile, its own transform catalog, and its own signers. Segments compose by concatenation and never vouch for one another; a third-party segment keeps its third-party attestation. Itself a Manifestation: a segment is a complete, independently shippable artifact."
+msgstr "Un journal complet en-tête-plus-trames à l'intérieur d'un document GTS — l'unité d'intégrité indépendante (spéc. §3.1) : un segment possède son propre hachage de genèse, sa propre chaîne id/prev, son propre profil, son propre catalogue de transformations et ses propres signataires. Les segments se composent par concaténation et ne se cautionnent jamais l'un l'autre ; un segment tiers conserve son attestation tierce. Lui-même une Manifestation : un segment est un artefact complet et expédiable indépendamment."
+
+
+# --- Scope notes: what each medium/dictionary class does NOT cover ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the AUTHORED coordinates of one (id, version) dictionary and nothing a build produces. It does not cover the trained bytes, their digest, their length, or their zstd Dictionary_ID (all gmeow:CompressionDictionaryRealization), it does not cover the material trained over (that is the gmeow:DictionaryCorpus it points at), and it does not cover whether the dictionary earns the bytes it costs (that is gmeow:MediumDictionaryEffectMeasurement) — widening it to hold a measured field would make its own cardinality obligations unsatisfiable rather than merely redundant."
+msgstr "Portée : cette classe couvre les coordonnées RÉDIGÉES d'un dictionnaire (id, version) et rien de ce qu'une construction produit. Elle ne couvre ni les octets entraînés, ni leur condensé, ni leur longueur, ni leur Dictionary_ID zstd (tous gmeow:CompressionDictionaryRealization), ne couvre pas la matière sur laquelle l'entraînement a porté (c'est le gmeow:DictionaryCorpus qu'elle désigne), et ne couvre pas la question de savoir si le dictionnaire mérite les octets qu'il coûte (c'est gmeow:MediumDictionaryEffectMeasurement) — l'élargir pour y loger un champ mesuré rendrait ses propres obligations de cardinalité insatisfiables plutôt que simplement redondantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryRealization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers ONE build's trained bytes for ONE authored definition — the fields that exist only after training. It is not the declaration those bytes answer to (gmeow:CompressionDictionary), not the verdict on whether shipping them is worthwhile (gmeow:MediumDictionaryEffectMeasurement, which prices the DEFINITION over a declared population), and not the per-frame record of a payload primed with them (gmeow:MediumEnvelope). Hand-authoring one would put a second source of truth beside bytes the build already owns."
+msgstr "Portée : cette classe couvre les octets entraînés d'UNE construction pour UNE définition rédigée — les champs qui n'existent qu'après l'entraînement. Ce n'est pas la déclaration à laquelle ces octets répondent (gmeow:CompressionDictionary), ni le verdict sur l'intérêt de les expédier (gmeow:MediumDictionaryEffectMeasurement, qui tarifie la DÉFINITION sur une population déclarée), ni l'enregistrement par trame d'une charge utile amorcée avec eux (gmeow:MediumEnvelope). En rédiger un à la main placerait une seconde source de vérité à côté d'octets que la construction possède déjà."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CorpusTrainingSplit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the single train/hold-out PARTITION RULE over archive-backed corpora and nothing else. It does not say what a corpus contains (gmeow:DictionaryCorpus does), does not name the body of bytes a reading was priced over (gmeow:MediumMeasurementPopulation does), and is not a claim that a dictionary-effect evaluation is held out — the evaluated frame still carries the trained members, and only the withheld share is unseen."
+msgstr "Portée : cette classe couvre l'unique RÈGLE DE PARTITION entraînement/retenue sur les corpus adossés à une archive, et rien d'autre. Elle ne dit pas ce que contient un corpus (gmeow:DictionaryCorpus le fait), ne nomme pas le corps d'octets sur lequel une lecture a été tarifée (gmeow:MediumMeasurementPopulation le fait), et n'affirme pas qu'une évaluation d'effet de dictionnaire est tenue en réserve — la trame évaluée porte encore les membres entraînés, et seule la part retenue est inédite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DictionaryCorpus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the SELECTOR — the declarative statement of which bundle-internal material is in scope for training — and nothing about the resolution of it. It does not cover how many samples a build actually handed the trainer (gmeow:measuredCorpusSampleCount), the identity of that resolution (gmeow:measuredCorpusDigest), or which share of it is withheld from the trainer (gmeow:CorpusTrainingSplit). Enumerating concrete files here would turn a re-resolvable selector into a frozen manifest."
+msgstr "Portée : cette classe couvre le SÉLECTEUR — l'énoncé déclaratif de la matière interne au paquet qui entre dans le périmètre d'entraînement — et rien de sa résolution. Elle ne couvre pas combien d'échantillons une construction a réellement remis à l'entraîneur (gmeow:measuredCorpusSampleCount), l'identité de cette résolution (gmeow:measuredCorpusDigest), ni la part qui en est retenue hors de l'entraîneur (gmeow:CorpusTrainingSplit). Y énumérer des fichiers concrets transformerait un sélecteur re-résoluble en un manifeste figé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DictionaryStrategy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this vocabulary covers the BUILD-FAMILY axis of a dictionary — how its bytes were arrived at — and no other coordinate. It does not carry the requested or achieved size (gmeow:dictionaryTargetLength, gmeow:dictionaryByteLength), the codec that later consumes the dictionary (gmeow:TransformCodec), or the medium that primes with it. A member is referenced from two different predicates, one authored and one measured, and the vocabulary itself takes no position on which of the two a given assertion is."
+msgstr "Portée : ce vocabulaire couvre l'axe FAMILLE-DE-CONSTRUCTION d'un dictionnaire — comment ses octets ont été obtenus — et aucune autre coordonnée. Il ne porte ni la taille demandée ou atteinte (gmeow:dictionaryTargetLength, gmeow:dictionaryByteLength), ni le codec qui consomme ensuite le dictionnaire (gmeow:TransformCodec), ni le medium qui amorce avec lui. Un membre est référencé depuis deux prédicats différents, l'un rédigé et l'autre mesuré, et le vocabulaire lui-même ne prend pas position sur celui des deux dont relève une assertion donnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DigestStratum|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this vocabulary covers the NAMED REGION a stratified digest commits to, never the digest value and never the artifact's identity. The value is gmeow:strataDigest and the whole-artifact identity is gmeow:contentDigest; a stratum is neither. It is also not a medium coordinate — two envelopes over different media may name the same stratum, because the region is a property of the payload layout rather than of the encoding."
+msgstr "Portée : ce vocabulaire couvre la RÉGION NOMMÉE à laquelle un condensé stratifié s'engage, jamais la valeur du condensé ni l'identité de l'artefact. La valeur est gmeow:strataDigest et l'identité de l'artefact entier est gmeow:contentDigest ; une strate n'est ni l'une ni l'autre. Ce n'est pas non plus une coordonnée de medium : deux enveloppes sur des media différents peuvent nommer la même strate, car la région est une propriété de la disposition de la charge utile plutôt que de l'encodage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class roots the TRANSPORT well-formedness failure vocabulary and nothing else. It does not cover a content claim being false, a validation report or finding record, or the gate that raises a failure — a logic:Constraint points at its failure class through gmeow:enforcesFailureClass, and the class stays the name of the violation rather than the name of the check."
+msgstr "Portée : cette classe enracine le vocabulaire d'échec de bonne formation du TRANSPORT et rien d'autre. Elle ne couvre pas une assertion de contenu fausse, ni un rapport de validation ou un enregistrement de constat, ni la porte qui lève un échec — une logic:Constraint désigne sa classe d'échec par gmeow:enforcesFailureClass, et la classe demeure le nom de la violation plutôt que le nom du contrôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsProducer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers one row of the production-site-to-medium map: the source files that AUTHOR GMEOW GTS bytes, and the medium they write through. It is not the build stage that runs them (gmeow:PipelineStage), not the artifact they emit, and not a reader of GTS — a file that validates or reads a header authors nothing and must not be listed. The resolution rule is not restated here either; it is read through the medium's own gmeow:mediumSourceKind."
+msgstr "Portée : cette classe couvre une ligne de la carte site-de-production-vers-medium : les fichiers sources qui RÉDIGENT des octets GMEOW GTS, et le medium par lequel ils écrivent. Ce n'est pas l'étape de construction qui les exécute (gmeow:PipelineStage), ni l'artefact qu'ils émettent, ni un lecteur de GTS — un fichier qui valide ou lit un en-tête ne rédige rien et ne doit pas y figurer. La règle de résolution n'est pas non plus reprise ici ; elle se lit par le gmeow:mediumSourceKind propre au medium."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Medium|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the lawful (encode, decode) PAIR and the coordinates that pick it out. It is not the codec alone (gmeow:TransformCodec names an algorithm, and several media may share one), not a GTS profile (gmeow:GTSProfile names a segment's purpose and requirement set, not a byte transform), and not the per-frame record of what a payload was written through (gmeow:MediumEnvelope). The round-trip claim is not stored here either: it lives on the correspondence the medium points at."
+msgstr "Portée : cette classe couvre la PAIRE licite (encoder, décoder) et les coordonnées qui la désignent. Ce n'est pas le codec seul (gmeow:TransformCodec nomme un algorithme, et plusieurs media peuvent en partager un), ni un profil GTS (gmeow:GTSProfile nomme l'objectif et les exigences d'un segment, non une transformation d'octets), ni l'enregistrement par trame de ce par quoi une charge utile a été écrite (gmeow:MediumEnvelope). L'assertion d'aller-retour n'est pas stockée ici non plus : elle réside sur la correspondance que le medium désigne."

@@ -3037,3 +3037,74 @@ msgstr "utilise la règle d'inférence"
 msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|skos:definition"
 msgid "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."
 msgstr "Relie un math:ProofStep à la règle d'inférence qui l'autorise. Domaine math:ProofStep, portée laissée OUVERTE en prose : la règle peut être une règle logic: ou une identité de trace de preuve, une règle nommée du calcul d'un prouveur, ou une identité de déclenchement adressée par contenu, et le couplage à logic: se fait par référence plutôt que par des triplets affirmés dans celui-ci. Le pendant au niveau de l'étape de math:usesProofMethod, qui nomme la stratégie globale d'une math:Proof ; l'autorisation d'une étape de résolution n'est pas la stratégie de la preuve, de sorte que les deux sont des propriétés distinctes à des niveaux distincts."
+
+
+# --- Algebraic structures, activation, and the alpha-equivalence class ---
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Abelian Group"
+msgstr "Groupe abélien"
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Group whose operation is commutative (∀a,b: a·b = b·a) — it additionally satisfies the commutativity axiom through math:satisfiesAxiom. A subclass of math:Group; the additive group of a math:Ring is abelian."
+msgstr "Un math:Group dont l'opération est commutative (∀a,b : a·b = b·a) — il satisfait en outre l'axiome de commutativité par math:satisfiesAxiom. Une sous-classe de math:Group ; le groupe additif d'un math:Ring est abélien."
+
+msgctxt "https://blackcatinformatics.ca/math/ActivationFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Activation Function"
+msgstr "Fonction d'activation"
+
+msgctxt "https://blackcatinformatics.ca/math/ActivationFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A nonlinear activation applied elementwise in a math:NeuralLayer — ReLU, GELU, softmax, and the like. A subclass of math:Function; the nonlinearity that makes a stack of linear maps expressive. Applied as an operator inside the tensor computation graph's expression nodes."
+msgstr "Une activation non linéaire appliquée élément par élément dans une math:NeuralLayer — ReLU, GELU, softmax et similaires. Une sous-classe de math:Function ; la non-linéarité qui rend expressive une pile d'applications linéaires. Appliquée comme opérateur à l'intérieur des nœuds d'expression du graphe de calcul tensoriel."
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addition"
+msgstr "addition"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary addition operator (+). Its inverse is math:Subtraction. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 plus."
+msgstr "L'opérateur binaire d'addition (+). Son inverse est math:Subtraction. Signature ℝ → ℝ (arithmétique réelle). OpenMath arith1 plus."
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Algebra"
+msgstr "Algèbre"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Module equipped with a bilinear multiplication of its elements — a ring-and-module structure over a base ring, such as a math:LieAlgebra or a matrix algebra. A subclass of math:Module; the vector-space-with-multiplication that carries a Lie bracket in the E8 flagship."
+msgstr "Un math:Module muni d'une multiplication bilinéaire de ses éléments — une structure d'anneau-et-module sur un anneau de base, telle qu'une math:LieAlgebra ou une algèbre de matrices. Une sous-classe de math:Module ; l'espace vectoriel-avec-multiplication qui porte un crochet de Lie dans le vaisseau amiral E8."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Algebraic Number"
+msgstr "Nombre algébrique"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An algebraic number: a complex number that is a root of a non-zero polynomial with rational coefficients (for example √2 or the golden ratio). A subclass of math:ComplexNumber, cross-cutting the ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ tower — the algebraic numbers are closed under the field operations but are not one of the nested systems. Its complement within ℂ is the transcendental numbers."
+msgstr "Un nombre algébrique : un nombre complexe qui est racine d'un polynôme non nul à coefficients rationnels (par exemple √2 ou le nombre d'or). Une sous-classe de math:ComplexNumber, transversale à la tour ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ — les nombres algébriques sont clos sous les opérations de corps mais ne constituent pas l'un des systèmes emboîtés. Son complémentaire dans ℂ est l'ensemble des nombres transcendants."
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Algebraic Structure"
+msgstr "Structure algébrique"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set equipped with operations satisfying stated axioms: a math:underlyingSet, one or more math:structureOperation, an identity/inverse where they exist, and the math:satisfiesAxiom laws it obeys. A group is not a labelled set — a math:Group asserted without an operation and axioms is ill-formed. The root of the algebraic hierarchy math:Magma … math:Field; substructures are related through math:substructureOf."
+msgstr "Un ensemble muni d'opérations satisfaisant des axiomes énoncés : un math:underlyingSet, une ou plusieurs math:structureOperation, un neutre/inverse là où ils existent, et les lois math:satisfiesAxiom auxquelles il obéit. Un groupe n'est pas un ensemble étiqueté — un math:Group affirmé sans opération ni axiomes est mal formé. La racine de la hiérarchie algébrique math:Magma … math:Field ; les sous-structures sont reliées par math:substructureOf."
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Alpha-Equivalence Class"
+msgstr "Classe d'α-équivalence"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The equivalence class of every math:MathematicalExpression identical up to bound-variable renaming — the SAME class of expressions math:structuralKey digests identify, promoted from a literal to a first-class, content-addressed individual. Two expressions related to the SAME math:AlphaEquivalenceClass individual (through math:alphaEquivalenceClass) are, by construction, structurally (α-)identical: the individual's IRI is minted directly from the expression's own math:structuralKey digest, so equal digests mint the IDENTICAL individual and unequal digests mint distinct ones. This is the joinable-node counterpart of the plain-literal math:structuralKey, not a competing identity: an math:AlphaEquivalenceClass individual carries no state of its own beyond being the shared target every α-equivalent expression's math:alphaEquivalenceClass edge resolves to."
+msgstr "La classe d'équivalence de toute math:MathematicalExpression identique à un renommage de variables liées près — la MÊME classe d'expressions que les condensés math:structuralKey identifient, promue d'un littéral à un individu de première classe, adressé par contenu. Deux expressions reliées au MÊME individu math:AlphaEquivalenceClass (par math:alphaEquivalenceClass) sont, par construction, structurellement (α-)identiques : l'IRI de l'individu est frappé directement à partir du condensé math:structuralKey de l'expression, de sorte que des condensés égaux frappent l'individu IDENTIQUE et des condensés inégaux en frappent de distincts. C'est le pendant joignable-en-nœud du math:structuralKey littéral, non une identité concurrente : un individu math:AlphaEquivalenceClass ne porte aucun état propre au-delà d'être la cible partagée à laquelle se résout l'arête math:alphaEquivalenceClass de chaque expression α-équivalente."
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 and exf:e2 share ONE α-equivalence-class individual because their digests agree"
+msgstr "Exemple : exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 et exf:e2 partagent UN seul individu de classe d'α-équivalence parce que leurs condensés concordent"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A minted, content-addressed individual, never hand-authored: it exists so two α-equivalent expressions JOIN through one shared node instead of being compared by string equality on two math:structuralKey literals. It names an equivalence class, not a normal form — membership says the two expressions are structurally identical up to bound-variable naming, and says nothing about which of them any normalization prefers."
+msgstr "Un individu frappé et adressé par contenu, jamais rédigé à la main : il existe pour que deux expressions α-équivalentes se JOIGNENT par un nœud partagé unique au lieu d'être comparées par égalité de chaînes sur deux littéraux math:structuralKey. Il nomme une classe d'équivalence, non une forme normale — l'appartenance dit que les deux expressions sont structurellement identiques au nommage des variables liées près, et ne dit rien sur celle que préférerait une normalisation quelconque."
+
+msgctxt "https://blackcatinformatics.ca/math/AlternativeHypothesis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The effect-present claim H1, distinct from the tested default math:NullHypothesis and from the math:Sidedness value that records its direction."
+msgstr "L'assertion d'effet présent H1, distincte de l'hypothèse par défaut testée math:NullHypothesis et de la valeur math:Sidedness qui en consigne la direction."

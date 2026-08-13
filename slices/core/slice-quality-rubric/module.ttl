@@ -3603,7 +3603,8 @@ gmeow:QualityAssessmentCorpus
     gmeow:useWhen "Use to name the whole recorded sweep a consumer reads a grade out of, so freshness and integrity are properties of a typed object rather than of a file path."@x-gmeow-english .
 
 gmeow:SliceQualityConformanceFailure
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Slice Quality Conformance Failure"@x-gmeow-english ;
     skos:definition "The parent of the slice-quality well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each gate points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces that a RECORD of the rubric's verdicts is readable and self-witnessing, never that any particular slice's score is the right score — a grade is a measurement, and this vocabulary says nothing about whether the measurement flatters or damns the slice."@x-gmeow-english ;
@@ -3615,7 +3616,8 @@ gmeow:SliceQualityConformanceFailure
     gmeow:useWhen "Use as the root of the slice-quality slice's typed conformance-failure vocabulary."@x-gmeow-english .
 
 gmeow:UnreadableQualityRecord
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf gmeow:SliceQualityConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Unreadable Quality Record"@x-gmeow-english ;
