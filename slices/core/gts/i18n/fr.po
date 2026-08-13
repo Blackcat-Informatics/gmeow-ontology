@@ -780,3 +780,33 @@ msgstr "contrainte de motif canonique de l'identifiant de tête GTS"
 msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."
 msgstr "Une contrainte d'intégrité en monde clos : une valeur de gmeow:gtsHeadId doit être canonique — le préfixe littéral « blake3: » suivi d'exactement 64 chiffres hexadécimaux minuscules (spécification GTS §3.1, §9.1)."
+
+# --- Mandated frame profile: the failure class and the constraint that raises it ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Frame Profile Violation"
+msgstr "Violation du profil de trame GTS"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when authored GTS bytes do not carry the ONE mandated frame profile: a payload-bearing frame whose transform chain is not zstd-rsyncable, a codec catalog entry that declares no level or a level other than the mandated one, a torn CBOR sequence, or bytes that do not begin with a segment header. HARD FAIL: the transform contract is a distribution invariant, not a preference — a consumer resolves a frame by the catalog the header declares, so a frame outside the profile is not a weaker bundle but an undecodable one. It is raised both by the single production emitter, which refuses to author such bytes, and by the wire-level audit that re-reads them."
+msgstr "L'échec levé lorsque des octets GTS rédigés ne portent pas l'UNIQUE profil de trame imposé : une trame porteuse de charge utile dont la chaîne de transformation n'est pas zstd-rsyncable, une entrée du catalogue de codecs qui ne déclare aucun niveau ou un niveau autre que celui imposé, une séquence CBOR déchirée, ou des octets qui ne commencent pas par un en-tête de segment. ÉCHEC DUR : le contrat de transformation est un invariant de distribution, non une préférence — un consommateur résout une trame par le catalogue que déclare l'en-tête, de sorte qu'une trame hors profil n'est pas un paquet plus faible mais un paquet indécodable. Il est levé à la fois par l'unique émetteur de production, qui refuse de rédiger de tels octets, et par l'audit au niveau du fil qui les relit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:bundleWithGzipFrame a gmeow:GtsFrameProfileViolation ."
+msgstr "ex:bundleWithGzipFrame a gmeow:GtsFrameProfileViolation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this failure names a violation of the FRAME AUTHORSHIP profile — the transform, its declared level, and the wire framing that carries them. It is not a dictionary resolution failure (gmeow:MediumUnknownDictionary), not a digest disagreement (gmeow:MediumDigestMismatch), and not a judgment on the RDF the frames carry: the payload may be perfectly well-formed inside a frame nothing can decode."
+msgstr "Portée : cet échec nomme une violation du profil de RÉDACTION DES TRAMES — la transformation, son niveau déclaré et le tramage au niveau du fil qui les porte. Ce n'est pas un échec de résolution de dictionnaire (gmeow:MediumUnknownDictionary), ni un désaccord d'empreinte (gmeow:MediumDigestMismatch), ni un jugement sur le RDF que les trames portent : la charge utile peut être parfaitement bien formée à l'intérieur d'une trame que rien ne peut décoder."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving it by widening the accepted transform set or by lowering the declared level to match the bytes — the profile is the contract the bytes must meet, not a description of them. Avoid using it for a frame whose transform is correct but whose declared dictionary does not resolve; that is gmeow:MediumUnknownDictionary."
+msgstr "Évitez de le résoudre en élargissant l'ensemble des transformations acceptées ou en abaissant le niveau déclaré pour qu'il corresponde aux octets — le profil est le contrat que les octets doivent respecter, non une description de ceux-ci. Évitez de l'utiliser pour une trame dont la transformation est correcte mais dont le dictionnaire déclaré ne se résout pas ; il s'agit alors de gmeow:MediumUnknownDictionary."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Raised by the mandated authorship emitter and by the wire-level frame audit that proves any producer's output; resolve it by re-authoring the bytes through the one production entry, never by relaxing the audit."
+msgstr "Levé par l'émetteur de rédaction imposé et par l'audit de trame au niveau du fil qui atteste la sortie de tout producteur ; résolvez-le en rédigeant à nouveau les octets par l'unique point d'entrée de production, jamais en assouplissant l'audit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name GTS bytes that fall outside the mandated one-transform frame profile."
+msgstr "À utiliser pour nommer des octets GTS qui sortent du profil de trame imposé à transformation unique."

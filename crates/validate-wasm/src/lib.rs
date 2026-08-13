@@ -97,7 +97,7 @@ const GMN_CODEBOOK_TTL: &[u8] = include_bytes!("../../../slices/grounding/lang/m
 /// the grapheme/prefix tables — everything [`GmnDictionary::from_dataset`] and [`gmn1_read`]
 /// resolve — untouched, so only the carrier bytes moved.
 pub const GMN_CODEBOOK_DIGEST: &str =
-    "58e0a7ec651b8b681878aa368861c31914beaa284cd0617e113bd8d5782f5caa";
+    "61e3ed6a134534feffa606448f59cfc20e0327651fa101ca3d7ef2c3d023cf28";
 
 /// The graph-derived dictionary, built ONCE from the embedded codebook and memoized.
 ///

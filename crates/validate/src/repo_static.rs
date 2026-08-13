@@ -6634,6 +6634,7 @@ mod tests {
         assert_eq!(
             bound.keys().copied().collect::<Vec<_>>(),
             vec![
+                "gts-profile.frame",
                 "math.lift.empty-codomain",
                 "math.lift.onnx.unliftable",
                 "math.lift.onnx.wire",

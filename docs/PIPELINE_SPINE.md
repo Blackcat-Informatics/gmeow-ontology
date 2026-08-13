@@ -227,6 +227,7 @@ entry of the header's `"dct"` map*.
 Fanout therefore extracts, under `generated/medium/`:
 
 - `generated/medium/gmeow-core-v1.zdict`
+- `generated/medium/gmeow-lang-ast-v1.zdict`
 - `generated/medium/gmeow-logic-v1.zdict`
 - `generated/medium/gmeow-memory-compact-v1.zdict`
 - `generated/medium/gmeow-memory-hot-v1.zdict`

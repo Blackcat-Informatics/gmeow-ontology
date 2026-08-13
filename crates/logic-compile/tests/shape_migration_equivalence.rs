@@ -165,11 +165,18 @@ fn assert_max_count(shape: &ValidationShapeIr, path: &str, n: u32) {
     );
 }
 
-/// A `sh:qualifiedValueShape [ sh:class class ]` carrying `sh:qualifiedMinCount`/`MaxCount`.
+/// The class-scoped count obligation the retired hand-authored shape stated, in EITHER
+/// derived form the projector can legitimately produce for it.
 ///
-/// Paired with a co-present universal `sh:class class` on the same path (asserted separately by
-/// the callers), a qualified count over exactly that class IS the plain count: every value is a
-/// `class`, so "at least/at most n values that are a `class`" == "at least/at most n values".
+/// A `sh:qualifiedValueShape [ sh:class class ]` with qualified counts is one. The other —
+/// what an `allValuesFrom class` axiom plus a `logic:ClosureEntry` derives — is a UNIVERSAL
+/// `sh:class class` alongside a BARE `sh:minCount`/`sh:maxCount` on the same path. The two
+/// are equivalent for this obligation, and the universal form is in fact the stronger of the
+/// pair: a qualified count says "at least/at most n values that are a `class`", while
+/// `sh:class` + a bare count says that AND that no value is anything else. What must not
+/// pass is a path carrying the counts with no class obligation at all, or the class with no
+/// count — either would let the retired shape's obligation through unenforced, which is the
+/// only thing this equivalence check exists to catch.
 fn assert_qualified(
     shape: &ValidationShapeIr,
     path: &str,
@@ -178,7 +185,7 @@ fn assert_qualified(
     max: Option<u32>,
 ) {
     let found = on_path(shape, path).iter().any(|p| {
-        p.components.iter().any(|c| match c {
+        let qualified = p.components.iter().any(|c| match c {
             ConstraintComponent::QualifiedValueShape {
                 shape: inner,
                 min: lo,
@@ -191,12 +198,21 @@ fn assert_qualified(
                     && max.is_none_or(|want| hi.is_some_and(|got| got <= want))
             }
             _ => false,
-        })
+        });
+        let universal = p
+            .components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(x) if x == class))
+            && min.is_none_or(|want| p.min_count.is_some_and(|got| got >= want))
+            && max.is_none_or(|want| p.max_count.is_some_and(|got| got <= want));
+        qualified || universal
     });
     assert!(
         found,
-        "{} on {path} must carry sh:qualifiedValueShape [ sh:class {class} ] with \
-         qualifiedMin={min:?} qualifiedMax={max:?}; derived: {:?}",
+        "{} on {path} must carry the {class} count obligation — either \
+         sh:qualifiedValueShape [ sh:class {class} ] with qualifiedMin={min:?} \
+         qualifiedMax={max:?}, or a universal sh:class {class} with bare \
+         minCount={min:?} maxCount={max:?}; derived: {:?}",
         shape.iri,
         on_path(shape, path)
     );

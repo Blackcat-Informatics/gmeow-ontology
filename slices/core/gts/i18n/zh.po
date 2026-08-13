@@ -244,3 +244,33 @@ msgstr "GTS 头部标识规范模式约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."
 msgstr "闭世界完整性约束：gmeow:gtsHeadId 的取值必须是规范形式——字面前缀 blake3: 之后紧跟恰好 64 位小写十六进制数字（GTS 规范 §3.1、§9.1）。"
+
+# --- Mandated frame profile: the failure class and the constraint that raises it ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Frame Profile Violation"
+msgstr "GTS 帧规格违规"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when authored GTS bytes do not carry the ONE mandated frame profile: a payload-bearing frame whose transform chain is not zstd-rsyncable, a codec catalog entry that declares no level or a level other than the mandated one, a torn CBOR sequence, or bytes that do not begin with a segment header. HARD FAIL: the transform contract is a distribution invariant, not a preference — a consumer resolves a frame by the catalog the header declares, so a frame outside the profile is not a weaker bundle but an undecodable one. It is raised both by the single production emitter, which refuses to author such bytes, and by the wire-level audit that re-reads them."
+msgstr "当所编写的 GTS 字节未携带唯一强制帧规格时所引发的失败：承载有效载荷的帧其变换链不是 zstd-rsyncable、编解码器目录条目未声明级别或声明了强制级别以外的级别、CBOR 序列断裂，或字节不以段头开始。硬性失败：变换契约是分发不变式，而非偏好——消费者依据帧头所声明的目录来解析帧，因此不合规格的帧不是较弱的包，而是不可解码的包。它由唯一的生产发射器（拒绝编写此类字节）以及重读这些字节的线级审计共同引发。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:bundleWithGzipFrame a gmeow:GtsFrameProfileViolation ."
+msgstr "ex:bundleWithGzipFrame a gmeow:GtsFrameProfileViolation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this failure names a violation of the FRAME AUTHORSHIP profile — the transform, its declared level, and the wire framing that carries them. It is not a dictionary resolution failure (gmeow:MediumUnknownDictionary), not a digest disagreement (gmeow:MediumDigestMismatch), and not a judgment on the RDF the frames carry: the payload may be perfectly well-formed inside a frame nothing can decode."
+msgstr "范围：此失败命名的是对帧编写规格的违反——变换、其声明的级别，以及承载二者的线级分帧。它不是字典解析失败（gmeow:MediumUnknownDictionary），不是摘要不一致（gmeow:MediumDigestMismatch），也不是对帧所携带 RDF 的裁断：有效载荷可能在一个无物可解码的帧内部完全良构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving it by widening the accepted transform set or by lowering the declared level to match the bytes — the profile is the contract the bytes must meet, not a description of them. Avoid using it for a frame whose transform is correct but whose declared dictionary does not resolve; that is gmeow:MediumUnknownDictionary."
+msgstr "避免通过扩大所接受的变换集合，或降低所声明的级别以迁就字节，来解决它——规格是字节必须满足的契约，而非对字节的描述。避免将其用于变换正确但所声明字典无法解析的帧；那属于 gmeow:MediumUnknownDictionary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Raised by the mandated authorship emitter and by the wire-level frame audit that proves any producer's output; resolve it by re-authoring the bytes through the one production entry, never by relaxing the audit."
+msgstr "由强制的编写发射器以及验证任何生产者输出的线级帧审计引发；应通过唯一的生产入口重新编写这些字节来解决，绝不可放宽审计。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name GTS bytes that fall outside the mandated one-transform frame profile."
+msgstr "用于命名落在强制单变换帧规格之外的 GTS 字节。"

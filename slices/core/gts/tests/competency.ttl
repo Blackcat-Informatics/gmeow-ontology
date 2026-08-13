@@ -34,6 +34,7 @@ ex:cqMediumFailureClasses a gmeow:CompetencyQuestion ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:shapeMediumFailureClasses ;
     gmeow:cqExpectRow
+        ex:rowFailureFrameProfile ,
         ex:rowFailure01 ,
         ex:rowFailure02 ,
         ex:rowFailure03 ,
@@ -53,6 +54,10 @@ ex:shapeMediumFailureClasses a logic:ResultShape ;
         [ logic:columnVariable "family" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
+ex:rowFailureFrameProfile a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:GtsFrameProfileViolation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumMandatedFrameProfileConstraint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] .
 ex:rowFailure01 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumCorpusDrift ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri logic:MediumCorpusIdentityAgreementConstraint ] ;
@@ -280,7 +285,9 @@ ex:cqMediumGuardedObligations a gmeow:CompetencyQuestion ;
     gmeow:cqExpectRow
         ex:rowGuard01 ,
         ex:rowGuard02 ,
-        ex:rowGuard03 .
+        ex:rowGuard03 ,
+        ex:rowGuardFrameProfile ,
+        ex:rowGuardSealedRecipient .
 
 ex:shapeMediumGuardedObligations a logic:ResultShape ;
     logic:declaresColumn
@@ -290,6 +297,16 @@ ex:shapeMediumGuardedObligations a logic:ResultShape ;
         [ logic:columnVariable "required" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
+ex:rowGuardFrameProfile a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:Medium ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:mediumCodec ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:codecZstdRsyncable ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "required" ; gmeow:cellValueIri gmeow:mediumZstdLevel ] .
+ex:rowGuardSealedRecipient a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:OpaqueFrame ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:opacityReason ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "triggerValue" ; gmeow:cellValueIri gmeow:opacityMissingKey ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "required" ; gmeow:cellValueIri gmeow:sealedRecipient ] .
 ex:rowGuard01 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarded" ; gmeow:cellValueIri gmeow:Medium ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "trigger" ; gmeow:cellValueIri gmeow:mediumCodec ] ;

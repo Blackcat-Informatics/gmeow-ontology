@@ -1978,7 +1978,9 @@ gmeow:mediumCorrBaselineL12
     logic:mnemomorphic true ;
     logic:getLeg gmeow:mediumCorrBaselineL12Get .
 
-gmeow:mediumCorrBaselineL12Get gmeow:path gmeow:mediumCorrBaselineL12Step .
+gmeow:mediumCorrBaselineL12Get
+    a logic:TransactionProgram ;
+    gmeow:path gmeow:mediumCorrBaselineL12Step .
 
 gmeow:mediumCorrDistL12
     a logic:Correspondence ;
@@ -1997,7 +1999,9 @@ gmeow:mediumCorrDistL12
     logic:mnemomorphic true ;
     logic:getLeg gmeow:mediumCorrDistL12Get .
 
-gmeow:mediumCorrDistL12Get gmeow:path gmeow:mediumCorrDistL12Step .
+gmeow:mediumCorrDistL12Get
+    a logic:TransactionProgram ;
+    gmeow:path gmeow:mediumCorrDistL12Step .
 
 gmeow:mediumCorrStoreL12
     a logic:Correspondence ;
@@ -2016,7 +2020,9 @@ gmeow:mediumCorrStoreL12
     logic:mnemomorphic true ;
     logic:getLeg gmeow:mediumCorrStoreL12Get .
 
-gmeow:mediumCorrStoreL12Get gmeow:path gmeow:mediumCorrStoreL12Step .
+gmeow:mediumCorrStoreL12Get
+    a logic:TransactionProgram ;
+    gmeow:path gmeow:mediumCorrStoreL12Step .
 
 # --- The seven shipped dictionaries and their corpora ------------------------ #
 # The governing rule, which every entry below satisfies and which decided the one
@@ -2786,22 +2792,25 @@ logic:MediumReaderCapabilityConstraint
 # codec, so a medium claiming level-12 conformance while naming another codec is refused
 # HERE, at authoring time, rather than only once bytes exist.
 #
-# Guarded on the LEVEL and requiring the CODEC (not the reverse): the codec is legitimately
-# used at other levels by non-distribution media, whereas a medium that declares the
-# mandated level is claiming the mandated profile, and the profile is exactly the pair.
+# Guarded on the CODEC and requiring the LEVEL. That is the direction the wire audit
+# fails on: purrdf declares the level as a catalog parameter, so a catalog entry naming
+# the mandated transform with NO declared level is unenforceable on the artifact — the
+# audit cannot tell level 12 from level 3. Guarding the other way round (level implies
+# codec) would also read on a literal trigger value, where every sibling guard in this
+# slice triggers on an IRI.
 logic:MediumMandatedFrameProfileConstraint
     a logic:GuardedImplicationConstraint ;
     rdfs:label "Medium mandated frame-profile constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:ZstdDictMedium declaring the mandated gmeow:mediumZstdLevel must name gmeow:mediumCodec. The mandated authorship profile is the PAIR (transform, level) — a medium that declares the level while leaving its codec unstated claims conformance to a profile it does not pin, and every artifact written through it would carry frames no reader can resolve from the declaration alone. HARD FAIL: the transform contract is a distribution invariant, never a preference."@x-gmeow-english ;
-    logic:onClass gmeow:ZstdDictMedium ;
-    logic:trigger gmeow:mediumZstdLevel ;
-    logic:triggerValue 12 ;
-    logic:requires gmeow:mediumCodec ;
-    logic:formalizes gmeow:ZstdDictMedium ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Medium whose gmeow:mediumCodec is the mandated gmeow:codecZstdRsyncable must declare its gmeow:mediumZstdLevel. The mandated authorship profile is the PAIR (transform, level) — a medium naming the transform while leaving its level unstated claims conformance to a profile it does not pin, and the wire audit reading the emitted catalog cannot distinguish the mandated level from any other. HARD FAIL: the transform contract is a distribution invariant, never a preference."@x-gmeow-english ;
+    logic:onClass gmeow:Medium ;
+    logic:trigger gmeow:mediumCodec ;
+    logic:triggerValue gmeow:codecZstdRsyncable ;
+    logic:requires gmeow:mediumZstdLevel ;
+    logic:formalizes gmeow:Medium ;
     gmeow:enforcesFailureClass gmeow:GtsFrameProfileViolation ;
-    logic:message "A gmeow:ZstdDictMedium declaring the mandated zstd level must name its gmeow:mediumCodec — the mandated frame profile is the (transform, level) pair, and half a pair pins nothing." .
+    logic:message "A gmeow:Medium using the mandated gmeow:codecZstdRsyncable must declare its gmeow:mediumZstdLevel — the mandated frame profile is the (transform, level) pair, and half a pair pins nothing." .
 
 # The envelope's dictionary is exactly-one IFF its medium declares one. An
 # unconditional min-1 restriction on gmeow:envelopeDictionary would make
