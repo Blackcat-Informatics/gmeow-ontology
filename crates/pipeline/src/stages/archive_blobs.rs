@@ -140,7 +140,7 @@ pub(crate) const REP_LANG_PROJECTIONS: &str = "lang-projections-archive";
 /// canonical named-graph fold and have always travelled as opaque bytes (the
 /// `byte_decorated_rdf_paths_fall_through_to_blob_members` gate in
 /// [`crate::stages::superset`] pins that). Riding `REP_GENERATED` welded them to the
-/// core-tier dictionary's medium assignment, which left `gmeow:dictGmeowClaimsV1`
+/// core-tier dictionary's medium assignment, which left the claim dictionary
 /// with only the ~9 KB `yaml-ld-archive` to prime. Giving the statement layer its own
 /// rep puts the claim vocabulary — reifier IRIs, annotation-coat predicates,
 /// standpoint qualifiers — on a frame set a claim dictionary can actually be measured
@@ -162,11 +162,11 @@ pub(crate) const REP_STATEMENTS: &str = "statements-archive";
 /// to be `#[cfg(test)]`, so the production sink authored no such frame at all and the
 /// rep was a reader-side declaration with no live producer. The frame exists now
 /// because a JSON-LD-family consumer reads the reified statement layer straight out of
-/// this archive. It is primed by `gmeow:dictGmeowClaimsV1` together with
+/// this archive. It rides the dictionary-less medium together with
 /// [`REP_STATEMENTS`]: on its own this is ONE ~9 KB frame, far too small a population
-/// to pay for any dictionary's in-band bytes, so the claim dictionary is measured over
-/// the claim corpus's WHOLE frame set — this archive plus the statement layer's two
-/// byte projections — rather than over this frame alone.
+/// to pay for any dictionary's in-band bytes. Measured over the claim corpus's WHOLE
+/// frame set — this archive plus the statement layer's two byte projections — the claim
+/// dictionary still did not pay, so it was retired and both reps ride unprimed.
 ///
 /// The members are the claim corpus and nothing else — not the whole carrier. (The
 /// whole-carrier JSON-LD-star document is a `make build` deliverable,
@@ -545,7 +545,7 @@ pub(crate) fn build_archive_blobs(
     // repo-relative path, sourced from THIS run's stage-statements product (the compile
     // ran ONCE, in that stage). Each MUST exist (no-optionality, fail-closed): a partial
     // archive would both break the superset gate's reconstruction of a committed path and
-    // leave gmeow:dictGmeowClaimsV1 priming a truncated population.
+    // leave the rep carrying a truncated population.
     let mut statements: Vec<(String, Vec<u8>)> = Vec::with_capacity(STATEMENT_FILES.len());
     for rel in STATEMENT_FILES {
         let bytes = statement_artifacts.get(rel).ok_or_else(|| {
@@ -572,8 +572,8 @@ pub(crate) fn build_archive_blobs(
     ];
     // Fail closed, mirroring every other product-sourced archive above: an EMPTY
     // serialization means stage-statements rendered nothing, which would fold an archive
-    // whose frame exists but carries no claims — leaving gmeow:dictGmeowClaimsV1 priming
-    // an empty payload, which is the dead-weight state this rep was promoted to end. A
+    // whose frame exists but carries no claims — an empty payload, which is the
+    // dead-weight state this rep was promoted to end. A
     // missing surface is a hard error, never a degraded fallback.
     if claim_serializations
         .iter()

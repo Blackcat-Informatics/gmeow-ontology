@@ -30,14 +30,13 @@ use purrdf::{RdfQuad, RdfTerm};
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The seven dictionaries `slices/core/gts/module.ttl` declares. Spelled out rather
+/// The six dictionaries `slices/core/gts/module.ttl` declares. Spelled out rather
 /// than read back off the same registry the producer used, so a dictionary silently
 /// dropped from the declaration is a FAILURE here instead of a smaller expectation.
 ///
-/// SEVEN, not eight — see [`RETIRED_DICTIONARIES`] for the one term the inventory does
-/// not carry and why no measurement could restore it.
-const SHIPPED_DICTIONARIES: [&str; 7] = [
-    "gmeow-claims-v1",
+/// SIX, not eight — see [`RETIRED_DICTIONARIES`] for the two terms the inventory does
+/// not carry and why.
+const SHIPPED_DICTIONARIES: [&str; 6] = [
     "gmeow-core-v1",
     "gmeow-lang-ast-v1",
     "gmeow-logic-v1",
@@ -54,7 +53,16 @@ const SHIPPED_DICTIONARIES: [&str; 7] = [
 /// longer trains. [`no_rep_is_primed_by_a_retired_dictionary`] asserts the absence in
 /// every direction a retired id could survive in.
 ///
-/// `gmeow-math-v1` is the only one, and it is absent by a THEOREM rather than by a
+/// `gmeow-claims-v1` is absent by a MEASUREMENT that came out badly, which is the
+/// case the criterion exists to catch: over the claim corpus's whole two-frame
+/// population its best gridded cell coded the frames 2,635 B smaller while its own
+/// in-band bytes cost 4,094 B, so the two-part code was 23,673 B against a 22,214 B
+/// no-dictionary baseline. No cell pays, and there is no threshold to relax —
+/// charging a dictionary its own in-band bytes is what makes the criterion
+/// non-vacuous. Its two reps now ride the explicitly dictionary-less
+/// `gmeow:mediumProfileBaselineL12`, where naming no dictionary IS the selection.
+///
+/// `gmeow-math-v1` is absent by a THEOREM rather than by a
 /// measurement that came out badly: a dictionary primes a FRAME,
 /// `gmeow:payloadSchemaDictionary` is `maxQualifiedCardinality 1`, and every `math:`
 /// named graph is unioned into the ONE snapshot frame, which already binds
@@ -63,7 +71,7 @@ const SHIPPED_DICTIONARIES: [&str; 7] = [
 /// trees and the shape surfaces — and manufacturing one by de-folding a named graph
 /// would trade queryable structure for compression and break carry-exactly-once. The
 /// mathematical content is primed in full by `gmeow-core-v1`, so nothing is lost.
-const RETIRED_DICTIONARIES: [&str; 1] = ["gmeow-math-v1"];
+const RETIRED_DICTIONARIES: [&str; 2] = ["gmeow-claims-v1", "gmeow-math-v1"];
 
 /// The archive rep the whole `lang:` deliverable family rides, as a WIRE label (the
 /// test may not borrow the crate-private Rust constant — the point is that the two
@@ -631,7 +639,7 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     //        and NO rep, header entry or projected file is primed by a retired
     //        dictionary id ──
     the_lang_reps_are_real_frames_primed_by_lang_ast(&bundle, &module);
-    the_claim_reps_are_real_frames_primed_by_claims(&bundle, &module);
+    the_claim_reps_are_real_frames_and_ride_unprimed(&bundle, &module);
     the_split_out_archive_members_are_carried_by_exactly_one_rep(&bundle);
     no_rep_is_primed_by_a_retired_dictionary(&bundle, &module, &pinned);
 
@@ -920,32 +928,33 @@ fn the_lang_reps_are_real_frames_primed_by_lang_ast(bundle: &[u8], module: &Medi
     );
 }
 
-/// The claim corpus's two reps are REAL, emitted frames, and both are primed by
-/// `gmeow-claims-v1`.
+/// The claim corpus's two reps are REAL, emitted frames, and both ride UNPRIMED.
 ///
 /// `yaml-ld-archive` shipped for a long time with no live producer at all: its writer
 /// was a `#[cfg(test)]` twin of the sink's folds, so the production terminal authored no
 /// such frame and the dictionary selecting it primed nothing. Building the frame fixed
-/// that, but ONE ~9 KB frame is still too small a population for any grid cell to pay for
-/// a dictionary's own in-band bytes. The claim dictionary's population is therefore the
-/// claim corpus's WHOLE frame set: that archive plus `statements-archive`, the statement
-/// layer's own two byte-decorated committed projections — bytes that were already bytes,
-/// welded to the core dictionary only because they rode the general opaque archive.
+/// that, and the population was widened to the claim corpus's WHOLE frame set — that
+/// archive plus `statements-archive`, the statement layer's own two byte-decorated
+/// committed projections. Measured over that whole set the dictionary STILL did not pay
+/// (see [`RETIRED_DICTIONARIES`]), so it was retired and both reps were assigned the
+/// explicitly dictionary-less `gmeow:mediumProfileBaselineL12`.
 ///
-/// So the assertions are about BOTH frames existing with the claim corpus in them, and
-/// about the statement frame dominating: the archives are emitted, each carries exactly
-/// its declared members, the decoded population is the statement layer rather than a
-/// placeholder, and the dictionary priming them is one the bundle still ships.
-fn the_claim_reps_are_real_frames_primed_by_claims(bundle: &[u8], module: &MediumRegistry) {
+/// What the frames are is unchanged by that, and is what this asserts: both archives are
+/// emitted, each carries exactly its declared members, and the decoded population is the
+/// reified statement layer rather than a placeholder. The medium assertion is the
+/// counterpart — a rep whose dictionary was retired must ride the dictionary-less medium,
+/// never keep a dangling selection.
+fn the_claim_reps_are_real_frames_and_ride_unprimed(bundle: &[u8], module: &MediumRegistry) {
     let primed = primed_reps_by_dictionary(module);
-    let claim_reps = primed
-        .get("gmeow-claims-v1")
-        .expect("gmeow-claims-v1 primes at least one rep");
-    assert!(
-        claim_reps.contains(REP_YAMLLD) && claim_reps.contains(REP_STATEMENTS),
-        "both claim-corpus reps must be primed by gmeow-claims-v1 — a ~9 KB JSON-LD frame \
-         alone is a population no dictionary can pay for; got {claim_reps:?}"
-    );
+    for (dictionary, reps) in &primed {
+        for rep in [REP_YAMLLD, REP_STATEMENTS] {
+            assert!(
+                !reps.contains(rep),
+                "{rep} must ride unprimed after its dictionary was retired, but {dictionary} \
+                 still selects it"
+            );
+        }
+    }
     let emitted = emitted_reps(bundle);
     for rep in [REP_YAMLLD, REP_STATEMENTS] {
         assert!(
@@ -963,7 +972,7 @@ fn the_claim_reps_are_real_frames_primed_by_claims(bundle: &[u8], module: &Mediu
         "the statement byte projections ride ONE tar frame"
     );
     println!(
-        "claim population (primed by gmeow-claims-v1): {frames} yaml-ld frame(s) / {bytes} B + \
+        "claim population (unprimed): {frames} yaml-ld frame(s) / {bytes} B + \
          {statement_frames} statements frame(s) / {statement_bytes} B"
     );
 

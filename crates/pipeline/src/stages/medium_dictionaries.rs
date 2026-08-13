@@ -86,10 +86,11 @@ pub const DICT_ARTIFACT_PREFIX: &str = "pipeline/medium/";
 /// `gmeow-lang-ast-v1` selected that product back when its deliverables had no rep of
 /// their own. They have one now (`lang-projections-archive`), so the corpus selects the
 /// ARCHIVE, which arrives on `stage-archive-blobs` — one authority on what is in that
-/// archive (Principle 4), and one fewer edge. The same holds for `gmeow-claims-v1`: it
-/// selects `statements-archive` + `yaml-ld-archive` rather than a `generated/statements/`
-/// path prefix. (`stage-statements` stays an edge regardless — `gmeow-memory-hot-v1`
-/// selects that prefix.)
+/// archive (Principle 4), and one fewer edge. The retired `gmeow-claims-v1` selected
+/// `statements-archive` + `yaml-ld-archive` the same way rather than a
+/// `generated/statements/` path prefix; those reps now ride the dictionary-less medium.
+/// (`stage-statements` stays an edge regardless — `gmeow-memory-hot-v1` selects that
+/// prefix.)
 const CONSUMES: [&str; 4] = [
     "stage-archive-blobs",
     "stage-reason",

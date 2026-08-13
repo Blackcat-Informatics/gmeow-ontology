@@ -139,8 +139,7 @@ dictionary its own in-band bytes is the entire non-vacuity argument.
 
 For the archive-backed dictionaries — `gmeow-core-v1` over `cells-archive`,
 `gmeow-logic-v1` over `axioms-archive`, `gmeow-lang-ast-v1` over
-`lang-projections-archive`, `gmeow-claims-v1` over `statements-archive` +
-`yaml-ld-archive` — the corpus is that archive's **members** and the frame the numbers
+`lang-projections-archive` — the corpus is that archive's **members** and the frame the numbers
 are taken over is the **tar of those very members**. Trained on all of them, such a
 dictionary would be scored on bytes it had memorized.
 
@@ -313,7 +312,7 @@ from it:
 | draft | what it was measured over, and what was missing | what changed |
 | --- | --- | --- |
 | `gmeow-lang-ast-v1` | ~264 KB: the `generated/projections/lang/**` tree plus the document-scale English literals. Lost by **3,684 B** at its best cell — a real saving, just too small. The two largest `lang:` deliverables were not in the population at all: the ISO-30042 TBX termbase and the glossary table (~18 MB together) rode `generated-opaque-archive`, so the *core* dictionary primed the natural-language term inventory. | Both are projections of the **same reviewed `.po` fold**, from the **same export leaf**, and were already opaque byte projections. They now ride `lang-projections-archive` with their family. |
-| `gmeow-claims-v1` | ONE ~9 KB frame (`yaml-ld-archive`), coded at 12,020 B against an 8,953 B no-dictionary baseline. No cell of the grid can pay for a dictionary over a population that small. The statement layer's own two byte projections (~274 KB) sat on `generated-opaque-archive`, byte-decorated and therefore **already** travelling as bytes. | They now ride `statements-archive`, and the dictionary is measured over the claim corpus's whole frame set. |
+| `gmeow-claims-v1` | ONE ~9 KB frame (`yaml-ld-archive`), coded at 12,020 B against an 8,953 B no-dictionary baseline. No cell of the grid can pay for a dictionary over a population that small. The statement layer's own two byte projections (~274 KB) sat on `generated-opaque-archive`, byte-decorated and therefore **already** travelling as bytes. | They were moved onto `statements-archive` so the dictionary could be measured over the claim corpus's whole frame set. It **still** did not pay — 23,673 B two-part (19,579 B of frames + 4,094 B of in-band dictionary) against a 22,214 B baseline — so the dictionary is **RETIRED** and both reps ride the dictionary-less `gmeow:mediumProfileBaselineL12`. |
 
 In both cases **nothing that was a graph became bytes**: the queryable
 `lang:ProjectionEmission`, `graph/lang-glossary-corpus` and `graph/statements` semantics

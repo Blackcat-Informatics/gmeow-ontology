@@ -414,7 +414,6 @@ ex:cqDictionaryCorpusSelectors a gmeow:CompetencyQuestion ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:shapeDictionaryCorpusSelectors ;
     gmeow:cqExpectRow
-        ex:rowSelector01 ,
         ex:rowSelector02 ,
         ex:rowSelector03 ,
         ex:rowSelector04 ,
@@ -434,10 +433,6 @@ ex:shapeDictionaryCorpusSelectors a logic:ResultShape ;
         [ logic:columnVariable "selector" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
-ex:rowSelector01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowClaimsV1 ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowClaimsV1 ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "selector" ; gmeow:cellValueIri gmeow:corpusSelectsBlobRep ] .
 ex:rowSelector02 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowCoreV1 ] ;
@@ -493,7 +488,6 @@ ex:cqMediumDictionaryInventory a gmeow:CompetencyQuestion ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:shapeMediumDictionaryInventory ;
     gmeow:cqExpectRow
-        ex:rowInventory01 ,
         ex:rowInventory02 ,
         ex:rowInventory03 ,
         ex:rowInventory04 ,
@@ -510,10 +504,6 @@ ex:shapeMediumDictionaryInventory a logic:ResultShape ;
         [ logic:columnVariable "corpus" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
-ex:rowInventory01 a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowClaimsV1 ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corpus" ; gmeow:cellValueIri gmeow:corpusGmeowClaimsV1 ] .
 ex:rowInventory02 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:mediumProfileDistL12 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dictionary" ; gmeow:cellValueIri gmeow:dictGmeowCoreV1 ] ;

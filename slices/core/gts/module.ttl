@@ -1788,7 +1788,7 @@ gmeow:mediumProfileDistL12
     gmeow:mediumCorrespondence gmeow:mediumCorrDistL12 ;
     gmeow:requiresReaderCapability "zstd-dictionary" ,
         "zstd-rsyncable" ;
-    gmeow:mediumDictionary gmeow:dictGmeowClaimsV1 ,
+    gmeow:mediumDictionary
         gmeow:dictGmeowCoreV1 ,
         gmeow:dictGmeowLangAstV1 ,
         gmeow:dictGmeowLogicV1 ,
@@ -2122,16 +2122,6 @@ gmeow:corpusTrainingSplitV1
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
-gmeow:corpusGmeowClaimsV1
-    a gmeow:DictionaryCorpus ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "claims corpus v1"@x-gmeow-english ;
-    skos:definition "The bundle-internal CLAIM corpus: the statement layer's two committed byte projections the carrier folds as statements-archive, plus the JSON-LD-star / YAML-LD-star rendering of the same layer it folds as yaml-ld-archive. The corpus is exactly the frame set gmeow:dictGmeowClaimsV1 primes, which is the only population a bundle dictionary can honestly be priced over; it is resolved under gmeow:corpusTrainingSplitV1, so the trainer sees seven members in eight and the evaluated tars still carry the eighth. Bundle-internal: both archive reps are owned by gmeow:stage-archive-blobs."@x-gmeow-english ;
-    gmeow:corpusSelectsBlobRep "statements-archive" ,
-        "yaml-ld-archive" ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
 gmeow:corpusGmeowCoreV1
     a gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
@@ -2188,19 +2178,6 @@ gmeow:corpusGmeowProoftraceV1
     rdfs:label "proof-trace corpus v1"@x-gmeow-english ;
     skos:definition "The bundle-internal reasoning-report corpus. The reasoning archive (reasoning-archive) is SINK-FOLDED — it is assembled only at the terminal snapshot — so this corpus selects gmeow:stage-reason's product directly, which carries the explanations and the DL/EL ledger mid-DAG where the trainer runs."@x-gmeow-english ;
     gmeow:corpusSelectsStageProduct gmeow:stage-reason ;
-    gmeow:graphBoxRole gmeow:boxABox ,
-        gmeow:boxConfigBox .
-
-gmeow:dictGmeowClaimsV1
-    a gmeow:CompressionDictionary ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "gmeow-claims-v1 dictionary"@x-gmeow-english ;
-    skos:definition "The shipped dictionary for statement-layer payloads: reifier IRIs, annotation-coat predicates, and standpoint qualifiers dominate their byte profile. It primes the claim corpus's whole frame set — gmeow:payloadSchemaStatementsArchive (the OWL downcast and the RDF-1.2 lead, both byte-decorated and therefore already carried as bytes) and gmeow:payloadSchemaYamlLdArchive (their JSON-LD-family rendering) — not the ~9 KB JSON-LD frame alone, which no dictionary of any size could pay for."@x-gmeow-english ;
-    gmeow:dictionaryId "gmeow-claims-v1" ;
-    gmeow:dictionaryVersion "1" ;
-    gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength "4096"^^xsd:nonNegativeInteger ;
-    gmeow:trainsOverCorpus gmeow:corpusGmeowClaimsV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -2517,10 +2494,9 @@ gmeow:payloadSchemaStatementsArchive
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — statements archive"@x-gmeow-english ;
-    skos:definition "The RDF 1.2 statement layer's two committed byte projections, keyed by repo-relative path: the OWL downcast generated/statements/gmeow-statements.owl.ttl and the RDF-1.2 lead generated/statements/gmeow.rdf12.ttl, compiled once by gmeow:stage-statements and only tarred by gmeow:stage-archive-blobs. Both are BYTE-DECORATED RDF — their committed form carries generated banners and section markers that are not graph data — so they cannot reconstruct from a canonical named-graph fold and have always travelled as bytes. They ride THIS rep, and no longer the generated-opaque archive, because a rep is the unit a dictionary primes: welded to the general archive they were primed by the core dictionary, leaving gmeow:dictGmeowClaimsV1 with only the ~9 KB gmeow:payloadSchemaYamlLdArchive. Nothing that was a graph becomes bytes — the queryable statement semantics keep riding the graph/statements named graph — so only the medium assignment of bytes that were already bytes changed. It is primed by gmeow:dictGmeowClaimsV1."@x-gmeow-english ;
+    skos:definition "The RDF 1.2 statement layer's two committed byte projections, keyed by repo-relative path: the OWL downcast generated/statements/gmeow-statements.owl.ttl and the RDF-1.2 lead generated/statements/gmeow.rdf12.ttl, compiled once by gmeow:stage-statements and only tarred by gmeow:stage-archive-blobs. Both are BYTE-DECORATED RDF — their committed form carries generated banners and section markers that are not graph data — so they cannot reconstruct from a canonical named-graph fold and have always travelled as bytes. They ride THIS rep, and no longer the generated-opaque archive, because a rep is the unit a dictionary primes and welding them into the general archive made their medium assignment an accident of packaging. Nothing that was a graph becomes bytes — the queryable statement semantics keep riding the graph/statements named graph — so only the medium assignment of bytes that were already bytes changed. It carries NO gmeow:payloadSchemaDictionary: the claim dictionary the rep was separated out for was retired once the sweep priced it, because over this population its own in-band bytes cost more than the frames it saved, and gmeow:payloadSchemaDictionary is optional precisely so a rep may ride the mandated medium unprimed rather than carry a dictionary that does not pay."@x-gmeow-english ;
     gmeow:payloadSchemaId "statements-archive" ;
-    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
-    gmeow:payloadSchemaDictionary gmeow:dictGmeowClaimsV1 ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileBaselineL12 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
@@ -2572,10 +2548,9 @@ gmeow:payloadSchemaYamlLdArchive
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — YAML-LD archive"@x-gmeow-english ;
-    skos:definition "The CLAIM CORPUS's JSON-LD-star and YAML-LD-star projections: the RDF 1.2 statement layer rendered into the JSON-LD family, tarred by gmeow:stage-archive-blobs off gmeow:stage-statements' rendered surface so a JSON-LD-family consumer reads the reified statement layer straight out of the bundle. NOT the whole carrier — that document is the make build deliverable dist/gmeow.jsonld, which rides no frame. Its members carry no committed generated/ path, so it appears in no gmeow:FanoutExtraction row: the archive is a bundle-only deliverable, not a reconstruction target. It is primed by gmeow:dictGmeowClaimsV1 together with gmeow:payloadSchemaStatementsArchive: on its own this is ONE frame of roughly nine kilobytes, which no cell of the (strategy × target-length) grid can pay for, so the claim dictionary is measured over the claim corpus's whole frame set rather than over this frame alone."@x-gmeow-english ;
+    skos:definition "The CLAIM CORPUS's JSON-LD-star and YAML-LD-star projections: the RDF 1.2 statement layer rendered into the JSON-LD family, tarred by gmeow:stage-archive-blobs off gmeow:stage-statements' rendered surface so a JSON-LD-family consumer reads the reified statement layer straight out of the bundle. NOT the whole carrier — that document is the make build deliverable dist/gmeow.jsonld, which rides no frame. Its members carry no committed generated/ path, so it appears in no gmeow:FanoutExtraction row: the archive is a bundle-only deliverable, not a reconstruction target. It carries NO gmeow:payloadSchemaDictionary. A claim dictionary once primed it together with gmeow:payloadSchemaStatementsArchive, on the reasoning that this frame alone — roughly nine kilobytes — is too small a population for any cell of the (strategy × target-length) grid to pay for. Measured over the whole two-frame claim corpus it still did not pay: the frames coded 2,635 B smaller while the dictionary's own in-band bytes cost 4,094 B, so it was retired rather than shipped as dead weight."@x-gmeow-english ;
     gmeow:payloadSchemaId "yaml-ld-archive" ;
-    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
-    gmeow:payloadSchemaDictionary gmeow:dictGmeowClaimsV1 ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileBaselineL12 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 

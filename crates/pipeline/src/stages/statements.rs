@@ -18,7 +18,8 @@
 //! JSON-LD-star + YAML-LD-star projections of the SAME frozen dataset — onto the
 //! INTERNAL [`RDF12_JSONLD_PATH`] / [`RDF12_YAMLLD_PATH`] lane. They are not committed
 //! files: their shipping channel is the bundle's `yaml-ld-archive` frame, which
-//! `stage-archive-blobs` tars off this product and `gmeow:dictGmeowClaimsV1` primes.
+//! `stage-archive-blobs` tars off this product. The frame rides UNPRIMED: the claim
+//! dictionary that once selected it did not pay for its own in-band bytes.
 //!
 //! oxigraph-free. Every parse routes through `purrdf::parse_dataset`
 //! and merges via `RdfDataset::union`; the invariant + lossless checks call the
@@ -46,7 +47,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// data, so it cannot reconstruct from a canonical named-graph fold and travels as a
 /// byte projection. It rides
 /// [`REP_STATEMENTS`](crate::stages::archive_blobs::REP_STATEMENTS) — the claim
-/// corpus's own rep, primed by `gmeow:dictGmeowClaimsV1` — while the queryable
+/// corpus's own rep, which rides the dictionary-less medium — while the queryable
 /// statement semantics keep riding the `graph/statements` named graph.
 pub const OWL_PATH: &str = "generated/statements/gmeow-statements.owl.ttl";
 /// Committed logical path of the RDF 1.2 lead artifact. Byte-decorated with
@@ -619,7 +620,7 @@ impl Stage for StatementsStage {
         // parsed into — never re-derived downstream, and never from the committed file,
         // which is not flushed until the post-run reconcile returns. `stage-archive-blobs`
         // tars these two into the bundle's `yaml-ld-archive` frame, the frame
-        // `gmeow:dictGmeowClaimsV1` primes: a JSON-LD-family consumer reads the reified
+        // that rides unprimed: a JSON-LD-family consumer reads the reified
         // statement layer directly, in the syntax whose distinguishing repeated substrings
         // (the reifier IRIs, the `gmeow:qSubject`/`qPredicate`/`qObject` coat, the
         // standpoint qualifiers) are exactly what that dictionary is trained on.
@@ -887,7 +888,7 @@ mod tests {
     /// so a render that silently emptied, moved onto a committed path, or lost the
     /// reification coat reds here in seconds instead of at the end of a full pipeline
     /// run. The complementary whole-bundle clause (the frame is EMITTED and
-    /// `gmeow-claims-v1` primes it) lives in `tests/medium_bundle.rs`.
+    /// it rides unprimed) lives in `tests/medium_bundle.rs`.
     #[test]
     fn the_claim_corpus_json_ld_family_rides_the_internal_lane() {
         let root = repo_root();

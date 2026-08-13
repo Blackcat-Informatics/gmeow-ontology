@@ -66,7 +66,8 @@ pub const REP_SCHEMAS: &str = "schemas-archive";
 pub const REP_MODELS_PYTHON: &str = "models-python";
 /// tar of `gmeow.rdf12.jsonld` + `gmeow.rdf12.yamlld` — the JSON-LD-star and
 /// YAML-LD-star projections of the CLAIM CORPUS (the RDF 1.2 statement layer), the
-/// frame `gmeow:dictGmeowClaimsV1` primes. The producer side re-exports this constant
+/// frame. It rides the dictionary-less medium: its claim dictionary was retired once the
+/// sweep priced it. The producer side re-exports this constant
 /// (`crate::stages::archive_blobs::REP_YAMLLD`), so no drift is possible.
 ///
 /// NOT the whole carrier: that document is the `make build` deliverable

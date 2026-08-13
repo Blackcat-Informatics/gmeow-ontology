@@ -2012,7 +2012,7 @@ pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 
 // NOT HERE: `yaml-ld-archive`. Its writer used to be a `#[cfg(test)]` twin of this
 // module's sink folds, so the production terminal authored no such frame and
-// `gmeow:dictGmeowClaimsV1` primed nothing. It is now a real archive folded by
+// the dictionary selecting it primed nothing. It is now a real archive folded by
 // [`crate::stages::archive_blobs`] (which owns every by-reference TAR rep) off
 // `stage-statements`' rendered claim-corpus surface, and the sink READS it back with
 // the other nine — one authority for archive membership, no inline sink fold.
@@ -2572,8 +2572,10 @@ fn collect_fanout_opaque_members(
     // their OWN rep, [`REP_STATEMENTS`](crate::stages::archive_blobs::REP_STATEMENTS),
     // folded by `stage-archive-blobs` off the same `stage-statements` product. A rep is
     // the unit a `gmeow:CompressionDictionary` primes, so leaving them in this archive
-    // left `gmeow:dictGmeowClaimsV1` with nothing but the ~9 KB `yaml-ld-archive` to
-    // prime. Nothing that was a graph becomes bytes: the queryable statement semantics
+    // left the claim dictionary with nothing but the ~9 KB `yaml-ld-archive` to prime.
+    // Measured over both reps it still did not pay and was retired, so they ride the
+    // dictionary-less medium. Nothing that was a graph becomes bytes: the queryable
+    // statement semantics
     // keep riding `graph/statements`. `opaque_already_carried` refuses both paths, so
     // they can never double-carry.
     // metadata (void.ttl + dcat.ttl) — byte-decorated, carried as byte projections; read
