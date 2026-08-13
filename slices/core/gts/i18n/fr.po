@@ -810,3 +810,29 @@ msgstr "Levé par l'émetteur de rédaction imposé et par l'audit de trame au n
 msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to name GTS bytes that fall outside the mandated one-transform frame profile."
 msgstr "À utiliser pour nommer des octets GTS qui sortent du profil de trame imposé à transformation unique."
+
+# --- Medium round-trip lens get legs ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrBaselineL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "baseline medium get leg"
+msgstr "branche get du medium de base sans dictionnaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrBaselineL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the dictionary-less baseline medium's round-trip lens: the transaction program that reads a payload back out of a frame written through gmeow:mediumProfileBaselineL12. It names the recovery half of the correspondence, so the medium's exactness claim is carried by a program rather than asserted in prose."
+msgstr "La branche get de la lentille d'aller-retour du medium de base sans dictionnaire : le programme de transaction qui relit une charge utile hors d'une trame écrite via gmeow:mediumProfileBaselineL12. Elle nomme la moitié récupération de la correspondance, de sorte que l'assertion d'exactitude du medium est portée par un programme plutôt qu'affirmée en prose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrDistL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dist medium get leg"
+msgstr "branche get du medium de distribution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrDistL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the mandated distribution medium's round-trip lens: the transaction program that reads a payload back out of a dictionary-primed frame written through gmeow:mediumProfileDistL12. Priming changes the bytes but not the recovered payload, which is exactly what this leg makes checkable."
+msgstr "La branche get de la lentille d'aller-retour du medium de distribution imposé : le programme de transaction qui relit une charge utile hors d'une trame amorcée par dictionnaire, écrite via gmeow:mediumProfileDistL12. L'amorçage change les octets mais non la charge utile récupérée, ce que cette branche rend précisément vérifiable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrStoreL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "store medium get leg"
+msgstr "branche get du medium de stockage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrStoreL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the append-only store medium's round-trip lens: the transaction program that reads a record back out of a segment written through the runtime store profile. A store is appended to over its whole life, so its recovery leg is what keeps every earlier record readable after a later append."
+msgstr "La branche get de la lentille d'aller-retour du medium de stockage en ajout seul : le programme de transaction qui relit un enregistrement hors d'un segment écrit via le profil de stockage d'exécution. Un stockage est complété tout au long de sa vie, de sorte que sa branche de récupération est ce qui maintient lisible chaque enregistrement antérieur après un ajout ultérieur."

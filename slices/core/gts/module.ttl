@@ -1980,6 +1980,10 @@ gmeow:mediumCorrBaselineL12
 
 gmeow:mediumCorrBaselineL12Get
     a logic:TransactionProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "baseline medium get leg"@x-gmeow-english ;
+    skos:definition "The get leg of the dictionary-less baseline medium's round-trip lens: the transaction program that reads a payload back out of a frame written through gmeow:mediumProfileBaselineL12. It names the recovery half of the correspondence, so the medium's exactness claim is carried by a program rather than asserted in prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:path gmeow:mediumCorrBaselineL12Step .
 
 gmeow:mediumCorrDistL12
@@ -2001,6 +2005,10 @@ gmeow:mediumCorrDistL12
 
 gmeow:mediumCorrDistL12Get
     a logic:TransactionProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "dist medium get leg"@x-gmeow-english ;
+    skos:definition "The get leg of the mandated distribution medium's round-trip lens: the transaction program that reads a payload back out of a dictionary-primed frame written through gmeow:mediumProfileDistL12. Priming changes the bytes but not the recovered payload, which is exactly what this leg makes checkable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:path gmeow:mediumCorrDistL12Step .
 
 gmeow:mediumCorrStoreL12
@@ -2022,6 +2030,10 @@ gmeow:mediumCorrStoreL12
 
 gmeow:mediumCorrStoreL12Get
     a logic:TransactionProgram ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "store medium get leg"@x-gmeow-english ;
+    skos:definition "The get leg of the append-only store medium's round-trip lens: the transaction program that reads a record back out of a segment written through the runtime store profile. A store is appended to over its whole life, so its recovery leg is what keeps every earlier record readable after a later append."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:path gmeow:mediumCorrStoreL12Step .
 
 # --- The seven shipped dictionaries and their corpora ------------------------ #

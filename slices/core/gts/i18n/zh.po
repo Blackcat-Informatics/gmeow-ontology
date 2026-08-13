@@ -274,3 +274,29 @@ msgstr "由强制的编写发射器以及验证任何生产者输出的线级帧
 msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to name GTS bytes that fall outside the mandated one-transform frame profile."
 msgstr "用于命名落在强制单变换帧规格之外的 GTS 字节。"
+
+# --- Medium round-trip lens get legs ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrBaselineL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "baseline medium get leg"
+msgstr "无字典基线介质的 get 分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrBaselineL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the dictionary-less baseline medium's round-trip lens: the transaction program that reads a payload back out of a frame written through gmeow:mediumProfileBaselineL12. It names the recovery half of the correspondence, so the medium's exactness claim is carried by a program rather than asserted in prose."
+msgstr "无字典基线介质往返透镜的 get 分支：将有效载荷从经 gmeow:mediumProfileBaselineL12 写入的帧中读回的事务程序。它命名了该对应关系的恢复一半，因此该介质的精确性主张由程序承载，而非以散文断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrDistL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dist medium get leg"
+msgstr "分发介质的 get 分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrDistL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the mandated distribution medium's round-trip lens: the transaction program that reads a payload back out of a dictionary-primed frame written through gmeow:mediumProfileDistL12. Priming changes the bytes but not the recovered payload, which is exactly what this leg makes checkable."
+msgstr "强制分发介质往返透镜的 get 分支：将有效载荷从经 gmeow:mediumProfileDistL12 写入、由字典预热的帧中读回的事务程序。预热改变字节但不改变所恢复的有效载荷，而这正是此分支使之可核查的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrStoreL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "store medium get leg"
+msgstr "存储介质的 get 分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrStoreL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the append-only store medium's round-trip lens: the transaction program that reads a record back out of a segment written through the runtime store profile. A store is appended to over its whole life, so its recovery leg is what keeps every earlier record readable after a later append."
+msgstr "仅追加存储介质往返透镜的 get 分支：将记录从经运行时存储规格写入的段中读回的事务程序。存储在其整个生命周期中被不断追加，因此其恢复分支正是使每条较早记录在后续追加之后仍可读的保障。"
