@@ -1429,7 +1429,6 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-research-objects ,
     gmeow:fanout-edoal-projections ,
     gmeow:fanout-medium-dictionary-effect ,
-    gmeow:fanout-medium-gmeow-claims-v1 ,
     gmeow:fanout-medium-gmeow-core-v1 ,
     gmeow:fanout-medium-gmeow-lang-ast-v1 ,
     gmeow:fanout-medium-gmeow-logic-v1 ,
@@ -1625,15 +1624,6 @@ gmeow:fanout-medium-dictionary-effect a gmeow:FanoutExtraction ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/medium/dictionary-effect.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
-
-
-gmeow:fanout-medium-gmeow-claims-v1 a gmeow:FanoutExtraction ;
-    rdfs:label "fanout medium dictionary gmeow-claims-v1"@x-gmeow-english ;
-    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-claims-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-claims-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:extractsPath "generated/medium/gmeow-claims-v1.zdict" ; gmeow:extractsMatch "exact" ;
-    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
 
 gmeow:fanout-medium-gmeow-core-v1 a gmeow:FanoutExtraction ;
     rdfs:label "fanout medium dictionary gmeow-core-v1"@x-gmeow-english ;
@@ -1894,7 +1884,6 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-wordnet.sssom.tsv",
     "generated/mappings/gmeow-work-orchestration.sssom.tsv",
     "generated/medium/dictionary-effect.ttl",
-    "generated/medium/gmeow-claims-v1.zdict",
     "generated/medium/gmeow-core-v1.zdict",
     "generated/medium/gmeow-lang-ast-v1.zdict",
     "generated/medium/gmeow-logic-v1.zdict",
