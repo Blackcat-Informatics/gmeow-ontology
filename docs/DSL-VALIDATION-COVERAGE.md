@@ -15,7 +15,7 @@
 > phases were **dark** while the target's help advertised "DSL SHACL". This is
 > the defect class [`docs/GATE-AND-PIPELINE.md`](./GATE-AND-PIPELINE.md) names:
 > "a false claim in help text or a comment is itself a defect." This record is
-> the human-readable half of the fix (issue 1671, acceptance item 1); the
+> the human-readable half of the fix; the
 > machine-checkable halves are the help⟺registry test in
 > `crates/gmeow-dev-cli/tests/make_gate_contract.rs` and the liveness test in
 > `crates/validate/tests/dsl_shacl_live.rs`.
@@ -29,15 +29,15 @@ tests all read that registry; this document is its prose companion. If the two
 disagree, the `make_gate_contract.rs` help⟺registry assertion fails — the drift
 cannot pass silently.
 
-## Per-phase decision (issue 1671, "what done looks like" item 1)
+## Per-phase decision
 
 | Phase | Surface | Gate | Home (who executes it) | Citation |
 |---|---|---|---|---|
 | 9 — example **coverage** (every slice ships ≥1 example) | `slices/*/*/examples/` | `make check` | The live `validate` gate, via Phase 5c | `crates/validate/src/validate_all.rs:749` (`check_example_coverage`, `:1819`) |
 | 10 — per-example **SHACL** (each example vs merged-module TBox) | `slices/*/*/examples/*.ttl` (204 files) | `make check` | `crates/validate/tests/example_sweep.rs` (rust-test) — **deliberately not** re-run in the `validate` gate | `crates/validate/tests/example_sweep.rs`; `validate_all.rs:876` (the `slices_dir`-guarded in-gate copy left OFF) |
-| 11 — **mapping** DSL SHACL | `dsl/mappings/**/*.ttl` vs `shapes/mapping-dsl-shapes.ttl` | `make check` | The live `validate` gate (wired by issue 1671) | `validate_all.rs:910`; `dev_validate.rs` (authored-source path) |
-| 12 — **statement** DSL SHACL | `dsl/statements/**/*.ttl` vs `shapes/statement-dsl-shapes.ttl` | `make check` | The live `validate` gate (wired by issue 1671) | `validate_all.rs:930`; `dev_validate.rs` |
-| 13 — **test** DSL SHACL, central | `dsl/tests/**/*.ttl` vs `shapes/test-dsl-shapes.ttl` | `make check` | The live `validate` gate (wired by issue 1671) | `validate_all.rs:950`; `dev_validate.rs` |
+| 11 — **mapping** DSL SHACL | `dsl/mappings/**/*.ttl` vs `shapes/mapping-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:910`; `dev_validate.rs` (authored-source path) |
+| 12 — **statement** DSL SHACL | `dsl/statements/**/*.ttl` vs `shapes/statement-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:930`; `dev_validate.rs` |
+| 13 — **test** DSL SHACL, central | `dsl/tests/**/*.ttl` vs `shapes/test-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:950`; `dev_validate.rs` |
 | 13 — **test** DSL SHACL, slice-local | `slices/*/*/tests/*.ttl` | `make check` | `crates/slicetest` (`datatest-stable` rust-test) — already SHACL-validates these vs `shapes/test-dsl-shapes.ttl` | `crates/slicetest/src/exec.rs:764`, `:1005` |
 
 ### Why these placements
