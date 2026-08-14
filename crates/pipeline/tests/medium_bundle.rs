@@ -1116,24 +1116,47 @@ fn no_rep_is_primed_by_a_retired_dictionary(
         );
     }
 
-    // NON-VACUITY: every rep whose dictionary assignment this work moved is still
-    // primed — by a dictionary the bundle SHIPS. No frame may fall through to the
-    // dictionary-less baseline while an assignment is being rearranged.
-    for rep in [
-        REP_YAMLLD,
-        REP_STATEMENTS,
-        REP_LANG_PROJECTIONS,
-        REP_LANG_SURFACE,
-    ] {
+    // NON-VACUITY: every rep whose dictionary assignment this work moved still has the
+    // assignment the committed evidence says it should — no frame may drift to a
+    // different medium unnoticed while an assignment is being rearranged.
+    //
+    // The two claim reps are pinned to the DICTIONARY-LESS baseline, positively rather
+    // than by omission. Their being unprimed is not a fallthrough: gmeow-claims-v1 was
+    // retired because no cell of its grid pays its own in-band bytes (23,673 B two-part
+    // against a 22,214 B baseline over the whole two-frame population), so
+    // gmeow:mediumProfileBaselineL12 IS the measured argmin for them and naming no
+    // dictionary IS the selection. Asserting that explicitly keeps the guard total: were
+    // they instead dropped from the loop, a later reassignment could re-prime them with a
+    // dictionary that loses to the baseline and nothing here would notice.
+    for rep in [REP_YAMLLD, REP_STATEMENTS] {
+        let assignment = module
+            .assignment_for(rep)
+            .unwrap_or_else(|err| panic!("rep {rep:?} has no medium assignment: {err}"));
+        assert_eq!(
+            assignment.dictionary,
+            gmeow_pipeline::medium::registry::DictSelection::Baseline,
+            "rep {rep:?} must ride the declared dictionary-less medium — no dictionary pays \
+             its own in-band bytes over the claim corpus, so priming it would COST bytes. \
+             If a future corpus changes that, move the evidence first"
+        );
+        assert_eq!(
+            assignment.medium,
+            format!("{GMEOW}mediumProfileBaselineL12"),
+            "rep {rep:?} is unprimed but not through the DECLARED baseline profile — an \
+             unprimed frame must still name the medium it was written through"
+        );
+    }
+
+    // The two lang reps stay primed, by a dictionary the bundle SHIPS.
+    for rep in [REP_LANG_PROJECTIONS, REP_LANG_SURFACE] {
         let assignment = module
             .assignment_for(rep)
             .unwrap_or_else(|err| panic!("rep {rep:?} has no medium assignment: {err}"));
         let gmeow_pipeline::medium::registry::DictSelection::Named(iri) = &assignment.dictionary
         else {
             panic!(
-                "rep {rep:?} fell back to the dictionary-less baseline medium — every one of \
-                 these frames must name a shipped dictionary, never lose compression to a \
-                 reassignment"
+                "rep {rep:?} fell back to the dictionary-less baseline medium — these frames \
+                 must name a shipped dictionary, never lose compression to a reassignment"
             );
         };
         let def = module
