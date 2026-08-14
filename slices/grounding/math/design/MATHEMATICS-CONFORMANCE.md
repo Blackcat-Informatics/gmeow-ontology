@@ -417,6 +417,13 @@ rules below turn the shared bridge contract into gates.
 | A bridge's lift is lawful — its residue is carried in the `logic:mnemomorphic` witness or enumerated `unsupported`; an unsupported or silently-partial drop hard-fails | Rust validator | `math:UnliftableIngest` |
 | A proof QED result object is grounded *by* an observation with a vantage (result ≠ claim) | SHACL-SPARQL (`math:FormalVerificationResultVantageGroundingConstraint`, a conditional-existence rule over the grounding observation and its vantage) | `math:UngroundedVerificationResult` |
 | A `math:FittedModel` references data (`math:fittedToData`) and a model specification (`math:modelFormula`) | SHACL Core | `math:UnfittedModel` |
+| A bridge run's `math:parseSource` witness HOLDS its source — verbatim (`math:retainedSource`) or by reference (`math:sourceDigest`) | SHACL-SPARQL (`math:IngestSourceHeldConstraint`) | `math:UnreadableIngestSource` |
+| A `math:RIngestRun`'s witness retains its script VERBATIM — an R script is text, never blob-scale | SHACL-SPARQL (`math:RIngestSourceRetainedConstraint`) | `math:MalformedRScript` |
+| A `math:ProofIngestRun`'s witness retains its derivation VERBATIM — TSTP is text | SHACL-SPARQL (`math:ProofIngestSourceRetainedConstraint`) | `math:MalformedTSTPDerivation` |
+| A `math:ONNXIngestRun`'s witness NAMES the model it decoded (`math:sourceDigest`) — the model is blob-scale binary held by reference | SHACL-SPARQL (`math:ONNXIngestSourceIdentifiedConstraint`) | `math:MalformedONNXWireFormat` |
+| Every `math:ArgumentSlot` of a `math:ModelFormula` carries a `math:slotExpression` — an indexed slot with no expression is a formula the lift never structured | SHACL-SPARQL (`math:ModelFormulaSlotExpressionConstraint`) | `math:UnliftableRComputation` |
+| A `math:TensorComputationGraph` names the model it is the architecture OF (`math:architectureOf`) | SHACL-SPARQL (`math:TensorGraphArchitectureConstraint`) | `math:UnliftableTensorGraph` |
+| A `math:ProofDependencyGraph` names the `math:Proof` it underlies (`math:dependencyGraphOf`) | SHACL-SPARQL (`math:ProofDependencyGraphAnchoredConstraint`) | `math:IllFoundedProofDerivation` |
 
 The unliftable-ingest rule is the charter's distinguished **native validator** gate. It is not a bare
 side-channel: it is the process-layer projection of the correspondence calculus's Overclaim and
@@ -427,6 +434,20 @@ shared `logic:` discharge and loss-ledger vocabulary verbatim (Principle 17) rat
 `math:` preservation shadow. A bridge hard-fails on the unliftable; it never emits a degraded or
 string-valued placeholder, because "for *any* input" is a universality bar, not a best-effort
 aspiration.
+
+The last seven rows are the **ingestion-refusal residues**, and they are gated one step later than
+they are raised. Their classes name what a front-end refuses in Rust, below the graph
+(`crates/math-lift/src/error.rs`): bytes that are not UTF-8 before any grammar runs, R or TSTP text
+the grammar rejects, `.onnx` bytes that are not well-formed protobuf, a decoded model or derivation
+with no image in `math:`. No counter-example TTL can carry malformed protobuf or invalid UTF-8, so
+none of them is dischargeable by a graph fixture at the point of refusal. Each is therefore gated on
+the **residue the same defect leaves when a run is emitted anyway** — a witness holding nothing, a
+text run that cannot show its text, a binary run that names no digest, a formula slot with no
+expression, a forward pass that is the architecture of nothing, a DAG that underlies nothing. Every
+one is a `logic:Constraint` over a `logic:Formula` AST and so projects to SHACL-SPARQL. The
+dialect-scoped rows are deliberately narrower than the shared one: an R or TSTP run discharges the
+general hold-your-source obligation with a digest and still fails its own verbatim-retention rule,
+which is what lets each counter-example isolate a single class.
 
 ### Flagship acceptance-manifest rules
 

@@ -130,7 +130,12 @@ ex:badRun a math:RIngestRun ;
     math:ingestCorrespondence ex:badCorr ;
     logic:instantiatesSchema ex:badSchema ;
     logic:instantiatesPlan ex:badPlan .
-ex:badSrc a math:MathematicalObject ; logic:loadBearing true .
+# The witness RETAINS the script: the run's defect is that it lifted nothing, not that it
+# could not read what it was given. A witness holding neither the text nor a digest would
+# make this a math:UnreadableIngestSource / math:MalformedRScript case as well, and a
+# minimal violation stays minimal only when it is well-formed everywhere else.
+ex:badSrc a math:MathematicalObject ; logic:loadBearing true ;
+    math:retainedSource "plot(mtcars$wt, mtcars$mpg)" .
 ex:badSchema a logic:ActionSchema .
 ex:badPlan a logic:Plan .
 ex:badCorr a logic:Correspondence ;

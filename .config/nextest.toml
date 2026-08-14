@@ -49,6 +49,8 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
     | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))
+    | (package(gmeow-cli) & binary(medium_cli))
+    | (package(gmeow-dev-cli) & binary(medium_gate))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -77,6 +79,58 @@ fail-fast = false
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood|fanout_parity/)'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
+
+# The whole-bundle MEDIUM gate runs the production DAG once, in memory, and audits the
+# bundle it emits (in-band dictionary table, one envelope per frame, the stratified
+# snapshot digest, the primed runtime stores). It is ON-gate deliberately: every claim
+# it makes is about the SHIPPED artifact, and a component test cannot make any of them.
+# A whole-DAG execution is minutes, so it gets the runaway backstop the sibling
+# whole-pipeline proofs use rather than the 60s default that fits focused unit tests.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(medium_bundle)'
+slow-timeout = { period = "900s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The MEDIUM IDENTITY GATE emits the real carrier TWICE from one in-memory DAG run —
+# once under the authored `gmeow:mediumProfileDistL12` assignment and once under the
+# declared `gmeow:mediumProfileBaselineL12` — then folds, canonicalizes and projects
+# both. It is the razor for the whole axis (a zstd-compressed claim is the same claim),
+# so it is ON-gate deliberately, and it costs a whole-DAG execution plus a second
+# emission. Same runaway backstop as the sibling whole-bundle medium gate.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(medium_identity_gate)'
+slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The two CONSUMER-SURFACE medium suites. `crates/gmeow-cli/build.rs` embeds
+# `generated/dist/gmeow.gts`, which is a git-ignored LOCAL product, so a suite that read
+# the embedded bytes would assert against whatever happened to be on disk. Both suites
+# therefore run the production DAG once, in memory, write the emitted bundle to a temp
+# path, and drive the real `gmeow` / `gmeow-dev` binaries against THAT file — plus a real
+# runtime store and five tampered breach fixtures.
+#
+# They are OFF the local gate: the default filter above excludes both binaries, and
+# `make medium-consumer-surface` (a `HEAVY_TASKS` member, so it runs on every PR) drives
+# them on the `maint-heavy` profile. The reason is P6 criterion 2 in
+# docs/GATE-AND-PIPELINE.md — a whole-DAG execution plus a real store plus five breach
+# fixtures is priced by the breadth of the pipeline, not by the edit under test, and
+# reserving the host for each doubles that cost onto everything else queued behind them.
+# The axis's razor stays on `make check`: `medium_identity_gate` and `medium_bundle` are
+# change-dominated and are the two proofs about the SHIPPED artifact itself.
+#
+# The budget below still applies (the `maint-heavy` profile inherits these overrides).
+# `threads-required` reserves the host for each of them. It is not a scheduling nicety:
+# the DAG run inside creates its own full-width worker pool, so two of these executing
+# concurrently halve each other's parallelism and BOTH drift past the backstop — which is
+# a timeout that says nothing about the code. Reserving the host makes each run's wall
+# clock a property of the pipeline rather than of what else nextest happened to schedule.
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & binary(medium_cli)'
+slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-dev-cli) & binary(medium_gate)'
+slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
 
 # The three book-PACKING cases render the whole mdBook and vendor the wasm engines
 # into it; the rest of that binary checks summaries and links and costs 12-15s. Only

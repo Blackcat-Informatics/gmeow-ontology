@@ -6,7 +6,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-# The cognition module's KnowledgeProficiency well-formedness obligations (issue #556) are
+# The cognition module's KnowledgeProficiency well-formedness obligations are
 # authored entirely as logic: core content in slices/core/cognition/module.ttl and projected
 # to generated/shapes/validation-shapes.ttl + generated/shapes/procedural-constraints.ttl. This
 # file carries no hand-authored sh:NodeShape: every check is a canonical logic: constraint or

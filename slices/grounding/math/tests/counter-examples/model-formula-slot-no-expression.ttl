@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ModelFormulaSlotExpressionConstraint: a math:ModelFormula
+# whose math:ArgumentSlot carries its index but NO math:slotExpression. The R lift
+# renders a model formula as a binder over INDEXED operand slots precisely so the
+# response, terms, interactions and offsets are inspectable structure; a slot with an
+# index and no expression is a formula the lift could not structure, which is the
+# graph-side residue of the front-end's math:UnliftableRComputation refusal.
+#
+# The formula is well-formed everywhere else, so the violation stays minimal: it carries
+# the one math:argumentSlot its own min-1 frame requires (so it is not
+# math:UnframedFunction), the slot carries a single xsd:integer math:slotIndex within
+# math:ArgumentSlot's max-1 frame (so it is not math:MalformedArgumentSlot), and no part
+# of the expression is represented by a bare string literal. The obligation is about the
+# SLOT rather than the formula's own cardinality, so it has no OWL antecedent to lean on
+# and is authored as a logic:Constraint. It fires
+# math:ModelFormulaSlotExpressionConstraint (shacl.SPARQLConstraintComponent →
+# math:UnliftableRComputation).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/math/model-formula-slot-no-expression/> .
+
+ex:formula a math:ModelFormula ;
+    math:argumentSlot ex:slot0 .
+
+# Indexed, and empty: the ~ binder's slot is present with nothing bound into it.
+ex:slot0 a math:ArgumentSlot ;
+    math:slotIndex "0"^^xsd:integer .

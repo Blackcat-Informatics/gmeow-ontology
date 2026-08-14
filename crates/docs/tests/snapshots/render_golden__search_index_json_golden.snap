@@ -11,21 +11,22 @@ expression: summary
     "url": "concerns/concerndisclosure/index.html"
   },
   "last": {
-    "definition": "Persistent-homology analysis over a sequence whose structure maps may point forward or backward, permitting additions and removals. It is not ordinary forward-only persistence.",
-    "id": "math:ZigzagPersistence",
-    "kind": "term",
-    "label": "Zigzag Persistence",
-    "missing_coverage": [
-      "usage_advice",
-      "example",
-      "scope_note",
-      "fixture_pair",
-      "competency_rationale",
-      "annotation_coat",
-      "test_reach",
-      "prose_quality"
+    "advice": [
+      "Scope: this class covers the zstd-specific COORDINATES a medium adds — the declared level and the bounded dictionary set. It does not restate or replace the medium law (that stays on gmeow:mediumCorrespondence, inherited from gmeow:Medium), does not describe the dictionary itself (gmeow:CompressionDictionary), and must not be used for a medium realized by a non-zstd codec, whose level space and dictionary semantics are not these.",
+      "Use for a zstd-realized medium, dictionary-primed or explicitly dictionary-less.",
+      "Avoid treating an absent gmeow:mediumDictionary as 'unknown' (it is the declared no-dictionary selection of that medium) and avoid varying the level per call — the level is declared on the medium precisely so it cannot drift per invocation.",
+      "Mint the medium with one gmeow:mediumCodec from the zstd family, one gmeow:mediumZstdLevel, one gmeow:mediumSourceKind, and — for a per-rep medium — every gmeow:mediumDictionary its reps may select."
     ],
-    "url": "terms/zigzagpersistence/index.html"
+    "definition": "The zstd specialization of gmeow:Medium: a lawful (encode, decode) pair realized by a zstd-family codec at a declared compression level (gmeow:mediumZstdLevel) with an OPTIONAL dictionary set (gmeow:mediumDictionary). Optional means EXPLICITLY DECLARED, not absent: the dictionary-less medium is itself a named individual (gmeow:mediumProfileBaselineL12), so 'no dictionary' is a selection a frame makes, never a hole it falls into. The level is part of the declared medium because a level change is a byte-level change to every artifact the medium produces.",
+    "id": "gmeow:ZstdDictMedium",
+    "kind": "term",
+    "label": "Zstd Dictionary Medium",
+    "missing_coverage": [
+      "fixture_pair",
+      "worked_instance",
+      "translation_coverage"
+    ],
+    "url": "terms/zstddictmedium/index.html"
   },
-  "record_count": 7307
+  "record_count": 7387
 }

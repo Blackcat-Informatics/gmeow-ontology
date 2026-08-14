@@ -138,6 +138,14 @@ resolver = "2"
 # deterministic-evaluation-governor merge, which unified `PagedQueryError::{Cancelled,
 # DeadlineExceeded}` into `Stopped { cause: StopCause, .. }`; the crates.io 0.12.0 release
 # predates that API and cannot carry it.
+#
+# The rev is downstream of `rust-v0.12.0`, so it also carries what the machine-compression
+# medium consumes: the multi-dictionary GTS writer (many named in-band dictionaries,
+# per-frame selection, `zstd-rsyncable` dictionary priming, an explicit training seed and a
+# declared catalog `level`) plus `DictStrategy::Pinned`, which lets a compaction plan carry
+# the SHIPPED dictionary bytes verbatim so one `gmeow:dictionaryId` resolves to exactly one
+# byte sequence. It likewise supersedes the older rev pin that carried the ownership
+# analyzer's term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term).
 purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "a59d9f2d" }
 
 # EXACT, and declared ONCE. The wasm-bindgen CLI that generates the JS bindings refuses to

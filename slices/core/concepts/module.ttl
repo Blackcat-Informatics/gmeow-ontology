@@ -184,8 +184,8 @@ gmeow:ConceptCategorization logic:subClassOf
 # so max1 already rides its own SubjectsOf(observedFeature) shape; its own range is
 # deliberately open (owl:Thing — "anything can be observed"), so the gmeow:Entity class
 # obligation is genuinely class-local here too. The PRIOR authoring used a
-# `owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Entity` restriction (the #1194
-# "restoration" pattern) — a SPECIFIC-class-qualified restriction projects ONLY a
+# `owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Entity` restriction (the class-qualified
+# restriction "restoration" pattern) — a SPECIFIC-class-qualified restriction projects ONLY a
 # `sh:qualifiedMinCount`, which never matches the legacy BARE `sh:minCount 1`
 # (frontend.rs derive_validation_shapes). Replaced with the proven allValuesFrom +
 # class-scoped ClosureEntry recipe (bare min1 + sh:class), matching citations/graphrag.
@@ -210,7 +210,7 @@ gmeow:ConceptCategorization logic:subClassOf
 # SubjectsOf(duringInterval) shape, so (like conceptHoldsFor) only the class-scoped
 # min1+class half needs authoring here. The PRIOR authoring used a
 # SPECIFIC-class-qualified `owl:onClass gmeow:TimeInterval` restriction for BOTH the
-# min and max side (the #1194 pattern) — replaced with allValuesFrom + ClosureEntry
+# min and max side (the class-qualified-restriction pattern) — replaced with allValuesFrom + ClosureEntry
 # (no scoped max restriction needed: the property is already globally functional).
 gmeow:ConceptTenure logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:conceptHoldsFor ; logic:allValuesFrom gmeow:Concept ] ,

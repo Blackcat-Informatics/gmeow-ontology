@@ -60,6 +60,7 @@ define_diag_kind! {
     code = "slice-quality.record";
     grade = sq_grade!();
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord";
 }
 
 define_diag_kind! {

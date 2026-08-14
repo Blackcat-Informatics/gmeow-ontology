@@ -276,6 +276,21 @@ no-op occupying the critical path on a developer's gate (criterion 3), while
 hard-failing in CI so the parity criterion is never silently unverified on the
 gating path.
 
+`medium-consumer-surface` joined them later, and it is the sharpest illustration
+of criterion 2 *within one axis*. The medium axis landed four whole-DAG-in-memory
+suites at once. Two of them — `medium_identity_gate` (the same carrier emitted
+under a second declared medium, folded and compared) and `medium_bundle` (the
+shipped bundle's dictionary table, envelopes and stratified digest) — are proofs
+about the deliverable that a source edit can genuinely break, so they stayed on
+`make check`. The other two — `medium_cli` and `medium_gate` — drive shipped
+*consumer verbs* over that same emission plus a real runtime store and five
+tampered breach fixtures; their cost is the pipeline's breadth, they each reserve
+the host (`threads-required = "num-cpus"` in `.config/nextest.toml`), and so on a
+developer's gate they serialize everything else behind two full pipeline runs.
+The membership decision is therefore *per suite*, never per subsystem: "the
+medium tests" is not a unit that moves together, and moving all four would have
+taken the axis's razor off the gate it exists to hold.
+
 **The refusal.** `make heavy` requires `CI=true` **and** a CI-vendor marker
 (`GITHUB_ACTIONS`, `GITLAB_CI`, or `BUILDKITE_BUILD_ID`), so a developer who
 happens to have exported `CI` cannot trip it by accident. There is no override

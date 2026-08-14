@@ -2,7 +2,7 @@
 # and under which disclosure marks?"
 # Expected: the places key-source properties eligible for gmeow:consumerIndexProjection
 # (coordinates, geometry, serializations, frame), each annotated with whether it is
-# gmeow:coarsenGuarded. Normative ruling (issue #1677): an index built over a
+# gmeow:coarsenGuarded. Normative ruling: an index built over a
 # coarsenGuarded key-source property is itself guarded, so any projection of that index
 # disclosed to gmeow:consumerPublicSite MUST coarsen to the guarded granularity first.
 

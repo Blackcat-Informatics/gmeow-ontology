@@ -1967,6 +1967,91 @@ pub fn derive_validation_shapes(
             .push(pc);
     }
 
+    // ── Node-kind sugar (logic:PathNodeKindConstraint) → declarative sh:nodeKind ──────────────
+    // A CLASS-SCOPED node-kind record (one carrying `logic:onClass`) grounds a `sh:nodeKind`
+    // facet DECLARATIVELY on that class's node shape, exactly as the unique-language sugar above
+    // grounds `sh:uniqueLang`: `sh:nodeKind` is a faithful SHACL-Core facet, so it belongs on the
+    // class node shape the declarative readers (JSON-Schema / Pydantic / ShEx) consume, not only
+    // in the record's procedural SPARQL twin. It is the ONLY authored form for an IRI-vs-blank
+    // obligation: `sh:class C` admits a blank node typed `C`, and OWL's universal fillers invert
+    // to at most `sh:BlankNodeOrIRI` (`owl:Thing`) — neither can say "IRI, not blank".
+    // A record with NO `logic:onClass` is PATH-scoped (its guard is the value path itself, and
+    // its target is `sh:targetSubjectsOf`, not a class), so it has no class node shape to ride
+    // and keeps its procedural projection alone.
+    let node_kind_ty = Node::iri(logic_iri("PathNodeKindConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &node_kind_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(kind)) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+            value(store, &rec, &nn(&logic_iri("nodeKind")))
+                .and_then(|t| shacl_node_kind_of(&term_str(&t))),
+        ) else {
+            continue;
+        };
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::NodeKindShacl(kind)],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
+    // ── String-pattern sugar (logic:StringPatternConstraint) → declarative sh:pattern ─────────
+    // A CLASS-SCOPED regex record (one carrying `logic:onClass`) grounds a `sh:pattern` facet
+    // DECLARATIVELY on that class's node shape, on exactly the reasoning of the node-kind sugar
+    // above: `sh:pattern` is a faithful SHACL-Core facet, so it belongs on the class node shape
+    // the declarative readers consume, not only in the record's procedural SPARQL twin.
+    //
+    // This is the ONLY route by which a lexical-form obligation reaches a derived property
+    // shape. The alternative — an `owl:withRestrictions` datarange carrying `xsd:pattern` — is
+    // the only OTHER thing `datatype_facets` reads, and authoring one is not free: a LIVE
+    // pattern facet is outside the fragment the native reasoner decides (XSD's regular-
+    // expression dialect is not the host engine's, so `refute::datatype` withholds rather than
+    // guess), and one undecided facet family makes `reason-verify` refuse a consistency verdict
+    // for the WHOLE ontology. Deriving the component from the `logic:` constraint keeps the
+    // obligation, keeps a single authored source, and leaves the reasoned closure in-fragment.
+    //
+    // Only `regexRequired` lowers. A `regexForbidden` record is a NEGATED pattern, which SHACL
+    // Core cannot state as a property component (`sh:not` of a pattern needs a nested shape), so
+    // it keeps its procedural projection alone rather than lowering to a wrong positive facet.
+    let string_pattern_ty = Node::iri(logic_iri("StringPatternConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &string_pattern_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(regex)) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+            match value(store, &rec, &nn(&logic_iri("stringPattern"))) {
+                Some(Node::Lit { lexical, .. }) => Some(lexical),
+                _ => None,
+            },
+        ) else {
+            continue;
+        };
+        let op = value(store, &rec, &nn(&logic_iri("stringOp"))).map(|t| term_str(&t));
+        if op.as_deref() != Some("regexRequired") {
+            continue;
+        }
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::Pattern { regex, flags: None }],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
     let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
     for class in &classes {
@@ -5749,6 +5834,20 @@ fn node_kind_relation(kind: &str) -> Option<&'static str> {
         "IRI" | "iri" => Some("termIsIri"),
         "Literal" | "literal" => Some("termIsLiteral"),
         "BlankNodeOrIRI" | "BlankNodeOrIri" | "blankNodeOrIri" => Some("termIsBlankOrIri"),
+        _ => None,
+    }
+}
+
+/// The SHACL node-kind an authored `logic:nodeKind` token names — the DECLARATIVE peer of
+/// [`node_kind_relation`] (which names the same token's `logic:` term relation for the procedural
+/// lowering). Accepts exactly the same token spellings, so the two projections of one record can
+/// never disagree about which kinds are authorable; an unrecognized token yields `None` in both
+/// (the procedural reader then raises the authoritative `MALFORMED_CONSTRAINT`).
+fn shacl_node_kind_of(kind: &str) -> Option<ShaclNodeKind> {
+    match node_kind_relation(kind)? {
+        "termIsIri" => Some(ShaclNodeKind::Iri),
+        "termIsLiteral" => Some(ShaclNodeKind::Literal),
+        "termIsBlankOrIri" => Some(ShaclNodeKind::BlankNodeOrIri),
         _ => None,
     }
 }

@@ -26,3 +26,7 @@ gmeow-errors = { path = "../errors" }
 # CBOR value inspection for the wire-level frame audit. A GTS bundle IS a CBOR
 # sequence, so the audit reads it as one rather than re-parsing the RDF payload.
 ciborium = "0.2"
+# The packaging signer the streamable repack carries: `compact_gmeow_gts` re-signs
+# the segment it rewrites, so the signing key type belongs to the one crate that
+# authors segments rather than to any caller that asks it to.
+ed25519-dalek = "2"

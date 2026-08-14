@@ -872,7 +872,7 @@ gmeow:StandpointClaim rdfs:subClassOf
 # Bare min1+class backing for the properties whose legacy sh:minCount 1 the
 # qualified-onClass restorations above never satisfied (a min/maxQualifiedCardinality
 # with a SPECIFIC onClass projects only sh:qualifiedMinCount/MaxCount, never the legacy
-# BARE sh:minCount/maxCount — the #1194 restoration was a dead end for these paths).
+# BARE sh:minCount/maxCount — that qualified restoration was a dead end for these paths).
 gmeow:DoxasticState logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:epistemicAgent ; logic:allValuesFrom gmeow:Agent ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:doxasticContent ; logic:allValuesFrom gmeow:Proposition ] ,

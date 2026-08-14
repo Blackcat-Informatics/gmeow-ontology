@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency (medium axis): which build stages feed the dictionary trainer, and which stage
+# consumes what it trains? The dictionary stage's dataflow edges are DERIVED from the shipped
+# corpora rather than chosen — an archive-rep selector needs the archive stage's product, the
+# sink-folded proof-trace corpus needs the reasoning stage's product directly — so a corpus
+# that reaches for material no declared upstream produces is visible here as a missing edge.
+# The stage is identified by its Rust binding, never by a hardcoded IRI in the query.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?stage ?upstream WHERE {
+    ?stage gmeow:dataflowConsumes ?upstream .
+    {
+        ?stage gmeow:stageImpl "medium-dictionaries" .
+    } UNION {
+        ?upstream gmeow:stageImpl "medium-dictionaries" .
+    }
+}
+ORDER BY ?stage ?upstream

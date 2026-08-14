@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:TensorGraphArchitectureConstraint: a
+# math:TensorComputationGraph that names no model through math:architectureOf. A lifted
+# forward pass anchored to no math:LearnedModel is a graph standing behind nothing, so
+# the self-structure reading — an AI reading its own architecture back — has no subject;
+# that is the graph-side residue of the front-end's math:UnliftableTensorGraph refusal.
+#
+# The graph carries the math:computationNode its own min-1 frame requires, so it is NOT
+# math:MalformedTensorComputationGraph — the node-presence frame over an EMITTED graph.
+# Keeping that frame satisfied is what makes this fixture discriminate the two: this rule
+# names the refusal to emit at all, and a fixture missing both would credit the wrong
+# class. It fires math:TensorGraphArchitectureConstraint
+# (shacl.SPARQLConstraintComponent → math:UnliftableTensorGraph).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/tensor-graph-no-architecture/> .
+
+ex:graph a math:TensorComputationGraph ;
+    math:computationNode ex:matmul0 .
+
+ex:matmul0 a math:MathematicalObject .

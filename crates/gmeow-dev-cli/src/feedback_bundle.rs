@@ -58,6 +58,9 @@ pub fn build_feedback_bundle(report: &Report) -> gmeow_errors::Result<Vec<u8>> {
     let flat = render::to_json(&stamped)
         .map_err(|e| crate::error::feedback(format!("json render: {e}")))?;
 
+    // The feedback bundle is authored GMEOW GTS output, so it goes through the
+    // one mandated door: the SARIF and findings blobs are small and must NOT
+    // fall back to the plain-`zstd` default `emit_gts` would otherwise apply.
     gmeow_gts_profile::emit_gmeow_gts(
         &builder,
         Vec::new(),

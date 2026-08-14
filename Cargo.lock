@@ -1556,6 +1556,7 @@ name = "gmeow-cli"
 version = "0.2.0"
 dependencies = [
  "assert_cmd",
+ "ciborium",
  "clap",
  "ed25519-dalek",
  "gmeow-affect",
@@ -1720,6 +1721,7 @@ name = "gmeow-gts-profile"
 version = "0.2.0"
 dependencies = [
  "ciborium",
+ "ed25519-dalek",
  "gmeow-errors",
  "purrdf",
 ]
@@ -1870,6 +1872,7 @@ dependencies = [
  "ciborium",
  "docs-print",
  "ed25519-dalek",
+ "fastrand",
  "gmeow-affect",
  "gmeow-cli-core",
  "gmeow-conformance",
@@ -1881,6 +1884,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-music",
  "gmeow-ns",
  "gmeow-slice-brief",
  "gmeow-slice-quality",
@@ -1993,6 +1997,7 @@ dependencies = [
  "gmeow-affect-ingest",
  "gmeow-cost-measure",
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",

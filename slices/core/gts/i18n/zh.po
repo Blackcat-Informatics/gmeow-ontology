@@ -244,3 +244,145 @@ msgstr "GTS 头部标识规范模式约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/GtsHeadIdCanonicalConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."
 msgstr "闭世界完整性约束：gmeow:gtsHeadId 的取值必须是规范形式——字面前缀 blake3: 之后紧跟恰好 64 位小写十六进制数字（GTS 规范 §3.1、§9.1）。"
+
+# --- Mandated frame profile: the failure class and the constraint that raises it ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Frame Profile Violation"
+msgstr "GTS 帧规格违规"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when authored GTS bytes do not carry the ONE mandated frame profile: a payload-bearing frame whose transform chain is not zstd-rsyncable, a codec catalog entry that declares no level or a level other than the mandated one, a torn CBOR sequence, or bytes that do not begin with a segment header. HARD FAIL: the transform contract is a distribution invariant, not a preference — a consumer resolves a frame by the catalog the header declares, so a frame outside the profile is not a weaker bundle but an undecodable one. It is raised both by the single production emitter, which refuses to author such bytes, and by the wire-level audit that re-reads them."
+msgstr "当所编写的 GTS 字节未携带唯一强制帧规格时所引发的失败：承载有效载荷的帧其变换链不是 zstd-rsyncable、编解码器目录条目未声明级别或声明了强制级别以外的级别、CBOR 序列断裂，或字节不以段头开始。硬性失败：变换契约是分发不变式，而非偏好——消费者依据帧头所声明的目录来解析帧，因此不合规格的帧不是较弱的包，而是不可解码的包。它由唯一的生产发射器（拒绝编写此类字节）以及重读这些字节的线级审计共同引发。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:bundleWithGzipFrame a gmeow:GtsFrameProfileViolation ."
+msgstr "ex:bundleWithGzipFrame a gmeow:GtsFrameProfileViolation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this failure names a violation of the FRAME AUTHORSHIP profile — the transform, its declared level, and the wire framing that carries them. It is not a dictionary resolution failure (gmeow:MediumUnknownDictionary), not a digest disagreement (gmeow:MediumDigestMismatch), and not a judgment on the RDF the frames carry: the payload may be perfectly well-formed inside a frame nothing can decode."
+msgstr "范围：此失败命名的是对帧编写规格的违反——变换、其声明的级别，以及承载二者的线级分帧。它不是字典解析失败（gmeow:MediumUnknownDictionary），不是摘要不一致（gmeow:MediumDigestMismatch），也不是对帧所携带 RDF 的裁断：有效载荷可能在一个无物可解码的帧内部完全良构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving it by widening the accepted transform set or by lowering the declared level to match the bytes — the profile is the contract the bytes must meet, not a description of them. Avoid using it for a frame whose transform is correct but whose declared dictionary does not resolve; that is gmeow:MediumUnknownDictionary."
+msgstr "避免通过扩大所接受的变换集合，或降低所声明的级别以迁就字节，来解决它——规格是字节必须满足的契约，而非对字节的描述。避免将其用于变换正确但所声明字典无法解析的帧；那属于 gmeow:MediumUnknownDictionary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Raised by the mandated authorship emitter and by the wire-level frame audit that proves any producer's output; resolve it by re-authoring the bytes through the one production entry, never by relaxing the audit."
+msgstr "由强制的编写发射器以及验证任何生产者输出的线级帧审计引发；应通过唯一的生产入口重新编写这些字节来解决，绝不可放宽审计。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name GTS bytes that fall outside the mandated one-transform frame profile."
+msgstr "用于命名落在强制单变换帧规格之外的 GTS 字节。"
+
+# --- Medium round-trip lens get legs ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrBaselineL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "baseline medium get leg"
+msgstr "无字典基线介质的 get 分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrBaselineL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the dictionary-less baseline medium's round-trip lens: the transaction program that reads a payload back out of a frame written through gmeow:mediumProfileBaselineL12. It names the recovery half of the correspondence, so the medium's exactness claim is carried by a program rather than asserted in prose."
+msgstr "无字典基线介质往返透镜的 get 分支：将有效载荷从经 gmeow:mediumProfileBaselineL12 写入的帧中读回的事务程序。它命名了该对应关系的恢复一半，因此该介质的精确性主张由程序承载，而非以散文断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrDistL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dist medium get leg"
+msgstr "分发介质的 get 分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrDistL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the mandated distribution medium's round-trip lens: the transaction program that reads a payload back out of a dictionary-primed frame written through gmeow:mediumProfileDistL12. Priming changes the bytes but not the recovered payload, which is exactly what this leg makes checkable."
+msgstr "强制分发介质往返透镜的 get 分支：将有效载荷从经 gmeow:mediumProfileDistL12 写入、由字典预热的帧中读回的事务程序。预热改变字节但不改变所恢复的有效载荷，而这正是此分支使之可核查的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrStoreL12Get|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "store medium get leg"
+msgstr "存储介质的 get 分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediumCorrStoreL12Get|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The get leg of the append-only store medium's round-trip lens: the transaction program that reads a record back out of a segment written through the runtime store profile. A store is appended to over its whole life, so its recovery leg is what keeps every earlier record readable after a later append."
+msgstr "仅追加存储介质往返透镜的 get 分支：将记录从经运行时存储规格写入的段中读回的事务程序。存储在其整个生命周期中被不断追加，因此其恢复分支正是使每条较早记录在后续追加之后仍可读的保障。"
+
+
+# --- Core GTS transport vocabulary: document, segment, profile, codec class, compaction ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CodecClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Codec Class"
+msgstr "编解码器类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CodecClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The capability class of a transform codec — encode, compress, or encrypt (spec §8). Determines the degradation path when the capability is missing: unknown-codec or missing-key opacity."
+msgstr "变换编解码器的能力类别——编码、压缩或加密（规范 §8）。当该能力缺失时，它决定降级路径：未知编解码器或缺失密钥导致的不透明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSCompaction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Compaction"
+msgstr "GTS 压实"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSCompaction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An activity that rewrites a GTS document's frame layout — e.g. into delivery order for streaming (spec §3.2) or into a snapshot. Compaction re-authors only the ORDERING: content claims (ordinary quads, including signed statement-level claims) are rewrite-invariant by construction; transport claims over the source chain become detached evidence about the source document. The compacted document gmeow:wasGeneratedBy the compaction and gmeow:wasDerivedFrom the source document, whose segment heads remain citable through gmeow:gtsHeadId. Evidence-profile documents SHOULD NOT be compacted (see shapes); sealing the source verbatim as a nested GTS blob preserves its attestation intact."
+msgstr "重写 GTS 文档帧布局的活动——例如改为面向流式传输的投递顺序（规范 §3.2），或改为快照。压实仅重写顺序：内容主张（普通四元组，包括在语句层签名的主张）按构造对重写不变；关于源链的传输主张则变为关于源文档的分离证据。被压实的文档 gmeow:wasGeneratedBy 该压实活动，并 gmeow:wasDerivedFrom 源文档，源文档的段头仍可通过 gmeow:gtsHeadId 引用。证据规格的文档不应被压实（见形状）；将源逐字封存为嵌套 GTS blob 可完整保留其证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSDocument|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Document"
+msgstr "GTS 文档"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSDocument|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A single-file Graph Transport Substrate artifact (docs/GTS-SPEC.md): a CBOR Sequence of one or more append-only segments carrying an RDF 1.2 graph and any content-addressed binaries it references. A Manifestation in the WEMI sense — the packaged, shippable embodiment. Its composite identity is the ORDERED list of its segments' chain heads (spec §3.1); byte-concatenation of valid documents is a valid document, so a document's segment list grows by append, never by rewrite."
+msgstr "单文件的 Graph Transport Substrate 产物（docs/GTS-SPEC.md）：由一个或多个仅追加段构成的 CBOR 序列，承载一个 RDF 1.2 图及其引用的任何内容寻址二进制数据。WEMI 意义上的 Manifestation——已打包、可交付的具体体现。其复合身份是各段链头的有序列表（规范 §3.1）；有效文档按字节拼接仍是有效文档，因此文档的段列表只以追加方式增长，绝不以重写方式增长。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSProfile|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Profile"
+msgstr "GTS 规格"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSProfile|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named GTS profile (spec §13) — a purpose and requirement set a segment declares. An OPEN value vocabulary (individuals, never subclasses): extensions add their own profiles (e.g. a music package) without touching this module (Principle 9)."
+msgstr "具名的 GTS 规格（规范 §13）——段所声明的一组目的与要求。开放的取值词汇（个体，绝非子类）：扩展可添加自己的规格（例如音乐包），而无需改动本模块（原则 9）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSProfile|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:musicPackage a gmeow:GTSProfile ; rdfs:label \"music-package profile\"@en ."
+msgstr "示例：ex:musicPackage a gmeow:GTSProfile ; rdfs:label \"music-package profile\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSSegment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS Segment"
+msgstr "GTS 段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GTSSegment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One complete header-plus-frames log inside a GTS document — the unit of independent integrity (spec §3.1): a segment has its own genesis hash, its own id/prev chain, its own profile, its own transform catalog, and its own signers. Segments compose by concatenation and never vouch for one another; a third-party segment keeps its third-party attestation. Itself a Manifestation: a segment is a complete, independently shippable artifact."
+msgstr "GTS 文档内部一份完整的「头部加帧」日志——独立完整性的单位（规范 §3.1）：段拥有自己的创世哈希、自己的 id/prev 链、自己的规格、自己的变换目录以及自己的签署者。段通过拼接组合，且彼此从不互相担保；第三方段保留其第三方证明。它本身即是一个 Manifestation：段是完整且可独立交付的产物。"
+
+
+# --- Scope notes: what each medium/dictionary class does NOT cover ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the AUTHORED coordinates of one (id, version) dictionary and nothing a build produces. It does not cover the trained bytes, their digest, their length, or their zstd Dictionary_ID (all gmeow:CompressionDictionaryRealization), it does not cover the material trained over (that is the gmeow:DictionaryCorpus it points at), and it does not cover whether the dictionary earns the bytes it costs (that is gmeow:MediumDictionaryEffectMeasurement) — widening it to hold a measured field would make its own cardinality obligations unsatisfiable rather than merely redundant."
+msgstr "范围：本类涵盖一个（id, version）字典的已编写坐标，不涵盖任何构建产物。它不涵盖训练所得字节、其摘要、其长度或其 zstd Dictionary_ID（皆属 gmeow:CompressionDictionaryRealization），不涵盖训练所依据的材料（那是它所指向的 gmeow:DictionaryCorpus），也不涵盖该字典是否值回其所耗字节（那是 gmeow:MediumDictionaryEffectMeasurement）——将其扩大以容纳某个实测字段，会使它自身的基数义务变为不可满足，而非仅仅冗余。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryRealization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers ONE build's trained bytes for ONE authored definition — the fields that exist only after training. It is not the declaration those bytes answer to (gmeow:CompressionDictionary), not the verdict on whether shipping them is worthwhile (gmeow:MediumDictionaryEffectMeasurement, which prices the DEFINITION over a declared population), and not the per-frame record of a payload primed with them (gmeow:MediumEnvelope). Hand-authoring one would put a second source of truth beside bytes the build already owns."
+msgstr "范围：本类涵盖某一次构建针对某一份已编写定义所训练出的字节——即只有在训练之后才存在的字段。它不是这些字节所应答的声明（gmeow:CompressionDictionary），不是关于是否值得交付它们的裁断（gmeow:MediumDictionaryEffectMeasurement，后者针对已声明的总体为定义定价），也不是以其预热的有效载荷的逐帧记录（gmeow:MediumEnvelope）。手工编写一份将会在构建已然拥有的字节旁边放置第二个真理来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CorpusTrainingSplit|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the single train/hold-out PARTITION RULE over archive-backed corpora and nothing else. It does not say what a corpus contains (gmeow:DictionaryCorpus does), does not name the body of bytes a reading was priced over (gmeow:MediumMeasurementPopulation does), and is not a claim that a dictionary-effect evaluation is held out — the evaluated frame still carries the trained members, and only the withheld share is unseen."
+msgstr "范围：本类仅涵盖针对归档支撑语料的那一条训练/留出划分规则，别无其他。它不说明语料包含什么（那由 gmeow:DictionaryCorpus 说明），不指名某次读数据以定价的字节主体（那由 gmeow:MediumMeasurementPopulation 指名），也不主张字典效应评估是留出式的——被评估的帧仍携带训练成员，只有被扣留的那一份是未见过的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DictionaryCorpus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the SELECTOR — the declarative statement of which bundle-internal material is in scope for training — and nothing about the resolution of it. It does not cover how many samples a build actually handed the trainer (gmeow:measuredCorpusSampleCount), the identity of that resolution (gmeow:measuredCorpusDigest), or which share of it is withheld from the trainer (gmeow:CorpusTrainingSplit). Enumerating concrete files here would turn a re-resolvable selector into a frozen manifest."
+msgstr "范围：本类涵盖选择器——即声明哪些包内材料属于训练范围的陈述——而不涵盖对其的任何解析结果。它不涵盖某次构建实际交给训练器的样本数（gmeow:measuredCorpusSampleCount）、该次解析的身份（gmeow:measuredCorpusDigest），也不涵盖其中被扣留于训练器之外的份额（gmeow:CorpusTrainingSplit）。在此枚举具体文件会把可重新解析的选择器变成冻结的清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DictionaryStrategy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this vocabulary covers the BUILD-FAMILY axis of a dictionary — how its bytes were arrived at — and no other coordinate. It does not carry the requested or achieved size (gmeow:dictionaryTargetLength, gmeow:dictionaryByteLength), the codec that later consumes the dictionary (gmeow:TransformCodec), or the medium that primes with it. A member is referenced from two different predicates, one authored and one measured, and the vocabulary itself takes no position on which of the two a given assertion is."
+msgstr "范围：本词汇涵盖字典的构建族系轴——其字节是如何得来的——而不涵盖任何其他坐标。它不承载所请求或所达成的大小（gmeow:dictionaryTargetLength、gmeow:dictionaryByteLength），不承载其后消费该字典的编解码器（gmeow:TransformCodec），也不承载以其预热的介质。某个成员会被两个不同谓词引用，一个是已编写的、一个是实测的，而本词汇本身对某一断言属于二者中的哪一个不持立场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DigestStratum|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this vocabulary covers the NAMED REGION a stratified digest commits to, never the digest value and never the artifact's identity. The value is gmeow:strataDigest and the whole-artifact identity is gmeow:contentDigest; a stratum is neither. It is also not a medium coordinate — two envelopes over different media may name the same stratum, because the region is a property of the payload layout rather than of the encoding."
+msgstr "范围：本词汇涵盖分层摘要所承诺的具名区域，绝不涵盖摘要值，也不涵盖产物的身份。摘要值是 gmeow:strataDigest，整个产物的身份是 gmeow:contentDigest；层次二者皆非。它也不是介质坐标：不同介质上的两个信封可以指名同一层次，因为区域是有效载荷布局的属性，而非编码的属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class roots the TRANSPORT well-formedness failure vocabulary and nothing else. It does not cover a content claim being false, a validation report or finding record, or the gate that raises a failure — a logic:Constraint points at its failure class through gmeow:enforcesFailureClass, and the class stays the name of the violation rather than the name of the check."
+msgstr "范围：本类仅为传输良构失败词汇之根，别无其他。它不涵盖内容主张为假的情形，不涵盖验证报告或发现记录，也不涵盖引发失败的那道门——logic:Constraint 通过 gmeow:enforcesFailureClass 指向其失败类，而该类始终是违规的名称，而非检查的名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsProducer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers one row of the production-site-to-medium map: the source files that AUTHOR GMEOW GTS bytes, and the medium they write through. It is not the build stage that runs them (gmeow:PipelineStage), not the artifact they emit, and not a reader of GTS — a file that validates or reads a header authors nothing and must not be listed. The resolution rule is not restated here either; it is read through the medium's own gmeow:mediumSourceKind."
+msgstr "范围：本类涵盖「生产点到介质」映射中的一行：编写 GMEOW GTS 字节的源文件，以及它们写入所经的介质。它不是运行这些源文件的构建阶段（gmeow:PipelineStage），不是它们发出的产物，也不是 GTS 的读取方——验证或读取头部的文件并不编写任何内容，因而不得列入。解析规则在此亦不重述；它经由介质自身的 gmeow:mediumSourceKind 读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Medium|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this class covers the lawful (encode, decode) PAIR and the coordinates that pick it out. It is not the codec alone (gmeow:TransformCodec names an algorithm, and several media may share one), not a GTS profile (gmeow:GTSProfile names a segment's purpose and requirement set, not a byte transform), and not the per-frame record of what a payload was written through (gmeow:MediumEnvelope). The round-trip claim is not stored here either: it lives on the correspondence the medium points at."
+msgstr "范围：本类涵盖合法的（编码, 解码）配对及标识该配对的诸坐标。它不是单独的编解码器（gmeow:TransformCodec 命名一种算法，多个介质可共用其一），不是 GTS 规格（gmeow:GTSProfile 命名段的目的与要求，而非字节变换），也不是有效载荷写入所经内容的逐帧记录（gmeow:MediumEnvelope）。往返主张亦不存放于此：它位于该介质所指向的对应关系之上。"
