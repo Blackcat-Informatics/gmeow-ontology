@@ -10,7 +10,7 @@
 //!   *which* validation phase runs *where*: live in `gmeow-dev validate` (the
 //!   `make validate` gate) or in a named Rust test on `make check`. The
 //!   `validate` help string, the CLI wiring, and the help⟺registry /
-//!   liveness tests all read this table; [`docs/DSL-VALIDATION-COVERAGE.md`] is
+//!   liveness tests all read this table; `docs/DSL-VALIDATION-COVERAGE.md` is
 //!   its prose companion.
 //! * [`authored_dsl_shacl_inputs`] — resolves the three committed central-DSL
 //!   trees (`dsl/{mappings,statements,tests}`) and their committed shape files
