@@ -18,7 +18,7 @@ mapping-DSL CONSTRUCT (see Architecture notes).
 | **Croissant 1.1** | `<ds>.croissant.jsonld` | `purrdf::project_croissant` | Google Dataset Search, Hugging Face, Kaggle, OpenML; loadable via `mlcroissant` |
 | **RO-Crate 1.3** | `ro-crate/` (metadata + preview + payloads) | `purrdf::project_ro_crate_with_assets` (Attached) | WorkflowHub, Zenodo, crate viewers |
 | **DCAT 3** | `<ds>.dcat.ttl` | `dcat.rq` CONSTRUCT (mapping-DSL profile) | W3C data catalogs |
-| **DataCite 4.6** | `<ds>.datacite.xml` | `purrdf::project_datacite` | DOI registration |
+| **DataCite (kernel-4.5)** | `<ds>.datacite.xml` | `purrdf::project_datacite` (purrdf `datacite-4.6` codec; the XML declares the kernel-4.5 schema) | DOI registration |
 | **Frictionless (data-package-1)** | `datapackage.json` | `purrdf::project_frictionless` | data pipelines (`frictionless`) |
 
 Two entry points:
@@ -114,7 +114,7 @@ pip install mlcroissant && \
 pipx run rocrate-validator validate ro-crate/        # RO-Crate profile check
 
 xmllint --noout --schema \
-  https://schema.datacite.org/meta/kernel-4.6/metadata.xsd lillith.datacite.xml
+  https://schema.datacite.org/meta/kernel-4.5/metadata.xsd lillith.datacite.xml
 
 pipx run frictionless validate datapackage.json
 ```

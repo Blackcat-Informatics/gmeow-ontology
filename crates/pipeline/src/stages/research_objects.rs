@@ -593,8 +593,10 @@ fn croissant_config(
         .map_err(|e| ro_err(format!("CroissantConfig: {e}")))
 }
 
-/// The gmeow-owned [`purrdf::DataCiteConfig`]: the DataCite 4.6 element namespace,
-/// XML-Schema-instance namespace, schema location, and the selected controlled values.
+/// The gmeow-owned [`purrdf::DataCiteConfig`]: the DataCite element namespace (kernel-4),
+/// the XML-Schema-instance namespace, the kernel-4.5 schema location the emitted XML
+/// declares (purrdf's `datacite-4.6` codec targets the DataCite kernel-4.5 XSD), and the
+/// selected controlled values.
 fn datacite_config(
     common: purrdf::ResearchObjectConfig,
 ) -> Result<purrdf::DataCiteConfig, gmeow_errors::Diag> {
