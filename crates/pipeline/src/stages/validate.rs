@@ -193,12 +193,19 @@ pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::D
 /// `anchor_non_trivial` — the identity the cross-node-glut meta-rule joins on. The
 /// findings are the ledger's `project_report` body; the metadata (and the
 /// non-conforming-with-no-results fallback) is folded on afterwards.
-fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Report {
+///
+/// `failure_classes` is the enforced shape union's own `gmeow:enforcesFailureClass`
+/// index, so every projected finding NAMES the typed conformance failure its law
+/// declares instead of carrying only the generic constraint-component code.
+fn diagnostics_report(
+    report: &purrdf::shapes::report::ValidationReport,
+    failure_classes: &gmeow_validate::findings::FailureClassIndex,
+) -> Report {
     let mut ledger = DiagLedger::new();
     let stage = StageId::new("stage-validate");
     for result in &report.results {
         ledger.attach(
-            gmeow_validate::findings::diag_from_shacl(result),
+            gmeow_validate::findings::diag_from_shacl(result, failure_classes),
             stage.clone(),
         );
     }
@@ -293,8 +300,17 @@ pub fn validate_source_graph(
             })
         })?;
     let (shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
-    let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
+    let mut report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
         .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
+    // The stage calls the engine directly (it needs the shape store for the advisory
+    // split), so it applies the same result-set collapse
+    // `gmeow_validate::store::shacl_validate_dataset` does: a violation the engine
+    // reports once per SPARQL solution is ONE violation in the recorded verdict.
+    gmeow_validate::store::dedupe_validation_results(&mut report);
+    // The shape union's typed-failure-class annotations, read from the SAME store the
+    // shapes were parsed from (this run's fresh product bytes, never the stale disk).
+    let failure_classes =
+        gmeow_validate::findings::FailureClassIndex::from_shapes_dataset(&shape_store);
     // Split the advisory tier out of the raw results: an Info-severity result comes from a
     // `logic:severity "Info"` advisory constraint, so its raw shacl.* finding is suppressed
     // and it is re-projected as a Note + deonticRecommendation advisory (fires from a DATA
@@ -302,7 +318,7 @@ pub fn validate_source_graph(
     // source `dataset` carries the formalized terms' howToUse/useWhen prose the advisory surfaces.
     let (retained, advisories) =
         gmeow_validate::advisory::split_advisory_results(report, &shape_store, &dataset);
-    Ok((diagnostics_report(&retained), advisories))
+    Ok((diagnostics_report(&retained, &failure_classes), advisories))
 }
 
 /// The `stage-validate` pipeline stage.

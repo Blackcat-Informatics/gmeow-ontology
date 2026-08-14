@@ -11,4 +11,9 @@
 ex:danglingOccurrence a math:VariableOccurrence ;
     math:occursInScope ex:someScope .
 
-ex:someScope a math:MathematicalExpression .
+# The enclosing scope is an incidental named expression here, not the defect. It is a
+# math:SymbolReference so the ONLY class this fixture raises is the unscoped occurrence — the
+# abstract math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:someScope a math:SymbolReference ; math:hasMathematicalSymbol ex:someScopeSymbol .
+ex:someScopeSymbol a math:MathematicalSymbol .

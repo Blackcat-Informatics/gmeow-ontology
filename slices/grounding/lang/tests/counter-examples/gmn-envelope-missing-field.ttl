@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 # Counter-example: a gmeow:GmnEnvelope missing exactly ONE of its nine contract fields —
 # the boundary ring (gmeow:gmnSecurityRing) is absent (fires lang:GmnMissingEnvelopeField
-# via sh:minCount 1 on lang:GmnEnvelopeContractShape). The other eight fields are all
+# via sh:qualifiedMinCount 1 on the derived gmeow:GmnEnvelope-shape). The other eight fields are all
 # present and well-formed, so exactly the one MinCount finding is emitted.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
@@ -29,5 +29,5 @@ ex:envelopeNoRing a gmeow:GmnEnvelope ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;
     gmeow:contentDigest "blake3:0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e" ;
-    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43" ;
+    gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .

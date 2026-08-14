@@ -11,7 +11,6 @@
 @prefix crmarc: <http://www.cidoc-crm.org/crmarchaeo/> .
 @prefix om: <http://www.wurvoc.org/vocabularies/om-1.8/> .
 @prefix oboe: <http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#> .
-@prefix obi: <http://purl.obolibrary.org/obo/OBI_> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
 @prefix obscore: <http://www.ivoa.net/rdf/ObsCore#> .
 @prefix bbc: <http://www.bbc.co.uk/ontologies/news/> .
@@ -30,13 +29,16 @@
 # Compiled to mappings/gmeow-observations.sssom.tsv by `gmeow compile-mappings`.
 # Aligns SOSA/SSN (W3C/OGC), PROV-O (W3C), CIDOC-CRM E13 (ISO 21127),
 # O&M (ISO 19156), CRMarchaeo, OM (Ontology of Units of Measure), OBOE,
-# PATO, OBI, and QB.
+# and QB. PATO and OBI are logic:-owned grounding vocabularies and are NOT
+# aligned here — they are grounded once in
+# slices/grounding/logic/mappings/foundation-bridges.ttl and reached through the
+# logic: source term (see the OBI note below).
 
 gmeow:mapsetObservations a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/observations" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. math:Quantity and math:quantityValue are the sole quantity/value authorities; their SOSA, OM, IVOA, LOINC, and QUDT grounding correspondences are authored by the math slice in mappings/quantity-bridges.ttl, while this catalog owns observation qualifiers and domain roles. Added: StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (observation-spine bridge): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (stream-to-trajectory design): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling. Added (spatial-measurement design): SpatialMeasurement and CoordinateObservation → sosa:Observation, iso19156:OM_Observation / OM_GeometryObservation, crmarc:S4_Observation; coordinateResult / geometryResult → sosa:hasResult. Added (sensory slice): Sensor → sosa:Sensor (precise alignment, superseding Agent broadMatch); SensorPlatform → sosa:Platform (precise alignment, superseding Agent relatedMatch); ObservableProperty → sosa:ObservableProperty; SensoryQuantity → sosa:Result; sensoryProperty → sosa:observedProperty; platformLocation → geo:location; Sensor → obi:device; observationMethod → oboe:Protocol / obi:assay; ObservableProperty → oboe:Characteristic / pato:quality; SensoryObservation → qb:Observation; unit → om:hasUnit.".
+    gmeow:setComment "Observation stack alignments: SOSA/SSN, PROV-O, CIDOC-CRM E13. The gmeow:vantage property has no direct SOSA counterpart (sosa:madeBySensor is device-centric, not standpoint-centric); the alignment is closeMatch with a note. math:Quantity and math:quantityValue are the sole quantity/value authorities; their SOSA, OM, IVOA, LOINC, and QUDT grounding correspondences are authored by the math slice in mappings/quantity-bridges.ttl, while this catalog owns observation qualifiers and domain roles. Added: StandpointClaim → sosa:Observation; Agent → sosa:Sensor (the observer/sensor/perceiver is a standpoint). Added (observation-spine bridge): IdentityFacet, NameUsage, RightsStatement, and KinRelationship → sosa:Observation (universal claim construct); facetSubject / facetVantage → sosa:hasFeatureOfInterest / sosa:madeBySensor. Added (stream-to-trajectory design): Stream → sosa:ObservationCollection; streamSample → sosa:hasMember; Agent → sosa:Platform; streamSensor → sosa:madeBySensor; streamInterval → sosa:phenomenonTime; Observation → sosa:Sampling. Added (spatial-measurement design): SpatialMeasurement and CoordinateObservation → sosa:Observation, iso19156:OM_Observation / OM_GeometryObservation, crmarc:S4_Observation; coordinateResult / geometryResult → sosa:hasResult. Added (sensory slice): Sensor → sosa:Sensor (precise alignment, superseding Agent broadMatch); SensorPlatform → sosa:Platform (precise alignment, superseding Agent relatedMatch); ObservableProperty → sosa:ObservableProperty; SensoryQuantity → sosa:Result; sensoryProperty → sosa:observedProperty; platformLocation → geo:location; observationMethod → oboe:Protocol; ObservableProperty → oboe:Characteristic; SensoryObservation → qb:Observation; unit → om:hasUnit. OBI and PATO are logic:-owned grounding vocabularies: the OBI assay, planned-process and device branches and the PATO quality root are authored once as logic:GroundingCorrespondence rows in slices/grounding/logic/mappings/foundation-bridges.ttl and reached through the logic: source term, so this catalog mints no obi: and no pato: cell of its own.".
 
 # --------------------------------------------------------------------------- #
 # SOSA / SSN
@@ -336,13 +338,30 @@ gmeow:observedFeature skos:closeMatch oboe:Entity {|
 |} .
 
 # OBI — Ontology for Biomedical Investigations
-
-gmeow:observationMethod skos:closeMatch obi:0000070 {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.75 ;
-    gmeow:comment "OBI assay (OBI:0000070) is a planned process with the objective to produce information about some evaluant. Aligns to the procedure/method of an observation."
-|} .
+#
+# OBI's catalog is owned by the logic: grounding slice (docs/GROUNDING.md,
+# "External grounding ownership": its backbone — protocol, planned process, assay,
+# device — is an upper-ontology surface, and gmeow:projVocab-obi names logic: as
+# both gmeow:vocabularyOwner and gmeow:vocabularySubsumedBy). Every OBI branch this
+# catalog used to name is therefore grounded ONCE on that owner surface, in
+# slices/grounding/logic/mappings/foundation-bridges.ttl, and is reached from here
+# through the logic: term rather than re-minted as an obi: cell:
+#
+#   OBI assay (obi:0000070)          — logic:Enactment skos:narrowMatch obi:0000070.
+#     The method sense gmeow:observationMethod carries routes to OBI through the
+#     canonical prescription/enactment spine — logic:Plan skos:closeMatch
+#     obi:0000272 for the protocol, logic:Enactment for the occurrence — and the
+#     protocol sense is also kept locally by the oboe:Protocol closeMatch above.
+#   OBI planned process (obi:0000011) — logic:Enactment skos:closeMatch obi:0000011.
+#     A gmeow:ObservationalActivity is a structured occurrence of that shape and
+#     routes to the branch through the same spine.
+#
+# Both routes are DOCUMENTED ROUTING, not axioms: neither gmeow:observationMethod
+# nor gmeow:ObservationalActivity is asserted to be a logic:Plan or a
+# logic:Enactment (an observational activity commits to neither a pinned
+# prescription version nor a closed input snapshot, so that subsumption would be
+# false). What the routing states is where the OBI term is grounded, so a consumer
+# follows the owner correspondence instead of finding a second one here.
 
 # QB — RDF Data Cube
 
@@ -363,15 +382,11 @@ gmeow:unit skos:closeMatch om:hasUnit {|
 |} .
 
 # --------------------------------------------------------------------------- #
-# observation-linkage design / observation activity alignment comment — ObservationalActivity alignments (OBI, OBOE, QB).
+# observation-linkage design / observation activity alignment comment — ObservationalActivity alignments (OBOE, QB).
+# The OBI planned-process alignment for gmeow:ObservationalActivity is not authored
+# here: it is reached through logic:Enactment skos:closeMatch obi:0000011 on the
+# logic: owner surface (see the OBI note above).
 # --------------------------------------------------------------------------- #
-
-gmeow:ObservationalActivity skos:closeMatch obi:0000011 {|
-    gmeow:sssomFile "gmeow-observations.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "OBI investigation (OBI:0000011) is a planned process with the objective to produce information about some evaluant — the closest OBI class for a structured observational activity such as a clinical trial or survey."
-|} .
 
 gmeow:Observation skos:closeMatch oboe:Observation {|
     gmeow:sssomFile "gmeow-observations.sssom.tsv" ;

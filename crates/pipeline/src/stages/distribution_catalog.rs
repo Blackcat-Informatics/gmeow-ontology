@@ -250,42 +250,98 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
 /// engine set (`gmeow_docs::console_files` folds `interactive_asset_files` in), so they
 /// name the same [`sub_asset_iri`] rather than each minting a private copy of it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum SubAsset {
-    McpCoreWasm,
-    McpWasm,
-    Bundle,
-    ConjectureDemo,
+enum SerializationDist {
+    Okf,
+    Jsonld,
+    Yamlld,
+    Pydantic,
 }
 
-impl SubAsset {
-    const ALL: [SubAsset; 4] = [
-        SubAsset::McpCoreWasm,
-        SubAsset::McpWasm,
-        SubAsset::Bundle,
-        SubAsset::ConjectureDemo,
+impl SerializationDist {
+    const ALL: [SerializationDist; 4] = [
+        SerializationDist::Okf,
+        SerializationDist::Jsonld,
+        SerializationDist::Yamlld,
+        SerializationDist::Pydantic,
+    ];
+
+    fn slug(&self) -> &'static str {
+        match self {
+            SerializationDist::Okf => "okf",
+            SerializationDist::Jsonld => "jsonld",
+            SerializationDist::Yamlld => "yamlld",
+            SerializationDist::Pydantic => "pydantic",
+        }
+    }
+
+    fn media_type(&self) -> &'static str {
+        match self {
+            SerializationDist::Okf => "application/json",
+            SerializationDist::Jsonld => "application/ld+json",
+            SerializationDist::Yamlld => "application/yaml",
+            SerializationDist::Pydantic => "text/x-python",
+        }
+    }
+
+    fn consumer(&self) -> &'static str {
+        match self {
+            SerializationDist::Okf => "consumerKnowledgeFederation",
+            SerializationDist::Jsonld => "consumerLinkedDataTooling",
+            SerializationDist::Yamlld => "consumerLinkedDataTooling",
+            SerializationDist::Pydantic => "consumerTypedModelClient",
+        }
+    }
+}
+
+/// A `site` sub-asset: one of the vendored interactive engines or the conjecture
+/// demo library the site (and the packed mdbook) ships EXTERNALLY, content-addressed.
+/// These are
+/// SUB-ASSETS of the `site` distribution — never new top-level distributions — so they
+/// are NOT in [`declared_distribution_slugs`] and the eight-slug bijection is preserved.
+/// Their schema rows (family / consumer / media-type) ride here DIGEST-FREE; the
+/// per-release content digests live only in the `dist/` instance manifest
+/// ([`crate::docs_distribution`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum SiteSubAsset {
+    QueryWasm,
+    ValidateWasm,
+    ReasonWasm,
+    GmnWasm,
+    ConjectureDemo,
+    /// The standalone console's eagerly-loaded lean MCP engine.
+    McpCoreWasm,
+    /// The standalone console's demand-loaded MCP reasoning segment.
+    McpWasm,
+}
+
+impl SiteSubAsset {
+    const ALL: [SiteSubAsset; 7] = [
+        SiteSubAsset::QueryWasm,
+        SiteSubAsset::ValidateWasm,
+        SiteSubAsset::ReasonWasm,
+        SiteSubAsset::GmnWasm,
+        SiteSubAsset::ConjectureDemo,
+        SiteSubAsset::McpCoreWasm,
+        SiteSubAsset::McpWasm,
     ];
 
     fn slug(self) -> &'static str {
         match self {
-            SubAsset::McpCoreWasm => "mcp-core-wasm",
-            SubAsset::McpWasm => "mcp-wasm",
-            SubAsset::Bundle => "bundle",
-            SubAsset::ConjectureDemo => "conjectures",
+            SiteSubAsset::QueryWasm => "query-wasm",
+            SiteSubAsset::ValidateWasm => "validate-wasm",
+            SiteSubAsset::ReasonWasm => "reason-wasm",
+            SiteSubAsset::GmnWasm => "gmn-wasm",
+            SiteSubAsset::ConjectureDemo => "conjectures",
+            SiteSubAsset::McpCoreWasm => "mcp-core-wasm",
+            SiteSubAsset::McpWasm => "mcp-wasm",
         }
     }
 
-    /// The wasm engines are `application/wasm`; the queryable bundle is the GTS container
-    /// the engine boots over; the conjecture demo library is Turtle.
-    ///
-    /// EXHAUSTIVE, like [`slug`](Self::slug) / [`label`](Self::label) /
-    /// [`tree_path_prefix`](Self::tree_path_prefix) on this same type: a `_` catch-all here
-    /// would silently label any new non-wasm sub-asset `application/wasm`, and the catalog's
-    /// declared media type is what a consumer serves the bytes as.
-    fn media_type(self) -> &'static str {
+    /// The wasm engines are `application/wasm`; the conjecture demo library is Turtle.
+    fn media_type(&self) -> &'static str {
         match self {
-            SubAsset::McpCoreWasm | SubAsset::McpWasm => "application/wasm",
-            SubAsset::Bundle => "application/vnd.blackcat.gts+cbor",
-            SubAsset::ConjectureDemo => "text/turtle",
+            SiteSubAsset::ConjectureDemo => "text/turtle",
+            _ => "application/wasm",
         }
     }
 
@@ -295,20 +351,26 @@ impl SubAsset {
     /// cross-owner byte-identity check meaningful.
     fn tree_path_prefix(self) -> &'static str {
         match self {
-            SubAsset::McpCoreWasm => "assets/mcp-core/",
-            SubAsset::McpWasm => "assets/mcp/",
-            SubAsset::Bundle => "assets/gmeow.gts",
-            SubAsset::ConjectureDemo => "assets/conjectures.ttl",
+            SiteSubAsset::QueryWasm => "assets/query/",
+            SiteSubAsset::ValidateWasm => "assets/validate/",
+            SiteSubAsset::ReasonWasm => "assets/reason/",
+            SiteSubAsset::GmnWasm => "assets/gmn/",
+            SiteSubAsset::ConjectureDemo => "assets/conjectures.ttl",
+            SiteSubAsset::McpCoreWasm => "assets/mcp-core/",
+            SiteSubAsset::McpWasm => "assets/mcp/",
         }
     }
 
     /// A human label for the schema row.
     fn label(self) -> &'static str {
         match self {
-            SubAsset::McpCoreWasm => "MCP core segment (the console's first-load engine)",
-            SubAsset::McpWasm => "MCP reasoning segment (demand-loaded)",
-            SubAsset::Bundle => "the queryable gmeow.gts bundle the engine boots over",
-            SubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
+            SiteSubAsset::QueryWasm => "RDF 1.2 / SPARQL query wasm engine",
+            SiteSubAsset::ValidateWasm => "Tier-1 validator wasm engine",
+            SiteSubAsset::ReasonWasm => "structured-DL reasoner wasm engine",
+            SiteSubAsset::GmnWasm => "GMN-0/GMN-1 codec wasm engine",
+            SiteSubAsset::ConjectureDemo => "curated conjecture playground demo library (Turtle)",
+            SiteSubAsset::McpCoreWasm => "MCP core segment (the console's first-load engine)",
+            SiteSubAsset::McpWasm => "MCP reasoning segment (demand-loaded)",
         }
     }
 }
@@ -402,13 +464,12 @@ pub(crate) fn sub_asset_iri(slug: &str) -> String {
     format!("{DISTRIBUTION_BASE}sub-asset/{slug}")
 }
 
-/// Every sub-asset slug the catalog declares (the vendored interactive engines, the
-/// browser bundle, the demo library). Exposed so the release-time instance producer prices
-/// the SAME set, and a contract gate can assert these are sub-assets — NOT members of the
-/// nine-slug distribution bijection.
-#[must_use]
-pub fn declared_sub_asset_slugs() -> std::collections::BTreeSet<&'static str> {
-    SubAsset::ALL.into_iter().map(SubAsset::slug).collect()
+/// Every `site` sub-asset slug the catalog declares (the vendored interactive engines +
+/// the conjecture demo library). Exposed so the release-time instance producer prices the SAME
+/// set, and a contract gate can assert these are sub-assets of `site` — NOT members of
+/// the eight-slug distribution bijection.
+pub fn declared_site_sub_asset_slugs() -> std::collections::BTreeSet<&'static str> {
+    SiteSubAsset::ALL.into_iter().map(|s| s.slug()).collect()
 }
 
 /// Every [`DISTRIBUTIONS`] row that ships the shared sub-assets, in table order.
@@ -441,7 +502,7 @@ pub fn sub_asset_owner_slugs() -> std::collections::BTreeSet<&'static str> {
 pub fn sub_asset_pricing() -> Vec<(&'static str, &'static str, &'static str, &'static str)> {
     sub_asset_owners()
         .flat_map(|owner| {
-            SubAsset::ALL.into_iter().map(move |sub| {
+            SiteSubAsset::ALL.into_iter().map(move |sub| {
                 (
                     owner.slug,
                     sub.slug(),
@@ -603,7 +664,7 @@ fn emit_capability_ledger(lines: &mut Vec<String>, subject: &str, surface: Distr
 /// single shipped artifact. Each owner's consumer rides onto the shared node, so the
 /// sub-asset's audience is the union of its owners' audiences rather than a hard-coded one.
 fn emit_sub_assets(lines: &mut Vec<String>) {
-    for sub in SubAsset::ALL {
+    for sub in SiteSubAsset::ALL {
         let node = sub_asset_iri(sub.slug());
         skeleton(lines, &node, &iri(GMEOW_NS, "SiteSubAsset"), sub.label());
         lines.push(triple_lit(
@@ -934,7 +995,39 @@ fn emit_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
         }
     }
 
-    // ── the shared sub-assets: the vendored engines, the browser bundle, the demo ──
+    // ── serialization distributions: no declaredLoss ──
+    for dist_enum in SerializationDist::ALL {
+        let slug = dist_enum.slug();
+        let dist = dist_iri(slug);
+        skeleton(
+            &mut lines,
+            &dist,
+            &iri(GMEOW_NS, "DocumentationDistribution"),
+            &format!("documentation distribution {slug}"),
+        );
+        lines.push(triple_lit(
+            &dist,
+            &iri(GMEOW_NS, "distributionFormat"),
+            slug,
+        ));
+        lines.push(triple(
+            &dist,
+            &iri(GMEOW_NS, "distributionFamily"),
+            &family_iri(Family::Serialization),
+        ));
+        lines.push(triple_lit(
+            &dist,
+            &iri(GMEOW_NS, "artifactMediaType"),
+            dist_enum.media_type(),
+        ));
+        lines.push(triple(
+            &dist,
+            &iri(GMEOW_NS, "eligibleForConsumer"),
+            &consumer_iri(dist_enum.consumer()),
+        ));
+    }
+
+    // ── site sub-assets: the vendored interactive engines + the conjecture demo library ──
     // First-class schema rows, DIGEST-FREE (the per-release content digests ride only in
     // the `dist/` instance manifest). Hung off EVERY owning distribution via
     // gmeow:hasSubAsset, so they are sub-assets — NOT top-level distributions — and the
@@ -1080,7 +1173,7 @@ mod tests {
         }
         assert_eq!(media_type_for_slug("not-a-distribution"), None);
         assert_eq!(distribution_row("not-a-distribution"), None);
-        for slug in declared_sub_asset_slugs() {
+        for slug in declared_site_sub_asset_slugs() {
             assert_eq!(
                 media_type_for_slug(slug),
                 None,
@@ -1159,7 +1252,7 @@ mod tests {
             "the shared sub-assets must be owned by exactly the two interactive surfaces"
         );
 
-        for slug in declared_sub_asset_slugs() {
+        for slug in declared_site_sub_asset_slugs() {
             // NOT a top-level distribution — the bijection is preserved.
             assert!(
                 !bijection.contains(slug),
@@ -1585,7 +1678,7 @@ mod tests {
     #[test]
     fn sub_asset_pricing_is_owner_parameterized_and_complete() {
         let owners = sub_asset_owner_slugs();
-        let subs = declared_sub_asset_slugs();
+        let subs = declared_site_sub_asset_slugs();
         let priced = sub_asset_pricing();
         assert_eq!(
             priced.len(),

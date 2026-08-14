@@ -125,10 +125,14 @@ const AUDIT_HEADLINE: &[&str] = &[
     "claims-contradicted-by-higher-confidence",
     "stale-source-claims",
 ];
+// The claim-audit enforcement now lives in the logic: canon and is projected as procedural
+// constraint shapes (the hand-authored `*Shape` blocks were retired in the shapes→logic: migration,
+// Principle 17). `GroundingSpanShape` is a backed boundary-kept residue; the other two are projected
+// from their `logic:formalizes` constraints under the `{Constraint}ProceduralConstraintShape` name.
 const CLAIM_AUDIT_SHAPES: &[&str] = &[
-    "ClaimNeedsEvidenceShape",
+    "ClaimNeedsEvidenceConstraintProceduralConstraintShape",
     "GroundingSpanShape",
-    "StaleSourceShape",
+    "StaleSourceConstraintProceduralConstraintShape",
 ];
 
 const FLAT_QUERY: &str = r#"

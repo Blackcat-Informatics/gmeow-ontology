@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IngestSourceHeldConstraint: a math:IngestRun whose
+# math:parseSource witness HOLDS NOTHING — it carries neither math:retainedSource
+# (verbatim) nor math:sourceDigest (by reference), so the put leg has no complement
+# to project along and the source is unrecoverable. That is the graph-side residue of
+# the front-end's math:UnreadableIngestSource refusal, one step later.
+#
+# Deliberately a BARE math:IngestRun rather than one of the three concrete bridge
+# subclasses: the dialect-specific retention constraints are scoped to math:RIngestRun /
+# math:ProofIngestRun / math:ONNXIngestRun, so the abstract unifier isolates the shared
+# hold-your-source rule alone. The run is well-formed everywhere else — it carries the
+# full grounding frame (so it is not math:UngroundedIngestRun) and it DID produce a
+# structured codomain (so the native math:UnliftableIngest gate stays quiet). It fires
+# math:IngestSourceHeldConstraint (shacl.SPARQLConstraintComponent →
+# math:UnreadableIngestSource).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/ingest-source-held-neither/> .
+
+ex:run a math:IngestRun ;
+    math:parseSource ex:srcWitness ;
+    logic:instantiatesSchema ex:schema ;
+    logic:instantiatesPlan ex:plan ;
+    math:ingestCorrespondence ex:corr .
+
+# The amnesic witness: load-bearing, and holding neither form of its source.
+ex:srcWitness a math:MathematicalObject ; logic:loadBearing true .
+
+ex:schema a logic:ActionSchema .
+ex:plan a logic:Plan .
+ex:corr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:mnemomorphic true .
+
+# The lift DID produce a codomain, so the produced-nothing native gate is not in play.
+ex:lifted a math:MathematicalObject ; gmeow:wasGeneratedBy ex:run .

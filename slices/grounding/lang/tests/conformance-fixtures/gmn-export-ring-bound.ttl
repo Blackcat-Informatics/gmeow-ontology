@@ -4,7 +4,7 @@
 # generating activity carries gmeow:mentalProcessType gmeow:processExport (mentation) and
 # the gmeow:GmnEnvelope it produced carries a full nine-field contract INCLUDING
 # gmeow:gmnSecurityRing, so lang:GmnExportRingBindingShape validates with no findings
-# (and, incidentally, so does lang:GmnEnvelopeContractShape — both gates are satisfied
+# (and, incidentally, so does the derived gmeow:GmnEnvelope-shape — both gates are satisfied
 # by the same complete envelope).
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
@@ -39,5 +39,5 @@ ex:envelopeExportBound a gmeow:GmnEnvelope ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:exportRun ;
     gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
-    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43" ;
+    gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrExportEnvelope .

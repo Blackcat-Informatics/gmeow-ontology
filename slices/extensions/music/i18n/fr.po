@@ -2644,3 +2644,203 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/voiceTuningFrameFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:voiceTuningFrame and nothing else. It is not a definition of gmeow:voiceTuningFrame (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:voiceTuningFrame, et rien d'autre. Ce n'est pas une définition de gmeow:voiceTuningFrame (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DegreeOfFreedomConstraintTextUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "DegreeOfFreedom constraint-text unique-language constraint"
+msgstr "contrainte d'unicité de langue du texte de contrainte d'un DegreeOfFreedom"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DegreeOfFreedomConstraintTextUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a DegreeOfFreedom carries at most one gmeow:dofConstraintText per language tag (no two language-tagged values share a tag)."
+msgstr "Une contrainte d'intégrité en monde clos : un DegreeOfFreedom porte au plus un gmeow:dofConstraintText par étiquette de langue (deux valeurs étiquetées par langue ne partagent jamais une même étiquette)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GenerativeProcessRuleTextUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GenerativeProcess rule-text unique-language constraint"
+msgstr "contrainte d'unicité de langue du texte de règle d'un GenerativeProcess"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GenerativeProcessRuleTextUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a GenerativeProcess carries at most one gmeow:processRuleText per language tag (no two language-tagged values share a tag)."
+msgstr "Une contrainte d'intégrité en monde clos : un GenerativeProcess porte au plus un gmeow:processRuleText par étiquette de langue (deux valeurs étiquetées par langue ne partagent jamais une même étiquette)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstrumentConfigurationTargetChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Instrument configuration target choice constraint"
+msgstr "contrainte de choix de cible d'une configuration d'instrument"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstrumentConfigurationTargetChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an InstrumentConfiguration targets exactly one of a specific instrument item (gmeow:configurationOf) or an instrument type (gmeow:configurationInstrumentType), never both."
+msgstr "Une contrainte d'intégrité en monde clos : une InstrumentConfiguration vise exactement l'un d'un exemplaire d'instrument précis (gmeow:configurationOf) ou d'un type d'instrument (gmeow:configurationInstrumentType), jamais les deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricGroupLengthDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MetricGroup length-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de longueur d'un MetricGroup"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricGroupLengthDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MetricGroup's gmeow:groupLengthDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : le gmeow:groupLengthDenominator d'un MetricGroup est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotSourcePatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric-modulation pivot-source rational pattern"
+msgstr "motif rationnel de la source pivot d'une modulation métrique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotSourcePatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:pivotSourceValue is a rational string numerator/denominator with a non-zero denominator."
+msgstr "Une contrainte d'intégrité en monde clos : une gmeow:pivotSourceValue est une chaîne rationnelle numérateur/dénominateur dont le dénominateur est non nul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotTargetPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric-modulation pivot-target rational pattern"
+msgstr "motif rationnel de la cible pivot d'une modulation métrique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MetricModulationPivotTargetPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:pivotTargetValue is a rational string numerator/denominator with a non-zero denominator."
+msgstr "Une contrainte d'intégrité en monde clos : une gmeow:pivotTargetValue est une chaîne rationnelle numérateur/dénominateur dont le dénominateur est non nul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeFrameDimensionCountRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeFrame dimension-count range constraint"
+msgstr "contrainte de plage du nombre de dimensions d'un MusicalTimeFrame"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeFrameDimensionCountRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeFrame's gmeow:dimensionCount is a nonNegativeInteger equal to 1 (scalar, one-dimensional)."
+msgstr "Une contrainte d'intégrité réservée à la validation : le gmeow:dimensionCount d'un MusicalTimeFrame est un entier non négatif égal à 1 (scalaire, unidimensionnel)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeSpan duration-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de durée d'un MusicalTimeSpan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeSpan's gmeow:timeDurationDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : le gmeow:timeDurationDenominator d'un MusicalTimeSpan est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationNumeratorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeSpan duration-numerator range constraint"
+msgstr "contrainte de plage du numérateur de durée d'un MusicalTimeSpan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanDurationNumeratorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeSpan's gmeow:timeDurationNumerator is a non-negative integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : le gmeow:timeDurationNumerator d'un MusicalTimeSpan est un entier non négatif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanStartDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MusicalTimeSpan start-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de début d'un MusicalTimeSpan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MusicalTimeSpanStartDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a MusicalTimeSpan's gmeow:timeStartDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : le gmeow:timeStartDenominator d'un MusicalTimeSpan est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OrnamentProfileDescriptionUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "OrnamentProfile description unique-language constraint"
+msgstr "contrainte d'unicité de langue de la description d'un OrnamentProfile"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OrnamentProfileDescriptionUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: an OrnamentProfile carries at most one gmeow:ornamentDescription per language tag (no two language-tagged values share a tag)."
+msgstr "Une contrainte d'intégrité en monde clos : un OrnamentProfile porte au plus une gmeow:ornamentDescription par étiquette de langue (deux valeurs étiquetées par langue ne partagent jamais une même étiquette)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationEventConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Performance participation event-present constraint"
+msgstr "contrainte de présence de l'événement d'une participation à une exécution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationEventConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a PerformanceParticipation names exactly one Event via gmeow:participationEvent."
+msgstr "Une contrainte d'intégrité en monde clos : une PerformanceParticipation nomme exactement un Event par gmeow:participationEvent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationParticipantConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Performance participation participant-present constraint"
+msgstr "contrainte de présence du participant d'une participation à une exécution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationParticipantConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a PerformanceParticipation names exactly one participant via gmeow:participationParticipant."
+msgstr "Une contrainte d'intégrité en monde clos : une PerformanceParticipation nomme exactement un participant par gmeow:participationParticipant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationRoleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Performance participation role-present constraint"
+msgstr "contrainte de présence du rôle d'une participation à une exécution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PerformanceParticipationRoleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a PerformanceParticipation declares exactly one ParticipantRole via gmeow:participationRole."
+msgstr "Une contrainte d'intégrité en monde clos : une PerformanceParticipation déclare exactement un ParticipantRole par gmeow:participationRole."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchAnchorFrequencyRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchAnchor frequency range constraint"
+msgstr "contrainte de plage de fréquence d'un PitchAnchor"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchAnchorFrequencyRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a PitchAnchor's gmeow:anchorFrequency (xsd:decimal) is strictly greater than 0.0 (a positive frequency in Hz)."
+msgstr "Une contrainte d'intégrité réservée à la validation : la gmeow:anchorFrequency (xsd:decimal) d'un PitchAnchor est strictement supérieure à 0.0 (une fréquence positive en Hz)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchIntervalRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchInterval ratio-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de rapport d'un PitchInterval"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchIntervalRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a PitchInterval's gmeow:ratioDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : lorsqu'il est présent, le gmeow:ratioDenominator d'un PitchInterval est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPointTimePositionDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchTrajectoryControlPoint time-position-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de position temporelle d'un PitchTrajectoryControlPoint"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPointTimePositionDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a PitchTrajectoryControlPoint's gmeow:controlPointTimePositionDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : le gmeow:controlPointTimePositionDenominator d'un PitchTrajectoryControlPoint est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchValueRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "PitchValue ratio-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de rapport d'une PitchValue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PitchValueRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a PitchValue's gmeow:ratioDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : lorsqu'il est présent, le gmeow:ratioDenominator d'une PitchValue est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SegmentKindNoSubclassConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SegmentKind no-subclass constraint"
+msgstr "contrainte d'absence de sous-classe pour SegmentKind"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SegmentKindNoSubclassConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: SegmentKind is a value vocabulary — no subclasses allowed (Principle 9)."
+msgstr "Une contrainte d'intégrité en monde clos : SegmentKind est un vocabulaire de valeurs — aucune sous-classe n'y est admise (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TempoMapSegmentRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TempoMapSegment ratio-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de rapport d'un TempoMapSegment"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TempoMapSegmentRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: a TempoMapSegment's gmeow:segmentMapRatioDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : le gmeow:segmentMapRatioDenominator d'un TempoMapSegment est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeMappingRatioDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TimeMapping ratio-denominator range constraint"
+msgstr "contrainte de plage du dénominateur de rapport d'un TimeMapping"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TimeMappingRatioDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a TimeMapping's gmeow:mapRatioDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : lorsqu'il est présent, le gmeow:mapRatioDenominator d'un TimeMapping est un entier strictement positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneEventPitchModeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tone event pitch-mode choice constraint"
+msgstr "contrainte de choix du mode de hauteur d'un événement sonore"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToneEventPitchModeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a ToneEvent carries exactly one pitch-content mode — gmeow:toneEventPitchValue, gmeow:toneEventPitchTrajectory, or gmeow:toneEventIsUnpitched."
+msgstr "Une contrainte d'intégrité en monde clos : un ToneEvent porte exactement un mode de contenu de hauteur — gmeow:toneEventPitchValue, gmeow:toneEventPitchTrajectory ou gmeow:toneEventIsUnpitched."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransformationTypeNoSubclassConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TransformationType no-subclass constraint"
+msgstr "contrainte d'absence de sous-classe pour TransformationType"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransformationTypeNoSubclassConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: TransformationType is a value vocabulary — no subclasses allowed (Principle 9)."
+msgstr "Une contrainte d'intégrité en monde clos : TransformationType est un vocabulaire de valeurs — aucune sous-classe n'y est admise (Principe 9)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraversalConstraintTextUniqueLangConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TraversalConstraint rule-text unique-language constraint"
+msgstr "contrainte d'unicité de langue du texte de règle d'une TraversalConstraint"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TraversalConstraintTextUniqueLangConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a TraversalConstraint carries at most one gmeow:constraintText per language tag (no two language-tagged values share a tag)."
+msgstr "Une contrainte d'intégrité en monde clos : une TraversalConstraint porte au plus un gmeow:constraintText par étiquette de langue (deux valeurs étiquetées par langue ne partagent jamais une même étiquette)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TuningSystemDividedIntervalDenominatorRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "TuningSystem divided-interval-denominator range constraint"
+msgstr "contrainte de plage du dénominateur d'intervalle divisé d'un TuningSystem"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TuningSystemDividedIntervalDenominatorRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A validation-only integrity constraint: when present, a TuningSystem's gmeow:dividedIntervalDenominator is a positive integer."
+msgstr "Une contrainte d'intégrité réservée à la validation : lorsqu'il est présent, le gmeow:dividedIntervalDenominator d'un TuningSystem est un entier strictement positif."

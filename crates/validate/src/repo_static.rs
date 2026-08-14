@@ -88,20 +88,25 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
-    // The BLANKET declarative-shape peer (`check_declarative_shape_purity`) is deliberately NOT
-    // wired here yet: it is activated at the terminal migration increment once the legacy shape
-    // corpus is deleted; until then it would red on the ~245 coexisting legacy shapes by design.
-    // Its production semantics are proven now over the live tree by
-    // `declarative_gate_flags_the_live_legacy_corpus`.
+    // The BLANKET declarative-shape peer: the hand-authored shape corpus has been retired, so this
+    // is now armed. It reds on any authored `sh:NodeShape`/`sh:PropertyShape` (in
+    // slices/shapes/dsl/governance) lacking a `logic:formalizes` back-reference — the terminal
+    // single-source-of-truth invariant (Principle 17).
+    check_declarative_shape_purity(root, &mut report);
     check_authored_shex_purity(root, &mut report);
     check_hand_authored_shapes_ratchet(root, &mut report);
     check_gmeow_shapes_drained(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
+    check_gts_authorship_seals(root, &mut report);
+    check_diag_failure_class_binding(root, &mut report);
     check_no_unmanaged_temp_dir(root, &mut report);
     check_rdf_stack_is_purrdf_only(root, &mut report);
     check_purrdf_and_zstd_pins(root, &mut report);
+    check_slice_ttl_trailing_newline(root, &mut report);
+    check_wasm_bindgen_pin_parity(root, &mut report);
+    check_gts_emit_chokepoint(root, &mut report);
     report
 }
 
@@ -192,7 +197,7 @@ fn node_label(ds: &RdfDataset, id: TermId) -> String {
 /// A construct without such a back-reference is a hand-authored second source of truth and fails.
 fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -311,7 +316,7 @@ const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
 /// `slices/` + `dsl/`.
 fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["shapes", "slices", "dsl"] {
+    for sub in ["shapes", "slices", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
@@ -414,19 +419,36 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// legacy shape corpus is deleted; until then it would (correctly, by design) red on the ~245
 /// coexisting legacy shapes that have not yet migrated. Its production semantics are proven now
 /// over the live tree by `declarative_gate_flags_the_live_legacy_corpus`.
-// Not yet reachable from a non-test build (activation is deferred to the terminal migration
-// increment); its live-tree production semantics are exercised by the gate test below.
-#[allow(dead_code)]
+///
+/// One exemption applies: a file's construct subjects are skipped when the file itself is a
+/// registered `gmeow:saFailWitness` for its enclosing slice ([`registered_fail_witnesses`]). A
+/// `mustNot` structural assertion (e.g. `ex:saNoHandAuthoredShapes`) proves its ban is non-vacuous
+/// by committing a fixture that DELIBERATELY hand-authors the banned shape; without the fixture the
+/// ban would pass whether or not its pattern is even correct. The exemption is keyed on the
+/// REGISTRATION, not a blanket `tests/counter-examples/` directory skip, so an unregistered
+/// hand-authored shape parked in the same directory is still caught.
+// Wired into `check_repo_static` once the hand-authored shape corpus is retired: reds on any
+// authored `sh:NodeShape`/`sh:PropertyShape` (in slices/shapes/dsl/governance) lacking a
+// `logic:formalizes` back-reference. Backed residue / boundary-kept shapes carry one and pass.
 fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_ttl_files(&dir, report, &mut ttl_files);
         }
     }
     ttl_files.sort();
+    let mut witness_cache: BTreeMap<PathBuf, BTreeSet<PathBuf>> = BTreeMap::new();
     for path in ttl_files {
+        if let Some(slice_dir) = enclosing_slice_dir(&path) {
+            let witnesses = witness_cache
+                .entry(slice_dir.clone())
+                .or_insert_with(|| registered_fail_witnesses(&slice_dir));
+            if witnesses.contains(&path) {
+                continue;
+            }
+        }
         let text = match fs::read_to_string(&path) {
             Ok(text) => text,
             Err(err) => {
@@ -470,6 +492,55 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
                 parents.entry(q.o).or_default().insert(q.s);
             }
         }
+        // Boolean-combinator members → their owning subject, so a `logic:formalizes` on a node
+        // shape legalizes a construct nested inside its logical combinators — the gate's own
+        // semantics ("on it or its owning shape"): the shape is the migration-tracking unit and
+        // its back-reference covers its whole logical structure, not only direct `sh:property`
+        // children. `sh:and`/`sh:or`/`sh:xone` take an RDF list of shapes; `sh:not` a single shape.
+        let rdf_first = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#first");
+        let rdf_rest = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest");
+        let rdf_nil = iri_id_static(&ds, "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil");
+        let list_members = |head: TermId| -> Vec<TermId> {
+            let (Some(first), Some(rest)) = (rdf_first, rdf_rest) else {
+                return Vec::new();
+            };
+            let mut out = Vec::new();
+            let mut node = Some(head);
+            let mut guard = 0usize;
+            while let Some(n) = node {
+                if Some(n) == rdf_nil || guard > 100_000 {
+                    break;
+                }
+                guard += 1;
+                if let Some(q) = ds
+                    .quads_for_pattern(Some(n), Some(first), None, GraphMatch::Any)
+                    .next()
+                {
+                    out.push(q.o);
+                }
+                node = ds
+                    .quads_for_pattern(Some(n), Some(rest), None, GraphMatch::Any)
+                    .next()
+                    .map(|q| q.o);
+            }
+            out
+        };
+        for comb in ["and", "or", "xone"] {
+            if let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{comb}")) {
+                for q in ds.quads_for_pattern(None, Some(cid), None, GraphMatch::Any) {
+                    for member in list_members(q.o) {
+                        construct_subjects.insert(member);
+                        parents.entry(member).or_default().insert(q.s);
+                    }
+                }
+            }
+        }
+        if let Some(nid) = iri_id_static(&ds, &format!("{SHACL_NS}not")) {
+            for q in ds.quads_for_pattern(None, Some(nid), None, GraphMatch::Any) {
+                construct_subjects.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
         if construct_subjects.is_empty() {
             continue;
         }
@@ -504,7 +575,7 @@ fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
 /// it enforces the invariant going forward.
 fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut shex_files = Vec::new();
-    for sub in ["slices", "shapes", "dsl"] {
+    for sub in ["slices", "shapes", "dsl", "governance"] {
         let dir = root.join(sub);
         if dir.is_dir() {
             collect_shex_files(&dir, report, &mut shex_files);
@@ -538,7 +609,6 @@ const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
     "slices/core/diagnostics/shapes.ttl",
     "slices/core/documentation/shapes.ttl",
     "slices/core/epistemics/shapes.ttl",
-    "slices/core/gts/shapes.ttl",
     "slices/core/inference/shapes.ttl",
     "slices/core/inhabitation/shapes.ttl",
     "slices/core/kernel/shapes.ttl",
@@ -673,9 +743,143 @@ fn check_hand_authored_shapes_ratchet(root: &Path, report: &mut RepoStaticReport
     }
 }
 
+/// Every authored Turtle surface under `slices/` ends with exactly one newline.
+///
+/// A bulk authoring pass once appended records to 67 slice `module.ttl` files
+/// without a terminating newline, and the state survived across several commits
+/// because the ONLY thing that noticed was the pre-commit `end-of-file-fixer`
+/// hook — which the offending commits bypassed, and which *rewrites* files
+/// rather than failing a lane. Every branch that subsequently ran the lint
+/// inherited 67 modified files it had not touched.
+///
+/// The renderer is not the culprit and needs no fix: `turtle_render::render`
+/// emits every statement with `writeln!`, so `gmeow-dev normalize` always
+/// terminates its output. The gap was purely the absence of an authority.
+///
+/// So: the pre-commit hook is the FIXER, this gate is the AUTHORITY. The scope
+/// here is deliberately a SUPERSET of the hook's selection over `slices/` — it
+/// covers every `.ttl` (not merely `module.ttl`), because the same bulk-edit
+/// failure mode reaches `shapes.ttl`, `examples/`, `tests/`, and `mappings/`,
+/// and a gate narrower than its fixer just relocates the recurrence into the
+/// uncovered set. "Exactly one" matches what the fixer normalizes to, so the two
+/// cannot disagree about what correct looks like.
+fn check_slice_ttl_trailing_newline(root: &Path, report: &mut RepoStaticReport) {
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut files);
+    files.sort();
+    for path in files {
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .display()
+            .to_string();
+        let bytes = match fs::read(&path) {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        if bytes.is_empty() {
+            report.error(format!(
+                "{rel}: is empty — an authored Turtle surface must carry content"
+            ));
+            continue;
+        }
+        if !bytes.ends_with(b"\n") {
+            report.error(format!(
+                "{rel}: has no trailing newline — authored Turtle surfaces end with exactly one, \
+                 which is what the renderer emits and what the end-of-file hook normalizes to; a \
+                 file without one makes every later branch that runs the lint inherit a \
+                 modification it did not author"
+            ));
+            continue;
+        }
+        if bytes.ends_with(b"\n\n") {
+            report.error(format!(
+                "{rel}: ends with a blank line — authored Turtle surfaces end with EXACTLY one \
+                 trailing newline, so the gate and the end-of-file hook agree on what correct is"
+            ));
+        }
+    }
+}
+
 /// Resolve an IRI to its interned [`TermId`] in `ds`, if present.
 fn iri_id_static(ds: &RdfDataset, iri: &str) -> Option<TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
+}
+
+/// The predicate a `gmeow:StructuralAssertion` cell uses to name the fixture that DELIBERATELY
+/// commits the pattern its `mustNot` polarity bans — the fail-witness that proves the ban is
+/// non-vacuous (a ban over a module that, by construction, never contains the banned pattern
+/// would otherwise pass whether or not the pattern is even correctly stated). Its object is a
+/// literal path relative to the assertion's OWN slice root, e.g.
+/// `"tests/counter-examples/hand-authored-shape.ttl"`.
+const GMEOW_SA_FAIL_WITNESS_IRI: &str = "https://blackcatinformatics.ca/gmeow/saFailWitness";
+
+/// The enclosing slice directory of `start` — the nearest ancestor carrying a `manifest.ttl` — or
+/// `None` when `start` is outside any slice. A `gmeow:saFailWitness` registration is authored
+/// relative to its OWN slice, so a registration lookup must first resolve which slice `start`
+/// belongs to rather than assume a single repo-wide `tests/` root.
+///
+/// Shared by [`registered_fail_witnesses`]'s two callers — the `crate-check` projection-purity
+/// scan ([`check_declarative_shape_purity`]) and `gmeow-validate`'s `shape_census` test — so the
+/// two gates the same failing fixture must satisfy agree on exactly one exemption rule rather
+/// than drifting into two independently-maintained ones.
+pub fn enclosing_slice_dir(start: &Path) -> Option<PathBuf> {
+    let mut cursor = if start.is_dir() {
+        Some(start.to_path_buf())
+    } else {
+        start.parent().map(Path::to_path_buf)
+    };
+    while let Some(dir) = cursor {
+        if dir.join("manifest.ttl").is_file() {
+            return Some(dir);
+        }
+        cursor = dir.parent().map(Path::to_path_buf);
+    }
+    None
+}
+
+/// Every path `slice_dir`'s `tests/*.ttl` cells register as a `gmeow:saFailWitness`, resolved to
+/// absolute paths under `slice_dir` so callers can test scanned-file membership directly.
+///
+/// This is the ONLY legitimate exemption from the shape-purity scans: keyed on the REGISTRATION,
+/// never on a blanket `tests/counter-examples/` directory skip. A blanket directory exclusion
+/// would make any unregistered hand-authored shape parked in that same directory invisible to the
+/// gate; keying on the specific fixture a structural assertion actually cites as its witness
+/// closes that hole while still letting the assertion prove its ban is exercised.
+pub fn registered_fail_witnesses(slice_dir: &Path) -> BTreeSet<PathBuf> {
+    let mut out = BTreeSet::new();
+    let Ok(entries) = fs::read_dir(slice_dir.join("tests")) else {
+        return out;
+    };
+    let mut cells: Vec<PathBuf> = entries
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("ttl"))
+        .collect();
+    cells.sort();
+    for cell in cells {
+        let Ok(bytes) = fs::read(&cell) else {
+            continue;
+        };
+        let Ok(ds) = purrdf::parse_dataset(&bytes, "text/turtle", None) else {
+            continue;
+        };
+        let Some(p) = iri_id_static(&ds, GMEOW_SA_FAIL_WITNESS_IRI) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any) {
+            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                out.insert(slice_dir.join(lexical));
+            }
+        }
+    }
+    out
 }
 
 fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
@@ -1316,53 +1520,85 @@ fn blank_regions(text: &str) -> (String, String, String) {
         i += 1;
     }
 
-    // Snapshot the code-only skeleton BEFORE `#[cfg(test)]` bodies are blanked. The
+    // Snapshot the code-only skeleton BEFORE test-gated bodies are blanked. The
     // unmanaged-temp-dir ban scans test bodies too — a leaked temp directory in a
     // `#[cfg(test)]` module is exactly the litter that filled the developer host's
     // `/tmp`, so exempting test code would exempt the entire defect.
     let skeleton_with_tests: Vec<char> = skeleton.clone();
 
-    // On the skeleton, blank every `#[cfg(test)]`-attributed item body. After the attribute,
-    // the item's brace-delimited body is the region from the next `{` to its matching `}`
-    // (fn / mod / impl); items with no body before a `;` (a `use`/`const`) carry no read.
-    let marker: Vec<char> = "#[cfg(test)]".chars().collect();
+    // On the skeleton, blank every TEST-GATED item body. After the attribute, the item's
+    // brace-delimited body is the region from the next `{` to its matching `}` (fn / mod /
+    // impl); items with no body before a `;` (a `use`/`const`) carry no read.
+    //
+    // "Test-gated" is any `#[cfg(…)]` whose predicate names the `test` identifier — the bare
+    // `#[cfg(test)]` AND the composed forms real modules use, e.g.
+    // `#[cfg(all(test, not(target_arch = "wasm32")))]`. Matching only the literal
+    // `#[cfg(test)]` would leave a wasm-gated test module looking like production code to
+    // every gate built on this view. `not(test)` is excluded (it gates the NON-test build),
+    // and a `feature = "test"` cannot match because string contents are already blanked here.
+    let open_marker: Vec<char> = "#[cfg(".chars().collect();
     let mut m = 0;
-    while m + marker.len() <= skeleton.len() {
-        if skeleton[m..m + marker.len()] != marker[..] {
+    while m + open_marker.len() <= skeleton.len() {
+        if skeleton[m..m + open_marker.len()] != open_marker[..] {
             m += 1;
+            continue;
+        }
+        // Balanced-paren scan of the cfg predicate, then the closing `]`.
+        let predicate_start = m + open_marker.len();
+        let mut depth = 1i32;
+        let mut k = predicate_start;
+        while k < skeleton.len() && depth > 0 {
+            match skeleton[k] {
+                '(' => depth += 1,
+                ')' => depth -= 1,
+                _ => {}
+            }
+            k += 1;
+        }
+        let mut after = k;
+        while after < skeleton.len() && skeleton[after].is_whitespace() {
+            after += 1;
+        }
+        if depth != 0 || after >= skeleton.len() || skeleton[after] != ']' {
+            m += open_marker.len();
+            continue;
+        }
+        let predicate: String = skeleton[predicate_start..k - 1].iter().collect();
+        if !cfg_predicate_is_test_gated(&predicate) {
+            m += open_marker.len();
             continue;
         }
         // Find the item's opening brace, but stop at a `;` (a semicolon-terminated item has no
         // body to blank — e.g. `#[cfg(test)] use super::*;`).
-        let mut j = m + marker.len();
+        let mut j = after + 1;
         while j < skeleton.len() && skeleton[j] != '{' && skeleton[j] != ';' {
             j += 1;
         }
         if j >= skeleton.len() || skeleton[j] == ';' {
-            m += marker.len();
+            m += open_marker.len();
             continue;
         }
-        let mut depth = 0i32;
-        let mut k = j;
-        while k < skeleton.len() {
-            match skeleton[k] {
-                '{' => depth += 1,
+        let mut body_depth = 0i32;
+        let mut end = j;
+        while end < skeleton.len() {
+            match skeleton[end] {
+                '{' => body_depth += 1,
                 '}' => {
-                    depth -= 1;
-                    if depth == 0 {
-                        k += 1;
+                    body_depth -= 1;
+                    if body_depth == 0 {
+                        end += 1;
                         break;
                     }
                 }
                 _ => {}
             }
-            k += 1;
+            end += 1;
         }
-        for pos in j..k.min(out.len()) {
+        for pos in j..end.min(out.len()) {
             out[pos] = blank(src[pos]);
             skeleton[pos] = blank(src[pos]);
         }
-        m = k;
+        m = end;
     }
     (
         out.iter().collect(),
@@ -1371,13 +1607,37 @@ fn blank_regions(text: &str) -> (String, String, String) {
     )
 }
 
-/// Comments and `#[cfg(test)]` bodies blanked, string/char literal CONTENTS kept — the
+/// True when a `#[cfg(…)]` predicate gates its item to a TEST build: the `test` identifier
+/// appears as a whole word and is not negated by `not(test)`. Whitespace is stripped first so
+/// `not( test )` is recognised identically to `not(test)`.
+fn cfg_predicate_is_test_gated(predicate: &str) -> bool {
+    let compact: String = predicate.chars().filter(|c| !c.is_whitespace()).collect();
+    if compact.contains("not(test)") {
+        return false;
+    }
+    let bytes = compact.as_bytes();
+    let mut from = 0;
+    while let Some(rel) = compact[from..].find("test") {
+        let at = from + rel;
+        let end = at + 4;
+        let starts = at == 0 || !(bytes[at - 1].is_ascii_alphanumeric() || bytes[at - 1] == b'_');
+        let ends =
+            end >= compact.len() || !(bytes[end].is_ascii_alphanumeric() || bytes[end] == b'_');
+        if starts && ends {
+            return true;
+        }
+        from = end;
+    }
+    false
+}
+
+/// Comments and TEST-GATED bodies blanked, string/char literal CONTENTS kept — the
 /// generated/-read ban's view (it must still see `.join("generated"…)` string literals).
 fn blank_comments_and_cfg_test_modules(text: &str) -> String {
     blank_regions(text).0
 }
 
-/// Comments and string/char literals blanked, `#[cfg(test)]` bodies KEPT — CODE ONLY,
+/// Comments and string/char literals blanked, test-gated bodies KEPT — CODE ONLY,
 /// tests included. Used by the unmanaged-temp-dir ban: the hand-rolled
 /// `env::temp_dir()` scratch paths that filled a developer host's `/tmp` with hundreds
 /// of gigabytes lived almost entirely inside `#[cfg(test)]` modules, so a scanner that
@@ -1386,7 +1646,7 @@ fn blank_comments_and_strings_keeping_tests(text: &str) -> String {
     blank_regions(text).2
 }
 
-/// Comments, string/char literals, AND `#[cfg(test)]` bodies all blanked — CODE ONLY. Used by
+/// Comments, string/char literals, AND TEST-GATED bodies all blanked — CODE ONLY. Used by
 /// the `Result<_, String>` honest-invariant scan: a `Result<_, String>` mention inside a
 /// string literal (a diagnostic message, a doc example, this very gate's own error text) is
 /// prose, not a type occurrence, and must never be flagged.
@@ -1762,6 +2022,38 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     }
 
     let lock_path = root.join("Cargo.lock");
+
+    // The manifest pin and the RESOLVED lock version must agree. `purrdf_source_key`
+    // above only proves the two MANIFESTS match each other; it cannot see the lock, so
+    // "the manifest pins one version, the lock resolves another" was undetectable.
+    //
+    // The pin must be EXACT (`=x.y.z`). A default caret requirement admits any compatible
+    // release, so `cargo update` can relink native — and any rebuilt wasm — against a
+    // different purrdf while every version string in the tree still reads the same. The
+    // substrate record keys off the LOCK for that reason; requiring an exact pin here keeps
+    // the manifest from silently disagreeing with it in the first place.
+    if lock_path.is_file()
+        && let Some(declared) = purrdf_declared_version(&root_manifest)
+    {
+        match declared.strip_prefix('=') {
+            None => report.error(format!(
+                "Cargo.toml pins purrdf {declared:?}, a range — it must be an EXACT pin \
+                 (=x.y.z). A caret requirement lets `cargo update` relink the RDF core \
+                 under a manifest that still reads the same"
+            )),
+            Some(exact) => {
+                if let Some(locked) = locked_package_version(&lock_path, "purrdf", report)
+                    && exact != locked
+                {
+                    report.error(format!(
+                        "Cargo.toml pins purrdf {exact} but Cargo.lock resolves {locked} — the \
+                         manifest and the lock must name the same version"
+                    ));
+                }
+            }
+        }
+    }
+
     if lock_path.is_file()
         && let Some(version) = locked_package_version(&lock_path, "structured-zstd", report)
     {
@@ -1779,6 +2071,320 @@ fn check_purrdf_and_zstd_pins(root: &Path, report: &mut RepoStaticReport) {
     }
 }
 
+/// The plain crates.io version `Cargo.toml` pins purrdf at, if it is a registry pin.
+///
+/// Returns `None` for a git/path source (which carries no comparable version) or when the
+/// manifest cannot be read — the lock comparison then simply does not bind.
+fn purrdf_declared_version(manifest_path: &Path) -> Option<String> {
+    let text = fs::read_to_string(manifest_path).ok()?;
+    let manifest = text.parse::<toml::Value>().ok()?;
+    let dep = manifest
+        .get("workspace")?
+        .as_table()?
+        .get("dependencies")?
+        .as_table()?
+        .get("purrdf")?;
+    match dep {
+        toml::Value::String(version) => Some(version.clone()),
+        toml::Value::Table(table) if !table.contains_key("git") && !table.contains_key("path") => {
+            table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
+        }
+        _ => None,
+    }
+}
+
+/// The CI-installed `wasm-bindgen-cli` and the binaryen pin CI provisions.
+///
+/// Split out and called on EVERY path of [`check_wasm_bindgen_pin_parity`], including the
+/// ones that could not read the workspace pin. When it was inline, an unreadable or absent
+/// root manifest returned early and took this with it — so a genuinely wrong CI version went
+/// unreported because a DIFFERENT file was missing. `expected` is `None` exactly when the
+/// library pin could not be established; the CI surface is still checked for its own sake.
+fn check_wasm_bindgen_ci_pin(root: &Path, expected: Option<&str>, report: &mut RepoStaticReport) {
+    let workflow = root.join(".github").join("workflows").join("ci.yml");
+    let ci = match fs::read_to_string(&workflow) {
+        Ok(ci) => ci,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen CLI version cannot be checked \
+                 against the workspace pin, which is a failure, not agreement",
+                workflow.display()
+            ));
+            return;
+        }
+    };
+    // EVERY occurrence, not the first: a second install step pinned to another version is
+    // exactly the drift this exists to catch, and `nth(1)` would never have seen it.
+    let installs: Vec<String> = ci
+        .split("wasm-bindgen-cli@")
+        .skip(1)
+        .map(|rest| {
+            rest.chars()
+                .take_while(|c| c.is_ascii_digit() || *c == '.')
+                .collect::<String>()
+        })
+        .collect();
+    if installs.is_empty() {
+        report.error(format!(
+            "{}: installs no `wasm-bindgen-cli@<version>` — the Node parity lanes cannot \
+             generate bindings without it",
+            workflow.display()
+        ));
+    }
+    for installed in &installs {
+        if expected.is_some() && Some(installed.as_str()) != expected {
+            report.error(format!(
+                "{} installs wasm-bindgen-cli@{installed} but [workspace.dependencies] pins \
+                 wasm-bindgen {} — the CLI refuses any library version it does not match \
+                 byte-for-byte, so the wasm build fails naming a version mismatch rather than \
+                 this drift",
+                workflow.display(),
+                expected.unwrap_or("<unreadable>")
+            ));
+        }
+    }
+
+    // The binaryen pin has ONE home (the Makefile's `BINARYEN_VER`), and CI must keep
+    // READING it rather than repeating the literal. Those two constants drifted once
+    // already: CI provisioned a release predating `--enable-bulk-memory-opt`, and every
+    // wasm-opt rule died on an unknown option. Nothing stopped the literal coming back.
+    if !ci.contains("print-binaryen-ver") {
+        report.error(format!(
+            "{}: does not read the binaryen pin from `make print-binaryen-ver` — the Makefile \
+             is its single source of truth, and a literal `version_NNN` here is the two-constant \
+             drift that broke the wasm lanes",
+            workflow.display()
+        ));
+    }
+    // ANY binaryen release literal is the drift, whatever idiom carries it. The first
+    // version of this detector matched only the YAML-mapping form (`BINARYEN_VER:`) —
+    // which this repository no longer contains, because the fix that introduced the
+    // detector also replaced that mapping with a shell read of `print-binaryen-ver`. A
+    // detector keyed to a retired idiom matches nothing; the literal itself is the
+    // invariant.
+    match Regex::new(r"version_[0-9]+") {
+        Ok(literal) => {
+            if let Some(m) = literal.find(&ci) {
+                report.error(format!(
+                    "{}: carries the binaryen release literal {:?} — read the pin from \
+                     `make print-binaryen-ver` instead; two copies of this version drifted \
+                     once and took every wasm parity lane with them",
+                    workflow.display(),
+                    m.as_str()
+                ));
+            }
+        }
+        Err(err) => report.error(format!("binaryen literal pattern failed to compile: {err}")),
+    }
+}
+
+/// `purrdf::gts_compose::emit_gts` may be called from exactly ONE place: the mandated
+/// authorship profile in `crates/gts-profile`.
+///
+/// That crate exists because the claim "`emit_gmeow_gts` is the only production entry to the
+/// GTS writer" was false — three crates called the writer directly, so bundles shipped
+/// without the mandated transform chain and compression level. Extracting the profile fixed
+/// the instances; nothing stopped the next one. A chokepoint nothing enforces is a
+/// convention, and this file already scans for three sibling structural invariants.
+///
+/// Test code is exempt: a test may legitimately build a deliberately non-conforming bundle
+/// to prove the profile's audit rejects it. The scan walks `crates/` — the standalone
+/// `fuzz/` workspace sits outside it by design: fuzz targets are harness code that drives
+/// the writer deliberately, the same exemption test crates get.
+fn check_gts_emit_chokepoint(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files: Vec<PathBuf> = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    for file in files {
+        // The profile crate IS the permitted entry.
+        if file.starts_with(crates_dir.join("gts-profile")) {
+            continue;
+        }
+        // Integration-test crates and benches are test code: their files carry no
+        // `#[cfg(test)]` module for the scrubber to blank, but a test may legitimately
+        // build a deliberately non-conforming bundle to prove the audit rejects it.
+        if file
+            .components()
+            .any(|c| matches!(c.as_os_str().to_str(), Some("tests" | "benches")))
+        {
+            continue;
+        }
+        let Ok(text) = fs::read_to_string(&file) else {
+            report.error(format!("{}: cannot read", file.display()));
+            continue;
+        };
+        let scrubbed = blank_comments_strings_and_cfg_test_modules(&text);
+        let lines: Vec<&str> = scrubbed.lines().collect();
+        for (idx, line) in lines.iter().enumerate() {
+            // `#[cfg(test)] use ...::emit_gts;` attaches the attribute to the item, not to a
+            // module, so the module scrubber cannot see it.
+            let test_gated = idx
+                .checked_sub(1)
+                .and_then(|prev| lines.get(prev))
+                .is_some_and(|prev| prev.trim() == "#[cfg(test)]");
+            if test_gated {
+                continue;
+            }
+            if line.contains("gts_compose::emit_gts") || line.contains("emit_gts(") {
+                let rel = file.strip_prefix(root).unwrap_or(&file);
+                report.error(format!(
+                    "{}:{}: calls the GTS writer directly — every production bundle must be \
+                     emitted through `gmeow_gts_profile::emit_gmeow_gts`, the single entry \
+                     that applies the mandated transform chain and compression level",
+                    rel.display(),
+                    idx + 1
+                ));
+            }
+        }
+    }
+}
+
+/// The `wasm-bindgen` library pin, the per-crate declarations, and the CLI CI installs must
+/// all name ONE version.
+///
+/// The CLI that generates the JS bindings refuses to run against a library version it does
+/// not match byte-for-byte, and one CLI is on PATH for the whole build. The pin therefore
+/// lives in `[workspace.dependencies]` and every `crates/*-wasm` manifest must consume it
+/// with `wasm-bindgen.workspace = true`; a crate that redeclares its own version reopens
+/// the disagreement the single declaration exists to make unrepresentable.
+///
+/// The remaining live drift is the CLI: CI installs `wasm-bindgen-cli@<version>` by literal,
+/// and a bump to the library pin that forgets that line produces a build failure naming a
+/// version mismatch rather than the drift that caused it. Both halves are checked here.
+fn check_wasm_bindgen_pin_parity(root: &Path, report: &mut RepoStaticReport) {
+    let root_manifest = root.join("Cargo.toml");
+    // The root manifest is a REQUIRED repository input: absent or unreadable, the guard
+    // could not run, and reporting agreement it never established is the silent
+    // degradation this file exists to prevent. The CI half is still checked on every
+    // path, so a missing manifest can never swallow a real CLI drift.
+    let text = match fs::read_to_string(&root_manifest) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read: {err} — the wasm-bindgen pin cannot be checked, which is a \
+                 failure, not agreement",
+                root_manifest.display()
+            ));
+            check_wasm_bindgen_ci_pin(root, None, report);
+            return;
+        }
+    };
+    let Ok(manifest) = text.parse::<toml::Value>() else {
+        report.error(format!("{}: cannot parse", root_manifest.display()));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let declared = manifest
+        .get("workspace")
+        .and_then(toml::Value::as_table)
+        .and_then(|ws| ws.get("dependencies"))
+        .and_then(toml::Value::as_table)
+        .and_then(|deps| deps.get("wasm-bindgen"))
+        .and_then(|dep| match dep {
+            toml::Value::String(version) => Some(version.clone()),
+            toml::Value::Table(table) => table
+                .get("version")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned),
+            _ => None,
+        });
+    let Some(declared) = declared else {
+        report.error(
+            "the root [workspace.dependencies] declares no wasm-bindgen — every `crates/*-wasm` \
+             crate must consume ONE pin from there, so the wasm-bindgen CLI on PATH can match \
+             all of them"
+                .to_owned(),
+        );
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+    let Some(exact) = declared.strip_prefix('=') else {
+        report.error(format!(
+            "[workspace.dependencies] pins wasm-bindgen {declared:?}, a range — it must be an \
+             EXACT pin (=x.y.z); the CLI refuses any library version it does not match \
+             byte-for-byte"
+        ));
+        check_wasm_bindgen_ci_pin(root, None, report);
+        return;
+    };
+
+    // No `crates/*-wasm` crate may redeclare the version.
+    // An ABSENT crates/ directory means no members to check (minimal fixtures); a
+    // directory that exists but cannot be read is a failed check.
+    let crates_dir = root.join("crates");
+    let entries = if crates_dir.exists() {
+        match fs::read_dir(&crates_dir) {
+            Ok(entries) => Some(entries),
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read: {err} — the `*-wasm` members cannot be checked against \
+                     the workspace pin",
+                    crates_dir.display()
+                ));
+                None
+            }
+        }
+    } else {
+        None
+    };
+    if let Some(entries) = entries {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if !name.ends_with("-wasm") {
+                continue;
+            }
+            let manifest_path = entry.path().join("Cargo.toml");
+            if !manifest_path.is_file() {
+                continue;
+            }
+            let member = match fs::read_to_string(&manifest_path) {
+                Ok(member) => member,
+                Err(err) => {
+                    report.error(format!("{}: cannot read: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let parsed = match member.parse::<toml::Value>() {
+                Ok(parsed) => parsed,
+                Err(err) => {
+                    report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
+                    continue;
+                }
+            };
+            let dep = parsed
+                .get("dependencies")
+                .and_then(toml::Value::as_table)
+                .and_then(|deps| deps.get("wasm-bindgen"));
+            let uses_workspace = matches!(
+                dep,
+                Some(toml::Value::Table(table))
+                    if table.get("workspace").and_then(toml::Value::as_bool) == Some(true)
+            );
+            match dep {
+                None => report.error(format!(
+                    "{}: a `*-wasm` crate that declares no wasm-bindgen dependency",
+                    manifest_path.display()
+                )),
+                Some(_) if uses_workspace => {}
+                Some(other) => report.error(format!(
+                    "{}: redeclares wasm-bindgen as {other} — it must read the single \
+                     workspace pin with `wasm-bindgen.workspace = true`, so the version cannot \
+                     disagree with its sibling crates or with the CLI CI installs",
+                    manifest_path.display()
+                )),
+            }
+        }
+    }
+
+    check_wasm_bindgen_ci_pin(root, Some(exact), report);
+}
+
 /// A stable, order-independent key for a `purrdf` dependency declaration, so the root and fuzz
 /// manifests compare equal iff they name the same source. Returns `None` (with a parse error
 /// recorded) only when the manifest itself is unreadable/unparsable; a missing `purrdf` key
@@ -1788,20 +2394,40 @@ fn purrdf_source_key(
     workspace: bool,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(manifest_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", manifest_path.display()));
-            return None;
+    match purrdf_source_key_of(manifest_path, workspace) {
+        Ok(key) => Some(key),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let manifest = match text.parse::<toml::Value>() {
-        Ok(manifest) => manifest,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", manifest_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The same `purrdf` source key as [`purrdf_source_key`], as a hard failure rather than a
+/// recorded finding.
+///
+/// This is the ONE parser for the declared purrdf pin — a real TOML parse, never a line
+/// scanner, so a dotted key, a table-form `[workspace.dependencies.purrdf]`, or a commented
+/// header cannot silently read as "no pin". The docs-asset substrate gate keys off the LOCK
+/// via [`workspace_substrate_key`] rather than any manifest reader, so this stays private:
+/// visibility it earns only when a consumer outside this report actually exists.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the manifest cannot be read or parsed. A manifest that parses but
+/// declares no `purrdf` is NOT an error — it yields the distinct `absent` key, so a drift to
+/// "no purrdf at all" still compares unequal instead of vanishing.
+fn purrdf_source_key_of(manifest_path: &Path, workspace: bool) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(manifest_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", manifest_path.display()),
+        })
+    })?;
+    let manifest = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", manifest_path.display()),
+        })
+    })?;
     let deps = if workspace {
         manifest
             .get("workspace")
@@ -1813,7 +2439,7 @@ fn purrdf_source_key(
     let dep = deps
         .and_then(toml::Value::as_table)
         .and_then(|t| t.get("purrdf"));
-    Some(match dep {
+    Ok(match dep {
         None => "absent".to_owned(),
         Some(toml::Value::String(version)) => format!("registry;version={version}"),
         Some(toml::Value::Table(table)) => {
@@ -1843,26 +2469,114 @@ fn locked_package_version(
     name: &str,
     report: &mut RepoStaticReport,
 ) -> Option<String> {
-    let text = match fs::read_to_string(lock_path) {
-        Ok(text) => text,
-        Err(err) => {
-            report.error(format!("{}: cannot read: {err}", lock_path.display()));
-            return None;
+    match locked_package_version_of(lock_path, name) {
+        Ok(version) => Some(version),
+        Err(diag) => {
+            report.error(diag.message().to_owned());
+            None
         }
-    };
-    let lock = match text.parse::<toml::Value>() {
-        Ok(lock) => lock,
-        Err(err) => {
-            report.error(format!("{}: cannot parse: {err}", lock_path.display()));
-            return None;
-        }
-    };
+    }
+}
+
+/// The RESOLVED version of `name` in `Cargo.lock`, as a hard failure rather than a recorded
+/// finding, for callers outside this report.
+///
+/// The lock is the only place the version that actually got COMPILED is written down. A
+/// manifest requirement is a range: `purrdf = "0.12.0"` admits `0.12.1`, so a key derived from
+/// the manifest compares equal across a substrate change the lock can see.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or when it resolves no package
+/// named `name` — an absent package is a hard failure here, not a silent skip, because the
+/// caller asked for an identity it cannot substitute.
+pub fn locked_package_version_of(lock_path: &Path, name: &str) -> gmeow_errors::Result<String> {
+    let text = fs::read_to_string(lock_path).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", lock_path.display()),
+        })
+    })?;
+    let lock = text.parse::<toml::Value>().map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: cannot parse: {err}", lock_path.display()),
+        })
+    })?;
     lock.get("package")
-        .and_then(toml::Value::as_array)?
-        .iter()
-        .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        .and_then(toml::Value::as_array)
+        .and_then(|packages| {
+            packages
+                .iter()
+                .find(|pkg| pkg.get("name").and_then(toml::Value::as_str) == Some(name))
+        })
         .and_then(|pkg| pkg.get("version").and_then(toml::Value::as_str))
         .map(str::to_owned)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: resolves no package named {name:?}",
+                    lock_path.display()
+                ),
+            })
+        })
+}
+
+/// The identity of the substrate a wasm engine built from this workspace statically links.
+///
+/// Both components are read from `Cargo.lock`, never from a manifest requirement: the lock
+/// records what was RESOLVED and therefore what was compiled into the `.wasm`, while a
+/// manifest requirement is a range that compares equal across the very bump this key exists
+/// to catch.
+///
+/// - `purrdf` is the RDF/SHACL/SPARQL core the browser and native engines must share.
+/// - `wasm-bindgen` fixes the JS glue ABI; a glue/library skew produces bindings that load
+///   but misbehave, which the digest manifest cannot see either.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the lock cannot be read or parsed, or resolves neither package.
+pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
+    let lock_path = root.join("Cargo.lock");
+    let purrdf = locked_package_version_of(&lock_path, "purrdf")?;
+    let bindgen = locked_package_version_of(&lock_path, "wasm-bindgen")?;
+    let binaryen = declared_binaryen_version(root)?;
+    Ok(format!(
+        "purrdf {purrdf}; wasm-bindgen {bindgen}; binaryen {binaryen}"
+    ))
+}
+
+/// The binaryen release the Makefile pins, as `BINARYEN_VER`.
+///
+/// Read from the Makefile because that is where the pin lives — CI provisions exactly this
+/// via `make print-binaryen-ver`, and every `wasm-opt` rule refuses a binary reporting a
+/// different version.
+///
+/// # Errors
+///
+/// Returns a diagnostic when the Makefile cannot be read or declares no `BINARYEN_VER`.
+fn declared_binaryen_version(root: &Path) -> gmeow_errors::Result<String> {
+    let makefile = root.join("Makefile");
+    let text = fs::read_to_string(&makefile).map_err(|err| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {err}", makefile.display()),
+        })
+    })?;
+    text.lines()
+        .find_map(|line| {
+            let rest = line.strip_prefix("BINARYEN_VER")?;
+            let rest = rest.trim_start().strip_prefix(":=")?;
+            Some(rest.trim().to_owned())
+        })
+        .filter(|v| !v.is_empty())
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!(
+                    "{}: declares no `BINARYEN_VER := <release>` — the wasm engines' bytes \
+                     depend on the binaryen that optimized them, so the substrate they were \
+                     built against cannot be stated without it",
+                    makefile.display()
+                ),
+            })
+        })
 }
 
 /// Parse a `major.minor.patch` version prefix (ignoring any `-pre`/`+build` suffix) into a
@@ -1874,6 +2588,1269 @@ fn parse_version_triple(version: &str) -> Option<(u64, u64, u64)> {
     let minor = parts.next()?.parse().ok()?;
     let patch = parts.next()?.parse().ok()?;
     Some((major, minor, patch))
+}
+
+// ── GTS-authorship seals: one door to purrdf's writer surface ────────────────
+
+/// The crate that owns the mandated GTS authorship profile. It is the ONLY
+/// production caller of purrdf's GTS-authorship surface; everything else routes
+/// through `emit_gmeow_gts` / `dataset_to_gmeow_gts` / `GmeowGtsWriter`.
+const GTS_PROFILE_CRATE_SRC: &str = "crates/gts-profile/src/";
+
+/// A pinned purrdf public entry point that hands the caller a `Writer` or GTS
+/// bytes (returned, or authored into a caller-supplied `io::Write` sink). Each
+/// one mints a GTS header, so each one decides the transform chain of every frame
+/// that follows — which is exactly what the mandated profile fixes.
+///
+/// **Census method (re-verified against the pinned purrdf source, tag
+/// `rust-v0.8.5`, rev `59c31dc`, under `~/.cargo/git/checkouts/`).** Every
+/// `Writer::{new, deterministic, with_layout, with_options, appending}`
+/// construction site in purrdf's
+/// non-test source was enumerated, and each was traced up to the nearest `pub`
+/// entry point. Two consequences worth recording, because a guessed list gets
+/// them wrong:
+///
+/// * `files::build_entries_v2_prefix` is PRIVATE (`fn`, not `pub fn`) at this
+///   pin, so it is not an entry point; its five public `pack_entries_v2*`
+///   wrappers are pinned in its place.
+/// * `agent_memory::Memory` exposes no `writer()` accessor at this pin. Its
+///   `store` / `revise` / `record_tool_call` methods DO mint a header internally,
+///   but they return a `Claim` / `()` and write to a path — they hand the caller
+///   neither a `Writer` nor GTS bytes, and the pinned revision exposes no
+///   transform hook on them, so they are outside this seal's stated subject. The
+///   segments GMEOW itself appends to those files (`build_audit_segment`,
+///   `build_nt_segment`) DO go through the profile crate and are audited by
+///   `gmeow-pipeline`'s own `validate_mandated_frames` tests.
+/// * `Writer::appending` continues an existing segment's `prev` chain instead of
+///   minting a fresh header, so an append-only store pays for one header per FILE
+///   rather than one per record. It hands the caller a `Writer`, so it decides the
+///   transform chain of every frame it goes on to author exactly as the minting
+///   constructors do, and it is pinned here for the same reason. Its ONE production
+///   caller is the profile crate's `store_writer`, which is also the door that
+///   decides between continuing a segment and opening a new one when the store's
+///   medium changes.
+struct GtsEntryPoint {
+    /// The module path tail as written in a qualified call
+    /// (`purrdf::gts_compose::emit_gts` → `gts_compose`).
+    module: &'static str,
+    /// A free function's name, or the type owning `constructors`.
+    item: &'static str,
+    /// Associated constructor names for a TYPE entry point; empty for a free fn.
+    constructors: &'static [&'static str],
+}
+
+const PURRDF_GTS_ENTRY_POINTS: &[GtsEntryPoint] = &[
+    GtsEntryPoint {
+        module: "writer",
+        item: "Writer",
+        constructors: &[
+            "new",
+            "deterministic",
+            "with_layout",
+            "with_options",
+            "appending",
+        ],
+    },
+    GtsEntryPoint {
+        module: "writer",
+        item: "snapshot_from_graph",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "gts_write",
+        item: "to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "gts_write",
+        item: "to_gts",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "gts_compose",
+        item: "emit_gts",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "compact",
+        item: "compact_streamable",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_with_blob_bytes",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_with_blob_ranges",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "files",
+        item: "pack_entries_v2_with_blob_paths",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_tar",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_tar_bytes",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_tar_to_writer",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_seekable_tar",
+        constructors: &[],
+    },
+    GtsEntryPoint {
+        module: "from_tar",
+        item: "from_seekable_tar_to_writer",
+        constructors: &[],
+    },
+];
+
+/// One production call of a pinned purrdf GTS-authorship entry point.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct GtsAuthorshipHit {
+    /// Repo-relative, slash-separated path of the calling file.
+    file: String,
+    /// 1-indexed line of the call.
+    line: usize,
+    /// The pinned entry point, as `module::item` (`gts_compose::emit_gts`).
+    entry_point: String,
+    /// The exact call token matched (`GtsWriter::new(`), so an alias is visible.
+    token: String,
+}
+
+/// Every occurrence of `needle` in `haystack` whose preceding character is not an
+/// identifier character — i.e. `needle` starts a fresh identifier. `Writer::new(`
+/// therefore matches inside `purrdf::gts::writer::Writer::new(` (preceded by `:`)
+/// but NOT inside `OkfWriter::new(` (preceded by `f`).
+fn identifier_starts(haystack: &str, needle: &str) -> usize {
+    let mut count = 0;
+    let bytes = haystack.as_bytes();
+    let mut from = 0;
+    while let Some(rel) = haystack[from..].find(needle) {
+        let at = from + rel;
+        let boundary = at == 0 || {
+            let prev = bytes[at - 1];
+            !(prev.is_ascii_alphanumeric() || prev == b'_')
+        };
+        if boundary {
+            count += 1;
+        }
+        from = at + needle.len();
+    }
+    count
+}
+
+/// The local names a purrdf `use` statement binds `item` to in `code`.
+///
+/// Always includes nothing when `item` is never imported: the qualified call form
+/// (`module::item(`) is scanned separately, so a file that neither imports nor
+/// qualifies cannot be calling the entry point at all. `use … as Alias` is
+/// followed, which is how `use purrdf::gts::writer::Writer as GtsWriter;` stays
+/// visible to the seal.
+fn purrdf_use_bindings(code: &str, item: &str) -> BTreeSet<String> {
+    let mut bindings = BTreeSet::new();
+    let mut rest = code;
+    while let Some(at) = rest.find("use ") {
+        let after = &rest[at + 4..];
+        let stmt_end = after.find(';').unwrap_or(after.len());
+        let stmt = &after[..stmt_end];
+        rest = &after[stmt_end..];
+        if !stmt.contains("purrdf") {
+            continue;
+        }
+        // Walk each identifier-start occurrence of `item` in the statement and
+        // read an `as Alias` rename directly after it.
+        let bytes = stmt.as_bytes();
+        let mut from = 0;
+        while let Some(rel) = stmt[from..].find(item) {
+            let at = from + rel;
+            let end = at + item.len();
+            let starts_ident = at == 0 || {
+                let prev = bytes[at - 1];
+                !(prev.is_ascii_alphanumeric() || prev == b'_')
+            };
+            let ends_ident = end >= stmt.len() || {
+                let next = bytes[end];
+                !(next.is_ascii_alphanumeric() || next == b'_')
+            };
+            from = end;
+            if !(starts_ident && ends_ident) {
+                continue;
+            }
+            let tail = stmt[end..].trim_start();
+            if let Some(alias) = tail.strip_prefix("as ") {
+                let alias: String = alias
+                    .trim_start()
+                    .chars()
+                    .take_while(|c| c.is_alphanumeric() || *c == '_')
+                    .collect();
+                if !alias.is_empty() {
+                    bindings.insert(alias);
+                    continue;
+                }
+            }
+            bindings.insert(item.to_string());
+        }
+    }
+    bindings
+}
+
+/// Census every PRODUCTION call of a pinned purrdf GTS-authorship entry point.
+///
+/// **Production** is `crates/*/src/**.rs` and nothing else. `crates/*/tests/**`
+/// integration tests are NOT production (they carry no `#[cfg(test)]` marker at
+/// all, so "the first `#[cfg(test)]` in the file" is not a valid classifier), and
+/// inside a scanned file every `#[cfg(test)]`-attributed body is blanked. Comments
+/// and string/char literal contents are blanked too, so a commented-out call, a
+/// doc mention, or a diagnostic message naming an entry point is never a hit.
+fn purrdf_gts_authorship_census(
+    root: &Path,
+    report: &mut RepoStaticReport,
+) -> Vec<GtsAuthorshipHit> {
+    let mut hits = Vec::new();
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return hits;
+    }
+    let mut crate_dirs: Vec<PathBuf> = match fs::read_dir(&crates_dir) {
+        Ok(entries) => entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect(),
+        Err(err) => {
+            report.error(format!(
+                "gts-authorship seal: {}: cannot read directory: {err}",
+                crates_dir.display()
+            ));
+            return hits;
+        }
+    };
+    crate_dirs.sort();
+
+    for crate_dir in crate_dirs {
+        let src = crate_dir.join("src");
+        if !src.is_dir() {
+            continue;
+        }
+        let mut files = Vec::new();
+        collect_rust_files(&src, report, &mut files);
+        files.sort();
+        for path in &files {
+            let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+            let text = match fs::read_to_string(path) {
+                Ok(text) => text,
+                Err(err) => {
+                    report.error(format!("gts-authorship seal: {rel}: cannot read: {err}"));
+                    continue;
+                }
+            };
+            let code = blank_comments_strings_and_cfg_test_modules(&text);
+            for entry in PURRDF_GTS_ENTRY_POINTS {
+                let bindings = purrdf_use_bindings(&code, entry.item);
+                let mut tokens: BTreeSet<String> = BTreeSet::new();
+                if entry.constructors.is_empty() {
+                    tokens.insert(format!("{}::{}(", entry.module, entry.item));
+                    for alias in &bindings {
+                        tokens.insert(format!("{alias}("));
+                    }
+                } else {
+                    for ctor in entry.constructors {
+                        tokens.insert(format!("{}::{}::{ctor}(", entry.module, entry.item));
+                        for alias in &bindings {
+                            tokens.insert(format!("{alias}::{ctor}("));
+                        }
+                    }
+                }
+                for (idx, line) in code.lines().enumerate() {
+                    for token in &tokens {
+                        for _ in 0..identifier_starts(line, token) {
+                            hits.push(GtsAuthorshipHit {
+                                file: rel.clone(),
+                                line: idx + 1,
+                                entry_point: format!("{}::{}", entry.module, entry.item),
+                                token: token.clone(),
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    hits.sort();
+    hits.dedup();
+    hits
+}
+
+/// **Seal A** — `purrdf::gts_compose::emit_gts` has EXACTLY ONE production caller,
+/// and it is the profile crate's `emit_gmeow_gts`.
+///
+/// `emit_gts` is the only purrdf door that takes a transform chain as an argument,
+/// which is precisely why a second caller is dangerous: its `transform: None`
+/// default is plain `zstd`, so a bypassing call silently ships a bundle that
+/// violates the one-transform rule at every frame size.
+fn check_emit_gts_has_one_production_caller(
+    hits: &[GtsAuthorshipHit],
+    report: &mut RepoStaticReport,
+) {
+    let emitters: Vec<&GtsAuthorshipHit> = hits
+        .iter()
+        .filter(|hit| hit.entry_point == "gts_compose::emit_gts")
+        .collect();
+    if emitters.len() != 1 {
+        report.error(format!(
+            "gts-authorship Seal A: `purrdf::gts_compose::emit_gts` must have EXACTLY ONE \
+             production caller (`{GTS_PROFILE_CRATE_SRC}`, via `emit_gmeow_gts`); found {} — \
+             route the bypassing call through `gmeow_gts_profile::emit_gmeow_gts`, which pins \
+             the mandated `zstd-rsyncable` chain: {}",
+            emitters.len(),
+            render_authorship_hits(&emitters)
+        ));
+        return;
+    }
+    let hit = emitters[0];
+    if !hit.file.starts_with(GTS_PROFILE_CRATE_SRC) {
+        report.error(format!(
+            "gts-authorship Seal A: the single production `emit_gts` caller must live in \
+             `{GTS_PROFILE_CRATE_SRC}`; found {}:{}",
+            hit.file, hit.line
+        ));
+    }
+}
+
+/// **Seal B** — ZERO production callers, outside the profile crate, of ANY pinned
+/// purrdf entry point that hands back a `Writer` or GTS bytes.
+///
+/// Seal A alone is not enough: `gts_write::to_gts`, a bare `Writer::new`, and the
+/// `files`/`from_tar` packers all mint headers WITHOUT going near `emit_gts`, and
+/// each authors payload frames with no transform chain at all. Every one of them
+/// is invisible to an `emit_gts`-only seal.
+fn check_no_bypassing_gts_authorship(hits: &[GtsAuthorshipHit], report: &mut RepoStaticReport) {
+    let bypasses: Vec<&GtsAuthorshipHit> = hits
+        .iter()
+        .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+        .collect();
+    if bypasses.is_empty() {
+        return;
+    }
+    report.error(format!(
+        "gts-authorship Seal B: {} production call(s) of a purrdf GTS-authorship entry point \
+         outside `{GTS_PROFILE_CRATE_SRC}` — every GMEOW-authored payload frame must carry the \
+         one mandated transform, so author through `gmeow_gts_profile` \
+         (`emit_gmeow_gts` / `dataset_to_gmeow_gts` / `GmeowGtsWriter`) instead: {}",
+        bypasses.len(),
+        render_authorship_hits(&bypasses)
+    ));
+}
+
+fn render_authorship_hits(hits: &[&GtsAuthorshipHit]) -> String {
+    hits.iter()
+        .map(|hit| format!("{}:{} `{}`", hit.file, hit.line, hit.token))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+fn check_gts_authorship_seals(root: &Path, report: &mut RepoStaticReport) {
+    // The seals bind only where the profile crate exists. A synthetic minimal-repo
+    // fixture carries no `crates/` tree at all; the live repo always carries it,
+    // and `live_repo_static_passes` runs both seals over it on-gate.
+    if !root.join(GTS_PROFILE_CRATE_SRC).is_dir() {
+        return;
+    }
+    let hits = purrdf_gts_authorship_census(root, report);
+    check_emit_gts_has_one_production_caller(&hits, report);
+    check_no_bypassing_gts_authorship(&hits, report);
+    check_every_gts_producer_declares_a_medium(root, report);
+}
+
+// ── Seal C: every production GTS producer declares exactly one medium ────────
+//
+// Seals A and B prove that every GMEOW-authored frame goes through ONE door. They
+// say nothing about which MEDIUM a producer writes through, and the medium check is
+// split in three (`gmeow_pipeline::medium::audit::validate_declared_media` dispatches
+// on `gmeow:mediumSourceKind`). A three-way split is a TOTAL FUNCTION over producers
+// only if every producer is in its domain — otherwise "a producer with no declared
+// kind is a hard fail" is a sentence that only ever fires on a fixture, and the split
+// is an exemption list with three named exceptions.
+//
+// So the domain is CENSUSED off the source, not asserted: every production call of a
+// `gmeow_gts_profile` door outside the profile crate is a producer, and every such
+// producer's file must be claimed by exactly one `gmeow:GtsProducer` individual whose
+// declared `gmeow:producerMedium` resolves to a `gmeow:Medium` carrying exactly one
+// `gmeow:mediumSourceKind`.
+
+/// The doors of the mandated authorship profile — the GMEOW-side entry points a
+/// production producer reaches for. Seal B already proves nothing bypasses them, so
+/// this list is the complete set of ways production code can author GTS bytes.
+///
+/// `GmeowGtsWriter` is a TYPE (its `new` constructor mints a segment); the rest are
+/// free functions. `validate_mandated_frames` / `segment_dictionaries` /
+/// `store_tail_pins` are deliberately absent: they READ an artifact rather than
+/// author one, so a caller of those is not a producer.
+const GMEOW_GTS_PRODUCER_DOORS: &[&str] = &[
+    "GmeowGtsWriter::new",
+    "compact_gmeow_gts",
+    "dataset_to_gmeow_gts",
+    "emit_gmeow_gts",
+    "emit_gmeow_gts_with_medium",
+    "open_store_segment",
+    "store_writer",
+];
+
+/// The shrink-only census of production GTS-producer files that carry NO
+/// `gmeow:GtsProducer` declaration.
+///
+/// EMPTY, and it must stay that way or shrink — it can only shrink from empty by
+/// staying empty, which is exactly the point: the split of the medium check into
+/// three branches is a total function over producers, so there is no producer the
+/// ontology may decline to classify. The constant exists (rather than a bare
+/// `is_empty()` assertion) so the failure message can name the idiom, and so the one
+/// legitimate way to add an entry — a human-signed-off descope recorded in
+/// `.deficiencies` — is visible in the same place the ratchet is read.
+const PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM: &[&str] = &[];
+
+/// The lower bound on the live producer census.
+///
+/// A census that silently returned nothing — an unreadable `crates/` tree, a renamed
+/// door, a scanner regression — is a SUBSET of any pin and would let this seal pass
+/// on a repo where it proved nothing. The live tree authors GTS bytes from the
+/// terminal sink, the release lane, the runtime stores, and the whole-artifact
+/// producers, so a healthy census is comfortably above this floor.
+const MIN_GTS_PRODUCER_FILES: usize = 6;
+
+/// One production file that authors GTS bytes through a profile door.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct GtsProducerFile {
+    /// Repo-relative, slash-separated path.
+    file: String,
+    /// The doors it calls, sorted — reported so a missing declaration names what to
+    /// classify rather than merely that something is unclassified.
+    doors: BTreeSet<String>,
+}
+
+/// Census every production file that calls a [`GMEOW_GTS_PRODUCER_DOORS`] door.
+///
+/// **Production** is `crates/*/src/**.rs` outside the profile crate itself, with
+/// comments, string/char literals and `#[cfg(test)]` bodies blanked — the same
+/// classifier [`purrdf_gts_authorship_census`] uses, so the two seals cannot disagree
+/// about what "production" means.
+fn gts_producer_census(root: &Path, report: &mut RepoStaticReport) -> Vec<GtsProducerFile> {
+    let mut out: Vec<GtsProducerFile> = Vec::new();
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return out;
+    }
+    let mut crate_dirs: Vec<PathBuf> = match fs::read_dir(&crates_dir) {
+        Ok(entries) => entries
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect(),
+        Err(err) => {
+            report.error(format!(
+                "gts-producer census: {}: cannot read directory: {err}",
+                crates_dir.display()
+            ));
+            return out;
+        }
+    };
+    crate_dirs.sort();
+
+    for crate_dir in crate_dirs {
+        let src = crate_dir.join("src");
+        if !src.is_dir() {
+            continue;
+        }
+        let mut files = Vec::new();
+        collect_rust_files(&src, report, &mut files);
+        files.sort();
+        for path in &files {
+            let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+            if rel.starts_with(GTS_PROFILE_CRATE_SRC) {
+                continue;
+            }
+            let text = match fs::read_to_string(path) {
+                Ok(text) => text,
+                Err(err) => {
+                    report.error(format!("gts-producer census: {rel}: cannot read: {err}"));
+                    continue;
+                }
+            };
+            let code = blank_comments_strings_and_cfg_test_modules(&text);
+            let doors: BTreeSet<String> = GMEOW_GTS_PRODUCER_DOORS
+                .iter()
+                .filter(|door| identifier_starts(&code, &format!("{door}(")) > 0)
+                .map(|door| (*door).to_string())
+                .collect();
+            if !doors.is_empty() {
+                out.push(GtsProducerFile { file: rel, doors });
+            }
+        }
+    }
+    out
+}
+
+/// One authored `gmeow:GtsProducer` individual, as the seal reads it off the slice.
+#[derive(Debug, Clone, Default)]
+struct DeclaredGtsProducer {
+    /// The declared `gmeow:mediumSourceKind` individuals its media resolve to.
+    source_kinds: BTreeSet<String>,
+    /// The declared `gmeow:producerMedium` IRIs.
+    media: BTreeSet<String>,
+}
+
+/// Read every authored `gmeow:GtsProducer` out of the slice trees, keyed by the
+/// repo-relative source file it claims through `gmeow:producerCallSite`, together with
+/// the `gmeow:mediumSourceKind` its `gmeow:producerMedium` resolves to.
+///
+/// The source kind is resolved THROUGH the medium rather than redeclared on the
+/// producer: a producer that carried its own copy of the resolution rule would be a
+/// second source of truth for a fact the medium already states (Principle 4), and the
+/// two could then disagree about the same artifact.
+fn declared_gts_producers(
+    root: &Path,
+    report: &mut RepoStaticReport,
+) -> BTreeMap<String, DeclaredGtsProducer> {
+    const CALL_SITE: &str = "https://blackcatinformatics.ca/gmeow/producerCallSite";
+    const PRODUCER_MEDIUM: &str = "https://blackcatinformatics.ca/gmeow/producerMedium";
+    const MEDIUM_SOURCE_KIND: &str = "https://blackcatinformatics.ca/gmeow/mediumSourceKind";
+
+    let mut out: BTreeMap<String, DeclaredGtsProducer> = BTreeMap::new();
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return out;
+    }
+    let mut ttl_files = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut ttl_files);
+    ttl_files.sort();
+    for path in &ttl_files {
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        if !text.contains("producerCallSite") {
+            continue;
+        }
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+        let (Some(call_site), Some(producer_medium), Some(source_kind)) = (
+            iri_id_static(&ds, CALL_SITE),
+            iri_id_static(&ds, PRODUCER_MEDIUM),
+            iri_id_static(&ds, MEDIUM_SOURCE_KIND),
+        ) else {
+            continue;
+        };
+        // subject -> the media it declares, and each medium -> its source kinds.
+        for quad in ds.quads_for_pattern(None, Some(call_site), None, GraphMatch::Any) {
+            let TermRef::Literal { lexical, .. } = ds.resolve(quad.o) else {
+                report.error(format!(
+                    "{rel}: a gmeow:producerCallSite object is not a literal source path"
+                ));
+                continue;
+            };
+            let entry = out.entry(lexical.to_string()).or_default();
+            for medium_quad in
+                ds.quads_for_pattern(Some(quad.s), Some(producer_medium), None, GraphMatch::Any)
+            {
+                let TermRef::Iri(medium) = ds.resolve(medium_quad.o) else {
+                    continue;
+                };
+                entry.media.insert(medium.to_string());
+                for kind_quad in ds.quads_for_pattern(
+                    Some(medium_quad.o),
+                    Some(source_kind),
+                    None,
+                    GraphMatch::Any,
+                ) {
+                    if let TermRef::Iri(kind) = ds.resolve(kind_quad.o) {
+                        entry.source_kinds.insert(kind.to_string());
+                    }
+                }
+            }
+        }
+    }
+    out
+}
+
+/// **Seal C** — the medium check's three-way split is TOTAL over production GTS
+/// producers.
+fn check_every_gts_producer_declares_a_medium(root: &Path, report: &mut RepoStaticReport) {
+    // The seal binds where the ontology it reads exists. A synthetic minimal-repo
+    // fixture carries a `crates/` tree and no `slices/` one; an absent `slices/` in a
+    // REAL repo is not silently tolerated here either — it is already a hard failure
+    // in `hand_authored_shapes_ttl_census`, which treats the tree as required.
+    if !root.join("slices").is_dir() {
+        return;
+    }
+    let census = gts_producer_census(root, report);
+    if census.len() < MIN_GTS_PRODUCER_FILES {
+        report.error(format!(
+            "gts-authorship Seal C: the production GTS-producer census found {} file(s), below \
+             the non-vacuity floor of {MIN_GTS_PRODUCER_FILES} — an empty or truncated census is \
+             a SUBSET of any pin, so the seal would pass while proving nothing",
+            census.len()
+        ));
+        return;
+    }
+    let declared = declared_gts_producers(root, report);
+    if declared.is_empty() {
+        report.error(
+            "gts-authorship Seal C: no gmeow:GtsProducer individual declares a \
+             gmeow:producerCallSite — the producer→medium map did not reach the slices, so every \
+             producer below would be reported unclassified for one shared reason",
+        );
+        return;
+    }
+    let pinned: BTreeSet<&str> = PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM
+        .iter()
+        .copied()
+        .collect();
+
+    for producer in &census {
+        let doors: Vec<&str> = producer.doors.iter().map(String::as_str).collect();
+        let Some(entry) = declared.get(&producer.file) else {
+            if pinned.contains(producer.file.as_str()) {
+                continue;
+            }
+            report.error(format!(
+                "gts-authorship Seal C: {} authors GTS bytes ({}) but no gmeow:GtsProducer \
+                 declares it through gmeow:producerCallSite, and it is outside the shrink-only \
+                 census (PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM in \
+                 crates/validate/src/repo_static.rs) — the medium audit dispatches on \
+                 gmeow:mediumSourceKind, so an undeclared producer has NO branch and would be \
+                 audited by nothing. Mint the gmeow:GtsProducer in slices/core/gts/module.ttl \
+                 rather than adding it here",
+                producer.file,
+                doors.join(", ")
+            ));
+            continue;
+        };
+        if entry.media.len() != 1 {
+            report.error(format!(
+                "gts-authorship Seal C: {} is declared with {} gmeow:producerMedium value(s) \
+                 {:?} — a producer writes through exactly one medium, so any other count leaves \
+                 its audit branch underivable",
+                producer.file,
+                entry.media.len(),
+                entry.media
+            ));
+            continue;
+        }
+        if entry.source_kinds.len() != 1 {
+            report.error(format!(
+                "gts-authorship Seal C: {} declares medium {:?}, which resolves to {} \
+                 gmeow:mediumSourceKind value(s) {:?} — exactly one is required, because the \
+                 kind IS the audit branch selector",
+                producer.file,
+                entry.media,
+                entry.source_kinds.len(),
+                entry.source_kinds
+            ));
+        }
+    }
+
+    // The reverse direction: a declared call site that names no production producer is
+    // a STALE declaration, and a stale declaration is how a real producer's classifying
+    // individual survives the file being renamed out from under it.
+    let censused: BTreeSet<&str> = census.iter().map(|p| p.file.as_str()).collect();
+    for call_site in declared.keys() {
+        if !censused.contains(call_site.as_str()) {
+            report.error(format!(
+                "gts-authorship Seal C: gmeow:producerCallSite {call_site:?} names no production \
+                 file that authors GTS bytes — a stale declaration classifies nothing while \
+                 making the map look complete"
+            ));
+        }
+    }
+}
+
+// ── the diagnostic-kind ↔ ontology failure-class binding ────────────────────
+//
+// `gmeow_errors::define_diag_kind!` carries an OPTIONAL `failure_class = "<IRI>";`
+// clause binding a Rust kind to the `gmeow:enforcesFailureClass` individual it
+// produces. Two gates keep that binding honest, and NEITHER is redundant:
+//
+// * [`check_diag_failure_class_bijection`] proves every declared IRI resolves to a
+//   real failure-class individual and that every `gmeow:Medium*` failure class has
+//   exactly one Rust producer — the correctness of the links that EXIST;
+// * [`check_diag_failure_class_ratchet`] pins the census of kinds carrying NO
+//   failure class and lets it only SHRINK — without it the annotation stays
+//   permanently optional and the bijection is vacuous for every kind but the
+//   annotated few, since a new unannotated kind would simply never be looked at.
+
+/// The `gmeow:` term that links a gate to the failure class it raises.
+const ENFORCES_FAILURE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+
+/// The IRI stem of the medium axis's failure-class vocabulary. Every failure class
+/// under it must have exactly one Rust producer (the six `pipeline.medium.*` kinds).
+const MEDIUM_FAILURE_CLASS_STEM: &str = "https://blackcatinformatics.ca/gmeow/Medium";
+
+/// One `define_diag_kind!` invocation, as the static census reads it off the source.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct DiagKindDecl {
+    /// Repo-relative, forward-slash path of the declaring file.
+    file: String,
+    /// The `code = "…"` literal — the kind's stable registered code.
+    code: String,
+    /// The `failure_class = "…"` literal, when the invocation declares one.
+    failure_class: Option<String>,
+}
+
+/// Every `define_diag_kind!` invocation under `crates/*/src/`, in `(file, code)` order.
+///
+/// Production kinds only: the scan is restricted to `src/` trees (a `tests/` support
+/// harness mints throwaway kinds that must not enter the pin) and reads through
+/// [`blank_comments_and_cfg_test_modules`], so a doc-comment example and a
+/// `#[cfg(test)]`-gated kind are both invisible while the `code` / `failure_class`
+/// string literals the census actually needs stay readable.
+///
+/// The block scan is line-based and deliberately strict: an invocation is opened by a
+/// line ending in `define_diag_kind! {` and closed by the first line whose trimmed
+/// content is exactly `}`. Every production invocation is a top-level item written in
+/// that shape; an invocation the scanner cannot close before the file ends is reported
+/// as a HARD FAIL rather than silently dropped, because a silently dropped kind is one
+/// the ratchet would stop watching.
+fn diag_kind_census(root: &Path, report: &mut RepoStaticReport) -> Vec<DiagKindDecl> {
+    let mut found = Vec::new();
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return found;
+    }
+    let mut files = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    files.sort();
+    for path in &files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        // `crates/<crate>/src/…` only — a `tests/`/`benches/` helper is not a
+        // production kind and must not be pinned as one.
+        if !rel.contains("/src/") {
+            continue;
+        }
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        if !text.contains("define_diag_kind!") {
+            continue;
+        }
+        // Two views of the SAME text, blanked in place so their lines stay aligned:
+        // `literals` keeps the string contents the census reads, `code_only` blanks
+        // them so brace depth is counted over real delimiters and never over a `{}`
+        // inside a `message = "…"` format string.
+        let literals = blank_comments_and_cfg_test_modules(&text);
+        let code_only = blank_comments_strings_and_cfg_test_modules(&text);
+        scan_diag_kind_decls(&rel, &literals, &code_only, report, &mut found);
+    }
+    found.sort_by(|a, b| (&a.file, &a.code).cmp(&(&b.file, &b.code)));
+    found
+}
+
+/// Pull the `code` / `failure_class` literals out of every `define_diag_kind!` block
+/// in one already-blanked source text.
+///
+/// `literals` and `code_only` are the same text under the two blanking views (see
+/// [`diag_kind_census`]); they have identical line structure, so the scan walks them
+/// in lockstep and reads delimiters from one and string values from the other. The
+/// block is delimited by BRACE DEPTH, not by a bare closing line: an invocation whose
+/// struct body spans several lines closes its field list with a line that also trims
+/// to `}`, and treating that as the end of the block would silently drop the kind.
+fn scan_diag_kind_decls(
+    rel: &str,
+    literals: &str,
+    code_only: &str,
+    report: &mut RepoStaticReport,
+    out: &mut Vec<DiagKindDecl>,
+) {
+    struct Open {
+        line_no: usize,
+        depth: i32,
+        code: Option<String>,
+        failure_class: Option<String>,
+    }
+    let brace_delta = |line: &str| -> i32 {
+        line.chars().filter(|c| *c == '{').count() as i32
+            - line.chars().filter(|c| *c == '}').count() as i32
+    };
+
+    let mut open: Option<Open> = None;
+    for (index, (literal_line, code_line)) in literals.lines().zip(code_only.lines()).enumerate() {
+        let Some(state) = open.as_mut() else {
+            if code_line.trim().ends_with("define_diag_kind! {") {
+                open = Some(Open {
+                    line_no: index + 1,
+                    depth: brace_delta(code_line),
+                    code: None,
+                    failure_class: None,
+                });
+            }
+            continue;
+        };
+
+        let trimmed = literal_line.trim();
+        if let Some(value) = quoted_clause_value(trimmed, "code") {
+            state.code = Some(value);
+        } else if let Some(value) = quoted_clause_value(trimmed, "failure_class") {
+            state.failure_class = Some(value);
+        }
+
+        state.depth += brace_delta(code_line);
+        if state.depth > 0 {
+            continue;
+        }
+        let closed = open.take().expect("the block was open on this branch");
+        match closed.code {
+            Some(code) => out.push(DiagKindDecl {
+                file: rel.to_string(),
+                code,
+                failure_class: closed.failure_class,
+            }),
+            None => report.error(format!(
+                "{rel}:{}: a define_diag_kind! invocation declares no `code = \"…\";` literal — \
+                 every diagnostic kind carries a stable registered code",
+                closed.line_no
+            )),
+        }
+    }
+    if let Some(open) = open {
+        report.error(format!(
+            "{rel}:{}: a define_diag_kind! invocation is never closed — the diagnostic-kind \
+             census cannot read it, and an unreadable kind is one the shrink-only failure-class \
+             ratchet stops watching",
+            open.line_no
+        ));
+    }
+}
+
+/// The string value of a `<clause> = "<value>";` line, if the line is one.
+fn quoted_clause_value(trimmed: &str, clause: &str) -> Option<String> {
+    let rest = trimmed.strip_prefix(clause)?.trim_start();
+    let rest = rest.strip_prefix('=')?.trim_start();
+    let rest = rest.strip_prefix('"')?;
+    let end = rest.find('"')?;
+    Some(rest[..end].to_string())
+}
+
+/// Every failure-class IRI the ontology declares, as the object of a
+/// `gmeow:enforcesFailureClass` triple in any authored slice Turtle.
+///
+/// The gate-to-failure link is the ontology's OWN authority for "this is a failure
+/// class someone raises", so the census reads exactly that rather than re-deriving a
+/// class hierarchy: an `owl:Class` nobody points at through `enforcesFailureClass` is
+/// documentation, not a gate (`gmeow:GtsConformanceFailure`'s own `avoidWhen` says so).
+fn ontology_failure_classes(root: &Path, report: &mut RepoStaticReport) -> BTreeSet<String> {
+    let mut classes = BTreeSet::new();
+    let slices_dir = root.join("slices");
+    if !slices_dir.is_dir() {
+        return classes;
+    }
+    let mut ttl_files = Vec::new();
+    collect_ttl_files(&slices_dir, report, &mut ttl_files);
+    ttl_files.sort();
+    for path in &ttl_files {
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        // Cheap pre-filter: only a file that mentions the term can bind it.
+        if !text.contains("enforcesFailureClass") {
+            continue;
+        }
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+        let Some(pid) = iri_id_static(&ds, ENFORCES_FAILURE_CLASS) else {
+            continue;
+        };
+        for quad in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+            if let TermRef::Iri(iri) = ds.resolve(quad.o) {
+                classes.insert(iri.to_string());
+            }
+        }
+    }
+    classes
+}
+
+/// The Rust-kind ↔ ontology failure-class BIJECTION, in both directions:
+///
+/// * every `failure_class = "<IRI>"` a Rust kind declares resolves to a real
+///   `gmeow:enforcesFailureClass` individual — an IRI typo, or a kind bound to a
+///   class the ontology never minted, is a claim about a gate that does not exist;
+/// * every `gmeow:Medium*` failure class has EXACTLY ONE Rust producer — a class with
+///   none is an unenforced failure (documentation, not a gate), and a class with two
+///   makes "which code did this raise" unanswerable.
+///
+/// The medium axis is the direction that is pinned to exactly-one because it is the
+/// axis whose producers this codebase owns end to end. The other direction (a
+/// declared IRI must exist) binds EVERY annotated kind, whatever its axis.
+fn check_diag_failure_class_bijection(
+    decls: &[DiagKindDecl],
+    root: &Path,
+    report: &mut RepoStaticReport,
+) {
+    let declared = ontology_failure_classes(root, report);
+    if declared.is_empty() {
+        // No slices tree (a synthetic minimal-repo fixture): nothing to bind against.
+        return;
+    }
+
+    let mut producers: BTreeMap<&str, Vec<&DiagKindDecl>> = BTreeMap::new();
+    for decl in decls {
+        let Some(iri) = decl.failure_class.as_deref() else {
+            continue;
+        };
+        if !declared.contains(iri) {
+            report.error(format!(
+                "{}: diagnostic kind `{}` declares failure_class <{iri}>, which is not a \
+                 gmeow:enforcesFailureClass individual in any slice — a Rust kind may only bind \
+                 to a failure class the ontology actually mints and a gate actually raises; \
+                 author the individual (and the logic: constraint that enforces it) or drop the \
+                 clause",
+                decl.file, decl.code
+            ));
+            continue;
+        }
+        producers.entry(iri).or_default().push(decl);
+    }
+
+    for iri in declared
+        .iter()
+        .filter(|i| i.starts_with(MEDIUM_FAILURE_CLASS_STEM))
+    {
+        match producers.get(iri.as_str()).map(Vec::as_slice) {
+            None => report.error(format!(
+                "<{iri}>: a gmeow:Medium* failure class with NO Rust producer — an unenforced \
+                 failure class is documentation, not a gate. Mint the diagnostic kind that \
+                 raises it with `failure_class = \"{iri}\";` in its define_diag_kind! block"
+            )),
+            Some([_]) => {}
+            Some(many) => report.error(format!(
+                "<{iri}>: {} Rust kinds declare this failure class ({}) — the producer must be \
+                 UNIQUE, or 'which code raised this failure' has no answer",
+                many.len(),
+                many.iter()
+                    .map(|d| format!("`{}` in {}", d.code, d.file))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )),
+        }
+    }
+}
+
+/// The shrink-only census of diagnostic kinds that carry NO `failure_class` clause.
+///
+/// Every entry is a kind whose defect the ontology names no typed failure class for.
+/// The set is **shrink-only**: as a failure class is minted in a slice and its
+/// producer annotated, the kind's code leaves this list (and the bijection gate above
+/// starts binding it). What must NEVER happen is GROWTH — a new unannotated kind means
+/// a new Rust-side defect with no ontological counterpart, which is exactly the
+/// structural disconnect the `failure_class` clause exists to close. Subset-or-equal
+/// (not strict equality) is deliberate, mirroring
+/// [`PINNED_HAND_AUTHORED_SHAPES_TTL`]: annotating a kind without trimming its entry
+/// here must still pass; only an unlisted ADDITION reds.
+const PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS: &[&str] = &[
+    "affect.classify.coincident-prototypes",
+    "affect.classify.dimension-mismatch",
+    "affect.classify.distance-failed",
+    "affect.classify.duplicate-axis",
+    "affect.classify.empty-prototype-set",
+    "affect.classify.value-out-of-range",
+    "affect.classify.vantage-not-pd",
+    "affect.classify.zero-norm-cosine",
+    "affect.crosscheck.definiteness-absent",
+    "affect.crosscheck.definiteness-mismatch",
+    "affect.crosscheck.gram-no-entries",
+    "affect.distance.metric-basis-mismatch",
+    "affect.graph.empty-basis",
+    "affect.graph.missing-property",
+    "affect.graph.no-observations",
+    "affect.graph.unrecognized-handle",
+    "cli-core.diagnostics.empty-artifact-selection",
+    "cli-core.diagnostics.unknown-artifact-kind",
+    "cli-core.diagnostics.unknown-console-mode",
+    "conformance.case.anatomy",
+    "conformance.cli.args",
+    "conformance.compare.json",
+    "conformance.compare.rdf",
+    "conformance.corpus.invalid",
+    "conformance.corpus.license-not-vendorable",
+    "conformance.io",
+    "conformance.lower.nquads",
+    "conformance.manifest.invalid",
+    "conformance.manifest.parse",
+    "conformance.profile.invalid",
+    "conformance.run.failed",
+    "conformance.serialize",
+    "conformance.szs.status",
+    "conformance.szs.unknown-status",
+    "conformance.vendor",
+    "docs-print.typst-render-failed",
+    "docs.describe.gts-read",
+    "docs.i18n.catalog-inconsistent",
+    "docs.i18n.file-io",
+    "docs.i18n.po-parse",
+    "docs.i18n.rdf-format",
+    "docs.i18n.rdf-parse",
+    "docs.i18n.turtle-unescape",
+    "docs.i18n.unsupported-source",
+    "errors.model.unknown-finding-category",
+    "errors.model.unknown-severity-label",
+    "gmeow-cli-core.docs-export.io",
+    "gmeow-cli.bundle.read-failed",
+    "gmeow-cli.describe.ambiguous",
+    "gmeow-cli.describe.unresolved",
+    "gmeow-cli.explain.unknown-target",
+    "gmeow-cli.explain.walk-failed",
+    "gmeow-cli.hybrid-query.purremb-selection",
+    "gmeow-cli.output.encoding-failed",
+    "gmeow-cli.rdf.pipeline-failed",
+    "gmeow-cli.source.read-failed",
+    "gmeow-dev-cli.bundle.read-failed",
+    "gmeow-dev-cli.feedback.bundle-failed",
+    "gmeow-dev-cli.gates.vendored-corpus-descriptor-invalid",
+    "gmeow-dev-cli.logic.query-failed",
+    "gmeow-dev-cli.output.encoding-failed",
+    "gmeow-dev-cli.project.target-refresh-failed",
+    "gmeow-dev-cli.rdf.pipeline-failed",
+    "gmeow-dev-cli.reason.failed",
+    "gmeow-dev-cli.shapes.clearance-ungrounded",
+    "gmeow-dev-cli.source.read-failed",
+    "gmeow-dev-cli.sync.failed",
+    "lang-bridge.emit.digest-collision",
+    "lang-bridge.gmn1.graph-out-of-domain",
+    "lang-bridge.gmn1.malformed-number",
+    "lang-bridge.gmn1.non-canonical-order",
+    "lang-bridge.gmn1.non-decodable-grammar",
+    "lang-bridge.gmn1.non-nfc-literal",
+    "lang-bridge.gmn1.uncovered-term",
+    "lang-bridge.gmn1.undeclared-dialect-version",
+    "lang-bridge.registry.class-not-listed",
+    "lang-bridge.registry.missing-targets",
+    "logic-compile.cgif",
+    "logic-compile.clif",
+    "logic-compile.compat",
+    "logic-compile.correspondence",
+    "logic-compile.edoal",
+    "logic-compile.fno",
+    "logic-compile.frontend",
+    "logic-compile.get-leg",
+    "logic-compile.graph",
+    "logic-compile.ir",
+    "logic-compile.opt-lift",
+    "logic-compile.projection",
+    "logic-compile.put",
+    "logic-compile.relational-core",
+    "logic-compile.roundtrip",
+    "logic-compile.sparql",
+    "logic-compile.sssom",
+    "logic-compile.text",
+    "logic-compile.validation",
+    "logic-compile.xcl",
+    "logic.certify",
+    "logic.contract-drift",
+    "logic.counterfactual",
+    "logic.engine",
+    "logic.foundation",
+    "logic.ir",
+    "logic.lower",
+    "logic.obligation",
+    "logic.oracle",
+    "logic.physical",
+    "logic.probabilistic",
+    "logic.provenance",
+    "logic.query",
+    "logic.reason",
+    "logic.reference",
+    "logic.relational-core",
+    "logic.result",
+    "logic.store",
+    "logic.teleology",
+    "logic.transaction",
+    "logic.transition",
+    "logic.verify",
+    "math.angle.bad-cosine",
+    "math.clifford.blade-out-of-range",
+    "math.clifford.grade-out-of-range",
+    "math.clifford.invalid-signature",
+    "math.decimal.parse",
+    "math.dimension.malformed",
+    "math.gram.non-square",
+    "math.gram.not-positive-definite",
+    "math.graph.missing-property",
+    "math.graph.no-cells",
+    "math.graph.read",
+    "math.index.out-of-range",
+    "math.rational.domain",
+    "math.rational.overflow",
+    "math.scale.degenerate",
+    "math.space.zero-dimensional",
+    "math.sqrt.negative",
+    "math.vector.zero",
+    "music.format.unsupported",
+    "music.fraction.invalid",
+    "music.gts.no-musical-entity",
+    "music.gts.rdf-pipeline",
+    "music.import.unsupported-suffix",
+    "music.musicxml.parse",
+    "music.musicxml.timeline-overflow",
+    "pipeline.bundle.decode",
+    "pipeline.bundle.json",
+    "pipeline.bundle.parse",
+    "pipeline.bundle.untar",
+    "pipeline.cache.decode",
+    "pipeline.cache.mismatch",
+    "pipeline.contract.attach-decl-mismatch",
+    "pipeline.contract.attach-drift",
+    "pipeline.contract.capability-mismatch",
+    "pipeline.contract.consumes-mismatch",
+    "pipeline.contract.dataflow-mismatch",
+    "pipeline.contract.expected-output",
+    "pipeline.contract.fanout-bijection",
+    "pipeline.contract.resource-mismatch",
+    "pipeline.dag.invalid",
+    "pipeline.dag.unknown-stage-impl",
+    "pipeline.declaration.invalid",
+    "pipeline.docs-distribution",
+    "pipeline.docs-measure",
+    "pipeline.eval.schema",
+    "pipeline.generator",
+    "pipeline.io",
+    "pipeline.mcp",
+    "pipeline.mcp.ambiguous-term",
+    "pipeline.meta-fold",
+    "pipeline.projection",
+    "pipeline.put",
+    "pipeline.rdf.parse",
+    "pipeline.release",
+    "pipeline.rule-severity.unknown",
+    "pipeline.scoreboard",
+    "pipeline.spans.consumed-after-drop",
+    "pipeline.stage.failed",
+    "pipeline.transcode.codec",
+    "pipeline.transcode.non-invertible-source",
+    "pipeline.transcode.undecodable-input",
+    "pipeline.transcode.unknown-codec",
+    "pipeline.transform",
+    "pipeline.up-projection",
+    "slice-brief.io",
+    "slice-brief.partition",
+    "slice-quality.gate",
+    "slice-quality.io",
+    "slice-quality.reason",
+    "slice-quality.report",
+    "slice-quality.rubric",
+    "slicetest.dataset.read",
+    "slicetest.exec.aggregate",
+    "slicetest.exec.competency",
+    "slicetest.exec.conformance",
+    "slicetest.exec.example-discovery",
+    "slicetest.exec.query-load",
+    "slicetest.exec.shape-validation",
+    "slicetest.exec.structural",
+    "slicetest.sparql.eval",
+    "slicetest.sparql.unexpected-form",
+    "slicetest.spec.cell",
+    "slicetest.spec.load",
+    "slicetest.spec.result-shape",
+    "slicetest.spec.typed-binding",
+    "slicetest.store.logic-reasoning",
+    "slicetest.store.merged-graph",
+    "slicetest.store.rdfs-closure",
+    "validate.argument",
+    "validate.catalog",
+    "validate.crossref",
+    "validate.dataset",
+    "validate.engine",
+    "validate.format",
+    "validate.io",
+    "validate.language-tag",
+    "validate.mapping",
+    "validate.parse",
+    "validate.self-description",
+    "validate.serialize",
+];
+
+/// The shrink-only failure-class ratchet: every kind the live census finds WITHOUT a
+/// `failure_class` must already be in [`PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS`].
+fn check_diag_failure_class_ratchet(decls: &[DiagKindDecl], report: &mut RepoStaticReport) {
+    let pinned: BTreeSet<&str> = PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS
+        .iter()
+        .copied()
+        .collect();
+    for decl in decls.iter().filter(|d| d.failure_class.is_none()) {
+        if !pinned.contains(decl.code.as_str()) {
+            report.error(format!(
+                "{}: diagnostic kind `{}` declares no `failure_class` and is outside the pinned \
+                 shrink-only census (PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS in \
+                 crates/validate/src/repo_static.rs) — the set of kinds with no ontological \
+                 failure class only ever SHRINKS. Mint the failure class in the owning slice and \
+                 bind the kind to it with `failure_class = \"<IRI>\";` rather than adding it here",
+                decl.file, decl.code
+            ));
+        }
+    }
+}
+
+fn check_diag_failure_class_binding(root: &Path, report: &mut RepoStaticReport) {
+    let decls = diag_kind_census(root, report);
+    if decls.is_empty() {
+        // No `crates/` tree (a synthetic minimal-repo fixture) — nothing to bind.
+        return;
+    }
+    check_diag_failure_class_bijection(&decls, root, report);
+    check_diag_failure_class_ratchet(&decls, report);
 }
 
 /// Honest invariant #2 (Phase-6 Diag-substrate epic): no first-party Rust source may use a
@@ -2067,6 +4044,256 @@ fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<P
 mod tests {
     use super::*;
 
+    /// Build a minimal tree carrying just the wasm-bindgen pin surface the parity guard
+    /// reads: the workspace pin, one `*-wasm` member, and the CI CLI install line.
+    fn write_wasm_bindgen_tree(root: &Path, workspace_pin: &str, member: &str, cli: &str) {
+        write(
+            &root.join("Cargo.toml"),
+            &format!("[workspace.dependencies]\nwasm-bindgen = {workspace_pin}\n"),
+        );
+        write(
+            &root.join("crates/query-wasm/Cargo.toml"),
+            &format!("[dependencies]\n{member}\n"),
+        );
+        write(&root.join("Makefile"), "BINARYEN_VER := version_130\n");
+        write(
+            &root.join(".github/workflows/ci.yml"),
+            &format!(
+                "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@{cli}\n      - run: make print-binaryen-ver\n"
+            ),
+        );
+    }
+
+    fn wasm_bindgen_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_wasm_bindgen_pin_parity(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_accepts_one_workspace_pin_matching_the_ci_cli() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        assert!(
+            wasm_bindgen_errors(tmp.path()).is_empty(),
+            "the agreeing arrangement must pass"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_member_that_redeclares_the_version() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen = \"=0.2.100\"",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("redeclares wasm-bindgen")),
+            "a member redeclaring the pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_cli_that_disagrees_with_the_library_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.100",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("installs wasm-bindgen-cli@0.2.100")),
+            "a CLI disagreeing with the library pin must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_an_absent_ci_workflow() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        fs::remove_file(tmp.path().join(".github/workflows/ci.yml")).unwrap();
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("cannot read")),
+            "an absent CI workflow must red — the CLI version cannot be checked, which is a \
+             failure, not agreement: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_never_passes_silently_on_an_unparsable_root_manifest() {
+        // The sharp case the old shape got wrong: `let Ok(text) = … else { return; }` made an
+        // unreadable manifest a SILENT pass, so a tree with a real CLI drift reported nothing
+        // at all. The comparison against the library pin genuinely cannot be performed
+        // without the manifest — but the run must red saying so, never go quiet.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.99",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "this is not valid toml = = =\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            !errors.is_empty(),
+            "an unparsable root manifest must not be a silent pass"
+        );
+        assert!(
+            errors.iter().any(|e| e.contains("cannot parse")),
+            "the failure must name the manifest it could not read: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_ci_binaryen_literal() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - env:\n          BINARYEN_VER: version_119\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("binaryen release literal")),
+            "a literal binaryen pin in CI must red — it is the two-constant drift that broke \
+             the wasm lanes: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_shell_form_binaryen_literal() {
+        // The idiom the repository actually uses is a shell assignment; a detector keyed
+        // to the YAML-mapping form alone matches nothing here.
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join(".github/workflows/ci.yml"),
+            "jobs:\n  heavy:\n    steps:\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n      - run: BINARYEN_VER=\"version_119\" ./install.sh\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("version_119")),
+            "a shell-form binaryen literal must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_rejects_a_direct_production_emit_gts_call() {
+        let tmp = tempfile::tempdir().unwrap();
+        write(
+            &tmp.path().join("crates/rogue/src/lib.rs"),
+            "pub fn ship(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("calls the GTS writer directly")),
+            "a production emit_gts call outside the profile crate must red: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn gts_chokepoint_permits_the_profile_crate_and_test_code() {
+        let tmp = tempfile::tempdir().unwrap();
+        // The permitted entry itself.
+        write(
+            &tmp.path().join("crates/gts-profile/src/lib.rs"),
+            "pub fn emit(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
+        );
+        // An integration-test crate driving the writer deliberately.
+        write(
+            &tmp.path().join("crates/consumer/tests/audit.rs"),
+            "fn nonconforming() { let _ = purrdf::gts_compose::emit_gts(&x); }\n",
+        );
+        // A `#[cfg(test)]`-gated import inside production source.
+        write(
+            &tmp.path().join("crates/consumer/src/lib.rs"),
+            "#[cfg(test)]\nuse purrdf::gts_compose::emit_gts;\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_gts_emit_chokepoint(tmp.path(), &mut report);
+        assert!(
+            report.errors.is_empty(),
+            "the profile crate and test code are the permitted callers: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_workspace_without_the_declaration() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"=0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        write(
+            &tmp.path().join("Cargo.toml"),
+            "[workspace.dependencies]\nserde = \"1\"\n",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("declares no wasm-bindgen")),
+            "a workspace without the declaration must red: {errors:?}"
+        );
+    }
+
+    #[test]
+    fn wasm_bindgen_parity_rejects_a_range_workspace_pin() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_wasm_bindgen_tree(
+            tmp.path(),
+            "\"0.2.125\"",
+            "wasm-bindgen.workspace = true",
+            "0.2.125",
+        );
+        let errors = wasm_bindgen_errors(tmp.path());
+        assert!(
+            errors.iter().any(|e| e.contains("a range")),
+            "a caret pin must red — the CLI matches one version only: {errors:?}"
+        );
+    }
+
     fn write(path: &Path, text: &str) {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).unwrap();
@@ -2079,9 +4306,15 @@ mod tests {
         // real src/gmeow_tools package with NO upstream-rdflib import anywhere (it
         // uses the purrdf.compat.rdflib facade instead).
         write(&root.join("src/gmeow_tools/sparql.py"), "import purrdf\n");
+        // The wasm-bindgen parity guard treats the root manifest and the CI pin lines as
+        // REQUIRED inputs, so the minimal repo carries an agreeing set of all three.
+        write(
+            &root.join("Cargo.toml"),
+            "[workspace.dependencies]\nwasm-bindgen = \"=0.2.125\"\n",
+        );
         write(
             &root.join(".github/workflows/ci.yml"),
-            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
+            "on:\n  push:\n  pull_request:\njobs:\n  lint:\n    steps:\n      - run: make lint\n      - with:\n          tool: wasm-bindgen-cli@0.2.125\n      - run: make print-binaryen-ver\n  quality:\n    needs: [lint]\n    steps:\n      - run: echo all-good\n",
         );
         // The Docker-free reality: no target reaches Docker/Java. The ELK/HermiT
         // lane and its maint-reason-hermit / maint-verify-docker / maint-pull-images
@@ -2267,6 +4500,104 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         write_minimal_repo(temp.path());
         let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    /// Write one slice-owned Turtle surface with exactly the given bytes.
+    fn write_slice_ttl(root: &Path, rel: &str, body: &str) {
+        write(&root.join("slices").join(rel), body);
+    }
+
+    #[test]
+    fn a_slice_ttl_without_a_trailing_newline_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("no trailing newline")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn the_gate_covers_every_slice_ttl_not_only_module_ttl() {
+        // The bulk-edit failure mode reaches shapes.ttl, examples/, tests/ and
+        // mappings/ too; a gate narrower than its fixer only moves the recurrence.
+        for rel in [
+            "core/demo/shapes.ttl",
+            "core/demo/examples/sample.ttl",
+            "core/demo/tests/structural.ttl",
+            "core/demo/mappings/align.ttl",
+        ] {
+            let temp = tempfile::tempdir().unwrap();
+            write_minimal_repo(temp.path());
+            write_slice_ttl(temp.path(), rel, "ex:A a ex:B .");
+            let report = check_repo_static(temp.path());
+            assert!(
+                report
+                    .errors
+                    .iter()
+                    .any(|e| e.contains(rel) && e.contains("no trailing newline")),
+                "{rel} must be covered; got {:?}",
+                report.errors
+            );
+        }
+    }
+
+    #[test]
+    fn a_slice_ttl_ending_in_a_blank_line_is_rejected() {
+        // "Exactly one" is what the end-of-file hook normalizes to; accepting two
+        // would let the gate and the fixer disagree about what correct looks like.
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n\n");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("blank line")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn an_empty_slice_ttl_is_rejected() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "");
+        let report = check_repo_static(temp.path());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("core/demo/module.ttl") && e.contains("is empty")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn a_correctly_terminated_slice_ttl_passes() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        write_slice_ttl(temp.path(), "core/demo/module.ttl", "ex:A a ex:B .\n");
+        let report = check_repo_static(temp.path());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn the_real_repository_holds_the_trailing_newline_invariant() {
+        // The production surface, not a fixture. This is the assertion whose
+        // absence let the 67-file state persist across several commits.
+        let mut report = RepoStaticReport::default();
+        check_slice_ttl_trailing_newline(live_repo_root(), &mut report);
         assert!(report.ok(), "{:?}", report.errors);
     }
 
@@ -2550,24 +4881,21 @@ mod tests {
     }
 
     #[test]
-    fn declarative_gate_flags_the_live_legacy_corpus() {
-        // The BLANKET declarative-shape gate is not yet wired into `check_repo_static` (it
-        // activates at the terminal migration increment). This test proves its PRODUCTION
-        // semantics NOW: run it over the real corpus and confirm it reds on the coexisting legacy
-        // shapes that carry no `logic:formalizes` back-reference.
+    fn declarative_gate_is_clean_on_the_migrated_tree() {
+        // The BLANKET declarative-shape gate is now wired into `check_repo_static` (terminal
+        // migration increment): the hand-authored shape corpus has been retired to the `logic:`
+        // canon. Every authored `sh:NodeShape`/`sh:PropertyShape` remaining under the scanned
+        // roots (slices/shapes/dsl/governance) is either deleted (grounded + re-projected) or a
+        // backed boundary-kept residue carrying a `logic:formalizes` back-reference. So the gate
+        // must be GREEN on the live tree — this is the terminal single-source-of-truth invariant.
         let mut report = RepoStaticReport::default();
         check_declarative_shape_purity(live_repo_root(), &mut report);
         assert!(
-            !report.errors.is_empty(),
-            "the blanket declarative-shape gate must red on the live legacy corpus"
-        );
-        // `shapes/gmeow-shapes.ttl` is fully drained (zero hand-authored shapes) and is no
-        // longer a known-legacy unbacked file; `slices/core/inhabitation/shapes.ttl` still is.
-        let legacy = "slices/core/inhabitation/shapes.ttl";
-        assert!(
-            report.errors.iter().any(|e| e.contains(legacy)),
-            "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
-            report.errors.len()
+            report.errors.is_empty(),
+            "declarative-shape purity gate must be clean on the migrated tree; an unbacked \
+             authored shape remains (ground it in logic: and re-project, or add a \
+             logic:formalizes back-reference to the boundary-kept residue): {:?}",
+            report.errors
         );
     }
 
@@ -2609,6 +4937,51 @@ mod tests {
             backed.errors.is_empty(),
             "a logic:formalizes-backed node shape must pass; got {:?}",
             backed.errors
+        );
+    }
+
+    #[test]
+    fn declarative_gate_exempts_only_a_registered_fail_witness() {
+        // Two hand-authored node shapes in the SAME `counter-examples/` directory. One is
+        // registered as the slice's `gmeow:saFailWitness` for a `mustNot` structural assertion,
+        // one is not. The registration is the whole difference: a witness that proves the ban
+        // has teeth must not be punished by the scan, and a shape nobody registered must not
+        // hide behind sharing its directory with one that was.
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let ce = root.join("slices/z/tests/counter-examples");
+        std::fs::create_dir_all(&ce).unwrap();
+        write(
+            &root.join("slices/z/manifest.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://example.org/slice> a gmeow:Slice .\n",
+        );
+        write(
+            &root.join("slices/z/tests/structural.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <https://example.org/saNoShapes> a gmeow:StructuralAssertion ;\n\
+             \x20\x20gmeow:saFailWitness \"tests/counter-examples/registered.ttl\" .\n",
+        );
+        let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a sh:NodeShape ; sh:targetClass ex:C .\n";
+        write(&ce.join("registered.ttl"), declarer);
+        write(&ce.join("smuggled.ttl"), declarer);
+
+        let mut report = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut report);
+
+        assert!(
+            report.errors.iter().any(|e| e.contains("smuggled.ttl")),
+            "an UNREGISTERED hand-authored shape in counter-examples/ must still be flagged — a \
+             blanket directory exclusion is exactly the hole this closes: {:?}",
+            report.errors
+        );
+        assert!(
+            !report.errors.iter().any(|e| e.contains("registered.ttl")),
+            "a REGISTERED gmeow:saFailWitness must stay exempt, or a mustNot structural \
+             assertion could never carry non-vacuous evidence of its own ban: {:?}",
+            report.errors
         );
     }
 
@@ -2845,6 +5218,26 @@ mod tests {
         let mut report = RepoStaticReport::default();
         check_hand_authored_shapes_ratchet(root, &mut report);
         assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn gts_slice_ships_no_hand_authored_shapes_ttl() {
+        // The GTS transport slice is fully migrated: its four NodeShapes are now OWL restriction
+        // axioms + two logic:Constraints in slices/core/gts/module.ttl, and the equivalence is
+        // certified by crates/logic-compile/tests/shape_migration_equivalence.rs. The file must
+        // be GONE (not emptied) and its entry trimmed from the shrink-only pin — a re-appearance
+        // would be a second source of validation truth, and a lingering pin entry would silently
+        // re-license one.
+        const RETIRED: &str = "slices/core/gts/shapes.ttl";
+        assert!(
+            !live_repo_root().join(RETIRED).exists(),
+            "{RETIRED} is retired — its obligations live in slices/core/gts/module.ttl \
+             (docs/MIGRATING-SHAPES-TO-LOGIC.md); re-introducing it is a second source of truth"
+        );
+        assert!(
+            !PINNED_HAND_AUTHORED_SHAPES_TTL.contains(&RETIRED),
+            "{RETIRED} is retired and must not remain in PINNED_HAND_AUTHORED_SHAPES_TTL"
+        );
     }
 
     #[test]
@@ -3388,6 +5781,886 @@ mod tests {
         let (args, end) = parse_top_level_generic_args(&text, 0).expect("balanced");
         assert_eq!(args, vec!["BTreeMap<String, String>", "Diag"]);
         assert_eq!(end, text.len());
+    }
+
+    // ── GTS-authorship seals (A: one emit_gts door; B: no bypassing writer) ────
+
+    /// The profile crate itself: the ONE permitted production `emit_gts` caller.
+    /// Every seal fixture writes it, because the seals are inert without it (a
+    /// synthetic minimal repo carries no `crates/` tree at all).
+    fn write_gts_profile_crate(root: &Path) {
+        crate_src(
+            root,
+            "gts-profile",
+            "lib.rs",
+            "pub fn emit_gmeow_gts(b: &SnapshotBuilder) -> Result<Vec<u8>, Diag> {\n\
+             \x20   purrdf::gts_compose::emit_gts(b, \"dist\", Some(chain()))\n}\n",
+        );
+    }
+
+    fn gts_hits(root: &Path) -> Vec<GtsAuthorshipHit> {
+        let mut report = RepoStaticReport::default();
+        let hits = purrdf_gts_authorship_census(root, &mut report);
+        assert!(report.ok(), "census must not error: {:?}", report.errors);
+        hits
+    }
+
+    fn gts_seal_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_gts_authorship_seals(root, &mut report);
+        report.errors
+    }
+
+    // ── Seal C: the producer→medium map is TOTAL over production producers ────
+
+    /// A synthetic repo with six producer files (the non-vacuity floor) and a
+    /// `slices/` tree whose producer map is `declared` — spliced in verbatim so a
+    /// test can drop a row, duplicate a medium, or point at a medium with no source
+    /// kind, and watch exactly one clause fire.
+    fn producer_seal_repo(declared: &str, files: &[&str]) -> tempfile::TempDir {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        for (i, file) in files.iter().enumerate() {
+            crate_src(
+                root,
+                &format!("gmeow-p{i}"),
+                file,
+                "fn go() { let _ = emit_gmeow_gts(&b, v, v, None, None, None); }\n",
+            );
+        }
+        let slices = root.join("slices/core/gts");
+        fs::create_dir_all(&slices).unwrap();
+        fs::write(
+            slices.join("module.ttl"),
+            format!(
+                "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+                 gmeow:mediumFixture gmeow:mediumSourceKind gmeow:mediumSourceWholeArtifact .\n\
+                 gmeow:mediumNoKind a gmeow:Medium .\n\
+                 {declared}"
+            ),
+        )
+        .unwrap();
+        temp
+    }
+
+    /// The six synthetic producer files, and the repo-relative paths they land at.
+    const PRODUCER_FIXTURE_FILES: [&str; 6] = ["a.rs", "b.rs", "c.rs", "d.rs", "e.rs", "f.rs"];
+
+    fn producer_fixture_paths() -> Vec<String> {
+        PRODUCER_FIXTURE_FILES
+            .iter()
+            .enumerate()
+            .map(|(i, f)| format!("crates/gmeow-p{i}/src/{f}"))
+            .collect()
+    }
+
+    fn producer_seal_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_every_gts_producer_declares_a_medium(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn seal_c_passes_when_every_producer_is_declared() {
+        let rows: String = producer_fixture_paths()
+            .iter()
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    /// The clause the whole split rests on: a production producer the ontology does
+    /// not classify has NO audit branch, so it would be audited by nothing.
+    #[test]
+    fn seal_c_fails_on_a_producer_with_no_declared_medium_source_kind() {
+        let paths = producer_fixture_paths();
+        // Five rows; the sixth producer is left unclassified.
+        let rows: String = paths
+            .iter()
+            .take(5)
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains(&paths[5]), "{errs:?}");
+        assert!(
+            errs[0].contains("no gmeow:GtsProducer declares it"),
+            "{errs:?}"
+        );
+    }
+
+    /// A row whose medium declares NO `gmeow:mediumSourceKind` is equally unbranched
+    /// — being listed is not the same as being classified.
+    #[test]
+    fn seal_c_fails_when_a_declared_medium_carries_no_source_kind() {
+        let paths = producer_fixture_paths();
+        let mut rows: String = paths
+            .iter()
+            .take(5)
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        rows.push_str(&format!(
+            "gmeow:prod5 a gmeow:GtsProducer ; gmeow:producerCallSite {:?} ; \
+             gmeow:producerMedium gmeow:mediumNoKind .\n",
+            paths[5]
+        ));
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(
+            errs[0].contains("gmeow:mediumSourceKind value(s)"),
+            "{errs:?}"
+        );
+    }
+
+    /// A row claiming a file that authors nothing is STALE — the shape a real
+    /// producer's classifying row takes after its file is renamed out from under it.
+    #[test]
+    fn seal_c_fails_on_a_stale_call_site() {
+        let mut rows: String = producer_fixture_paths()
+            .iter()
+            .enumerate()
+            .map(|(i, p)| {
+                format!(
+                    "gmeow:prod{i} a gmeow:GtsProducer ; gmeow:producerCallSite {p:?} ; \
+                     gmeow:producerMedium gmeow:mediumFixture .\n"
+                )
+            })
+            .collect();
+        rows.push_str(
+            "gmeow:prodStale a gmeow:GtsProducer ; \
+             gmeow:producerCallSite \"crates/gone/src/lib.rs\" ; \
+             gmeow:producerMedium gmeow:mediumFixture .\n",
+        );
+        let temp = producer_seal_repo(&rows, &PRODUCER_FIXTURE_FILES);
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("names no production file"), "{errs:?}");
+    }
+
+    /// A truncated census is a SUBSET of any pin, so it must fail loudly rather than
+    /// pass while proving nothing.
+    #[test]
+    fn seal_c_fails_when_the_census_is_below_the_non_vacuity_floor() {
+        let temp = producer_seal_repo(
+            "gmeow:prod0 a gmeow:GtsProducer ; \
+             gmeow:producerCallSite \"crates/gmeow-p0/src/a.rs\" ; \
+             gmeow:producerMedium gmeow:mediumFixture .\n",
+            &["a.rs"],
+        );
+        let errs = producer_seal_errors(temp.path());
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("non-vacuity floor"), "{errs:?}");
+    }
+
+    /// Seal C on the LIVE tree, positively: the census really does find the known
+    /// production producers, and every one of them resolves to exactly one declared
+    /// `gmeow:mediumSourceKind` — so a later "0 unclassified" result cannot be a
+    /// silent miss. The three source kinds are all exercised, which is what makes the
+    /// split a genuine partition rather than one live branch and two decorative ones.
+    #[test]
+    fn live_repo_producer_map_is_total_and_exercises_all_three_source_kinds() {
+        const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let mut report = RepoStaticReport::default();
+        let census = gts_producer_census(root, &mut report);
+        assert!(report.ok(), "census must not error: {:?}", report.errors);
+        let files: BTreeSet<&str> = census.iter().map(|p| p.file.as_str()).collect();
+        for known in [
+            "crates/gmeow-dev-cli/src/feedback_bundle.rs",
+            "crates/math/src/lib.rs",
+            "crates/music/src/lib.rs",
+            "crates/pipeline/src/mcp.rs",
+            "crates/pipeline/src/stages/carrier.rs",
+            "crates/pipeline/src/transcode.rs",
+        ] {
+            assert!(
+                files.contains(known),
+                "the live census must discover {known}; found {files:?}"
+            );
+        }
+
+        let declared = declared_gts_producers(root, &mut report);
+        assert!(report.ok(), "{:?}", report.errors);
+        let mut kinds: BTreeSet<String> = BTreeSet::new();
+        for file in &files {
+            let entry = declared
+                .get(*file)
+                .unwrap_or_else(|| panic!("{file} carries no gmeow:GtsProducer row"));
+            assert_eq!(entry.media.len(), 1, "{file}: {:?}", entry.media);
+            assert_eq!(
+                entry.source_kinds.len(),
+                1,
+                "{file}: {:?}",
+                entry.source_kinds
+            );
+            kinds.extend(entry.source_kinds.iter().cloned());
+        }
+        assert_eq!(
+            kinds,
+            [
+                format!("{GMEOW}mediumSourceHeaderDict"),
+                format!("{GMEOW}mediumSourcePerRep"),
+                format!("{GMEOW}mediumSourceWholeArtifact"),
+            ]
+            .into_iter()
+            .collect::<BTreeSet<String>>(),
+            "all three declared source kinds must be live, or a branch is decorative"
+        );
+        assert!(
+            PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM.is_empty(),
+            "the shrink-only producer census must stay empty — the medium audit's split is a \
+             total function over producers, so no producer may go unclassified"
+        );
+    }
+
+    /// Seal A on the LIVE tree: the census is exactly 1, and it is the profile
+    /// crate. This is the positive, non-vacuous half — the detector demonstrably
+    /// finds the real call, so a later "0 hits" result cannot be a silent miss.
+    #[test]
+    fn live_repo_has_exactly_one_production_emit_gts_caller_in_the_profile_crate() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let hits = gts_hits(root);
+        let emitters: Vec<&GtsAuthorshipHit> = hits
+            .iter()
+            .filter(|hit| hit.entry_point == "gts_compose::emit_gts")
+            .collect();
+        assert_eq!(emitters.len(), 1, "{emitters:?}");
+        assert!(
+            emitters[0].file.starts_with(GTS_PROFILE_CRATE_SRC),
+            "{:?}",
+            emitters[0]
+        );
+    }
+
+    /// Seal B on the LIVE tree: zero production callers outside the profile crate,
+    /// across the WHOLE pinned entry-point surface.
+    #[test]
+    fn live_repo_has_no_gts_authorship_bypass_outside_the_profile_crate() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let bypasses: Vec<GtsAuthorshipHit> = gts_hits(root)
+            .into_iter()
+            .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+            .collect();
+        assert!(bypasses.is_empty(), "{bypasses:?}");
+    }
+
+    /// `crates/*/tests/**` integration tests are NOT production and carry no
+    /// `#[cfg(test)]` marker at all. Several of them legitimately call the pinned
+    /// entry points directly (codec-level fixtures); the seals must ignore every
+    /// one, and this test proves those files really do exist so the exemption is
+    /// exercised rather than hypothetical.
+    #[test]
+    fn integration_test_callers_exist_and_are_outside_the_production_census() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root");
+        let mut report = RepoStaticReport::default();
+        let mut callers: BTreeSet<String> = BTreeSet::new();
+        let crates_dir = root.join("crates");
+        let mut crate_dirs: Vec<PathBuf> = fs::read_dir(&crates_dir)
+            .expect("read crates/")
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect();
+        crate_dirs.sort();
+        for crate_dir in crate_dirs {
+            let tests = crate_dir.join("tests");
+            if !tests.is_dir() {
+                continue;
+            }
+            let mut files = Vec::new();
+            collect_rust_files(&tests, &mut report, &mut files);
+            for path in files {
+                let text = fs::read_to_string(&path).expect("read integration test");
+                let code = blank_comments_strings_and_cfg_test_modules(&text);
+                let calls = PURRDF_GTS_ENTRY_POINTS.iter().any(|entry| {
+                    if entry.constructors.is_empty() {
+                        identifier_starts(&code, &format!("{}::{}(", entry.module, entry.item)) > 0
+                    } else {
+                        entry.constructors.iter().any(|ctor| {
+                            identifier_starts(
+                                &code,
+                                &format!("{}::{}::{ctor}(", entry.module, entry.item),
+                            ) > 0
+                        })
+                    }
+                });
+                if calls {
+                    callers.insert(slash_path(path.strip_prefix(root).unwrap_or(&path)));
+                }
+            }
+        }
+        assert!(
+            callers.len() >= 6,
+            "the crates/*/tests/** exemption must be exercised by real files; found {callers:?}"
+        );
+        let production: BTreeSet<String> = gts_hits(root).into_iter().map(|hit| hit.file).collect();
+        for caller in &callers {
+            assert!(
+                !production.contains(caller),
+                "{caller} is an integration test, not production"
+            );
+        }
+    }
+
+    #[test]
+    fn seals_pass_with_only_the_profile_crate_emitter() {
+        let temp = tempfile::tempdir().unwrap();
+        write_gts_profile_crate(temp.path());
+        assert!(gts_seal_errors(temp.path()).is_empty());
+    }
+
+    #[test]
+    fn seal_a_fails_on_a_second_production_emit_gts_caller() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-music",
+            "lib.rs",
+            "pub fn piece_to_gts_bytes() -> Vec<u8> {\n\
+             \x20   purrdf::gts_compose::emit_gts(&b, \"dist\", None).unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 2, "Seal A and Seal B both fire: {errs:?}");
+        assert!(errs[0].contains("Seal A"), "{errs:?}");
+        assert!(errs[0].contains("found 2"), "{errs:?}");
+    }
+
+    #[test]
+    fn seal_b_fails_on_a_writer_with_layout_caller() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "seg.rs",
+            "use purrdf::gts::writer::Writer;\n\
+             pub fn seg() -> Vec<u8> {\n\
+             \x20   let w = Writer::with_layout(\"ai-package\", Some(\"streamable\"));\n\
+             \x20   w.into_bytes()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("Seal B"), "{errs:?}");
+        assert!(errs[0].contains("Writer::with_layout("), "{errs:?}");
+    }
+
+    #[test]
+    fn seal_b_fails_on_a_compact_streamable_caller() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "compact.rs",
+            "pub fn c(data: &[u8]) -> Vec<u8> {\n\
+             \x20   purrdf::gts::compact::compact_streamable(data, false).unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("compact::compact_streamable("), "{errs:?}");
+    }
+
+    /// The three doors purrdf offers that mint a header WITHOUT touching
+    /// `emit_gts` — an `emit_gts`-only seal is blind to every one of them.
+    #[test]
+    fn seal_b_fails_on_to_gts_pack_entries_and_from_tar_callers() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "exit.rs",
+            "pub fn a(ds: &RdfDataset) -> Vec<u8> {\n\
+             \x20   purrdf::gts_write::to_gts(ds, &look, \"p\").unwrap()\n}\n\
+             pub fn b(e: &[FileEntry]) -> Vec<u8> {\n\
+             \x20   purrdf::gts::files::pack_entries_v2(e).unwrap()\n}\n\
+             pub fn c(d: &[u8]) -> Vec<u8> {\n\
+             \x20   purrdf::gts::from_tar::from_tar_bytes(d, &opts).unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("3 production call(s)"), "{errs:?}");
+        assert!(errs[0].contains("gts_write::to_gts("), "{errs:?}");
+        assert!(errs[0].contains("files::pack_entries_v2("), "{errs:?}");
+        assert!(errs[0].contains("from_tar::from_tar_bytes("), "{errs:?}");
+    }
+
+    /// A `use … as Alias` rename must not hide the call — the real pipeline
+    /// imported purrdf's `Writer` as `GtsWriter`, so a name-only scan would have
+    /// missed the very site this work had to fix.
+    #[test]
+    fn seal_b_follows_a_renamed_writer_import() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "mcp.rs",
+            "use purrdf::gts::writer::Writer as GtsWriter;\n\
+             pub fn seg() -> Vec<u8> {\n\
+             \x20   let mut w = GtsWriter::new(\"ai-package\");\n\
+             \x20   w.to_bytes()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("GtsWriter::new("), "{errs:?}");
+    }
+
+    /// A renamed FREE function is followed the same way.
+    #[test]
+    fn seal_b_follows_a_renamed_free_function_import() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-math",
+            "lib.rs",
+            "use purrdf::gts_write::to_gts as serialize;\n\
+             pub fn go(ds: &RdfDataset) -> Vec<u8> {\n\
+             \x20   serialize(ds, &look, \"p\").unwrap()\n}\n",
+        );
+        let errs = gts_seal_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("serialize("), "{errs:?}");
+    }
+
+    /// NON-VACUITY guard #1: the detector must not fire on prose, on a
+    /// commented-out call, on a call inside a string literal, or on a
+    /// `#[cfg(test)]` / composed-`cfg` test module.
+    #[test]
+    fn seals_ignore_comments_strings_and_test_gated_modules() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "clean.rs",
+            "//! This used to call purrdf::gts_compose::emit_gts(&b) directly.\n\
+             // let _ = purrdf::gts_write::to_gts(ds, &look, \"p\");\n\
+             pub const HINT: &str = \"route through emit_gts( instead of Writer::new(\";\n\
+             pub fn ok() {}\n\
+             #[cfg(test)]\n\
+             mod tests {\n\
+             \x20   fn t() {\n\
+             \x20       let _ = purrdf::gts_compose::emit_gts(&b, \"dist\", None);\n\
+             \x20       let mut w = purrdf::gts::writer::Writer::new(\"generic\");\n\
+             \x20   }\n\
+             }\n\
+             #[cfg(all(test, not(target_arch = \"wasm32\")))]\n\
+             mod native_tests {\n\
+             \x20   fn t() {\n\
+             \x20       let _ = purrdf::gts::compact::compact_streamable(d, false);\n\
+             \x20   }\n\
+             }\n",
+        );
+        let hits = gts_hits(root);
+        let outside: Vec<&GtsAuthorshipHit> = hits
+            .iter()
+            .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+            .collect();
+        assert!(outside.is_empty(), "{outside:?}");
+        assert!(gts_seal_errors(root).is_empty());
+    }
+
+    /// NON-VACUITY guard #2: substring collisions must not fire. `OkfWriter::new`
+    /// and `csv::Writer::new` are not purrdf's `Writer`; `pack_to_writer` merely
+    /// CONTAINS `to_writer`; `emit_gts_report` merely contains `emit_gts`.
+    #[test]
+    fn seals_ignore_substring_collisions() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_gts_profile_crate(root);
+        crate_src(
+            root,
+            "gmeow-docs",
+            "okf.rs",
+            "use crate::okf::OkfWriter;\n\
+             use csv::Writer;\n\
+             pub fn a() {\n\
+             \x20   let mut w = OkfWriter::new(config);\n\
+             \x20   let mut c = Writer::new(sink);\n\
+             \x20   let _ = local_pack_to_writer(&sources, out);\n\
+             \x20   let _ = emit_gts_report(&b);\n\
+             \x20   let _ = my_from_tar(d);\n}\n",
+        );
+        let hits = gts_hits(root);
+        let outside: Vec<&GtsAuthorshipHit> = hits
+            .iter()
+            .filter(|hit| !hit.file.starts_with(GTS_PROFILE_CRATE_SRC))
+            .collect();
+        assert!(outside.is_empty(), "{outside:?}");
+    }
+
+    /// The `csv::Writer` above is a NON-purrdf import, so the alias machinery must
+    /// not bind it. A purrdf import of the SAME bare name must still bind — this
+    /// pins that the discrimination is on the `use` path, not on the name.
+    #[test]
+    fn only_a_purrdf_use_statement_binds_the_writer_name() {
+        assert!(purrdf_use_bindings("use csv::Writer;", "Writer").is_empty());
+        assert_eq!(
+            purrdf_use_bindings("use purrdf::gts::writer::Writer;", "Writer")
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec!["Writer".to_string()]
+        );
+        assert_eq!(
+            purrdf_use_bindings("use purrdf::gts::writer::Writer as GtsWriter;", "Writer")
+                .into_iter()
+                .collect::<Vec<_>>(),
+            vec!["GtsWriter".to_string()]
+        );
+        // A longer identifier that merely CONTAINS the item name binds nothing.
+        assert!(
+            purrdf_use_bindings("use purrdf::gts::native_codecs::okf::OkfWriter;", "Writer")
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn cfg_predicate_test_gating_is_recognised_in_composed_forms() {
+        assert!(cfg_predicate_is_test_gated("test"));
+        assert!(cfg_predicate_is_test_gated(
+            "all(test, not(target_arch = \"wasm32\"))"
+        ));
+        assert!(cfg_predicate_is_test_gated(
+            "any(test, feature = \"harness\")"
+        ));
+        assert!(!cfg_predicate_is_test_gated("not(test)"));
+        assert!(!cfg_predicate_is_test_gated("feature = \"testing\""));
+        assert!(!cfg_predicate_is_test_gated("target_arch = \"wasm32\""));
+    }
+
+    /// The blanker must blank a COMPOSED test-gate's body, not just the bare
+    /// `#[cfg(test)]` — that hole is what let a wasm-gated test module look like
+    /// production code to every gate built on this view.
+    #[test]
+    fn blank_pass_blanks_a_composed_cfg_test_module_body() {
+        let text = "fn prod() {}\n\
+                    #[cfg(all(test, not(target_arch = \"wasm32\")))]\n\
+                    mod tests {\n    fn t() { purrdf::gts_write::to_gts(x); }\n}\n";
+        let code = blank_comments_strings_and_cfg_test_modules(text);
+        assert!(code.contains("fn prod"), "{code}");
+        assert!(!code.contains("to_gts"), "{code}");
+        assert_eq!(code.lines().count(), text.lines().count());
+    }
+
+    // ── the diagnostic-kind ↔ ontology failure-class binding ────────────────
+
+    /// A slice Turtle declaring exactly the failure classes `classes` are raised by,
+    /// wired through `gmeow:enforcesFailureClass` the way the live gts slice is.
+    fn write_failure_class_slice(root: &Path, classes: &[&str]) {
+        let mut ttl = String::from(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
+        );
+        for class in classes {
+            ttl.push_str(&format!(
+                "gmeow:{class} a logic:Category .\n\
+                 logic:{class}Constraint a logic:Constraint ; \
+                 gmeow:enforcesFailureClass gmeow:{class} .\n"
+            ));
+        }
+        write(&root.join("slices/core/gts/module.ttl"), &ttl);
+    }
+
+    /// A `define_diag_kind!` invocation in the exact shape the census reads.
+    fn diag_kind_source(name: &str, code: &str, failure_class: Option<&str>) -> String {
+        let clause = failure_class
+            .map(|iri| format!("    failure_class = \"{iri}\";\n"))
+            .unwrap_or_default();
+        format!(
+            "define_diag_kind! {{\n\
+             \x20   /// A kind.\n\
+             \x20   pub struct {name} {{ detail: String }}\n\
+             \x20   code = \"{code}\";\n\
+             \x20   grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);\n\
+             \x20   message = \"{{}}\", detail;\n\
+             {clause}}}\n"
+        )
+    }
+
+    fn failure_class_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_diag_failure_class_binding(root, &mut report);
+        report.errors
+    }
+
+    /// The census must read a MULTI-LINE struct body correctly: the field list's own
+    /// closing brace is not the end of the invocation, and treating it as one would
+    /// silently drop the kind from both gates.
+    #[test]
+    fn census_reads_code_and_failure_class_through_a_multiline_struct_body() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            "define_diag_kind! {\n\
+             \x20   /// A kind whose field list spans several lines.\n\
+             \x20   pub struct Wide {\n\
+             \x20       stage: String,\n\
+             \x20       rdf: Vec<String>,\n\
+             \x20   }\n\
+             \x20   code = \"pipeline.wide\";\n\
+             \x20   message = \"stage {}: rdf {:?}\", stage, rdf;\n\
+             \x20   failure_class = \"https://blackcatinformatics.ca/gmeow/MediumWide\";\n\
+             }\n",
+        );
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        assert!(report.errors.is_empty(), "{:?}", report.errors);
+        assert_eq!(
+            decls,
+            vec![DiagKindDecl {
+                file: "crates/gmeow-pipeline/src/error.rs".to_string(),
+                code: "pipeline.wide".to_string(),
+                failure_class: Some("https://blackcatinformatics.ca/gmeow/MediumWide".to_string()),
+            }]
+        );
+    }
+
+    /// A kind bound to an IRI the ontology never minted is a claim about a gate that
+    /// does not exist — the first half of the bijection.
+    #[test]
+    fn a_kind_bound_to_an_unminted_failure_class_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &format!(
+                "{}{}",
+                diag_kind_source(
+                    "UnknownSchema",
+                    "pipeline.medium.unknown-schema",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+                ),
+                diag_kind_source(
+                    "Invented",
+                    "pipeline.medium.invented",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumInvented"),
+                ),
+            ),
+        );
+        let errors = failure_class_errors(root);
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("pipeline.medium.invented") && e.contains("MediumInvented")),
+            "{errors:?}"
+        );
+    }
+
+    /// A `gmeow:Medium*` failure class nobody raises is documentation, not a gate —
+    /// the second half of the bijection, and the direction a pure Rust-side test
+    /// could never see.
+    #[test]
+    fn a_medium_failure_class_with_no_rust_producer_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema", "MediumOrphaned"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &diag_kind_source(
+                "UnknownSchema",
+                "pipeline.medium.unknown-schema",
+                Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+            ),
+        );
+        let errors = failure_class_errors(root);
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("MediumOrphaned") && e.contains("NO Rust producer")),
+            "{errors:?}"
+        );
+    }
+
+    /// Two producers for one failure class makes "which code raised this" unanswerable.
+    #[test]
+    fn two_rust_producers_for_one_medium_failure_class_fail() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &format!(
+                "{}{}",
+                diag_kind_source(
+                    "UnknownSchemaA",
+                    "pipeline.medium.unknown-schema",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+                ),
+                diag_kind_source(
+                    "UnknownSchemaB",
+                    "pipeline.medium.unknown-schema-again",
+                    Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+                ),
+            ),
+        );
+        let errors = failure_class_errors(root);
+        assert!(
+            errors.iter().any(|e| e.contains("MediumUnknownSchema")
+                && e.contains("Rust kinds declare this failure class")),
+            "{errors:?}"
+        );
+    }
+
+    /// The shrink-only ratchet: a NEW kind carrying no `failure_class` and absent
+    /// from the pin reds. Without this the annotation stays permanently optional and
+    /// the bijection is vacuous for every kind but the annotated few.
+    #[test]
+    fn a_new_kind_without_a_failure_class_fails_the_ratchet() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &[]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &diag_kind_source("Freshly", "pipeline.freshly-invented", None),
+        );
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        check_diag_failure_class_ratchet(&decls, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("pipeline.freshly-invented")
+                    && e.contains("PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    /// SHRINKAGE never reds: annotating a pinned kind (so it leaves the live census)
+    /// without trimming its pin entry must still pass — subset-or-equal, exactly as
+    /// the `shapes.ttl` ratchet does it.
+    #[test]
+    fn annotating_a_pinned_kind_without_trimming_the_pin_still_passes() {
+        let pinned = PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS
+            .first()
+            .expect("the pin is non-empty on the live tree");
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_failure_class_slice(root, &["MediumUnknownSchema"]);
+        crate_src(
+            root,
+            "gmeow-pipeline",
+            "error.rs",
+            &diag_kind_source(
+                "NowAnnotated",
+                pinned,
+                Some("https://blackcatinformatics.ca/gmeow/MediumUnknownSchema"),
+            ),
+        );
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        check_diag_failure_class_ratchet(&decls, &mut report);
+        assert!(report.errors.is_empty(), "{:?}", report.errors);
+    }
+
+    /// Every bound kind is bound on the LIVE tree: the census finds exactly the codes
+    /// listed below carrying a `failure_class`, and each names a real
+    /// `gmeow:enforcesFailureClass` individual. A non-vacuity guard for the live-repo
+    /// gate — if the scanner silently stopped reading a crate's `error.rs`, every
+    /// assertion above would still pass on a synthetic fixture.
+    ///
+    /// The list GROWS as the shrink-only census
+    /// ([`PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS`]) shrinks: the two move in lockstep,
+    /// one entry leaving the pin for every kind that lands here, so a diff that adds a
+    /// code here without deleting it there (or vice versa) is visible at review.
+    #[test]
+    fn the_live_bound_kinds_resolve_to_their_ontology_classes() {
+        let root = live_repo_root();
+        let mut report = RepoStaticReport::default();
+        let decls = diag_kind_census(root, &mut report);
+        assert!(report.errors.is_empty(), "{:?}", report.errors);
+        let bound: BTreeMap<&str, &str> = decls
+            .iter()
+            .filter_map(|d| Some((d.code.as_str(), d.failure_class.as_deref()?)))
+            .collect();
+        assert_eq!(
+            bound.keys().copied().collect::<Vec<_>>(),
+            vec![
+                "gts-profile.frame",
+                "math.lift.empty-codomain",
+                "math.lift.onnx.unliftable",
+                "math.lift.onnx.wire",
+                "math.lift.proof.parse",
+                "math.lift.proof.unliftable",
+                "math.lift.r.parse",
+                "math.lift.r.unliftable",
+                "math.lift.source.not-utf8",
+                "pipeline.medium.corpus-drift",
+                "pipeline.medium.dictionary-regression",
+                "pipeline.medium.digest-mismatch",
+                "pipeline.medium.opaque-frame",
+                "pipeline.medium.undeclared-dictionary",
+                "pipeline.medium.unknown-dictionary",
+                "pipeline.medium.unknown-schema",
+                "slice-quality.record",
+            ],
+            "these are the failure-class-bound kinds today"
+        );
+        let declared = ontology_failure_classes(root, &mut report);
+        for (code, iri) in bound {
+            assert!(
+                declared.contains(iri),
+                "{code} binds <{iri}>, which no slice raises through gmeow:enforcesFailureClass"
+            );
+        }
     }
 
     // ── temp-directory hygiene: every temporary path is RAII-managed ──────

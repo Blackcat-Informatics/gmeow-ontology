@@ -240,3 +240,65 @@ pub fn advisory(code: &str, message: impl Into<String>) -> Finding {
         .with_tool("slice-quality")
         .with_standpoint(Standpoint::Advisory)
 }
+
+/// An [`advisory`] that additionally carries, STRUCTURALLY, the documented term it
+/// concerns.
+///
+/// The term IRI is already in the message prose, but prose is not a join key: the
+/// gate mints these advisories onto the diagnostics ledger and needs the ANCHOR term
+/// as data, not as something to be re-parsed out of an English sentence. Populating
+/// [`Finding::documented_terms`] is exactly that carrier (and it rides only the
+/// full-fidelity JSON `Report`, so no SARIF/RDF/HTML bytes move).
+#[must_use]
+pub fn advisory_about(code: &str, term_iri: &str, message: impl Into<String>) -> Finding {
+    let mut finding = advisory(code, message);
+    finding.documented_terms.push(term_iri.to_owned());
+    finding
+}
+
+/// The structural provenance an advisory carries for the diagnostics LEDGER.
+///
+/// The ledger content-addresses a witness on `(code, category, source position,
+/// focus)` and deliberately NEVER on the message. Two advisories that differ only in
+/// their prose — `fr does not cover X` and `cmn does not cover X` — therefore merge
+/// into ONE node unless they carry different structural positions. These two builders
+/// are how an axis says what actually distinguishes its findings.
+pub trait AdvisoryProvenance {
+    /// Set the advisory's own POSITION: the stable key that distinguishes it from
+    /// every sibling advisory sharing its code and anchor (e.g. the target language,
+    /// or `<term>|<predicate>#<lang>`). Carried in [`Finding::locations`] — where the
+    /// finding IS — so the ledger fingerprint separates siblings instead of
+    /// collapsing them.
+    #[must_use]
+    fn with_position(self, key: impl Into<String>) -> Self;
+
+    /// Attach a WITNESS identifier — the concrete artifact the finding derives FROM
+    /// (for a translation advisory, the catalog entry's `msgctxt`).
+    ///
+    /// Carried as a bare [`gmeow_errors::Location`] in
+    /// [`Finding::related_locations`] (that field's documented purpose: a provenance
+    /// edge with no message of its own). The gate interns each witness as its own
+    /// ledger node and hangs the advisory's ANTECEDENT edge on it, so a reasoner pass
+    /// over the finding graph walks from "this axis is below its floor" down to the
+    /// exact catalog entry.
+    #[must_use]
+    fn with_witness(self, witness: impl Into<String>) -> Self;
+}
+
+impl AdvisoryProvenance for Finding {
+    fn with_position(mut self, key: impl Into<String>) -> Self {
+        self.locations.push(gmeow_errors::Location {
+            logical: Some(key.into()),
+            ..gmeow_errors::Location::default()
+        });
+        self
+    }
+
+    fn with_witness(mut self, witness: impl Into<String>) -> Self {
+        self.related_locations.push(gmeow_errors::Location {
+            logical: Some(witness.into()),
+            ..gmeow_errors::Location::default()
+        });
+        self
+    }
+}

@@ -20,6 +20,9 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
         <https://blackcatinformatics.ca/gmeow/slices/quality> ,
         <https://blackcatinformatics.ca/gmeow/slices/profiles> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
+        <https://blackcatinformatics.ca/gmeow/slices/versions> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:sliceConsumer "The gmeow-dev slice-quality advisor (the per-slice quality report + uplift advisor) and its make-check tier-ratchet gate."@x-gmeow-english ;
     gmeow:sliceQualityTier gmeow:tierRegistered .

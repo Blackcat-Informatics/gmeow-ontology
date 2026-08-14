@@ -28,3 +28,83 @@ ex:tcAssertedAt a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:assertedAt ] .
 ex:tcRecordedNoLaterThan a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:recordedNoLaterThan ] .
+
+# The week cycle: gmeow:DayOfWeek is a CLOSED value vocabulary (ISO 8601 closes it), so
+# the class and all seven weekday individuals must be answerable from the asserted
+# ontology alone. The closure is AUTHORED — gmeow:DayOfWeek logic:equivalentClass
+# [ logic:oneOf ( … seven days … ) ] in slices/core/temporal/module.ttl — so the shape
+# is logic:RowsExact, not logic:RowsContains: an eighth day-of-week individual added
+# anywhere is a violation of the authored enumeration, and this question is the test
+# surface that says so. Containment would only witness that the seven are PRESENT;
+# exact membership witnesses that they are ALL there is.
+ex:cqTemporalWeekCycleValues a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/temporal/queries/competency/week-cycle-values.rq" ;
+    gmeow:cqRationale "A weekday is calendar STRUCTURE, not a located span: gmeow:DayOfWeek names a recurring position in the seven-day week cycle and its seven ISO-8601 individuals are the complete, closed membership. Both the opening-hours surface (gmeow:openingDay) and the calendar slice's recurrence machinery read these seven values, so the vocabulary lives beside gmeow:CalendarSystem and gmeow:PeriodType in temporal and must be queryable as a whole." ;
+    gmeow:cqResultShape ex:cqTemporalWeekCycleValuesShape ;
+    gmeow:cqExpectRow
+        ex:twcMonday , ex:twcTuesday , ex:twcWednesday , ex:twcThursday ,
+        ex:twcFriday , ex:twcSaturday , ex:twcSunday .
+
+ex:cqTemporalWeekCycleValuesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "dayClass" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "day" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:twcMonday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayMonday ] .
+ex:twcTuesday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayTuesday ] .
+ex:twcWednesday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayWednesday ] .
+ex:twcThursday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayThursday ] .
+ex:twcFriday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:dayFriday ] .
+ex:twcSaturday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:daySaturday ] .
+ex:twcSunday a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dayClass" ; gmeow:cellValueIri gmeow:DayOfWeek ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "day" ; gmeow:cellValueIri gmeow:daySunday ] .
+
+# The index-consumer contract: the eight scope/point/interval clocks
+# (instantValue, startedAtTime, endedAtTime, atTime, validFrom, validUntil, assertedAt,
+# recordedNoLaterThan) each declare gmeow:useForConsumer gmeow:consumerIndexProjection,
+# naming which typed literals and frame edges a rebuildable interval/temporal index may
+# key over — the index-consumer contract a lexical/BM25/phonetic/temporal/geospatial
+# accelerator reads instead of re-deriving eligibility from first principles.
+ex:cqTemporalIndexConsumerClocks a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/temporal/queries/competency/index-consumer-clocks.rq" ;
+    gmeow:cqRationale "Which typed literals and frame edges may an interval index key over? GMEOW must name the temporal clocks eligible for gmeow:consumerIndexProjection so a rebuildable, generation-pinned index/retrieval projection (Principle 15) can build its accelerators against a declared surface rather than guessing which properties are index-safe." ;
+    gmeow:cqResultShape ex:cqTemporalIndexConsumerClocksShape ;
+    gmeow:cqExpectRow
+        ex:ticInstantValue , ex:ticStartedAtTime , ex:ticEndedAtTime , ex:ticAtTime ,
+        ex:ticValidFrom , ex:ticValidUntil , ex:ticAssertedAt , ex:ticRecordedNoLaterThan .
+
+ex:cqTemporalIndexConsumerClocksShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "clock" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:ticInstantValue a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:instantValue ] .
+ex:ticStartedAtTime a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:startedAtTime ] .
+ex:ticEndedAtTime a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:endedAtTime ] .
+ex:ticAtTime a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:atTime ] .
+ex:ticValidFrom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:validFrom ] .
+ex:ticValidUntil a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:validUntil ] .
+ex:ticAssertedAt a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:assertedAt ] .
+ex:ticRecordedNoLaterThan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "clock" ; gmeow:cellValueIri gmeow:recordedNoLaterThan ] .

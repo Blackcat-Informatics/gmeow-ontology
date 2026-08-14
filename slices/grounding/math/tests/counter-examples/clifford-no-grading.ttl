@@ -3,6 +3,7 @@
 
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/coverage/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 ex:clifford a math:CliffordAlgebra ;
     math:underlyingSet ex:carrier ;
@@ -13,7 +14,7 @@ ex:clifford a math:CliffordAlgebra ;
     math:cliffordInvolution ex:reversion ;
     math:hasBasisBlade ex:e1 ;
     math:metricSignature ex:signature ;
-    math:spaceDimension 2 ;
+    math:spaceDimension "2"^^xsd:nonNegativeInteger ;
     math:pseudoscalarSquare 1 .
 ex:carrier a math:Set .
 ex:product a math:GeometricProduct .

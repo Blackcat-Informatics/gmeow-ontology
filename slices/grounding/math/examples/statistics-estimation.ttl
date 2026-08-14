@@ -133,8 +133,22 @@ ex:survivalFormula a math:ModelFormula ;
     math:argumentSlot ex:respSlot , ex:trtSlot .
 ex:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:survivalExpr .
 ex:trtSlot  a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:treatmentExpr .
-ex:survivalExpr a math:VariableExpression .
-ex:treatmentExpr a math:VariableExpression .
+# Formula terms are FREE variables: each occurrence resolves to its own declaration, which is
+# what the math: expression grammar needs to scope it (a bare math:VariableExpression is
+# math:UnscopedVariableOccurrence).
+ex:survivalExpr a math:VariableExpression ; math:variableOccurrence ex:survivalOccurrence .
+ex:treatmentExpr a math:VariableExpression ; math:variableOccurrence ex:treatmentOccurrence .
+
+ex:survivalOccurrence a math:VariableOccurrence ; math:declaredVariable ex:survivalDeclaration .
+ex:treatmentOccurrence a math:VariableOccurrence ;
+    math:declaredVariable ex:treatmentDeclaration .
+
+ex:survivalDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
+    rdfs:label "survival — the response"@x-gmeow-english .
+ex:treatmentDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
+    rdfs:label "treatment — the design factor"@x-gmeow-english .
 
 # A first-class assumption the model posits — checkable by a diagnostic, not implicit.
 ex:noUnmeasuredConfounding a math:ModelAssumption ;
@@ -152,3 +166,9 @@ ex:newPatientForecast a math:Prediction ;
 
 ex:newPatientOutcome a math:MathematicalObject ;
     rdfs:label "The new patient's (future) survival outcome the prediction is about"@x-gmeow-english .
+
+# The value set every model variable in this formula ranges over. math:FreeVariableDeclaration
+# requires a math:variableDomain: a declaration with no domain says which symbol is free but
+# not what it may take, which is half a declaration.
+ex:modelVariableDomain a math:Set ;
+    rdfs:label "the observed value set of a model variable"@x-gmeow-english .

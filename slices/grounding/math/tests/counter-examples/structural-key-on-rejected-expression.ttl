@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the reasoned-graph math: expression-identity gate
+# (crates/logic/src/math_expression.rs, check_structural_key_on_rejected_expression):
+# ex:app is a math:ApplicationExpression missing its required math:operator — the
+# math: expression lowering REJECTS it — yet it carries an authored math:structuralKey,
+# claiming a structural identity for a thing the grammar itself refutes. The gate MUST
+# raise math:StructuralKeyOnRejectedExpression (and neither of its two siblings
+# math:StructuralKeyDrift / math:SurfaceLeakInNormalForm).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:app a math:ApplicationExpression ;
+    math:structuralKey "whatever" .

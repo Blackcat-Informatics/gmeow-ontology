@@ -14,7 +14,7 @@
 //! `combined_digest`, so a run is byte-identical regardless of completion order
 //! — the determinism the P2 tests pin.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Duration;
@@ -57,7 +57,8 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
 ///
 /// This is an explicit, first-class profile selection, not a degradation switch: the
 /// run's `combined_digest` and every product's committed byte-artifact lane are
-/// byte-identical under both arms (the retention test in [`crate::tests`] pins that),
+/// byte-identical under both arms (`crate::tests::carrier_retention_is_bounded_by_the_live_frontier`
+/// pins that),
 /// because a released product keeps its `stage_id` and `digest` verbatim and keeps
 /// every committed artifact. The arms differ ONLY in whether material that no declared
 /// consumer can still read stays resident for the life of the [`RunResult`].
@@ -305,7 +306,53 @@ pub fn run(
     bound: &[Arc<dyn Stage>],
     ctx: &mut RunContext,
 ) -> Result<RunResult, gmeow_errors::Diag> {
+    run_without(graph, bound, ctx, &BTreeSet::new())
+}
+
+/// Run the pipeline with a DECLARED set of stages omitted, returning the products of
+/// everything else.
+///
+/// It exists for exactly one caller and the reason is structural, not a convenience:
+/// the off-gate medium sweep (`make maint-medium-sweep`) must MEASURE the frames the
+/// terminal would write, and the terminal is precisely the stage that REFUSES to write
+/// them when a dictionary does not pay for itself. A sweep that ran the whole graph
+/// could therefore never produce the evidence a human needs in order to fix that — the
+/// gate would eat its own diagnosis. Omitting the terminal is not a weaker run: every
+/// stage the sweep reads a product from still runs, under the same cache and the same
+/// fail-closed rules, and the omitted stage produces no product for anything else to
+/// consume (it is the graph's sink).
+///
+/// `skip` is a set of stage ids. A stage that some REMAINING stage consumes is a hard
+/// fail rather than a silently smaller run: it would leave that consumer to fail deep
+/// inside its own logic with no statement of why.
+///
+/// # Errors
+/// Any stage failure, or a `skip` entry some remaining stage consumes.
+pub fn run_without(
+    graph: &StageGraph,
+    bound: &[Arc<dyn Stage>],
+    ctx: &mut RunContext,
+    skip: &BTreeSet<String>,
+) -> Result<RunResult, gmeow_errors::Diag> {
     let by_id: BTreeMap<&str, &Arc<dyn Stage>> = bound.iter().map(|s| (s.id(), s)).collect();
+    for stage in bound {
+        if skip.contains(stage.id()) {
+            continue;
+        }
+        for consumed in stage.consumes() {
+            if skip.contains(consumed) {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: stage.id().to_string(),
+                    message: format!(
+                        "cannot omit `{consumed}`: `{}` consumes it, so omitting it would leave a \
+                         consumer to fail inside its own logic instead of here, where the reason \
+                         is nameable",
+                        stage.id()
+                    ),
+                }));
+            }
+        }
+    }
 
     // A local rayon pool honours the jobs budget without touching the global one.
     let pool = rayon::ThreadPoolBuilder::new()
@@ -370,6 +417,7 @@ pub fn run(
         let runs: Vec<StageRun> = pool.install(|| {
             level
                 .par_iter()
+                .filter(|id| !skip.contains(id.as_str()))
                 .map(|id| -> Result<StageRun, gmeow_errors::Diag> {
                     let stage = by_id.get(id.as_str()).ok_or_else(|| {
                         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -542,7 +590,8 @@ pub fn run(
 /// life of the [`RunResult`]. The map is total over the consumed stages, so the
 /// retention bound is exact rather than a hand-picked special case: after level `N`, the
 /// stages still holding a live carrier are precisely `{ s : last_consumer_level(s) > N }`
-/// ∪ `{ s : s has no consumer }` — the property [`crate::tests`] pins.
+/// ∪ `{ s : s has no consumer }` — the property
+/// `crate::tests::carrier_retention_is_bounded_by_the_live_frontier` pins.
 ///
 /// Soundness rests on ONE fact: [`exec_stage`] assembles a stage's `StageInput` from
 /// exactly the ids the stage declares in `consumes()`. A stage therefore CANNOT read a

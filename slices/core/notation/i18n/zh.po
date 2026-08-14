@@ -152,3 +152,19 @@ msgstr "范围：该记录仅承载关于 gmeow:notationUsageRole 的一项完�
 msgctxt "https://blackcatinformatics.ca/gmeow/notationUsageTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:notationUsageTarget and nothing else. It is not a definition of gmeow:notationUsageTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:notationUsageTarget 的一项完整性义务，别无其他。它不是 gmeow:notationUsageTarget 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationSystemSMuFLPatternConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SMuFL codepoint pattern constraint"
+msgstr "SMuFL 码位模式约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationSystemSMuFLPatternConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:smuflCodepoint value matches the SMuFL Unicode-codepoint pattern U+HHHH(HH)."
+msgstr "闭世界完整性约束：gmeow:smuflCodepoint 的每个取值都符合 SMuFL 的 Unicode 码位模式 U+HHHH(HH)。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationProjectionProfileLossOrParameterConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notation projection profile loss-or-parameter constraint"
+msgstr "记谱投影剖面「损失或参数」约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NotationProjectionProfileLossOrParameterConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world requiredness constraint: a gmeow:NotationProjectionProfile must declare at least one gmeow:representableParameter or one gmeow:declaredLoss."
+msgstr "闭世界必需性约束：gmeow:NotationProjectionProfile 必须至少声明一个 gmeow:representableParameter 或一个 gmeow:declaredLoss。"

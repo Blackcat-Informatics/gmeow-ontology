@@ -34,8 +34,9 @@ use regex::Regex;
 
 use crate::counting;
 use crate::graph::{self, all_iris, all_lits, g, id, instances_of, one_lit};
-use crate::score::{AxisScore, FileText, ScoreContext, ScoringEnv, advisory};
-
+use crate::score::{
+    AdvisoryProvenance, AxisScore, FileText, ScoreContext, ScoringEnv, advisory, advisory_about,
+};
 /// A measurement primitive: score the slice and surface advisories.
 pub type Primitive = fn(&ScoreContext) -> AxisScore;
 
@@ -280,105 +281,18 @@ fn information_axis(ctx: &ScoreContext) -> AxisScore {
     AxisScore { score, findings }
 }
 
-// ── Word-boundary matching (shared by the ratchet-gated heuristics) ─────────
-
-/// True if `word` occurs in `corpus` at identifier/word boundaries — the char on
-/// each side of the match is neither an ASCII alphanumeric nor `_`/`-`. This is the
-/// discriminator that keeps an INCIDENTAL substring (`"whenever"` containing
-/// `"never"`, `"NOTE"` containing `"not"`, `FooBar` containing `Foo`) from counting
-/// as a real occurrence — critical because every caller feeds a ratchet-gated score,
-/// where a false positive silently inflates the tier. Phrase words (e.g.
-/// `"rather than"`) match as a contiguous span, their outer ends boundary-checked.
-fn word_at_boundary(corpus: &str, word: &str) -> bool {
-    if word.is_empty() {
-        return false;
-    }
-    let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_' || c == '-';
-    corpus.match_indices(word).any(|(idx, _)| {
-        let before = corpus[..idx].chars().next_back();
-        let after = corpus[idx + word.len()..].chars().next();
-        before.is_none_or(|c| !is_ident(c)) && after.is_none_or(|c| !is_ident(c))
-    })
-}
-
-/// True if `s` carries a turtle CURIE token (`prefix:local`): a `:` with a name
-/// char before it and an alphanumeric/`_` after. Deliberately conservative — it
-/// rejects a bare prose colon (`"section 3: ..."`) and a full-IRI scheme
-/// (`<http://…>`, whose `:` is followed by `/`), so a definition without a real
-/// term reference is not mistaken for a worked triple.
-fn has_curie(s: &str) -> bool {
-    let bytes = s.as_bytes();
-    let is_name = |c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-';
-    for (i, &c) in bytes.iter().enumerate() {
-        if c != b':' {
-            continue;
-        }
-        let before = i.checked_sub(1).map(|j| bytes[j]);
-        let after = bytes.get(i + 1).copied();
-        if before.is_some_and(is_name)
-            && after.is_some_and(|a| a.is_ascii_alphanumeric() || a == b'_')
-        {
-            return true;
-        }
-    }
-    false
-}
+// ── Deterministic authored-prose predicates (shared, ratchet-gated) ────────
+//
+// `word_at_boundary`, `states_boundary`, and `is_worked_triple` are ONE definition,
+// owned by `gmeow_docs::prose`, and read verbatim by both scorers. They used to live
+// twice — once here, once in `crates/docs/src/coverage.rs` — and the copies drifted:
+// this one grew the boilerplate carve-out and the `rdfs:isDefinedBy` guard, the docs
+// one never did, so the same string could state a boundary for one score and not the
+// other. The two crates still legitimately read DIFFERENT inputs (this one the raw
+// slice RDF dataset, docs the typed DocsModel); only the predicate is shared.
+use gmeow_docs_model::prose::{is_worked_triple, states_boundary, word_at_boundary};
 
 // ── Axis 8: Prose quality ──────────────────────────────────────────────────
-
-/// Negation cues that signal a boundary-stating ("what it is NOT") definition.
-///
-/// Cues are matched at word boundaries on the lowercased text ([`word_at_boundary`]),
-/// so `"whenever"` no longer counts as `"never"` and `"NOTE"` no longer counts as
-/// `"not"`. The heuristic is deliberately CONSERVATIVE (it prefers a false negative
-/// to a false positive): the score it feeds is ratchet-gated, so wrongly passing a
-/// non-boundary definition would silently inflate the tier, whereas missing a
-/// boundary phrased with an unlisted cue only under-credits and stays advisory.
-fn states_boundary(def: &str) -> bool {
-    const CUES: &[&str] = &[
-        "not",
-        "never",
-        "nor",
-        "cannot",
-        "rather than",
-        "as opposed to",
-        "instead of",
-        "unlike",
-        "distinct from",
-    ];
-    let d = def.to_lowercase();
-    // A term-agnostic coat is not a semantic boundary. This exact family was
-    // mechanically appended to hundreds of definitions and says nothing that
-    // distinguishes one term from another, despite containing the cue "not".
-    if d.contains(
-        "not an interchangeable alias for a broader, narrower, or merely related construct",
-    ) {
-        return false;
-    }
-    CUES.iter().any(|cue| word_at_boundary(&d, cue))
-}
-
-/// A worked triple names a term via a CURIE (`prefix:local`) and carries turtle
-/// statement structure (the `a` type keyword or a `; , .` terminator).
-///
-/// Conservative on both axes: a bare prose colon is not a CURIE ([`has_curie`]), and
-/// prose punctuation alone does not pass without a CURIE present — so an ordinary
-/// sentence (`"See section 3: important."`) is NOT scored as a worked triple. As with
-/// [`states_boundary`], a false negative (under-crediting an oddly-formatted example)
-/// is preferred to a false positive that would inflate this ratchet-gated score.
-fn is_worked_triple(example: &str) -> bool {
-    // `term rdfs:isDefinedBy slice` is ownership metadata, not an example of
-    // the term in use. Counting it lets a generated provenance inventory pose
-    // as hundreds of worked examples.
-    !example.contains("rdfs:isDefinedBy")
-        && has_curie(example)
-        && (word_at_boundary(example, "a")
-            || example.contains(" ;")
-            || example.contains(" .")
-            || example.contains(" ,")
-            || example.ends_with('.')
-            || example.ends_with(';'))
-}
 
 /// Average prose-quality across the slice's terms with a definition.
 fn prose_axis(ctx: &ScoreContext) -> AxisScore {
@@ -403,8 +317,9 @@ fn prose_axis(ctx: &ScoreContext) -> AxisScore {
             if states_boundary(&def) {
                 passed += 1;
             } else {
-                findings.push(advisory(
+                findings.push(advisory_about(
                     "slice-quality.prose.definition-no-boundary",
+                    iri,
                     format!("{iri} definition does not state a boundary (what it is NOT) (SLICE_GUIDE §6.2)."),
                 ));
             }
@@ -414,8 +329,9 @@ fn prose_axis(ctx: &ScoreContext) -> AxisScore {
             if is_worked_triple(&ex) {
                 passed += 1;
             } else {
-                findings.push(advisory(
+                findings.push(advisory_about(
                     "slice-quality.prose.example-not-triple",
+                    iri,
                     format!("{iri} skos:example is not a worked triple (SLICE_GUIDE §6.6)."),
                 ));
             }
@@ -1167,9 +1083,16 @@ fn documentation_axis(ctx: &ScoreContext) -> AxisScore {
 /// axis reports `cmn` while reading `i18n/zh.po`.
 const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 
+/// How many per-literal uncovered-translation findings one language lists before the
+/// remainder is folded into a single explicit `… and N more` finding. A slice can
+/// author thousands of literals; an unbounded list would bury the rest of the report.
+/// The cap is a RENDERING bound only — it never changes a score, and the folded
+/// remainder is always stated, never silently dropped.
+pub const UNCOVERED_LITERAL_CAP: usize = 20;
+
 /// Translation: per-language coverage of **every localizable literal** the slice
 /// authors — each `(term, predicate)` where `predicate` is one of
-/// [`gmeow_docs_model::i18n_compile::LOCALIZABLE_PREDICATES`] and the slice graph carries a
+/// [`gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES`] and the slice graph carries a
 /// literal — audited via the `i18n/<stem>.po` catalogs. A literal counts as covered
 /// for a language iff its catalog entry carries a real (non-empty) `msgstr`. Full
 /// coverage requires English (authored, always full) plus French and Mandarin on
@@ -1177,9 +1100,22 @@ const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 /// coverage fractions, bounded `[0,1]` and `1.0` iff every localizable literal is
 /// fully translated into both fr and cmn. A non-empty value only counts after the
 /// shared deterministic translation-integrity guard accepts it.
+///
+/// # The denominator is PROSE literals, and only prose literals
+///
+/// A localizable literal whose every value is notation rather than prose — a Turtle
+/// snippet (`gmeow:paymentMethodCash a gmeow:PaymentMethod .`), a bare IRI, a wire
+/// value ([`gmeow_docs::i18n::is_technical_invariant`]) — is EXCLUDED from `literals`
+/// entirely. It is not translatable, so demanding a French rendering of it would be
+/// incoherent; and the alternative (admitting it to the NUMERATOR as trivially
+/// "covered") would silently redefine `1.0` from "everything is translated" to
+/// "everything is translated or isn't prose". Both give 1.0 when the slice is
+/// perfect; only exclusion keeps `covered ⇒ actually translated` true, so the axis
+/// stays an objective intrinsic measure rather than one tuned toward its floor.
 fn translation_axis(ctx: &ScoreContext) -> AxisScore {
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
 
+    use gmeow_docs_model::i18n::{is_technical_invariant, translation_integrity_issue};
     use gmeow_docs_model::i18n_compile::{
         LOCALIZABLE_PREDICATES, counts_as_reviewed_coverage, expand_predicate, language_from_po,
         parse_po,
@@ -1187,27 +1123,85 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
 
     let ds = ctx.graph;
 
-    // Denominator: every localizable literal the slice authors, as the set of
-    // (term-iri, full-predicate-iri) pairs the graph carries a literal for.
+    // Denominator: every localizable PROSE literal the slice authors, as the ordered
+    // list of (term-iri, full-predicate-iri) pairs the graph carries a literal for.
+    // A (term, predicate) whose authored values are ALL notation-only is dropped here
+    // rather than credited later — see the doc comment.
     let mut literals: Vec<(String, String)> = Vec::new();
+    let mut notation_excluded: Vec<(String, String)> = Vec::new();
     for iri in &ctx.terms {
         let Some(sid) = id(ds, iri) else { continue };
         for pred in LOCALIZABLE_PREDICATES {
-            if id(ds, pred).is_some_and(|p| graph::has_any(ds, sid, p)) {
-                literals.push((iri.clone(), (*pred).to_string()));
+            let Some(p) = id(ds, pred) else { continue };
+            let values = graph::all_lits(ds, sid, p);
+            if values.is_empty() {
+                continue;
             }
+            // Conservative: exclude only when NO authored value is prose. A pair with
+            // one notation value and one prose value is still a translation duty.
+            if values.iter().all(|v| is_technical_invariant(v)) {
+                notation_excluded.push((iri.clone(), (*pred).to_string()));
+                continue;
+            }
+            literals.push((iri.clone(), (*pred).to_string()));
         }
     }
     let expected = literals.len();
+
+    // The exclusion is reported UNCONDITIONALLY — independent of the score — so a
+    // `1.000000` denominator is exactly as auditable as a `0.9` one: without this, a
+    // literal dropped from the denominator for being notation-not-prose is invisible
+    // whenever nothing else is left uncovered. Emitted once per (term, predicate),
+    // never re-derived per language, since the exclusion itself is language-independent.
+    let mut findings = Vec::new();
+    if !notation_excluded.is_empty() {
+        findings.push(advisory(
+            "slice-quality.translation.notation-excluded",
+            format!(
+                "{} localizable literal(s) are notation, not prose — Turtle snippets, bare IRIs, wire values — and are excluded from the translation-coverage denominator: notation carries no translation duty.",
+                notation_excluded.len()
+            ),
+        ));
+        for (term, pred) in notation_excluded.iter().take(UNCOVERED_LITERAL_CAP) {
+            findings.push(
+                advisory_about(
+                    "slice-quality.translation.notation-excluded",
+                    term,
+                    format!(
+                        "({term}, {pred}) is notation, not prose, and is excluded from the translation-coverage denominator."
+                    ),
+                )
+                .with_position(format!("{term}|{pred}#notation-excluded")),
+            );
+        }
+        if notation_excluded.len() > UNCOVERED_LITERAL_CAP {
+            findings.push(advisory(
+                "slice-quality.translation.notation-excluded-truncated",
+                format!(
+                    "… and {} more notation-excluded literal(s) beyond the first {UNCOVERED_LITERAL_CAP} listed above.",
+                    notation_excluded.len() - UNCOVERED_LITERAL_CAP
+                ),
+            ));
+        }
+    }
+
     if expected == 0 {
-        return AxisScore::clean(1.0);
+        return AxisScore {
+            score: 1.0,
+            findings,
+        };
     }
 
     // English is authored, so it is always fully covered.
     let mut lang_cov = vec![1.0_f64];
-    let mut findings = Vec::new();
     for (tag, stem) in TRANSLATION_LANGS {
         let po_key = format!("i18n/{stem}.po");
+        // The POSITION every catalog-scoped advisory below is stamped with. Each
+        // language produces the same advisory CODES with different prose, and the
+        // diagnostics ledger content-addresses on position, never on message — so
+        // without this the fr and cmn findings merge into one node and the report
+        // silently loses a language.
+        let catalog_position = format!("{}#i18n/{stem}.po", ctx.slice_iri);
         // Covered (term, full-predicate) pairs: catalog entries that count as
         // REVIEWED coverage under the single shared policy
         // (`counts_as_reviewed_coverage`) — a real (non-empty) msgstr that is NOT
@@ -1217,6 +1211,12 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
         // non-fuzzy entries that fail integrity are `rejected` (copied English).
         let mut rejected = 0usize;
         let mut seeded = 0usize;
+        // Per-(term, predicate) REASON a present catalog entry failed to count as
+        // coverage, keyed by the same pair the denominator is keyed by and carrying the
+        // entry's msgctxt as its witness. Captured in the SAME pass that builds
+        // `covered` (never re-derived later), so the per-literal diagnostic below can
+        // say *why* each uncovered literal is uncovered instead of only how many are.
+        let mut reasons: HashMap<(String, String), (String, String)> = HashMap::new();
         let covered: HashSet<(String, String)> = match ctx.text(&po_key) {
             // A genuinely-absent catalog legitimately means no coverage for this language.
             FileText::Absent => HashSet::new(),
@@ -1225,10 +1225,13 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
             // surface it as a finding and force zero coverage for this language, never a
             // silent empty set that would fake a clean score.
             FileText::Invalid(e) => {
-                findings.push(advisory(
-                    "slice-quality.translation.read-error",
-                    format!("{tag} catalog i18n/{stem}.po failed to read: {e}"),
-                ));
+                findings.push(
+                    advisory(
+                        "slice-quality.translation.read-error",
+                        format!("{tag} catalog i18n/{stem}.po failed to read: {e}"),
+                    )
+                    .with_position(catalog_position.clone()),
+                );
                 lang_cov.push(0.0);
                 continue;
             }
@@ -1257,20 +1260,26 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                             && !primary.eq_ignore_ascii_case(tag)
                             && !primary.eq_ignore_ascii_case(stem)
                         {
-                            findings.push(advisory(
-                                "slice-quality.translation.mislabeled-catalog",
-                                format!(
-                                    "{tag} catalog i18n/{stem}.po declares `Language: {header}`, which matches neither the target `{tag}` nor the file stem `{stem}`; coverage is evaluated against `{tag}` regardless."
-                                ),
-                            ));
+                            findings.push(
+                                advisory(
+                                    "slice-quality.translation.mislabeled-catalog",
+                                    format!(
+                                        "{tag} catalog i18n/{stem}.po declares `Language: {header}`, which matches neither the target `{tag}` nor the file stem `{stem}`; coverage is evaluated against `{tag}` regardless."
+                                    ),
+                                )
+                                .with_position(catalog_position.clone()),
+                            );
                         }
                     }
                     Ok(None) => {}
                     Err(e) => {
-                        findings.push(advisory(
-                            "slice-quality.translation.parse-error",
-                            format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
-                        ));
+                        findings.push(
+                            advisory(
+                                "slice-quality.translation.parse-error",
+                                format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
+                            )
+                            .with_position(catalog_position.clone()),
+                        );
                         lang_cov.push(0.0);
                         continue;
                     }
@@ -1278,10 +1287,13 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                 let entries = match parse_po(text, false) {
                     Ok(entries) => entries,
                     Err(e) => {
-                        findings.push(advisory(
-                            "slice-quality.translation.parse-error",
-                            format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
-                        ));
+                        findings.push(
+                            advisory(
+                                "slice-quality.translation.parse-error",
+                                format!("{tag} catalog i18n/{stem}.po failed to parse: {e}"),
+                            )
+                            .with_position(catalog_position.clone()),
+                        );
                         lang_cov.push(0.0);
                         continue;
                     }
@@ -1291,26 +1303,46 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
                     if entry.msgctxt.is_empty() {
                         continue;
                     }
+                    let Some((term, pred)) = entry.msgctxt.split_once('|') else {
+                        continue;
+                    };
+                    let key = (term.to_string(), expand_predicate(pred));
                     if counts_as_reviewed_coverage(entry, &language) {
-                        if let Some((term, pred)) = entry.msgctxt.split_once('|') {
-                            set.insert((term.to_string(), expand_predicate(pred)));
-                        }
-                    } else if entry.fuzzy && !entry.msgstr.is_empty() {
-                        seeded += 1;
-                    } else if !entry.msgstr.is_empty() {
-                        rejected += 1;
+                        set.insert(key);
+                        continue;
                     }
+                    // NOT coverage — record WHY, keyed by the same pair the denominator
+                    // uses, witnessed by this entry's msgctxt. The integrity guard is the
+                    // single authority for the reason text ("empty translation", "copied
+                    // English", …); the fuzzy case is the guard's one blind spot (a
+                    // machine seed can be a perfectly good string that simply has not been
+                    // reviewed yet), so it is named explicitly.
+                    let reason = if entry.fuzzy && !entry.msgstr.is_empty() {
+                        seeded += 1;
+                        "machine-seeded (`#, fuzzy`) and awaiting human review".to_owned()
+                    } else {
+                        if !entry.msgstr.is_empty() {
+                            rejected += 1;
+                        }
+                        translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
+                            .unwrap_or("no reviewed translation")
+                            .to_owned()
+                    };
+                    reasons.insert(key, (reason, entry.msgctxt.clone()));
                 }
                 set
             }
         };
         if rejected > 0 {
-            findings.push(advisory(
-                "slice-quality.translation.integrity-rejected",
-                format!(
-                    "{tag} has {rejected} non-empty catalog value(s) rejected by the translation-integrity guard; copied or hybrid English does not count as coverage."
-                ),
-            ));
+            findings.push(
+                advisory(
+                    "slice-quality.translation.integrity-rejected",
+                    format!(
+                        "{tag} has {rejected} non-empty catalog value(s) rejected by the translation-integrity guard; copied or hybrid English does not count as coverage."
+                    ),
+                )
+                .with_position(catalog_position.clone()),
+            );
         }
         let hits = literals
             .iter()
@@ -1326,12 +1358,67 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
             } else {
                 String::new()
             };
-            findings.push(advisory(
-                "slice-quality.translation.incomplete",
+            let excluded_note = if notation_excluded.is_empty() {
+                String::new()
+            } else {
                 format!(
-                    "{tag} covers {hits}/{expected} localizable literals{seeded_note}; the top tier requires 100% en+fr+cmn on every localizable literal."
-                ),
-            ));
+                    " ({} notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty)",
+                    notation_excluded.len()
+                )
+            };
+            findings.push(
+                advisory(
+                    "slice-quality.translation.incomplete",
+                    format!(
+                        "{tag} covers {hits}/{expected} localizable literals{seeded_note}{excluded_note}; the top tier requires 100% en+fr+cmn on every localizable literal."
+                    ),
+                )
+                .with_position(catalog_position.clone()),
+            );
+            // Per-LITERAL detail: which (term, predicate) is uncovered, and why. The
+            // aggregate count above says a slice is short N; this says which N, so the
+            // author does not have to reconstruct the set by hand.
+            let uncovered: Vec<&(String, String)> = literals
+                .iter()
+                .filter(|pair| !covered.contains(*pair))
+                .collect();
+            for (term, pred) in uncovered.iter().take(UNCOVERED_LITERAL_CAP) {
+                let key = ((*term).clone(), (*pred).clone());
+                let (reason, witness) = reasons.get(&key).map_or_else(
+                    || {
+                        (
+                            "no catalog entry for this literal".to_owned(),
+                            format!("{term}|{pred}"),
+                        )
+                    },
+                    |(reason, ctx)| (reason.clone(), ctx.clone()),
+                );
+                findings.push(
+                    advisory_about(
+                        "slice-quality.translation.uncovered-literal",
+                        term,
+                        format!("{tag} does not cover ({term}, {pred}): {reason}."),
+                    )
+                    // The finding's own position is the literal AND the target
+                    // language; the anchor is the term and the witness is the
+                    // catalog key, and neither alone separates fr from cmn.
+                    .with_position(format!("{term}|{pred}#{tag}"))
+                    .with_witness(witness),
+                );
+            }
+            // Truncation is never silent: the remainder is stated as its own finding.
+            if uncovered.len() > UNCOVERED_LITERAL_CAP {
+                findings.push(
+                    advisory(
+                        "slice-quality.translation.uncovered-literal-truncated",
+                        format!(
+                            "… and {} more uncovered {tag} literal(s) beyond the first {UNCOVERED_LITERAL_CAP} listed above.",
+                            uncovered.len() - UNCOVERED_LITERAL_CAP
+                        ),
+                    )
+                    .with_position(catalog_position.clone()),
+                );
+            }
         }
         lang_cov.push(cov);
     }

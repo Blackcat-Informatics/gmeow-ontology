@@ -1,0 +1,16 @@
+# Negative test: gmeow:gmnGlyphInScope and gmeow:gmnGlyphNamedKeyRuled PARTITION the
+# logic-glyph-plane terms — a term is EITHER in scope for a rendered glyph OR ruled to a
+# named key where no standard notation exists, never both. The coverage gate
+# (gmn-logic-coverage-complete) reads the in-scope set MINUS the named-key-ruled set as its
+# coverage denominator on the assumption the two markers are disjoint; a term carrying BOTH
+# would be silently excused from the coverage anti-join (the named-key filter would exempt an
+# in-scope term that still owes a rendering). Any returned row is a term that breaks the
+# partition. The shipped graph marks each term with at most one of the two, so this returns
+# no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?t WHERE {
+    ?t gmeow:gmnGlyphInScope true ;
+       gmeow:gmnGlyphNamedKeyRuled true .
+}
+ORDER BY ?t

@@ -12,4 +12,9 @@ ex:divergentSeries a math:Series ;
     math:operator math:summationBinder ;
     math:seriesTerm ex:harmonicTerm .
 
-ex:harmonicTerm a math:MathematicalExpression .
+# The series term is an incidental named operand here, not the defect. It is a
+# math:SymbolReference so the ONLY class this fixture raises is the missing convergence — the
+# abstract math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside it.
+ex:harmonicTerm a math:SymbolReference ; math:hasMathematicalSymbol ex:harmonicTermSymbol .
+ex:harmonicTermSymbol a math:MathematicalSymbol .

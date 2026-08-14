@@ -138,8 +138,20 @@ ex:tuningBad gmeow:frameKind gmeow:frameKindScalar .
 ex:tuningBad gmeow:requiresHost \"false\"^^xsd:boolean .
 "
     ))
+    // `TuningSystem`'s exactly-one-kind bound is now PROJECTED SHACL derived from the
+    // EL-safe `logic:Restriction` axioms in `slices/extensions/music/module.ttl`
+    // (`generated/shapes/validation-shapes.ttl`, `gmeow:TuningSystem-shape`), which —
+    // like every restriction-derived cardinality shape — carries no `sh:message` (the
+    // prose-message convention was retired with the shapes-to-logic migration; see
+    // docs/MIGRATING-SHAPES-TO-LOGIC.md). `whole_shapes()` deliberately drops that file
+    // from this fixture corpus, so exercising the projected bound requires the live
+    // production shape union and the assertion is by path + constraint component.
+    .shape_union()
     .fails()
-    .violations(&["A TuningSystem must have exactly one tuningKind (Principle 9)."])
+    .fails_on_path(
+        "https://blackcatinformatics.ca/gmeow/tuningKind",
+        "MinCountConstraintComponent",
+    )
 )]
 fn music_pitch(#[case] case: Case) {
     case.run();

@@ -1000,7 +1000,12 @@ const PROOF_LIFT_SOURCE: &str = include_str!("../../math-lift/fixtures/theorem-s
 /// cross-check rather than duplicate.
 pub mod codomain {
     /// [`super::r_lift`]'s codomain node count.
-    pub const R_LIFT: usize = 141;
+    ///
+    /// 141 -> 142 when every lifted free-variable declaration gained the mandatory
+    /// `math:variableDomain` edge to the run's `math:Set`: the set node is one new codomain
+    /// member. A declaration without a domain is `math:UntypedFreeVariable`, so the lift was
+    /// emitting a class of violation the math slice forbids.
+    pub const R_LIFT: usize = 142;
     /// [`super::onnx_lift`]'s codomain node count.
     pub const ONNX_LIFT: usize = 55;
     /// [`super::proof_lift`]'s codomain node count.

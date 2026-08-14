@@ -127,6 +127,23 @@ define_diag_kind! {
 
 /// The complete MCP diagnostic-code catalog, in registration order.
 ///
+define_diag_kind! {
+    /// A runtime store asked to be primed with a dictionary id the LOADED bundle pins no
+    /// bytes for.
+    ///
+    /// The bundle is the dictionary's distribution channel: `gmeow.gts` pins every
+    /// declared dictionary in its segment header, so a consumer priming its own store
+    /// reads the exact bytes the build trained. An id that names no bytes is a HARD FAIL
+    /// — there is no weaker unprimed store to fall back to, because the store's OWN
+    /// header is what makes it decodable, and writing it unprimed would silently discard
+    /// the density the dictionary exists to provide.
+    pub struct MediumUndeclaredDictionary { detail: String }
+    code = "mcp.medium.undeclared-dictionary";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: undeclared dictionary — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumUndeclaredDictionary";
+}
+
 /// TOTAL over the crate regardless of which cargo features are selected — the catalog
 /// is the diagnostic THEORY, and a lean deployment is a reduced deployment, not a
 /// reduced theory (exactly as its [`TOOL_COUNT`](crate::TOOL_COUNT)-tool surface stays
@@ -141,6 +158,7 @@ pub const MCP_DIAG_CODES: &[&str] = &[
     DuplicateRegistration::CODE,
     InvalidRegistration::CODE,
     SegmentNotLoaded::CODE,
+    MediumUndeclaredDictionary::CODE,
 ];
 
 /// Eagerly intern every MCP diagnostic code (idempotent).
@@ -153,6 +171,7 @@ pub fn register_all() -> Vec<Code> {
         DuplicateRegistration::register(),
         InvalidRegistration::register(),
         SegmentNotLoaded::register(),
+        MediumUndeclaredDictionary::register(),
     ]
 }
 

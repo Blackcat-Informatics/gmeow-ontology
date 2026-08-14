@@ -26,6 +26,7 @@ use purrdf::{
     RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, TermValue,
 };
 
+use crate::math_expression::{MATH_ALPHA_EQUIVALENCE_CLASS, MATH_ALPHA_EQUIVALENCE_CLASS_TYPE};
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
 use crate::result::ReasoningResult;
@@ -65,9 +66,12 @@ pub(crate) fn gmeow(local: &str) -> String {
 const CLOSURE_HEADER: &str = "\
 # GMEOW native inferred closure (RDF 1.2).
 # The told-vs-inferred derived axioms produced by the native EL/DL
-# reasoning lane (gmeow_logic.reason_native, Java/Docker-free). Each
-# inferred triple carries an RDF 1.2 reifier annotated with its
-# derivation provenance (prov:wasDerivedBy / gmeow:viaRule). DO NOT EDIT.
+# reasoning lane (gmeow_logic.reason_native, Java/Docker-free), followed
+# by the math: expression-identity derivation's math:alphaEquivalenceClass
+# edges over the same asserted EDB. Each derived triple carries an RDF 1.2
+# reifier annotated with its derivation provenance (prov:wasDerivedBy /
+# gmeow:viaRule), naming which of the two authorities produced it.
+# DO NOT EDIT.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -169,6 +173,13 @@ fn derived_sorted(result: &ReasoningResult) -> Vec<&InferredAxiom> {
 
 // ── inferred-closure ────────────────────────────────────────────────────────────
 
+/// The rule IRI name under which the `math:` expression-identity derivation publishes its
+/// `math:alphaEquivalenceClass` edges. It is a derivation authority alongside the EL/DL
+/// rules — the structural lowering of an authored expression through the content-addressed
+/// term arena — so its output carries the SAME `prov:wasDerivedBy` / `gmeow:viaRule`
+/// provenance every other row in this document does, under its own rule name.
+const MATH_EXPRESSION_IDENTITY_RULE: &str = "math-expression-identity";
+
 /// Render the native told-vs-inferred closure as an RDF 1.2 Turtle document.
 ///
 /// For every *derived* (non-EDB) axiom this emits the base triple plus an RDF
@@ -178,12 +189,26 @@ fn derived_sorted(result: &ReasoningResult) -> Vec<&InferredAxiom> {
 /// world. When `merge_asserted` is supplied, its told graph is prepended so the
 /// document is the union of asserted and derived axioms (the `--merge` mode).
 ///
+/// `alpha_edges` — the `(expression IRI, α-class IRI)` pairs
+/// [`crate::math_expression::alpha_equivalence_edges`] derived over the SAME asserted EDB
+/// this closure was reasoned from — is emitted as a final section: the
+/// `math:alphaEquivalenceClass` edge itself plus the `rdf:type math:AlphaEquivalenceClass`
+/// typing of the content-addressed individual it resolves to. That section is what makes the
+/// α-equivalence identity a JOINABLE NODE in a shipped artifact rather than a value that
+/// exists only inside a gate process: two α-equivalent expressions name the identical class
+/// individual here, so a consumer holding only `gmeow.gts` or the committed closure file can
+/// group them with an ordinary triple pattern. The pairs arrive already sorted by expression
+/// IRI and each α-class IRI is a pure content digest, so the section is byte-stable. The
+/// class typing is deduplicated: α-equivalent expressions share one individual and must not
+/// type it twice.
+///
 /// # Errors
 ///
 /// Returns `Err` if any derived axiom is missing its `rule_name`.
 pub fn build_inferred_closure_ttl(
     result: &ReasoningResult,
     merge_asserted: Option<&RdfDataset>,
+    alpha_edges: &[(String, String)],
 ) -> gmeow_errors::Result<String> {
     let mut out = String::from(CLOSURE_HEADER);
 
@@ -216,7 +241,55 @@ pub fn build_inferred_closure_ttl(
             ],
         ));
     }
+    out.push_str(&alpha_equivalence_section(alpha_edges));
     Ok(out)
+}
+
+/// Serialize the `math:alphaEquivalenceClass` edges as the closure's final section.
+///
+/// Empty — not even a banner — when there are no edges: an EDB carrying no `math:`
+/// expression decides no identities, and a bare section header would read as a claim that
+/// it did.
+fn alpha_equivalence_section(alpha_edges: &[(String, String)]) -> String {
+    if alpha_edges.is_empty() {
+        return String::new();
+    }
+    let rule = format!(
+        "<{}>",
+        rule_iri(RULE_IRI_BASE, MATH_EXPRESSION_IDENTITY_RULE)
+    );
+    let mut out = String::from("\n# --- derived math: expression alpha-equivalence identity ---\n");
+    let mut typed: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+    for (expression, alpha_class) in alpha_edges {
+        let triple = RdfTriple::new(
+            RdfTerm::iri(expression.clone()),
+            MATH_ALPHA_EQUIVALENCE_CLASS.to_owned(),
+            RdfTerm::iri(alpha_class.clone()),
+        );
+        out.push_str(&emit_quad(&RdfQuad::new(
+            triple.subject.clone(),
+            triple.predicate.clone(),
+            triple.object.clone(),
+        )));
+        let reifier = RdfReifier::new(RdfTerm::blank_node("r"), triple);
+        out.push_str(&emit_reifier(
+            &reifier,
+            &[
+                (PROV_WAS_DERIVED_BY.to_owned(), rule.clone()),
+                (gmeow("viaRule"), rule.clone()),
+                (gmeow("inferenceKind"), format!("<{}>", gmeow("Deduction"))),
+            ],
+        ));
+        typed.insert(alpha_class.as_str());
+    }
+    for alpha_class in typed {
+        out.push_str(&emit_quad(&RdfQuad::new(
+            RdfTerm::iri(alpha_class.to_owned()),
+            RDF_TYPE.to_owned(),
+            RdfTerm::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE.to_owned()),
+        )));
+    }
+    out
 }
 
 // ── reasoning-explanations ──────────────────────────────────────────────────────
@@ -697,7 +770,7 @@ mod tests {
             )],
             true,
         );
-        let ttl = build_inferred_closure_ttl(&result, None).unwrap();
+        let ttl = build_inferred_closure_ttl(&result, None, &[]).unwrap();
         assert!(ttl.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
         assert!(ttl.contains("rdf-syntax-ns#reifies> <<( "));
         assert!(ttl.contains("rule/el%3AsubClassOf-transitive"));
@@ -707,6 +780,65 @@ mod tests {
         assert!(
             ttl.contains("gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports>")
         );
+    }
+
+    /// The α-equivalence section is the SHIPPED half of the expression-identity derivation:
+    /// two α-equivalent expressions must land on ONE class individual, that individual must be
+    /// typed exactly once however many expressions reach it, and every edge must carry the
+    /// derivation's own rule provenance rather than borrowing an EL/DL rule's.
+    #[test]
+    fn closure_emits_one_joinable_class_for_alpha_equivalent_expressions() {
+        const CLASS: &str = "https://blackcatinformatics.ca/math/alphaClass/deadbeef";
+        let result = result_with(
+            vec![axiom(
+                "http://example.org/A",
+                RDFS_SUBCLASS_OF,
+                "http://example.org/C",
+                Some("el:subClassOf-transitive"),
+            )],
+            true,
+        );
+        let edges = vec![
+            ("http://example.org/first".to_owned(), CLASS.to_owned()),
+            ("http://example.org/second".to_owned(), CLASS.to_owned()),
+        ];
+        let ttl = build_inferred_closure_ttl(&result, None, &edges).unwrap();
+        for expression in ["first", "second"] {
+            assert!(
+                ttl.contains(&format!(
+                    "<http://example.org/{expression}> <{MATH_ALPHA_EQUIVALENCE_CLASS}> <{CLASS}> ."
+                )),
+                "the α-class edge of {expression} must be an ordinary joinable triple"
+            );
+        }
+        let typing = format!("<{CLASS}> <{RDF_TYPE}> <{MATH_ALPHA_EQUIVALENCE_CLASS_TYPE}> .");
+        assert_eq!(
+            ttl.matches(typing.as_str()).count(),
+            1,
+            "the shared class individual is typed exactly ONCE, not once per expression"
+        );
+        assert!(
+            ttl.contains("rule/math-expression-identity"),
+            "the α edges carry the expression-identity derivation's own rule provenance"
+        );
+    }
+
+    /// No `math:` expression in the EDB means no identity was decided, so the section — banner
+    /// included — is absent. A bare header would read as a decision that never happened.
+    #[test]
+    fn closure_omits_the_alpha_section_entirely_when_no_expression_is_decided() {
+        let result = result_with(
+            vec![axiom(
+                "http://example.org/A",
+                RDFS_SUBCLASS_OF,
+                "http://example.org/C",
+                Some("el:subClassOf-transitive"),
+            )],
+            true,
+        );
+        let ttl = build_inferred_closure_ttl(&result, None, &[]).unwrap();
+        assert!(!ttl.contains("alpha-equivalence"));
+        assert!(!ttl.contains(MATH_ALPHA_EQUIVALENCE_CLASS));
     }
 
     #[test]
@@ -719,7 +851,7 @@ mod tests {
         );
         edb.is_edb = true;
         let result = result_with(vec![edb], true);
-        let ttl = build_inferred_closure_ttl(&result, None).unwrap();
+        let ttl = build_inferred_closure_ttl(&result, None, &[]).unwrap();
         assert!(!ttl.contains("reifies"));
     }
 
@@ -734,7 +866,7 @@ mod tests {
             )],
             true,
         );
-        let err = build_inferred_closure_ttl(&result, None).unwrap_err();
+        let err = build_inferred_closure_ttl(&result, None, &[]).unwrap_err();
         assert!(err.message().contains("no rule_name"), "got: {err}");
     }
 

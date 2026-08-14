@@ -340,3 +340,19 @@ msgstr "Exemple : ex:site gmeow:hasSubAsset ex:reasonerEngine ."
 msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: PACKAGING containment, not the generic mereology — it is deliberately not asserted under gmeow:partOf/gmeow:hasPart and carries no transitivity, so a component that itself encloses something does not thereby make that inner thing a sub-asset of the enclosing distribution; assert the enclosing edge you mean. Like the distribution it hangs off, the statement is SCHEMA-level: it says the component ships inside this surface, never what its bytes are in a given release, whose content digest belongs to the release instance record. The domain is gmeow:DocumentationDistribution rather than the wider gmeow:LossBearingProfile, because a sub-asset rides inside a shipped surface — a one-off render manifest is loss-bearing but ships nothing, so it cannot carry one."
 msgstr "Portée : un emboîtement de CONDITIONNEMENT, non la méréologie générique — elle n'est délibérément pas déclarée sous gmeow:partOf/gmeow:hasPart et ne porte aucune transitivité ; un composant qui en contient lui-même un autre ne fait donc pas de ce dernier un sous-actif de la distribution englobante : déclarez l'arête d'englobement que vous visez. Comme la distribution à laquelle elle se rattache, l'assertion se situe au niveau du SCHÉMA : elle dit que le composant est livré au sein de cette surface, jamais ce que valent ses octets dans une version donnée, dont le condensé de contenu appartient à l'enregistrement d'instance de la publication. Le domaine est gmeow:DocumentationDistribution plutôt que le plus large gmeow:LossBearingProfile, car un sous-actif voyage à l'intérieur d'une surface livrée — un manifeste de rendu ponctuel porte une perte mais ne livre rien, et ne peut donc pas en porter un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UseForConsumerTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "useForConsumer range constraint"
+msgstr "contrainte de domaine de valeurs de useForConsumer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UseForConsumerTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:useForConsumer value is a declared gmeow:ProjectionContext individual."
+msgstr "Une contrainte d'intégrité en monde clos : chaque valeur de gmeow:useForConsumer est un individu gmeow:ProjectionContext déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AvoidForConsumerTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "avoidForConsumer range constraint"
+msgstr "contrainte de domaine de valeurs d'avoidForConsumer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AvoidForConsumerTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:avoidForConsumer value is a declared gmeow:ProjectionContext individual."
+msgstr "Une contrainte d'intégrité en monde clos : chaque valeur de gmeow:avoidForConsumer est un individu gmeow:ProjectionContext déclaré."

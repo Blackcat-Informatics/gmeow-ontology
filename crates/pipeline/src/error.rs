@@ -13,6 +13,22 @@
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
 define_diag_kind! {
+    /// A hard defect raised inside the native MAXIMAL(G) transform (skolemization,
+    /// saturation, projection, GTS emission): a malformed cell, an unparsable
+    /// input graph, or a serialization failure. The RDF value is invalid or the
+    /// codec refused — a HARD FAIL, never papered over.
+    ///
+    /// The GTS-authorship LEAF (`gmeow-gts-profile`) does NOT raise this: it mints
+    /// its own `gts-profile.frame` kind, because borrowing this one would make the
+    /// leaf depend back on `gmeow-pipeline` and reinstate the cycle its extraction
+    /// breaks.
+    pub struct Transform { message: String }
+    code = "pipeline.transform";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "transform error: {}", message;
+}
+
+define_diag_kind! {
     /// An I/O error reading a source artifact or the cache.
     pub struct Io { message: String }
     code = "pipeline.io";
@@ -184,17 +200,6 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A hard defect raised inside the native MAXIMAL(G) transform (skolemization,
-    /// saturation, projection, GTS emission): a malformed cell, an unparsable
-    /// input graph, or a serialization failure. The RDF value is invalid or the
-    /// codec refused — a HARD FAIL, never papered over.
-    pub struct Transform { message: String }
-    code = "pipeline.transform";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "transform error: {}", message;
-}
-
-define_diag_kind! {
     /// A hard defect raised while assembling or evaluating a scoreboard / acceptance
     /// gate (dataset build, SPARQL projection, corpus glob, or gate arithmetic).
     pub struct Scoreboard { message: String }
@@ -310,6 +315,110 @@ define_diag_kind! {
     message = "docs-distribution error: {}", message;
 }
 
+// --- The medium axis's seven named failure classes ----------------------------
+//
+// Each of these seven kinds is the SOLE Rust producer of one `gmeow:Medium*`
+// failure-class individual in `slices/core/gts/module.ttl`, bound to it by the
+// `failure_class` clause. The binding is not decoration: the repo-static
+// bijection gate (`crates/validate/src/repo_static.rs`) proves each declared IRI
+// resolves to a real failure-class individual AND that every `gmeow:Medium*`
+// failure class has exactly one producer, so a kind added without its ontology
+// individual — or an individual minted with no kind to raise it — reds. Every one
+// is a HARD FAIL: none of them ever authorizes a fallback to a dictionary-less
+// decode, because a payload written through a primed medium is not readable at
+// lower fidelity without its dictionary, it is not readable AT ALL.
+
+define_diag_kind! {
+    /// A payload representation the medium registry declares no medium for: the
+    /// rep→medium assignment is TOTAL, so a rep with no row is a missing
+    /// declaration, never permission to encode it baseline. Also raised when a
+    /// declared dictionary's corpus selects nothing — an empty training set leaves
+    /// the dictionary undeclared in the only sense that matters (no bytes).
+    pub struct MediumUndeclaredDictionary { detail: String }
+    code = "pipeline.medium.undeclared-dictionary";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: undeclared dictionary — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumUndeclaredDictionary";
+}
+
+define_diag_kind! {
+    /// A declared dictionary that does not resolve to a registered
+    /// `gmeow:CompressionDictionary` — an unknown id, an unknown version, or a
+    /// dictionary the reader does not hold.
+    pub struct MediumUnknownDictionary { detail: String }
+    code = "pipeline.medium.unknown-dictionary";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: unknown dictionary — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumUnknownDictionary";
+}
+
+define_diag_kind! {
+    /// A blob rep with no registered `gmeow:PayloadSchema`. There is no defaultable
+    /// answer: an unregistered rep would decode as an unclassified blob with an
+    /// UNDEFINED medium assignment, which is exactly the silent capability
+    /// degradation no-optionality forbids.
+    pub struct MediumUnknownSchema { detail: String }
+    code = "pipeline.medium.unknown-schema";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: unknown payload schema — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumUnknownSchema";
+}
+
+define_diag_kind! {
+    /// A digest a medium envelope carries disagrees with the bytes it describes —
+    /// the frame content digest, the stratum digest against its named
+    /// `gmeow:DigestStratum`, or a dictionary's content digest against the
+    /// dictionary at hand. Refuses BEFORE any decode is attempted: priming against
+    /// a different dictionary with the same id yields plausible-looking garbage
+    /// rather than an error.
+    pub struct MediumDigestMismatch { detail: String }
+    code = "pipeline.medium.digest-mismatch";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: digest mismatch — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumDigestMismatch";
+}
+
+define_diag_kind! {
+    /// A frame whose medium demands a reader capability
+    /// (`gmeow:requiresReaderCapability`) that is not held — rsyncable framing or
+    /// dictionary priming, both non-baseline. A hard fail for a producer, and for a
+    /// reader the region is SURFACED through the existing `gmeow:OpaqueFrame` /
+    /// `gmeow:opacityUnknownCodec` vocabulary rather than silently skipped.
+    pub struct MediumOpaqueFrame { detail: String }
+    code = "pipeline.medium.opaque-frame";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: opaque frame — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumOpaqueFrame";
+}
+
+define_diag_kind! {
+    /// An emitted dictionary version no authored `gmeow:CompressionDictionary`
+    /// still declares. Retiring a version is a DATA-DESTROYING change: every
+    /// artifact already primed with it becomes undecodable, so this is never
+    /// resolved by deleting the realization.
+    pub struct MediumDictionaryRegression { detail: String }
+    code = "pipeline.medium.dictionary-regression";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: dictionary regression — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumDictionaryRegression";
+}
+
+define_diag_kind! {
+    /// The committed sweep evidence (`bench/medium-baseline.json`) records a corpus
+    /// identity that is not the identity of the corpus THIS build resolved. A
+    /// `gmeow:DictionaryCorpus` is a SELECTOR re-resolved every build, so an archive
+    /// gaining or losing a member moves the corpus without moving the table — and the
+    /// table would keep grading the bijection, the declared-is-argmin agreement, and
+    /// the pays-for-itself criterion against numbers from a sweep nobody re-ran. HARD
+    /// FAIL: stale evidence is not weaker evidence, it is evidence about a different
+    /// corpus.
+    pub struct MediumCorpusDrift { detail: String }
+    code = "pipeline.medium.corpus-drift";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "medium: corpus drift — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumCorpusDrift";
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -343,6 +452,13 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     SpanTableConsumedAfterDrop::CODE,
     DocsMeasure::CODE,
     DocsDistribution::CODE,
+    MediumUndeclaredDictionary::CODE,
+    MediumUnknownDictionary::CODE,
+    MediumUnknownSchema::CODE,
+    MediumDigestMismatch::CODE,
+    MediumOpaqueFrame::CODE,
+    MediumDictionaryRegression::CODE,
+    MediumCorpusDrift::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
@@ -385,6 +501,13 @@ pub fn register_all() -> Vec<Code> {
         SpanTableConsumedAfterDrop::register(),
         DocsMeasure::register(),
         DocsDistribution::register(),
+        MediumUndeclaredDictionary::register(),
+        MediumUnknownDictionary::register(),
+        MediumUnknownSchema::register(),
+        MediumDigestMismatch::register(),
+        MediumOpaqueFrame::register(),
+        MediumDictionaryRegression::register(),
+        MediumCorpusDrift::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),
@@ -431,5 +554,87 @@ mod tests {
             handles.len(),
             "two pipeline diagnostic kinds interned to the same code handle"
         );
+    }
+
+    /// The seven medium-axis kinds carry their ontology failure-class IRI on the
+    /// GENERATED constant AND through the `DiagKind` accessor — the link the
+    /// repo-static bijection gate reads statically must be the same one a live
+    /// `Diag` producer exposes at run time, or the gate would be proving something
+    /// about a string the code never uses.
+    #[test]
+    fn every_medium_kind_carries_its_ontology_failure_class() {
+        use gmeow_errors::DiagKind;
+
+        const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+        let bound: [(&str, Option<&'static str>, Option<&'static str>); 7] = [
+            (
+                "MediumUndeclaredDictionary",
+                MediumUndeclaredDictionary::FAILURE_CLASS,
+                MediumUndeclaredDictionary {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+            (
+                "MediumUnknownDictionary",
+                MediumUnknownDictionary::FAILURE_CLASS,
+                MediumUnknownDictionary {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+            (
+                "MediumUnknownSchema",
+                MediumUnknownSchema::FAILURE_CLASS,
+                MediumUnknownSchema {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+            (
+                "MediumDigestMismatch",
+                MediumDigestMismatch::FAILURE_CLASS,
+                MediumDigestMismatch {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+            (
+                "MediumOpaqueFrame",
+                MediumOpaqueFrame::FAILURE_CLASS,
+                MediumOpaqueFrame {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+            (
+                "MediumDictionaryRegression",
+                MediumDictionaryRegression::FAILURE_CLASS,
+                MediumDictionaryRegression {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+            (
+                "MediumCorpusDrift",
+                MediumCorpusDrift::FAILURE_CLASS,
+                MediumCorpusDrift {
+                    detail: String::new(),
+                }
+                .failure_class(),
+            ),
+        ];
+        for (local, constant, accessor) in bound {
+            let expected = format!("{GMEOW}{local}");
+            assert_eq!(
+                constant,
+                Some(expected.as_str()),
+                "{local}: FAILURE_CLASS must name its ontology individual"
+            );
+            assert_eq!(
+                accessor, constant,
+                "{local}: the DiagKind accessor must agree with the constant"
+            );
+        }
     }
 }

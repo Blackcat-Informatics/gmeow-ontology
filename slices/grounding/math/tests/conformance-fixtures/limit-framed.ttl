@@ -21,5 +21,9 @@ ex:sincLimitSlot0 a math:ArgumentSlot ;
     math:slotExpression ex:sincExpr .
 
 ex:limitVarDecl a math:VariableDeclaration .
-ex:sincExpr a math:MathematicalExpression .
+# sinc is named, not decomposed: a math:SymbolReference resolving to a SYMBOL is the concrete
+# form for that. The abstract math:MathematicalExpression base names no form and carries no
+# structural identity (math:UnrecognizedExpressionType).
+ex:sincExpr a math:SymbolReference ; math:hasMathematicalSymbol ex:sincSymbol .
+ex:sincSymbol a math:MathematicalSymbol .
 ex:zeroPoint a math:MathematicalObject .

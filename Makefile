@@ -35,16 +35,9 @@ GTS_OUT ?= dist/gmeow.gts
 # `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` — which reconciles them as
 # whole trees.
 CONSOLE_OUT ?= dist/console-smoke
-# The LOWER BOUND on the vendored purrdf browser engine (`crates/docs/assets/purrdf/`).
-# `maint-refresh-purrdf-asset` resolves the NEWEST published version that satisfies it and
-# vendors that — a floor, never an exact pin, so a refresh always moves forward and never
-# has to be edited to accept an upstream release. The floor is the version of the npm
-# package built from the same purrdf source tree the workspace's `purrdf` Cargo dependency
-# is pinned to, so the browser engine can never be OLDER than the native one gmeow links.
-# Raise it only to require a NEW upstream capability; `crates/docs/tests/purrdf_asset.rs`
-# proves the vendored version satisfies it.
-PURRDF_NPM_MIN ?= 0.8.3
-PURRDF_NPM_PACKAGE := @blackcatinformatics/purrdf
+# The vendored purrdf npm engine is RETIRED: the browser query engine is built in this
+# repository as `crates/query-wasm` from the workspace `purrdf` pin, so there is no
+# published tarball to bound and no lower bound to keep. See crates/docs/assets/query/.
 PERF_DIR ?= dist/perf
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
@@ -74,6 +67,65 @@ RUST_TEST_WORKSPACE_ARGS := --workspace
 # these targets build regardless of the caller's environment.
 WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 
+# The pinned binaryen (wasm-opt) release, and the ONE place it is written down. CI installs
+# exactly this via `make print-binaryen-ver` rather than repeating the literal, because the
+# two drifted: CI provisioned a release predating `--enable-bulk-memory-opt`, so every
+# wasm-opt rule died on an unknown option and took all four Node parity lanes with it —
+# while the committed assets had been optimized locally by a newer binaryen.
+#
+# wasm-opt output is part of the shipped bytes the digest manifests pin, so "some wasm-opt"
+# is not a build dependency; THIS wasm-opt is.
+BINARYEN_VER := version_130
+BINARYEN_NUM := $(patsubst version_%,%,$(BINARYEN_VER))
+
+# Refuse to optimize with an unpinned binaryen. `command -v` alone proved only that A
+# wasm-opt exists, which is how a version mismatch reached CI as an unknown-option error
+# instead of a version error.
+define REQUIRE_WASM_OPT
+@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen $(BINARYEN_VER)"; exit 1; }
+@have=$$(wasm-opt --version 2>/dev/null | sed -n 's/^wasm-opt version \([0-9][0-9]*\).*/\1/p'); \
+	[ -n "$$have" ] || { echo "ERROR: cannot read 'wasm-opt --version' — refusing to optimize with an unidentified binaryen"; exit 1; }; \
+	[ "$$have" = "$(BINARYEN_NUM)" ] || { echo "ERROR: wasm-opt is binaryen $$have but the pin is $(BINARYEN_NUM) ($(BINARYEN_VER)) — wasm-opt output is part of the shipped bytes, so a different binaryen vendors different artifacts; install the pinned release"; exit 1; }
+endef
+
+# The four engine packages are built by ONE recipe. They were four verbatim copies, and
+# the copy-paste is what let a descriptor name a refresh target that did not exist. The
+# rules stay explicit (a canned recipe, not a pattern rule) for two reasons: GNU make does
+# not apply pattern rules to `.PHONY` targets, and `make help` awks this file's raw source
+# for `^<target>:.*## `, so generated rules would vanish from the task plan.
+#
+# $(1) = engine short name; $(2) = extra wasm-opt features that engine's module needs.
+define BUILD_WASM_PKG
+@# The binaryen refusal comes FIRST: wasm-opt output is part of the shipped bytes, so a
+@# wrong version invalidates this build — and checking it after the release wasm build and
+@# wasm-bindgen meant paying for both before a string comparison rejected the result.
+$(REQUIRE_WASM_OPT)
+@# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
+@# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
+$(WASM_CARGO) build -p gmeow-$(1)-wasm --target wasm32-unknown-unknown --release
+PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+	$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_$(1)_wasm.wasm \
+	--out-dir crates/$(1)-wasm/js/pkg --target web
+@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact).
+wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt $(2) \
+	-o crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm \
+	   crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm
+@echo "OK: gmeow-$(1)-wasm npm package built (crates/$(1)-wasm/js/, pkg/ generated)"
+endef
+
+# Re-vendor one built engine into its docs asset dir and re-pin DIGESTS.blake3 from the
+# exact copied bytes, via that asset's bless path. $(1) = engine short name;
+# $(2) = the same name upper-cased, naming the bless environment variable.
+define REVENDOR_WASM_ASSET
+mkdir -p crates/docs/assets/$(1)
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm.js             crates/docs/assets/$(1)/gmeow_$(1)_wasm.js
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm        crates/docs/assets/$(1)/gmeow_$(1)_wasm_bg.wasm
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm.d.ts           crates/docs/assets/$(1)/gmeow_$(1)_wasm.d.ts
+cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm.d.ts   crates/docs/assets/$(1)/gmeow_$(1)_wasm_bg.wasm.d.ts
+GMEOW_$(2)_BLESS=1 cargo test -p gmeow-docs --test $(1)_asset
+@echo "OK: re-vendored gmeow-$(1)-wasm into crates/docs/assets/$(1)/ (DIGESTS.blake3 re-pinned)"
+endef
+
 # The committed .cargo/config.toml defaults LOCAL Rust/C builds to host-tuned
 # codegen for synchronization/reasoning throughput. CI and release workflows append the
 # portable x86-64-v3 Rust target-cpu and override the C/C++ flags explicitly.
@@ -91,31 +143,36 @@ CHECK_ARGS ?=
 # The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
 # because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
 # than by the change under test; each remains individually runnable by name.
-HEAVY_TASKS := wasm-parity acceptance bench-soak
+HEAVY_TASKS := wasm-parity acceptance bench-soak medium-consumer-surface
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
 
-.PHONY: help \
+print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
+	@echo "$(BINARYEN_VER)"
+
+.PHONY: help print-binaryen-ver \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
+	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
-	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test \
+	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test query-wasm-pkg query-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
 	console-test console console-smoke console-assemble npm-publish-dry npm-consumable \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
+	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
 	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
 	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
-	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
+	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep \
+	maint-medium-model-facing-diff maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
 	maint-chasebench-corpus maint-gmn-cost-matrix
 
@@ -167,8 +224,28 @@ rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without 
 
 rust-test: nextest doctests ## Run the Rust workspace tests and doctests.
 
-gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame.
+gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with.
 	$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts
+
+medium-gate: ## Audit the whole medium axis of the materialized bundle: every frame decoded, every envelope re-derived, every dictionary paid for, and the declared reader contract matched.
+	$(GMEOW_DEV) medium-gate generated/dist/gmeow.gts
+
+medium-consumer-surface: rust-build ## HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites: the `gmeow medium` verbs and `gmeow-dev medium-gate`, each over a bundle a whole in-memory DAG run emitted.
+	@# Lifted off `make check` under P6 criterion 2 (docs/GATE-AND-PIPELINE.md): each of
+	@# these two suites runs the WHOLE production DAG in memory and then drives a shipped
+	@# CLI over its output plus a real runtime store and five tampered breach fixtures, so
+	@# its runtime is set by the breadth of the pipeline rather than by the edit under
+	@# test. Both reserve the host (`threads-required = "num-cpus"`), so on the local gate
+	@# they also serialize everything else behind them.
+	@#
+	@# What they prove is a CONSUMER-verb contract over shipped bytes; the axis's own
+	@# razor — the emission is the same claim under a second declared medium, and the
+	@# shipped bundle's medium is whole — stays ON `make check` as `medium_identity_gate`
+	@# and `medium_bundle`, which are change-dominated. The default nextest filter
+	@# excludes exactly these two binaries, so `maint-heavy` is the profile that can see
+	@# them.
+	cargo nextest run --profile maint-heavy \
+	  -E '(package(gmeow-cli) & binary(medium_cli)) | (package(gmeow-dev-cli) & binary(medium_gate))'
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
@@ -208,7 +285,7 @@ check: ## Synchronize generated outputs, then run the local gate DAG (every task
 heavy: ## CI-ONLY breadth lane: the soak / whole-corpus / cross-toolchain gates lifted off `make check`. Refuses to run outside CI.
 	@# `make check` must fail fast and deterministically on THIS branch's own changes.
 	@# The tasks below fail on breadth instead: a repeat-for-confidence soak, a
-	@# whole-external-corpus recall sweep, and a four-crate release wasm build plus three
+	@# whole-external-corpus recall sweep, and a four-crate release wasm build plus four
 	@# Node execution lanes that SKIP locally whenever the wasm32 target or node is
 	@# absent. Running them per-commit costs every developer minutes of wall clock for a
 	@# signal that does not track the edit under test, so they run once per PR in CI.
@@ -299,21 +376,20 @@ regen: ## REFUSES — the pipeline has ONE producer. Run `make check` (materiali
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout
 
+# MESSAGE and GMEOW_DEV reach the script through the ENVIRONMENT, never through
+# recipe-text interpolation: `VAR="$(VAR)" cmd` has Make expand $(VAR) into the
+# recipe's shell text BEFORE the shell parses it, so a MESSAGE carrying a double
+# quote, a backtick, `$(...)`, or `;` breaks out of the quoting and executes.
+# `export` hands the shell process the value directly, with no quoting round-trip,
+# while preserving GMEOW_DEV's deliberate word-splitting inside the script.
+commit: export GMEOW_DEV := $(GMEOW_DEV)
+commit: export MESSAGE := $(MESSAGE)
 commit: ## Synchronize artifacts, stage generator-owned outputs, and commit.
 	@# Materialization is a recipe step, not a prerequisite: the single producer is
 	@# read-only by default, and this lane needs it in update mode over every output
 	@# family, which a prerequisite edge cannot express.
 	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=all
-	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) sync --list-paths); \
-	for p in $${REGENERATED_PATHS}; do \
-	  if [ -e "$$p" ]; then git add "$$p"; fi; \
-	done; \
-	if git diff --cached --quiet; then \
-		echo "Nothing to commit."; exit 1; \
-	else \
-		git commit -m "$(MESSAGE)"; \
-	fi
-	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them separately if needed."
+	@scripts/commit-generated.sh
 
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize
@@ -498,12 +574,12 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 	cargo nextest run -p gmeow-pipeline --test carrier_purity
 	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
 
-CAPI_HEADER := crates/rdf-capi/include/purrdf.h
 
 wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + reasoner + GMN codec + MCP engine) build for wasm32.
 	@# gmeow's own wasm-first crates MUST compile to wasm32 with a reasoning-runtime-free
-	@# dep tree. The RDF/wasm engine is the sibling `purrdf` package (gated by its own
-	@# CI), so this target proves only gmeow's own crates. The target's absence is a SKIP
+	@# dep tree. The RDF/wasm query engine is gmeow's own `gmeow-query-wasm`, built from
+	@# the workspace purrdf pin, so every engine this repo ships is proven here. The
+	@# target's absence is a SKIP
 	@# locally but a hard FAIL in CI, so the wasm-clean criterion is never silently
 	@# unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown; then \
@@ -552,6 +628,17 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 				exit 1; \
 			fi; \
 		done; \
+		echo "== query engine proof: gmeow-query-wasm (RDF 1.2 parse/serialize/SPARQL) builds for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-query-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-query-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		: "The STRICTEST forbidden set: the playground engine is purrdf-only, so the native reasoning runtime (gmeow-logic) and the native-only glyph BPE (tiktoken-rs) are banned here as well as the socket/thread/DB crates."; \
+		for forbidden in gmeow-logic oxigraph oxrocksdb tokio pyo3 ureq duckdb ring tiktoken-rs nemo scryer; do \
+			if $(WASM_CARGO) tree -p gmeow-query-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+				echo "FAIL: gmeow-query-wasm leaked $$forbidden into its wasm dependency tree:"; \
+				$(WASM_CARGO) tree -p gmeow-query-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec + the wasm query engine build for wasm32 (dep trees are native-runtime-free)"; \
 		echo "== MCP engine proof: gmeow-mcp-wasm (the demand-loaded REASONING segment) builds for wasm32 =="; \
 		$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-mcp-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no native-only crate may appear in the MCP engine wasm dep tree (gmeow-logic + rayon ARE allowed — the engine reasons serially on wasm) =="; \
@@ -583,55 +670,91 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 	fi
 
 validate-wasm-pkg: ## Build the gmeow-validate-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	@# Release-build the cdylib, then run `wasm-bindgen` (pinned, matching the crate) to
-	@# emit the ESM `web`-target JS bindings + .d.ts + .wasm into js/pkg/.
-	$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_validate_wasm.wasm \
-		--out-dir crates/validate-wasm/js/pkg --target web
-	@# wasm-opt -Oz is a REQUIRED build step (roughly halves the artifact). It is a
-	@# hard dependency: a missing wasm-opt is a build failure, never a note.
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm crates/validate-wasm/js/pkg/gmeow_validate_wasm_bg.wasm
-	@echo "OK: wasm-opt -Oz applied"
-	@echo "OK: gmeow-validate-wasm npm package built (crates/validate-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,validate,)
 
 validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and run its Node real-execution round-trip lane.
-	@# The purrdf RDF/wasm engine ships + tests its own npm package on purrdf's CI; this
-	@# lane proves ONLY gmeow's own deliverable — the Tier-1 validator wasm package — by
+	@# The RDF/SPARQL query engine has its OWN lane (`query-wasm-pkg-test`); this
+	@# lane proves the Tier-1 validator wasm package specifically — by
 	@# validating a real dataset against the committed gmeow.gts through the wasm-bindgen
 	@# bindings just built above.
 	cd crates/validate-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-validate-wasm Node round-trip lane passed"
 
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	$(WASM_CARGO) build -p gmeow-reason-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_reason_wasm.wasm \
-		--out-dir crates/reason-wasm/js/pkg --target web
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm crates/reason-wasm/js/pkg/gmeow_reason_wasm_bg.wasm
-	@echo "OK: gmeow-reason-wasm npm package built (crates/reason-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,reason,)
 
+maint-refresh-reason-asset: reason-wasm-pkg-test ## Re-vendor the gmeow-reason-wasm engine into crates/docs/assets/reason/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	$(call REVENDOR_WASM_ASSET,reason,REASON)
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
 	cd crates/reason-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
 
 gmn-wasm-pkg: ## Build the gmeow-gmn-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
-	$(WASM_CARGO) build -p gmeow-gmn-wasm --target wasm32-unknown-unknown --release
-	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
-		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_gmn_wasm.wasm \
-		--out-dir crates/gmn-wasm/js/pkg --target web
-	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
-	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt -o crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm crates/gmn-wasm/js/pkg/gmeow_gmn_wasm_bg.wasm
-	@echo "OK: gmeow-gmn-wasm npm package built (crates/gmn-wasm/js/, pkg/ generated)"
+	$(call BUILD_WASM_PKG,gmn,)
 
+maint-refresh-gmn-asset: gmn-wasm-pkg-test ## Re-vendor the gmeow-gmn-wasm engine into crates/docs/assets/gmn/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	$(call REVENDOR_WASM_ASSET,gmn,GMN)
 
 gmn-wasm-pkg-test: gmn-wasm-pkg ## Build the GMN codec npm package and run its Node native↔wasm parity witness lane.
 	cd crates/gmn-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-gmn-wasm Node native↔wasm parity witness lane passed"
 
+query-wasm-pkg: ## Build the gmeow-query-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+	$(call BUILD_WASM_PKG,query,--enable-nontrapping-float-to-int --enable-sign-ext)
+
+maint-refresh-query-asset: query-wasm-pkg-test ## Re-vendor the gmeow-query-wasm engine into crates/docs/assets/query/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	$(call REVENDOR_WASM_ASSET,query,QUERY)
+
+query-wasm-pkg-test: query-wasm-pkg ## Build the query engine npm package and run its Node native↔wasm parity witness lane.
+	cd crates/query-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-query-wasm Node native↔wasm parity witness lane passed"
+
+maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resolve the lock, and re-vendor EVERY wasm engine against the new pin. Usage: make maint-bump-purrdf VERSION=0.12.0
+	@# Why this is one target and not a checklist: purrdf's identity lives in several
+	@# places that must agree — the root manifest, the fuzz manifest (git-ignored lock,
+	@# so the manifests are the only enforceable surface), Cargo.lock, and the purrdf
+	@# STATICALLY LINKED into each committed wasm engine. The last one is the trap: a
+	@# digest manifest compares committed bytes to committed bytes, so bumping the pin
+	@# leaves every browser engine on the OLD substrate with every gate green. Re-vendoring
+	@# all four is therefore part of the bump, not a follow-up.
+	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=0.12.0"; exit 1; }
+	@echo "== re-pinning purrdf to $(VERSION) in both manifests =="
+	@# EXACT (`=x.y.z`), never a caret range: every wasm engine records the RESOLVED
+	@# purrdf it was built against, and a range lets `cargo update` relink the RDF core
+	@# while both manifests still read the same. The repo-static gate rejects a
+	@# non-exact purrdf pin, so writing a range here would red the very next `make check`.
+	@# The sed only understands the plain-string form. Refuse anything else BEFORE
+	@# editing: an inline table (`purrdf = { version = ..., features = [...] }`) also
+	@# matches `^purrdf = .*`, and replacing it would silently drop its options while
+	@# still leaving valid TOML the literal check below happily accepts.
+	@for m in Cargo.toml fuzz/Cargo.toml; do \
+		grep -qE '^purrdf = "[^"]*"$$' "$$m" || { echo "FAIL: $$m does not pin purrdf as a plain string — this target's rewrite only understands that form; re-pin it by hand"; exit 1; }; \
+	done
+	sed -i 's|^purrdf = .*|purrdf = "=$(VERSION)"|' Cargo.toml fuzz/Cargo.toml
+	@grep -qxF 'purrdf = "=$(VERSION)"' Cargo.toml || { echo "FAIL: root Cargo.toml did not take the pin"; exit 1; }
+	@grep -qxF 'purrdf = "=$(VERSION)"' fuzz/Cargo.toml || { echo "FAIL: fuzz/Cargo.toml did not take the pin"; exit 1; }
+	@echo "== re-resolving the lock =="
+	cargo update -p purrdf --precise $(VERSION)
+	@# The manifests are a REQUEST; the lock records what was actually resolved, and it
+	@# is what the wasm substrate records key off. Assert the resolution rather than
+	@# assuming `cargo update` produced it.
+	@awk '/^name = "purrdf"$$/ { getline; if ($$0 == "version = \"$(VERSION)\"") { found = 1 } } END { exit !found }' Cargo.lock \
+		|| { echo "FAIL: Cargo.lock does not resolve purrdf $(VERSION) — the manifests request it but the lock disagrees"; exit 1; }
+	@echo "== re-vendoring EVERY wasm engine against the new substrate =="
+	@# Each depends on its own *-pkg-test, so bytes that never passed parity can never be
+	@# pinned, and each re-stamps its SUBSTRATE.txt from the manifest we just wrote.
+	$(MAKE) maint-refresh-query-asset
+	$(MAKE) maint-refresh-validate-asset
+	$(MAKE) maint-refresh-reason-asset
+	$(MAKE) maint-refresh-gmn-asset
+	@echo "OK: purrdf bumped to $(VERSION) and all four wasm engines re-vendored against it."
+	@echo "    Next: one \`make check\` to re-materialize generated/ and gate."
+
+wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the four Node lanes that RUN the shipped wasm and assert byte-identity to native.
+	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the four `*-pkg-test`
+	@# lanes RUN the shipped wasm (validate/reason/gmn/query) and assert byte-identity to the
+	@# native engine — the "every gmeow surface proven native≡wasm" contract.
 mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown --release
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
@@ -648,7 +771,6 @@ mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-b
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
-
 maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reasoning segment into crates/docs/assets/mcp/ and re-pin its BLAKE3 manifest (only after the Node native<->wasm parity lane passes).
 	@# The re-pin drives the SHARED vendored-wasm-asset harness through the `MCP_ASSET`
 	@# descriptor (`gmeow_docs::vendored_asset`). The vendored set is a TREE, not a flat
@@ -671,7 +793,6 @@ maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reaso
 	GMEOW_MCP_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_reasoning_segment_passes_the_anti_rot_gate
 	cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-wasm into crates/docs/assets/mcp/ (DIGESTS.blake3 re-pinned)"
-
 maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-core-wasm first-load segment into crates/docs/assets/mcp-core/ and re-pin its BLAKE3 manifest (only after the Node parity + demand-load lane passes).
 	@# The twin of maint-refresh-mcp-asset, through the `MCP_CORE_ASSET` descriptor. Its
 	@# prerequisite lane is the STRONGER one: mcp-core-wasm-pkg-test builds BOTH segments and
@@ -688,50 +809,9 @@ maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-
 	GMEOW_MCP_CORE_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_core_segment_passes_the_anti_rot_gate
 	cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-core-wasm into crates/docs/assets/mcp-core/ (DIGESTS.blake3 re-pinned)"
-
-maint-refresh-purrdf-asset: ## Re-vendor the purrdf browser engine into crates/docs/assets/purrdf/ from the NEWEST published npm release satisfying PURRDF_NPM_MIN, and re-pin its BLAKE3 manifest.
-	@# The third vendored engine, and the only one this repository does not author: purrdf
-	@# is the sibling RDF-1.2 kernel, published as `$(PURRDF_NPM_PACKAGE)` (MIT OR
-	@# Apache-2.0). Its wasm build cannot be produced here — the regeneration pipeline never
-	@# invokes cargo or wasm-bindgen, and purrdf's own CI is what builds, optimizes and
-	@# tests these bytes — so the refresh path is the REGISTRY, not a local toolchain. That
-	@# is also why there is no local `wasm-opt` step: applying one here would make the
-	@# committed bytes depend on whether binaryen happened to be on the refresher's $$PATH,
-	@# instead of being the published artifact verbatim.
-	@#
-	@# LOWER BOUND, always newest — never an exact pin. The lane resolves every published
-	@# version satisfying `>=$(PURRDF_NPM_MIN)` and vendors the LAST one, so a refresh always
-	@# moves forward and the floor only ever has to change to REQUIRE something new.
-	@# `crates/docs/assets/purrdf/UPSTREAM.txt` records what was actually vendored, and
-	@# `crates/docs/tests/purrdf_asset.rs` proves that record satisfies the floor above.
-	@set -euo pipefail; \
-	command -v npm >/dev/null 2>&1 || { \
-		echo "FAIL: npm is not installed — the vendored purrdf engine is refreshed from the npm registry and there is no local wasm build path for it."; exit 1; }; \
-	resolved=$$(npm view "$(PURRDF_NPM_PACKAGE)@>=$(PURRDF_NPM_MIN)" version --json \
-		| node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const v=JSON.parse(s);const list=Array.isArray(v)?v:[v];if(list.length===0)process.exit(1);console.log(list[list.length-1]);})'); \
-	test -n "$$resolved" || { echo "FAIL: no published $(PURRDF_NPM_PACKAGE) satisfies >=$(PURRDF_NPM_MIN)"; exit 1; }; \
-	echo "resolved $(PURRDF_NPM_PACKAGE)@$$resolved (newest satisfying >=$(PURRDF_NPM_MIN))"; \
-	scratch=$$(mktemp -d); \
-	trap 'rm -rf "$$scratch"' EXIT; \
-	( cd "$$scratch" && npm pack "$(PURRDF_NPM_PACKAGE)@$$resolved" --silent >/dev/null ); \
-	tarball=$$(find "$$scratch" -maxdepth 1 -name '*.tgz' -print -quit); \
-	test -n "$$tarball" || { echo "FAIL: npm pack produced no tarball"; exit 1; }; \
-	tar xzf "$$tarball" -C "$$scratch"; \
-	mkdir -p crates/docs/assets/purrdf/pkg; \
-	for f in index.mjs index.d.ts pkg/purrdf_wasm.js pkg/purrdf_wasm.d.ts pkg/purrdf_wasm_bg.wasm pkg/purrdf_wasm_bg.wasm.d.ts; do \
-		test -f "$$scratch/package/$$f" || { echo "FAIL: $(PURRDF_NPM_PACKAGE)@$$resolved ships no $$f — the vendored file set no longer matches the published package"; exit 1; }; \
-		cp "$$scratch/package/$$f" "crates/docs/assets/purrdf/$$f"; \
-	done; \
-	printf '%s@%s\n' "$(PURRDF_NPM_PACKAGE)" "$$resolved" > crates/docs/assets/purrdf/UPSTREAM.txt
-	@# Blessed alone then verified in full, for the reason spelled out on maint-refresh-mcp-asset.
-	GMEOW_PURRDF_BLESS=1 cargo test -p gmeow-docs --test purrdf_asset -- --exact vendored_purrdf_engine_passes_the_anti_rot_gate
-	cargo test -p gmeow-docs --test purrdf_asset
-	@echo "OK: re-vendored $(PURRDF_NPM_PACKAGE) into crates/docs/assets/purrdf/ (DIGESTS.blake3 re-pinned)"
-
 mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
 	cd crates/mcp-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-mcp-wasm Node native↔wasm parity witness lane passed"
-
 mcp-core-wasm-pkg: ## Build the gmeow-mcp-core-wasm npm/ESM package (the LEAN first-load engine: release wasm + wasm-bindgen web bindings).
 	$(WASM_CARGO) build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown --release
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
@@ -746,7 +826,6 @@ mcp-core-wasm-pkg: ## Build the gmeow-mcp-core-wasm npm/ESM package (the LEAN fi
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-mcp-core-wasm npm package built (crates/mcp-core-wasm/js/, pkg/ generated)"
-
 mcp-core-wasm-pkg-test: mcp-core-wasm-pkg mcp-wasm-pkg ## Build the lean core npm package and run its Node parity + demand-load lane.
 	@# Depends on BOTH packages: the lane does not merely assert the deferral signal, it
 	@# executes the demand loader against the REAL reasoning segment (`gmeow-mcp-wasm`) and
@@ -754,7 +833,6 @@ mcp-core-wasm-pkg-test: mcp-core-wasm-pkg mcp-wasm-pkg ## Build the lean core np
 	@# engine directly. A stubbed segment would prove nothing about re-dispatch.
 	cd crates/mcp-core-wasm/js && node --test tests/*.test.mjs
 	@echo "OK: gmeow-mcp-core-wasm Node parity + demand-load lane passed"
-
 console-test: ## Run the standalone console's DOM-free acceptance lane against the shipped wasm engine.
 	@# The named acceptance assertions. They drive the SHIPPED `crates/docs/assets/mcp-core/`
 	@# image over the SHIPPED `generated/dist/gmeow.gts` — no browser, no mocks. It HARD-FAILS
@@ -772,7 +850,6 @@ console-test: ## Run the standalone console's DOM-free acceptance lane against t
 	( cd crates/docs/assets && node --test tests/*.test.mjs )
 	( cd crates/docs/assets/console && node --test tests/*.test.mjs )
 	@echo "OK: the standalone console's DOM-free acceptance lane passed"
-
 console: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) — the tree `console-smoke` drives.
 	@# `write_site` RECONCILES: it writes what the producer emits and removes everything
 	@# under $(CONSOLE_OUT) that the producer did not emit, so assembling over a previous
@@ -799,7 +876,6 @@ console: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) —
 	@# SYNC_OUTPUTS=docs`), which is why
 	@# CONSOLE_OUT defaults to a scratch base.
 	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
-
 console-smoke: console ## Drive the ASSEMBLED console in a real browser: the deployed leg, the published tarball, and the byte ceiling.
 	@# The browser surface IS the deliverable, and this is the only lane that executes it.
 	@# It serves $(CONSOLE_OUT) over plain static HTTP with NO COOP/COEP — exactly what
@@ -829,7 +905,6 @@ console-smoke: console ## Drive the ASSEMBLED console in a real browser: the dep
 	@# the manifest that pins the runner.
 	( cd crates/docs/assets/console/smoke && CONSOLE_OUT="$(CONSOLE_OUT)" npm run --silent smoke )
 	@echo "OK: the standalone console's browser smoke lane passed against $(CONSOLE_OUT)"
-
 npm-publish-dry: ## Network-safe `npm publish --dry-run` over every package this repo publishes.
 	@# The package set is DISCOVERED from the shipped bytes (`scripts/npm-package-dirs.mjs`
 	@# lists every non-private, non-Marketplace package.json), never restated here — the
@@ -849,7 +924,6 @@ npm-publish-dry: ## Network-safe `npm publish --dry-run` over every package this
 		( cd "$$dir" && npm publish --dry-run --access public ); \
 	done
 	@echo "OK: every published package packs cleanly (dry run; no registry contact)"
-
 npm-consumable: ## Prove every published package is CONSUMABLE: pack -> install the tarball into a temp project -> run the witness against the INSTALLED package.
 	@# Not a re-run of the in-tree lanes: the driver `npm pack`s the real tarball from the
 	@# real `files` set, `npm install`s it into a throwaway project so the package resolves
@@ -862,9 +936,7 @@ npm-consumable: ## Prove every published package is CONSUMABLE: pack -> install 
 	@# individual `*-wasm-pkg` lanes): a tarball missing its `pkg/` bindings cannot be
 	@# imported, which is exactly the consumability failure this lane exists to catch.
 	node scripts/npm-consumability.mjs
-
 console-assemble: console ## Assemble the standalone <gmeow-console> tree for local preview (the `console` target, under its long name).
-
 wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the five Node lanes that RUN the shipped wasm and assert byte-identity to native.
 	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the five `*-pkg-test`
 	@# lanes RUN the shipped wasm (validate/reason/gmn/mcp/mcp-core) and assert
@@ -876,13 +948,15 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# blessed (the `maint-refresh-*-asset` targets depend on `*-pkg-test`, so
 	@# re-vendoring cannot re-pin bytes that never passed parity).
 	@#
-	@# HEAVY, not per-commit: this builds five engine crates for wasm32 in RELEASE, runs
-	@# wasm-bindgen + wasm-opt over each, and then five Node suites. Its cost is set by
+	@# HEAVY, not per-commit: this release-builds SIX engine crates for wasm32 (the
+	@# four the site dispatches to, plus the console's two MCP segments), runs
+	@# wasm-bindgen + wasm-opt over each, and then six Node suites. Its cost is set by
 	@# that breadth, not by the edit under test — and locally it SKIPs outright whenever
 	@# the wasm32 target or node is absent, so on a developer's gate it was frequently a
 	@# no-op occupying the critical path. In CI it hard-fails: the parity criterion is
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
+		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test query-wasm-pkg-test; \
 		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target or node absent in CI — the native≡wasm parity witnesses cannot run; CI must install both"; exit 1; \
@@ -959,6 +1033,8 @@ maint-extract: ## Run import/extract policy for TARGET.
 maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
+maint-refresh-validate-asset: validate-wasm-pkg-test ## Re-vendor the gmeow-validate-wasm engine into crates/docs/assets/validate/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+	$(call REVENDOR_WASM_ASSET,validate,VALIDATE)
 
 maint-wikidata-live: ## Verify Wikidata identifiers resolve over the network.
 	$(GMEOW_DEV) wikidata --existence
@@ -1059,6 +1135,104 @@ maint-bench-engines: ## (maintainer) Native benchmark over the committed mini co
 	    exit 1; \
 	  fi; \
 	  echo "✓ deterministic descriptors are byte-identical and total allocations remain in band ($$(wc -c < "$$tmpdir/cost-1.json")-byte artifact)"
+
+maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the full dictionary strategy x target-length sweep plus the global codec x level sweep.
+	@# The SINGLE producer of the committed dictionary winner table. It runs the real
+	@# DAG once, then for every MEASURABLE declared dictionary grid-searches
+	@# (strategy x target length) over the same corpus the build trains from, scoring
+	@# each cell by the TWO-PART CODE (the frames it primes, encoded through the cell's
+	@# dictionary, PLUS that dictionary's own in-band bytes) against the declared
+	@# no-dictionary gmeow:mediumProfileBaselineL12 code for the same frames. It also
+	@# prices the global (codec x level) grid so the mandated zstd-rsyncable @ 12 chain
+	@# is evidence rather than assertion.
+	@#
+	@# Mirrors maint-bench-baseline / maint-bench-cost-baseline: a deliberate,
+	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` CONSUMES the
+	@# committed winners, so the shipped dictionaries stay a deterministic function of the
+	@# repository instead of a per-build search.
+	@#
+	@# It exits NON-ZERO on the one declared stop-and-ask condition — a dictionary does
+	@# not pay for itself at its best cell (retiring a shipped dictionary orphans every
+	@# artifact already primed with it). The artifact is written FIRST: the evidence is
+	@# the point. That the mandated chain is not the codec grid's SIZE argmin is RECORDED
+	@# rather than a stop: the question was raised once and answered (the chain is kept —
+	@# see bench/README.md), and re-raising it every refresh would make the lane fail
+	@# forever.
+	@# BOOTSTRAP: `stage-medium-dictionaries` refuses to run without a committed table,
+	@# and the sweep runs the whole DAG to produce one, so a tree with no table needs a
+	@# declaration-derived seed to get in. It carries ZERO measurements and is
+	@# overwritten by the real sweep on the next line; a committed seed is refused by
+	@# `the_committed_winner_table_carries_real_measurements`.
+	@test -f bench/medium-baseline.json || \
+	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
+	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
+	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
+
+maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
+	@# WHAT IT COMPARES, exactly: the set of paths the declared GMN-dialect predicate
+	@# (crates/pipeline/src/gmn_dialect.rs) selects out of each tree's materialized
+	@# generated/ directory — the EBNF / GBNF / Lark grammar surfaces, the whole versioned
+	@# GMN-1 pack, gmn1/v*/token-metrics.ttl and the operator glyph tables — first as SETS
+	@# (an artifact that appeared or vanished is a model-facing change) and then BYTE FOR
+	@# BYTE. Two predicate clauses are DECLARED to resolve to zero paths and are documented
+	@# in that module rather than silently absent: `abnf/**` (no authored grammar is inside
+	@# the ABNF-expressible fragment, so that target emits a SoundUnder record and no
+	@# artifact) and the GMN-1 primer (in memory, materialized only into the dist/llms.txt
+	@# blobs — frozen instead by the llms-shape freeze in tests/model_facing_invariance.rs).
+	@#
+	@# WHY IT IS A maint- LANE AND NOT AN ON-GATE TEST: the merge base carries ZERO medium
+	@# axis, so this branch's test binary cannot run there, and building the base workspace
+	@# inside an on-gate test would put a second (and much slower) compile of a DIFFERENT
+	@# commit inside `make check`. The base tree is regenerated ENTIRELY by its own
+	@# checkout — its own Makefile, its own rust-toolchain, its own Cargo.lock. This
+	@# branch's sources are never overlaid onto it; the only thing that crosses the
+	@# boundary is the read-only path predicate (`gmn-dialect-paths`), because classifying
+	@# the two trees with two different predicates would compare nothing.
+	@#
+	@# HOW TO RUN IT:
+	@#     make check-sync SYNC_MODE=update    # materialize THIS branch's generated/ tree
+	@#     make maint-medium-model-facing-diff  # regenerate the base and diff
+	@# It needs `origin/main` fetched (it resolves `git merge-base HEAD origin/main`) and
+	@# enough disk for a second full checkout + target dir. Exits non-zero on ANY set or
+	@# byte difference; prints the offending paths.
+	@set -eu; \
+	  base="$$(git merge-base HEAD origin/main)"; \
+	  echo "merge base: $$base"; \
+	  test -d generated/projections/lang || { \
+	    echo "ERROR: this branch's generated/ tree is not materialized — run 'make check-sync SYNC_MODE=update' first."; \
+	    echo "       Comparing an unmaterialized tree would report every artifact as unchanged"; \
+	    echo "       by comparing nothing."; \
+	    exit 1; \
+	  }; \
+	  cargo build -q -p gmeow-pipeline --bin gmn-dialect-paths; \
+	  lister="$$(cargo metadata --format-version 1 --no-deps -q | sed -n 's/.*"target_directory":"\([^"]*\)".*/\1/p')/debug/gmn-dialect-paths"; \
+	  test -x "$$lister" || { echo "ERROR: could not locate the gmn-dialect-paths binary at $$lister"; exit 1; }; \
+	  tmpdir="$$(mktemp -d)"; \
+	  trap 'git worktree remove --force "$$tmpdir/base" >/dev/null 2>&1 || true; rm -rf "$$tmpdir"' EXIT; \
+	  git worktree add --detach "$$tmpdir/base" "$$base" >/dev/null; \
+	  echo "regenerating the merge base in $$tmpdir/base with ITS OWN toolchain…"; \
+	  $(MAKE) -C "$$tmpdir/base" check-sync SYNC_MODE=update; \
+	  "$$lister" "$$tmpdir/base" > "$$tmpdir/base.paths"; \
+	  "$$lister" . > "$$tmpdir/head.paths"; \
+	  if ! diff -u "$$tmpdir/base.paths" "$$tmpdir/head.paths" > "$$tmpdir/paths.diff"; then \
+	    echo "ERROR: the GMN-dialect artifact SET changed between the merge base and this branch:"; \
+	    cat "$$tmpdir/paths.diff"; \
+	    exit 1; \
+	  fi; \
+	  moved=0; \
+	  while IFS= read -r path; do \
+	    if ! cmp -s "$$tmpdir/base/$$path" "./$$path"; then \
+	      echo "MOVED: $$path"; \
+	      moved=$$((moved + 1)); \
+	    fi; \
+	  done < "$$tmpdir/head.paths"; \
+	  if [ "$$moved" -ne 0 ]; then \
+	    echo "ERROR: $$moved GMN-dialect artifact(s) differ between the merge base and this"; \
+	    echo "       branch. The medium axis re-CODES the bundle's bytes; it may not change"; \
+	    echo "       what a model reads."; \
+	    exit 1; \
+	  fi; \
+	  echo "✓ $$(wc -l < "$$tmpdir/head.paths") GMN-dialect artifact(s) byte-identical across the merge base and this branch"
 
 maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh native run (offline; the drift-gated cost-ledger source).
 	@# The SINGLE producer of the committed deterministic cost/agreement baseline:

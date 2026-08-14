@@ -75,6 +75,30 @@ exactly one timescale, realm, and kind.)*
 Open value vocabularies (Principle 9 — never enums): a new calendar is data, not a schema
 change. The calendar slice builds its scheduling machinery atop these.
 
+### gmeow:DayOfWeek and the week cycle
+
+The seven ISO-8601 weekday positions (`gmeow:dayMonday` … `gmeow:daySunday`) are a *closed*
+value vocabulary — closed because ISO 8601 closes it, which is exactly the case Principle 9
+exempts from the open-vocabulary rule. A weekday is a **pattern slot, not a located span**:
+`gmeow:dayMonday` picks out every Monday until an interval, a recurrence, or a frame anchors
+it to one. That is why the class sits beside `gmeow:CalendarSystem` and `gmeow:PeriodType`
+rather than beside the intervals: it is calendar *structure*, not a stretch of timeline.
+
+Each day is documented by what actually distinguishes it — its ISO-8601 ordinal, its role in
+the business-week / weekend partition, and the boundary rule it does or does not carry.
+`gmeow:dayMonday` opens the ISO week and is what an ISO week number counts from;
+`gmeow:dayThursday` is the week's median day and the one that decides which *year* a week
+belongs to (week 1 holds January's first Thursday); `gmeow:daySunday` closes the ISO week
+even though the Gregorian liturgical and North American conventions place it first. A rule
+that says "the start of the week" or "midweek" must therefore name its convention — the days
+themselves stay bare positions.
+
+Two consumers reach this vocabulary. Opening hours in the **organization** slice range
+`gmeow:openingDay` over it; the **calendar** slice's `gmeow:EventSchedule` /
+`gmeow:ScheduleException` recurrence machinery needs the same seven values. `temporal` is
+the right home precisely because `calendar` already depends on it, so both consumers reach
+the days without `calendar` having to depend on `organization`.
+
 ### gmeow:NamedPeriod
 
 A first-class named span — "the Bronze Age", "Q3 FY2026", "the Edo period" — with
@@ -105,6 +129,38 @@ tenure these are the clocks that let a fact be true *then*, asserted *later*, re
 
 Convenience datatype properties for simple event timing (`gmeow:atTime`,
 `gmeow:startedAtTime`, `gmeow:endedAtTime`) follow the flat-first pattern.
+
+### gmeow:observationCutoff and keep-on-unbound (Principle 9)
+
+`gmeow:observationCutoff` names the *derived* observation cutoff of a claim —
+`COALESCE(gmeow:assertedAt, gmeow:recordedNoLaterThan)`, prefer `assertedAt`, else the
+`recordedNoLaterThan` terminus ante quem — canonically computed by the bitemporal as-of
+query (`queries/tql/bitemporal.rq`). It is **never asserted directly**; cite the IRI
+instead of re-deriving the COALESCE.
+
+**Keep-on-unbound is normative.** A claim with no observation cutoff at all (neither
+`assertedAt` nor `recordedNoLaterThan` bound) has an *unknown* observation time, and the
+as-of query **retains** it rather than dropping it — an explicit open-world default, not
+an oversight. `!BOUND(?observed) || ?observed <= ?asOf` in `bitemporal.rq` is the
+normative expression of this: an unbound observation time never disqualifies a claim.
+
+**The stricter-than-slice pattern.** Some downstream consumers legitimately want a
+*narrower* reading — e.g. a compliance profile that must reject any claim it cannot date.
+The slice sanctions this as an explicit, profile-owned opt-in rather than changing the
+slice-wide default: a profile asserts `gmeow:observationWindowRequired true` on itself,
+declaring that IT requires a bound `gmeow:observationCutoff`, and that profile's own
+downstream projection classifies any claim whose cutoff is unbound into its own typed
+exclusion set (nonconforming for that profile only). The temporal slice ships the marker
+and names the pattern; it does not enforce the exclusion itself. Certifying that
+enforcement as a slice-level closed-world `logic:Constraint` over the statement-layer
+annotation clocks would exceed the range-restricted guarded fragment the native coherence
+gate decides (an annotation-property absence check is not an object/datatype edge the
+guarded existential/counting deciders reach), so the boundary is recorded honestly as
+`gmeow:ObservationWindowClosedWorldBoundary` (a `logic:expressivenessBoundary
+logic:FirstOrder` retained-withhold record, mirroring `logic:rdf12-nested-triple-term`)
+rather than improvised as an unsupported constraint. See
+[`docs/MIGRATING-SHAPES-TO-LOGIC.md`](../../../docs/MIGRATING-SHAPES-TO-LOGIC.md) for the
+doctrine on when a gap is an honest boundary rather than a constraint to author.
 
 ## Alignment & projection
 

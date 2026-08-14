@@ -387,6 +387,29 @@ fn convert_turtle_to_ntriples() {
         ));
 }
 
+/// `gmeow convert --to gts` over a REAL committed input writes GMEOW-authored GTS
+/// bytes, so every payload frame carries the one mandated transform
+/// (`zstd-rsyncable` @ level 12). This is the shipped consumer surface: before the
+/// `convert` path was routed through the profile crate it emitted identity-framed
+/// bytes, because `purrdf::gts_write::to_gts` authors its frames with no transform
+/// chain at all.
+#[test]
+fn convert_to_gts_output_uses_the_mandated_frame_profile() {
+    let (_tmp, dir) = scratch("convert-gts");
+    let out = dir.join("out.gts");
+    gmeow()
+        .arg("convert")
+        .arg(fixture("clean.ttl"))
+        .args(["--from", "turtle", "--to", "gts"])
+        .arg("--out")
+        .arg(&out)
+        .assert()
+        .success();
+    let bytes = std::fs::read(&out).expect("read the converted bundle");
+    gmeow_pipeline::validate_mandated_frames(&bytes)
+        .expect("`gmeow convert --to gts` output uses the mandated zstd-rsyncable-L12 profile");
+}
+
 #[test]
 fn convert_unknown_codec_fails() {
     let (_tmp, dir) = scratch("convert-bad");
@@ -492,6 +515,7 @@ fn affect_fixture_gts() -> (tempfile::TempDir, PathBuf) {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 
@@ -527,6 +551,7 @@ fn affect_classify_fixture_gts() -> (tempfile::TempDir, PathBuf) {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 
@@ -601,6 +626,7 @@ fn affect_classify_worked_fixture_gts() -> (tempfile::TempDir, PathBuf) {
         None,
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
+        &purrdf::gts_compose::MediumPlan::dist_default(None),
     )
     .expect("emit gts");
 

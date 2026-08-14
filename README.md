@@ -415,7 +415,9 @@ second engine on every build.
   surface. The complete class catalog is oriented `logic:` → gUFO, including explicit
   `Unsupported` rows where the richer canonical model must not be flattened.
 - **UMBEL** (CC-BY-3.0) is intended as a *curated, extracted* reference-concept layer — never
-  imported whole (it is too large for DL reasoning). Extraction is via ROBOT `extract` (SLME).
+  imported whole (it is too large for DL reasoning). Extraction is by syntactic-locality module
+  extraction (BOT/TOP/STAR), carried natively by the `purrdf` entailment substrate — not by a
+  Java/Docker tool, which the rust-first authoritative path forbids.
 - **DOLCE/DUL** is linked by reference, never imported; its six shipped rows are
   commitment-shifting views, not equivalence axioms.
 - **The shipped logic bridge reaches outward.** BFO 2020, OBO/RO, SUMO, DUL, IAO, OBI, PATO,

@@ -12,9 +12,18 @@
 @prefix ex:    <http://example.org/math/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-ex:promotedEq a math:MathematicalExpression ;
+# A math:SymbolReference, exactly like the conforming twin logic-lowering-declared.ttl: the
+# constraint is triggered by the math:compilesToLogicFormula PREDICATE, never by a target class,
+# so the concrete form changes nothing about what this fixture isolates — while the abstract
+# math:MathematicalExpression base names no concrete form and would raise
+# math:UnrecognizedExpressionType beside math:UndeclaredLogicLowering.
+ex:promotedEq a math:SymbolReference ;
     rdfs:label "Equation silently promoted to a logic: formula without declarations"@x-gmeow-english ;
+    math:hasMathematicalSymbol ex:promotedEqSymbol ;
     math:compilesToLogicFormula ex:promotedFormula .
+
+ex:promotedEqSymbol a math:MathematicalSymbol ;
+    rdfs:label "the equation, as a named symbol"@x-gmeow-english .
 
 ex:promotedFormula a logic:Formula ;
     rdfs:label "logic: formula target of the undeclared lowering"@x-gmeow-english .

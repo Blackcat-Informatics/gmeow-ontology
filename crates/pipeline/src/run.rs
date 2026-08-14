@@ -91,7 +91,7 @@ fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, mes
 }
 
 /// The sole serialization exit; its product carries the `gmeow.gts` bytes.
-const SINK_STAGE: &str = "stage-gts-sink";
+pub(crate) const SINK_STAGE: &str = "stage-gts-sink";
 /// The committed fold path the sink writes / schemas project / fanout reads.
 pub(crate) const GTS_PATH: &str = "generated/dist/gmeow.gts";
 /// The DAG-workflow contract identity the build plan executes under — the
@@ -209,7 +209,8 @@ pub fn full_spec() -> PipelineSpec {
         // one being the executable r_lift — plus the probability-model seam, p-value
         // tri-slice, Clifford, and the ONNX / proof lift producers) and attach each
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
-        // stage-snapshot).
+        // stage-snapshot). It reads nothing off disk: every slice's examples/*.ttl
+        // positive-demonstrator ABox is loaded by stage-source-load into graph/examples.
         st("stage-math-producers", "math_producers", &[]),
         // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
         // #21/#20). A productive functor over the glyph signature: it consumes
@@ -464,7 +465,7 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-json-schema", "json_schema"),
         // The Pydantic model package (functional documentation surface): co-derived
         // from the SAME fresh shape compilation as json-schema (plus the docs
-        // model), folded into REP_MODELS_PYTHON by the sink.
+        // model), folded into REP_MODELS_PYTHON by stage-archive-blobs.
         ("stage-export-pydantic", "pydantic"),
         // The LinkML/TypeScript/GraphQL developer schema surfaces: co-derived from the
         // SAME fresh shape compilation via the shared schema_compile builder, folded
@@ -502,14 +503,67 @@ pub fn full_spec() -> PipelineSpec {
         &[],
     ));
 
+    // ── the by-reference TAR archive fold: mappings / cells / queries / tests /
+    //    schemas / shapes / axioms / models-python / lang-projections / yaml-ld, each
+    //    attached to its product on its own blob-representation lane. It used to run
+    //    INSIDE the terminal sink, so the archives did not exist as a product until the
+    //    last DAG node and any consumer would have closed a cycle; as its own stage the
+    //    archives are available mid-DAG from the ONE authority on archive membership (no
+    //    second source of truth). It consumes exactly the producers whose in-memory
+    //    products supply members — including `stage-statements`, whose internal
+    //    `pipeline/statements/` lane carries the claim corpus's JSON-LD-star /
+    //    YAML-LD-star surface (the `yaml-ld-archive` members). ──
+    stages.push(st(
+        "stage-archive-blobs",
+        "archive-blobs",
+        &[
+            "stage-compile-logic",
+            "stage-export-constraint-shapes",
+            "stage-export-frame-shapes",
+            "stage-export-glossary",
+            "stage-export-json-schema",
+            "stage-export-pydantic",
+            "stage-export-result-shapes",
+            "stage-mappings",
+            "stage-statements",
+        ],
+    ));
+
+    // ── the medium axis's producer: train the seven declared zstd dictionaries over
+    //    their declared corpora, measure each into a
+    //    gmeow:CompressionDictionaryRealization, and attach graph/medium-registry.
+    //    Its edge set is DERIVED from the shipped corpora, not chosen: the archive
+    //    reps come off `stage-archive-blobs`, the one sink-folded corpus selects the
+    //    `stage-reason` product directly, and the named-graph and
+    //    `generated/…` prefix selectors resolve against the assembled carrier
+    //    (`stage-snapshot`) and `stage-statements`. A missing edge is a HARD FAIL in
+    //    `corpus::assemble`, never a silently smaller training set. ──
+    stages.push(st(
+        "stage-medium-dictionaries",
+        "medium-dictionaries",
+        &[
+            "stage-archive-blobs",
+            "stage-reason",
+            "stage-snapshot",
+            "stage-statements",
+        ],
+    ));
+
     // ── the single Sink: the terminal gts ARCHIVE writer. It
     //    serializes the assembled carrier (read off `stage-snapshot`'s bundle — no
-    //    re-assembly) and folds the by-reference blob archives gathered from the
-    //    in-memory JSON-Schema / axiom / reasoning / SHACL-report products. ──
+    //    re-assembly), READS the eleven by-reference TAR archives off the
+    //    `stage-archive-blobs` product, and staples the channels only it can see (the
+    //    lang surface blobs, the reasoning reports, the opaque `generated/` fanout
+    //    archive over THIS run's carrier, and the SHACL-report blobs). ──
     stages.push(st_sink(
         SINK_STAGE,
         "gts_sink",
         &[
+            // THIS run's eleven by-reference TAR archives, folded once by their own
+            // producer and read back here (never re-folded in the terminal). This edge
+            // also orders the sink after every archive-member producer transitively, so
+            // the schema / Pydantic / generated-shape leaves need no direct edge here.
+            "stage-archive-blobs",
             "stage-compile-logic",
             // The opaque fanout members ride in from their producing export leaves (each
             // rendered once, in the leaf); `collect_fanout_opaque_members` reads them off these
@@ -517,57 +571,48 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-agreement",
             "stage-export-apache",
             "stage-export-bench",
-            // constraint-shapes.ttl (logic: FOL-axiom SHACL projection) is folded fresh into
-            // REP_SHAPES by build_archive_blobs, so the sink consumes it (kept in sorted
-            // position to match the registry consumes()); a first run has no on-disk file.
-            "stage-export-constraint-shapes",
             // The deterministic engine-cost ledger (bench/cost-baseline.json projection)
             // rides in as an opaque fanout member exactly like the perf leaderboard (sorted
-            // position: constraint-shapes < cost-ledger < evals).
+            // position: bench < cost-ledger < evals).
             "stage-export-cost-ledger",
             "stage-export-evals",
-            // The generated shape surfaces (P11 frame shapes + the ResultShape SHACL
-            // projection): REP_SHAPES folds THESE runs' fresh bytes, never a stale
-            // disk read (the same freshness rule as validation-shapes.ttl) — without
-            // these edges a competency/frame-shape edit could never reach the bundle,
-            // and the fanout would rewrite the stale committed bytes forever.
-            "stage-export-frame-shapes",
             // The human-readable terminology glossary table (byte-decorated Markdown)
             // rides in as an opaque REP_GENERATED fanout member, read off this leaf's
-            // product (sorted position: frame-shapes < glossary < governance-floors).
+            // product (sorted position: evals < glossary < governance-floors).
             "stage-export-glossary",
             // The two slice-quality floor TSVs (P17 projection of the ontology floor
             // commitments) ride in as opaque REP_GENERATED fanout members, read off this
-            // leaf's product (sorted position: glossary < governance-floors < json-schema).
+            // leaf's product (sorted position: glossary < governance-floors < matrix).
             "stage-export-governance-floors",
-            "stage-export-json-schema",
             "stage-export-matrix",
             "stage-export-metadata",
             // The two projection-vocabulary ratchet TSVs (P17 projection of the
             // ontology-resident ceiling commitments) ride in as opaque REP_GENERATED
             // fanout members, read off this leaf's product (sorted position:
-            // metadata < projection-ceilings < pydantic).
+            // metadata < projection-ceilings < references).
             "stage-export-projection-ceilings",
-            // THIS run's freshly-rendered Pydantic model package, folded into
-            // REP_MODELS_PYTHON by build_archive_blobs (sorted position:
-            // projection-ceilings < pydantic < references).
-            "stage-export-pydantic",
             "stage-export-references",
             "stage-export-research-objects",
-            // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES so a
-            // competency ResultShape edit reaches the bundle without a manual disk write.
-            "stage-export-result-shapes",
             // THIS run's freshly-rendered LinkML/TypeScript/GraphQL developer schema
             // surfaces, folded into REP_GENERATED by collect_fanout_opaque_members (sorted
-            // position: result-shapes < schemas < mappings) — schemas moved from a
+            // position: research-objects < schemas < mappings) — schemas moved from a
             // carrier projection to a fresh SHACL-shape-union compilation, so the sink
             // now reads its product instead of re-deriving from the in-memory carrier.
             "stage-export-schemas",
             "stage-mappings",
+            // THIS run's trained dictionaries + their gmeow:CompressionDictionaryRealization
+            // records. The terminal pins the dictionaries in the pack's in-band "dct" map
+            // and seals one gmeow:MediumEnvelope per frame it authors; without this edge the
+            // bundle would ship unprimed, which is a silent density loss no error surfaces.
+            "stage-medium-dictionaries",
             "stage-reason",
             "stage-snapshot",
             "stage-source-load",
-            "stage-statements",
+            // NOT `stage-statements`: the statement layer's two byte-decorated
+            // projections ride `statements-archive`, folded by `stage-archive-blobs` off
+            // that product, so the terminal reads nothing from it. The ordering the edge
+            // used to carry survives transitively (archive-blobs consumes statements, and
+            // the sink consumes archive-blobs).
             "stage-validate",
         ],
     ));

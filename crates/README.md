@@ -20,6 +20,12 @@ next to the code that enforces them.
 
 ## Layers
 
+The RDF 1.2 kernel itself is **not** in this workspace. It lives in the sibling
+`purrdf` package and is consumed through one exact-pinned umbrella dependency
+(`purrdf` in the root `[workspace.dependencies]`), which owns the data model,
+codecs, canonicalization, SHACL, SPARQL, the C ABI, and its own wasm build.
+Crates here compose over it; none re-implements it.
+
 | Area | Crates | Purpose |
 | --- | --- | --- |
 | Foundation values | `gmeow-ns`, `gmeow-errors`, `gmeow-license`, `gmeow-math`, `gmeow-term-arena` | Registered term namespaces, the diagnostics/error substrate, the vendoring-policy classifier, exact-rational geometry, and the one hash-consed, binder-aware, content-addressed structured-term arena — carrying no reasoning runtime, so any front-end can intern a term without linking the engine. |
@@ -50,11 +56,8 @@ orientation:
 Use Make targets from the repository root:
 
 ```bash
-make rust-docs           # Build public Rust API docs; fail on broken/redundant links.
-make rust-test           # Run nextest and doctests.
-make clippy              # Run clippy on all Rust targets with warnings as errors.
-make crate-check         # Verify Rust crate layering and acyclic crate DAGs.
-make carrier-purity      # Prove the pipeline carrier path accumulates no oxigraph Store.
-make wasm                # Build the wasm-clean crates for wasm32.
-make slice-quality-gate  # Enforce the opt-in slice-quality tier ratchet.
+make rust-docs       # Build public Rust API docs; fail on broken/redundant links.
+make rust-test       # Run nextest and doctests.
+make crate-check     # Verify Rust crate layering and acyclic crate DAGs.
+make wasm            # Build the wasm package lane.
 ```

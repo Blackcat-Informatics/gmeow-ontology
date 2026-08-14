@@ -32,6 +32,10 @@ purrdf.workspace = true
 # Canonical Finding/Report model. Its surface is pure serde, so it is wasm-clean.
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
+# The mandated-frame validator: the repo-static GTS authorship seals prove the
+# profile crate is the single production door, and the Turtle-exit tests prove
+# the bytes it authors actually pass the audit.
+gmeow-gts-profile = { path = "../gts-profile" }
 # GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
 # CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's
 # `gts` feature builds; pure-Rust structured-zstd, no C/duckdb/zstd-sys linkage.
@@ -104,6 +108,12 @@ roxmltree = "0.20"
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.
 purrdf.workspace = true
+# `tests/witness_explore.rs` computes the bundle-explorer DESCRIBE witness by calling
+# `gmeow_query_wasm::Dataset::query` — the EXACT function `#[wasm_bindgen]` exposes to
+# the browser — rather than a hand-rolled quad filter, so the native witness and the
+# browser's DESCRIBE genuinely run the same code (this crate compiles natively too;
+# only the `cdylib` wasm-bindgen artifact ships to the browser).
+gmeow-query-wasm = { path = "../query-wasm" }
 # The classifier-ingestion producers under test: the conformance twin runs each
 # real captured classifier output through the unmodified whole-ontology SHACL
 # corpus and asserts the blind round-trip end-to-end.

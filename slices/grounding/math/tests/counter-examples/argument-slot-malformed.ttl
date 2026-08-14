@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ArgumentSlotShape (derived from the min-1 qualified
+# restrictions on math:ArgumentSlot's math:slotIndex and math:slotExpression): a
+# math:ArgumentSlot naming its index but no expression. The narrowed
+# math:MalformedArgumentSlot covers exactly this "not exactly one index and one
+# expression" shape — duplicate-index slots are the separate math:DuplicateArgumentSlotIndex
+# gate. Validation MUST emit shacl.MinCountConstraintComponent
+# (math:MalformedArgumentSlot).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bareSlot a math:ArgumentSlot ;
+    math:slotIndex 0 .

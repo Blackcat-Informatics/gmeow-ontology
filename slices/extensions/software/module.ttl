@@ -24,11 +24,12 @@ gmeow:Blob
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Blob"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:SourceNode ,
+    rdfs:subClassOf gmeow:SourceNode ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contentDigest ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contentDigest ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A content-addressed blob of raw file content — the leaf of a Merkle source tree, independent of filename or path. Aligned to git blob objects and Software Heritage Content by reference. A Blob is the bytes only; the name is carried by the TreeEntry that points to it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -107,11 +108,12 @@ gmeow:Commit
             a owl:Restriction ;
             owl:onProperty gmeow:commitTree ;
             owl:someValuesFrom gmeow:SourceTree ;
-        ] ,
+        ] ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contentDigest ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contentDigest ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a content digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -131,6 +133,17 @@ gmeow:Diff
             a owl:Restriction ;
             owl:onProperty gmeow:diffTo ;
             owl:someValuesFrom gmeow:Commit ;
+        ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:diffFrom ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:diffTo ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A patch or diff — an information object describing the changes between two commits (or two trees). Carries textual diff content and references the from- and to- commits."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -185,21 +198,27 @@ gmeow:Merge
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Merge"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ,
+    rdfs:subClassOf gmeow:Activity ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mergeBase ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeBase ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mergeSource ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeSource ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mergeTarget ;
-            owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeTarget ;
+            logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:mergeTarget ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "The event of merging one branch of development into another — an activity with a merge-base commit, a source branch or ref, a target branch, and a resulting merge commit. The event type is gmeow:eventTypeMerge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -274,6 +293,12 @@ gmeow:Release
             owl:onProperty gmeow:releaseOf ;
             owl:someValuesFrom gmeow:Project ;
         ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:releaseOf ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ;
     skos:definition "A software release — an event that produces a versioned software product, typically associated with a tag, a DOI, and one or more distribution artifacts. The event facet of the five-facet model; a release is an occurrence, not the product itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -282,11 +307,12 @@ gmeow:Repository
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Repository"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
+    rdfs:subClassOf gmeow:InformationObject ;
+    logic:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:repositoryType ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:repositoryType ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A version-control repository — the location/hosting facet of a software project. Holds source code history, branches, tags, and refs. Distinct from the project (endeavour), the product (work), the codebase (content), and the history (events). Aligned to Software Heritage Origin and ForgeFed Repository by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -405,6 +431,22 @@ gmeow:TreeEntry
             a owl:Restriction ;
             owl:onProperty gmeow:treeEntryObject ;
             owl:someValuesFrom gmeow:SourceNode ;
+        ] ;
+    logic:subClassOf
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryName ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryMode ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+        ] ,
+        [
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryObject ;
+            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
         ] ;
     skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -1076,7 +1118,7 @@ Contribution relator and hasContributor shortcut supersede it."""@x-gmeow-englis
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Merge> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/mergeTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+gmeow:Merge logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mergeTarget ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

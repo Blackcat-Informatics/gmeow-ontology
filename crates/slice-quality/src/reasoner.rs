@@ -35,7 +35,6 @@ use crate::graph::id;
 use crate::model::GMEOW;
 use crate::score::{AxisScore, ScoreContext, advisory};
 
-const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 /// The SHACL namespace — the shape vocabulary the disjointness-projection check reads.
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
 
@@ -71,9 +70,16 @@ fn closure_contains_iri(
 
 /// The inferential OWL/RDFS predicates whose IRI-object triples are authored TBox
 /// axioms — the population whose load-bearingness the reasoner axis measures.
+///
+/// Both the canonical `logic:subClassOf`/`logic:subPropertyOf` edges AND their
+/// `rdfs:` projection are counted (gmeow_ns::SUB_CLASS_OF / SUB_PROPERTY_OF
+/// doctrine; crates/ns/src/lib.rs:106-166) — a re-authored subsumption axiom must
+/// stay in the axis's own denominator, not silently leave it.
 const INFERENTIAL_PREDS: &[&str] = &[
-    SUBCLASS,
-    "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
+    gmeow_ns::LOGIC_SUB_CLASS_OF,
+    gmeow_ns::LOGIC_SUB_PROPERTY_OF,
+    gmeow_ns::RDFS_SUB_CLASS_OF,
+    gmeow_ns::RDFS_SUB_PROPERTY_OF,
     "http://www.w3.org/2000/01/rdf-schema#domain",
     "http://www.w3.org/2000/01/rdf-schema#range",
     "http://www.w3.org/2002/07/owl#disjointWith",
@@ -136,7 +142,7 @@ fn authored_axioms(ds: &RdfDataset) -> Vec<(String, String, String)> {
 fn named_subclass_triples(ds: &RdfDataset) -> Vec<(String, String)> {
     authored_axioms(ds)
         .into_iter()
-        .filter(|(_, p, _)| p == SUBCLASS)
+        .filter(|(_, p, _)| p == gmeow_ns::RDFS_SUB_CLASS_OF)
         .map(|(s, _, o)| (s, o))
         .collect()
 }
@@ -509,7 +515,9 @@ pub fn closure_redundant_subclasses(
     let subclasses = named_subclass_triples(ds);
     let probes = subclasses
         .iter()
-        .map(|(subject, object)| LeaveOneOutAxiom::new(subject, SUBCLASS, object))
+        .map(|(subject, object)| {
+            LeaveOneOutAxiom::new(subject, gmeow_ns::RDFS_SUB_CLASS_OF, object)
+        })
         .collect::<Vec<_>>();
     let rederived = leave_one_out_rederived(ds, &probes)?;
     Ok(subclasses
@@ -593,6 +601,41 @@ mod tests {
                 && matches!(&q.object, RdfTerm::Iri(o) if o == "https://example.org/B")
         });
         assert!(!a_subclass_b, "the targeted triple is removed");
+    }
+
+    /// G9 canonical-subsumption sweep: `INFERENTIAL_PREDS` — the population whose
+    /// load-bearingness the reasoner axis measures — must count a TBox axiom
+    /// authored with the canonical `logic:subClassOf`/`logic:subPropertyOf` spelling,
+    /// not only the `rdfs:` projection (crates/ns/src/lib.rs:106-166), or a
+    /// re-authored axiom silently leaves the axis's own denominator.
+    #[test]
+    fn authored_axioms_counts_canonical_logic_subsumption_edges() {
+        let ds = parse(
+            r#"
+            @prefix ex:    <https://example.org/> .
+            @prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+            ex:A logic:subClassOf ex:B .
+            ex:p logic:subPropertyOf ex:q .
+            "#,
+        );
+        let axioms = authored_axioms(&ds);
+        assert!(
+            axioms.contains(&(
+                "https://example.org/A".to_owned(),
+                gmeow_ns::LOGIC_SUB_CLASS_OF.to_owned(),
+                "https://example.org/B".to_owned(),
+            )),
+            "authored_axioms must count the canonical logic:subClassOf edge: {axioms:?}"
+        );
+        assert!(
+            axioms.contains(&(
+                "https://example.org/p".to_owned(),
+                gmeow_ns::LOGIC_SUB_PROPERTY_OF.to_owned(),
+                "https://example.org/q".to_owned(),
+            )),
+            "authored_axioms must count the canonical logic:subPropertyOf edge: {axioms:?}"
+        );
     }
 
     #[test]

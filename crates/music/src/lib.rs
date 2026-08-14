@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_errors::{Diag, ResultExt};
 use purrdf::gts::model::{Term, TermKind};
-use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+use purrdf::gts_compose::SnapshotBuilder;
 use purrdf::{NativeRdfFormat, parse_dataset};
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -789,18 +789,15 @@ pub fn piece_to_gts_bytes(piece: &Piece) -> gmeow_errors::Result<Vec<u8>> {
     builder
         .add_dataset(&dataset)
         .map_err(|e| Diag::of_kind(error::RdfPipelineFailed { detail: e }))?;
-    emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
+    // Music packages are shipped GTS bytes, so they take the one mandated
+    // authorship door — never a raw `emit_gts` with the plain-`zstd` default.
+    gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None).map_err(
+        |e| {
+            Diag::of_kind(error::RdfPipelineFailed {
+                detail: e.to_string(),
+            })
+        },
     )
-    .map_err(|e| Diag::of_kind(error::RdfPipelineFailed { detail: e }))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -2010,6 +2007,18 @@ pub(crate) fn fixture_piece() -> Piece {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A music package is authored GMEOW GTS output, so EVERY payload frame it
+    /// carries must use the one mandated transform (`zstd-rsyncable` @ L12) — no
+    /// size threshold may drop it back to plain `zstd`. The on-gate frame audit
+    /// lives here because `piece_to_gts_bytes` is an on-demand path that never
+    /// materializes a file the Makefile's bundle gate could inspect.
+    #[test]
+    fn piece_gts_bytes_use_the_mandated_frame_profile() {
+        let bytes = piece_to_gts_bytes(&fixture_piece()).expect("emit the music package");
+        gmeow_gts_profile::validate_mandated_frames(&bytes)
+            .expect("music package uses the mandated zstd-rsyncable-L12 frame profile");
+    }
 
     fn read_varlen(data: &[u8], idx: &mut usize) -> u32 {
         let mut value = 0_u32;

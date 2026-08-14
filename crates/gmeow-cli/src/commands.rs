@@ -234,6 +234,205 @@ pub fn info(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
     0
 }
 
+// ── medium ───────────────────────────────────────────────────────────────────
+
+/// `gmeow medium list [FILE]` — the artifact's whole declared medium axis.
+///
+/// Reads the medium registry, the generated realizations and the sealed envelopes out of
+/// the graphs the artifact itself carries, and the pinned dictionary bytes out of its own
+/// segment header. Nothing here consults a repository, a network, or a second artifact:
+/// a bundle that could not answer this from its own bytes would not be self-sufficient
+/// (Principle 13).
+pub fn medium_list(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let inventory = match gmeow_pipeline::medium::inspect::inventory(&bytes) {
+        Ok(inventory) => inventory,
+        Err(diag) => return medium_fail(reporter, &diag),
+    };
+
+    println!("{}", medium_title(file));
+    println!("  payload frames  {}", inventory.payload_frame_count);
+    println!("  envelopes       {}", inventory.envelope_count);
+
+    println!("\nmedia");
+    for medium in &inventory.media {
+        println!(
+            "  {}\n    codec {} level {} source-kind {:?} requires {:?}",
+            medium.iri,
+            medium.codec,
+            medium.zstd_level,
+            medium.source_kind,
+            medium.reader_capabilities
+        );
+        println!("    dictionaries {:?}", medium.dictionaries);
+    }
+
+    println!("\ndictionaries");
+    for row in &inventory.dictionaries {
+        println!(
+            "  {} v{}  {} bytes  Dictionary_ID {}  in-band {}",
+            row.id,
+            row.version,
+            row.byte_length,
+            row.zstd_dictionary_id,
+            row.in_band_bytes
+                .map_or_else(|| "-".to_string(), |bytes| format!("{bytes} bytes")),
+        );
+        println!(
+            "    strategy {} (measured {}) target {} corpus samples {}",
+            row.strategy, row.measured_strategy, row.target_length, row.corpus_sample_count
+        );
+        println!("    {}", row.content_digest);
+        println!("    primes {:?}", row.primes);
+    }
+
+    println!("\nassignment");
+    for row in &inventory.assignment {
+        println!(
+            "  {:<32} {}  {}",
+            row.rep,
+            row.medium,
+            row.dictionary.as_deref().unwrap_or("(no dictionary)")
+        );
+    }
+    0
+}
+
+/// `gmeow medium verify [FILE]` — decode every frame and open every envelope.
+///
+/// The verb exists because "the bundle folded" is not evidence the bundle is whole:
+/// purrdf's reader is total by design and stores a blob frame LAZILY, so a payload that
+/// will not decode — or one that decodes to bytes other than the ones it claims — passes
+/// an ordinary fold in silence. Every breach exits non-zero under its NAMED medium
+/// failure class, and none of them ever authorizes a dictionary-less retry.
+pub fn medium_verify(reporter: &dyn Reporter, file: Option<&Path>, registry: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    // An artifact that carries no registry of its own (a runtime `~/.gmeow/*.gts` store)
+    // is resolved against the bundle whose dictionaries primed it — by default the
+    // embedded one, because that IS the bundle a consumer's store was primed from. The
+    // bytes are handed over unfolded: a self-describing artifact never reads them.
+    let registry_bytes = match gts_bytes(reporter, registry) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let report = match gmeow_pipeline::medium::inspect::verify(
+        &bytes,
+        gmeow_pipeline::medium::inspect::PrimingBundle::Bytes(&registry_bytes),
+    ) {
+        Ok(report) => report,
+        Err(diag) => return medium_fail(reporter, &diag),
+    };
+
+    println!("{}", medium_title(file));
+    println!("  class           {:?}", report.class);
+    println!("  medium          {}", report.medium);
+    println!("  payload frames  {}", report.frames.len());
+    println!("  envelopes       {}", report.envelopes_verified);
+    println!("  requires        {:?}", report.actual_capabilities);
+    println!("  dictionaries    {:?}", report.dictionaries);
+    for frame in &report.frames {
+        println!(
+            "  frame @{:<10} {:<32} {}  {} bytes",
+            frame.offset,
+            frame.rep,
+            frame.dictionary.as_deref().unwrap_or("(no dictionary)"),
+            frame.decoded_bytes
+        );
+    }
+    println!(
+        "verified: every payload frame decoded and {} envelope(s) re-derived",
+        report.envelopes_verified
+    );
+    0
+}
+
+/// `gmeow medium explain <dict-id> [FILE]` — what one dictionary is and what it bought.
+pub fn medium_explain(reporter: &dyn Reporter, dictionary: &str, file: Option<&Path>) -> i32 {
+    let bytes = match gts_bytes(reporter, file) {
+        Ok(bytes) => bytes,
+        Err(code) => return code,
+    };
+    let explanation = match gmeow_pipeline::medium::inspect::explain(&bytes, dictionary) {
+        Ok(explanation) => explanation,
+        Err(diag) => return medium_fail(reporter, &diag),
+    };
+    let row = &explanation.row;
+
+    println!("{} v{}", row.id, row.version);
+    println!("  dictionary      {}", row.iri);
+    println!(
+        "  strategy        {} (measured {}) at target length {}",
+        row.strategy, row.measured_strategy, row.target_length
+    );
+    println!("  corpus          {}", row.corpus);
+    for selector in &explanation.selectors {
+        println!("    {selector}");
+    }
+    println!("  corpus samples  {}", row.corpus_sample_count);
+    println!("  content digest  {}", row.content_digest);
+    println!(
+        "  bytes           {} (Dictionary_ID {})",
+        row.byte_length, row.zstd_dictionary_id
+    );
+    println!("  primes          {:?}", row.primes);
+
+    println!("  measured MDL contribution");
+    for effect in &explanation.effects {
+        println!(
+            "    population {}: two-part code {} B = {} B of frames + {} B of in-band \
+             dictionary, against a baseline of {} B over the same {} frame(s)",
+            effect.population.wire(),
+            effect.two_part_code_bytes(),
+            effect.bytes_on_disk,
+            effect.dictionary_in_band_bytes,
+            effect.bytes_on_disk_baseline,
+            effect.evaluated_frame_count
+        );
+        println!(
+            "      bounded gain fraction {} (pays for itself: {})",
+            effect.gain_fraction_lexical(),
+            effect.wins()
+        );
+    }
+    if explanation.effects.is_empty() {
+        // Not a soft outcome: the runtime-store dictionaries are priced over a population
+        // the BUNDLE cannot measure, and saying so is the honest answer rather than
+        // printing a zero.
+        println!(
+            "    none in this artifact — the dictionary primes no frame of this artifact's \
+             declared measurement population"
+        );
+    }
+    0
+}
+
+/// Render the artifact's name for the `gmeow medium` report headers.
+fn medium_title(file: Option<&Path>) -> String {
+    file.and_then(|path| path.file_name())
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "gmeow.gts".to_owned())
+}
+
+/// Emit a medium diagnostic under its OWN registered failure-class code and exit
+/// non-zero.
+///
+/// The code is the diagnostic's, never a generic CLI one: the medium failure classes are the
+/// vocabulary a caller (or a gate) dispatches on, and flattening them to
+/// `gmeow-cli.medium.failed` would erase the only thing that says WHICH invariant broke.
+fn medium_fail(reporter: &dyn Reporter, diag: &Diag) -> i32 {
+    fail(
+        reporter,
+        gmeow_errors::code::code_str(diag.code()),
+        diag.to_string(),
+    )
+}
+
 // ── verify / verify-release-bundle ───────────────────────────────────────────
 
 /// `gmeow verify` — the native OpenPGP signature check, the blob-DAG integrity
@@ -586,6 +785,19 @@ pub fn describe(
 }
 
 // ── conjecture ─────────────────────────────────────────────────────────────────
+
+/// The medium every append-only runtime store this CLI writes is written through:
+/// the shipped `gmeow-memory-hot-v1` dictionary, read out of the EMBEDDED bundle's
+/// in-band `"dct"` map.
+///
+/// The bundle travels with the binary ([`crate::BUNDLE_GTS`]), so the dictionary is
+/// available in a wheel-mode install exactly as it is in a checkout — the store never
+/// needs a second artifact, and it is primed with the same bytes the MCP server uses,
+/// so one store file stays readable by both.
+fn cli_store_medium(reporter: &dyn Reporter, code: &str) -> Result<gmeow_mcp::StoreMedium, i32> {
+    gmeow_mcp::store_medium(crate::BUNDLE_GTS, gmeow_mcp::MEMORY_HOT_DICTIONARY)
+        .map_err(|e| fail(reporter, code, format!("store medium unavailable: {e}")))
+}
 
 /// `gmeow conjecture test` — test a candidate `logic:` formula against a KB in an
 /// isolated, standpoint-scoped scenario world, print the engine verdict, and —
@@ -2165,14 +2377,19 @@ pub fn logic_fragments(
 
 // ── logic backward ───────────────────────────────────────────────────────────
 
-/// `rdfs:subClassOf` — the covering-edge predicate `stage-goal-directed` filters
-/// its reasoned closure on (`crates/pipeline/src/stages/goal_directed.rs`), read
-/// here directly off a parsed source graph instead of a full pipeline reasoning
-/// pass.
-const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-
-/// The TOLD `rdfs:subClassOf` covering edges `(sub IRI, super IRI)` in `dataset`
-/// — an IRI-to-IRI triple on that predicate — deduplicated and sorted.
+/// The TOLD class-subsumption covering edges `(sub IRI, super IRI)` in `dataset`
+/// — an IRI-to-IRI triple on EITHER spelling of the subsumption predicate
+/// ([`gmeow_ns::SUB_CLASS_OF`]: the canonical `logic:subClassOf` and its `rdfs:`
+/// projection) — deduplicated and sorted. These are the covering edges
+/// `stage-goal-directed` filters its reasoned closure on
+/// (`crates/pipeline/src/stages/goal_directed.rs`), read here directly off a
+/// parsed source graph instead of a full pipeline reasoning pass.
+///
+/// Reading only the `rdfs:` projection makes this command silently return NOTHING
+/// for a subsort chain authored in the canonical spelling — `--subsort` would hand
+/// the engine an empty sort order and every subsort-dependent goal would simply
+/// fail to prove, with no diagnostic.
+///
 /// `crate::physical::unify::SortOrder::from_subclass_edges` (inside
 /// `gmeow_logic`) computes its OWN reflexive-transitive closure over whatever
 /// covering edges it is handed, so passing the told edges of a simple subsort
@@ -2183,7 +2400,7 @@ const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
 fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
     let mut edges: Vec<(String, String)> = dataset
         .owned_quads()
-        .filter(|q| q.predicate == RDFS_SUBCLASS_OF)
+        .filter(|q| gmeow_ns::SUB_CLASS_OF.contains(&q.predicate.as_str()))
         .filter_map(|q| match (&q.subject, &q.object) {
             (RdfTerm::Iri(s), RdfTerm::Iri(o)) => Some((s.clone(), o.clone())),
             _ => None,
@@ -2194,11 +2411,12 @@ fn collect_subclass_edges(dataset: &RdfDataset) -> Vec<(String, String)> {
     edges
 }
 
-/// Parse a Turtle file into a raw [`RdfDataset`] for `rdfs:subClassOf` edge
-/// extraction — deliberately independent of the `logic:` compiler frontend
-/// (which never surfaces a told `rdfs:subClassOf` triple as `LogicAxiom`/
-/// `Formula` data an engine caller can read back), so this reads the file's own
-/// triples directly.
+/// Parse a Turtle file into a raw [`RdfDataset`] for class-subsumption edge
+/// extraction (either spelling — see [`collect_subclass_edges`]) —
+/// deliberately independent of the `logic:` compiler frontend (which never
+/// surfaces a told `logic:subClassOf`/`rdfs:subClassOf` triple as
+/// `LogicAxiom`/`Formula` data an engine caller can read back), so this reads
+/// the file's own triples directly.
 fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfDataset>, i32> {
     let bytes = read_bytes(reporter, path)?;
     purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
@@ -2216,9 +2434,9 @@ fn parse_turtle_dataset(reporter: &dyn Reporter, path: &Path) -> Result<Arc<RdfD
 /// production path `stage-goal-directed` folds into `gmeow.gts`'s
 /// `graph/goal-directed`. Never a reimplementation: this command lowers the
 /// authored cell via `gmeow_logic_compile::frontend::parse_logic_path`,
-/// collects `rdfs:subClassOf` covering edges straight off the parsed source
-/// (see [`collect_subclass_edges`]), and hands both to the SAME engine entry
-/// point the pipeline stage calls.
+/// collects class-subsumption covering edges (either spelling) straight off
+/// the parsed source (see [`collect_subclass_edges`]), and hands both to the
+/// SAME engine entry point the pipeline stage calls.
 ///
 /// Hard-fails (exit 1, never a silent empty success) on: a missing
 /// `--program-file`, an unparsable file (or one carrying error-grade parse
@@ -2296,8 +2514,9 @@ pub fn logic_backward(
         }
     };
 
-    // Collect `rdfs:subClassOf` covering edges directly off the parsed source
-    // graph(s) — never a hardcoded subsort tower (see `collect_subclass_edges`).
+    // Collect class-subsumption covering edges (either spelling) directly off
+    // the parsed source graph(s) — never a hardcoded subsort tower (see
+    // `collect_subclass_edges`).
     let program_dataset = match parse_turtle_dataset(reporter, program_file) {
         Ok(ds) => ds,
         Err(code) => return code,
@@ -3543,15 +3762,20 @@ pub fn project(
 
     let fmt_lower = format.to_lowercase();
     if fmt_lower == "yaml-ld" {
+        // The bundled YAML-LD deliverable is the CLAIM CORPUS's YAML-LD-star projection
+        // (the RDF 1.2 statement layer), which rides the `yaml-ld-archive` frame
+        // — not a serialization of the whole carrier, whose JSON-LD-star form is
+        // the ~666 MB `make build` artifact `dist/gmeow.jsonld` and rides no frame.
         if source.is_some() {
             return fail(
                 reporter,
                 "gmeow-cli.project.yaml-ld-source",
-                "--format yaml-ld reads the bundled snapshot only; do not pass a source file",
+                "--format yaml-ld reads the bundled claim corpus only; do not pass a source file",
             );
         }
+        let member = gmeow_pipeline::bundle_blobs::YAMLLD_YAMLLD_MEMBER;
         let yamlld = match gmeow_pipeline::bundle_blobs::bundled_yaml_ld(BUNDLE_GTS) {
-            Ok(map) => map.get("gmeow.yamlld").cloned(),
+            Ok(map) => map.get(member).cloned(),
             Err(e) => {
                 return fail(
                     reporter,
@@ -3564,7 +3788,7 @@ pub fn project(
             return fail(
                 reporter,
                 "gmeow-cli.project.yaml-ld-missing",
-                "bundled YAML-LD snapshot not found",
+                format!("bundled YAML-LD claim corpus ({member}) not found"),
             );
         };
         if let Err(e) = std::fs::create_dir_all(out) {
@@ -3574,7 +3798,7 @@ pub fn project(
                 format!("cannot create {}: {e}", out.display()),
             );
         }
-        let target = out.join("gmeow.yamlld");
+        let target = out.join(member);
         if let Err(e) = std::fs::write(&target, yamlld) {
             return fail(
                 reporter,
@@ -5319,6 +5543,46 @@ mod explain_tests {
             explain(reporter.as_ref(), iri, None),
             0,
             "a shipped chase-invented null explains successfully"
+        );
+    }
+}
+
+#[cfg(test)]
+mod subsort_tests {
+    use super::*;
+
+    /// `gmeow logic backward --subsort` collects covering edges under BOTH
+    /// spellings of the subsumption predicate.
+    ///
+    /// The blinding regression this pins: an `rdfs:`-only read handed the engine
+    /// an EMPTY sort order for a subsort tower authored in the canonical
+    /// `logic:subClassOf`, so every subsort-dependent goal silently failed to
+    /// prove with no diagnostic on the shipped CLI.
+    #[test]
+    fn subsort_edges_are_collected_under_both_spellings() {
+        let ttl = "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+             math:Integer logic:subClassOf math:RationalNumber .\n\
+             math:RationalNumber rdfs:subClassOf math:RealNumber .\n\
+             math:Opaque logic:subClassOf [ rdfs:label \"a class expression\" ] .\n";
+        let dataset = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let edges = collect_subclass_edges(&dataset);
+
+        assert_eq!(
+            edges,
+            vec![
+                (
+                    "https://blackcatinformatics.ca/math/Integer".to_owned(),
+                    "https://blackcatinformatics.ca/math/RationalNumber".to_owned(),
+                ),
+                (
+                    "https://blackcatinformatics.ca/math/RationalNumber".to_owned(),
+                    "https://blackcatinformatics.ca/math/RealNumber".to_owned(),
+                ),
+            ],
+            "the canonical edge is collected alongside the projected one, and a \
+             blank-node object is never a covering edge"
         );
     }
 }

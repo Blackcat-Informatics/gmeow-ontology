@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:UnrecordedProjectionLoss gate
+# (crates/validate/src/lint.rs, check_math_unrecorded_projection_loss): a LOSSY
+# math:ProjectionRecord (logic:preservationKind logic:SoundUnderApproximation) projects
+# a math:MathematicalExpression source — a structured AST, not a bare display string —
+# but its logic:unsupportedConstruct enumeration names an UNRELATED drop, never the
+# expression's own structural flattening. Collapsing the AST to
+# math:projectionTargetName's string-only external target is exactly the loss the
+# ledger exists to record. The native gate MUST emit math:UnrecordedProjectionLoss (and
+# NOT math:UndeclaredUnsupportedConstruct, since a construct IS enumerated — just not
+# the flattened expression).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The projection SOURCE has to stay an asserted math:MathematicalExpression — that asserted
+# typing is exactly what math:UnrecordedProjectionLoss triggers on ("a structured AST, not a
+# bare display string"). It also names a concrete form, math:SymbolReference, because the
+# abstract base alone names none and would raise math:UnrecognizedExpressionType beside the
+# one class this fixture isolates.
+ex:sumExpr a math:SymbolReference , math:MathematicalExpression ;
+    math:hasMathematicalSymbol ex:sumExprSymbol .
+ex:sumExprSymbol a math:MathematicalSymbol .
+
+ex:exprProjection a math:ProjectionRecord ;
+    math:projectionSource ex:sumExpr ;
+    math:projectionTargetName "OWL annotation (string only)" ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:unsupportedConstruct "irrelevant-other-drop" .

@@ -1074,7 +1074,7 @@ mod tests {
         // any `.rs`, the only thing `GMEOW_BUILD_FINGERPRINT` folds).
         let has_vendored_asset = files
             .iter()
-            .any(|p| p.ends_with("crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm"));
+            .any(|p| p.ends_with("crates/docs/assets/query/gmeow_query_wasm_bg.wasm"));
         assert!(
             has_vendored_asset,
             "docs_source_files must include the vendored crates/docs/assets/** site assets"
@@ -1092,6 +1092,10 @@ mod tests {
         // witness attested is still proven — by `crates/mcp/tests/witness_explore.rs`,
         // against the engine that now answers it.
         for witness in [
+            "crates/docs/assets/query/WITNESS.describe.nt",
+            "crates/docs/assets/validate/WITNESS.validate.json",
+            "crates/docs/assets/reason/WITNESS.reason.nq",
+            "crates/docs/assets/gmn/WITNESS.gmn1.txt",
             "crates/docs/assets/mcp-core/WITNESS.core-deferral.json",
             "crates/docs/assets/mcp/WITNESS.mcp.json",
         ] {

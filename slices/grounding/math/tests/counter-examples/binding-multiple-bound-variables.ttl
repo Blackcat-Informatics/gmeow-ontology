@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::BindingMultipleBoundVariables):
+# a math:BindingExpression root naming TWO math:boundVariable declarations — a single
+# binder scope binds exactly one variable, so two declarations are ambiguous about
+# which one the body's occurrences resolve against. The authored math:structuralKey
+# lets the reasoned-graph gate (check_structural_key_on_rejected_expression) also
+# reach it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:xDecl , ex:yDecl ;
+    math:argumentSlot ex:slot0 ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:xDecl a math:VariableDeclaration .
+ex:yDecl a math:VariableDeclaration .
+
+ex:slot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:body .
+
+ex:body a math:NumberLiteral ;
+    math:literalValue 1 .

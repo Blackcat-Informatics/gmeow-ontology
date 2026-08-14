@@ -432,3 +432,83 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/startedAtTimeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:startedAtTime and nothing else. It is not a definition of gmeow:startedAtTime (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:startedAtTime, et rien d'autre. Ce n'est pas une définition de gmeow:startedAtTime (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayOfWeek|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Day Of Week"
+msgstr "Jour de la semaine"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayOfWeek|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recurring position in the seven-day week cycle, seeded as a closed value vocabulary of the seven ISO-8601 weekdays from gmeow:dayMonday through gmeow:daySunday. A day-of-week value is a pattern slot rather than a located stretch of the timeline: it is distinct from gmeow:TimeInterval and gmeow:NamedPeriod, which are delimited by start and end instants, and it never fixes a date by itself — \"Monday\" picks out every Monday until an interval, a recurrence, or a gmeow:TemporalFrame anchors it to one. Projects to schema:dayOfWeek."
+msgstr "Une position récurrente dans le cycle hebdomadaire de sept jours, amorcée comme un vocabulaire de valeurs clos regroupant les sept jours ISO-8601, de gmeow:dayMonday à gmeow:daySunday. Une valeur de jour de la semaine est un emplacement de motif plutôt qu'une portion située de la ligne du temps : elle se distingue de gmeow:TimeInterval et de gmeow:NamedPeriod, délimités par des instants de début et de fin, et elle ne fixe jamais une date à elle seule — « lundi » désigne tous les lundis tant qu'un intervalle, une récurrence ou un gmeow:TemporalFrame ne l'ancre pas à un jour précis. Se projette vers schema:dayOfWeek."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayMonday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Monday"
+msgstr "lundi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayMonday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Monday, ISO-8601 weekday 1 and the day that opens the ISO week: an ISO week date such as \"2026-W31-1\" names the Monday its week begins on, so an ISO week is identified by its Monday and by no later day. It is not the opening day under the Gregorian liturgical and North American conventions, which start the week on gmeow:daySunday; the conventions disagree about where the boundary falls, never about the day itself."
+msgstr "Lundi, jour 1 de la semaine ISO-8601 et celui qui ouvre la semaine ISO : une date hebdomadaire ISO telle que « 2026-W31-1 » nomme le lundi par lequel sa semaine commence, de sorte qu'une semaine ISO est identifiée par son lundi et par aucun jour ultérieur. Ce n'est pas le jour d'ouverture selon les conventions liturgique grégorienne et nord-américaine, qui font débuter la semaine à gmeow:daySunday ; les conventions divergent sur l'emplacement de la frontière, jamais sur le jour lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayTuesday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tuesday"
+msgstr "mardi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayTuesday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Tuesday, ISO-8601 weekday 2: the second day of the ISO week and the earliest one carrying no calendar-boundary role — it neither opens the week, as gmeow:dayMonday does, nor settles the week's year, as gmeow:dayThursday does. That very absence is why civic calendars concentrate elections, council sittings, and market days here: the slot disturbs no boundary rule and leaves Monday free for travel."
+msgstr "Mardi, jour 2 de la semaine ISO-8601 : le deuxième jour de la semaine ISO et le premier à ne porter aucun rôle de frontière calendaire — il n'ouvre pas la semaine, comme le fait gmeow:dayMonday, ni ne fixe l'année de la semaine, comme le fait gmeow:dayThursday. C'est précisément cette absence qui pousse les calendriers civiques à y concentrer scrutins, séances de conseil et jours de marché : ce créneau ne perturbe aucune règle de frontière et laisse le lundi libre pour les déplacements."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayWednesday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Wednesday"
+msgstr "mercredi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayWednesday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Wednesday, ISO-8601 weekday 3: the middle day of the five-day Monday-to-Friday business week, with two working days on either side. It is not the median day of the full seven-day ISO week — that is gmeow:dayThursday — so a rule phrased as \"midweek\" must first say which week it counts over before this value or Thursday is the correct one."
+msgstr "Mercredi, jour 3 de la semaine ISO-8601 : le jour central de la semaine ouvrable de cinq jours allant du lundi au vendredi, avec deux jours travaillés de chaque côté. Ce n'est pas le jour médian de la semaine ISO complète de sept jours — c'est gmeow:dayThursday — de sorte qu'une règle formulée en « milieu de semaine » doit d'abord préciser sur quelle semaine elle compte avant que cette valeur ou le jeudi ne soit la bonne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayThursday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Thursday"
+msgstr "jeudi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayThursday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Thursday, ISO-8601 weekday 4: the median day of the seven-day ISO week and the day that fixes which year a week belongs to. ISO 8601 assigns a week to the year holding its Thursday, so week 1 is the week containing the first Thursday of January — the week opening 2026-12-28 is a 2026 week because its Thursday, not its Monday, decides."
+msgstr "Jeudi, jour 4 de la semaine ISO-8601 : le jour médian de la semaine ISO de sept jours et celui qui fixe l'année à laquelle une semaine appartient. La norme ISO 8601 rattache une semaine à l'année qui contient son jeudi ; la semaine 1 est donc celle qui renferme le premier jeudi de janvier — la semaine ouverte le 2026-12-28 est une semaine de 2026 parce que c'est son jeudi, et non son lundi, qui tranche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayFriday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Friday"
+msgstr "vendredi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayFriday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Friday, ISO-8601 weekday 5: the closing day of the Monday-to-Friday business week and the last day before the ISO weekend. It is not itself a weekend day — gmeow:daySaturday and gmeow:daySunday are — but it is the position most settlement, payroll, and publication deadlines land on, because it is the last point at which the business week can still absorb a delay."
+msgstr "Vendredi, jour 5 de la semaine ISO-8601 : le jour de clôture de la semaine ouvrable du lundi au vendredi et le dernier jour avant la fin de semaine ISO. Ce n'est pas lui-même un jour de fin de semaine — gmeow:daySaturday et gmeow:daySunday le sont — mais c'est la position sur laquelle tombent la plupart des échéances de règlement, de paie et de publication, parce qu'elle est le dernier point où la semaine ouvrable peut encore absorber un retard."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySaturday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Saturday"
+msgstr "samedi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySaturday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Saturday, ISO-8601 weekday 6: the sixth day of the ISO week and the first day of the two-day Saturday–Sunday weekend. It is not a working day under the Monday-to-Friday convention, yet it is an ordinary working day wherever the weekend runs Friday–Saturday or Thursday–Friday, so a schedule that means \"closed\" must say so rather than inferring rest from the day value."
+msgstr "Samedi, jour 6 de la semaine ISO-8601 : le sixième jour de la semaine ISO et le premier des deux jours de la fin de semaine samedi–dimanche. Ce n'est pas un jour ouvré selon la convention du lundi au vendredi, et pourtant c'est un jour de travail ordinaire partout où la fin de semaine court du vendredi au samedi ou du jeudi au vendredi ; un horaire qui veut dire « fermé » doit donc le déclarer plutôt que de déduire le repos de la valeur du jour."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySunday|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Sunday"
+msgstr "dimanche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/daySunday|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Sunday, ISO-8601 weekday 7: the day that closes the ISO week, even though the Gregorian liturgical calendar and North American convention both place it first. The two orderings disagree only about where the week boundary falls, never about the day, so a weekly rule must state which convention it counts in instead of assuming this value sits at either end."
+msgstr "Dimanche, jour 7 de la semaine ISO-8601 : le jour qui clôt la semaine ISO, alors même que le calendrier liturgique grégorien et la convention nord-américaine le placent tous deux en tête. Les deux ordonnancements ne divergent que sur l'emplacement de la frontière hebdomadaire, jamais sur le jour lui-même ; une règle hebdomadaire doit donc énoncer selon quelle convention elle compte au lieu de supposer que cette valeur occupe l'une ou l'autre extrémité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstantValueOrEdtfConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Instant value-or-EDTF constraint"
+msgstr "contrainte « valeur ou EDTF » d'un Instant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InstantValueOrEdtfConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:Instant carries at least one of gmeow:instantValue (xsd:dateTime) or gmeow:edtfValue (an EDTF literal) — a point in time with no stated value is not an Instant."
+msgstr "Une contrainte d'intégrité en monde clos : un gmeow:Instant porte au moins l'un de gmeow:instantValue (xsd:dateTime) ou gmeow:edtfValue (un littéral EDTF) — un point du temps dépourvu de valeur énoncée n'est pas un Instant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Named period bounds-or-measurement constraint"
+msgstr "contrainte « bornes ou mesure » d'une période nommée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:NamedPeriod is bounded by both gmeow:periodStart and gmeow:periodEnd, or carries at least one gmeow:hasTemporalMeasurement — a named stretch of time with neither bounds nor a measured duration is underspecified."
+msgstr "Une contrainte d'intégrité en monde clos : une gmeow:NamedPeriod est bornée à la fois par gmeow:periodStart et par gmeow:periodEnd, ou bien porte au moins une gmeow:hasTemporalMeasurement — un intervalle de temps nommé qui n'a ni bornes ni durée mesurée reste sous-spécifié."

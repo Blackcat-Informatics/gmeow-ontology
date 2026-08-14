@@ -13,6 +13,10 @@ use purrdf::{
     FallibleDatasetView, PagedDataset, PagedQueryError, PagedQueryEvidence, PagedQueryLimits,
     RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, ViewOperationStatus,
 };
+// `PagedQueryError` surfaces at the `purrdf` root, but its `StopCause` — the shared
+// cancellation/deadline vocabulary of the governor merge — is re-exported by the umbrella
+// only through the sparql-eval module (`purrdf::sparql`), so it is imported from there.
+use purrdf::sparql::StopCause;
 
 use crate::annotation::AnnotationContract;
 use crate::cost::{
@@ -771,8 +775,13 @@ fn map_paged_error(error: &PagedQueryError) -> OperationOutcome {
         cause,
     };
     match error {
-        PagedQueryError::Cancelled { .. } => incomplete(IncompleteCause::Cancelled),
-        PagedQueryError::DeadlineExceeded { .. } => incomplete(IncompleteCause::Deadline),
+        // The governor merge unified cancellation and deadlines into one host-supplied stop
+        // primitive; the reported `StopCause` is what distinguishes them, so the two former
+        // arms collapse into one that dispatches on the cause — preserving the exact outcome.
+        PagedQueryError::Stopped { cause, .. } => match cause {
+            StopCause::Cancelled => incomplete(IncompleteCause::Cancelled),
+            StopCause::Deadline => incomplete(IncompleteCause::Deadline),
+        },
         PagedQueryError::PageBudgetExceeded { .. }
         | PagedQueryError::ByteBudgetExceeded { .. }
         | PagedQueryError::StaleGeneration { .. }
@@ -782,5 +791,61 @@ fn map_paged_error(error: &PagedQueryError) -> OperationOutcome {
                 detail: format!("open_paged: paged source delivered invalid data: {error}"),
             }),
         },
+        // `PagedQueryError` is `#[non_exhaustive]` upstream, so a new variant can arrive
+        // in a routine dependency bump. Classifying an UNRECOGNIZED failure as
+        // `Incomplete` would be a silent degradation: it would report a partial result
+        // whose cause this mapping cannot actually name, and the budget/cancellation
+        // semantics callers read off `IncompleteCause` would be fabricated. An unmapped
+        // variant is therefore an engine failure that names itself, so the gap surfaces
+        // as a defect to classify rather than as a plausible-looking partial answer.
+        unmapped => OperationOutcome::EngineFailure {
+            diagnostic: gmeow_errors::Diag::of_kind(crate::error::Engine {
+                detail: format!(
+                    "open_paged: unmapped PagedQueryError variant — purrdf added a \
+                     failure mode this mapping does not classify: {unmapped}"
+                ),
+            }),
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use purrdf::PageId;
+
+    fn stopped(cause: StopCause) -> PagedQueryError {
+        PagedQueryError::Stopped {
+            page: PageId(0),
+            cause,
+            message: String::from("test stop"),
+        }
+    }
+
+    // The governor merge unified cancellation and deadlines into one `Stopped` variant
+    // distinguished only by its `StopCause`. `map_paged_error` must keep the two outcomes
+    // separate: a cancellation and a deadline are different incompleteness causes and a
+    // caller reads them off `IncompleteCause`. Both arms are exercised here so neither can
+    // silently collapse into the other under a future dependency bump.
+    #[test]
+    fn stopped_cancelled_maps_to_incomplete_cancelled() {
+        assert!(matches!(
+            map_paged_error(&stopped(StopCause::Cancelled)),
+            OperationOutcome::Incomplete {
+                status: BudgetStatus::Partial,
+                cause: IncompleteCause::Cancelled,
+            }
+        ));
+    }
+
+    #[test]
+    fn stopped_deadline_maps_to_incomplete_deadline() {
+        assert!(matches!(
+            map_paged_error(&stopped(StopCause::Deadline)),
+            OperationOutcome::Incomplete {
+                status: BudgetStatus::Partial,
+                cause: IncompleteCause::Deadline,
+            }
+        ));
     }
 }

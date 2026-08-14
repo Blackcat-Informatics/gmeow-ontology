@@ -90,42 +90,6 @@ gmeow:OpeningHoursSpecification skos:closeMatch schema:OpeningHoursSpecification
     gmeow:comment "an opening-hours window IS schema:OpeningHoursSpecification"
 |} .
 
-gmeow:dayMonday skos:exactMatch schema:Monday {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0
-|} .
-gmeow:dayTuesday skos:exactMatch schema:Tuesday {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0
-|} .
-gmeow:dayWednesday skos:exactMatch schema:Wednesday {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0
-|} .
-gmeow:dayThursday skos:exactMatch schema:Thursday {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0
-|} .
-gmeow:dayFriday skos:exactMatch schema:Friday {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0
-|} .
-gmeow:daySaturday skos:exactMatch schema:Saturday {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0
-|} .
-gmeow:daySunday skos:exactMatch schema:Sunday {|
-    gmeow:sssomFile "gmeow-classes.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 1.0
-|} .
-
 gmeow:memberOf owl:equivalentProperty schema:memberOf {|
     gmeow:sssomFile "gmeow-properties.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;

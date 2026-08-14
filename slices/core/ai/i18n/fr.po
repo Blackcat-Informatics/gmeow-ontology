@@ -568,3 +568,27 @@ msgstr "Attachez l'objet représenté — généralement un gmeow:Chunk — au g
 msgctxt "https://blackcatinformatics.ca/gmeow/embeddingOf|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
 msgstr "gmeow:embedding1 gmeow:embeddingOf gmeow:chunk1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimNeedsEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Claim needs evidence constraint"
+msgstr "contrainte d'exigence de preuve pour une affirmation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimNeedsEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity warning: an LLM-extracted claim (gmeow:observationMethod gmeow:methodLlmExtraction) with no gmeow:groundedIn evidence span is a flagged hallucination — surfaced, retained, never deleted (P10)."
+msgstr "Un avertissement d'intégrité en monde clos : une affirmation extraite par un grand modèle de langue (gmeow:observationMethod gmeow:methodLlmExtraction) dépourvue de plage de preuve gmeow:groundedIn constitue une hallucination signalée — mise au jour, conservée, jamais supprimée (P10)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SpanRequiresEndConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Span requires end constraint"
+msgstr "contrainte d'exigence de borne de fin sur une plage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SpanRequiresEndConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every span carrying a gmeow:spanStart must also carry a gmeow:spanEnd — a span with only one boundary is not a well-formed span."
+msgstr "Une contrainte d'intégrité en monde clos : toute plage portant un gmeow:spanStart doit également porter un gmeow:spanEnd — une plage n'ayant qu'une seule borne n'est pas une plage bien formée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingSpanConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grounding span completeness constraint"
+msgstr "contrainte de complétude d'une plage de fondement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingSpanConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every span reached via gmeow:groundedIn from a claim (a grounding span) must be pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart, gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity) — evidence without recoverable, offset-located, polarity-classified bytes is a vibe, not grounding."
+msgstr "Une contrainte d'intégrité en monde clos : toute plage atteinte depuis une affirmation par gmeow:groundedIn (une plage de fondement) doit être ancrée dans un fragment (gmeow:spanOfChunk), située par décalages (gmeow:spanStart, gmeow:spanEnd) et classée en polarité (gmeow:supportPolarity) — une preuve dont les octets ne sont ni récupérables, ni situés par décalage, ni classés en polarité relève de l'impression, non du fondement."

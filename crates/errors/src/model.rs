@@ -542,6 +542,23 @@ pub struct Finding {
     pub tags: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
+    /// The TYPED conformance-failure class this finding instantiates — the IRI the
+    /// violated law declares through `gmeow:enforcesFailureClass` (e.g.
+    /// `math:UntypedFreeVariable`).
+    ///
+    /// The `code` names the generic MECHANISM that fired
+    /// (`shacl.MinCountConstraintComponent`, shared by every cardinality gate in the
+    /// ontology); this names the SPECIFIC failure the author of the law minted for it.
+    /// Without it a consumer can only read the anonymous component code and the source
+    /// shape IRI, and the authored class — which the shapes surface carries, the
+    /// conformance charter pins, and the derive pipeline proves — never reaches the
+    /// wire at all.
+    ///
+    /// `None` for a finding whose law declares no failure class (an honest absence,
+    /// never fabricated); `skip_serializing_if` keeps it out of the wire form so a
+    /// class-less finding is byte-unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_class: Option<String>,
     /// The KIND of this finding, orthogonal to its severity (the 8-way
     /// `logic:FindingCategory`). `None` for findings that predate or fall outside
     /// the taxonomy; `skip_serializing_if` keeps absent categories out of the wire
@@ -623,6 +640,7 @@ impl Finding {
             cross_node_glut_with: Vec::new(),
             tags: Vec::new(),
             detail: None,
+            failure_class: None,
             category: None,
             standpoint: None,
             attributions: Vec::new(),
@@ -641,6 +659,15 @@ impl Finding {
     /// Tag this finding with its [`FindingCategory`] (the orthogonal KIND axis).
     pub fn with_category(mut self, category: FindingCategory) -> Self {
         self.category = Some(category);
+        self
+    }
+
+    /// Name the TYPED conformance-failure class this finding instantiates — the IRI
+    /// the violated law declares through `gmeow:enforcesFailureClass`. Only ever
+    /// called with a class read verbatim off the law; never fabricated, so a law that
+    /// declares none leaves the finding's class absent.
+    pub fn with_failure_class(mut self, class_iri: impl Into<String>) -> Self {
+        self.failure_class = Some(class_iri.into());
         self
     }
 

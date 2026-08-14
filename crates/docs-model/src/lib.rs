@@ -47,6 +47,10 @@ pub mod i18n_compile;
 pub mod llms;
 pub mod maturity;
 pub mod model;
+/// The prose-quality PREDICATES (boundary statements, worked triples) the coverage
+/// dimensions score against. They live beside the model rather than in the renderer
+/// because `coverage` is the only caller and both moved together.
+pub mod prose;
 pub mod rdf;
 /// The pure naming layer (slugs, display names, alignment facets) the renderer
 /// re-exports at its original path.

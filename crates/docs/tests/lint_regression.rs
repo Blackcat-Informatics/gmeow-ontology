@@ -170,56 +170,6 @@ fn site_triggering_all_codes_emits_each_and_is_deterministic() {
     assert_eq!(seq(&report), seq(&lint(&model, &site)));
 }
 
-// ── RECORDED REBASELINE: the standalone-console vocabulary ───────────────────
-//
-// Five counters in the golden below are HIGHER than they were at this work's merge
-// base. The contract on the test that follows says an increase is to be inspected
-// and RECORDED rather than concealed, so this is the record. It is a rebaseline. It
-// is not a burn-down, and describing it as one — by measuring it against a later
-// point on this same branch rather than against the base the change is judged from —
-// is the concealment the contract warns about.
-//
-// WHAT ROSE, and by how much, against the merge base:
-//
-//   docs/missing-competency-rationale   6046 → 6060   (+14)
-//   docs/missing-fixture-pair           6124 → 6138   (+14)
-//   docs/missing-prose-quality          6302 → 6316   (+14)
-//   docs/missing-test-reach             5603 → 5617   (+14)
-//   docs/missing-worked-instance        5608 → 5622   (+14)
-//
-// WHY: this work declares 14 new vocabulary terms, and each of the five dimensions
-// above is UNCONDITIONAL — every term is in its denominator from the moment it
-// exists. The rise is therefore exactly one per new term on each of the five, with
-// no term counted twice and no pre-existing term's credit revoked. Nothing that was
-// previously counted as covered has become uncovered; the numerators are untouched.
-// These are corpus-norm gaps rather than local neglect — roughly 94 % of all terms
-// in the ontology lack each of the five — and closing them for these 14 means
-// authoring competency questions, fixture pairs and worked instances, which is
-// content work of a different kind and size from declaring the terms.
-//
-// That is a rebaseline on grounds the contract's own sentence does not cover: it
-// admits an increase for a forensic correction that withdraws invalid evidence, and
-// this is not that. It is new denominator, honestly counted. Recording it here is
-// what keeps the distinction visible instead of letting a larger number pass as
-// though the contract had licensed it.
-//
-// WHAT DID NOT RISE, because the debt was paid rather than re-blessed. Four
-// dimensions moved up while this work was in progress and are now back at the merge
-// base EXACTLY, at zero net change:
-//
-//   docs/missing-scope-note       5474 → 5474   (seven authored skos:scopeNote)
-//   docs/missing-annotation-coat  3772 → 3772   (logic:mcpToolName's coat)
-//   docs/missing-example          3715 → 3715   (logic:mcpToolName's example)
-//   docs/missing-usage-advice     3704 → 3704   (its useWhen/avoidWhen/howToUse)
-//
-// docs/missing-translation-coverage is also unmoved at 4115: every literal authored
-// for the above carries a real fr and zh translation, so the new terms enter that
-// dimension already covered rather than as fresh debt.
-//
-// The forward path for the five that remain is per-term and known: a competency
-// question with a rationale, a fixture pair, and a worked instance for each of the
-// 14. Until those land, this baseline is the honest number, and it may only move
-// DOWN from here.
 #[test]
 fn coverage_ratchet_baseline_is_recorded() {
     // The recorded report-only ratchet: a snapshot of the live per-code coverage

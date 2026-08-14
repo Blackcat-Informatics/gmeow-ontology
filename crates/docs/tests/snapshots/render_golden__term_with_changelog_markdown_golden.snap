@@ -2,29 +2,29 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Account Status
+# Changelog Entry
 
-`gmeow:AccountStatus` · Class
+`gmeow:ChangelogEntry` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AccountStatus` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AccountStatus` |
+| CURIE | `gmeow:ChangelogEntry` |
+| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
 | Category | Class |
-| Slice | [GMEOW Accounts Module](../../slices/accounts/index.md) |
+| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: AbstractIndividualType](../../badges/stereotype/abstractindividualtype.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-The usage status of an account from its holder's standpoint — a VALUE vocabulary \(active, dormant, historical, …\); open set\.
+A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:AccountStatus .
+<subject> a gmeow:ChangelogEntry .
 ```
 
 ## Example in multiple syntaxes
@@ -32,7 +32,7 @@ The usage status of an account from its holder's standpoint — a VALUE vocabula
 **Turtle**
 
 ```turtle
-<subject> a gmeow:AccountStatus .
+<subject> a gmeow:ChangelogEntry .
 ```
 
 **JSON\-LD**
@@ -45,7 +45,7 @@ The usage status of an account from its holder's standpoint — a VALUE vocabula
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/AccountStatus"
+          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
         }
       ]
     }
@@ -53,12 +53,20 @@ The usage status of an account from its holder's standpoint — a VALUE vocabula
 }
 ```
 
+## Neighborhood
+
+![Term neighborhood](../../diagrams/terms/changelogentry.svg)
+
+## Super\-classes
+
+- [`gmeow:InformationObject`](../informationobject/index.md)
+
 ## Usage Advice
 
-- **Example:** ex:accountStatusHistorical a gmeow:AccountStatus \.
-- **Use when:** Use as the value vocabulary for an account's usage state from the holder's standpoint — the open set \(active, dormant, historical, …\) an OnlineAccount declares through gmeow:accountStatus\.
-- **Avoid when:** Avoid for the underlying service's liveness \(use gmeow:ServiceStatus\) and avoid per\-status subclasses; statuses are individuals on an open value vocabulary\.
-- **How to use:** Reference the seeded gmeow:AccountStatus individuals from an account via gmeow:accountStatus; a retired account takes the historical value and is kept on record rather than deleted \(P10\)\.
+- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
+- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
+- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
+- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
 
 ## Profiles
 
@@ -66,9 +74,15 @@ The usage status of an account from its holder's standpoint — a VALUE vocabula
 
 ## Formal & academic
 
+## Description\-Logic axioms
+
+```text
+gmeow:ChangelogEntry ⊑ gmeow:InformationObject
+```
+
 ## Logic stereotypes
 
-`logic:AbstractIndividualType` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
@@ -81,17 +95,17 @@ The usage status of an account from its holder's standpoint — a VALUE vocabula
 
 ## Stability
 
-- **Status:** stable
+- **Status:** experimental
 
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **0\.1\.0** — Definition changed
+- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AccountStatus>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AccountStatus@blake3:3897d1a6b630b6a9cfad9926d32c2efa54969c4ec96c01c156bb25e56c5bb977`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

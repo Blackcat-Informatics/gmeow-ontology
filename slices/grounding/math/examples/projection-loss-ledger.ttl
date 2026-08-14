@@ -1,0 +1,175 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The `math:` "### Projection rules" section (design/MATHEMATICS-CONFORMANCE.md) names five
+# native-validator gates over `math:ProjectionRecord` — `math:MissingPreservationKind`,
+# `math:UndeclaredUnsupportedConstruct`, `math:UnrecordedProjectionLoss`,
+# `math:ProjectionConfidenceAsProbability`, `math:ProjectionDroppedParameterization` — but
+# until now every authored `math:ProjectionRecord` lived only in test fixtures, so the loss
+# ledger never shipped a positive demonstrator a bundle consumer could read. These three
+# records are that demonstrator: three REAL `math:` lowerings into external targets, each
+# honestly declaring its preservation polarity through the `logic:` loss-ledger vocabulary
+# reused VERBATIM (Principle 17 — no `math:` near-synonym for `logic:preservationKind`,
+# `logic:ExactPreservation`, `logic:SoundUnderApproximation`, or `logic:unsupportedConstruct`).
+# They are CONFORMING: each is clean against all five gates above, showing the honest positive
+# case the counter-example fixtures (which pin the five failure classes firing) complement.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/projection-loss-ledger/> .
+
+# ── 1. The structured AST → OWL-annotation-surface projection (lossy) ─────────────────────
+#
+# `ex:sumExpr` is a genuine `math:ApplicationExpression`: one `math:operator` (`math:Addition`)
+# over two `math:ArgumentSlot` cells, each carrying a `math:NumberLiteral` leaf that names its
+# exact `math:Number`. Lowering that structured argument-slot/operator tree onto a
+# string-only OWL annotation surface (`rdfs:comment`-style prose, a doc string, a tooltip) can
+# only carry the FLATTENED display string "Addition(2, 3)" — the slot indices, the operator
+# individual, and the two numeric leaves are gone once the string is all that is left. That is
+# a `logic:SoundUnderApproximation`: nothing the annotation surface says is wrong, but it
+# cannot recover the AST. The flattening is named explicitly in `logic:unsupportedConstruct`
+# rather than performed silently, which is exactly what `math:UnrecordedProjectionLoss` exists
+# to catch on a record that does NOT name it.
+ex:sumExpr a math:ApplicationExpression, math:MathematicalExpression ;
+    rdfs:label "2 + 3 — the structured argument-slot/operator AST"@x-gmeow-english ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:sumSlot0 , ex:sumSlot1 .
+
+ex:sumSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:twoLiteral .
+
+ex:sumSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:threeLiteral .
+
+ex:twoLiteral a math:NumberLiteral ;
+    rdfs:label "2"@x-gmeow-english ;
+    math:literalValue ex:twoNumber .
+
+ex:twoNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+ex:threeLiteral a math:NumberLiteral ;
+    rdfs:label "3"@x-gmeow-english ;
+    math:literalValue ex:threeNumber .
+
+ex:threeNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+ex:annotationProjection a math:ProjectionRecord ;
+    rdfs:label "ex:sumExpr lowered to the OWL annotation surface"@x-gmeow-english ;
+    math:projectionSource ex:sumExpr ;
+    math:projectionTargetName "the OWL annotation surface" ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:unsupportedConstruct "flattens the argument-slot/operator AST of ex:sumExpr to the display string \"Addition(2, 3)\" on the OWL annotation surface — the slot structure, the operator individual, and the two math:NumberLiteral leaves do not survive the string-only target" .
+
+# ── 2. The Distribution → SciPy/Stan parameter-form projection (exact) ────────────────────
+#
+# `ex:normalDistribution` names its family (`math:DistributionFamily`) and, mandatorily for a
+# parametric distribution, its `math:DistributionParameterization` — the mean/standard-deviation
+# convention, requiring exactly the two roles `scipy.stats.norm(loc=…, scale=…)` also takes as
+# named keyword arguments. A role-for-role mapping onto SciPy's named parameters drops nothing:
+# both required roles survive into the target under their own names, so the record honestly
+# declares `logic:ExactPreservation` rather than a lossy kind — and, being exact, carries no
+# `logic:unsupportedConstruct` (there is nothing to enumerate). Both required roles are
+# supplied by exactly one `math:DistributionParameter` each (`math:DistributionParameterRoleCardinality`
+# otherwise) — a distribution that names a parameterization is thereby parametric and must
+# fill every role it requires.
+ex:normalDistribution a math:Distribution ;
+    rdfs:label "the normal distribution, mean/standard-deviation convention"@x-gmeow-english ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParameterization ;
+    math:hasDistributionParameter ex:meanParam , ex:stddevParam .
+
+ex:normalFamily a math:DistributionFamily ;
+    rdfs:label "the normal (Gaussian) family"@x-gmeow-english .
+
+ex:meanStddevParameterization a math:DistributionParameterization ;
+    rdfs:label "the mean / standard-deviation convention"@x-gmeow-english ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+
+ex:meanRole a math:DistributionParameterRole ;
+    rdfs:label "mean"@x-gmeow-english .
+
+ex:stddevRole a math:DistributionParameterRole ;
+    rdfs:label "standard deviation"@x-gmeow-english .
+
+ex:meanParam a math:DistributionParameter ;
+    rdfs:label "the supplied mean parameter"@x-gmeow-english ;
+    math:parameterRole ex:meanRole .
+
+ex:stddevParam a math:DistributionParameter ;
+    rdfs:label "the supplied standard-deviation parameter"@x-gmeow-english ;
+    math:parameterRole ex:stddevRole .
+
+ex:scipyProjection a math:ProjectionRecord ;
+    rdfs:label "ex:normalDistribution lowered to the SciPy/Stan parameter form"@x-gmeow-english ;
+    math:projectionSource ex:normalDistribution ;
+    math:projectionTargetName "the SciPy/Stan parameter form (scipy.stats.norm(loc=, scale=))" ;
+    logic:preservationKind logic:ExactPreservation .
+
+# ── 3. The confidence → math:ProbabilityValue calibration projection (lossy, declared) ────
+#
+# `ex:mortalityInference` carries a genuine `logic:confidence` — the asserter's epistemic
+# certainty, `logic:` is explicit that this is NOT a probability absent a declared mapping.
+# `ex:calibratedProbability` carries the SAME fraction (87/100) as an EXACT
+# `math:ProbabilityValue`/`math:RationalValue`, licensed by the explicit
+# `math:declaredConfidenceMapping` (`ex:identityCalibrationMapping`) the record names — an
+# identity calibration, not a silent reinterpretation. `math:projectsConfidenceAsProbability
+# true` declares the conversion outright rather than leaving it implicit (the seam
+# `math:ProjectionConfidenceAsProbability` exists to police). The conversion is still lossy —
+# an epistemic confidence and an aleatory probability are not the same kind of thing even when
+# an identity mapping carries the same two integers — so the record honestly declares
+# `logic:SoundUnderApproximation` and names the collapsed epistemic/aleatory distinction in
+# `logic:unsupportedConstruct`.
+ex:mortalityInference a math:MathematicalObject ;
+    rdfs:label "an inference's asserted epistemic confidence in its conclusion"@x-gmeow-english ;
+    logic:confidence "0.87"^^xsd:decimal .
+
+ex:calibratedProbability a math:ProbabilityValue , math:RationalValue ;
+    rdfs:label "the identity-calibrated probability, carrying the same 87/100 fraction"@x-gmeow-english ;
+    math:numerator 87 ;
+    math:denominator 100 ;
+    math:hasDimension math:dimensionless ;
+    gmeow:hasReferenceFrame ex:calibrationFrame .
+
+# A self-contained FrameProfile, declared in full rather than leaning on shared frame
+# individuals: one dimensionless scalar axis in the measurement realm, crisp because the
+# calibration carries an exact fraction rather than a vague one, and hosted by nothing. A
+# probability is the [0,1] magnitude this frame measures, so the profile is exactly the
+# scalar one — stated here so the example satisfies gmeow:FrameProfileShape standing alone.
+ex:calibrationFrame a gmeow:ReferenceFrame ;
+    rdfs:label "the confidence-to-probability identity-calibration surface"@x-gmeow-english ;
+    gmeow:frameRealm ex:calibrationRealm ;
+    gmeow:frameKind ex:calibrationFrameKind ;
+    gmeow:determinacyModel ex:crispCalibration ;
+    gmeow:hasAxis ex:probabilityAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false .
+
+ex:calibrationRealm a gmeow:FrameRealm ;
+    rdfs:label "Calibration measurement realm"@x-gmeow-english .
+ex:calibrationFrameKind a gmeow:FrameKind ;
+    rdfs:label "Scalar frame kind — a single dimensionless magnitude in [0,1]"@x-gmeow-english .
+ex:crispCalibration a gmeow:Determinacy ;
+    rdfs:label "Crisp determinacy — the calibration carries an exact fraction"@x-gmeow-english .
+ex:probabilityAxis a gmeow:Axis ;
+    rdfs:label "The probability magnitude axis"@x-gmeow-english .
+
+ex:identityCalibrationMapping a math:MathematicalObject ;
+    rdfs:label "the identity calibration mapping: the confidence fraction carried unchanged into the probability value"@x-gmeow-english .
+
+ex:confidenceProjection a math:ProjectionRecord ;
+    rdfs:label "ex:mortalityInference's confidence lowered to a math:ProbabilityValue"@x-gmeow-english ;
+    math:projectionSource ex:mortalityInference ;
+    math:projectionTargetName "a math:ProbabilityValue calibration surface" ;
+    math:projectsConfidenceAsProbability true ;
+    math:declaredConfidenceMapping ex:identityCalibrationMapping ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:unsupportedConstruct "the epistemic-confidence / aleatory-probability distinction, collapsed by the identity calibration mapping from ex:mortalityInference to ex:calibratedProbability" .

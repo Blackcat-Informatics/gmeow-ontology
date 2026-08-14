@@ -300,7 +300,26 @@ fn shacl_rows() -> Vec<ShaclRow> {
             worked: "gmn-script-glyph-canonical.ttl",
         },
         ShaclRow {
+            // The @ℒ logic-plane sibling: a forcing-turnstile grapheme (U+22A9) whose
+            // gmeow:gmnCodepoints drops the canonical "U+" prefix. The codepoint gate is
+            // plane-agnostic, so the logic plane discharges the SAME class on its own fixture.
+            counter: "gmn-logic-noncanonical-codepoint.ttl",
+            class: "GmnNonCanonicalCodepoint",
+            trips: &["GmnNonCanonicalCodepoint"],
+            worked: "gmn-script-glyph-canonical.ttl",
+        },
+        ShaclRow {
             counter: "gmn-confusable-glyph.ttl",
+            class: "GmnConfusableGlyph",
+            trips: &["GmnConfusableGlyph"],
+            worked: "gmn-script-glyph-canonical.ttl",
+        },
+        ShaclRow {
+            // The @ℒ logic-plane sibling: the forcing turnstile ⊩ (U+22A9) and the double-bar
+            // turnstile ⊫ (U+22AB) linked by gmeow:gmnConfusableWith. Distinct, canonical
+            // codepoints keep the collision and codepoint gates quiet, so only the confusables
+            // class fires — the blocklist is plane-agnostic.
+            counter: "gmn-logic-confusable-glyph.ttl",
             class: "GmnConfusableGlyph",
             trips: &["GmnConfusableGlyph"],
             worked: "gmn-script-glyph-canonical.ttl",
@@ -318,6 +337,17 @@ fn shacl_rows() -> Vec<ShaclRow> {
         },
         ShaclRow {
             counter: "gmn-glyph-collision.ttl",
+            class: "GmnGlyphCollision",
+            trips: &["GmnGlyphCollision"],
+            worked: "gmn-script-glyph-canonical.ttl",
+        },
+        ShaclRow {
+            // The @ℒ logic-plane sibling, tightened to the ONE-partner-scoped case: two
+            // graphemes share U+22AB with gmeow:gmnSigilScope on only one of them. The
+            // sigil-scoped exemption requires BOTH to be scoped, so the collision still fires —
+            // the case that keeps the lawful cross-plane reuse of a codepoint from being read
+            // as a licence for a half-scoped collision.
+            counter: "gmn-logic-glyph-collision.ttl",
             class: "GmnGlyphCollision",
             trips: &["GmnGlyphCollision"],
             worked: "gmn-script-glyph-canonical.ttl",

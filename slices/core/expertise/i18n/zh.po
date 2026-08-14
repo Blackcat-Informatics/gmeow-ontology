@@ -152,3 +152,11 @@ msgstr "范围：该记录仅承载关于 gmeow:skillProficiencyOf 的一项完�
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyScale and nothing else. It is not a definition of gmeow:skillProficiencyScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:skillProficiencyScale 的一项完整性义务，别无其他。它不是 gmeow:skillProficiencyScale 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SkillProficiencyScaleMismatchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SkillProficiency level/scale mismatch constraint"
+msgstr "SkillProficiency 等级与量表失配约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SkillProficiencyScaleMismatchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity warning: a gmeow:SkillProficiency's gmeow:skillProficiencyLevel must be read on the gmeow:ProficiencyScale the relator itself names via gmeow:skillProficiencyScale — a level whose gmeow:levelScale differs from the relator's declared scale is a mismatch."
+msgstr "闭世界完整性警告：gmeow:SkillProficiency 的 gmeow:skillProficiencyLevel 必须在该关系体自身经 gmeow:skillProficiencyScale 所命名的 gmeow:ProficiencyScale 上解读——某个等级的 gmeow:levelScale 若不同于关系体所声明的量表，即构成失配。"

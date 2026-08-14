@@ -38,7 +38,6 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
-const RDFS_SUB_CLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
@@ -769,7 +768,7 @@ fn gts_from_maximal(
             .add_dataset(&statement_dataset)
             .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))?;
     }
-    crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+    gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
 }
 
 fn statement_layer_nt(derived: &BTreeMap<TripleKey, DerivedTriple>) -> String {
@@ -900,10 +899,20 @@ fn suppressed_nodes(
     Ok(suppressed)
 }
 
+/// `graph` here is `onto`/`ontology_nt` — `ontology/gmeow.ttl` ⊕ every slice
+/// `module.ttl`, parsed directly from the committed AUTHORED sources (see
+/// `ontology_source_files` in `crates/pipeline/src/scoreboards.rs`), never a
+/// lowered `rdfs:`-only projection. So this closure must scan both the canonical
+/// `logic:subClassOf` edge and its `rdfs:` projection (gmeow_ns::SUB_CLASS_OF
+/// doctrine; crates/ns/src/lib.rs:106-166) or a re-authored Appellation subclass
+/// silently drops out of the suppression vocabulary.
 fn subclass_closure(graph: &Graph, root: &str) -> BTreeSet<String> {
     let mut closure = BTreeSet::new();
     closure.insert(format!("<{root}>"));
-    let edges = subject_objects(graph, RDFS_SUB_CLASS_OF);
+    let mut edges: Vec<(RdfTerm, RdfTerm)> = Vec::new();
+    for predicate in gmeow_ns::SUB_CLASS_OF {
+        edges.extend(subject_objects(graph, predicate));
+    }
     loop {
         let mut grew = false;
         for (sub, sup) in &edges {
@@ -1188,6 +1197,28 @@ mod tests {
         assert_eq!(
             reifier_for(&s, p, &o),
             "https://blackcatinformatics.ca/gmeow/derivations/bc5c0b0074e06845"
+        );
+    }
+
+    /// G9 canonical-subsumption sweep: `subclass_closure` reads `onto` — the
+    /// AUTHORED `ontology/gmeow.ttl` ⊕ slice `module.ttl` merge (see
+    /// `ontology_source_files` in `crates/pipeline/src/scoreboards.rs`), never a
+    /// lowered `rdfs:`-only projection. It must traverse the canonical
+    /// `logic:subClassOf` edge, not only its `rdfs:` projection (gmeow_ns::SUB_CLASS_OF
+    /// doctrine; crates/ns/src/lib.rs:106-166), or a re-authored Appellation
+    /// subclass silently drops out of the suppression vocabulary.
+    #[test]
+    fn subclass_closure_traverses_canonical_logic_subclass_of() {
+        const GM_APPELLATION_LOCAL: &str = "https://blackcatinformatics.ca/gmeow/Appellation";
+        const GM_PERSON_NAME: &str = "https://blackcatinformatics.ca/gmeow/PersonName";
+        let nt = format!(
+            "<{GM_PERSON_NAME}> <https://blackcatinformatics.ca/logic/subClassOf> <{GM_APPELLATION_LOCAL}> .\n"
+        );
+        let graph = parse_graph(nt.as_bytes()).expect("fixture must parse");
+        let closure = subclass_closure(&graph, GM_APPELLATION_LOCAL);
+        assert!(
+            closure.contains(&format!("<{GM_PERSON_NAME}>")),
+            "subclass_closure must traverse the canonical logic:subClassOf edge: {closure:?}"
         );
     }
 

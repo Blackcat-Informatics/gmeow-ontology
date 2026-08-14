@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the `math:` expression lowering
+# (crates/logic/src/physical/lower.rs, MathLoweringError::BindingMissingBody): a
+# math:BindingExpression root naming its operator and its bound variable, but NO
+# math:argumentSlot at all — a binder must name AT LEAST ONE indexed operand cell to bind
+# its variable over, though it may name several (a math:ModelFormula is a binder over
+# indexed operands); zero means there is no body to bind over. Distinct from
+# math:BindingMissingOperator / math:BindingMissingBoundVariable (each already
+# covered): here the operator and bound variable are both well-formed, isolating the
+# absent-body violation. The authored math:structuralKey lets the reasoned-graph gate
+# (check_structural_key_on_rejected_expression) also reach it.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:root a math:BindingExpression ;
+    math:operator math:summationBinder ;
+    math:boundVariable ex:xDecl ;
+    math:structuralKey "not-a-real-digest" .
+
+ex:xDecl a math:VariableDeclaration .

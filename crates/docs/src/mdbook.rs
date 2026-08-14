@@ -26,19 +26,19 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::exec::ExecutableDocsData;
+use crate::model::{DocTerm, DocTermCategory, DocsModel};
 use crate::render::{
     Page, Site, book_pages, interactive_asset_files, slice_slug, term_slug,
     to_markdown_exec_with_map,
 };
-use gmeow_docs_model::exec::ExecutableDocsData;
-use gmeow_docs_model::model::{DocTerm, DocTermCategory, DocsModel};
-use gmeow_docs_model::source_map::SourceToPageMap;
+use crate::source_map::SourceToPageMap;
 
 /// The book-root path of the `additional-js` boot shim. mdbook injects `additional-js`
 /// files as plain `<script>` tags (no `type="module"`), so this ONE classic script
-/// dynamically `import()`s the ES-module controller (resolved against the shim's own URL,
-/// so it is correct at any chapter depth). It is emitted at the book root (mdbook copies
-/// `additional-js` from there), NOT under `src/`.
+/// dynamically `import()`s the ES-module controller `assets/gmeow-docs.js` (resolved
+/// against the shim's own URL, so it is correct at any chapter depth). It is emitted at
+/// the book root (mdbook copies `additional-js` from there), NOT under `src/`.
 pub const MDBOOK_BOOT_JS_PATH: &str = "mdbook-boot.js";
 
 /// The `src/`-relative chapter path of the packed interactive host page (the bundle
@@ -75,8 +75,7 @@ pub struct LinkRewrite {
 ///
 /// Emits `book.toml`, `SUMMARY.md`, and `src/<page-dir>/index.md` for every page
 /// in [`book_pages`]. Chapter bodies are the single Markdown authority
-/// ([`crate::render::to_markdown_exec`]) transformed only by
-/// [`rewrite_book_links`]. The output
+/// ([`crate::render::to_markdown_exec`]) transformed only by [`rewrite_book_links`]. The output
 /// is byte-identical across calls.
 pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     let pages = book_pages(model);
@@ -97,8 +96,8 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     // The book packs the interactive engines when the render is exec-backed, so once
     // built it carries the SAME live SPARQL / reasoning / GMN transcode the site does
     // (its `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities in
-    // `gmeow_docs_model::formats` are not a bare claim — the assets are shipped here).
-    let interactive = crate::render::interactive_assets_ship(exec);
+    // `crate::formats` are not a bare claim — the assets are shipped here).
+    let interactive = exec.has_bundle() || exec.has_playground();
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     files.insert(
@@ -135,28 +134,20 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
 /// The `additional-js` boot shim: a classic script that dynamically imports the
 /// ES-module docs controller, resolving its URL against the shim's own `src` so it is
 /// correct at any chapter depth. Emitted at [`MDBOOK_BOOT_JS_PATH`].
-fn mdbook_boot_js() -> String {
-    format!(
-        "// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>\n\
-         // SPDX-License-Identifier: AGPL-3.0-only\n\
-         \n\
-         // mdbook injects additional-js as a plain <script> (no type=\"module\"), so this classic\n\
-         // shim dynamic-imports the ES-module docs controller. The URL is resolved against THIS\n\
-         // script's own src, so it is correct regardless of the chapter's depth in the book.\n\
-         //\n\
-         // The shim runs on EVERY chapter, but the controller binds only to the DOM hooks a\n\
-         // chapter actually carries — the same derivation the static site's per-page injection\n\
-         // gate uses — so the two shells activate the identical control set.\n\
-         (function () {{\n\
-         \x20 var self = document.currentScript;\n\
-         \x20 var base = (self && self.src) || window.location.href;\n\
-         \x20 import(new URL(\"{path}\", base)).catch(function (e) {{\n\
-         \x20   console.error(\"gmeow docs controller failed to load\", e);\n\
-         \x20 }});\n\
-         }})();\n",
-        path = crate::render::DOCS_CONTROLLER_PATH,
-    )
-}
+const MDBOOK_BOOT_JS: &str = "\
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>\n\
+// SPDX-License-Identifier: AGPL-3.0-only\n\
+\n\
+// mdbook injects additional-js as a plain <script> (no type=\"module\"), so this classic\n\
+// shim dynamic-imports the ES-module docs controller. The URL is resolved against THIS\n\
+// script's own src, so it is correct regardless of the chapter's depth in the book.\n\
+(function () {\n\
+  var self = document.currentScript;\n\
+  var base = (self && self.src) || window.location.href;\n\
+  import(new URL(\"assets/gmeow-docs.js\", base)).catch(function (e) {\n\
+    console.error(\"gmeow docs controller failed to load\", e);\n\
+  });\n\
+})();\n";
 
 /// Pack the interactive engines + the bundle-explorer host chapter into the book.
 ///
@@ -181,7 +172,7 @@ fn pack_interactive_book(
     }
     files.insert(
         MDBOOK_BOOT_JS_PATH.to_string(),
-        mdbook_boot_js().into_bytes(),
+        MDBOOK_BOOT_JS.as_bytes().to_vec(),
     );
 
     if exec.has_bundle() {

@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency (medium axis): which media declare a compression dictionary, and what corpus
+# trains it? This is the question a consumer asks BEFORE decoding: the bound of dictionaries a
+# medium may prime with, and — for a reviewer — the material each of those dictionaries
+# carries verbatim substrings of. A dictionary reachable from a medium but trained over an
+# undeclared corpus is a shipped byte table nobody can audit.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?medium ?dictionary ?corpus WHERE {
+    ?medium gmeow:mediumDictionary ?dictionary .
+    ?dictionary gmeow:trainsOverCorpus ?corpus .
+}
+ORDER BY ?medium ?dictionary

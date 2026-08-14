@@ -37,8 +37,113 @@ pub fn shacl_validate_dataset(
     dataset: &RdfDataset,
     shapes: &purrdf::shapes::shapes::Shapes,
 ) -> purrdf::shapes::report::ValidationReport {
-    purrdf::shapes::engine::validate_dataset(dataset, shapes)
-        .expect("validation over a frozen dataset is infallible")
+    let mut report = purrdf::shapes::engine::validate_dataset(dataset, shapes)
+        .expect("validation over a frozen dataset is infallible");
+    dedupe_validation_results(&mut report);
+    report
+}
+
+/// The total, order-preserving identity of a SHACL result: every field a consumer can
+/// observe, joined under a field separator no IRI or message can contain.
+///
+/// Two results with equal identity are INDISTINGUISHABLE — same focus node, same path
+/// (including the structure behind a complex-path blank node), same offending value,
+/// same constraint component, same source shape, same severity, same message, same box
+/// roles, same attributions. There is no observation that separates them.
+fn result_identity(result: &purrdf::shapes::report::ValidationResult) -> String {
+    use std::fmt::Write;
+    let mut key = String::new();
+    let field = |value: &dyn std::fmt::Debug, key: &mut String| {
+        let _ = write!(key, "{value:?}\u{1f}");
+    };
+    field(&result.focus_node.to_string(), &mut key);
+    field(
+        &result.result_path.as_ref().map(ToString::to_string),
+        &mut key,
+    );
+    field(&result.path_structure, &mut key);
+    field(&result.value.as_ref().map(ToString::to_string), &mut key);
+    field(&result.source_constraint_component.as_str(), &mut key);
+    field(&result.source_shape.to_string(), &mut key);
+    field(&result.severity, &mut key);
+    field(&result.message, &mut key);
+    field(&result.source_box_roles, &mut key);
+    field(&result.path_box_roles, &mut key);
+    field(&result.result_box_roles, &mut key);
+    field(&result.attributions, &mut key);
+    key
+}
+
+/// Collapse INDISTINGUISHABLE results in a SHACL report, keeping the first occurrence
+/// of each (so the engine's own result order is preserved).
+///
+/// A SHACL validation report is a SET of results: a violation reported twice is one
+/// violation, and a consumer that counts findings gets the wrong answer when it is
+/// reported N times. The engine produces the duplicates honestly — SHACL specifies one
+/// validation result per SOLUTION of an `sh:sparql` constraint's `sh:select`, and a
+/// projected `SELECT $this` whose WHERE clause binds further variables (a guard triple
+/// that fixes the target, an `?s1`/`?s2` pair witnessing a duplicate index) has one
+/// solution per BINDING COMBINATION, not per focus node. Every such solution projects
+/// the same single `$this` column, so the results it yields are byte-identical. The
+/// same collapse handles a shape that reaches one focus node twice through two
+/// equivalent constructs (e.g. a property shape carrying `sh:qualifiedValueShape`
+/// twice, once beside its max count and once beside its min count).
+///
+/// Distinct violations always differ in at least one observable field and are never
+/// collapsed — see [`result_identity`].
+pub fn dedupe_validation_results(report: &mut purrdf::shapes::report::ValidationReport) {
+    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+    report
+        .results
+        .retain(|result| seen.insert(result_identity(result)));
+}
+
+/// Every indistinguishable-result group a SHACL report carries more than once: a human
+/// description of the repeated result paired with how many times the engine reported
+/// it, in first-appearance order.
+///
+/// [`dedupe_validation_results`] makes the shipped surfaces read the report as the SET
+/// it is; this is the complementary AUDIT, for a gate that must FAIL on a duplicate
+/// rather than quietly absorb it — a conformance cell that asserts "exactly one
+/// finding" is only meaningful if something reds when the engine emits four.
+#[must_use]
+pub fn duplicate_validation_results(
+    report: &purrdf::shapes::report::ValidationReport,
+) -> Vec<(String, usize)> {
+    let mut order: Vec<String> = Vec::new();
+    let mut counts: std::collections::HashMap<String, (String, usize)> =
+        std::collections::HashMap::new();
+    for result in &report.results {
+        let identity = result_identity(result);
+        match counts.get_mut(&identity) {
+            Some((_, count)) => *count += 1,
+            None => {
+                order.push(identity.clone());
+                counts.insert(
+                    identity,
+                    (
+                        format!(
+                            "{} at {} (shape {}{})",
+                            result.source_constraint_component.as_str(),
+                            result.focus_node,
+                            result.source_shape,
+                            result
+                                .result_path
+                                .as_ref()
+                                .map(|p| format!(", path {p}"))
+                                .unwrap_or_default(),
+                        ),
+                        1,
+                    ),
+                );
+            }
+        }
+    }
+    order
+        .into_iter()
+        .filter_map(|identity| counts.remove(&identity))
+        .filter(|(_, count)| *count > 1)
+        .collect()
 }
 
 /// Parse a single Turtle file into a frozen native [`RdfDataset`].
@@ -327,6 +432,86 @@ mod tests {
     use purrdf::{DatasetView, GraphMatch};
 
     const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    // ── result-set collapse ────────────────────────────────────────────────────
+
+    fn sparql_result(focus: &str) -> purrdf::shapes::report::ValidationResult {
+        use purrdf::shapes::report::Severity as ShaclSeverity;
+        use purrdf::shapes::term::{NamedNode, Term};
+        purrdf::shapes::report::ValidationResult {
+            focus_node: Term::NamedNode(NamedNode::new_unchecked(focus)),
+            result_path: None,
+            path_structure: None,
+            value: Some(Term::NamedNode(NamedNode::new_unchecked(focus))),
+            source_constraint_component: NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#SPARQLConstraintComponent",
+            ),
+            source_shape: Term::NamedNode(NamedNode::new_unchecked("https://ex/ContiguityShape")),
+            severity: ShaclSeverity::Violation,
+            message: Some("slot indexes must be contiguous".to_owned()),
+            source_box_roles: Vec::new(),
+            path_box_roles: Vec::new(),
+            result_box_roles: Vec::new(),
+            attributions: Vec::new(),
+        }
+    }
+
+    fn report_of(
+        results: Vec<purrdf::shapes::report::ValidationResult>,
+    ) -> purrdf::shapes::report::ValidationReport {
+        purrdf::shapes::report::ValidationReport {
+            conforms: results.is_empty(),
+            results,
+        }
+    }
+
+    #[test]
+    fn indistinguishable_results_collapse_to_one() {
+        // The defect this exists for: a projected `SELECT $this` whose WHERE clause
+        // binds further variables yields ONE result per binding combination, all
+        // projecting the same `$this` — four byte-identical findings for one violation,
+        // which a consumer counting findings reads as four defects.
+        let mut report = report_of(vec![
+            sparql_result("https://ex/badBinder"),
+            sparql_result("https://ex/badBinder"),
+            sparql_result("https://ex/badBinder"),
+            sparql_result("https://ex/badBinder"),
+        ]);
+        assert_eq!(duplicate_validation_results(&report).len(), 1);
+        assert_eq!(duplicate_validation_results(&report)[0].1, 4);
+        dedupe_validation_results(&mut report);
+        assert_eq!(report.results.len(), 1, "one violation is one result");
+    }
+
+    #[test]
+    fn distinguishable_results_all_survive_the_collapse() {
+        // The collapse may only ever drop results NO consumer can tell apart. Two
+        // violations of the same law at different focus nodes are two violations, and a
+        // second component over the same focus node is a second observation — both must
+        // survive, or the collapse would be hiding real defects.
+        let other_focus = sparql_result("https://ex/otherBinder");
+        let mut other_component = sparql_result("https://ex/badBinder");
+        other_component.source_constraint_component =
+            purrdf::shapes::term::NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
+            );
+        let mut other_shape = sparql_result("https://ex/badBinder");
+        other_shape.source_shape = purrdf::shapes::term::Term::NamedNode(
+            purrdf::shapes::term::NamedNode::new_unchecked("https://ex/UniquenessShape"),
+        );
+        let mut other_message = sparql_result("https://ex/badBinder");
+        other_message.message = Some("a different law speaking".to_owned());
+        let mut report = report_of(vec![
+            sparql_result("https://ex/badBinder"),
+            other_focus,
+            other_component,
+            other_shape,
+            other_message,
+        ]);
+        assert!(duplicate_validation_results(&report).is_empty());
+        dedupe_validation_results(&mut report);
+        assert_eq!(report.results.len(), 5);
+    }
 
     #[test]
     fn parse_file_dataset_rejects_bad_turtle() {

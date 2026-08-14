@@ -1,0 +1,3 @@
+<https://example.org/Cat> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/Organism> .
+<https://example.org/felix> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/Animal> .
+<https://example.org/felix> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/Organism> .

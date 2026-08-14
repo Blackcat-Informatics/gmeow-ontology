@@ -14,21 +14,26 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_docs::mdbook::{render_book, rewrite_book_links};
-use gmeow_docs::render::{
-    Page, book_pages, interactive_asset_files, slice_slug, term_slug, to_markdown_exec,
-};
+use gmeow_docs::render::{Page, book_pages, slice_slug, term_slug, to_markdown_exec};
 use gmeow_docs::{DocSlice, ExecutableDocsData};
 
 mod common;
 
-/// An `exec` that supplies the (non-empty) queryable bundle, so the render packs the
-/// interactive engines, the term/slice export sections and the bundle-explorer host
-/// chapter into the book. The bytes are opaque to the renderer (it checks non-emptiness
-/// via `has_bundle` and content-addresses them), so a fixed sentinel suffices.
-///
-/// There used to be two of these fixtures, one per query asset. There is one asset now, so
-/// there is one fixture: a book could no longer be built with an explorer but no playground
-/// (or the reverse), which was never a state the site could actually serve.
+/// An `exec` that supplies a (non-empty) playground asset, so the term/slice
+/// export sections — which link the dropped SPARQL playground + prompt card —
+/// are rendered. The bytes are opaque to the renderer (it only checks
+/// non-emptiness via `has_playground`), so a fixed sentinel is sufficient.
+fn exec_with_playground() -> ExecutableDocsData {
+    ExecutableDocsData {
+        playground_trig: b"@prefix ex: <http://example/> .".to_vec(),
+        ..Default::default()
+    }
+}
+
+/// An `exec` that supplies a (non-empty) browser bundle, so the render packs the
+/// interactive engines + the bundle-explorer host chapter into the book. The bytes are
+/// opaque to the renderer (it checks non-emptiness via `has_bundle` and content-addresses
+/// them), so fixed sentinels suffice.
 fn exec_with_bundle() -> ExecutableDocsData {
     ExecutableDocsData {
         full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
@@ -38,62 +43,41 @@ fn exec_with_bundle() -> ExecutableDocsData {
 
 /// W3: a bundle-backed book PACKS the interactive engines, so its
 /// `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities are realized, not merely
-/// asserted. The book must carry EVERY emitted interactive asset (the vendored wasm
-/// engines, the shared controller, the transport, the client-side BLAKE3, the bundle and
-/// its integrity manifest) byte-identically under `src/assets/`, the `additional-js` boot
-/// shim at the book root, the explorer host chapter, and `book.toml` must wire the shim.
+/// asserted. The book must carry the vendored wasm engines + the shared controller under
+/// `src/assets/`, the `additional-js` boot shim at the book root, the explorer host
+/// chapter, and `book.toml` must wire the shim.
 #[test]
 fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
     let model = common::cached_model();
-    let exec = exec_with_bundle();
-    let site = render_book(&model, &exec);
+    let site = render_book(&model, &exec_with_bundle());
     let has = |p: &str| site.files.contains_key(p);
 
-    // EVERY interactive asset the renderer emits, packed byte-identically under `src/`
-    // so mdbook copies it. This is DERIVED from `interactive_asset_files` — the single
-    // authority for that set — rather than a hand-listed subset, because a hand-listed
-    // subset silently omitted `assets/blake3.mjs`: a book missing it boots and then
-    // fails every client-side integrity check, with nothing here to catch it.
-    let emitted = interactive_asset_files(&exec);
-    for (path, bytes) in &emitted {
-        let packed = site.files.get(&format!("src/{path}")).unwrap_or_else(|| {
-            panic!("emitted interactive asset is not packed into the book: {path}")
-        });
-        assert_eq!(
-            packed, bytes,
-            "packed book asset differs from the emitted site asset: {path}"
-        );
-    }
-    // …and the emitted set itself carries the whole interactive surface. The derived
-    // comparison above is vacuous for an asset the EMITTER stopped producing, so the
-    // floor is asserted here: the controller, the transport, the client-side BLAKE3
-    // every integrity check runs through, both vendored MCP segments (glue + wasm +
-    // wrapper), the ONE queryable bundle, and its integrity manifest.
-    for asset in [
-        "assets/docs-controller.mjs",
-        "assets/mcp-transport.mjs",
-        "assets/blake3.mjs",
-        "assets/mcp-core/index.mjs",
-        "assets/mcp-core/pkg/gmeow_mcp_core_wasm.js",
-        "assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm",
-        "assets/mcp/index.mjs",
-        "assets/mcp/pkg/gmeow_mcp_wasm.js",
-        "assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm",
-        "assets/gmeow.gts",
-        "assets/bundle-manifest.json",
+    // The shared controller + every vendored engine, under src/ so mdbook copies them.
+    assert!(has("src/assets/gmeow-docs.js"), "controller not packed");
+    for engine in [
+        "src/assets/reason/gmeow_reason_wasm_bg.wasm",
+        "src/assets/gmn/gmeow_gmn_wasm_bg.wasm",
+        "src/assets/validate/gmeow_validate_wasm_bg.wasm",
+        "src/assets/query/gmeow_query_wasm.js",
     ] {
         assert!(
-            emitted.contains_key(asset),
-            "the interactive asset set no longer emits {asset}: {:?}",
-            emitted.keys().collect::<Vec<_>>()
+            has(engine),
+            "vendored engine not packed into the book: {engine}"
         );
     }
+    // The full gts bundle the explorer loads client-side (`Dataset.fromGts`) + its
+    // integrity manifest.
+    assert!(has("src/assets/gmeow.gts"), "full bundle not packed");
+    assert!(
+        has("src/assets/bundle-manifest.json"),
+        "bundle manifest not packed"
+    );
 
     // The additional-js boot shim rides at the book root and dynamic-imports the module.
     let shim = site.files.get("mdbook-boot.js").expect("boot shim present");
     let shim = String::from_utf8(shim.clone()).unwrap();
     assert!(
-        shim.contains("import(new URL(\"assets/docs-controller.mjs\""),
+        shim.contains("import(new URL(\"assets/gmeow-docs.js\""),
         "boot shim must dynamic-import the controller: {shim}"
     );
 
@@ -309,11 +293,10 @@ fn book_toml_golden() {
 
 #[test]
 fn book_term_chapter_with_dropped_link_golden() {
-    // A term chapter that HAS cross-links AND (because the exec carries a bundle, so the
-    // site-only interactive surfaces render) links the dropped SPARQL playground + prompt
-    // card — pins the A5 rewrite fidelity.
+    // A term chapter that HAS cross-links AND (via the playground exec) links the
+    // dropped SPARQL playground + prompt card — pins the A5 rewrite fidelity.
     let model = common::cached_model();
-    let exec = exec_with_bundle();
+    let exec = exec_with_playground();
     let site = render_book(&model, &exec);
     let slug = term_with_crosslinks(&model);
     let body = String::from_utf8(
@@ -346,7 +329,7 @@ fn book_bodies_are_rewrite_of_single_authority() {
     // A4 — render-once coherence: the ONLY difference between a book chapter and
     // the site body is the deterministic link rewrite. This mechanizes the razor.
     let model = common::cached_model();
-    let exec = exec_with_bundle();
+    let exec = exec_with_playground();
     let site = render_book(&model, &exec);
     let pages = book_pages(&model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
@@ -380,7 +363,7 @@ fn book_no_relative_link_to_dropped_page() {
     // `mdbook build`. Every `[text](target)` link to a dropped surface (the SPARQL
     // playground or a `card.md`) must be ABSOLUTE (externalized), never relative.
     let model = common::cached_model();
-    let site = render_book(&model, &exec_with_bundle());
+    let site = render_book(&model, &exec_with_playground());
     for (path, bytes) in &site.files {
         if !path.ends_with("index.md") || path == "src/SUMMARY.md" {
             continue;

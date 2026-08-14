@@ -340,3 +340,19 @@ msgstr "示例：ex:site gmeow:hasSubAsset ex:reasonerEngine ."
 msgctxt "https://blackcatinformatics.ca/gmeow/hasSubAsset|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: PACKAGING containment, not the generic mereology — it is deliberately not asserted under gmeow:partOf/gmeow:hasPart and carries no transitivity, so a component that itself encloses something does not thereby make that inner thing a sub-asset of the enclosing distribution; assert the enclosing edge you mean. Like the distribution it hangs off, the statement is SCHEMA-level: it says the component ships inside this surface, never what its bytes are in a given release, whose content digest belongs to the release instance record. The domain is gmeow:DocumentationDistribution rather than the wider gmeow:LossBearingProfile, because a sub-asset rides inside a shipped surface — a one-off render manifest is loss-bearing but ships nothing, so it cannot carry one."
 msgstr "范围：这是打包意义上的容纳关系，而非通用的部分—整体学——它有意不置于 gmeow:partOf／gmeow:hasPart 之下，也不带传递性；因此某个组件自身又包住了别的东西，并不会使那件内层之物成为外层分发件的子资产，请直接声明你所指的那条容纳边。与它所挂靠的分发件一样，该陈述处于模式层：它说的是该组件随这一表面一同交付，而绝不是它在某个具体发行版中的字节内容，后者的内容摘要属于发行实例记录。定义域是 gmeow:DocumentationDistribution，而不是更宽的 gmeow:LossBearingProfile，因为子资产是搭乘在已交付的表面之内的——一次性的渲染清单虽然承载损失，却并不交付任何东西，故不能携带子资产。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UseForConsumerTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "useForConsumer range constraint"
+msgstr "useForConsumer 值域约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UseForConsumerTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:useForConsumer value is a declared gmeow:ProjectionContext individual."
+msgstr "闭世界完整性约束：gmeow:useForConsumer 的每个取值都是一个已声明的 gmeow:ProjectionContext 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AvoidForConsumerTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "avoidForConsumer range constraint"
+msgstr "avoidForConsumer 值域约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AvoidForConsumerTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:avoidForConsumer value is a declared gmeow:ProjectionContext individual."
+msgstr "闭世界完整性约束：gmeow:avoidForConsumer 的每个取值都是一个已声明的 gmeow:ProjectionContext 个体。"

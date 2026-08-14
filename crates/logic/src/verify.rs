@@ -24,6 +24,7 @@ use purrdf::{
     SparqlRequest, SparqlResult, TermValue,
 };
 
+use crate::math_expression::{MATH_ALPHA_EQUIVALENCE_CLASS, MATH_ALPHA_EQUIVALENCE_CLASS_TYPE};
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::reason_all;
 use crate::result::ReasoningResult;
@@ -74,17 +75,54 @@ fn query_stem(name: &str) -> &str {
         .unwrap_or_else(|| name.rsplit('/').next().unwrap_or(name))
 }
 
-/// Run the reasoned-graph negative tests natively over `edb` and an already-built closure.
+/// The materialized reasoned graph plus the DERIVED (non-EDB) predicate set every
+/// verify query, obligation check, and math: gate evaluates against — the [`Ready`]
+/// half of [`materialize_reasoned_graph`]'s outcome.
 ///
-/// Materializes a flat oxigraph store = the asserted graph (flattened to the
-/// default graph, literals and `owl:members` RDF lists preserved) unioned with
-/// the native non-EDB derived edges from `result`, then evaluates
-/// each `(name, sparql)` SELECT query against it. A query returning any rows is
-/// a violation → an `error` finding (offending bindings in `detail`, the query
-/// path as the finding location). A trailing `note` summarizes the run.
+/// [`Ready`]: ReasonedGraphOutcome::Ready
+pub struct ReasonedGraph {
+    /// The flat asserted graph (default graph) unioned with the DL-derived (non-EDB)
+    /// edges and the math: dimension-gate markers — the frozen dataset every verify
+    /// query and the math: dimension/expression-identity gates evaluate against.
+    pub dataset: Arc<RdfDataset>,
+    /// The predicate IRIs of the DERIVED (non-EDB) edges — the finite-closure oracle
+    /// the non-entailment obligation check (Arm B) needs: a forbidden predicate that
+    /// was *derived* (not merely asserted) is a violation.
+    pub derived_predicates: std::collections::BTreeSet<String>,
+}
+
+/// The outcome of [`materialize_reasoned_graph`].
+pub enum ReasonedGraphOutcome {
+    /// The native reasoner decided every OWL construct present: the reasoned graph
+    /// is complete and safe to check.
+    Ready(ReasonedGraph),
+    /// The native reasoner left a DL coverage gap (an OWL construct it could not
+    /// decide): the reasoned closure may be INCOMPLETE, so checking it risks a false
+    /// negative. Carries the SAME `verify.dl-gap.*` error findings plus the aborted
+    /// `verify.native.summary` note [`verify_with_reasoning_result`] emits in this
+    /// case, already fully built — the caller folds them into its own report instead
+    /// of running any check over an untrustworthy closure.
+    IncompleteClosure(Vec<Finding>),
+}
+
+/// Materialize the reasoned graph every reasoned-graph consumer shares: flatten
+/// `edb`'s default graph (literals + `owl:members` RDF lists preserved), layer the
+/// native EL/DL closure's DERIVED (non-EDB) edges on top, splice in the math:
+/// dimension-gate markers (`crate::reason::math_gate::dimension_gate_markers`), and
+/// freeze — OR, if the native reasoner left a DL coverage gap, return the gap
+/// findings instead of an untrustworthy closure (defense-in-depth: a gap means the
+/// reasoner could NOT genuinely decide the consequences of one or more OWL
+/// constructs present in the bundle, so checking the closure risks a false
+/// negative).
 ///
-/// Never panics on a violation; the caller inspects [`Report::ok`]. The returned
-/// report is NOT yet normalized (the PyO3 layer normalizes before serializing).
+/// This is the SHARED first stage [`verify_with_reasoning_result`] (the embedded
+/// `queries/verify/*.rq` bad-example battery + the typed-formalization obligations)
+/// and every standalone reasoned-graph consumer (the math: dimension/expression-
+/// identity gates, when a caller wants ONLY those without the full-ontology-shaped
+/// query battery — e.g. `gmeow validate --deep` reasoning a consumer's own partial
+/// data graph, where the 30-query battery's fixed-vocabulary checks like
+/// `axis-not-disjoint` would misfire on a bundle that never carries gmeow's own
+/// identity-axis classes) build from.
 ///
 /// One class of defect is NOT reported as a finding but as a hard `Err`: a reasoned
 /// closure that derives an enactment-kernel effect record. A violation there means the
@@ -93,15 +131,14 @@ fn query_stem(name: &str) -> &str {
 /// query runs (see [`crate::reason::enactment::reject_banned_heads`]).
 ///
 /// # Errors
-///
-/// Returns `Err` if a query fails to parse/evaluate, if a query is not a
-/// SELECT, if a derived edge cannot be built as a quad, or if the reasoned closure
-/// derives a `logic:EffectAttempt` / `logic:ExternalEffectReceipt`.
-pub fn verify_with_reasoning_result(
+/// Returns `Err` if the dimension gate or the freeze fails, or if the reasoned closure
+/// derives a `logic:EffectAttempt` / `logic:ExternalEffectReceipt` — the enactment
+/// kernel's observed-not-derived boundary, rejected here because this is the shared
+/// stage every reasoned-graph consumer builds from.
+pub fn materialize_reasoned_graph(
     edb: &RdfDataset,
     result: &ReasoningResult,
-    queries: &[(String, String)],
-) -> gmeow_errors::Result<Report> {
+) -> gmeow_errors::Result<ReasonedGraphOutcome> {
     // 1. Flat asserted graph (default graph; literals + owl:members lists kept).
     //    A no-GRAPH verify query then matches it, exactly like ROBOT's single
     //    merged reasoned graph. The native flatten re-materializes the RDF 1.2
@@ -123,10 +160,6 @@ pub fn verify_with_reasoning_result(
     // gap-zero, so this is empty on a healthy run.
     let gaps = gaps_from_unsupported(result.preservation.unsupported_constructs.iter());
 
-    // Report is declared here so the gap-enforcement block below can add
-    // findings to it before we reach the query-evaluation section.
-    let mut report = Report::new("verify");
-
     // 2a. Hard-fail on any DL coverage gap.
     //
     // A gap means the native reasoner could NOT genuinely decide the consequences
@@ -137,28 +170,31 @@ pub fn verify_with_reasoning_result(
     // incomplete closure. The committed bundle is genuinely gap-zero, so this
     // branch is dead on a healthy run — it fires only when a new undecided
     // construct is introduced without being wired into the native handler first.
-    for gap in &gaps {
-        let mut finding = Finding::new(
-            Severity::Error,
-            format!("verify.dl-gap.{}", gap.code),
-            format!(
-                "DL coverage gap — reasoned closure may be incomplete: {} ({})",
-                gap.message, gap.code
-            ),
-        )
-        .with_tool("verify");
-        finding.tags = vec![
-            "dl-coverage".to_owned(),
-            "reasoned-graph".to_owned(),
-            "incomplete-closure".to_owned(),
-        ];
-        report.add_finding(finding);
-    }
     if !gaps.is_empty() {
+        let mut findings: Vec<Finding> = gaps
+            .iter()
+            .map(|gap| {
+                let mut finding = Finding::new(
+                    Severity::Error,
+                    format!("verify.dl-gap.{}", gap.code),
+                    format!(
+                        "DL coverage gap — reasoned closure may be incomplete: {} ({})",
+                        gap.message, gap.code
+                    ),
+                )
+                .with_tool("verify");
+                finding.tags = vec![
+                    "dl-coverage".to_owned(),
+                    "reasoned-graph".to_owned(),
+                    "incomplete-closure".to_owned(),
+                ];
+                finding
+            })
+            .collect();
         // Return early: the closure is incomplete, so running the verify queries
         // against it would be misleading. The gap findings above are sufficient
         // for the caller to diagnose and fix the coverage hole.
-        report.add_finding(
+        findings.push(
             Finding::new(
                 Severity::Note,
                 "verify.native.summary",
@@ -170,7 +206,7 @@ pub fn verify_with_reasoning_result(
             )
             .with_tool("verify"),
         );
-        return Ok(report);
+        return Ok(ReasonedGraphOutcome::IncompleteClosure(findings));
     }
 
     // The predicate IRIs of the DERIVED (non-EDB) edges — the finite-closure oracle
@@ -318,11 +354,89 @@ pub fn verify_with_reasoning_result(
 
     // Freeze the reasoned graph once; every verify query + the obligation checks
     // evaluate against this shared frozen dataset via the native engine.
-    let reasoned = store.freeze().map_err(|e| {
+    let dataset = store.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Verify {
             detail: format!("freeze reasoned graph failed: {e}"),
         })
     })?;
+
+    // Splice `math:alphaEquivalenceClass` into the reasoned graph this gate evaluates over,
+    // for every expression that LOWERS CLEANLY — an ordinary triple, exactly as the
+    // dimension-gate markers are spliced above, not a Rust side-channel.
+    //
+    // The edges come from the ONE derivation, `math_expression::alpha_equivalence_edges`
+    // (asserted substrate, accepted roots, IRI-named roots — the rationale for each lives
+    // there). The pipeline's reasoning stage serializes the SAME derivation into the shipped
+    // closure, so the joinable node a consumer reaches off `gmeow.gts` /
+    // `generated/logic/inferred-closure.rdf12.ttl` is the identical individual this in-process
+    // reasoned graph carries; there is no second, independently-computed identity.
+    let alpha_edges = crate::math_expression::alpha_equivalence_edges(edb);
+    if alpha_edges.is_empty() {
+        return Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
+            dataset,
+            derived_predicates,
+        }));
+    }
+    let mut with_alpha = MutableDataset::new(Arc::clone(&dataset));
+    for (root, alpha_class) in alpha_edges {
+        with_alpha.insert(QuadValues {
+            s: TermValue::iri(root),
+            p: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS),
+            o: TermValue::iri(alpha_class.clone()),
+            g: None,
+        });
+        with_alpha.insert(QuadValues {
+            s: TermValue::iri(alpha_class),
+            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+            o: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE),
+            g: None,
+        });
+    }
+    let dataset = with_alpha.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Verify {
+            detail: format!("freeze reasoned graph with alpha-equivalence classes failed: {e}"),
+        })
+    })?;
+    Ok(ReasonedGraphOutcome::Ready(ReasonedGraph {
+        dataset,
+        derived_predicates,
+    }))
+}
+
+/// Run the reasoned-graph negative tests natively over `edb` and an already-built closure.
+///
+/// Materializes a flat oxigraph store = the asserted graph (flattened to the
+/// default graph, literals and `owl:members` RDF lists preserved) unioned with
+/// the native non-EDB derived edges from `result`, then evaluates
+/// each `(name, sparql)` SELECT query against it. A query returning any rows is
+/// a violation → an `error` finding (offending bindings in `detail`, the query
+/// path as the finding location). A trailing `note` summarizes the run.
+///
+/// Never panics on a violation; the caller inspects [`Report::ok`]. The returned
+/// report is NOT yet normalized (the PyO3 layer normalizes before serializing).
+///
+/// # Errors
+///
+/// Returns `Err` if a query fails to parse/evaluate, if a query is not a
+/// SELECT, or if a derived edge cannot be built as a quad.
+pub fn verify_with_reasoning_result(
+    edb: &RdfDataset,
+    result: &ReasoningResult,
+    queries: &[(String, String)],
+) -> gmeow_errors::Result<Report> {
+    let mut report = Report::new("verify");
+    let ReasonedGraph {
+        dataset: reasoned,
+        derived_predicates,
+    } = match materialize_reasoned_graph(edb, result)? {
+        ReasonedGraphOutcome::Ready(graph) => graph,
+        ReasonedGraphOutcome::IncompleteClosure(findings) => {
+            for finding in findings {
+                report.add_finding(finding);
+            }
+            return Ok(report);
+        }
+    };
     let engine = NativeSparqlEngine::new();
 
     // 3. Evaluate each verify query; any solution row is a violation.
@@ -449,6 +563,13 @@ pub fn verify_with_reasoning_result(
     //    positive-definiteness constraint (the sole positive-definiteness enforcement
     //    point the runtime distance builtin trusts).
     for finding in crate::math_dimension::check_math_dimension_findings(&reasoned) {
+        report.add_finding(finding);
+    }
+    // 6. The math: expression-identity reasoned gate — recomputed math:structuralKey
+    //    drift, math:NormalizationDeclaration surface leaks, and a claimed structural key
+    //    on an expression the math: lowering rejects. Runs alongside the measure-and-
+    //    dimension gate above, over this same frozen reasoned graph.
+    for finding in crate::math_expression::check_math_expression_findings(edb, &reasoned) {
         report.add_finding(finding);
     }
 

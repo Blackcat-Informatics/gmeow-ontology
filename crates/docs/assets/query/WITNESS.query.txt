@@ -1,0 +1,33 @@
+=== select-people ===
+{"head":{"vars":["s"]},"results":{"bindings":[{"s":{"type":"uri","value":"https://example.org/alice"}},{"s":{"type":"uri","value":"https://example.org/bob"}}]}}
+=== select-from-named-graph ===
+{"head":{"vars":["s"]},"results":{"bindings":[{"s":{"type":"uri","value":"https://example.org/carol"}}]}}
+=== select-typed-literal ===
+{"head":{"vars":["s","age"]},"results":{"bindings":[{"s":{"type":"uri","value":"https://example.org/bob"},"age":{"type":"literal","value":"29","datatype":"http://www.w3.org/2001/XMLSchema#integer"}},{"s":{"type":"uri","value":"https://example.org/alice"},"age":{"type":"literal","value":"34","datatype":"http://www.w3.org/2001/XMLSchema#integer"}}]}}
+=== select-language-tagged-literal ===
+{"head":{"vars":["l"]},"results":{"bindings":[{"l":{"type":"literal","value":"Alice","xml:lang":"en"}},{"l":{"type":"literal","value":"Bob","xml:lang":"en"}}]}}
+=== ask-present ===
+{"head":{},"boolean":true}
+=== ask-absent ===
+{"head":{},"boolean":false}
+=== construct-knows ===
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/alice> <https://example.org/acquaintance> <https://example.org/bob> .
+
+=== describe-alice ===
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/alice> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/Person> .
+<https://example.org/alice> <http://www.w3.org/2000/01/rdf-schema#label> "Alice"@en .
+<https://example.org/alice> <https://example.org/age> "34"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<https://example.org/alice> <https://example.org/knows> <https://example.org/bob> .
+_:gts_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://example.org/alice> <https://example.org/knows> <https://example.org/bob> )>> .
+_:gts_00000000000000000000000000 <https://example.org/certainty> "0.9"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+
+=== select-quoted-triple-annotation ===
+{"head":{"vars":["c"]},"results":{"bindings":[{"c":{"type":"literal","value":"0.9","datatype":"http://www.w3.org/2001/XMLSchema#decimal"}}]}}
+=== select-filtered-embedded-quote ===
+{"head":{"vars":["s"]},"results":{"bindings":[{"s":{"type":"uri","value":"https://example.org/alice"}}]}}

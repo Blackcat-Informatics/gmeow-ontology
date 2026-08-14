@@ -39,8 +39,8 @@ bundle at full fidelity, and trimmed only at the exit a consumer asks for.
 ## 2. The carrier is the spine
 
 There is **one** internal transport: an in-memory bundle value (the
-`PipelineBundle` carrier, `crates/rdf-core`) threaded through the whole run. It
-holds:
+`PipelineBundle` carrier, defined by the `purrdf` substrate) threaded through the
+whole run. It holds:
 
 - the **dataset** — every named graph the build accumulates (authored default,
   statement layer, import closure, alignments, the reasoned closure, diagnostics,
@@ -192,6 +192,67 @@ folds it into the `llms.txt` / `llms-full.txt` surfaces, and the MCP server serv
 the identical bytes off the bundle alone as the `gmeow://ontology/gmn1-primer`
 resource. Whole-ecosystem tamper-evidence is folded into `pack_root`; the superset
 gate (§7) keeps every one of these paths byte-reconstructible from the bundle.
+
+### 6.2 Worked instance — the medium dictionaries
+
+The shipped zstd dictionaries are the two-halves law at work over a family whose
+canonical form is **not a file at all**, which is what makes it the sharper worked
+instance. Two producers contribute to the carrier:
+
+- **`stage-archive-blobs`** folds the by-reference TAR archives once. It is the
+  upstream half: the archive-rep corpus selectors resolve against *its* product, so
+  a dictionary is trained over the same in-memory bytes the bundle is about to
+  carry rather than over a previous build's copy on disk.
+- **`stage-medium-dictionaries`** — the single producer of the bundle's
+  dictionaries — trains each declared `gmeow:CompressionDictionary` over its
+  declared `gmeow:DictionaryCorpus` selectors, measures each into a
+  `gmeow:CompressionDictionaryRealization` (content digest, byte length, zstd
+  `Dictionary_ID`, measured strategy, measured target length), and attaches the
+  result as the build-time named graph `graph/medium-registry`. Its trained bytes
+  ride an **internal `pipeline/` byte lane**, not a committed `generated/` file.
+  The terminal then reads that product to pin every dictionary in the shipped
+  segment header's in-band `"dct"` map and to seal one `gmeow:MediumEnvelope` per
+  emitted frame.
+
+**The in-band bytes are the canonical form, carried exactly once.** A dictionary's
+shipping channel is the segment header a consumer primes from — that is where a
+runtime store obtains one without a second artifact, a network fetch, or a repo
+checkout. Routing the same bytes through the generated-opaque archive as well would
+carry one high-entropy blob twice: it would re-fold a blob the snapshot already
+carries (Constitution §18) and feed incompressible bytes to a compressor. So the
+fanout family for these paths is neither `rdf-fanout` nor `opaque` but a third one,
+**`header-dict`**: the committed path is reconstructed as the *verbatim bytes of one
+entry of the header's `"dct"` map*.
+
+Fanout therefore extracts, under `generated/medium/`:
+
+- `generated/medium/gmeow-core-v1.zdict`
+- `generated/medium/gmeow-lang-ast-v1.zdict`
+- `generated/medium/gmeow-logic-v1.zdict`
+- `generated/medium/gmeow-memory-compact-v1.zdict`
+- `generated/medium/gmeow-memory-hot-v1.zdict`
+- `generated/medium/gmeow-prooftrace-v1.zdict`
+
+— one `header-dict` row per shipped dictionary — plus one path that is **not** a
+header dictionary and travels as RDF because it *is* RDF (§5):
+
+- `generated/medium/dictionary-effect.ttl`, the `rdf-fanout` fold of
+  `graph/medium-measurement` re-rooted into its `graph/fanout` twin: the measured
+  two-part code of every shipped dictionary, taken at the terminal because that is
+  the one point at which the emission's whole blob frame set exists.
+
+The gate keys the `header-dict` family on the `.zdict` suffix, so a `.ttl` under the
+same prefix falls to `rdf-fanout` by construction rather than by exception.
+
+**Superset-gate coverage (§7) is a bijection per family.** Every entry the shipped
+segment header pins resolves to exactly one authored `header-dict` row, and every
+authored `header-dict` row is claimed by exactly one pinned entry — a dictionary
+added to the registry without its fanout row (or a row left behind after a
+dictionary is retired) is a hard failure, not a smaller expectation. The
+family-scoped bijection is what keeps the three families from vouching for each
+other, and a separate clause hard-fails any `generated/medium/*.zdict` path that
+also appears as a generated-opaque archive member, which is the one way the
+"carried exactly once" law could be broken while every other assertion still held.
 
 ## 7. The conformance gate
 

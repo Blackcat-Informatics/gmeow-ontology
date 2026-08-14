@@ -24,7 +24,7 @@ purrdf.workspace = true
 # canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
 # `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
 # `XsdValue::canonical_lexical`, replacing the transient-oxigraph-`Store` literal
-# normalizer (carrier purity). DIRECT + NON-optional: the snapshot carrier
+# normalizer (carrier-purity). DIRECT + NON-optional: the snapshot carrier
 # path is always on, so this must not be feature-gated.
 # The native SPARQL engine: the single required impl of the gmeow-rdf-core
 # `SparqlEngine` seam. The result-shape / research-object export leaves run their
@@ -80,13 +80,17 @@ gmeow-affect = { path = "../affect" }
 # shippable deliverable, not merely a test-side equality gate). Leaf compute crate
 # (no dependency back on gmeow-pipeline), so no cycle. A normal dependency also
 # satisfies the dev-only math flagship discharge harness, so it is NOT duplicated
-# in [dev-dependencies].
+# in [dev-dependencies]
 gmeow-math = { path = "../math" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (two-pass, like build_snapshot_bytes).
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
+# The mandatory GTS authorship profile (the ONE production `emit_gts` entry).
+# A leaf below this crate, so `gmeow-math` — which this crate depends on — can
+# reach the same waist without a dependency cycle.
+gmeow-gts-profile = { path = "../gts-profile" }
 # The perf-gate merge binary surfaces progress through the shared Reporter.
 gmeow-cli-core = { path = "../cli-core" }
 # The statement feedback surface folds the native statement-stage output through
@@ -164,6 +168,11 @@ tempfile.workspace = true
 # and never a gate — the events surface only when a subscriber (e.g. the CLI's
 # `init_tracing`) is installed and the level is enabled.
 tracing.workspace = true
+# The store COMPACTION lane's mandatory packaging signature: purrdf's
+# `compact_streamable` takes the ordering-commitment signer as a plain tuple (never an
+# `Option`), so an unsigned repack is unrepresentable — which means the store lane has
+# to name the key type.
+ed25519-dalek = "2"
 
 [build-dependencies]
 # Hash the workspace source into GMEOW_BUILD_FINGERPRINT (build.rs) so the
@@ -171,7 +180,32 @@ tracing.workspace = true
 sha2.workspace = true
 
 [dev-dependencies]
+# The consumer MCP engine, TEST-ONLY: the medium gate drives the runtime-store lane
+# (`store_medium` + the memory dictionaries) that moved out of this crate into the
+# `gmeow-mcp` leaf. A normal dependency would invert the layering — gmeow-mcp is a leaf
+# precisely so the shippable engine never inherits the build executor.
+gmeow-mcp = { path = "../mcp" }
 tempfile.workspace = true
+# The whole-bundle medium gate (tests/medium_bundle.rs) walks the emitted pack's raw
+# CBOR item stream (header catalog + `"dct"` map + per-frame `pub` metadata) and
+# recomputes the stratified digest independently of the producer. Integration-test
+# crates do NOT inherit the normal dependency table, so the crates it touches are
+# redeclared here.
+ciborium = "0.2"
+blake3 = "1"
+gmeow-gts-profile = { path = "../gts-profile" }
+# The whole-artifact declared-media audit (tests/whole_artifact_media.rs) drives the
+# music producer's own GTS door and holds its output to the branch the ontology
+# routes it to. Music is not otherwise a dependency of this crate, so it is dev-only;
+# gmeow-math already is one and is deliberately NOT duplicated here.
+gmeow-music = { path = "../music" }
+# The medium-axis concurrency proof (`medium::train`): each worker thread PERTURBS
+# its own thread-local `fastrand` generator around the training call, so a
+# regression to an ambient-seeded trainer shows up as diverging dictionary bytes
+# instead of passing by luck. Same generator purrdf's `gts::dict` seeds explicitly
+# and round-trips, so this pins the property that actually matters rather than a
+# proxy for it.
+fastrand = "2"
 # The diagnostic substrate is a normal dependency; integration tests build typed
 # `gmeow_errors::Diag` values off the `error::*` DiagKinds, so it is also a
 # dev-dependency (integration-test crates do not inherit normal dependencies).
@@ -225,5 +259,13 @@ purrdf.workspace = true
 #     (tests/logic_flagship_discharge.rs) RUNS and pins: reason::reason_all,
 #     correspondence_exec::leg_pair_verdict, counterfactual::construct_and_resolve,
 #     conjecture::conjecture_test, and materialize::materialize_routed (with its surfaced
-#     ChaseAdmission termination certificate + explain::assert_faithful trace).
+#     ChaseAdmission termination certificate + explain::assert_faithful trace). The math
+#     execution-discharge harness (tests/math_conformance_discharge.rs) additionally RUNS
+#     two reasoned-graph gate producers directly, over the SAME merged-fixture dataset it
+#     drives every other channel with: math_expression::check_math_expression_findings
+#     (also a genuine cross-crate production dependency of gmeow-slicetest) and
+#     reason::math_gate::dimension_gate_markers (whose only OTHER caller is verify.rs,
+#     same-crate) — `pub` on both, mirroring correspondence_exec::leg_pair_verdict's own
+#     precedent above (a same-crate production function additionally pinned by a
+#     cross-crate discharge harness), not an unjustified visibility widening.
 gmeow-logic = { path = "../logic" }

@@ -45,10 +45,9 @@ blake3.workspace = true
 # (`{conformant, failureClass?, detail?}`) at the JS boundary — the same serde surface
 # the Tier-1 `validate` Report crosses on. wasm-pure.
 serde_json.workspace = true
-# EXACTLY pinned ONCE, in `[workspace.dependencies]`: the `wasm-bindgen` CLI that
-# generates the JS bindings refuses to run unless it matches the library version
-# byte-for-byte. `make wasm-pkg` and the CI Node lane install the `wasm-bindgen-cli`
-# matching the workspace version.
+# Pinned once in the workspace: the CLI that generates the JS bindings must match the
+# library version byte-for-byte, and one CLI serves every wasm crate in the build.
+# `make wasm-pkg` and the CI Node lane install the matching `wasm-bindgen-cli`.
 wasm-bindgen.workspace = true
 # Host-target unit tests parse the `gmn_validate` JSON verdict back to assert the exact
 # `conformant` flag + `failureClass` IRI (the load-bearing unknown-glyph rejection); they

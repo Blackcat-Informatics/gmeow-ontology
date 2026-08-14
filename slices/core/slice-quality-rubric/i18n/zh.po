@@ -545,6 +545,154 @@ msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularySubsumedBy and nothing else. It is not a definition of gmeow:vocabularySubsumedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:vocabularySubsumedBy 的一项完整性义务，别无其他。它不是 gmeow:vocabularySubsumedBy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ceiling relocation — the week cycle, organization to temporal"
+msgstr "上限迁移——星期周期，由 organization 迁往 temporal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The record that the week-cycle value vocabulary left the organization slice for the temporal slice: gmeow:DayOfWeek and its seven ISO-8601 day individuals are calendar structure, and they sat in organization only because gmeow:openingDay needed a range. The rdfs subsumption edge gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue is the one guarded construct the move carries, so organization surrenders one unit of rdfs headroom and temporal takes exactly that unit on. This is the movement record the ceiling accounting joins against the measurement; it is not itself a permit, and it retires once the move is absorbed at the merge base."
+msgstr "该记录表明：星期周期的取值词表已经离开 organization 切片、迁往 temporal 切片。gmeow:DayOfWeek 及其七个 ISO-8601 日期个体属于历法结构，它们当初留在 organization，只是因为 gmeow:openingDay 需要一个值域。此次移动所携带的唯一受守卫构造，是 rdfs 包含边 gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue，因此 organization 让出一个单位的 rdfs 余量，而 temporal 恰好承接这一个单位。这是上限核算据以与测量相互印证的移动记录；它本身并不构成许可，一旦该移动在合并基线处被吸收，它就随即失效。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ceiling Relocation"
+msgstr "上限迁移"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dated declaration that a named set of terms MOVED from one slice to another, so the ratchet re-projects the affected cells' merge-base residue ceiling through that move before its lower-only comparison runs. A projection ceiling budgets net-new ungrounded authoring, which is location-independent: carrying a term across a slice boundary shifts residue between two cells without authoring any of it, so the accounting must follow the term rather than punish the destination twice. The declaration authorizes NOTHING by itself — each unit of adjustment must additionally be corroborated by a derived witness (a construct that genuinely departed the source and arrived at the destination) and funded by a matching lowering at the source, and a demand beyond that adjustment still reds. It is NOT a gmeow:ProjectionCeilingCommitment (that pins one cell's committed maximum) and NOT a gmeow:AxisExemption (that stands in for an unlanded producer): it is the movement record the ceiling accounting joins against the measurement."
+msgstr "一条带日期的声明，表明一组具名术语已从一个切片迁移到另一个切片，使得棘轮在其仅可下降的比较运行之前，先通过该迁移重新投影受影响单元格的合并基线残余上限。投影上限所预算的是位置无关的净新增未锚定编写：让一个术语跨越切片边界，只是在两个单元格之间转移残余，并未编写其中任何一分，因此核算必须跟随术语本身，而不是让目的地承受双重惩罚。该声明本身不授予任何权限——每一单位的调整都必须另外由一个派生见证（一个确实离开源头并抵达目的地的构造）加以佐证，并由源头处相应的下调提供资金；超出该调整量的需求仍会使关卡变红。它不是 gmeow:ProjectionCeilingCommitment（后者固定某个单元格的承诺上限），也不是 gmeow:AxisExemption（后者代替未落地生产者的豁免）：它是上限核算据以与测量相互印证的移动记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition a gmeow:CeilingRelocation ; gmeow:relocationTerm gmeow:moodEpisode ; gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+msgstr "示例：gmeow:reloc-affect-to-cognition a gmeow:CeilingRelocation ; gmeow:relocationTerm gmeow:moodEpisode ; gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation term"
+msgstr "迁移术语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One term IRI a relocation declaration claims moved — NON-FUNCTIONAL, because a migration normally carries a family of terms across together, and at least one is required (a declaration naming none can be corroborated by nothing, so the loader rejects it outright). Each value is matched against the relocation-invariant subject anchor the residue counter records for every construct, so a construct nested under an anonymous block still resolves to the named term that owns it. It is NOT the source or destination slice (those are gmeow:relocationFromSlice and gmeow:relocationToSlice) and NOT a vocabulary reference: it names WHAT moved."
+msgstr "迁移声明所声称已迁移的某个术语的 IRI——非函数式，因为一次迁移通常会将一整族术语一并携带过去，且至少需要一个值（若声明未指名任何术语，就无从被任何东西佐证，加载器会直接拒绝该声明）。每个值都会与残余计数器为每个构造记录的、对迁移不变的主体锚点进行匹配，因此嵌套在匿名块下的构造仍会解析到拥有它的具名术语。它既不是来源切片也不是目的切片（那分别是 gmeow:relocationFromSlice 与 gmeow:relocationToSlice），也不是词表引用：它指明的是迁移了什么。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation from slice"
+msgstr "迁移来源切片"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slice the relocated terms DEPARTED — the origin whose committed ceiling must fall by at least the transported amount for the move to be funded. Departure is measured, not asserted: a named term counts as departed only when it sits in this slice's merge-base residue and is gone from its working residue, which is precisely what distinguishes a genuine move from a copy that left the original in place. It is NOT the destination (that is gmeow:relocationToSlice) and NOT the vocabulary owner (that is gmeow:vocabularyOwner): it is the slice that gives the budget up."
+msgstr "被迁移术语所离开的切片——其承诺上限必须至少下降迁移量、该次迁移才算获得资金支持的起点切片。离开与否是被测量的，而非断言的：只有当某具名术语位于该切片的合并基线残余中、且已从其工作残余中消失时，它才算已离开，这正是区分真正迁移与留下原件的复制的关键所在。它不是目的地（那是 gmeow:relocationToSlice），也不是词表所有者（那是 gmeow:vocabularyOwner）：它是让出预算的那个切片。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSlice|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ."
+msgstr "示例：gmeow:reloc-affect-to-cognition gmeow:relocationFromSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation to slice"
+msgstr "迁移目的切片"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slice the relocated terms ARRIVED at — the destination whose merge-base ceiling the accounting re-projects upward by exactly the transported amount. Arrival is measured the mirror way to departure: a named term counts as arrived only when it is absent from this slice's merge-base residue and present in its working residue. The destination's committed ceiling must additionally be pinned to its post-move measured residue, so a migration that also deletes pre-existing residue cannot bank the difference as durable surplus. It is NOT the origin (that is gmeow:relocationFromSlice) and NOT gmeow:ceilingSlice (that pins one committed cell): it is the slice that takes the budget on."
+msgstr "被迁移术语所到达的切片——核算将其合并基线上限恰好按迁移量向上重新投影的目的地。到达的测量方式与离开对称：只有当某具名术语不在该切片的合并基线残余中、而出现在其工作残余中时，它才算已到达。目的切片的承诺上限还必须被钉定到迁移后测得的残余上，这样一次同时删除了原有残余的迁移就无法把差额当作持久盈余入账。它不是起点（那是 gmeow:relocationFromSlice），也不是 gmeow:ceilingSlice（后者钉定单个承诺单元格）：它是承接预算的那个切片。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSlice|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ."
+msgstr "示例：gmeow:reloc-affect-to-cognition gmeow:relocationToSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation vocabulary"
+msgstr "迁移词表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single guarded projection vocabulary a relocation declaration is narrowed to — OPTIONAL, and omitting it deliberately widens the declaration to every guarded vocabulary the derived witness corroborates for the same terms, which is the common case because one migrated term usually carries shape, taxonomy, and bridge residue at once. A present value must resolve to a registered gmeow:ProjectionVocabulary; an unresolvable reference would narrow the declaration to nothing and is a load-time failure rather than a silently dead record. It is NOT gmeow:ceilingVocabulary (that names which surface one committed cell caps): it is an optional narrowing of which surfaces this movement record speaks for."
+msgstr "迁移声明所收窄到的唯一受保护投影词表——可选，省略该值会有意将声明扩大到派生见证针对同一批术语所佐证的每一个受保护词表，这也是常见情形，因为一个被迁移的术语通常会同时携带形状、分类法与桥接残余。若给出该值，则必须解析到一个已注册的 gmeow:ProjectionVocabulary；无法解析的引用会把声明收窄至空，这是加载期失败，而不是一条悄然失效的记录。它不是 gmeow:ceilingVocabulary（后者指明某个承诺单元格所限定的表面）：它是对该移动记录所涉及表面的一种可选收窄。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabulary|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationVocabulary gmeow:projVocab-sh ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationVocabulary gmeow:projVocab-sh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocation date"
+msgstr "迁移日期"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The date a relocation declaration was minted — the same dating discipline every gmeow:AxisExemption carries, so a movement record that has outlived its move is visible and auditable rather than anonymous. It is NOT an expiry: what retires the declaration is the staleness rule, which reds once the relocation is fully absorbed at the merge base (the named terms sit at the destination on both sides), not the passage of time. It is NOT gmeow:exemptionDate (that stamps an unlanded-producer escape): it stamps a movement."
+msgstr "迁移声明被创建时所标注的日期——与每个 gmeow:AxisExemption 所遵循的相同日期标注规范，使得一条已经超出其迁移生命周期的移动记录仍然可见、可审计，而不是匿名的。它不是失效期限：使声明退役的是过期规则——一旦该迁移在合并基线处被完全吸收（具名术语在目的地两侧均已就位），关卡才会变红，而不是时间的流逝本身使其失效。它不是 gmeow:exemptionDate（后者为未落地生产者的豁免打上时间戳）：它为一次迁移打上时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
+msgstr "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationDate is functional"
+msgstr "relocationDate 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationDate is functional: each gmeow:CeilingRelocation is stamped with exactly one minting date, so a second date would leave an audit of movement records by age unable to say when the relocation was actually declared. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationDate 是函数式的：每个 gmeow:CeilingRelocation 都恰好标注一个创建日期，若存在第二个日期，按时间排序审计移动记录时将无法确定该迁移实际是何时声明的。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."
+msgstr "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationDate and nothing else. It is not a definition of gmeow:relocationDate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationDate 的一项完整性义务，别无其他。它不是 gmeow:relocationDate 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationFromSlice is functional"
+msgstr "relocationFromSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationFromSlice is functional: each gmeow:CeilingRelocation describes exactly one transport edge, so a second origin would leave the ceiling accounting unable to decide whose committed ceiling has to fall to fund the move. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationFromSlice 是函数式的：每个 gmeow:CeilingRelocation 恰好描述一条迁移边，若存在第二个来源，上限核算将无法判断应由哪一方的承诺上限下降来为该迁移提供资金。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."
+msgstr "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationFromSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationFromSlice and nothing else. It is not a definition of gmeow:relocationFromSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationFromSlice 的一项完整性义务，别无其他。它不是 gmeow:relocationFromSlice 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationToSlice is functional"
+msgstr "relocationToSlice 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationToSlice is functional: each gmeow:CeilingRelocation re-projects the merge-base ceiling of exactly one destination cell family, so a second destination would let one witnessed departure be counted as arriving in two places at once. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationToSlice 是函数式的：每个 gmeow:CeilingRelocation 恰好为一个目的单元格族重新投影合并基线上限，若存在第二个目的地，同一次被见证的离开就会被同时计为抵达两个地方。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."
+msgstr "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationToSliceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationToSlice and nothing else. It is not a definition of gmeow:relocationToSlice (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationToSlice 的一项完整性义务，别无其他。它不是 gmeow:relocationToSlice 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relocationVocabulary is functional"
+msgstr "relocationVocabulary 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:relocationVocabulary is functional: a gmeow:CeilingRelocation is either unnarrowed or narrowed to exactly one guarded surface, so a second vocabulary would be an ambiguous half-narrowing neither the widened nor the scoped reading could resolve. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:relocationVocabulary 是函数式的：一个 gmeow:CeilingRelocation 要么不作收窄，要么恰好收窄到一个受保护表面，若存在第二个词表，就会形成一种含糊的半收窄状态，既无法按放宽的读法解析，也无法按限定的读法解析。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."
+msgstr "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relocationVocabularyFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:relocationVocabulary and nothing else. It is not a definition of gmeow:relocationVocabulary (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:relocationVocabulary 的一项完整性义务，别无其他。它不是 gmeow:relocationVocabulary 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|rdfs:label"
 msgid "assessment axis"
 msgstr "评估轴"
@@ -556,3 +704,70 @@ msgstr "某个按轴进行的切片质量评估所测量的评价标准轴——
 msgctxt "https://blackcatinformatics.ca/gmeow/assessmentAxis|skos:scopeNote"
 msgid "Scope: it names the axis and nothing beyond it — no score, no tier, no threshold floor, and no recency follow from it, so a grade whose axis was later retired stays readable rather than becoming an untyped number. It is equally NOT an identity key: two passes over the same slice produce two distinct assessments carrying the SAME axis, so per-axis governance must join on the (assessed entity, axis, pass) triple, and deduplicating grades on the axis alone would silently discard a re-score. The subject is what separates it from gmeow:axisDimension: this is asserted on the ASSESSMENT, that one on the AXIS, so a graph carrying only gmeow:axisDimension describes the rubric and records no measurement of anything."
 msgstr "范围：它只指明轴，别无其他——分数、层级、阈值下限与新近程度都不由它推出，因此某个轴日后被撤销的评分仍然可读，而不会退化为无类型的数字。它同样不是身份键：对同一切片的两轮评估会产生两条携带相同轴的不同评估记录，因此按轴治理必须在（被评估实体、轴、评估轮次）三元组上连接，仅按轴去重会悄然丢弃一次重新评分。主语正是它与 gmeow:axisDimension 的分野：它断言在评估之上，而后者断言在轴之上，因此仅携带 gmeow:axisDimension 的图描述的是评价标准，并未记录对任何事物的测量。"
+
+
+# --- Ratchet floors, the recorded corpus, and the readability failure lattice ---
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisFloorCommitment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axis Floor Commitment"
+msgstr "轴下限承诺"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisFloorCommitment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified per-slice, per-axis committed score floor — the minimum measured decimal a named axis must hold for a named slice, enforced by the make-check gate as a raise-only monotonic ratchet (the value may rise but never fall). It pairs one gmeow:floorSlice, one gmeow:floorAxis, and one gmeow:floorValue into a single ratchet cell. It is NOT the per-tier gmeow:AxisThreshold (that gates the tier ladder for every slice), NOT the declared gmeow:sliceQualityTier (that is the slice's opted-in roll-up tier), and NOT a measured score (that is computed by the axis producer): it is the committed floor a slice's measured axis score may never regress below."
+msgstr "一个具体化的、按切片按轴承诺的分数下限——具名轴对具名切片必须保持的最小实测小数，由 make-check 门作为仅可上调的单调棘轮强制执行（该值可升高，但绝不可下降）。它将一个 gmeow:floorSlice、一个 gmeow:floorAxis 与一个 gmeow:floorValue 配对成单个棘轮单元。它不是按层级的 gmeow:AxisThreshold（后者为所有切片把关层级阶梯），不是已声明的 gmeow:sliceQualityTier（那是切片自愿采纳的汇总层级），也不是实测分数（由轴生产者计算）：它是切片的实测轴分数绝不可回退到其下的已承诺下限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAssessmentCorpus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quality Assessment Corpus"
+msgstr "质量评估语料"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAssessmentCorpus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded slice-quality assessment corpus: one node standing for a whole sweep — every discovered slice scored against this rubric — carrying the two witnesses that let a consumer read a grade instead of recomputing it. It carries a gmeow:versionFingerprint over the canonicalized authored source set the sweep read (WHICH sources were scored) and a gmeow:contentDigest over its own recorded grades (WHAT was recorded). The two are NOT interchangeable and neither substitutes for the other: a record whose fingerprint still matches the working tree but whose scores were edited by hand satisfies the first and violates the second. It is the CORPUS, never one slice's assessment (that is a gmeow:QualityAssessment carrying a gmeow:assessmentAxis) and never the rubric itself (that is the gmeow:QualityAxis / gmeow:QualityTier vocabulary this slice declares)."
+msgstr "已记录的切片质量评估语料：一个代表整轮扫描的节点——每个被发现的切片都依此评分标准打分——并携带两个见证，使消费者可以读取评分而非重新计算。它携带一个覆盖该轮扫描所读取的、经规范化的已编写源集合的 gmeow:versionFingerprint（评定了哪些源），以及一个覆盖其自身所记录评分的 gmeow:contentDigest（记录了什么）。二者不可互换，任何一个都不能替代另一个：某条记录其指纹仍与工作树相符，但其分数被手工编辑过，则满足前者而违反后者。它是语料，绝非单个切片的评估（那是携带 gmeow:assessmentAxis 的 gmeow:QualityAssessment），也非评分标准本身（那是本切片声明的 gmeow:QualityAxis / gmeow:QualityTier 词汇）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAssessmentCorpus|http://www.w3.org/2004/02/skos/core#example"
+msgid "<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:…\" ; gmeow:contentDigest \"blake3:…\" ."
+msgstr "示例：<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:…\" ; gmeow:contentDigest \"blake3:…\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAssessmentCorpus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one corpus node per sweep, emitted ahead of the per-slice blocks. Individuals are generated by the sweep, never hand-authored — a hand-written corpus would be a claim about a sweep nobody ran."
+msgstr "每轮扫描恰好一个语料节点，在按切片的区块之前发出。个体由扫描生成，绝不手工编写——手写的语料将是关于一轮无人执行的扫描的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SliceQualityConformanceFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slice Quality Conformance Failure"
+msgstr "切片质量合规失败"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SliceQualityConformanceFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The parent of the slice-quality well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each gate points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces that a RECORD of the rubric's verdicts is readable and self-witnessing, never that any particular slice's score is the right score — a grade is a measurement, and this vocabulary says nothing about whether the measurement flatters or damns the slice."
+msgstr "切片质量良构失败词汇的父类：违规本身即是一个带类型、可查询的对象，每道门通过 gmeow:enforcesFailureClass 指向其失败类。此处的合规强制要求评分标准裁决的记录可读且自我见证，绝非要求某个特定切片的分数是正确的分数——评分是一种测量，而本词汇对该测量是美化还是贬损该切片不作任何表述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SliceQualityConformanceFailure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "It is the root of THIS slice's failure lattice only; the rubric's own tier ladder (gmeow:QualityTier) grades slices and is not a failure vocabulary."
+msgstr "它仅是本切片失败格的根；评分标准自身的层级阶梯（gmeow:QualityTier）用于给切片评级，并非失败词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SliceQualityDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slice Quality Dimension"
+msgstr "切片质量维度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SliceQualityDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subset of ISO 19157 data-quality dimensions this rubric owns and actually assesses: the slice-engineering dimensions that measure a slice-as-dataset's own quality (grounding, inferential density, linkage, projection, testing, documentation, prose, provenance honesty, translation coverage, counter-example depth) — GMEOW dogfooding its own measurement stack on the slices that build it. It is a proper SUBSET of the gmeow:QualityDimension open vocabulary, co-equal with and never privileged over the geospatial ISO dimensions (positional/temporal/thematic accuracy, completeness, consistency, lineage) the rubric does not assess. As a partition class it names WHICH dimensions the rubric owns; the dimensions themselves stay individuals, extended by minting a fresh individual — never a per-dimension subclass (Principle 9)."
+msgstr "本评分标准所拥有并实际评估的 ISO 19157 数据质量维度子集：衡量切片作为数据集自身质量的切片工程维度（接地、推理密度、链接、投影、测试、文档、行文、来源诚实性、翻译覆盖率、反例深度）——GMEOW 将自身的测量栈用于构建它自己的切片，即自食其果。它是开放词汇 gmeow:QualityDimension 的真子集，与本评分标准不评估的地理空间 ISO 维度（位置/时间/专题精度、完整性、一致性、谱系）地位对等，绝不优先。作为划分类，它命名评分标准拥有哪些维度；维度本身仍为个体，通过铸造新个体来扩展——绝不使用按维度的子类（原则 9）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SliceTierFloor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slice Tier Floor"
+msgstr "切片层级下限"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SliceTierFloor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified per-slice committed roll-up tier floor — the minimum gmeow:QualityTier a named slice may declare, enforced by the make-check gate as a raise-only monotonic ratchet on the lattice order. It pairs one gmeow:floorSlice with one gmeow:floorTier. It is NOT the per-axis gmeow:AxisFloorCommitment (that floors a measured axis score, not a tier), NOT the slice's own gmeow:sliceQualityTier declaration (that is the tier the slice opts in to, which this floor bounds from below), and NOT gmeow:sliceTier (architectural placement): it is the committed rung below which the slice's declared roll-up tier may never fall."
+msgstr "一个具体化的、按切片承诺的汇总层级下限——具名切片可声明的最低 gmeow:QualityTier，由 make-check 门作为格序上仅可上调的单调棘轮强制执行。它将一个 gmeow:floorSlice 与一个 gmeow:floorTier 配对。它不是按轴的 gmeow:AxisFloorCommitment（后者为实测轴分数设下限，而非层级），不是切片自身的 gmeow:sliceQualityTier 声明（那是切片所采纳的层级，本下限从下方对其加以约束），也不是 gmeow:sliceTier（架构位置）：它是切片所声明的汇总层级绝不可跌破的已承诺档位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unreadable Quality Record"
+msgstr "不可读的质量记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when the recorded quality-assessment corpus cannot be read back as an authoritative record: it is absent, it does not parse, it is structurally incomplete (a slice the tree contains missing from it, or a grade missing its axis, its score, or its tier), or it is STALE — its gmeow:versionFingerprint does not match a fresh canonicalization of the authored sources, or its gmeow:contentDigest does not match a re-fold of the grades it carries. HARD FAIL in every one of those shapes: a consumer reads the record INSTEAD of re-running the sweep, so a partial reading is not a weaker grade but a grade about a different tree, and falling back to 'read what is there' would let a hand-raised score pass as a measurement. It is NOT a low score and never a verdict about a slice's quality — the record's readability and the slice's grade are different questions, and this class only ever answers the first."
+msgstr "当所记录的质量评估语料无法作为权威记录被读回时所引发的失败：它缺失、无法解析、结构上不完整（树中包含的某个切片在其中缺失，或某条评分缺少其轴、分数或层级），或者已过期——其 gmeow:versionFingerprint 与对已编写源的新鲜规范化不符，或其 gmeow:contentDigest 与对其所载评分的重新折叠不符。以上每一种形态都是硬性失败：消费者读取该记录以代替重新运行扫描，因此片面的读取并非较弱的评分，而是关于另一棵树的评分；退回到「读取现有内容」将使手工抬高的分数冒充测量结果。它不是低分，也绝非对切片质量的裁断——记录的可读性与切片的评分是不同的问题，而本类始终只回答前者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Freshness and integrity are separate obligations that this one class covers because both make the record unreadable in the same way: the fingerprint asks whether the record describes THIS tree, the content digest asks whether the record is what the scorer wrote, and an input-only witness answers only the first."
+msgstr "新鲜性与完整性是两项各自独立的义务，本单一类之所以同时覆盖，是因为二者以相同方式使记录不可读：指纹追问该记录是否描述这棵树，内容摘要追问该记录是否即评分者所写，而仅覆盖输入的见证只能回答前者。"

@@ -21,7 +21,7 @@ serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true
 sha1.workspace = true
-# The project's canonical content-digest. Two uses: the vendored purrdf wasm
+# The project's canonical content-digest. Two uses: the committed query wasm
 # anti-rot gate recomputes the BLAKE3 of each vendored file against the committed
 # manifest, and the uniform `gmeow:DocEvidence` projection fingerprints each
 # term's competency query text as a `blake3:<hex>` grounding property (matching
@@ -36,6 +36,9 @@ gmeow-errors = { path = "../errors" }
 # unchanged. The edge points this way because render.rs/vendored_asset.rs (the
 # include_bytes! files) consume the model, never the reverse.
 gmeow-docs-model = { path = "../docs-model" }
+# Re-exported from lib.rs at the original module paths so external callers are
+# unchanged. The edge points this way because render.rs/vendored_asset.rs (the
+# include_bytes! files) consume the model, never the reverse.
 # The wasm-clean logic compiler — the source of truth for the projection loss
 # ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products
 # documentation pages. Pure-Rust: it carries no reasoning-runtime dependencies.
@@ -52,9 +55,9 @@ gmeow-validate = { path = "../validate" }
 # (lang-bridge does not depend on docs — docs sits DOWNSTREAM of it, the same edge
 # gmn_metrics.rs's `estimate_tokens` re-declaration note describes).
 gmeow-lang-bridge = { path = "../lang-bridge" }
-# Static-site renderers: minijinja templates the page shells and pulldown-cmark
-# converts each per-page Markdown body to HTML. Both are self-contained — no
-# network assets are pulled at render time.
+# Static-site renderers. minijinja is a pure-Rust template engine (no
+# build scripts, deterministic rendering); pulldown-cmark converts the per-page
+# Markdown body to HTML. Both are self-contained — no network assets are pulled.
 minijinja.workspace = true
 pulldown-cmark.workspace = true
 

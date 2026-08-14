@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the reasoned-graph math: expression-identity gate
+# (crates/logic/src/math_expression.rs, check_structural_key_drift): ex:e1 is a
+# well-formed math:NumberLiteral root, but its authored math:structuralKey is an
+# obviously wrong string that cannot equal the recomputed blake3 digest of its own
+# structure. The gate MUST raise math:StructuralKeyDrift (and neither of its two
+# siblings math:SurfaceLeakInNormalForm / math:StructuralKeyOnRejectedExpression).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:e1 a math:NumberLiteral ;
+    math:literalValue 1 ;
+    math:structuralKey "not-the-real-digest" .

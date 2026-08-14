@@ -29,10 +29,17 @@ ex:linearForm a math:ClosedFormFunction ;
 # The abstraction variable (the x the function is OF) and the fitted parameter
 # (the slope a it is tuned BY) are distinct declarations.
 ex:xDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:realLine ;
     rdfs:label "x — the formal argument"@x-gmeow-english .
 
 ex:aDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:realLine ;
     rdfs:label "a — the slope parameter"@x-gmeow-english .
+
+# The value set both the argument and the fitted parameter range over. A free variable is
+# not introduced by a binder, so its domain is the only thing that types it.
+ex:realLine a math:Set ;
+    rdfs:label "the real line"@x-gmeow-english .
 
 # The body AST: Addition( Multiplication(a, x), 1 ).
 ex:linearBody a math:ApplicationExpression ;

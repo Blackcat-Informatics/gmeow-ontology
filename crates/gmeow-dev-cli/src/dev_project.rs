@@ -123,21 +123,25 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
             gts_path.display()
         ))
     })?;
-    // The W4 conjecture-playground demo library: the curated `logic:Conjecture` corpus,
-    // read OUT OF THE BUNDLE (the `examples-archive` blob), not off disk.
-    //
-    // It used to be a `std::fs::read` of the slice source. That made the shipped
-    // `gmeow.gts` an incomplete carrier of its own documentation surface: the site render
-    // needed a file the bundle did not contain, so a repo-free render was impossible and
-    // the bundle and the rendered playground could disagree with nothing to catch it. The
-    // corpus is now folded into the bundle by `stage-snapshot` and read back here through
-    // the ONE bundle reader.
-    //
-    // No-optionality: a bundle with no such member is a HARD FAIL naming the regenerate
-    // that folds it — never a fallback to the disk copy, which would restore exactly the
-    // divergence this removes.
-    let conjectures_ttl = bundled_conjecture_library(&bytes)?;
+    let graph = purrdf::gts::read_all_segments(&bytes)
+        .map_err(|e| fail(format!("cannot read GTS segments from bundle: {e}")))?;
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
+        .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
+    let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
+        .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
+    // The W4 conjecture-playground demo library: the committed curated
+    // `logic:Conjecture` corpus, shipped verbatim as a site sub-asset. No-optionality —
+    // a missing example is a HARD FAIL (never a silently empty playground); the release
+    // path also hard-fails on an empty declared `ConjectureDemo` sub-asset.
+    let conjectures_path = root.join("slices/grounding/logic/examples/conjectures.ttl");
+    let conjectures_ttl = std::fs::read(&conjectures_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed conjecture demo library {}: {e}",
+            conjectures_path.display()
+        ))
+    })?;
     Ok(gmeow_docs::ExecutableDocsData {
+        playground_trig,
         full_bundle_gts: bytes,
         conjectures_ttl,
         ..Default::default()
@@ -1284,7 +1288,7 @@ mod tests {
         let trees = every_slug_rendered();
         let entries = price_sub_assets(&full_rendered(&trees)).expect("full render prices");
         let owners = catalog::sub_asset_owner_slugs();
-        let subs = catalog::declared_sub_asset_slugs();
+        let subs = catalog::declared_site_sub_asset_slugs();
         assert_eq!(
             entries.len(),
             owners.len() * subs.len(),

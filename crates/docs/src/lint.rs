@@ -46,9 +46,12 @@ use std::collections::BTreeSet;
 
 use gmeow_errors::{Finding, Location, Report, Severity};
 
+use crate::coverage::{
+    CoverageContext, DIMENSIONS, SLICE_DIMENSIONS, prose_quality_detail, term_coverage,
+};
+use crate::maturity::Dimension;
+use crate::model::DocsModel;
 use crate::render::{Site, slice_slug, term_slug};
-use gmeow_docs_model::coverage::{CoverageContext, DIMENSIONS, SLICE_DIMENSIONS, term_coverage};
-use gmeow_docs_model::model::DocsModel;
 
 /// The diagnostics tool name for documentation findings.
 const TOOL: &str = "gmeow-docs";
@@ -109,7 +112,7 @@ fn lint_links(site: &Site, report: &mut Report) {
 
 /// WARNING coverage findings over the vocabulary surface only.
 ///
-/// The per-term coverage predicates live in [`gmeow_docs_model::coverage`] — the single
+/// The per-term coverage predicates live in [`crate::coverage`] — the single
 /// source shared with the rendered docs site — so a `docs/missing-*` warning fires
 /// exactly when the same dimension is shown absent on the term's page.
 fn lint_coverage(model: &DocsModel, report: &mut Report) {
@@ -130,11 +133,23 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
         );
         for (dim, covered) in DIMENSIONS.iter().zip(flags) {
             if !covered {
+                // `dimProseQuality` is a FOUR-way conjunction. Naming only the
+                // dimension tells an author nothing about which of the four to fix,
+                // so the per-conjunct detail rides the message. Every other dimension
+                // is a single fact and needs no elaboration.
+                let unmet = if dim.dimension == Dimension::ProseQuality {
+                    format!(
+                        " — unmet: {}",
+                        prose_quality_detail(term, &ctx).unmet().join("; ")
+                    )
+                } else {
+                    String::new()
+                };
                 let mut finding = Finding::new(
                     Severity::Warning,
                     dim.lint_code,
                     format!(
-                        "term `{}` misses documentation dimension `{}` (documentation coverage gap)",
+                        "term `{}` misses documentation dimension `{}` (documentation coverage gap){unmet}",
                         term.curie, dim.label
                     ),
                 )
@@ -261,11 +276,11 @@ fn resolve(dir: &str, href: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::render::render_site;
-    use gmeow_docs_model::model::{
+    use crate::model::{
         DocCompetency, DocExample, DocFixture, DocFixtureKind, DocLinkage, DocLossTarget, DocTerm,
         DocTermCategory,
     };
+    use crate::render::render_site;
     use std::collections::BTreeMap;
 
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -299,9 +314,9 @@ mod tests {
 
             available_languages: vec!["english".to_string()],
 
-            translations: gmeow_docs_model::i18n::Translations::default(),
+            translations: crate::i18n::Translations::default(),
 
-            ui_catalog: gmeow_docs_model::i18n::UiCatalog::default(),
+            ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
             diagnostics: None,
             term_loss: None,
@@ -454,6 +469,27 @@ mod tests {
         ] {
             assert!(codes.contains(code), "expected `{code}`; got {codes:?}");
         }
+        // `dimProseQuality` is a FOUR-way conjunction; the warning must say which
+        // conjuncts are unmet, not merely that the dimension is missing — the whole
+        // point of computing it per conjunct instead of collapsing it to a bool.
+        let prose = report
+            .findings
+            .iter()
+            .find(|f| f.code == "docs/missing-prose-quality" && f.message.contains("Bare"))
+            .expect("the bare term misses dimProseQuality");
+        for conjunct in [
+            "definition states no boundary (what it is NOT)",
+            "no example is a worked triple",
+            "usage coat is blank or restates the definition",
+            "no competency rationale distinct from the label",
+        ] {
+            assert!(
+                prose.message.contains(conjunct),
+                "the prose-quality warning must name the unmet conjunct `{conjunct}`; got `{}`",
+                prose.message
+            );
+        }
+
         // The novel `Bare` term is NOT applicable for the external-correspondence /
         // lossy dimensions, so it contributes no such miss. `missing-alignment`,
         // `missing-loss-ledger-row`, and `missing-loss-judgment-sound` are absent from

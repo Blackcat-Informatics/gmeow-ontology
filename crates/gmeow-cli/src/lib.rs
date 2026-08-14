@@ -125,6 +125,12 @@ pub enum Commands {
         /// GTS snapshot to inspect (default: bundled gmeow.gts).
         file: Option<PathBuf>,
     },
+    /// Inspect the MEDIUM axis of a GTS artifact: the declared media, the shipped
+    /// zstd dictionaries, the envelopes, and the measured cost of each dictionary.
+    Medium {
+        #[command(subcommand)]
+        command: MediumCommands,
+    },
     /// Verify GTS signatures, the reasoned deep-semantic pass, and the source-free
     /// ontology-completeness checks, rendered as one proof-carrying report.
     Verify {
@@ -203,7 +209,8 @@ pub enum Commands {
         /// Output directory.
         #[arg(long = "out", short = 'o', default_value = "dist/project")]
         out: PathBuf,
-        /// Output serialization: `turtle` or `yaml-ld`.
+        /// Output serialization: `turtle`, or `yaml-ld` for the bundled claim
+        /// corpus's YAML-LD-star projection (the RDF 1.2 statement layer).
         #[arg(long = "format", short = 'f', default_value = "turtle")]
         format: String,
     },
@@ -468,6 +475,44 @@ pub enum Commands {
         /// Deterministic operation-wide provider row budget.
         #[arg(long = "max-rows", default_value_t = 4096)]
         max_rows: u64,
+    },
+}
+
+/// The `gmeow medium` nested subcommands — the consumer read of the MEDIUM axis.
+///
+/// Every one answers from the ARTIFACT: the registry, the realizations, the envelopes
+/// and the measured two-part codes are graphs the bundle carries, so a consumer holding
+/// only `gmeow.gts` gets the same answers a repository checkout would give. There is no
+/// verb here that re-trains, re-measures, or re-derives any of it.
+#[derive(Debug, Subcommand)]
+pub enum MediumCommands {
+    /// List the declared media, the shipped dictionaries (version, content digest,
+    /// zstd Dictionary_ID, in-band size), the envelope count, and the per-rep
+    /// assignment — read from the artifact alone.
+    List {
+        /// GTS artifact to inspect (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+    },
+    /// Decode every payload frame, re-derive its in-band digest, open every medium
+    /// envelope against the bytes at hand, and refuse on any opaque node or reader
+    /// diagnostic. Exits non-zero with the named medium failure class on any breach.
+    Verify {
+        /// GTS artifact to verify (default: bundled gmeow.gts).
+        file: Option<PathBuf>,
+        /// The bundle whose medium registry an artifact that carries none of its own
+        /// (a runtime `~/.gmeow/*.gts` store) is resolved against. Defaults to the
+        /// embedded gmeow.gts — the same bundle that primed the store.
+        #[arg(long = "registry")]
+        registry: Option<PathBuf>,
+    },
+    /// Explain one shipped dictionary: its corpus selectors, its strategy, the reps it
+    /// primes, and its measured MDL contribution (two-part code, baseline, bounded gain).
+    Explain {
+        /// The `gmeow:dictionaryId` to explain, e.g. `gmeow-core-v1`.
+        dictionary: String,
+        /// GTS artifact to read the declaration and measurement out of (default:
+        /// bundled gmeow.gts).
+        file: Option<PathBuf>,
     },
 }
 
@@ -878,18 +923,20 @@ pub enum LogicCommands {
         /// (`ex:peanoAdd`) is NOT accepted — pass the program's full IRI.
         #[arg(long = "program-iri")]
         program_iri: Option<String>,
-        /// An additional Turtle document whose told `rdfs:subClassOf` edges seed
-        /// the order-sorted unification lattice — e.g.
-        /// `slices/grounding/math/module.ttl`, whose `math:Integer ⊑
-        /// math:RationalNumber ⊑ math:RealNumber ⊑ …` chain the engine composes
-        /// into `math:Integer ⊑ math:RealNumber` internally (the engine computes
-        /// its own reflexive-transitive closure over whatever covering edges it
-        /// is given, so passing the told chain is sufficient — never a
-        /// pre-reasoned closure). Default: use ONLY the `rdfs:subClassOf` edges
-        /// told in `--program-file` itself. A program whose sort obligation
-        /// needs an edge absent from every source resolves to ZERO order-sorted
-        /// answers for that obligation — a correct, honest gap, never a silent
-        /// hardcoded fallback to some vocabulary's subsort tower.
+        /// An additional Turtle document whose told class-subsumption edges seed
+        /// the order-sorted unification lattice — read on EITHER spelling of the
+        /// subsumption predicate (the canonical `logic:subClassOf` and its
+        /// `rdfs:subClassOf` projection) — e.g. `slices/grounding/math/module.ttl`,
+        /// whose `math:Integer ⊑ math:RationalNumber ⊑ math:RealNumber ⊑ …` chain
+        /// the engine composes into `math:Integer ⊑ math:RealNumber` internally
+        /// (the engine computes its own reflexive-transitive closure over
+        /// whatever covering edges it is given, so passing the told chain is
+        /// sufficient — never a pre-reasoned closure). Default: use ONLY the
+        /// `logic:subClassOf`/`rdfs:subClassOf` edges told in `--program-file`
+        /// itself. A program whose sort obligation needs an edge absent from
+        /// every source resolves to ZERO order-sorted answers for that
+        /// obligation — a correct, honest gap, never a silent hardcoded
+        /// fallback to some vocabulary's subsort tower.
         #[arg(long = "subsort-source")]
         subsort_source: Option<PathBuf>,
     },
@@ -1271,6 +1318,15 @@ pub fn run() -> i32 {
     match cli.command {
         Commands::Version => commands::version(),
         Commands::Info { file } => commands::info(reporter, file.as_deref()),
+        Commands::Medium { command } => match command {
+            MediumCommands::List { file } => commands::medium_list(reporter, file.as_deref()),
+            MediumCommands::Verify { file, registry } => {
+                commands::medium_verify(reporter, file.as_deref(), registry.as_deref())
+            }
+            MediumCommands::Explain { dictionary, file } => {
+                commands::medium_explain(reporter, &dictionary, file.as_deref())
+            }
+        },
         Commands::Verify {
             file,
             trusted_key,

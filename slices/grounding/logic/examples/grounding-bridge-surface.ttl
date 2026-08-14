@@ -5,16 +5,19 @@
 # logic:-native OWL/RDFS constructs and SHACL guard relations. The external OWL
 # endpoint is a view by reference; the canonical source remains logic:.
 
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/> .
 
 ex:owlRestrictionBridge
     a logic:Correspondence , logic:GroundingCorrespondence ;
     logic:sourceEndpoint logic:Restriction ;
     logic:targetEndpoint owl:Restriction ;
+    gmeow:justification semapv:ManualMappingCuration ;
     logic:morphismClass logic:WellBehavedLens ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:SoundUnderApproximation .

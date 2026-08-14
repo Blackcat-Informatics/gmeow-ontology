@@ -82,12 +82,14 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
     // `gmeow:attachesGraph` declarations and the empirical run dump).
     let mut t = BTreeMap::new();
 
-    // stage-source-load — the authored self-description graphs + the source-span blob.
+    // stage-source-load — the authored self-description graphs, every slice's authored
+    // examples/*.ttl ABox corpus, + the source-span blob.
     entry(
         &mut t,
         "stage-source-load",
         &[
             "https://blackcatinformatics.ca/gmeow/graph/authored-default",
+            "https://blackcatinformatics.ca/gmeow/graph/examples",
             "https://blackcatinformatics.ca/gmeow/graph/grounding-seams",
             "https://blackcatinformatics.ca/gmeow/graph/imports",
             "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs",
@@ -113,6 +115,39 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
+    // stage-archive-blobs — the eleven by-reference TAR archives, each on its own
+    // blob-representation lane. No named graph: the archives are opaque byte payloads
+    // the terminal staples alongside the carrier, never graph content.
+    entry(
+        &mut t,
+        "stage-archive-blobs",
+        &[],
+        &[
+            "axioms-archive",
+            "cells-archive",
+            "lang-projections-archive",
+            "mappings-archive",
+            "models-python",
+            "queries-archive",
+            "schemas-archive",
+            "shapes-archive",
+            "statements-archive",
+            "tests-archive",
+            "yaml-ld-archive",
+        ],
+    );
+
+    // stage-medium-dictionaries — the build-time medium registry: one
+    // gmeow:CompressionDictionaryRealization per declared dictionary. No blob-rep lane:
+    // the trained bytes ride the INTERNAL `pipeline/medium/` byte-artifact family and
+    // reach a consumer through the shipped segment header's in-band "dct" map.
+    entry(
+        &mut t,
+        "stage-medium-dictionaries",
+        &["https://blackcatinformatics.ca/gmeow/graph/medium-registry"],
+        &[],
+    );
+
     // stage-goal-directed — the checked backward-engine answers + proof derivations.
     entry(
         &mut t,
@@ -123,7 +158,8 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
 
     // stage-math-producers — the five flagship producer graphs (the rBridge one being the
     // executable r-lift) plus the probability-model seam, p-value tri-slice, and exact
-    // Clifford producer graphs, and the ONNX / proof lift producer graphs.
+    // Clifford producer graphs, and the ONNX / proof lift producer graphs. Every one is
+    // COMPUTED; the authored examples corpus is stage-source-load's graph/examples.
     entry(
         &mut t,
         "stage-math-producers",

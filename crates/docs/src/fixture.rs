@@ -43,8 +43,13 @@ use serde::{Deserialize, Serialize};
 use crate::mdbook::render_book;
 use crate::render::{Site, render_site_lang};
 use gmeow_docs_model::exec::ExecutableDocsData;
+// `load` is RE-EXPORTED, not merely imported: the model cache lives in
+// `gmeow-docs-model` so a consumer can share it without linking this crate's renderer
+// (which `include_bytes!`s ~19 MB of wasm), but a caller that already depends on the
+// renderer should not have to name a second crate to get the model.
+pub use gmeow_docs_model::fixture::load;
 use gmeow_docs_model::fixture::{
-    cache_key, cache_path, load, payload_digest, verify_payload, write_cache,
+    cache_key, cache_path, payload_digest, verify_payload, write_cache,
 };
 use gmeow_docs_model::i18n::ENGLISH;
 use gmeow_docs_model::model::DocsModel;

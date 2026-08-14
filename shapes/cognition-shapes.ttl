@@ -6,40 +6,10 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-# SHACL shapes for the cognition module (issue #556). Closed-world well-formedness
-# for the reified gmeow:KnowledgeProficiency relator, mirroring the SkillProficiency
-# shape: the open-world EL someValuesFrom axioms document the relata for the reasoner;
-# these shapes enforce the single-valued cardinality that OWL EL cannot.
-# They target instance data and are dormant when validating the TBox alone.
-
-gmeow:KnowledgeProficiencyShape
-    a sh:NodeShape ;
-    rdfs:label "KnowledgeProficiency well-formedness shape"@x-gmeow-english ;
-    skos:definition "A gmeow:KnowledgeProficiency must reference exactly one subject and carry exactly one KnowledgeLevel — a proficiency without a subject or a depth is ill-formed (closed-world half of the relator's relational dependence)."@x-gmeow-english ;
-    sh:targetClass gmeow:KnowledgeProficiency ;
-    sh:property [
-        sh:path gmeow:knowledgeProficiencySubject ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A KnowledgeProficiency must reference exactly one subject (gmeow:knowledgeProficiencySubject)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:knowledgeProficiencyLevel ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A KnowledgeProficiency must carry exactly one KnowledgeLevel (gmeow:knowledgeProficiencyLevel)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:knowledgeProficiencyAgent ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A KnowledgeProficiency has at most one agent (gmeow:knowledgeProficiencyAgent) — it is constitutive of the proficiency." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:knowledgeProficiencyScale ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A KnowledgeProficiency has at most one scale (gmeow:knowledgeProficiencyScale)." ;
-    ] .
+# The cognition module's KnowledgeProficiency well-formedness obligations are
+# authored entirely as logic: core content in slices/core/cognition/module.ttl and projected
+# to generated/shapes/validation-shapes.ttl + generated/shapes/procedural-constraints.ttl. This
+# file carries no hand-authored sh:NodeShape: every check is a canonical logic: constraint or
+# an EL-safe OWL/RDFS axiom whose SHACL image the pipeline derives. The file is retained (not
+# deleted) as the stable, intentionally shape-free anchor for the cognition validation
+# namespace.

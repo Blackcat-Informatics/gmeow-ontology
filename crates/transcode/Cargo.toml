@@ -28,6 +28,12 @@ path = "src/lib.rs"
 # used to front), and the static pair-loss contracts every transcode edge is
 # checked against. purrdf is the ONLY permitted RDF crate.
 purrdf.workspace = true
+# The ONE mandated GMEOW GTS authorship door. `gmeow convert --to gts` emits authored
+# GMEOW GTS, so it must go through the profile rather than `purrdf::gts_write::to_gts`,
+# which authors frames via `Writer::deterministic` with no transform chain and therefore
+# shipped identity-framed bytes. A LEAF (purrdf + errors + ciborium), so this crate stays
+# one too.
+gmeow-gts-profile = { path = "../gts-profile" }
 # The pure, wasm-able logic compiler: supplies the projection back-ends
 # (OWL-DL/EL, Datalog, N3, gUFO, canonical-RDF12) that the projection-family
 # codecs serialize through, plus the LossLedger those projections populate.

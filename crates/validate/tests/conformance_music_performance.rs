@@ -402,7 +402,21 @@ ex:constraintValid gmeow:constraintText \"Choose any fragment; stop after three 
 ex:constraintBad a gmeow:TraversalConstraint .
 ex:constraintBad gmeow:constraintAppliesTo ex:work .
 "
-)).fails().violations(&["at least one rule text"]))]
+))
+// `TraversalConstraint`'s at-least-one-rule-text bound is now PROJECTED SHACL derived
+// from the EL-safe `logic:Restriction` axioms in `slices/extensions/music/module.ttl`
+// (`generated/shapes/validation-shapes.ttl`, `gmeow:TraversalConstraint-shape`), which
+// carries no `sh:message` (the prose-message convention was retired with the
+// shapes-to-logic migration; see docs/MIGRATING-SHAPES-TO-LOGIC.md). `whole_shapes()`
+// deliberately drops that file from this fixture corpus, so the projected bound is
+// exercised against the live production shape union and asserted by path + constraint
+// component — same rationale as `conformance_music_time`.
+.shape_union()
+.fails()
+.fails_on_path(
+    "https://blackcatinformatics.ca/gmeow/constraintText",
+    "MinCountConstraintComponent",
+))]
 // A PerformanceDecision needs a performance Event, a constraint that itself
 // satisfies TraversalConstraintShape (applies-to + rule text), and a sequence.
 #[case::performance_decision_valid_passes(Case::inline(format!(
@@ -423,7 +437,16 @@ ex:decisionBad a gmeow:PerformanceDecision .
 ex:decisionBad gmeow:decisionPerformance ex:performance .
 ex:decisionBad gmeow:decisionConstraint ex:constraint .
 "
-)).fails().violations(&["exactly one traversal sequence"]))]
+))
+// `PerformanceDecision`'s exactly-one-sequence bound is the same kind of projected,
+// message-less SHACL as the traversal rule-text bound above
+// (`gmeow:PerformanceDecision-shape`) — same fix, same rationale.
+.shape_union()
+.fails()
+.fails_on_path(
+    "https://blackcatinformatics.ca/gmeow/decisionSequence",
+    "MinCountConstraintComponent",
+))]
 #[case::generative_process_valid_passes(Case::inline(format!(
     "{PREFIXES}\
 ex:processValid a gmeow:GenerativeProcess .
@@ -437,7 +460,16 @@ ex:processValid gmeow:processRuleText \"Voice A and B begin in unison; B acceler
 ex:processBad a gmeow:GenerativeProcess .
 ex:processBad gmeow:processKind gmeow:generativeProcessKindStochastic .
 "
-)).fails().violations(&["at least one rule text"]))]
+))
+// `GenerativeProcess`'s at-least-one-rule-text bound is the same kind of projected,
+// message-less SHACL as the two bounds above (`gmeow:GenerativeProcess-shape`,
+// `sh:minCount 1` on `gmeow:processRuleText`) — same fix, same rationale.
+.shape_union()
+.fails()
+.fails_on_path(
+    "https://blackcatinformatics.ca/gmeow/processRuleText",
+    "MinCountConstraintComponent",
+))]
 #[case::ornament_profile_valid_passes(Case::inline(format!(
     "{PREFIXES}\
 ex:ornamentValid a gmeow:OrnamentProfile .

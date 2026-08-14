@@ -15,7 +15,7 @@ use gmeow_errors::{Finding, Location, Severity};
 use purrdf::shapes::term::Term;
 
 use crate::dsl;
-use crate::findings::finding_from_shacl;
+use crate::findings::{FailureClassIndex, finding_from_shacl};
 use crate::store;
 
 /// Validate a merged set of DSL Turtle sources against a SHACL shapes graph.
@@ -39,22 +39,33 @@ pub fn validate_dsl(
             detail: format!("SHACL shapes failed to parse: {e}"),
         })
     })?;
+    // The SAME shapes text, read a second time as a plain dataset for its
+    // `gmeow:enforcesFailureClass` annotations, so a DSL finding names the typed
+    // conformance failure its shape declares and not only the component code.
+    let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("SHACL shapes failed to parse as a dataset: {e}"),
+            })
+        })?;
+    let classes = FailureClassIndex::from_shapes_dataset(&shapes_dataset);
     let report = store::shacl_validate_dataset(&merge.dataset, &shapes);
     let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
-    Ok(dsl_findings(&report, &focus_to_file, label))
+    Ok(dsl_findings(&report, &focus_to_file, label, &classes))
 }
 
 fn dsl_findings(
     report: &purrdf::shapes::report::ValidationReport,
     focus_to_file: &HashMap<String, String>,
     label: &str,
+    classes: &FailureClassIndex,
 ) -> Vec<Finding> {
     let tool = format!("{label}-dsl");
     let mut findings: Vec<Finding> = report
         .results
         .iter()
         .map(|result| {
-            let mut finding = finding_from_shacl(result);
+            let mut finding = finding_from_shacl(result, classes);
             finding.tool = Some(tool.clone());
             if let Term::NamedNode(node) = &result.focus_node
                 && let Some(source) = focus_to_file.get(node.as_str())

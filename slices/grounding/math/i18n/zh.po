@@ -3037,3 +3037,74 @@ msgstr "使用推理规则"
 msgctxt "https://blackcatinformatics.ca/math/usesInferenceRule|skos:definition"
 msgid "Relates a math:ProofStep to the inference rule that licenses it. Domain math:ProofStep, range left OPEN in prose: the rule may be a logic: rule or proof-trace identity, a prover's named calculus rule, or a content-addressed firing identity, and the coupling to logic: is by reference rather than by asserted triples into it. The step-level companion of math:usesProofMethod, which names a math:Proof's overall strategy; a resolution step's licence is not the proof's strategy, so the two are separate properties at separate levels."
 msgstr "把一个 math:ProofStep 关联到许可该步骤的推理规则。定义域 math:ProofStep，值域在散文中保持\"开放\"：该规则可以是 logic: 规则或证明轨迹标识、某个证明器具名的演算规则，或按内容寻址的触发标识；与 logic: 的耦合是按引用进行，而非向其断言三元组。它是 math:usesProofMethod 在步骤层面的对应物，后者命名的是一个 math:Proof 的整体策略；一个归结步骤的许可并不是该证明的策略，因此二者是处于不同层次的两个属性。"
+
+
+# --- Algebraic structures, activation, and the alpha-equivalence class ---
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Abelian Group"
+msgstr "阿贝尔群"
+
+msgctxt "https://blackcatinformatics.ca/math/AbelianGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Group whose operation is commutative (∀a,b: a·b = b·a) — it additionally satisfies the commutativity axiom through math:satisfiesAxiom. A subclass of math:Group; the additive group of a math:Ring is abelian."
+msgstr "运算可交换的 math:Group（∀a,b：a·b = b·a）——它通过 math:satisfiesAxiom 额外满足交换律公理。math:Group 的子类；math:Ring 的加法群是阿贝尔群。"
+
+msgctxt "https://blackcatinformatics.ca/math/ActivationFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Activation Function"
+msgstr "激活函数"
+
+msgctxt "https://blackcatinformatics.ca/math/ActivationFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A nonlinear activation applied elementwise in a math:NeuralLayer — ReLU, GELU, softmax, and the like. A subclass of math:Function; the nonlinearity that makes a stack of linear maps expressive. Applied as an operator inside the tensor computation graph's expression nodes."
+msgstr "在 math:NeuralLayer 中逐元素施加的非线性激活——ReLU、GELU、softmax 之类。math:Function 的子类；正是这一非线性使线性映射的堆叠具有表达力。作为算子施加于张量计算图的表达式节点内部。"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "addition"
+msgstr "加法"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary addition operator (+). Its inverse is math:Subtraction. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 plus."
+msgstr "二元加法算子（+）。其逆为 math:Subtraction。签名 ℝ → ℝ（实数算术）。OpenMath arith1 plus。"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Algebra"
+msgstr "代数"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Module equipped with a bilinear multiplication of its elements — a ring-and-module structure over a base ring, such as a math:LieAlgebra or a matrix algebra. A subclass of math:Module; the vector-space-with-multiplication that carries a Lie bracket in the E8 flagship."
+msgstr "配备其元素之间双线性乘法的 math:Module——基环之上的环兼模结构，例如 math:LieAlgebra 或矩阵代数。math:Module 的子类；在 E8 旗舰中承载李括号的带乘法向量空间。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Algebraic Number"
+msgstr "代数数"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An algebraic number: a complex number that is a root of a non-zero polynomial with rational coefficients (for example √2 or the golden ratio). A subclass of math:ComplexNumber, cross-cutting the ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ tower — the algebraic numbers are closed under the field operations but are not one of the nested systems. Its complement within ℂ is the transcendental numbers."
+msgstr "代数数：作为某个非零有理系数多项式之根的复数（例如 √2 或黄金比例）。math:ComplexNumber 的子类，横切 ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ 之塔——代数数在域运算下封闭，但并非那些嵌套数系之一。其在 ℂ 中的补集是超越数。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Algebraic Structure"
+msgstr "代数结构"
+
+msgctxt "https://blackcatinformatics.ca/math/AlgebraicStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A set equipped with operations satisfying stated axioms: a math:underlyingSet, one or more math:structureOperation, an identity/inverse where they exist, and the math:satisfiesAxiom laws it obeys. A group is not a labelled set — a math:Group asserted without an operation and axioms is ill-formed. The root of the algebraic hierarchy math:Magma … math:Field; substructures are related through math:substructureOf."
+msgstr "配备满足既定公理之运算的集合：一个 math:underlyingSet、一个或多个 math:structureOperation、在其存在处的单位元/逆元，以及它所遵循的 math:satisfiesAxiom 诸律。群并非带标签的集合——未声明运算与公理的 math:Group 是非良构的。代数层级 math:Magma … math:Field 的根；子结构通过 math:substructureOf 相关联。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Alpha-Equivalence Class"
+msgstr "α 等价类"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The equivalence class of every math:MathematicalExpression identical up to bound-variable renaming — the SAME class of expressions math:structuralKey digests identify, promoted from a literal to a first-class, content-addressed individual. Two expressions related to the SAME math:AlphaEquivalenceClass individual (through math:alphaEquivalenceClass) are, by construction, structurally (α-)identical: the individual's IRI is minted directly from the expression's own math:structuralKey digest, so equal digests mint the IDENTICAL individual and unequal digests mint distinct ones. This is the joinable-node counterpart of the plain-literal math:structuralKey, not a competing identity: an math:AlphaEquivalenceClass individual carries no state of its own beyond being the shared target every α-equivalent expression's math:alphaEquivalenceClass edge resolves to."
+msgstr "在约束变量重命名意义下相同的每个 math:MathematicalExpression 的等价类——即 math:structuralKey 摘要所标识的同一表达式类，由字面量提升为一等的、内容寻址的个体。通过 math:alphaEquivalenceClass 关联到同一 math:AlphaEquivalenceClass 个体的两个表达式，按构造在结构上（α-）相同：该个体的 IRI 直接由表达式自身的 math:structuralKey 摘要铸造，因此相等的摘要铸造出同一个体，不等的摘要铸造出不同个体。这是纯字面量 math:structuralKey 的可连接节点对应物，而非与之竞争的身份：math:AlphaEquivalenceClass 个体除了作为每个 α 等价表达式的 math:alphaEquivalenceClass 边所解析到的共享目标之外，不携带自身的任何状态。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 and exf:e2 share ONE α-equivalence-class individual because their digests agree"
+msgstr "示例：exf:e1 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . exf:e2 math:structuralKey \"d41d…\" ; math:alphaEquivalenceClass <https://blackcatinformatics.ca/math/alphaClass/d41d…> . # exf:e1 与 exf:e2 共享同一个 α 等价类个体，因为它们的摘要一致"
+
+msgctxt "https://blackcatinformatics.ca/math/AlphaEquivalenceClass|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A minted, content-addressed individual, never hand-authored: it exists so two α-equivalent expressions JOIN through one shared node instead of being compared by string equality on two math:structuralKey literals. It names an equivalence class, not a normal form — membership says the two expressions are structurally identical up to bound-variable naming, and says nothing about which of them any normalization prefers."
+msgstr "一个被铸造的、内容寻址的个体，绝不手工编写：它的存在是为了让两个 α 等价表达式通过单一共享节点相连接，而非在两个 math:structuralKey 字面量上做字符串相等比较。它命名的是等价类而非范式——成员关系表明两个表达式在约束变量命名意义下结构相同，而对任何规范化会偏好其中哪一个不作表述。"
+
+msgctxt "https://blackcatinformatics.ca/math/AlternativeHypothesis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The effect-present claim H1, distinct from the tested default math:NullHypothesis and from the math:Sidedness value that records its direction."
+msgstr "效应存在的主张 H1，区别于所检验的默认假设 math:NullHypothesis，也区别于记录其方向的 math:Sidedness 值。"

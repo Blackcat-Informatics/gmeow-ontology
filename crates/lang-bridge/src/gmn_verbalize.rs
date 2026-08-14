@@ -19,6 +19,11 @@
 //!   is broken deterministically by appending each colliding form's compact CURIE
 //!   (`⟪prefix:local⟫`). If a collision cannot be broken (two forms with the same CURIE and
 //!   label), that is a HARD FAIL — "bidirectional" is unsound without injectivity.
+//!   Symmetrically on the GMN side, the operator surface carries the record-initial sigil of
+//!   its scope, because the codebook lawfully reuses one codepoint across planes (`→` is
+//!   material implication under `@ℒ` and the morphism arrow under `@μ`) and sigil scope is
+//!   the codebook's primary disambiguation boundary. Dropping the sigil would ship a pair
+//!   whose GMN side is ambiguous between planes; both uniqueness checks stay GLOBAL.
 //! * **Measured inverse.** The NL→GMN direction is a real *inverse template*
 //!   ([`parse_nl`]) that re-parses the controlled-NL string back to `(fixity, label, arity)`
 //!   by the placeholder skeleton, then resolves the operator form. Preservation is EXACT
@@ -71,6 +76,14 @@ pub struct GmnOperatorForm {
     pub fixity: String,
     /// The `gmeow:gmnArity` operand count.
     pub arity: u32,
+    /// The record-initial sigil of the scope this glyph reading is valid inside (the
+    /// `gmeow:gmnSigilGlyph` of the `gmeow:gmnSigilScope` role the grapheme names), or empty
+    /// for an unscoped binding. Sigil scope is the codebook's PRIMARY disambiguation
+    /// boundary: the same codepoint is lawfully reused across planes (`→` is material
+    /// implication under `@ℒ` and the morphism arrow under `@μ`), so a GMN surface is only
+    /// well-defined relative to it. Carried here — never dropped — so the shipped surface can
+    /// state the scope it is readable in.
+    pub sigil: String,
 }
 
 /// One rendered bidirectional pair: the operator form, its GMN operator surface, and its
@@ -107,7 +120,7 @@ pub fn resolve_operator_forms(
     labels: &BTreeMap<String, String>,
 ) -> Result<Vec<GmnOperatorForm>, VerbalizeError> {
     let mut forms = Vec::new();
-    for (_sigil, glyph, fixity, arity, term) in registry.glyph_binding_rows() {
+    for (sigil, glyph, fixity, arity, term) in registry.glyph_binding_rows() {
         // A constant binding carries no fixity/arity signature — only operators verbalize.
         if fixity.is_empty() {
             continue;
@@ -129,6 +142,7 @@ pub fn resolve_operator_forms(
             gmn_glyph: glyph,
             fixity,
             arity,
+            sigil,
         });
     }
     forms.sort();
@@ -190,6 +204,22 @@ fn arrange(fixity: &str, token: &str, arity: u32) -> Result<String, VerbalizeErr
     Ok(rendered)
 }
 
+/// The executable GMN operator surface: the arranged glyph skeleton, prefixed by the
+/// record-initial sigil of the scope it reads in (`@ℒ arg1 → arg2`). The sigil is part of the
+/// surface because it is part of the record — a GMN operator is only ever lexed inside a
+/// sigil-opened record, and the codebook deliberately reuses one codepoint across planes
+/// under distinct sigils. Emitting the bare skeleton would ship a training pair whose GMN
+/// side is ambiguous between planes; carrying the scope is what makes the corpus injective in
+/// substance rather than by technicality. An unscoped binding (no `gmeow:gmnSigilScope`)
+/// renders the bare skeleton.
+fn scoped_surface(sigil: &str, arranged: &str) -> String {
+    if sigil.is_empty() {
+        arranged.to_owned()
+    } else {
+        format!("{sigil} {arranged}")
+    }
+}
+
 /// The compact CURIE of a grounding IRI (`logic:not`, `math:Addition`, …) for a
 /// disambiguation tag; the full IRI when no grounding prefix matches (still injective).
 fn compact_curie(iri: &str) -> String {
@@ -223,7 +253,10 @@ pub fn build_verbalization_pairs(
     // its base string is shared (a homograph collision), so distinct meanings stay distinct.
     let mut pairs = Vec::with_capacity(forms.len());
     for (form, base) in forms.iter().zip(base_nl.iter()) {
-        let gmn_surface = arrange(&form.fixity, &form.gmn_glyph, form.arity)?;
+        let gmn_surface = scoped_surface(
+            &form.sigil,
+            &arrange(&form.fixity, &form.gmn_glyph, form.arity)?,
+        );
         let collided = base_counts.get(base.as_str()).copied().unwrap_or(0) > 1;
         let nl = if collided {
             format!(
@@ -241,9 +274,11 @@ pub fn build_verbalization_pairs(
     }
 
     // Injectivity teeth: after disambiguation, every controlled-NL string is unique, and so
-    // is every GMN operator surface. A residual collision (e.g. two forms sharing both label
-    // and CURIE, or the same glyph across scopes) is a HARD FAIL — bidirectionality is
-    // unsound without an injective map.
+    // is every GMN operator surface. Both checks are GLOBAL — the scope is not an excuse that
+    // narrows them, it is data the surface now carries, so one codepoint reused under two
+    // sigils yields two distinct surfaces and passes on the merits. A residual collision (two
+    // forms sharing both label and CURIE, or one glyph twice inside ONE sigil scope) is a
+    // HARD FAIL — bidirectionality is unsound without an injective map.
     assert_unique(pairs.iter().map(|p| p.nl.as_str()), "controlled-NL string")?;
     assert_unique(
         pairs.iter().map(|p| p.gmn_surface.as_str()),
@@ -417,12 +452,24 @@ mod tests {
     use super::*;
 
     fn form(term: &str, label: &str, glyph: &str, fixity: &str, arity: u32) -> GmnOperatorForm {
+        scoped(term, label, glyph, fixity, arity, "")
+    }
+
+    fn scoped(
+        term: &str,
+        label: &str,
+        glyph: &str,
+        fixity: &str,
+        arity: u32,
+        sigil: &str,
+    ) -> GmnOperatorForm {
         GmnOperatorForm {
             term_iri: term.to_owned(),
             term_label: label.to_owned(),
             gmn_glyph: glyph.to_owned(),
             fixity: fixity.to_owned(),
             arity,
+            sigil: sigil.to_owned(),
         }
     }
 
@@ -495,6 +542,48 @@ mod tests {
         ];
         let err = build_verbalization_pairs(&forms).expect_err("must hard-fail");
         assert!(err.0.contains("injectivity"), "{err}");
+    }
+
+    /// The codebook's ONE lawful cross-plane codepoint reuse: `→` denotes material
+    /// implication under the `@ℒ` sigil and the morphism arrow under `@μ`. The two forms are
+    /// distinct, so their surfaces must be distinct — the sigil the surface carries is what
+    /// makes the corpus injective in substance, not a narrowed check.
+    #[test]
+    fn one_glyph_under_two_sigils_is_lawful_and_surfaces_stay_distinct() {
+        let forms = vec![
+            scoped("logic:consequent", "implies", "→", FIXITY_INFIX, 2, "@ℒ"),
+            scoped("math:Morphism", "maps to", "→", FIXITY_INFIX, 2, "@μ"),
+        ];
+        let pairs = build_verbalization_pairs(&forms).expect("cross-scope reuse is lawful");
+        assert_eq!(pairs[0].gmn_surface, "@ℒ arg1 → arg2");
+        assert_eq!(pairs[1].gmn_surface, "@μ arg1 → arg2");
+        assert_ne!(pairs[0].gmn_surface, pairs[1].gmn_surface);
+        assert!(round_trip_holds(&pairs), "both round-trip");
+    }
+
+    /// Dropping the sigil is what made the corpus ambiguous: with the scope erased the SAME
+    /// two lawful forms collapse onto one GMN surface. This pins the defect the scope carry
+    /// fixes — if `scoped_surface` ever stops carrying the sigil, this reds.
+    #[test]
+    fn erasing_the_sigil_collapses_the_two_readings_onto_one_surface() {
+        let bare = arrange(FIXITY_INFIX, "→", 2).expect("arrange");
+        assert_eq!(scoped_surface("", &bare), bare);
+        assert_eq!(scoped_surface("@ℒ", &bare), "@ℒ arg1 → arg2");
+        // Both planes' bare skeletons are identical — the ambiguity, stated.
+        assert_eq!(scoped_surface("", &bare), scoped_surface("", &bare));
+    }
+
+    /// One glyph twice INSIDE a single sigil scope is still a HARD FAIL — the scope carry
+    /// distinguishes planes, it never licenses a collision within one plane.
+    #[test]
+    fn one_glyph_twice_in_one_sigil_scope_hard_fails() {
+        let forms = vec![
+            scoped("logic:consequent", "implies", "→", FIXITY_INFIX, 2, "@ℒ"),
+            scoped("logic:entails", "entails", "→", FIXITY_INFIX, 2, "@ℒ"),
+        ];
+        let err = build_verbalization_pairs(&forms).expect_err("must hard-fail");
+        assert!(err.0.contains("injectivity"), "{err}");
+        assert!(err.0.contains("GMN operator surface"), "{err}");
     }
 
     /// Distinct forms round-trip and the corpus is injective + deterministic.

@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+# A deliberately malformed slice manifest: it carries NO `a gmeow:Slice` triple,
+# so SliceCatalog::discover must hard-fail (SliceError::InvalidManifest) rather
+# than return a vacuous, empty catalog.
+
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/malformed>
+    rdfs:label "not actually a slice" .

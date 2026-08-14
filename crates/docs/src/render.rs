@@ -26,15 +26,15 @@ use std::sync::OnceLock;
 use minijinja::{Environment, context};
 use pulldown_cmark::{Options, Parser, html as cmark_html};
 
-use gmeow_docs_model::badge;
-use gmeow_docs_model::exec::ExecutableDocsData;
-use gmeow_docs_model::i18n::{self, ENGLISH};
-use gmeow_docs_model::llms::{self, LlmsBullet, LlmsSection};
-use gmeow_docs_model::model::{DocSlice, DocTerm, DocTermCategory, DocsModel};
-use gmeow_docs_model::source_map::{
+use crate::badge;
+use crate::exec::ExecutableDocsData;
+use crate::i18n::{self, ENGLISH};
+use crate::llms::{self, LlmsBullet, LlmsSection};
+use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
+use crate::source_map::{
     DocLinkResolution, LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open,
 };
-use gmeow_docs_model::svg;
+use crate::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
 use gmeow_ns::GMEOW_NS;
@@ -64,6 +64,10 @@ const CSS: &str = include_str!("../assets/gmeow.css");
 /// The site-relative path the CSS asset is emitted to.
 const CSS_PATH: &str = "assets/gmeow.css";
 
+/// The site-relative path the offline SPARQL playground's bundled RDF asset (TriG)
+/// is emitted to. Language-neutral: the RDF is language-independent.
+const PLAYGROUND_TRIG_PATH: &str = "assets/playground.trig";
+
 /// The site-relative path of the **conjecture demo library** — the curated
 /// `logic:Conjecture` corpus as Turtle ([`ExecutableDocsData::conjectures_ttl`]). The W4
 /// conjecture playground fetches + byte-verifies it (via [`BUNDLE_MANIFEST_PATH`]) and
@@ -71,10 +75,8 @@ const CSS_PATH: &str = "assets/gmeow.css";
 const CONJECTURES_PATH: &str = "assets/conjectures.ttl";
 
 /// The site-relative path of the FULL `gmeow.gts` bundle
-/// ([`ExecutableDocsData::full_bundle_gts`]) — the ONE queryable site asset. The browser
-/// MCP engine boots over it and then answers the playground, the explorer, Tier-1
-/// validation and the codec tools from it. An EXTERNAL site asset (never re-embedded in
-/// the bundle).
+/// ([`ExecutableDocsData::full_bundle_gts`]) — the in-browser Tier-1 validate surface
+/// reads its `shapes-archive`. An EXTERNAL site asset (never re-embedded in the bundle).
 const FULL_BUNDLE_GTS_PATH: &str = "assets/gmeow.gts";
 
 /// The site-relative path of the browser-bundle integrity manifest: a JSON map from
@@ -83,52 +85,40 @@ const FULL_BUNDLE_GTS_PATH: &str = "assets/gmeow.gts";
 /// function of the emitted asset bytes.
 const BUNDLE_MANIFEST_PATH: &str = "assets/bundle-manifest.json";
 
-/// The site-relative path of the docs controller module — the page wiring for every
-/// interactive documentation widget (validate buttons, explorer, entailment, conjecture,
-/// GMN transcode, SPARQL playground). A self-contained ES module.
-pub(crate) const DOCS_CONTROLLER_PATH: &str = "assets/docs-controller.mjs";
+/// The site-relative path of the docs controller module (SPARQL playground query
+/// execution + result transcoding). A self-contained ES module.
+const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
 
-/// The embedded docs controller module, emitted to [`DOCS_CONTROLLER_PATH`].
-const DOCS_CONTROLLER: &str = include_str!("../assets/docs-controller.mjs");
+/// The embedded docs controller module, emitted to [`DOCS_JS_PATH`] when the
+/// playground is present.
+const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 
-/// The site-relative path of the shared MCP transport — the ONE place the engine boot,
-/// the JSON-RPC frame shape and the reasoning-segment demand loading live. Both the docs
-/// controller and the standalone console's engine worker import it, so there is exactly
-/// one transport rather than one per surface.
+/// The site-relative path of the shared MCP transport — the engine boot, the JSON-RPC
+/// frame shape and the reasoning-segment demand loading, in one place.
+///
+/// The standalone console's engine worker imports it. The documentation site does NOT:
+/// the site dispatches per capability to the four in-repo wasm engines, and this is the
+/// console's protocol seam, emitted here because both surfaces pack from one asset set.
 pub(crate) const MCP_TRANSPORT_PATH: &str = "assets/mcp-transport.mjs";
 
 /// The embedded shared MCP transport, emitted to [`MCP_TRANSPORT_PATH`].
 const MCP_TRANSPORT: &str = include_str!("../assets/mcp-transport.mjs");
 
-/// The site-relative path of the client-side BLAKE3 implementation the transport verifies
-/// every integrity-pinned asset with. The browser has no BLAKE3 primitive and
-/// `crypto.subtle` offers none, so the project's own content-address function is
-/// reimplemented here rather than substituting a weaker check.
+/// The site-relative path of the client-side BLAKE3 the transport verifies every
+/// integrity-pinned asset with. The browser has no BLAKE3 primitive and `crypto.subtle`
+/// offers none, so the project's own content-address function is reimplemented rather
+/// than a weaker check substituted.
 pub(crate) const BLAKE3_PATH: &str = "assets/blake3.mjs";
 
 /// The embedded client-side BLAKE3, emitted to [`BLAKE3_PATH`].
 const BLAKE3_MODULE: &str = include_str!("../assets/blake3.mjs");
 
-/// The vendored wasm engines emitted under `assets/<name>/` when the bundle ships: the
-/// console's two MCP segments, and the vendored purrdf RDF/JS engine.
-///
-/// The three gmeow-owned shims this list used to carry (validate, reason, GMN) were retired
-/// once the MCP surface could answer the same questions: the site speaks ONE protocol to
-/// ONE engine — the same one an agent drives — so a capability the reader has is a
-/// capability an agent has by construction. That is a statement about DISPATCH, and the
-/// purrdf engine is not an exception to it: no widget, no controller path and no capability
-/// attestation reaches it, and every query the site itself asks is `query_local` over the
-/// shipped bundle. It is emitted because the published tree is also something a reader
-/// EMBEDS, and an offline RDF-1.2 store with an RDF/JS API over the embedder's own dataset
-/// is a surface the MCP scopes do not cover. See `assets/purrdf/PROVENANCE.md`.
-///
-/// Pinned build inputs — one descriptor per asset lives in [`crate::vendored_asset`]; see
-/// each `PROVENANCE.md`.
-const VENDORED_WASM_ASSETS: &[&crate::vendored_asset::VendoredWasmAsset] = &[
-    &crate::vendored_asset::MCP_CORE_ASSET,
-    &crate::vendored_asset::MCP_ASSET,
-    &crate::vendored_asset::PURRDF_ASSET,
-];
+/// The wasm engines emitted under `assets/<name>/` when the playground is present: the
+/// offline SPARQL/bundle-explorer runtime, the repo-free Tier-1 validator, the
+/// structured-DL reasoner and the GMN codec. Every one is built in this repository; one
+/// descriptor per asset lives in [`crate::vendored_asset`], and this is an alias for that
+/// module's single registry rather than a second copy of the list.
+use crate::vendored_asset::ALL_ASSETS as VENDORED_WASM_ASSETS;
 
 // ── Pages ──────────────────────────────────────────────────────────────────
 
@@ -160,7 +150,7 @@ pub enum Page {
     /// other than the top-level `docs.md`) rendered as its own page. `slice` is
     /// the owning slice IRI and `path` is the document's normalized slice-relative
     /// source path (e.g. `design/ARCHITECTURE.md`); the page path is minted through
-    /// the single [`gmeow_docs_model::source_map::page_for`] authority.
+    /// the single [`crate::source_map::page_for`] authority.
     SliceDocument {
         /// The owning slice IRI.
         slice: String,
@@ -246,10 +236,10 @@ pub enum Page {
     /// [`crate::model::DocSeam`].
     SeamRegistry,
     /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
-    /// supplies the queryable bundle (`has_bundle()`; never in a model-only render).
+    /// supplies a bundled query asset (never in a model-only render).
     SparqlPlayground,
     /// The bundle explorer (`explorer/index`) — browser `gmeow info`/`describe` over
-    /// the object-level ontology. Emitted only when the queryable bundle ships
+    /// the object-level core bundle. Emitted only when the bundle assets ship
     /// (`has_bundle()`).
     BundleExplorer,
     /// The conjecture playground (`conjectures/index`, the WASM-interactive docs W4 deliverable) — the browser
@@ -279,7 +269,7 @@ impl Page {
                 // (`slices/{slug}/documents/{stem}/`); `dir()` is that path without its
                 // trailing slash, so the site's `join(dir, "index.{md,html}")` matches
                 // the `Page::Slice` convention.
-                let page = gmeow_docs_model::source_map::page_for(&slice_slug_of_iri(slice), path);
+                let page = crate::source_map::page_for(&slice_slug_of_iri(slice), path);
                 page.strip_suffix('/').unwrap_or(&page).to_string()
             }
             Page::LinkageIndex => "linkages".to_string(),
@@ -427,8 +417,8 @@ pub fn render_site(model: &DocsModel) -> Site {
 /// present in [`DocsModel::available_languages`]. Every localizable string — term
 /// and slice labels / definitions, concern / recipe / learning-path text, and the
 /// UI-chrome nav — is resolved to its translation via
-/// [`Translations::lookup`](gmeow_docs_model::i18n::Translations::lookup) /
-/// [`ui_string`](gmeow_docs_model::i18n::ui_string), falling back to the English value the
+/// [`Translations::lookup`](crate::i18n::Translations::lookup) /
+/// [`ui_string`](crate::i18n::ui_string), falling back to the English value the
 /// model carries. The per-language tree is deterministic and preserves the
 /// no-dangling-link invariant (slugs / IRIs are language-independent).
 pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
@@ -544,15 +534,15 @@ pub fn render_site_lang_exec_with_diagrams(
     // here and the packed mdbook ([`crate::mdbook`]) draw from, so the book ships the
     // byte-identical engines the site's witness lanes prove. Language-independent,
     // emitted only in the English tree (see the gate above).
-    // The standalone console tree: the `console/…` shell PLUS every interactive asset
-    // key (`crate::console::console_files` folds `interactive_asset_files` in itself, so
-    // the two surfaces cannot ship different engine bytes). Empty for a non-interactive
-    // render, so a model-only site is byte-unchanged.
+    files.extend(interactive_asset_files(exec));
+
+    // The standalone console tree: its shell, service worker and offline manifest.
+    // ADDITIVE — it emits under its own prefix and replaces nothing the site emitted.
     files.extend(crate::console::console_files(exec));
 
     // The offline SPARQL playground page. Term/slice export runs through this same
     // engine + asset via `DESCRIBE`, so no static export files are needed.
-    if exec.has_bundle() {
+    if exec.has_playground() {
         let page = Page::SparqlPlayground;
         files.insert(
             page.md_path(),
@@ -672,7 +662,7 @@ pub fn render_site_lang_exec_with_diagrams(
             // serialized (the `Card` derives `Serialize` with a fixed field
             // order and every internal collection is already ordered).
             let standard = doc_term_card(term, &alignment_facets, model)
-                .projected(gmeow_docs_model::card::CardDetail::Standard);
+                .projected(crate::card::CardDetail::Standard);
             let json = serde_json::to_vec(&standard).unwrap_or_else(|e| {
                 // A pure-data `Card` of `String`/`Vec`/`Option` fields cannot fail
                 // to serialize; a failure here is a genuine invariant break.
@@ -684,12 +674,7 @@ pub fn render_site_lang_exec_with_diagrams(
             let title = format!("{}{}", term.curie, term_signature(term));
             files.insert(
                 format!("terms/{slug}/card-full.md"),
-                gmeow_docs_model::card::render_card(
-                    &title,
-                    &full,
-                    gmeow_docs_model::card::CardDetail::Full,
-                )
-                .into_bytes(),
+                crate::card::render_card(&title, &full, crate::card::CardDetail::Full).into_bytes(),
             );
         }
     }
@@ -698,110 +683,23 @@ pub fn render_site_lang_exec_with_diagrams(
 }
 
 /// Write a rendered [`Site`] tree under `directory`, creating parent directories
-/// as needed, in the engine's fixed sorted `BTreeMap` order, and RECONCILE the
-/// directory to the emitted set. Returns the written paths. Pure Rust (no Python
-/// GIL) so it is directly unit-testable; the PyO3 `DocSet::write_artifacts`
-/// method is a thin wrapper over this.
-///
-/// # Reconciliation
-///
-/// After the write, every file under `directory` that this [`Site`] did not emit
-/// is REMOVED, and the directories emptied by those removals are removed with
-/// them. The emitted tree therefore contains exactly what the producer emits and
-/// nothing else.
-///
-/// This is a correctness property of the artifact, not a tidiness one. A writer
-/// that only adds serves whatever a previous build left behind: a file the
-/// producer has since STOPPED emitting keeps being deployed and keeps being
-/// answered by the site, so the served tree is a union of every build that ever
-/// ran there rather than the build that ran. That is exactly how a dev-only
-/// scaffold went on being served after it had been removed from the console
-/// producer's file set.
-///
-/// # Scope
-///
-/// The walk starts at `directory` and never leaves it: a symbolic link is
-/// unlinked as the link it is (`symlink_metadata`, never `metadata`), so a link
-/// pointing outside the tree is removed without its target being touched, and a
-/// linked directory is never descended into. Nothing above `directory` is read or
-/// removed, and `directory` itself is never removed. Whether a given `directory`
-/// is a legitimate destination at all is the CALLER's judgement — `gmeow-dev
-/// console-assemble` refuses the regen-owned bases before it ever reaches here.
-///
-/// # Errors
-///
-/// Any I/O failure of the write, the walk or a removal. An EMPTY [`Site`] is
-/// refused: reconciling nothing would empty the destination, and a producer that
-/// emitted zero files has failed to produce rather than produced an empty tree.
+/// as needed, in the engine's fixed sorted `BTreeMap` order. Returns the written
+/// paths. Pure Rust (no Python GIL) so it is directly unit-testable; the PyO3
+/// `DocSet::write_artifacts` method is a thin wrapper over this.
 pub fn write_site(
     site: &Site,
     directory: &std::path::Path,
 ) -> std::io::Result<Vec<std::path::PathBuf>> {
-    if site.files.is_empty() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            format!(
-                "refusing to write an empty site into {}: this writer reconciles the \
-                 destination to what it emits, so an empty render would empty the tree — a \
-                 producer that emitted zero files has failed, not produced an empty site",
-                directory.display()
-            ),
-        ));
-    }
     let mut written = Vec::with_capacity(site.files.len());
-    let mut emitted = BTreeSet::new();
     for (rel, data) in &site.files {
         let path = directory.join(rel);
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }
         std::fs::write(&path, data)?;
-        emitted.insert(path.clone());
         written.push(path);
     }
-    prune_to_emitted(directory, &emitted)?;
     Ok(written)
-}
-
-/// Remove everything under `directory` that is not in `emitted`, depth first.
-///
-/// A directory is descended into and then removed if the descent emptied it; an
-/// entry that is not a directory — a file, or a symbolic link of any kind — is
-/// unlinked when the emitted set does not name it. `symlink_metadata` is what
-/// classifies the entry, so a link is never followed: the link is removed, its
-/// target is not, and a link to a directory is not a way out of `directory`.
-///
-/// `directory` itself is never removed, so a reconciled tree that legitimately
-/// ends up empty is an empty directory rather than a missing one.
-fn prune_to_emitted(
-    directory: &std::path::Path,
-    emitted: &BTreeSet<std::path::PathBuf>,
-) -> std::io::Result<()> {
-    let entries = match std::fs::read_dir(directory) {
-        Ok(entries) => entries,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-        Err(e) => return Err(e),
-    };
-    // Collected and sorted first so the traversal order is deterministic — the
-    // removals a failing run reports are then the same removals on every host.
-    let mut children = entries
-        .map(|entry| entry.map(|entry| entry.path()))
-        .collect::<std::io::Result<Vec<_>>>()?;
-    children.sort();
-    for child in children {
-        if std::fs::symlink_metadata(&child)?.is_dir() {
-            prune_to_emitted(&child, emitted)?;
-            match std::fs::remove_dir(&child) {
-                Ok(()) => {}
-                // Still holds emitted files — which is the normal case.
-                Err(e) if e.kind() == std::io::ErrorKind::DirectoryNotEmpty => {}
-                Err(e) => return Err(e),
-            }
-        } else if !emitted.contains(&child) {
-            std::fs::remove_file(&child)?;
-        }
-    }
-    Ok(())
 }
 
 /// The deterministically ordered set of pages that constitute the mdbook.
@@ -820,9 +718,11 @@ pub fn book_pages(model: &DocsModel) -> Vec<Page> {
 /// map from each bundle asset path to its `blake3:<hex>` content address and length.
 /// A pure function of the emitted bundle bytes; the client loader records/verifies it.
 fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
-    // One entry per shipped bundle asset, in a fixed deterministic order (the bundle, then
-    // the optional conjecture demo library). Each entry is byte-identical to the others'
-    // shape.
+    // One entry per shipped bundle asset, in a fixed deterministic order (full bundle,
+    // then the playground corpus, then the optional conjecture demo library). EVERY
+    // client-fetched RDF asset gets an entry: the browser loader verifies each fetch
+    // against its recorded content address, and an asset with no entry could only be
+    // accepted unverified — the bypass the manifest exists to make impossible.
     let entry = |path: &str, bytes: &[u8]| {
         format!(
             "  \"{path}\": {{ \"blake3\": \"blake3:{d}\", \"bytes\": {n} }}",
@@ -831,6 +731,9 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
         )
     };
     let mut entries = vec![entry(FULL_BUNDLE_GTS_PATH, &exec.full_bundle_gts)];
+    if !exec.playground_trig.is_empty() {
+        entries.push(entry(PLAYGROUND_TRIG_PATH, &exec.playground_trig));
+    }
     // The conjecture demo library ships iff the W4 playground surface is rendered.
     if exec.has_conjectures() {
         entries.push(entry(CONJECTURES_PATH, &exec.conjectures_ttl));
@@ -839,29 +742,26 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
 }
 
 /// The interactive asset FILES (no pages) an exec-backed render ships, keyed by their
-/// site-relative path (`assets/…`): the shared controller module, the transport, the
-/// client-side BLAKE3, the vendored MCP engine segments, the ONE queryable bundle + its
-/// integrity manifest, and — when present — the conjecture demo library.
+/// site-relative path (`assets/…`): the shared controller module, the vendored wasm
+/// engines, and — when present — the SPARQL playground data and the browser bundle +
+/// its integrity manifest.
 ///
 /// This is the SINGLE authority for "which interactive assets exist": the static site
 /// emits them at the site root and the mdbook packer ([`crate::mdbook`]) copies the
 /// same map under the book `src/` tree, so both surfaces carry byte-identical engines —
-/// the ones the native↔wasm witness lanes prove. Empty when the render is not
-/// bundle-backed.
-///
-/// There is no longer a per-surface query asset. The playground used to get a 284 MB TriG
-/// projection and the explorer a 27 MB N-Quads one, both re-serialized from the very
-/// bundle emitted beside them; each surface then parsed its own copy in its own engine.
-/// The engine boots over the bundle, so both are answered from bytes already in memory.
+/// the ones the native↔wasm witness lanes prove. Empty when the render is neither
+/// playground- nor bundle-backed.
 pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    if !exec.has_bundle() {
+    if !exec.has_playground() && !exec.has_bundle() && !exec.has_conjectures() {
         return files;
     }
-    files.insert(
-        DOCS_CONTROLLER_PATH.to_string(),
-        DOCS_CONTROLLER.as_bytes().to_vec(),
-    );
+    files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
+    // The console's protocol seam and the client-side content-address function. Emitted
+    // with the interactive set rather than from `console_files`, because `console_files`
+    // folds THIS map in and derives the service worker's shell from the result — an asset
+    // the console fetches but the shell never lists is the offline hole that derivation
+    // exists to close.
     files.insert(
         MCP_TRANSPORT_PATH.to_string(),
         MCP_TRANSPORT.as_bytes().to_vec(),
@@ -870,14 +770,22 @@ pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Ve
     for asset in VENDORED_WASM_ASSETS {
         asset.emit_into(&mut files);
     }
-    files.insert(
-        FULL_BUNDLE_GTS_PATH.to_string(),
-        exec.full_bundle_gts.clone(),
-    );
-    files.insert(
-        BUNDLE_MANIFEST_PATH.to_string(),
-        bundle_manifest_json(exec).into_bytes(),
-    );
+    if exec.has_playground() {
+        files.insert(
+            PLAYGROUND_TRIG_PATH.to_string(),
+            exec.playground_trig.clone(),
+        );
+    }
+    if exec.has_bundle() {
+        files.insert(
+            FULL_BUNDLE_GTS_PATH.to_string(),
+            exec.full_bundle_gts.clone(),
+        );
+        files.insert(
+            BUNDLE_MANIFEST_PATH.to_string(),
+            bundle_manifest_json(exec).into_bytes(),
+        );
+    }
     // The conjecture demo library: an UNCONDITIONAL site sub-asset whenever the W4
     // playground surface renders (the release path hard-fails on an empty declared
     // sub-asset, so it must always be present when interactive). Its integrity entry
@@ -888,24 +796,13 @@ pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Ve
     files
 }
 
-/// Whether an exec-backed render ships the interactive engines at all.
-///
-/// The SAME predicate [`interactive_asset_files`] gates its emission on, named once so a
-/// caller asking "is the controller reachable from this render?" cannot answer it with a
-/// different disjunction. It used to BE a disjunction of three gates over two different
-/// query assets; collapsing the assets collapsed the gates.
-#[must_use]
-pub fn interactive_assets_ship(exec: &ExecutableDocsData) -> bool {
-    exec.has_bundle()
-}
-
 /// The DOM hooks the documentation controller binds to.
 ///
 /// This is the single inventory of "a page carries an interactive control", read by the
-/// script-injection gate. It mirrors the elements `assets/docs-controller.mjs` binds a
-/// handler to; a widget that added a hook without adding it here would render a control
-/// with no controller, which is exactly the defect the derived gate exists to prevent — so
-/// the shell-agreement test asserts the two shells activate the same control set.
+/// script-injection gate and by the console producer. It mirrors the elements
+/// `assets/gmeow-docs.js` binds a handler to; a widget that added a hook without adding
+/// it here would render a control with no controller, which is exactly the defect the
+/// derived gate exists to prevent.
 ///
 /// The mirror is itself gated: `controller_hooks_match_the_shipped_controller_selectors`
 /// scrapes the shipped controller module for every element it looks up
@@ -1138,9 +1035,9 @@ fn append_slice_executable_sections(
 
     // Export: query this slice's vocabulary in the offline playground and copy the
     // result in any RDF format (client-side, no static per-format files).
-    if exec.has_bundle() {
+    if exec.has_playground() {
         heading(out, 2, "Export");
-        let query = export_describe_query(&slice.iri);
+        let query = format!("DESCRIBE <{}>", slice.iri);
         let encoded = url_query_encode(&query);
         line(
             out,
@@ -1228,7 +1125,7 @@ fn append_term_export_section(
     slug: &str,
     exec: &ExecutableDocsData,
 ) {
-    if !exec.has_bundle() {
+    if !exec.has_playground() {
         return;
     }
     let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
@@ -1238,7 +1135,7 @@ fn append_term_export_section(
     heading(out, 2, "Export");
     // A DESCRIBE prefilled into the offline playground: the reader runs it in-browser
     // and copies the result in any RDF format. The card is the prompt-ready projection.
-    let query = export_describe_query(&term.iri);
+    let query = format!("DESCRIBE <{}>", term.iri);
     let encoded = url_query_encode(&query);
     line(
         out,
@@ -1259,26 +1156,30 @@ fn append_term_export_section(
     }
 }
 
+/// The offline SPARQL playground page.
 /// The bundle explorer page: browser `gmeow info`/`describe` over the object-level
-/// ontology. The controller (`assets/docs-controller.mjs`) counts the bundle's default
-/// graph for `info` and runs a bound-subject CONSTRUCT for `describe` — the same describe
-/// the native `gmeow describe` produces, proven byte-identical by the F2 witness lane
-/// (`crates/mcp/tests/witness_explore.rs`).
+/// core bundle. The controller (`gmeow-docs.js`) loads the FULL `gmeow.gts` bundle
+/// via the shared loader (`Dataset.fromGts`, byte-verified against the manifest),
+/// shows the bundle's `info` summary on boot, and runs a client-side `DESCRIBE` for
+/// the entered term IRI — the same describe the native `gmeow describe` produces,
+/// proven byte-identical by the F2 witness lane.
 fn md_bundle_explorer(model: &DocsModel, _exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "Bundle explorer");
     line(
         &mut out,
         "Explore the shipped ontology **entirely in your browser** — no server, no \
-         network. `info` summarizes the object-level ontology and `describe <iri>` returns \
-         every triple the ontology asserts about a term, both answered by the engine over \
-         `gmeow.gts` itself — the same answers the `gmeow` CLI gives, from the same bytes.",
+         network. This loads the full `gmeow.gts` bundle — every named graph and the \
+         RDF 1.2 statement layer — and answers `info` (a summary of the loaded \
+         dataset) and `describe <iri>` (every triple mentioning a term) via the \
+         repository's own query engine compiled to WebAssembly — the same answers \
+         the `gmeow` CLI gives.",
     );
     // Raw HTML passes through the Markdown → HTML step; the controller script is
     // injected per page by the HTML shell (gated on `has_bundle()`).
     out.push_str(
         "<div id=\"gmeow-explorer\" class=\"gmeow-explorer\">\n\
-         <p id=\"gmeow-explorer-info\" class=\"gmeow-explorer-info\">Reaching the engine…</p>\n\
+         <p id=\"gmeow-explorer-info\" class=\"gmeow-explorer-info\">Loading the bundle…</p>\n\
          <form id=\"gmeow-explorer-form\">\n\
          <label for=\"gmeow-explorer-iri\">Describe a term (IRI or CURIE)</label>\n\
          <input id=\"gmeow-explorer-iri\" type=\"text\" spellcheck=\"false\" \
@@ -1342,15 +1243,13 @@ gmeow:gate1 gmeow:statusLabel &quot;open&quot; .</textarea>\n\
     out
 }
 
-/// The conjecture playground page (the WASM-interactive docs W4 deliverable): the browser
-/// SYMMETRIC conjecture / anti-conjecture engine. The controller
-/// (`assets/docs-controller.mjs`) fetches the curated demo library, byte-verifies it
-/// against the bundle manifest, transcodes it through the engine's own `convert` tool and
-/// PARSES it — the selector's entries are exactly the library's `logic:Conjecture`
-/// individuals. For each it renders the recorded Belnap lifecycle and both symmetric legs,
-/// the contradiction witness for a refutation, and the anti-conjecture obligation; when a
-/// record links a runnable `logic:Formula` AST (`logic:hasFormula`) it additionally runs
-/// the live symmetric engine through `conjecture_test`.
+/// The conjecture playground page (the WASM-interactive docs W4 deliverable): the browser SYMMETRIC conjecture /
+/// anti-conjecture engine. The controller (`gmeow-docs.js`) fetches + byte-verifies the
+/// curated demo library, loads the core bundle as the KB, and — on submit — runs the
+/// vendored wasm `conjecture` export (the SAME native `logic:` reasoner, proven
+/// byte-identical by the W4 conjecture witness lane), then renders BOTH legs of the test:
+/// the proof leg (`KB ⊨ φ`), the counterproof leg (`KB ∪ {φ} ⊨ ⊥`) with its contradiction
+/// witness, and the Belnap classification.
 fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "Conjecture playground");
@@ -1367,10 +1266,9 @@ fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> Str
          to native — proven by the conjecture witness lane).",
     );
     // The interactive form (raw HTML passes through the Markdown → HTML step). The
-    // controller script is injected because this body carries a control the controller
-    // binds to; it populates the selector by PARSING the curated demo library — one option
-    // per shipped `logic:Conjecture`, never a hand-written demo list — and renders each
-    // entry's recorded symmetric verdict.
+    // controller script is injected per page by the HTML shell (gated on
+    // `has_conjectures()`); it populates the selector from the curated demo library and
+    // renders the symmetric verdict.
     out.push_str(
         "<div id=\"gmeow-conjecture\" class=\"gmeow-conjecture\">\n\
          <p id=\"gmeow-conjecture-status\" class=\"gmeow-conjecture-status\">Loading the \
@@ -1388,9 +1286,7 @@ fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> Str
     // Belnap-to-lifecycle projection (open, corroborated, refuted-in-standpoint with a
     // contradiction witness + symmetric anti-conjecture leg, a Lakatos refinement
     // successor, and a phi-entails-psi propagation pair). The controller fetches this exact
-    // asset (`assets/conjectures.ttl`), byte-verifies it against the bundle manifest, and
-    // derives the selector from it — so the rendered library and the offered demos are the
-    // same six by construction.
+    // asset (`assets/conjectures.ttl`) and byte-verifies it against the bundle manifest.
     heading(&mut out, 2, "The curated conjecture library");
     line(
         &mut out,
@@ -1406,118 +1302,34 @@ fn md_conjecture_playground(model: &DocsModel, exec: &ExecutableDocsData) -> Str
     out
 }
 
-/// The query the playground's textarea is PREFILLED with — the first thing every reader
-/// runs, and therefore the first thing that must answer.
-pub const PLAYGROUND_DEFAULT_QUERY: &str = "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20";
-
-/// The chase-invented-witness decomposition the playground page ships as a worked example.
-///
-/// The graph name is a FULL IRI, not `gmeow:graph/diagnostics`: SPARQL's PN_LOCAL admits
-/// no `/`, so the prefixed form is a parse error rather than a lookup that misses.
-pub const PLAYGROUND_WITNESS_QUERY: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\nSELECT ?witness ?rule ?ordinal ?frontier WHERE {\n  GRAPH <https://blackcatinformatics.ca/gmeow/graph/diagnostics> {\n    ?witness a gmeow:InventedWitness ;\n             gmeow:existentialOrdinal ?ordinal .\n    ?r rdf:object ?witness ;\n       rdf:subject ?frontier ;\n       gmeow:viaRule ?rule .\n  }\n} LIMIT 20";
-
-/// The export query a term or slice page's `?q=` prefill carries for `iri`.
-///
-/// One function, both pages, and the same text the test executes — so "the link on the page
-/// runs" and "the query we prove returns rows" cannot drift into being two different
-/// strings.
-#[must_use]
-pub fn export_describe_query(iri: &str) -> String {
-    format!("DESCRIBE <{iri}>")
-}
-
-/// Every runnable SPARQL text this site SHIPS, paired with a label.
-///
-/// The SINGLE enumeration `crates/docs/tests/shipped_queries_execute.rs` drives: it runs
-/// each one against the real bundle through the real engine and fails on an empty result.
-/// A query added to a page without being added here is a query nobody proves answers —
-/// which is exactly the state the retired `playground.trig` asset left this site in, where
-/// the default query, both export affordances and the worked witness example all returned
-/// nothing on a page that advertised them.
-#[must_use]
-pub fn shipped_queries(model: &DocsModel) -> Vec<(String, String)> {
-    let mut out = vec![
-        (
-            "playground default textarea".to_owned(),
-            PLAYGROUND_DEFAULT_QUERY.to_owned(),
-        ),
-        (
-            "playground worked example: explain a chase-invented witness".to_owned(),
-            PLAYGROUND_WITNESS_QUERY.to_owned(),
-        ),
-    ];
-    // The per-term and per-slice export prefills. Every one is the same shape, so the first
-    // of each is representative and keeps the lane bounded; `export_describe_query` is the
-    // one constructor both the pages and this list call.
-    if let Some(term) = model.terms.first() {
-        out.push((
-            format!("term export prefill ({})", term.iri),
-            export_describe_query(&term.iri),
-        ));
-    }
-    if let Some(slice) = model.slices.first() {
-        out.push((
-            format!("slice export prefill ({})", slice.iri),
-            export_describe_query(&slice.iri),
-        ));
-    }
-    out
-}
-
 fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
     let mut out = String::new();
     heading(&mut out, 1, "SPARQL playground");
     line(
         &mut out,
-        "Query the shipped ontology **entirely in your browser** — no server, no network. \
-         The query runs against `gmeow.gts` itself, through the same `query_local` tool an \
-         agent calls, on the same engine.",
-    );
-    // What a pattern reaches is the ONE thing a reader must know to write a query that
-    // answers, so it is stated before the form rather than left to be discovered. This page
-    // previously shipped a default query and export links that all matched the default
-    // graph of an asset whose every statement lived in a NAMED graph, so each returned
-    // nothing; naming the partition is what stops that recurring.
-    line(
-        &mut out,
-        "A plain pattern reads the **object-level ontology** — the bundle's default graph, \
-         the authored vocabulary. The derived graphs are named, and an explicit `GRAPH` \
-         clause reaches them: \
-         `<https://blackcatinformatics.ca/gmeow/graph/documentation>` (the per-term \
-         documentation projection), `<…/graph/reasoning>` (the reasoned closure) and \
-         `<…/graph/diagnostics>` (findings, and the chase-invented witnesses below). Write \
-         a graph name as a full IRI in angle brackets — a prefixed name cannot carry the \
-         `/` these IRIs contain.",
+        "Query the bundled ontology and its documentation **entirely in your browser** — \
+         no server, no network. The query runs against a self-contained RDF asset via the \
+         native `purrdf` engine compiled to WebAssembly.",
     );
     // The interactive form (raw HTML passes through the Markdown → HTML step). The
     // controller script is injected per page by the HTML shell, not embedded here.
-    out.push_str(&format!(
+    out.push_str(
         "<form id=\"gmeow-sparql\" class=\"gmeow-sparql\">\n\
          <label for=\"gmeow-sparql-query\">SPARQL query</label>\n\
          <textarea id=\"gmeow-sparql-query\" rows=\"8\" spellcheck=\"false\">\
-         {PLAYGROUND_DEFAULT_QUERY}</textarea>\n\
+         SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 20</textarea>\n\
          <div class=\"gmeow-sparql-controls\">\n\
          <button type=\"submit\">Run</button>\n\
          <span id=\"gmeow-sparql-status\" role=\"status\"></span>\n\
          </div>\n\
          </form>\n\
          <div id=\"gmeow-sparql-results\"></div>\n\n",
-    ));
+    );
     line(
         &mut out,
         "SELECT and ASK return a results table; CONSTRUCT and DESCRIBE return a graph you \
          can copy in any RDF serialization. A `SERVICE` or `LOAD` clause fails offline — \
          there is no remote endpoint to reach.",
-    );
-    // The standalone console is the same engine with the WHOLE read tool surface, not just
-    // this one query widget — so the playground names it rather than leaving the reader to
-    // discover it from the nav.
-    line(
-        &mut out,
-        "For the whole shipped agent surface — validate, reason, transcode, query, the \
-         round-trip loss lattice and a recorded session you can export — open the \
-         [standalone console](../console/index.html). It runs the same engine offline, in \
-         its own shell.",
     );
 
     // Surface any reasoner inferences that could not be attributed to a single worked
@@ -1532,28 +1344,28 @@ fn md_playground(model: &DocsModel, exec: &ExecutableDocsData) -> String {
         fenced(&mut out, "turtle", &exec.cross_example.join("\n"));
     }
 
-    // Explain a chase-invented existential null (Skolem witness). The reason stage projects
-    // each invented null into `graph/diagnostics` as a `gmeow:InventedWitness` typed node
-    // plus a standard-RDF-reification head quad, so the playground can decompose it — with
-    // NO new vocabulary — back into the rule that fired, its existential ordinal, and the
-    // frontier binding that satisfied the antecedent.
-    //
-    // The `GRAPH` clause is REQUIRED and names `graph/diagnostics`, which is where the
-    // bundle actually carries these quads. The query shipped here before named no graph at
-    // all: it was written against a retired TriG asset that lifted the witness subgraph
-    // into `graph/reasoning`, and since that asset put everything in named graphs the
-    // graph-less pattern matched nothing in either dataset. Executed against the bundle,
-    // this form returns rows.
+    // Explain a chase-invented existential null (Skolem witness). The reason stage
+    // projects each invented null into `graph/reasoning` as a `gmeow:InventedWitness`
+    // typed node plus a standard-RDF-reification head quad, so the playground can
+    // decompose it — with NO new vocabulary — back into the rule that fired, its
+    // existential ordinal, and the frontier binding that satisfied the antecedent.
     heading(&mut out, 2, "Explain a chase-invented witness");
     line(
         &mut out,
         "When the reasoner satisfies an existential obligation it *invents* a fresh null — a \
-         Skolem witness with a content-addressed IRI. The bundle carries that witness in \
-         `gmeow:graph/diagnostics` alongside the closure that references it, so you can \
-         decompose any null into its firing rule, existential ordinal, and frontier binding \
-         entirely in your browser:",
+         Skolem witness with a content-addressed IRI. That witness ships in the queryable asset \
+         alongside the closure that references it, so you can decompose any null into its firing \
+         rule, existential ordinal, and frontier binding entirely in your browser:",
     );
-    let witness_query = PLAYGROUND_WITNESS_QUERY;
+    let witness_query = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
+         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\
+         SELECT ?witness ?rule ?ordinal ?frontier WHERE {\n\
+         \x20 ?witness a gmeow:InventedWitness ;\n\
+         \x20          gmeow:existentialOrdinal ?ordinal .\n\
+         \x20 ?r rdf:object ?witness ;\n\
+         \x20    rdf:subject ?frontier ;\n\
+         \x20    gmeow:viaRule ?rule .\n\
+         }";
     let root = root_href(&Page::SparqlPlayground.dir());
     let encoded = url_query_encode(witness_query);
     line(
@@ -1781,10 +1593,10 @@ fn md_landing(model: &DocsModel) -> String {
 }
 
 /// The number of PER-TERM coverage dimensions a projected term record covers —
-/// counted over the canonical [`gmeow_docs_model::coverage::DIMENSIONS`] set so a stray
+/// counted over the canonical [`crate::coverage::DIMENSIONS`] set so a stray
 /// local name in the read-back can never inflate the completeness distribution.
-fn present_dimension_count(term: &gmeow_docs_model::rdf::DocTermFacts) -> usize {
-    gmeow_docs_model::coverage::DIMENSIONS
+fn present_dimension_count(term: &crate::rdf::DocTermFacts) -> usize {
+    crate::coverage::DIMENSIONS
         .iter()
         .filter(|dim| term.covers.contains(dim.dimension.local_name()))
         .count()
@@ -1792,8 +1604,8 @@ fn present_dimension_count(term: &gmeow_docs_model::rdf::DocTermFacts) -> usize 
 
 /// The short human title of a maturity anchor (`Minimal` / `Basic` / `Full` /
 /// `Maximal`) for the health dashboard.
-fn anchor_title(anchor: gmeow_docs_model::maturity::MaturityAnchor) -> String {
-    use gmeow_docs_model::maturity::MaturityAnchor::*;
+fn anchor_title(anchor: crate::maturity::MaturityAnchor) -> String {
+    use crate::maturity::MaturityAnchor::*;
     match anchor {
         Minimal => "Minimal",
         Basic => "Basic",
@@ -1808,10 +1620,10 @@ fn anchor_title(anchor: gmeow_docs_model::maturity::MaturityAnchor) -> String {
 /// (`covers`, read back from `gmeow:docCoversDimension`) does not yet carry. At
 /// the ceiling (earns `Maximal`) there is no next tier.
 fn maturity_gap(
-    earned: Option<gmeow_docs_model::maturity::MaturityAnchor>,
+    earned: Option<crate::maturity::MaturityAnchor>,
     covers: &BTreeSet<String>,
 ) -> String {
-    use gmeow_docs_model::maturity::MaturityAnchor;
+    use crate::maturity::MaturityAnchor;
     // The next tier above the earned floor; when nothing is earned yet the first
     // rung (Minimal) is the target.
     let next = match earned {
@@ -1837,11 +1649,11 @@ fn maturity_gap(
 }
 
 /// The human display label for a coverage dimension, resolved from the single
-/// [`gmeow_docs_model::coverage`] label authority (per-term and slice-scoped dimensions).
-fn dimension_label(dim: gmeow_docs_model::maturity::Dimension) -> String {
-    gmeow_docs_model::coverage::DIMENSIONS
+/// [`crate::coverage`] label authority (per-term and slice-scoped dimensions).
+fn dimension_label(dim: crate::maturity::Dimension) -> String {
+    crate::coverage::DIMENSIONS
         .iter()
-        .chain(gmeow_docs_model::coverage::SLICE_DIMENSIONS.iter())
+        .chain(crate::coverage::SLICE_DIMENSIONS.iter())
         .find(|d| d.dimension == dim)
         .map_or_else(|| dim.local_name().to_owned(), |d| d.label.to_owned())
 }
@@ -1851,7 +1663,7 @@ fn dimension_label(dim: gmeow_docs_model::maturity::Dimension) -> String {
 /// surface, a completeness distribution, and the per-slice earned-maturity floor
 /// with a gap-to-next-tier burn-down. Every coverage number is read back from
 /// `gmeow:docCoversDimension` / `gmeow:coverageFraction` / `gmeow:docEarnedMaturity`
-/// (never a second recompute from `gmeow_docs_model::coverage`), so the dashboard and the
+/// (never a second recompute from `crate::coverage`), so the dashboard and the
 /// reasoned graph cannot silently disagree.
 fn md_health(model: &DocsModel) -> String {
     let mut out = String::new();
@@ -1863,19 +1675,19 @@ fn md_health(model: &DocsModel) -> String {
              dimension mirrors a `docs/missing-*` lint code; the covered counts grow as source \
              prose, examples, scope notes, and external alignments land. Per-term detail lives \
              on each term page's *Documentation coverage* section.",
-            gmeow_docs_model::coverage::TermCoverage::TOTAL,
+            crate::coverage::TermCoverage::TOTAL,
             model.terms.len()
         ),
     );
 
-    let aligned = gmeow_docs_model::coverage::alignment_subjects(model);
+    let aligned = crate::coverage::alignment_subjects(model);
 
     // PURE PROJECTION: the health dashboard reads its coverage numbers back from
     // the emitted `graph/documentation` incidence (`gmeow:docCoversDimension` per
-    // record), NEVER a second recompute from `gmeow_docs_model::coverage`. The page and the
+    // record), NEVER a second recompute from `crate::coverage`. The page and the
     // reasoned graph are therefore the same bytes read two ways — they cannot
     // silently diverge.
-    let graph = gmeow_docs_model::rdf::documentation_graph(model);
+    let graph = crate::rdf::documentation_graph(model);
     let total = graph.terms.len();
 
     // Per-dimension coverage — covered count = the number of documented terms whose
@@ -1884,7 +1696,7 @@ fn md_health(model: &DocsModel) -> String {
     heading(&mut out, 2, model.ui("body_coverage_by_dimension"));
     push_line(&mut out, "| Dimension | Covered | Total | % |");
     push_line(&mut out, "| --- | --- | --- | --- |");
-    for dim in gmeow_docs_model::coverage::DIMENSIONS.iter() {
+    for dim in crate::coverage::DIMENSIONS.iter() {
         let local = dim.dimension.local_name();
         let covered = graph
             .terms
@@ -1904,7 +1716,7 @@ fn md_health(model: &DocsModel) -> String {
     heading(&mut out, 2, model.ui("body_completeness_distribution"));
     push_line(&mut out, "| Dimensions present | Terms |");
     push_line(&mut out, "| --- | --- |");
-    let dims_total = gmeow_docs_model::coverage::TermCoverage::TOTAL;
+    let dims_total = crate::coverage::TermCoverage::TOTAL;
     for k in (0..=dims_total).rev() {
         let count = graph
             .terms
@@ -1932,18 +1744,18 @@ fn md_health(model: &DocsModel) -> String {
             let earned = slice
                 .earned
                 .as_deref()
-                .and_then(gmeow_docs_model::maturity::MaturityAnchor::from_local);
+                .and_then(crate::maturity::MaturityAnchor::from_local);
             let asserted = slice
                 .asserted
                 .as_deref()
-                .and_then(gmeow_docs_model::maturity::MaturityAnchor::from_local);
+                .and_then(crate::maturity::MaturityAnchor::from_local);
             let earned_label = earned.map_or("—".to_owned(), anchor_title);
             // The claim column flags an over-claim inline: a slice that asserts a
             // tier above the earned floor trips the `asserted ⊄ earned` gate.
             let claim_label = match asserted {
                 None => "—".to_owned(),
                 Some(a) => {
-                    let over = gmeow_docs_model::maturity::asserted_exceeds_earned(a, earned);
+                    let over = crate::maturity::asserted_exceeds_earned(a, earned);
                     if over {
                         format!("⚠ {} (unsupported)", anchor_title(a))
                     } else {
@@ -2059,7 +1871,7 @@ fn md_health(model: &DocsModel) -> String {
     heading(&mut out, 2, model.ui("body_badge_legend"));
     push_line(&mut out, "| Family | What it encodes |");
     push_line(&mut out, "| --- | --- |");
-    for family in &gmeow_docs_model::badge::FAMILIES {
+    for family in &crate::badge::FAMILIES {
         push_line(
             &mut out,
             &format!("| **{}** | {} |", family.label, family.description),
@@ -2538,8 +2350,8 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     // emitted in `render_site_lang` from this same source (no dangling path); the
     // detailed, linkable surfaces follow in their own sections below.
     {
-        let ctx = gmeow_docs_model::coverage::CoverageContext::new(model);
-        let badges = gmeow_docs_model::badge::term_badges(term, &ctx, model.reasoning.as_ref());
+        let ctx = crate::coverage::CoverageContext::new(model);
+        let badges = crate::badge::term_badges(term, &ctx, model.reasoning.as_ref());
         let row = badges
             .iter()
             .map(|b| {
@@ -2547,7 +2359,7 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
                     "![{}]({}{})",
                     md_escape(&format!("{}: {}", b.family, b.label)),
                     root_href(&from),
-                    gmeow_docs_model::badge::badge_path(b)
+                    crate::badge::badge_path(b)
                 )
             })
             .collect::<Vec<_>>()
@@ -2602,11 +2414,11 @@ fn term_developer_surface(
         let skeleton = synthesize_quickstart(model, term);
         fenced(&mut out, "turtle", skeleton.trim_end());
         // The `Page::SparqlPlayground` page is emitted only when the pipeline
-        // attaches a playground asset (`exec.has_bundle()`) — a model-only
+        // attaches a playground asset (`exec.has_playground()`) — a model-only
         // render never emits `sparql/index.md`, so the link is gated exactly like
         // the sibling "Export" affordance (`append_term_export_section`) to keep
         // the no-dangling-internal-link invariant (`lint::clean_site_has_zero_errors`).
-        if exec.has_bundle() {
+        if exec.has_playground() {
             let playground_href = rel(&from, &Page::SparqlPlayground.dir());
             push_line(
                 &mut out,
@@ -2688,7 +2500,7 @@ fn term_developer_surface(
     }
 
     // ── Conformance examples (Do/Don't fixtures referencing this term) ──────────
-    let mut term_fixtures: Vec<&gmeow_docs_model::model::DocFixture> = model
+    let mut term_fixtures: Vec<&crate::model::DocFixture> = model
         .fixtures
         .iter()
         .filter(|f| f.terms_referenced.iter().any(|c| c == &term.curie))
@@ -2702,10 +2514,8 @@ fn term_developer_surface(
         heading(&mut out, 2, model.ui("body_conformance_examples"));
         for fixture in &term_fixtures {
             let label = match fixture.kind {
-                gmeow_docs_model::model::DocFixtureKind::Wellformed => model.ui("body_label_do"),
-                gmeow_docs_model::model::DocFixtureKind::CounterExample => {
-                    model.ui("body_label_dont")
-                }
+                crate::model::DocFixtureKind::Wellformed => model.ui("body_label_do"),
+                crate::model::DocFixtureKind::CounterExample => model.ui("body_label_dont"),
             };
             push_line(
                 &mut out,
@@ -2719,10 +2529,7 @@ fn term_developer_surface(
             // validate asset + bundle ship (`has_bundle()`); the fixture Turtle rides
             // base64 in a data-attribute so its RDF never breaks the HTML.
             if exec.has_bundle()
-                && matches!(
-                    fixture.kind,
-                    gmeow_docs_model::model::DocFixtureKind::CounterExample
-                )
+                && matches!(fixture.kind, crate::model::DocFixtureKind::CounterExample)
             {
                 blank(&mut out);
                 push_line(
@@ -2858,7 +2665,7 @@ fn term_developer_surface(
     }
 
     // ── Examples using this term (cross-links to the full source on slice pages) ─
-    let mut term_examples: Vec<&gmeow_docs_model::model::DocExample> = model
+    let mut term_examples: Vec<&crate::model::DocExample> = model
         .examples
         .iter()
         .filter(|e| e.terms_referenced.iter().any(|c| c == &term.curie))
@@ -2959,7 +2766,7 @@ fn term_academic_surface(
     }
 
     // ── Alignments (per-term cross-walks projected from the slice mappings) ──────
-    let mut aligns: Vec<&gmeow_docs_model::model::DocLinkage> = model
+    let mut aligns: Vec<&crate::model::DocLinkage> = model
         .linkages
         .iter()
         .filter(|l| l.subject == term.iri)
@@ -3085,7 +2892,7 @@ fn term_academic_surface(
     }
 
     // ── Tested by (competency questions that exercise this term) ─────────────────
-    let mut tested_by: Vec<&gmeow_docs_model::model::DocCompetency> = model
+    let mut tested_by: Vec<&crate::model::DocCompetency> = model
         .competencies
         .iter()
         .filter(|c| c.exercises.iter().any(|t| t == &term.iri))
@@ -3141,7 +2948,7 @@ fn term_academic_surface(
         // (yet) attached renders no extra lines here, rather than a fabricated
         // "because" claim.
         if unsatisfiable {
-            let because: Vec<&gmeow_docs_model::exec::Entailment> = exec
+            let because: Vec<&crate::exec::Entailment> = exec
                 .term_entailments
                 .get(&term.iri)
                 .map(|entries| {
@@ -3255,10 +3062,10 @@ fn term_academic_surface(
     // source — exactly the predicates behind the `docs/missing-*` lint, so the page
     // and the gate can never disagree about what a term is missing.
     {
-        let ctx = gmeow_docs_model::coverage::CoverageContext::new(model);
-        let cov = gmeow_docs_model::coverage::term_coverage(term, &ctx);
+        let ctx = crate::coverage::CoverageContext::new(model);
+        let cov = crate::coverage::term_coverage(term, &ctx);
         heading(&mut out, 2, model.ui("body_documentation_coverage"));
-        let badges = gmeow_docs_model::coverage::DIMENSIONS
+        let badges = crate::coverage::DIMENSIONS
             .iter()
             .zip(cov.flags())
             .map(|(dim, present)| format!("{} {}", if present { "✓" } else { "✗" }, dim.label))
@@ -3269,7 +3076,7 @@ fn term_academic_surface(
             &format!(
                 "- **{} of {} dimensions present.** {}",
                 cov.present_count(),
-                gmeow_docs_model::coverage::TermCoverage::TOTAL,
+                crate::coverage::TermCoverage::TOTAL,
                 badges
             ),
         );
@@ -3418,21 +3225,52 @@ const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
     rust_syntax_tab,
 ];
 
-// The pure naming layer now lives in `gmeow_docs_model::slug` so `crates/docs-model` can
-// use it without depending on this file (which embeds the vendored wasm via
-// `include_bytes!`). Re-exported here so every existing `render::<name>` caller
-// — inside this crate and out — is unchanged.
-// Already-public naming helpers, re-exported at their original path.
-pub use gmeow_docs_model::slug::{
-    concern_slug, resolve_term_slugs, slice_slug, slice_slug_of_iri, term_slug,
-};
-// Crate-internal naming helpers. These are `pub` in `slug` because they cross a
-// crate boundary into `docs-model`, but stay `pub(crate)` here so this crate's
-// external surface is byte-for-byte what it was before the hoist.
-pub(crate) use gmeow_docs_model::slug::{
-    AlignmentFacets, align_tag, concern_display, local_name, precompute_alignment_facets,
-    provenance_chain, pydantic_class_name, pydantic_module_slug, slice_display, term_advice_facet,
-};
+/// The generated `gmeow_models` module slug for a slice IRI (the last IRI segment,
+/// lowercased, non-identifier chars → `_`) — the same routing the Pydantic emitter
+/// uses, so `gmeow_models.<slice>` resolves to the term's model module.
+pub(crate) fn pydantic_module_slug(slice_iri: &str) -> String {
+    let local = slice_iri.rsplit(['#', '/']).next().unwrap_or(slice_iri);
+    let mut out = String::new();
+    for ch in local.chars() {
+        out.push(if ch == '_' || ch.is_ascii_alphanumeric() {
+            ch.to_ascii_lowercase()
+        } else {
+            '_'
+        });
+    }
+    while out.contains("__") {
+        out = out.replace("__", "_");
+    }
+    out.trim_matches('_').to_string()
+}
+
+/// The generated Pydantic class name for a class IRI: the CamelCase of its local
+/// name (mirroring the emitter's `sanitize_type`), guarded against a leading digit.
+pub(crate) fn pydantic_class_name(iri: &str) -> String {
+    let local = iri.rsplit(['#', '/']).next().unwrap_or(iri);
+    let mut ident = String::new();
+    for ch in local.chars() {
+        ident.push(if ch == '_' || ch.is_ascii_alphanumeric() {
+            ch
+        } else {
+            '_'
+        });
+    }
+    while ident.contains("__") {
+        ident = ident.replace("__", "_");
+    }
+    ident = ident.trim_matches('_').to_string();
+    let mut chars = ident.chars();
+    let name = match chars.next() {
+        Some(c) => format!("{}{}", c.to_ascii_uppercase(), chars.as_str()),
+        None => "GmeowModel".to_string(),
+    };
+    if name.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        format!("N{name}")
+    } else {
+        name
+    }
+}
 
 /// Escape `text` for embedding as a non-raw, double-quoted Python string
 /// literal: backslash and `"` are the only two characters a Python string
@@ -4456,8 +4294,7 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
         heading(&mut out, 2, model.ui("body_artifacts"));
         // Group by role-name; both the group order and the within-group order are
         // sorted for determinism.
-        let mut by_role: BTreeMap<String, Vec<&gmeow_docs_model::model::DocArtifact>> =
-            BTreeMap::new();
+        let mut by_role: BTreeMap<String, Vec<&crate::model::DocArtifact>> = BTreeMap::new();
         for artifact in &slice.artifacts {
             by_role
                 .entry(role_name(&artifact.role))
@@ -4509,7 +4346,7 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
     }
 
     // Linkages whose subject is owned by this slice.
-    let mut slice_links: Vec<&gmeow_docs_model::model::DocLinkage> = model
+    let mut slice_links: Vec<&crate::model::DocLinkage> = model
         .linkages
         .iter()
         .filter(|l| l.owner_slice == slice.iri)
@@ -4543,7 +4380,7 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
     }
 
     // Worked examples owned by this slice — rendered IN FULL.
-    let mut slice_examples: Vec<&gmeow_docs_model::model::DocExample> = model
+    let mut slice_examples: Vec<&crate::model::DocExample> = model
         .examples
         .iter()
         .filter(|e| e.slice == slice.iri)
@@ -4638,7 +4475,7 @@ fn rewrite_doc_body(
 ) -> String {
     // The page-scoped heading anchors, in source order, for the id injection. Empty
     // when not injecting or when the document has no known page.
-    let anchors: &[gmeow_docs_model::source_map::HeadingAnchor] = if inject_anchors {
+    let anchors: &[crate::source_map::HeadingAnchor] = if inject_anchors {
         map.page_of(from_slice, from_path)
             .map(|page| map.heading_anchors(page))
             .unwrap_or(&[])
@@ -4990,7 +4827,7 @@ fn md_linkage_index(model: &DocsModel) -> String {
             line(&mut out, &md_escape(&one_line(comment)));
         }
 
-        let mut links: Vec<&gmeow_docs_model::model::DocLinkage> = model
+        let mut links: Vec<&crate::model::DocLinkage> = model
             .linkages
             .iter()
             .filter(|l| l.mapping_set.as_deref() == Some(set.iri.as_str()))
@@ -5028,7 +4865,7 @@ fn md_linkage_index(model: &DocsModel) -> String {
     }
 
     // Any linkages not attached to a known mapping set (defensive completeness).
-    let mut orphans: Vec<&gmeow_docs_model::model::DocLinkage> = model
+    let mut orphans: Vec<&crate::model::DocLinkage> = model
         .linkages
         .iter()
         .filter(|l| {
@@ -5083,7 +4920,7 @@ fn md_example_index(model: &DocsModel) -> String {
     );
 
     // Group examples by slice (model.examples is slice/path-sorted).
-    let mut by_slice: BTreeMap<String, Vec<&gmeow_docs_model::model::DocExample>> = BTreeMap::new();
+    let mut by_slice: BTreeMap<String, Vec<&crate::model::DocExample>> = BTreeMap::new();
     for example in &model.examples {
         by_slice
             .entry(example.slice.clone())
@@ -5231,7 +5068,7 @@ fn shared_prefix_tokens(a: &str, b: &str) -> usize {
 /// plain code span (never a dead link).
 fn fixture_violation_code_display(
     from: &str,
-    fixture: &gmeow_docs_model::model::DocFixture,
+    fixture: &crate::model::DocFixture,
 ) -> Option<String> {
     let code = fixture.violation_code.as_ref()?;
     Some(match &fixture.catalog_slug {
@@ -5250,7 +5087,7 @@ fn push_fixture_binding_bullets(
     out: &mut String,
     model: &DocsModel,
     from: &str,
-    fixture: &gmeow_docs_model::model::DocFixture,
+    fixture: &crate::model::DocFixture,
 ) {
     if let Some(code_display) = fixture_violation_code_display(from, fixture) {
         push_line(
@@ -5292,7 +5129,7 @@ fn md_fixture_index(model: &DocsModel) -> String {
         return out;
     }
 
-    let mut by_slice: BTreeMap<&str, Vec<&gmeow_docs_model::model::DocFixture>> = BTreeMap::new();
+    let mut by_slice: BTreeMap<&str, Vec<&crate::model::DocFixture>> = BTreeMap::new();
     for fixture in &model.fixtures {
         by_slice
             .entry(fixture.slice.as_str())
@@ -5303,15 +5140,15 @@ fn md_fixture_index(model: &DocsModel) -> String {
     for (slice_iri, fixtures) in by_slice {
         heading(&mut out, 2, &slice_name(model, slice_iri));
 
-        let wellformed: Vec<&gmeow_docs_model::model::DocFixture> = fixtures
+        let wellformed: Vec<&crate::model::DocFixture> = fixtures
             .iter()
             .copied()
-            .filter(|f| f.kind == gmeow_docs_model::model::DocFixtureKind::Wellformed)
+            .filter(|f| f.kind == crate::model::DocFixtureKind::Wellformed)
             .collect();
-        let counter_examples: Vec<&gmeow_docs_model::model::DocFixture> = fixtures
+        let counter_examples: Vec<&crate::model::DocFixture> = fixtures
             .iter()
             .copied()
-            .filter(|f| f.kind == gmeow_docs_model::model::DocFixtureKind::CounterExample)
+            .filter(|f| f.kind == crate::model::DocFixtureKind::CounterExample)
             .collect();
 
         let mut paired_wellformed: std::collections::BTreeSet<&str> =
@@ -5400,8 +5237,7 @@ fn md_competency_index(model: &DocsModel) -> String {
         return out;
     }
 
-    let mut by_slice: BTreeMap<&str, Vec<&gmeow_docs_model::model::DocCompetency>> =
-        BTreeMap::new();
+    let mut by_slice: BTreeMap<&str, Vec<&crate::model::DocCompetency>> = BTreeMap::new();
     for cq in &model.competencies {
         by_slice
             .entry(cq.owner_slice.as_str())
@@ -5845,6 +5681,53 @@ fn append_stage_section(out: &mut String, model: &DocsModel, term: &DocTerm, fro
     }
 }
 
+/// The coarse-grain provenance chain for a durable page: the producing-stage path
+/// walked BACKWARD over `gmeow:dataflowConsumes` from `start_local` (the stage
+/// whose local name is `start_local`, default `stage-docs-render`), following the
+/// lexicographically-smallest consumed producer at each step until a source-reading
+/// stage (one that consumes nothing in-DAG) is reached. Cycle-safe (visited set).
+/// Returns the stage local names in consumer→producer order, or empty when the
+/// start stage is absent.
+pub(crate) fn provenance_chain(
+    pipeline: &crate::model::DocPipeline,
+    start_local: &str,
+) -> Vec<String> {
+    use std::collections::BTreeSet;
+    let by_iri: BTreeMap<&str, &crate::model::DocStage> = pipeline
+        .stages
+        .iter()
+        .map(|s| (s.iri.as_str(), s))
+        .collect();
+    let Some(mut current) = pipeline
+        .stages
+        .iter()
+        .find(|s| local_name(&s.iri) == start_local)
+    else {
+        return Vec::new();
+    };
+    let mut chain = vec![local_name(&current.iri).to_string()];
+    let mut visited: BTreeSet<&str> = BTreeSet::new();
+    visited.insert(current.iri.as_str());
+    // `next_iri` is cloned to an owned String so the borrow of `current.consumes`
+    // ends before `current` is reassigned in the body (the condition temporary must
+    // not outlive the reassignment).
+    while let Some(next_iri) = current
+        .consumes
+        .iter()
+        .filter(|p| !visited.contains(p.as_str()))
+        .min()
+        .cloned()
+    {
+        let Some(next) = by_iri.get(next_iri.as_str()) else {
+            break;
+        };
+        chain.push(local_name(&next.iri).to_string());
+        visited.insert(next.iri.as_str());
+        current = *next;
+    }
+    chain
+}
+
 /// Append the per-page provenance footer: the producing-stage chain, the
 /// build-grain projection of the single `gmeow:docGroundedBy` provenance relation.
 /// A no-op when the model carries no pipeline (a bare unit-test model) — honest
@@ -5977,8 +5860,7 @@ fn md_external_index(model: &DocsModel) -> String {
     );
 
     // Group by namespace (deterministic: external_terms is IRI-sorted).
-    let mut by_ns: BTreeMap<String, Vec<&gmeow_docs_model::model::DocExternalTerm>> =
-        BTreeMap::new();
+    let mut by_ns: BTreeMap<String, Vec<&crate::model::DocExternalTerm>> = BTreeMap::new();
     for term in &model.external_terms {
         by_ns.entry(term.namespace.clone()).or_default().push(term);
     }
@@ -6021,7 +5903,7 @@ fn md_integrity_index(model: &DocsModel) -> String {
 
     let mut any = false;
     for slice in &model.slices {
-        let mut queries: Vec<&gmeow_docs_model::model::DocArtifact> = slice
+        let mut queries: Vec<&crate::model::DocArtifact> = slice
             .artifacts
             .iter()
             .filter(|a| a.role == purrdf::slice::ArtifactRole::VerifyQuery)
@@ -6090,10 +5972,8 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
     // is a BTreeMap so category headings emit in sorted IRI order. The `advice.`
     // family rule is EXCLUDED here — it heads the distinct Advice section below and
     // carries the single `#advice-` anchor, which must appear exactly once.
-    let mut by_category: std::collections::BTreeMap<
-        &str,
-        Vec<&gmeow_docs_model::model::ConstraintRule>,
-    > = std::collections::BTreeMap::new();
+    let mut by_category: std::collections::BTreeMap<&str, Vec<&crate::model::ConstraintRule>> =
+        std::collections::BTreeMap::new();
     for rule in &model.constraint_rules {
         if rule.code == gmeow_validate::codes::ADVICE_FAMILY {
             continue;
@@ -6192,7 +6072,7 @@ fn md_constraint_catalog(model: &DocsModel) -> String {
 /// Render the distinct "Advice" section: the non-gating recommendation tier. Headed
 /// by the `advice.` family rule's `#advice-` anchor (the single static target every
 /// advisory `advice.*` finding code resolves to), then one sub-entry per
-/// [`gmeow_docs_model::model::AdviceEntry`] carrying the term's verbatim avoid/use/how-to prose.
+/// [`crate::model::AdviceEntry`] carrying the term's verbatim avoid/use/how-to prose.
 fn md_advice_section(out: &mut String, model: &DocsModel, from: &str) {
     // The `#advice-` anchor is the advice family rule's own slug — the guaranteed
     // resolution target of every advice.* helpUri fragment.
@@ -6362,7 +6242,7 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
     }
 
     // Learning paths that fold this recipe in.
-    let mut hosting: Vec<&gmeow_docs_model::model::DocLearningPath> = model
+    let mut hosting: Vec<&crate::model::DocLearningPath> = model
         .learning_paths
         .iter()
         .filter(|p| p.recipe_slugs.iter().any(|s| s == slug))
@@ -6675,56 +6555,27 @@ pub(crate) fn to_html_lang_exec_with_map(
     ];
     // The offline SPARQL playground joins the nav only when the pipeline shipped its
     // bundled query asset (never in a model-only render, so the goldens are stable).
-    if exec.has_bundle() {
+    if exec.has_playground() {
         nav.push(nav_item(
             &root,
             &Page::SparqlPlayground.dir(),
             &label("nav_sparql", "SPARQL"),
         ));
     }
-    // The bundle explorer and the conjecture playground are rendered pages of the static
-    // site (see `render_site_lang_exec_with_diagrams`), but they were reachable only from
-    // an mdbook table of contents — the static site emitted them and then linked to
-    // neither. Each joins the nav under exactly the gate that emits its page, so the nav
-    // entry and the page can never disagree.
-    if exec.has_bundle() {
-        nav.push(nav_item(
-            &root,
-            &Page::BundleExplorer.dir(),
-            &label("nav_explorer", "Explorer"),
-        ));
-    }
-    if exec.has_conjectures() {
-        nav.push(nav_item(
-            &root,
-            &Page::ConjecturePlayground.dir(),
-            &label("nav_conjectures", "Conjectures"),
-        ));
-    }
-    // The standalone console — the same tool surface, in its own shell. Emitted by
-    // `crate::console::console_files` under exactly the gate that ships the engines.
-    if interactive_assets_ship(exec) {
-        nav.push(nav_item(&root, "console", &label("nav_console", "Console")));
-    }
 
     let page_lang = if lang == ENGLISH { "en" } else { lang };
 
-    // The controller module is injected into exactly the pages that CARRY a control it
-    // drives — derived from the rendered body, never from a page list.
-    //
-    // This used to be a three-page match. Term pages emit `.gmeow-run-validation`
-    // controls whenever `has_bundle()` (see `md_term`'s conformance-examples section) but
-    // were not in that match, so on the static site every fixture's "run validation"
-    // button was inert while under mdbook — which injects the boot shim on EVERY chapter
-    // through `additional-js` — the identical button worked. Two shells, two behaviours,
-    // from one asymmetry. Deriving the gate from the body closes it by construction: a
-    // control can no longer ship to a page with no controller, in either shell.
-    let body_scripts =
-        if interactive_assets_ship(exec) && body_carries_interactive_control(&body_html) {
-            format!("<script type=\"module\" src=\"{root}{DOCS_CONTROLLER_PATH}\"></script>\n")
-        } else {
-            String::new()
-        };
+    // The playground page loads the controller module (query execution + result
+    // transcoding). Empty for every other page and every model-only render, so the
+    // shell's `body_scripts` slot is byte-neutral there.
+    let body_scripts = if (matches!(page, Page::SparqlPlayground) && exec.has_playground())
+        || (matches!(page, Page::BundleExplorer) && exec.has_bundle())
+        || (matches!(page, Page::ConjecturePlayground) && exec.has_conjectures())
+    {
+        format!("<script type=\"module\" src=\"{root}{DOCS_JS_PATH}\"></script>\n")
+    } else {
+        String::new()
+    };
 
     let tmpl = shell_env()
         .get_template("shell")
@@ -6889,6 +6740,181 @@ fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
 
 // ── Slugging ──────────────────────────────────────────────────────────────────
 
+/// The INJECTIVE documentation-entry slug of a term — the single source of the
+/// `documentation/term/{slug}` doc-entry IRI, the page URL, and every cross-page
+/// link. Returns the term's resolved [`DocTerm::slug`] (assigned once from the
+/// whole term set by [`resolve_term_slugs`] at model build), so the doc-entry
+/// subject is collision-free and its coverage incidence can never be conflated.
+///
+/// A hand-built term (a unit-test fixture that never went through model
+/// resolution) carries an empty `slug`; it then falls back to the base slug —
+/// safe because such tiny models never collide, and the real model always carries
+/// a resolved slug, so this is one function with one answer, never two that can
+/// disagree.
+pub fn term_slug(term: &DocTerm) -> String {
+    if term.slug.is_empty() {
+        slugify(local_name(&term.iri))
+    } else {
+        term.slug.clone()
+    }
+}
+
+/// The category discriminator segment appended to a contended base slug.
+fn category_slug(category: DocTermCategory) -> &'static str {
+    match category {
+        DocTermCategory::Class => "class",
+        DocTermCategory::Property => "property",
+        DocTermCategory::Individual => "individual",
+        DocTermCategory::Datatype => "datatype",
+        DocTermCategory::Other => "other",
+    }
+}
+
+/// A short, stable IRI discriminator: the first 12 hex chars of the full IRI's
+/// BLAKE3 digest — a deterministic, order-independent tiebreak for the rare case
+/// where two distinct terms share BOTH a base slug and a category.
+fn short_iri_digest(iri: &str) -> String {
+    blake3::hash(iri.as_bytes()).to_hex()[..12].to_owned()
+}
+
+/// Resolve the disambiguated `documentation/term/{slug}` slug for every term whose
+/// base slug COLLIDES — a deterministic pure function of the term set, keyed by
+/// term IRI. Terms whose base slug is already unique are ABSENT from the map (they
+/// keep the base slug via [`term_slug`]'s fallback), so the returned entries are
+/// exactly the colliders — the minority that must change.
+///
+/// # Scheme (minimal churn, no blank nodes)
+///
+/// 1. **Base slug** = [`slugify`] of the IRI's local name (the historical slug).
+///    A base slug carried by exactly ONE term is kept verbatim — the non-colliding
+///    terms' IRIs / URLs / links are unchanged (and they are not in the map).
+/// 2. **Category disambiguation** — a base slug shared by ≥2 distinct terms (the
+///    `slugify` case/punctuation fold is lossy, e.g. class `AcceptanceStatus` and
+///    property `acceptanceStatus` both fold to `acceptancestatus`) gets its
+///    category appended (`-class` / `-property` / `-individual` / `-datatype` /
+///    `-other`).
+/// 3. **Digest tiebreak** — a residual collision (same base AND category, or a
+///    disambiguated slug that would clash with a reserved base) appends
+///    [`short_iri_digest`] of the full IRI; a further clash appends an incrementing
+///    suffix. The full slug set (unique bases ∪ resolved) is asserted injective — a
+///    HARD FAIL otherwise, never silent conflation.
+///
+/// Contended terms are processed in IRI-sorted order, so the assignment is a total
+/// function of the (unordered) term set: the same terms always yield the same map.
+pub fn resolve_term_slugs(terms: &[DocTerm]) -> BTreeMap<String, String> {
+    use std::collections::{HashMap, HashSet};
+
+    // Distinct terms by IRI (first occurrence in IRI-sorted order). A term IRI that
+    // appears more than once in the list (e.g. lifted by two scans) is ONE doc-entry
+    // subject, so it resolves to ONE slug — the injectivity target is distinct IRIs,
+    // not list positions.
+    let mut order: Vec<&DocTerm> = terms.iter().collect();
+    order.sort_by(|a, b| a.iri.cmp(&b.iri));
+    let mut seen: HashSet<&str> = HashSet::new();
+    let distinct: Vec<&DocTerm> = order
+        .into_iter()
+        .filter(|t| seen.insert(t.iri.as_str()))
+        .collect();
+
+    // Base slug per distinct term IRI + how many distinct terms share each base.
+    let base_of: HashMap<&str, String> = distinct
+        .iter()
+        .map(|t| (t.iri.as_str(), slugify(local_name(&t.iri))))
+        .collect();
+    let mut base_count: HashMap<&str, usize> = HashMap::new();
+    for base in base_of.values() {
+        *base_count.entry(base.as_str()).or_default() += 1;
+    }
+
+    // Every uncontended base is reserved (kept verbatim, absent from the map).
+    let mut used: HashSet<String> = HashSet::new();
+    for term in &distinct {
+        let base = &base_of[term.iri.as_str()];
+        if base_count[base.as_str()] == 1 {
+            used.insert(base.clone());
+        }
+    }
+
+    // Disambiguate the contended terms (already in IRI-sorted order → determinism).
+    let mut out: BTreeMap<String, String> = BTreeMap::new();
+    for term in &distinct {
+        let base = &base_of[term.iri.as_str()];
+        if base_count[base.as_str()] == 1 {
+            continue;
+        }
+        let cat = category_slug(term.category);
+        let mut cand = format!("{base}-{cat}");
+        if used.contains(&cand) {
+            cand = format!("{base}-{cat}-{}", short_iri_digest(&term.iri));
+        }
+        let mut n = 2;
+        while used.contains(&cand) {
+            cand = format!("{base}-{cat}-{}-{n}", short_iri_digest(&term.iri));
+            n += 1;
+        }
+        used.insert(cand.clone());
+        out.insert(term.iri.clone(), cand);
+    }
+
+    // Injectivity is the whole point: distinct IRIs → distinct slugs across the
+    // WHOLE surface (unique bases ∪ resolved). `used` grew by exactly one per
+    // reserved base and per resolved slug, so its size must equal the distinct-IRI
+    // count — a HARD FAIL otherwise, never silent conflation.
+    assert_eq!(
+        used.len(),
+        distinct.len(),
+        "resolve_term_slugs produced a non-injective slug surface"
+    );
+    out
+}
+
+/// A filesystem-safe slug from a slice IRI's last path segment.
+pub fn slice_slug(slice: &DocSlice) -> String {
+    slice_slug_of_iri(&slice.iri)
+}
+
+/// The slice slug derived directly from a slice IRI — the same slug
+/// [`slice_slug`] yields, without needing a materialized [`DocSlice`]. Used by
+/// [`crate::model::DocMarkdownDocument`] collection during model build, before the
+/// owning `DocSlice` is fully assembled.
+pub fn slice_slug_of_iri(iri: &str) -> String {
+    slugify(local_name(iri))
+}
+
+/// A filesystem-safe slug from a concern IRI's last path segment.
+pub fn concern_slug(concern: &DocConcern) -> String {
+    slugify(local_name(&concern.iri))
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#`.
+fn local_name(iri: &str) -> &str {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    &iri[cut..]
+}
+
+/// Lowercase + collapse to `[a-z0-9-]`, with non-alphanumerics becoming `-`,
+/// runs collapsed, and leading/trailing dashes trimmed. Empty input → `unnamed`.
+fn slugify(name: &str) -> String {
+    let mut out = String::with_capacity(name.len());
+    let mut prev_dash = false;
+    for ch in name.chars() {
+        let lc = ch.to_ascii_lowercase();
+        if lc.is_ascii_alphanumeric() {
+            out.push(lc);
+            prev_dash = false;
+        } else if !prev_dash {
+            out.push('-');
+            prev_dash = true;
+        }
+    }
+    let trimmed = out.trim_matches('-');
+    if trimmed.is_empty() {
+        "unnamed".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
 // ── Link resolution ───────────────────────────────────────────────────────────
 
 /// A link to a term: an intra-site relative link when the IRI names a known
@@ -6917,6 +6943,17 @@ fn consumer_link(model: &DocsModel, from: &str, curie: &str) -> String {
         return term_link(model, from, &format!("{GMEOW_NS}{local}"));
     }
     format!("`{}`", code_escape(curie))
+}
+
+/// Short relation tag for an alignment predicate IRI — the local name after the
+/// final `#`/`/` (`skos:closeMatch` → `closeMatch`, `owl:equivalentClass` →
+/// `equivalentClass`), mirroring the SSSOM-style tags the Python projection used.
+fn align_tag(predicate: &str) -> String {
+    predicate
+        .rsplit(['#', '/'])
+        .find(|s| !s.is_empty())
+        .unwrap_or(predicate)
+        .to_string()
 }
 
 /// The inline projection-loss caveat for a per-term alignment predicate, or `None`
@@ -6991,11 +7028,7 @@ fn curie_link(model: &DocsModel, from: &str, curie: &str) -> String {
 
 /// A link from a linkage's subject (its `subject_curie`/`subject` IRI) to the
 /// term page, falling back to the CURIE in a code span.
-fn subject_link(
-    model: &DocsModel,
-    from: &str,
-    link: &gmeow_docs_model::model::DocLinkage,
-) -> String {
+fn subject_link(model: &DocsModel, from: &str, link: &crate::model::DocLinkage) -> String {
     if let Some(term) = model.terms.iter().find(|t| t.iri == link.subject) {
         let href = rel(from, &Page::Term(term_slug(term)).dir());
         return format!("[`{}`]({}index.md)", code_escape(&link.subject_curie), href);
@@ -7054,8 +7087,25 @@ fn rel(from: &str, to: &str) -> String {
 
 // ── Display helpers ───────────────────────────────────────────────────────────
 
+/// The display name for a slice: its title, then label, then IRI local name.
+pub(crate) fn slice_display(slice: &DocSlice) -> String {
+    slice
+        .title
+        .clone()
+        .or_else(|| slice.label.clone())
+        .unwrap_or_else(|| local_name(&slice.iri).to_string())
+}
+
+/// The display name for a concern: its label, else its IRI local name.
+pub(crate) fn concern_display(concern: &DocConcern) -> String {
+    concern
+        .label
+        .clone()
+        .unwrap_or_else(|| local_name(&concern.iri).to_string())
+}
+
 /// The display name for a mapping set: its set-id tail / label, else local name.
-fn set_display(set: &gmeow_docs_model::model::DocMappingSet) -> String {
+fn set_display(set: &crate::model::DocMappingSet) -> String {
     local_name(&set.iri).to_string()
 }
 
@@ -7273,7 +7323,7 @@ fn code_escape(text: &str) -> String {
 
 /// Whether a B3 entailment's display-form conclusion (`s p o`, CURIE-compacted) is a
 /// class-unsatisfiability witness — `<class> rdfs:subClassOf owl:Nothing` — the same
-/// signal [`gmeow_docs_model::model::ReasoningVerdict::unsatisfiable`] keys on, so the
+/// signal [`crate::model::ReasoningVerdict::unsatisfiable`] keys on, so the
 /// "unsatisfiable because" derivation lines never surface an unrelated entailment.
 fn is_unsatisfiable_conclusion(conclusion: &str) -> bool {
     conclusion.contains(" rdfs:subClassOf ") && conclusion.ends_with(" owl:Nothing")
@@ -7301,11 +7351,47 @@ fn md_escape(text: &str) -> String {
 
 // ── Static indexes (search-index.json, llms.txt / llms-full.txt) ───────────────
 
-/// Maps each term CURIE to the [`gmeow_docs_model::model::DocFixture`]s that reference it
+/// The flattened advice facet for a term — its English advisory carriers in a
+/// stable field order (scope, use-when, avoid-when, how-to-use). Empty when the
+/// term carries no advice. Lets search match on advisory prose, not just label.
+pub(crate) fn term_advice_facet(term: &DocTerm) -> Vec<String> {
+    term.scope_notes
+        .iter()
+        .chain(term.use_when.iter())
+        .chain(term.avoid_when.iter())
+        .chain(term.how_to_use.iter())
+        .cloned()
+        .collect()
+}
+
+/// Maps each subject IRI to its sorted+deduped `tag:object` alignment tokens.
+/// Borrows the subject IRIs from the model, so it is lifetime-bound to it.
+pub(crate) type AlignmentFacets<'a> = std::collections::HashMap<&'a str, Vec<String>>;
+
+/// Precompute alignment facets for all terms in one pass: maps each subject IRI
+/// to a sorted+deduped `tag:object` token list. Avoids the O(N×M) per-term
+/// linear scan of `model.linkages` when rendering the search and llms surfaces.
+pub(crate) fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<'_> {
+    let mut map: std::collections::HashMap<&str, Vec<String>> = std::collections::HashMap::new();
+    for l in &model.linkages {
+        map.entry(l.subject.as_str()).or_default().push(format!(
+            "{}:{}",
+            align_tag(&l.predicate),
+            local_name(&l.object)
+        ));
+    }
+    for tags in map.values_mut() {
+        tags.sort_unstable();
+        tags.dedup();
+    }
+    map
+}
+
+/// Maps each term CURIE to the [`crate::model::DocFixture`]s that reference it
 /// (via `terms_referenced`). Borrows both the CURIE keys and the fixtures from
 /// the model, so it is lifetime-bound to it.
 pub(crate) type FixturesByCurie<'a> =
-    std::collections::HashMap<&'a str, Vec<&'a gmeow_docs_model::model::DocFixture>>;
+    std::collections::HashMap<&'a str, Vec<&'a crate::model::DocFixture>>;
 
 /// Precompute the fixture index for all terms in one pass: maps each term CURIE
 /// to the fixtures referencing it. Avoids the O(terms × fixtures) per-term
@@ -7362,7 +7448,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
 pub(crate) fn search_index_json_with_map(model: &DocsModel, doc_map: &SourceToPageMap) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
     let alignment_facets = precompute_alignment_facets(model);
-    let ctx = gmeow_docs_model::coverage::CoverageContext::new(model);
+    let ctx = crate::coverage::CoverageContext::new(model);
 
     for term in &model.terms {
         records.push(SearchRecord {
@@ -7376,7 +7462,7 @@ pub(crate) fn search_index_json_with_map(model: &DocsModel, doc_map: &SourceToPa
                 .get(term.iri.as_str())
                 .cloned()
                 .unwrap_or_default(),
-            missing_coverage: gmeow_docs_model::coverage::term_coverage(term, &ctx).missing_keys(),
+            missing_coverage: crate::coverage::term_coverage(term, &ctx).missing_keys(),
         });
     }
     for slice in &model.slices {
@@ -7713,7 +7799,7 @@ pub(crate) fn llms_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMap) ->
 /// shared [`llms`] module (the single definition both the docs site and the
 /// MCP/consumer surfaces reference) so this crate's existing
 /// `render::SNIPPETS_CORPUS_NOTE` path keeps working.
-pub use gmeow_docs_model::llms::SNIPPETS_CORPUS_NOTE;
+pub use crate::llms::SNIPPETS_CORPUS_NOTE;
 
 /// Map each of `llms::STANDING_REFERENCE_PAGES` (title, same order) to its
 /// docs-site page. The docs-site rendering of the shared standing-page list;
@@ -7846,21 +7932,21 @@ pub(crate) fn llms_full_txt_with_map(model: &DocsModel, doc_map: &SourceToPageMa
 /// scan ONCE (not O(N²)), and `model` so the term→model link can be gated on the
 /// schema-fragment digest (see [`doc_term_card`]).
 fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets, model: &DocsModel) -> String {
-    gmeow_docs_model::card::render_card_body(
+    crate::card::render_card_body(
         &doc_term_card(term, alignment_facets, model),
-        gmeow_docs_model::card::CardDetail::Standard,
+        crate::card::CardDetail::Standard,
     )
 }
 
-/// Build the neutral [`gmeow_docs_model::card::Card`] from a docs-site [`DocTerm`], resolving
+/// Build the neutral [`crate::card::Card`] from a docs-site [`DocTerm`], resolving
 /// every IRI-bearing field to its display (local-name) form. The shared
-/// [`gmeow_docs_model::card::render_card_body`] then renders it — the SAME renderer the
+/// [`crate::card::render_card_body`] then renders it — the SAME renderer the
 /// folded-snapshot MCP card uses, so the two never diverge (§19 one-path).
 fn doc_term_card(
     term: &DocTerm,
     alignment_facets: &AlignmentFacets,
     model: &DocsModel,
-) -> gmeow_docs_model::card::Card {
+) -> crate::card::Card {
     let label = match &term.label {
         Some(l) if l != &term.curie => Some(l.clone()),
         _ => None,
@@ -7878,11 +7964,8 @@ fn doc_term_card(
             .is_some_and(|digest| digest.schema_by_term.contains_key(&term.iri));
     let (python_model, python_snippet) = if is_modeled {
         (
-            Some(gmeow_docs_model::card::python_model_path(
-                &term.owner_slice,
-                &term.iri,
-            )),
-            Some(gmeow_docs_model::card::python_model_snippet(
+            Some(crate::card::python_model_path(&term.owner_slice, &term.iri)),
+            Some(crate::card::python_model_snippet(
                 &term.owner_slice,
                 &term.iri,
                 &term.curie,
@@ -7891,7 +7974,7 @@ fn doc_term_card(
     } else {
         (None, None)
     };
-    gmeow_docs_model::card::Card {
+    crate::card::Card {
         category: category_singular(term.category).to_string(),
         iri: term.iri.clone(),
         label,
@@ -7919,15 +8002,15 @@ fn doc_term_card(
         python_model,
         python_snippet,
         // Full-tier rich panels: never populated on the docs-site path.
-        ..gmeow_docs_model::card::Card::default()
+        ..crate::card::Card::default()
     }
 }
 
-/// Build the FULL-tier [`gmeow_docs_model::card::Card`] for a site term: the compact
+/// Build the FULL-tier [`crate::card::Card`] for a site term: the compact
 /// [`doc_term_card`] enriched with the rich oracle panels drawn DIRECTLY from the
 /// site model + executable-docs data (`model` + `exec`) — the site twin of the MCP
 /// `doc_card` full tier. It carries the SAME `Card` field types and is rendered by
-/// the SAME [`gmeow_docs_model::card::render_card`], so the two full-card surfaces never fork a
+/// the SAME [`crate::card::render_card`], so the two full-card surfaces never fork a
 /// second renderer (§19 one-path).
 ///
 /// Panel provenance mirrors the term page's own sections:
@@ -7948,14 +8031,14 @@ fn full_card_for(
     term: &DocTerm,
     alignment_facets: &AlignmentFacets,
     fixtures_by_curie: &FixturesByCurie<'_>,
-) -> gmeow_docs_model::card::Card {
+) -> crate::card::Card {
     let mut card = doc_term_card(term, alignment_facets, model);
 
     // Entailments — the reasoner "why" derivations documenting the term.
     if let Some(entailments) = exec.term_entailments.get(&term.iri) {
         card.entailments = entailments
             .iter()
-            .map(|e| gmeow_docs_model::card::CardEntailment {
+            .map(|e| crate::card::CardEntailment {
                 rule: e.rule.clone(),
                 conclusion: e.conclusion.clone(),
                 premises: e.premises.clone(),
@@ -7968,7 +8051,7 @@ fn full_card_for(
     // and capped to a short snippet (the full Turtle stays available on the
     // fixtures index / `counter_examples` tool). Looked up from the precomputed
     // CURIE index (O(1)) rather than rescanning `model.fixtures` per term.
-    let mut term_fixtures: Vec<&gmeow_docs_model::model::DocFixture> = fixtures_by_curie
+    let mut term_fixtures: Vec<&crate::model::DocFixture> = fixtures_by_curie
         .get(term.curie.as_str())
         .cloned()
         .unwrap_or_default();
@@ -7978,15 +8061,13 @@ fn full_card_for(
             .then_with(|| a.logical_path.cmp(&b.logical_path))
     });
     for fixture in term_fixtures {
-        let entry = gmeow_docs_model::card::CardFixture {
+        let entry = crate::card::CardFixture {
             title: fixture.title.clone(),
-            body: gmeow_docs_model::llms::cap_note(&one_line(&fixture.text)),
+            body: crate::llms::cap_note(&one_line(&fixture.text)),
         };
         match fixture.kind {
-            gmeow_docs_model::model::DocFixtureKind::Wellformed => card.fixtures_do.push(entry),
-            gmeow_docs_model::model::DocFixtureKind::CounterExample => {
-                card.fixtures_dont.push(entry)
-            }
+            crate::model::DocFixtureKind::Wellformed => card.fixtures_do.push(entry),
+            crate::model::DocFixtureKind::CounterExample => card.fixtures_dont.push(entry),
         }
     }
 
@@ -7999,7 +8080,7 @@ fn full_card_for(
     {
         card.diagnostics = findings
             .iter()
-            .map(|f| gmeow_docs_model::card::CardDiagnostic {
+            .map(|f| crate::card::CardDiagnostic {
                 code: f.code.clone(),
                 note: f.message.clone(),
             })
@@ -8015,7 +8096,7 @@ fn full_card_for(
     {
         card.loss = rows
             .iter()
-            .map(|r| gmeow_docs_model::card::CardLoss {
+            .map(|r| crate::card::CardLoss {
                 target: r.target.clone(),
                 preservation: r.preservation_kind.clone(),
             })
@@ -8049,15 +8130,15 @@ pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
     term_card_md_inner(term, &alignment_facets, model)
 }
 
-/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`](gmeow_docs_model::card::Card)
+/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`](crate::card::Card)
 /// serialized byte-for-byte as `render_site_lang` emits `terms/{slug}/card.json`
 /// (and as the live MCP `doc_card format=json detail=standard` renders). The
 /// single-term counterpart of [`term_card_md`]: lets a caller obtain one term's
 /// card payload without rendering the whole site.
 pub fn term_card_json(model: &DocsModel, term: &DocTerm) -> Vec<u8> {
     let alignment_facets = precompute_alignment_facets(model);
-    let standard = doc_term_card(term, &alignment_facets, model)
-        .projected(gmeow_docs_model::card::CardDetail::Standard);
+    let standard =
+        doc_term_card(term, &alignment_facets, model).projected(crate::card::CardDetail::Standard);
     serde_json::to_vec(&standard).expect("a pure-data Card of String/Vec/Option fields serializes")
 }
 
@@ -8085,17 +8166,14 @@ fn local_name_vec(iris: &[String]) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_docs_model::model::DocTermStability;
+    use crate::model::DocTermStability;
 
-    /// [`CONTROLLER_HOOKS`] is a mirror of the shipped controller's DOM targets, and a
-    /// mirror without a gate is drift waiting to happen — so the mirror is DERIVED here
-    /// from the module itself and compared for set equality in both directions.
+    /// `CONTROLLER_HOOKS` equals the hooks the SHIPPED controller module actually binds.
     ///
-    /// A hook is an element the controller both LOOKS UP (`document.getElementById` /
-    /// `document.querySelectorAll`) and BINDS A HANDLER TO (`.addEventListener`). That is
-    /// exactly "this page carries a control the controller drives": the sub-elements a
-    /// handler reads (`gmeow-sparql-status`, `gmeow-explorer-results`, …) are looked up
-    /// but never bound, and a dynamically created element is bound but never looked up.
+    /// Scrapes `assets/gmeow-docs.js` for every element it looks up
+    /// (`getElementById` / `querySelectorAll`) AND registers a listener on, then asserts
+    /// set-EQUALITY in both directions — so a looked-up-but-never-bound element and a
+    /// bound-but-never-declared hook are both failures. Without it the const is prose.
     #[test]
     fn controller_hooks_match_the_shipped_controller_selectors() {
         /// The identifier a `document.…` lookup is bound to, given the text preceding
@@ -8122,9 +8200,9 @@ mod tests {
             Some((pos, &rest[..end]))
         }
 
-        // Bind each looked-up variable to the hook string a rendered body would carry.
-        let mut looked_up: BTreeMap<&str, String> = BTreeMap::new();
-        for line in DOCS_CONTROLLER.lines() {
+        let mut looked_up: std::collections::BTreeMap<&str, String> =
+            std::collections::BTreeMap::new();
+        for line in DOCS_JS.lines() {
             if let Some((pos, id)) = quoted_after(line, "document.getElementById(\"")
                 && let Some(var) = binding_target(&line[..pos])
             {
@@ -8137,8 +8215,8 @@ mod tests {
             }
         }
 
-        let mut scraped: BTreeSet<String> = BTreeSet::new();
-        for line in DOCS_CONTROLLER.lines() {
+        let mut scraped: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        for line in DOCS_JS.lines() {
             let Some(pos) = line.find(".addEventListener(") else {
                 continue;
             };
@@ -8158,11 +8236,11 @@ mod tests {
             "the controller-selector scrape found almost nothing ({scraped:?}) — the \
              module's binding shape changed and this gate stopped seeing it"
         );
-        let declared: BTreeSet<String> =
+        let declared: std::collections::BTreeSet<String> =
             CONTROLLER_HOOKS.iter().map(|h| (*h).to_string()).collect();
         assert_eq!(
             scraped, declared,
-            "CONTROLLER_HOOKS must equal the hooks assets/docs-controller.mjs binds to"
+            "CONTROLLER_HOOKS must equal the hooks assets/gmeow-docs.js binds to"
         );
     }
 
@@ -8194,7 +8272,7 @@ mod tests {
     fn stage_page_self_explains_its_attached_graphs_and_blob_reps() {
         // docs-on <stage> surfaces the stage's declared carrier contribution: the
         // attached graph/documentation + the attached blob-rep lanes (Step 4 self-explain).
-        use gmeow_docs_model::model::{DocPipeline, DocStage};
+        use crate::model::{DocPipeline, DocStage};
         let stage_iri = "https://blackcatinformatics.ca/gmeow/stage-docs-render";
         let model = DocsModel {
             pipeline: Some(DocPipeline {
@@ -8278,6 +8356,14 @@ mod tests {
         }
         let slugs: std::collections::BTreeSet<String> = resolved.iter().map(term_slug).collect();
         assert_eq!(slugs.len(), resolved.len(), "slugs must be injective");
+    }
+
+    #[test]
+    fn slugify_is_filesystem_safe() {
+        assert_eq!(slugify("HasOwner"), "hasowner");
+        assert_eq!(slugify("Cat 9 Lives!"), "cat-9-lives");
+        assert_eq!(slugify("--weird--"), "weird");
+        assert_eq!(slugify(""), "unnamed");
     }
 
     #[test]
@@ -8373,6 +8459,23 @@ mod tests {
         );
     }
 
+    #[test]
+    fn align_tag_handles_trailing_separators() {
+        assert_eq!(
+            align_tag("http://www.w3.org/2004/02/skos/core#closeMatch"),
+            "closeMatch"
+        );
+        assert_eq!(
+            align_tag("http://www.w3.org/2002/07/owl#equivalentClass"),
+            "equivalentClass"
+        );
+        // trailing separator must not yield an empty tag
+        assert_eq!(align_tag("http://example.org/vocab#"), "vocab");
+        assert_eq!(align_tag("http://example.org/vocab/"), "vocab");
+        // no separator at all -> whole predicate
+        assert_eq!(align_tag("bareword"), "bareword");
+    }
+
     /// A minimal two-term model with one French translation, used to assert the
     /// language-parametrized renderer picks the translation and falls back to
     /// English elsewhere.
@@ -8416,7 +8519,7 @@ mod tests {
             ..Default::default()
         };
 
-        let translations = gmeow_docs_model::i18n::Translations::from_entries(
+        let translations = crate::i18n::Translations::from_entries(
             [
                 (
                     (
@@ -8465,7 +8568,7 @@ mod tests {
             pipeline: None,
             available_languages: vec!["english".to_string(), "fr".to_string()],
             translations,
-            ui_catalog: gmeow_docs_model::i18n::UiCatalog::default(),
+            ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
             diagnostics: None,
             term_loss: None,
@@ -8697,7 +8800,7 @@ mod tests {
     /// production render function independently of a regenerated catalog `.nq`.
     #[test]
     fn constraint_catalog_renders_distinct_advice_section() {
-        use gmeow_docs_model::model::{AdviceEntry, ConstraintRule};
+        use crate::model::{AdviceEntry, ConstraintRule};
         let mut model = tiny_model();
         // The advice family rule — its slug is the `#advice-` section anchor.
         model.constraint_rules = vec![ConstraintRule {
@@ -8793,7 +8896,7 @@ mod tests {
 
     #[test]
     fn per_term_card_json_and_full_md_are_emitted() {
-        use gmeow_docs_model::model::{
+        use crate::model::{
             DiagnosticsDigest, DocDiagFinding, DocFixture, DocFixtureKind, TermLossDigest,
             TermLossRow,
         };
@@ -8864,7 +8967,7 @@ mod tests {
         let mut term_entailments = BTreeMap::new();
         term_entailments.insert(
             foo_iri.clone(),
-            vec![gmeow_docs_model::exec::Entailment {
+            vec![crate::exec::Entailment {
                 rule: "subClassOf-transitivity".to_string(),
                 conclusion: "gmeow:Foo rdfs:subClassOf owl:Thing".to_string(),
                 premises: vec!["gmeow:Foo rdfs:subClassOf gmeow:Bar".to_string()],
@@ -8903,8 +9006,8 @@ mod tests {
         // The standard tier carries NO rich-panel keys.
         assert!(parsed.get("entailments").is_none(), "standard omits panels");
         let facets = precompute_alignment_facets(&model);
-        let expected = doc_term_card(foo, &facets, &model)
-            .projected(gmeow_docs_model::card::CardDetail::Standard);
+        let expected =
+            doc_term_card(foo, &facets, &model).projected(crate::card::CardDetail::Standard);
         let expected_bytes = serde_json::to_vec(&expected).expect("serialize standard card");
         assert_eq!(
             bytes, &expected_bytes,
@@ -8927,9 +9030,9 @@ mod tests {
             "{full_md}"
         );
         // The full body is a strict superset of the standard body (single renderer).
-        let standard_body = gmeow_docs_model::card::render_card_body(
+        let standard_body = crate::card::render_card_body(
             &doc_term_card(foo, &facets, &model),
-            gmeow_docs_model::card::CardDetail::Standard,
+            crate::card::CardDetail::Standard,
         );
         assert!(
             full_md.contains(standard_body.trim_end()),
@@ -8952,6 +9055,32 @@ mod tests {
     }
 
     #[test]
+    fn playground_asset_emitted_only_with_executable_data() {
+        let model = tiny_model();
+
+        // A model-only render (empty executable data) ships NO playground asset — the
+        // base site is complete without the executable surfaces.
+        let base = render_site_lang(&model, "english");
+        assert!(
+            !base.files.contains_key(PLAYGROUND_TRIG_PATH),
+            "the model-only render must not emit the playground asset"
+        );
+
+        // With a playground asset supplied, it is emitted once, verbatim, under the
+        // language-neutral path.
+        let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
+            ..Default::default()
+        };
+        let live = render_site_lang_exec(&model, "english", &exec);
+        assert_eq!(
+            live.files.get(PLAYGROUND_TRIG_PATH).map(Vec::as_slice),
+            Some(exec.playground_trig.as_slice()),
+            "the playground asset must be emitted verbatim when supplied"
+        );
+    }
+
+    #[test]
     fn bundle_assets_emitted_only_with_bundle_data() {
         let model = tiny_model();
 
@@ -8964,15 +9093,12 @@ mod tests {
             );
         }
 
-        // With the bundle supplied, the gts + integrity manifest are emitted verbatim,
-        // with the manifest carrying the asset's blake3 content address and byte length.
-        //
-        // There is ONE queryable asset to check. This test used to have a sibling
-        // (`playground_asset_emitted_only_with_executable_data`) asserting the same
-        // property about a second one; the surfaces that needed a second asset are
-        // answered from this one now.
+        // With the bundle bytes supplied, the full gts + integrity manifest are
+        // emitted verbatim, with the manifest carrying the asset's blake3 content
+        // address and byte length.
         let full = b"\0asm-not-really-but-opaque-bytes".to_vec();
         let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
             full_bundle_gts: full.clone(),
             ..Default::default()
         };
@@ -8980,7 +9106,7 @@ mod tests {
         assert_eq!(
             live.files.get(FULL_BUNDLE_GTS_PATH).map(Vec::as_slice),
             Some(full.as_slice()),
-            "the gts bundle must be emitted verbatim"
+            "the full gts bundle must be emitted verbatim"
         );
         let manifest = String::from_utf8(
             live.files
@@ -8991,19 +9117,12 @@ mod tests {
         .expect("manifest is utf-8");
         assert!(
             manifest.contains(&format!("blake3:{}", blake3::hash(&full).to_hex())),
-            "manifest carries the bundle's blake3 content address:\n{manifest}"
+            "manifest carries the full bundle's blake3 content address:\n{manifest}"
         );
         assert!(
             manifest.contains(&format!("\"bytes\": {}", full.len())),
-            "manifest carries the bundle's byte length:\n{manifest}"
+            "manifest carries the full bundle's byte length:\n{manifest}"
         );
-        // The retired per-surface query assets must never come back as site files.
-        for retired in ["assets/playground.trig", "assets/gmeow-core.nq"] {
-            assert!(
-                !live.files.contains_key(retired),
-                "the retired query asset {retired} must not be emitted"
-            );
-        }
     }
 
     #[test]
@@ -9014,6 +9133,7 @@ mod tests {
              ex:demo a logic:Conjecture .\n"
             .to_vec();
         let exec = ExecutableDocsData {
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
             full_bundle_gts: full,
             conjectures_ttl: conjectures.clone(),
             ..Default::default()
@@ -9085,7 +9205,7 @@ mod tests {
     fn playground_explains_a_chase_invented_witness() {
         let model = tiny_model();
         let exec = ExecutableDocsData {
-            full_bundle_gts: b"\0opaque".to_vec(),
+            playground_trig: b"@prefix ex: <https://e/> .\nex:a ex:b ex:c .\n".to_vec(),
             ..Default::default()
         };
         let page = md_playground(&model, &exec);
@@ -9120,7 +9240,7 @@ mod tests {
         let slice_iri = format!("{GMEOW_NS}slices/demo");
         // tiny_model has no slice; add the one its terms are owned by so the slice
         // page (and its executable sections) render.
-        model.slices.push(gmeow_docs_model::model::DocSlice {
+        model.slices.push(crate::model::DocSlice {
             iri: slice_iri.clone(),
             label: Some("Demo".to_string()),
             title: None,
@@ -9136,7 +9256,7 @@ mod tests {
             realized_state_complete: false,
         });
         // Add a worked example so the "try it" surface has something to render.
-        model.examples.push(gmeow_docs_model::model::DocExample {
+        model.examples.push(crate::model::DocExample {
             slice: slice_iri.clone(),
             logical_path: "examples/demo.ttl".to_string(),
             title: "Demo example".to_string(),
@@ -9146,8 +9266,8 @@ mod tests {
 
         let mut example_inferences = std::collections::BTreeMap::new();
         example_inferences.insert(
-            gmeow_docs_model::exec::example_key(&slice_iri, "examples/demo.ttl"),
-            gmeow_docs_model::exec::InferenceDiff {
+            crate::exec::example_key(&slice_iri, "examples/demo.ttl"),
+            crate::exec::InferenceDiff {
                 asserted: vec!["ex:a rdf:type gmeow:Foo".to_string()],
                 inferred: vec!["ex:a rdf:type owl:Thing".to_string()],
             },
@@ -9155,47 +9275,25 @@ mod tests {
         let exec = ExecutableDocsData {
             example_inferences,
             cross_example: vec!["ex:shared gmeow:derived ex:x".to_string()],
-            full_bundle_gts: b"\0opaque".to_vec(),
+            playground_trig: b"@prefix ex: <https://e/> . ex:a ex:b ex:c .\n".to_vec(),
             ..Default::default()
         };
 
         let site = render_site_lang_exec(&model, "english", &exec);
 
-        // Playground page + the ONE engine every surface dispatches through are present.
+        // Playground page + its assets (incl. the query engine) are present.
         assert!(site.files.contains_key("sparql/index.html"));
-        assert!(site.files.contains_key(DOCS_CONTROLLER_PATH));
+        assert!(site.files.contains_key(DOCS_JS_PATH));
         assert!(
             site.files
-                .contains_key("assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm"),
-            "the console's first-load MCP segment is emitted — it is the only engine any \
-             interactive widget dispatches to, so a widget reaches it or reaches nothing"
+                .contains_key("assets/query/gmeow_query_wasm_bg.wasm"),
+            "the vendored wasm engine is emitted so the playground loads offline"
         );
-        // The vendored purrdf engine is emitted as an IMPORTABLE surface (an offline
-        // RDF-1.2 store an embedder runs over their own dataset), not as a second dispatch
-        // target. Both halves are asserted: emitting it without the runtime files a caller
-        // imports is a dangling path, and the site's own widgets must still reach only the
-        // MCP segments.
-        for name in ["index.mjs", "pkg/purrdf_wasm.js", "pkg/purrdf_wasm_bg.wasm"] {
-            let path = format!("assets/purrdf/{name}");
-            assert!(
-                site.files.contains_key(&path),
-                "the vendored purrdf engine must be emitted: {path} is missing"
-            );
-        }
-        let controller = String::from_utf8(site.files[DOCS_CONTROLLER_PATH].clone()).unwrap();
-        // Over the CODE, with `//` comment lines dropped: the module documents at length
-        // why it does not reach for that engine, and a raw substring probe would read its
-        // own explanation as the violation it is explaining.
-        let controller_code: String = controller
-            .lines()
-            .filter(|line| !line.trim_start().starts_with("//"))
-            .collect::<Vec<_>>()
-            .join("\n");
         assert!(
-            !controller_code.contains("purrdf"),
-            "the docs controller must not import the vendored purrdf engine — every widget \
-             dispatches JSON-RPC to the MCP segments, and a second query engine behind the \
-             same surfaces is the duplicate capability that was retired"
+            site.files
+                .contains_key("assets/validate/gmeow_validate_wasm_bg.wasm"),
+            "the vendored validator wasm engine is emitted alongside purrdf so the site \
+             validates authored RDF client-side"
         );
         let sparql = String::from_utf8(site.files["sparql/index.html"].clone()).unwrap();
         assert!(
@@ -9203,7 +9301,7 @@ mod tests {
             "the query form renders"
         );
         assert!(
-            sparql.contains(DOCS_CONTROLLER_PATH),
+            sparql.contains(DOCS_JS_PATH),
             "the playground page loads the controller module"
         );
         assert!(sparql.contains("SPARQL"), "the SPARQL nav entry is present");
@@ -9241,7 +9339,7 @@ mod tests {
         let fr = render_site_lang_exec(&model, "fr", &exec);
         assert!(
             !fr.files.contains_key("sparql/index.html")
-                && !fr.files.contains_key(FULL_BUNDLE_GTS_PATH),
+                && !fr.files.contains_key(PLAYGROUND_TRIG_PATH),
             "the executable surfaces live only in the English carrier tree"
         );
     }
@@ -9293,7 +9391,7 @@ mod tests {
         foo.use_for_consumer = vec!["gmeow:Bar".to_string(), "ext:Other".to_string()];
 
         // One alignment cross-walk on Foo.
-        model.linkages.push(gmeow_docs_model::model::DocLinkage {
+        model.linkages.push(crate::model::DocLinkage {
             mapping_set: None,
             subject: format!("{GMEOW_NS}Foo"),
             subject_curie: "gmeow:Foo".to_string(),
@@ -9420,7 +9518,7 @@ mod tests {
 
     #[test]
     fn constraint_catalog_anchors_rule_by_helpuri_slug() {
-        use gmeow_docs_model::model::ConstraintRule;
+        use crate::model::ConstraintRule;
 
         let mut model = tiny_model();
         // `box-roles.invalid` → slug `box-roles-invalid` (the validator's transform:

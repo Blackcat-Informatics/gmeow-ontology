@@ -62,6 +62,14 @@ reasoning = ["dep:gmeow-logic", "dep:gmeow-slice-quality"]
 # surface evaluates SPARQL over one, and the grounded-memory triad + the append-only
 # conjecture/candidate libraries are GTS segment files written with purrdf's writer.
 purrdf.workspace = true
+# The store COMPACTION lane's mandatory packaging signature: purrdf's
+# `compact_streamable` takes the ordering-commitment signer as a plain tuple (never an
+# `Option`), so an unsigned repack is unrepresentable — the lane has to name the key type.
+ed25519-dalek = "2"
+# The mandated GTS authorship profile: `store_medium` resolves a runtime store's priming
+# bytes out of the loaded bundle's in-band "dct" map through this leaf, so the consumer
+# engine and the build agree on one dictionary id → one byte sequence.
+gmeow-gts-profile = { path = "../gts-profile" }
 # The diagnostic substrate: every tool defect is a typed `DiagKind` raised as a
 # `Diag`, and `explain_finding` rehydrates `gmeow_errors::Finding` values.
 gmeow-errors = { path = "../errors" }

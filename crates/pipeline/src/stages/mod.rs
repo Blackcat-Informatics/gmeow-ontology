@@ -20,6 +20,11 @@ use crate::registry::StageRegistry;
 
 pub mod agreement;
 pub mod apache;
+// The by-reference TAR archive fold (mappings / cells / queries / tests / schemas /
+// shapes / axioms / models-python). Its own stage rather than sink-inline work, so the
+// archives exist as a product mid-DAG and a consumer can select corpora over them
+// without closing a cycle on the terminal.
+pub mod archive_blobs;
 pub(crate) mod attach;
 pub mod bench;
 pub mod catalog;
@@ -75,6 +80,12 @@ pub mod lpg;
 pub mod mappings;
 pub mod math_producers;
 pub mod matrix;
+// The medium axis's producer: the seven declared zstd dictionaries trained over
+// their declared corpora, measured into gmeow:CompressionDictionaryRealization
+// records, and projected as graph/medium-registry. The terminal reads its product
+// to pin the pack's in-band "dct" map and to seal one gmeow:MediumEnvelope per
+// emitted frame.
+pub mod medium_dictionaries;
 pub mod meta_findings;
 pub mod metadata;
 // The native SPARQL substrate the introspection export leaves query through now
@@ -155,6 +166,14 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
     registry.register("conformance", Arc::new(conformance::ConformanceStage));
     registry.register("snapshot", Arc::new(carrier::SnapshotStage::new()));
+    registry.register(
+        "archive-blobs",
+        Arc::new(archive_blobs::ArchiveBlobsStage::new()),
+    );
+    registry.register(
+        "medium-dictionaries",
+        Arc::new(medium_dictionaries::MediumDictionariesStage::new()),
+    );
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));
     registry.register(

@@ -17,4 +17,9 @@ ex:bodylessForm a math:ClosedFormFunction ;
     math:codomain math:realNumbers ;
     math:formalArgument ex:xDecl .
 
-ex:xDecl a math:FreeVariableDeclaration .
+# The declaration carries its domain: a domain-less free variable is separately
+# math:UntypedFreeVariable, and this counter-example is about the missing BODY alone.
+ex:xDecl a math:FreeVariableDeclaration ;
+    math:variableDomain ex:realLine .
+
+ex:realLine a math:Set .

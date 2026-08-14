@@ -82,9 +82,27 @@ ex:mpgFormula a math:ModelFormula ;
 ex:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:mpgVar .
 ex:wtSlot   a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:wtVar .
 ex:hpSlot   a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression ex:hpVar .
-ex:mpgVar a math:VariableExpression .
-ex:wtVar  a math:VariableExpression .
-ex:hpVar  a math:VariableExpression .
+# Each model variable is an OCCURRENCE resolving to its own free-variable declaration —
+# a regression formula's terms are free, not bound, so they need the declaration the
+# math: expression grammar resolves them through (a bare math:VariableExpression with no
+# math:variableOccurrence is math:UnscopedVariableOccurrence).
+ex:mpgVar a math:VariableExpression ; math:variableOccurrence ex:mpgOccurrence .
+ex:wtVar  a math:VariableExpression ; math:variableOccurrence ex:wtOccurrence .
+ex:hpVar  a math:VariableExpression ; math:variableOccurrence ex:hpOccurrence .
+
+ex:mpgOccurrence a math:VariableOccurrence ; math:declaredVariable ex:mpgDeclaration .
+ex:wtOccurrence  a math:VariableOccurrence ; math:declaredVariable ex:wtDeclaration .
+ex:hpOccurrence  a math:VariableOccurrence ; math:declaredVariable ex:hpDeclaration .
+
+ex:mpgDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
+    rdfs:label "mpg — the response"@x-gmeow-english .
+ex:wtDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
+    rdfs:label "wt — weight, a predictor"@x-gmeow-english .
+ex:hpDeclaration a math:FreeVariableDeclaration ;
+    math:variableDomain ex:modelVariableDomain ;
+    rdfs:label "hp — horsepower, a predictor"@x-gmeow-english .
 
 # The data, held BY REFERENCE (never inlined).
 ex:mtcarsMatrix a math:DatasetMatrix ;
@@ -114,13 +132,21 @@ ex:obs1Residual a math:Residual ;
     gmeow:wasGeneratedBy ex:rRun .
 
 # The computation (the fitting algorithm) routes to logic: (the math:/logic: split).
-ex:fitComputation a math:MathematicalExpression ;
+# A node whose only structured child is math:hasMathematicalSymbol IS a math:SymbolReference —
+# the concrete form the lowering has a production for, and the honest way to name a computation
+# without decomposing it. The abstract math:MathematicalExpression base is not an alternative:
+# it names no concrete form, so it carries no structural identity at all
+# (math:UnrecognizedExpressionType).
+ex:fitComputation a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:fitComputationSymbol ;
     math:compilesToLogicFormula ex:fitLogicFormula ;
     math:logicLoweringPreservation logic:SoundUnderApproximation ;
     math:denotationKind math:denotesProposition .
 # A well-formed atomic logic: AST node. logic:FormulaConstructorConstraint requires EXACTLY
 # ONE constructor from {and, antecedent, exists, forall, iff, not, or, relation}, so a bare
 # `a logic:Formula` is malformed — it selects none.
+ex:fitComputationSymbol a math:MathematicalSymbol ;
+    rdfs:label "the OLS fitting computation, as a named symbol"@x-gmeow-english .
 ex:fitLogicFormula a logic:Formula ;
     logic:relation ex:fitComputes ;
     logic:argument ex:fitLogicArg .
@@ -183,8 +209,14 @@ ex:matmulNode a math:ApplicationExpression ;
     math:argumentSlot ex:onnxSlot0 , ex:onnxSlot1 .
 ex:onnxSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:onnxInExpr .
 ex:onnxSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:onnxWExpr .
-ex:onnxInExpr a math:MathematicalExpression .
-ex:onnxWExpr a math:MathematicalExpression .
+ex:onnxInExpr a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:onnxInSymbol .
+ex:onnxWExpr a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:onnxWSymbol .
+ex:onnxInSymbol a math:MathematicalSymbol ;
+    rdfs:label "the ONNX matmul input tensor, as a named symbol"@x-gmeow-english .
+ex:onnxWSymbol a math:MathematicalSymbol ;
+    rdfs:label "the ONNX matmul weight tensor, as a named symbol"@x-gmeow-english .
 ex:onnxNet a math:LearnedModel .
 
 ex:onnxWeight a math:WeightTensor ;
@@ -278,3 +310,9 @@ ex:qedObservation a gmeow:Observation ;
     gmeow:vantage ex:leanChecker ;
     gmeow:wasGeneratedBy ex:proofRun .
 ex:leanChecker a gmeow:Standpoint .
+
+# The value set every model variable in this formula ranges over. math:FreeVariableDeclaration
+# requires a math:variableDomain: a declaration with no domain says which symbol is free but
+# not what it may take, which is half a declaration.
+ex:modelVariableDomain a math:Set ;
+    rdfs:label "the observed value set of a model variable"@x-gmeow-english .

@@ -549,7 +549,7 @@ mod tests {
         let archive = purrdf::ustar::write_archive(&[("dcat.rq".to_string(), dcat_rq)])
             .expect("tar the synthetic queries archive");
         let builder = purrdf::gts_compose::SnapshotBuilder::new();
-        crate::gts_profile::emit_gmeow_gts(
+        gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
                 data: archive,
@@ -698,7 +698,7 @@ mod tests {
         // returns an empty map (the "wheel-only-install" contract), and this module must
         // still hard-fail rather than silently build an empty manifest.
         let builder = purrdf::gts_compose::SnapshotBuilder::new();
-        let gts_bytes = crate::gts_profile::emit_gmeow_gts(
+        let gts_bytes = gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
                 data: b"unrelated".to_vec(),
@@ -804,7 +804,7 @@ mod tests {
         builder
             .add_dataset(&dataset)
             .expect("add catalog dataset to snapshot builder");
-        crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+        gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
             .expect("frame the synthetic GTS snapshot")
     }
 
@@ -985,7 +985,7 @@ mod tests {
     #[test]
     fn read_distribution_matrix_fails_closed_without_the_catalog_graph() {
         let builder = purrdf::gts_compose::SnapshotBuilder::new();
-        let gts_bytes = crate::gts_profile::emit_gmeow_gts(
+        let gts_bytes = gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
                 data: b"unrelated".to_vec(),

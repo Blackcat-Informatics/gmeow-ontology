@@ -89,6 +89,7 @@ ex:saSensoryQuantitySpecializesMathQuantity a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
@@ -111,7 +112,7 @@ ex:saSensoryQuantityRdfsTwinSurvives a gmeow:StructuralAssertion ;
 PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SensoryQuantity rdfs:subClassOf math:Quantity .
+    gmeow:SensoryQuantity (logic:subClassOf|rdfs:subClassOf) math:Quantity .
 }""" ;
     gmeow:saRationale "gmeow:SensoryQuantity MUST ALSO carry the rdfs:subClassOf math:Quantity edge, not only its logic: twin. The edge is authored in both spellings because logic:subClassOf is normalized to rdfs:subClassOf only downstream: a logic:-only edge is invisible to every raw, entailment-free reader of module.ttl, exactly as the sensoryResult and sensoryObservationOf subproperty cells record. Each authored axiom gets exactly one cell that reds when it is deleted, so neither spelling can be dropped under cover of the other." .
 
@@ -131,9 +132,10 @@ ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sensoryResult rdfs:subPropertyOf gmeow:observationResult .
+    gmeow:sensoryResult (logic:subPropertyOf|rdfs:subPropertyOf) gmeow:observationResult .
 }""" ;
     gmeow:saRationale "gmeow:sensoryResult MUST be a subproperty of gmeow:observationResult so generic consumers can query all observation results without knowing the domain, and so the isResultOf reference-frame property chain can fire. The edge is authored in the rdfs: spelling because the RL harness and this structural cell both parse raw module.ttl with no entailment: logic:subPropertyOf is normalized to rdfs:subPropertyOf only downstream, so a logic:-only edge is invisible to every raw reader." .
 
@@ -142,9 +144,10 @@ ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertio
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:sensoryObservationOf rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:sensoryObservationOf (logic:subPropertyOf|rdfs:subPropertyOf) gmeow:observedFeature .
 }""" ;
     gmeow:saRationale "gmeow:sensoryObservationOf MUST be a subproperty of gmeow:observedFeature so generic observation-about-X queries reach sensory observations. The edge is authored in the rdfs: spelling because the RL harness and this structural cell both parse raw module.ttl with no entailment: logic:subPropertyOf is normalized to rdfs:subPropertyOf only downstream, so a logic:-only edge is invisible to every raw reader." .
 

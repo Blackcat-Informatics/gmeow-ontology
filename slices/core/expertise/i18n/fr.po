@@ -152,3 +152,11 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/skillProficiencyScaleFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:skillProficiencyScale and nothing else. It is not a definition of gmeow:skillProficiencyScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:skillProficiencyScale, et rien d'autre. Ce n'est pas une définition de gmeow:skillProficiencyScale (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SkillProficiencyScaleMismatchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SkillProficiency level/scale mismatch constraint"
+msgstr "contrainte de discordance entre niveau et échelle d'une SkillProficiency"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SkillProficiencyScaleMismatchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity warning: a gmeow:SkillProficiency's gmeow:skillProficiencyLevel must be read on the gmeow:ProficiencyScale the relator itself names via gmeow:skillProficiencyScale — a level whose gmeow:levelScale differs from the relator's declared scale is a mismatch."
+msgstr "Un avertissement d'intégrité en monde clos : le gmeow:skillProficiencyLevel d'une gmeow:SkillProficiency se lit sur la gmeow:ProficiencyScale que le relateur nomme lui-même par gmeow:skillProficiencyScale — un niveau dont la gmeow:levelScale diffère de l'échelle déclarée par le relateur constitue une discordance."

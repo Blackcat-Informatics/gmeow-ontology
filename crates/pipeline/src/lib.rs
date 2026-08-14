@@ -22,6 +22,9 @@
 //! * [`stages`] — the concrete production stages (P3–P5).
 //! * [`docs_measure`] — measured, deterministic per-format documentation byte
 //!   sizes and the three external-distribution design totals.
+//! * [`medium`] — the MEDIUM axis: the typed registry read off the carrier, the
+//!   corpus selectors, dictionary training, envelope seal/open, and the
+//!   `graph/medium-registry` projection.
 //!
 //! Invariants the [`loader`] proves before any stage runs (no-optionality): the
 //! DAG is acyclic and complete, there is exactly one `Sink` (the gts narrow
@@ -29,6 +32,7 @@
 //! `capabilities` / `consumes` / `resources` agree with its RDF declaration
 //! (single source of truth).
 
+pub mod branch_base;
 pub mod bundle;
 // The bundle READ side lives in the leaf crate `gmeow-bundle-view` so a consumer
 // that only reads a materialized `gmeow.gts` (the `gmeow` CLI, `gmeow-dev`, the MCP
@@ -47,11 +51,12 @@ pub mod docs_measure;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;
+pub mod gmn_dialect;
 pub mod graph;
-pub(crate) mod gts_profile;
 pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;
+pub mod medium;
 pub mod node;
 pub mod projection_profiles;
 pub mod projections;
@@ -79,9 +84,18 @@ pub use generator_registry::{
     GENERATORS, GeneratorInfo, GeneratorMetadata, all_output_paths, generator_by_name,
     generator_metadata, generator_names, generator_order, retained_product_paths,
 };
+/// Re-exported from the `gmeow-gts-profile` LEAF crate, where the mandated
+/// authorship profile lives (it cannot live here: `gmeow-pipeline` depends on
+/// `gmeow-math` and `gmeow-music`, both of which author GTS bytes). Re-exported
+/// rather than referred to at its own path because the mandated-frame rule is part
+/// of the pipeline's own published surface.
+pub use gmeow_gts_profile::validate_mandated_frames;
 pub use graph::StageGraph;
-pub use gts_profile::validate_mandated_frames;
 pub use loader::{PipelineSpec, StageSpec, bind};
+pub use medium::audit::{
+    DIST_BUNDLE_PRODUCER, MediumDeclaration, declared_medium_of, validate_declared_media,
+    validate_dist_bundle_media,
+};
 pub use node::{
     CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
     Stage, StageInput, StageOutput, StageProduct,

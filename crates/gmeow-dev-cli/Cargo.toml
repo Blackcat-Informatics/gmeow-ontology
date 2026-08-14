@@ -28,10 +28,22 @@ gmeow-pipeline = { path = "../pipeline" }
 # transitively) plus the four repo-reading tools this crate's checkout makes
 # possible, registered through the MCP extension seam.
 gmeow-mcp-dev = { path = "../mcp-dev" }
+# The consumer engine itself: the medium gate reads the bundle's medium resource off a
+# real `McpServer`, which is the surface a consumer actually sees.
+gmeow-mcp = { path = "../mcp" }
 gmeow-logic = { path = "../logic" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
 gmeow-docs = { path = "../docs" }
+# The ONE mandated GMEOW GTS authorship door: the feedback bundle is authored GMEOW GTS,
+# so it goes through the profile rather than purrdf's raw writer.
+gmeow-gts-profile = { path = "../gts-profile" }
+# Self-cleaning system temp dirs. A NORMAL (not dev-only) dependency: the slice-quality
+# ratchet materializes the merge-base authoring surfaces into one on the PRODUCTION gate
+# path, and the guard is what removes that tree on a hard-failing gate and while unwinding
+# from a panic. Hand-rolling a path under `std::env::temp_dir()` is banned by
+# `check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs.
+tempfile.workspace = true
 # The docs MODEL, direct: `doc-lint` loads the model from the content-addressed
 # `.cache/docs-fixture` store, whose model half + shared cache key live in this crate
 # (`gmeow_docs_model::fixture`) so that every model consumer — `gmeow-slice-quality`
@@ -61,4 +73,3 @@ ciborium.workspace = true
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
-tempfile.workspace = true

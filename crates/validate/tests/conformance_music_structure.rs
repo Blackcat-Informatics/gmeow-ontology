@@ -326,7 +326,21 @@ ex:segmentValid gmeow:segmentSpan gmeow:musicalTimeSpanBarOne .
 ex:segmentNoKind a gmeow:MusicalSegment .
 ex:segmentNoKind gmeow:segmentSpan gmeow:musicalTimeSpanBarOne .
 "
-)).fails().violations(&["exactly one segmentKind"]))]
+))
+// `MusicalSegment`'s exactly-one-kind bound is now PROJECTED SHACL derived from the
+// EL-safe `logic:Restriction` axioms in `slices/extensions/music/module.ttl`
+// (`generated/shapes/validation-shapes.ttl`, `gmeow:MusicalSegment-shape`), which
+// carries no `sh:message` (the prose-message convention was retired with the
+// shapes-to-logic migration; see docs/MIGRATING-SHAPES-TO-LOGIC.md).
+// `whole_shapes()` deliberately drops that file from this fixture corpus, so the
+// projected bound is exercised against the live production shape union and asserted
+// by path + constraint component — same rationale as `conformance_music_time`.
+.shape_union()
+.fails()
+.fails_on_path(
+    "https://blackcatinformatics.ca/gmeow/segmentKind",
+    "MinCountConstraintComponent",
+))]
 #[case::tone_event_pitch_value_passes(Case::inline(format!(
     "{PREFIXES}\
 ex:toneEventC4 a gmeow:ToneEvent .
@@ -380,7 +394,18 @@ ex:glissPointOne gmeow:controlPointTimePositionNumerator \"0\"^^xsd:integer .
 ex:glissPointOne gmeow:controlPointTimePositionDenominator \"1\"^^xsd:integer .
 ex:glissPointOne gmeow:controlPointPitch gmeow:pitchValueC4Fixture .
 {PITCH_VALUES}"
-)).fails().violations(&["at least two control points"]))]
+))
+// `PitchTrajectory`'s at-least-two-control-points bound is the same kind of
+// projected, message-less SHACL as the segment-kind bound above
+// (`gmeow:PitchTrajectory-shape`, `sh:minCount 2` on `gmeow:trajectoryControlPoint`,
+// derived from the `logic:Restriction` axioms in module.ttl) — same fix, same
+// rationale.
+.shape_union()
+.fails()
+.fails_on_path(
+    "https://blackcatinformatics.ca/gmeow/trajectoryControlPoint",
+    "MinCountConstraintComponent",
+))]
 #[case::segment_transformation_valid_passes(Case::inline(format!(
     "{PREFIXES}\
 ex:transpositionValid a gmeow:SegmentTransformation .

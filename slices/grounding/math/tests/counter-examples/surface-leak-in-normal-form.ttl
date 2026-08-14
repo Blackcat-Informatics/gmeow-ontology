@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the reasoned-graph math: expression-identity gate
+# (crates/logic/src/math_expression.rs, check_surface_leak_in_normal_form): ex:src is
+# the math:normalizes source of a math:NormalizationDeclaration and directly carries
+# math:rendersAs — a surface-stratum (rendered) predicate leaking into a computation
+# that must stay structural. The gate MUST raise math:SurfaceLeakInNormalForm (and
+# neither of its two siblings math:StructuralKeyDrift /
+# math:StructuralKeyOnRejectedExpression). ex:decl is held at
+# math:commutativeNormalization with a FULL attribution (procedure, observation/vantage,
+# preservation kind) so the hardened declarative tier
+# (math:UnattributedNormalizationConstraint, and the min-qualified-cardinality-1
+# restriction on math:normalizationStrength) stays clean — this fixture isolates the
+# ONE native surface-leak violation, not a declarative attribution gap.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:decl a math:NormalizationDeclaration ;
+    math:normalizes ex:src ;
+    math:normalizesTo ex:tgt ;
+    math:normalizationStrength math:commutativeNormalization ;
+    math:normalizationProcedure ex:leakRewrite ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:leakRewrite a math:NormalizationProcedure .
+
+ex:declObservation a gmeow:Observation ;
+    gmeow:observationResult ex:decl ;
+    gmeow:observedFeature ex:src ;
+    gmeow:vantage ex:leakStandpoint .
+
+ex:leakStandpoint a gmeow:Standpoint , gmeow:Entity .
+
+ex:src a math:NumberLiteral ;
+    math:literalValue 1 ;
+    math:rendersAs ex:rendered .
+
+ex:tgt a math:NumberLiteral ;
+    math:literalValue 1 .

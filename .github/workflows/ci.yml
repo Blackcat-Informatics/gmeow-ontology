@@ -133,6 +133,13 @@ jobs:
       - name: GTS frame/profile gate
         run: make gts-frame-profile-gate GMEOW_DEV=./dist/bin/gmeow-dev
 
+      # The medium axis over the same materialized bundle: every payload frame
+      # decoded through its declared chain, every envelope re-derived (including the
+      # snapshot's stratum), every dictionary paying for itself, and the declared
+      # reader contract matched against what the wire actually demands.
+      - name: Medium gate
+        run: make medium-gate GMEOW_DEV=./dist/bin/gmeow-dev
+
       - name: Upload independent generated tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -300,6 +307,17 @@ jobs:
         with:
           tool: cargo-nextest
 
+      # crates/xtask/tests/issue_refs_lint.rs drives scripts/lint-issue-refs.sh, which
+      # hard-requires ripgrep and is not on the runner image by default — the same
+      # dependency the `lint` job already installs for `make lint`. Without it the
+      # script exits 2 ("ripgrep (rg) is required") and every case of that test reds on
+      # the exit code rather than on what it is asserting. The test runs in the nextest
+      # shards, so the tool has to be here too; a gate that cannot run is not a gate.
+      - name: Install ripgrep
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        with:
+          tool: ripgrep
+
       - name: Format gate
         if: ${{ matrix.shard == 1 }}
         run: cargo fmt --check
@@ -402,7 +420,8 @@ jobs:
   #   ontology-reason    : reason-verify, coverage, coherence gate teeth
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
   #                        slice-quality, compliance-report
-  #   heavy              : wasm-parity, acceptance, bench-soak (the CI-only lane)
+  #   heavy              : wasm-parity, acceptance, bench-soak,
+  #                        medium-consumer-surface (the CI-only lane)
   ontology-validate:
     needs: [producer]
     runs-on: ubuntu-latest
@@ -601,27 +620,27 @@ jobs:
   # repeat-for-confidence loop, not by the change under test. Nothing was dropped:
   # `make heavy` runs all of them here, on every PR, and refuses to run outside CI.
   #
-  #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the five Node lanes
-  #                 that RUN the shipped wasm (validate / reason / gmn / mcp /
-  #                 mcp-core) and assert byte-identity to native — the "every gmeow
-  #                 surface proven native≡wasm" contract. The mcp-core lane
-  #                 additionally proves the TIERED contract end to end: the deferral
-  #                 signal is byte-pinned and the demand loader re-dispatches the
-  #                 identical frame to the real reasoning segment. `make wasm`
-  #                 hard-fails in CI if the wasm32 target is absent, so the criterion
-  #                 is never silently unverified. (The purrdf RDF/JS engine ships +
-  #                 tests its own npm package on purrdf's CI.)
+  #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the four Node lanes
+  #                 that RUN the shipped wasm (query / validate / reason / gmn) and
+  #                 assert byte-identity to native — the "every gmeow surface proven
+  #                 native≡wasm" contract. Every engine is built in this repository
+  #                 from the workspace purrdf pin. `make wasm` hard-fails in CI if the
+  #                 wasm32 target is absent, so the criterion is never silently
+  #                 unverified.
   #   acceptance  : full transpile-recall floor over every external RDF snapshot.
   #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
-  #
-  # The two standalone-console lanes ride this job as well — not because they are
-  # breadth-dominated, but because they need exactly the same preconditions the heavy
-  # lane provisions (a current Node and the producer-materialized bundle). They are
-  # on-gate CHECK_DAG tasks (`console`, `console-smoke`) and hard-fail everywhere.
+  #   medium-consumer-surface : the two consumer-surface medium suites (`gmeow medium`
+  #                 verbs, `gmeow-dev medium-gate`), each a whole in-memory DAG run plus
+  #                 a real runtime store and five breach fixtures. The axis's razor
+  #                 (`medium_identity_gate`, `medium_bundle`) stays on `make check`.
   heavy:
     needs: [producer]
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # 180 rather than 120: `medium-consumer-surface` adds two whole in-memory DAG runs
+    # to the lane, each of which reserves the host and carries a 1800s runaway backstop
+    # in .config/nextest.toml. The job ceiling has to sit above the sum of the lane's
+    # own budgets, or a green lane would be killed by the wrapper instead.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -666,11 +685,16 @@ jobs:
       # release explicitly so the hard
       # dependency — and the optimized artifact bytes — are reproducible, rather than
       # relying on whatever the runner image happens to preinstall.
+      #
+      # The tag is read FROM the Makefile, not repeated here. When it was written down in
+      # both places the two drifted: this step installed a release predating
+      # `--enable-bulk-memory-opt`, so every wasm-opt rule died on an unknown option and
+      # took all four Node parity lanes with it.
       - name: Install binaryen (wasm-opt) — pinned release
-        env:
-          BINARYEN_VER: version_119
         run: |
           set -euo pipefail
+          BINARYEN_VER="$(make --no-print-directory print-binaryen-ver)"
+          echo "pinned binaryen: ${BINARYEN_VER}"
           curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/binaryen.tar.gz \
             "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VER}/binaryen-${BINARYEN_VER}-x86_64-linux.tar.gz"
           mkdir -p /tmp/binaryen
@@ -680,9 +704,10 @@ jobs:
 
       # ubuntu-latest ships a current Node. `make heavy` runs the whole lane in one
       # step: wasm-parity (which itself runs `make wasm` first, so the wasm32 build +
-      # dep-purity gates still execute), then acceptance, then bench-soak. The target
-      # hard-fails unless CI=true AND GITHUB_ACTIONS=true, both of which Actions sets.
-      - name: Heavy lane — native≡wasm parity, transpile acceptance, golden soak (make heavy)
+      # dep-purity gates still execute), then acceptance, then bench-soak, then
+      # medium-consumer-surface. The target hard-fails unless CI=true AND
+      # GITHUB_ACTIONS=true, both of which Actions sets.
+      - name: Heavy lane — native≡wasm parity, transpile acceptance, golden soak, medium consumer surface (make heavy)
         run: make heavy
 
       # The standalone console's DOM-free acceptance lane. It drives the SHIPPED

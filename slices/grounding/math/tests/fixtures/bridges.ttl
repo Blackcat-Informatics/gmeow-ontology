@@ -26,9 +26,14 @@ ex:rCorr a logic:Correspondence ;
     logic:preservationKind logic:ValidationOnly ;
     logic:mnemomorphic true .
 # The computation product routed to logic: (the math:/logic: split).
-ex:rComp a math:MathematicalExpression ;
+# A math:SymbolReference: the concrete form for a computation that is NAMED but not
+# decomposed. The abstract math:MathematicalExpression base names no concrete form, so it
+# carries no structural identity at all (math:UnrecognizedExpressionType).
+ex:rComp a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:rCompSymbol ;
     gmeow:wasGeneratedBy ex:rRun ;
     math:compilesToLogicFormula ex:rLogic .
+ex:rCompSymbol a math:MathematicalSymbol .
 # A well-formed atomic logic: AST node. logic:FormulaConstructorConstraint requires EXACTLY
 # ONE constructor, so a bare `a logic:Formula` is malformed — it selects none.
 ex:rLogic a logic:Formula ;
@@ -125,7 +130,12 @@ ex:badRun a math:RIngestRun ;
     math:ingestCorrespondence ex:badCorr ;
     logic:instantiatesSchema ex:badSchema ;
     logic:instantiatesPlan ex:badPlan .
-ex:badSrc a math:MathematicalObject ; logic:loadBearing true .
+# The witness RETAINS the script: the run's defect is that it lifted nothing, not that it
+# could not read what it was given. A witness holding neither the text nor a digest would
+# make this a math:UnreadableIngestSource / math:MalformedRScript case as well, and a
+# minimal violation stays minimal only when it is well-formed everywhere else.
+ex:badSrc a math:MathematicalObject ; logic:loadBearing true ;
+    math:retainedSource "plot(mtcars$wt, mtcars$mpg)" .
 ex:badSchema a logic:ActionSchema .
 ex:badPlan a logic:Plan .
 ex:badCorr a logic:Correspondence ;

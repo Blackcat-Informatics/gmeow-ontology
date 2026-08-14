@@ -19,9 +19,8 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The wasm-clean RDF kernel surface — EXACTLY the purrdf feature selection the
-# wasm bindings are built against (the browser ring-fence, plus the native text
-# codecs): the `gts` feature with oxigraph OFF and python
+# The wasm-clean RDF kernel surface — the single workspace `purrdf` pin (the
+# ring-fenced, native-codecs surface): the `gts` feature with oxigraph OFF and python
 # OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
 # TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the
 # compiler's RDF parse/serialize path builds for wasm32 with no Store dependency.
