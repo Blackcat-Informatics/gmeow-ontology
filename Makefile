@@ -751,10 +751,6 @@ maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resol
 	@echo "OK: purrdf bumped to $(VERSION) and all four wasm engines re-vendored against it."
 	@echo "    Next: one \`make check\` to re-materialize generated/ and gate."
 
-wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the four Node lanes that RUN the shipped wasm and assert byte-identity to native.
-	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the four `*-pkg-test`
-	@# lanes RUN the shipped wasm (validate/reason/gmn/query) and assert byte-identity to the
-	@# native engine — the "every gmeow surface proven native≡wasm" contract.
 mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown --release
 	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
@@ -937,9 +933,10 @@ npm-consumable: ## Prove every published package is CONSUMABLE: pack -> install 
 	@# imported, which is exactly the consumability failure this lane exists to catch.
 	node scripts/npm-consumability.mjs
 console-assemble: console ## Assemble the standalone <gmeow-console> tree for local preview (the `console` target, under its long name).
-wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the five Node lanes that RUN the shipped wasm and assert byte-identity to native.
-	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the five `*-pkg-test`
-	@# lanes RUN the shipped wasm (validate/reason/gmn/mcp/mcp-core) and assert
+wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the six Node lanes that RUN the shipped wasm and assert byte-identity to native.
+	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the six `*-pkg-test`
+	@# lanes RUN the shipped wasm — the site's four (validate/reason/gmn/query) and the
+	@# console's two (mcp/mcp-core) — and assert
 	@# byte-identity to the native engine — the "every gmeow surface proven native≡wasm"
 	@# contract. The mcp-core lane additionally proves the TIERED contract end to end: the
 	@# deferral signal is byte-pinned, and the demand loader re-dispatches the identical
@@ -956,7 +953,7 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# no-op occupying the critical path. In CI it hard-fails: the parity criterion is
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
-		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test query-wasm-pkg-test; \
+		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test query-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
 		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target or node absent in CI — the native≡wasm parity witnesses cannot run; CI must install both"; exit 1; \

@@ -64,37 +64,6 @@ pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
     Ok(model.canonical_nquads())
 }
 
-/// The pinned real token cost of every glyph the codec may emit — each glyph's
-/// `cl100k_base` BPE cost, the exact value
-/// [`gmeow_lang_bridge::gmn_glyph_token_cost`] returns natively. That primitive embeds a
-/// ~1.7 MB tiktoken vocabulary deliberately excluded from the wasm image (lang-bridge
-/// gates it `cfg(not(target_arch = "wasm32"))` to stay wasm-clean), so the browser cannot
-/// run the tokenizer; the cost is pinned here instead. The native-only anti-rot test
-/// `pinned_glyph_costs_match_the_real_bpe`
-/// asserts this table equals the real BPE cost for EVERY glyph in the codebook registry
-/// (and carries no stale entry), so a new glyph or a shifted cost hard-fails the on-gate
-/// suite until the table is re-pinned. Wasm reads the pinned cost; native cross-checks it.
-const GLYPH_TOKEN_COSTS: &[(&str, usize)] = &[
-    ("*", 1),
-    ("+", 1),
-    ("^", 1),
-    ("¬", 1),
-    ("×", 1),
-    ("γ", 1),
-    ("π", 1),
-    ("→", 1),
-    ("≡", 2),
-    ("⊑", 3),
-    ("▲", 2),
-    ("△", 2),
-    ("▼", 2),
-    ("▽", 2),
-    ("◉", 2),
-    ("○", 2),
-    ("◌", 2),
-    ("●", 1),
-];
-
 /// The pinned token cost of `glyph`, or a hard error if the glyph is not pinned. A
 /// missing entry is a HARD FAIL (never a silent zero or omission): the legend must carry
 /// every glyph's real cost, and the anti-rot test keeps [`GLYPH_TOKEN_COSTS`] complete

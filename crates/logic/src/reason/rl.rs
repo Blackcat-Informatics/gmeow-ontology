@@ -268,45 +268,6 @@ fn resource_term(term: &RdfTerm, interner: &mut Interner) -> Option<TermValue> {
     }
 }
 
-/// The canonical `logic:` subsumption predicates paired with the `rdfs:` names
-/// they lower to on the OWL/RDFS projection surface.
-///
-/// `logic:subClassOf` / `logic:subPropertyOf` are the CANONICAL subsumption
-/// spellings of this ontology — `slices/grounding/logic/module.ttl` defines
-/// `logic:subClassOf` as "Canonical class subsumption … it lowers to
-/// rdfs:subClassOf on the OWL/RDFS projection surface", and
-/// `mappings/grounding-bridges.ttl` carries the lowering as a complete
-/// `logic:GroundingCorrespondence` (`logic:WellBehavedLens`,
-/// `logic:InstitutionMorphism`).
-///
-/// The fixed EL/RL/DL calculi are written against the `rdfs:` names, so a
-/// canonically authored subsumption edge is invisible to them unless the
-/// lowering is applied at INGESTION — which is where it belongs, the same way
-/// source spans come from a swappable ingestion adapter rather than a
-/// downstream text scan. Applying it here is what stops the reasoner from
-/// silently dropping asserted subsumption: a no-optionality violation, since a
-/// canonical axiom that reaches the engine must not entail strictly less than
-/// the same axiom spelled `rdfs:`.
-pub(crate) const CANONICAL_SUBSUMPTION_LOWERINGS: [(&str, &str); 2] = [
-    (
-        "https://blackcatinformatics.ca/logic/subClassOf",
-        "http://www.w3.org/2000/01/rdf-schema#subClassOf",
-    ),
-    (
-        "https://blackcatinformatics.ca/logic/subPropertyOf",
-        "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
-    ),
-];
-
-/// The `rdfs:` projection of `predicate` when `predicate` is one of the
-/// canonical `logic:` subsumption spellings, else `None`.
-pub(crate) fn rdfs_projection_of(predicate: &str) -> Option<&'static str> {
-    CANONICAL_SUBSUMPTION_LOWERINGS
-        .iter()
-        .find(|(canonical, _)| *canonical == predicate)
-        .map(|(_, projection)| *projection)
-}
-
 /// Encode an [`RdfDataset`] into a typed generic-triple `triple(?s,?p,?o,?w)`
 /// EDB — the live proof of the typed bridge's n-ary capability.
 ///

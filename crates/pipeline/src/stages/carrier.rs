@@ -2009,17 +2009,6 @@ pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 // `crate::stages::archive_blobs`, which owns every by-reference TAR rep, and are
 // imported at the top of this module. A second local `const` would be a second
 // authority for the same wire label.
-const REP_CELLS: &str = "cells-archive";
-const REP_TESTS: &str = "tests-archive";
-/// tar of the slice worked-example sources, member = repo-relative path. Re-exported
-/// from the reader-side definition in [`crate::bundle_blobs`] so producer and reader
-/// share ONE constant (a drifted label would silently fold/read an empty archive).
-pub(crate) use crate::bundle_blobs::REP_EXAMPLES;
-/// tar of the generated Pydantic model package, member = package-relative path
-/// (`gmeow_models/...`). Re-exported from the reader-side definition in
-/// [`crate::bundle_blobs`] so producer and reader share ONE constant (a drifted
-/// label would silently fold/read an empty package).
-pub(crate) use crate::bundle_blobs::REP_MODELS_PYTHON;
 // NOT HERE: `yaml-ld-archive`. Its writer used to be a `#[cfg(test)]` twin of this
 // module's sink folds, so the production terminal authored no such frame and
 // the dictionary selecting it primed nothing. It is now a real archive folded by

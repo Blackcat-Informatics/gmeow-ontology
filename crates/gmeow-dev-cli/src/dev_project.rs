@@ -73,37 +73,6 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     status.exit_code()
 }
 
-/// The repo-relative member the curated conjecture demo library rides under in the
-/// bundle's `examples-archive` — the same path it occupies in the working tree, because
-/// [`REP_EXAMPLES`](gmeow_pipeline::bundle_blobs::REP_EXAMPLES) keys members repo-relative.
-pub(crate) const CONJECTURE_LIBRARY_MEMBER: &str =
-    "slices/grounding/logic/examples/conjectures.ttl";
-
-/// Read the curated `logic:Conjecture` demo library out of a `gmeow.gts` snapshot.
-///
-/// The bundle is the source; the working tree is not consulted. A snapshot that predates
-/// the examples fold is a hard failure naming the regenerate that produces it, so a stale
-/// local bundle is reported rather than silently papered over with the disk copy.
-fn bundled_conjecture_library(snapshot: &[u8]) -> Result<Vec<u8>, i32> {
-    let bundle = gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(snapshot)
-        .map_err(|e| fail(format!("cannot read bundle blobs: {e}")))?;
-    let examples = bundle
-        .examples()
-        .map_err(|e| fail(format!("cannot read the bundle's examples archive: {e}")))?;
-    examples
-        .get(CONJECTURE_LIBRARY_MEMBER)
-        .cloned()
-        .ok_or_else(|| {
-            fail(format!(
-                "the bundle carries no {CONJECTURE_LIBRARY_MEMBER} member in its examples \
-                 archive — the curated conjecture demo library is a mandatory site sub-asset, \
-                 and this snapshot predates the examples fold. Run `make regen` to \
-                 re-materialize generated/dist/gmeow.gts; the disk copy is NOT a fallback \
-                 (reading it is what let the bundle and the rendered playground diverge)."
-            ))
-        })
-}
-
 /// Build the site render's [`gmeow_docs::ExecutableDocsData`] from the committed
 /// `gmeow.gts` bundle — which IS the queryable site asset, shipped verbatim.
 ///

@@ -786,19 +786,6 @@ pub fn describe(
 
 // ── conjecture ─────────────────────────────────────────────────────────────────
 
-/// The medium every append-only runtime store this CLI writes is written through:
-/// the shipped `gmeow-memory-hot-v1` dictionary, read out of the EMBEDDED bundle's
-/// in-band `"dct"` map.
-///
-/// The bundle travels with the binary ([`crate::BUNDLE_GTS`]), so the dictionary is
-/// available in a wheel-mode install exactly as it is in a checkout — the store never
-/// needs a second artifact, and it is primed with the same bytes the MCP server uses,
-/// so one store file stays readable by both.
-fn cli_store_medium(reporter: &dyn Reporter, code: &str) -> Result<gmeow_mcp::StoreMedium, i32> {
-    gmeow_mcp::store_medium(crate::BUNDLE_GTS, gmeow_mcp::MEMORY_HOT_DICTIONARY)
-        .map_err(|e| fail(reporter, code, format!("store medium unavailable: {e}")))
-}
-
 /// `gmeow conjecture test` — test a candidate `logic:` formula against a KB in an
 /// isolated, standpoint-scoped scenario world, print the engine verdict, and —
 /// unless `--dry-run` — APPEND it to the append-only conjecture library. Delegates

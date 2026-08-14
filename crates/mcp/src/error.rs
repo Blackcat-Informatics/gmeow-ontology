@@ -125,8 +125,6 @@ define_diag_kind! {
     message = "`{}` is served by the `{}` engine segment, which this deployment has not loaded; load that segment and re-dispatch the same frame", tool, segment;
 }
 
-/// The complete MCP diagnostic-code catalog, in registration order.
-///
 define_diag_kind! {
     /// A runtime store asked to be primed with a dictionary id the LOADED bundle pins no
     /// bytes for.
@@ -143,6 +141,9 @@ define_diag_kind! {
     message = "medium: undeclared dictionary — {}", detail;
     failure_class = "https://blackcatinformatics.ca/gmeow/MediumUndeclaredDictionary";
 }
+
+/// The complete MCP diagnostic-code catalog, in registration order.
+///
 
 /// TOTAL over the crate regardless of which cargo features are selected — the catalog
 /// is the diagnostic THEORY, and a lean deployment is a reduced deployment, not a
