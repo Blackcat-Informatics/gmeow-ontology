@@ -275,9 +275,10 @@ fn literal_of(quads: &[RdfQuad], subject: &str, predicate: &str) -> String {
     found.pop().expect("length checked")
 }
 
-/// The single IRI value of `subject predicate ?o` in `quads`.
-fn iri_of(quads: &[RdfQuad], subject: &str, predicate: &str) -> String {
-    let mut found: Vec<String> = quads
+/// Every IRI value of `subject predicate ?o` in `quads` — the plural peer of [`iri_of`],
+/// for the predicates whose presence is itself the thing under test.
+fn iris_of(quads: &[RdfQuad], subject: &str, predicate: &str) -> Vec<String> {
+    quads
         .iter()
         .filter(|quad| {
             quad.subject == RdfTerm::iri(subject) && quad.predicate == format!("{GMEOW}{predicate}")
@@ -286,7 +287,12 @@ fn iri_of(quads: &[RdfQuad], subject: &str, predicate: &str) -> String {
             RdfTerm::Iri(iri) => Some(iri.clone()),
             _ => None,
         })
-        .collect();
+        .collect()
+}
+
+/// The single IRI value of `subject predicate ?o` in `quads`.
+fn iri_of(quads: &[RdfQuad], subject: &str, predicate: &str) -> String {
+    let mut found: Vec<String> = iris_of(quads, subject, predicate);
     assert_eq!(
         found.len(),
         1,
@@ -486,18 +492,33 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         );
         // The envelope's declared dictionary is the one the frame's codec entry
         // actually binds — the projection is of the WIRE, not of an intention.
-        let declared = iri_of(&registry_quads, subject, "envelopeDictionary");
-        let in_band = dict_of_codec
-            .get(&frame.codec)
-            .unwrap_or_else(|| panic!("the {rep:?} frame's codec entry binds no dictionary"));
-        assert_eq!(
-            module
-                .dictionary_by_id(in_band)
-                .expect("the in-band dictionary resolves")
-                .iri,
-            declared,
-            "the {rep:?} envelope must name the dictionary its frame was primed with"
-        );
+        //
+        // Presence is BICONDITIONAL, because not every rep is primed: a rep assigned
+        // an undicted medium (gmeow:mediumProfileBaselineL12) rides a codec entry that
+        // binds no dictionary, and `medium/rdf.rs` then emits no gmeow:envelopeDictionary
+        // — which `medium/envelope.rs` accepts precisely when the medium declares none.
+        // So the wire is checked both ways: a primed frame must name the dictionary it
+        // was primed with, and an unprimed one must name nothing at all.
+        match dict_of_codec.get(&frame.codec) {
+            Some(in_band) => {
+                let declared = iri_of(&registry_quads, subject, "envelopeDictionary");
+                assert_eq!(
+                    module
+                        .dictionary_by_id(in_band)
+                        .expect("the in-band dictionary resolves")
+                        .iri,
+                    declared,
+                    "the {rep:?} envelope must name the dictionary its frame was primed with"
+                );
+            }
+            None => {
+                assert!(
+                    iris_of(&registry_quads, subject, "envelopeDictionary").is_empty(),
+                    "the {rep:?} frame's codec entry binds no dictionary in band, so its \
+                     envelope must declare none"
+                );
+            }
+        }
     }
     for subject in &envelopes {
         if iri_of(&registry_quads, subject, "envelopeDigestStratum")

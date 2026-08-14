@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ProofIngestSourceRetainedConstraint: a math:ProofIngestRun
+# whose math:parseSource witness names its source only BY REFERENCE (math:sourceDigest)
+# and never retains the annotated formulas verbatim. TSTP is TEXT, so the by-reference
+# form does not apply: a run that cannot show the derivation lines it read never had a
+# derivation to lift, which is the graph-side residue of the front-end's
+# math:MalformedTSTPDerivation refusal.
+#
+# As with the R twin, the digest is what isolates the rule: it discharges the shared
+# math:IngestSourceHeldConstraint and leaves only the proof-specific verbatim-retention
+# obligation firing. The run carries the full grounding frame and produced a codomain.
+# It fires math:ProofIngestSourceRetainedConstraint (shacl.SPARQLConstraintComponent →
+# math:MalformedTSTPDerivation).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/proof-ingest-source-not-retained/> .
+
+ex:run a math:ProofIngestRun ;
+    math:parseSource ex:srcWitness ;
+    logic:instantiatesSchema ex:schema ;
+    logic:instantiatesPlan ex:plan ;
+    math:ingestCorrespondence ex:corr .
+
+ex:srcWitness a math:MathematicalObject ; logic:loadBearing true ;
+    math:sourceDigest "c3fcd3d76192e400" .
+
+ex:schema a logic:ActionSchema .
+ex:plan a logic:Plan .
+ex:corr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:mnemomorphic true .
+
+ex:lifted a math:MathematicalObject ; gmeow:wasGeneratedBy ex:run .

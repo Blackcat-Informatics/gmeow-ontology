@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:RIngestSourceRetainedConstraint: a math:RIngestRun whose
+# math:parseSource witness names its source only BY REFERENCE (math:sourceDigest) and
+# never retains it verbatim. An R script is TEXT and is never blob-scale, so the
+# by-reference form does not apply to it: a run that cannot show the script it parsed
+# never had a parseable script in hand, which is the graph-side residue of the
+# front-end's math:MalformedRScript refusal.
+#
+# The digest is what ISOLATES this rule. The shared math:IngestSourceHeldConstraint is
+# satisfied by either form, so a witness holding the digest discharges the general
+# hold-your-source obligation and leaves only the R-specific verbatim-retention rule
+# firing. The run carries the full grounding frame and produced a codomain, so neither
+# math:UngroundedIngestRun nor the native math:UnliftableIngest gate is in play. It fires
+# math:RIngestSourceRetainedConstraint (shacl.SPARQLConstraintComponent →
+# math:MalformedRScript).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/r-ingest-source-not-retained/> .
+
+ex:run a math:RIngestRun ;
+    math:parseSource ex:srcWitness ;
+    logic:instantiatesSchema ex:schema ;
+    logic:instantiatesPlan ex:plan ;
+    math:ingestCorrespondence ex:corr .
+
+# Held by reference only — legal for a blob-scale model, wrong for a text script.
+ex:srcWitness a math:MathematicalObject ; logic:loadBearing true ;
+    math:sourceDigest "b41d8cd98f00b204" .
+
+ex:schema a logic:ActionSchema .
+ex:plan a logic:Plan .
+ex:corr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:mnemomorphic true .
+
+ex:lifted a math:MathematicalObject ; gmeow:wasGeneratedBy ex:run .

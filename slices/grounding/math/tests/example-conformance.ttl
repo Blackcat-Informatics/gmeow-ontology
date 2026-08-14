@@ -977,6 +977,71 @@ ex:ecIngestRunUnliftable a gmeow:ExampleConformance ;
     gmeow:expectedFailureClass math:UnliftableIngest ;
     gmeow:conformanceRationale "The counter-example's math:RIngestRun retains its source through math:parseSource and carries the full grounding frame (logic:instantiatesSchema / logic:instantiatesPlan and its math:ingestCorrespondence), so math:IngestRunShape is satisfied and it is NOT math:UngroundedIngestRun — yet nothing is gmeow:wasGeneratedBy it, so the put leg silently dropped everything it was meant to lift. Decided by the native ingest lint (crates/validate/src/lint.rs), a produced-nothing join with no SHACL target shape, which is what distinguishes this case from the source-dropping grounding shape above. Pinned by gmeow:expectedFailureClass: validation MUST raise ONLY math:UnliftableIngest." .
 
+# === Bridges: the ingestion-refusal residues ================================ #
+#
+# The seven front-end refusal classes are raised in Rust, below the graph, by the
+# math-lift bridges (crates/math-lift/src/error.rs) — bytes that never decoded, a
+# grammar that rejected, a lift with no image in math:. A counter-example TTL cannot
+# carry malformed protobuf or non-UTF-8 bytes, so each class is discharged here through
+# its GRAPH-SIDE half: the residue the same defect leaves behind when a run is emitted
+# anyway. Each is a logic:Constraint over a logic:Formula AST and therefore projects to
+# SHACL-SPARQL.
+
+ex:ecIngestSourceHeldNeither a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/ingest-source-held-neither.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnreadableIngestSource ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:IngestSourceHeldConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's math:parseSource witness holds NOTHING — neither math:retainedSource (verbatim) nor math:sourceDigest (by reference) — so the put leg has no complement to project along, which is the graph-side residue of math:UnreadableIngestSource. It is a BARE math:IngestRun rather than one of the three concrete bridge subclasses, so the dialect-scoped retention rules cannot reach it and the shared hold-your-source rule fires alone. The run carries the full grounding frame (so it is not math:UngroundedIngestRun) and produced a codomain (so the native math:UnliftableIngest lint stays quiet); the sh:sparql constraint of math:IngestSourceHeldConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent." .
+
+ex:ecRIngestSourceNotRetained a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/r-ingest-source-not-retained.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedRScript ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:RIngestSourceRetainedConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's math:RIngestRun names its source only by reference (math:sourceDigest) and never retains it verbatim. An R script is TEXT and never blob-scale, so the by-reference form does not apply: a run that cannot show the script it parsed never had one, which is the graph-side residue of math:MalformedRScript. The digest is what isolates the rule — it discharges the shared math:IngestSourceHeldConstraint, leaving only the R-specific verbatim-retention obligation firing; the sh:sparql constraint of math:RIngestSourceRetainedConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent." .
+
+ex:ecProofIngestSourceNotRetained a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/proof-ingest-source-not-retained.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedTSTPDerivation ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:ProofIngestSourceRetainedConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's math:ProofIngestRun names its source only by reference (math:sourceDigest) and never retains the annotated formulas verbatim. TSTP is TEXT, so the by-reference form does not apply: a run that cannot show the derivation lines it read never had a derivation to lift, which is the graph-side residue of math:MalformedTSTPDerivation. As with the R twin the digest isolates the rule by discharging the shared math:IngestSourceHeldConstraint; the sh:sparql constraint of math:ProofIngestSourceRetainedConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent." .
+
+ex:ecONNXIngestSourceUnidentified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/onnx-ingest-source-unidentified.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:MalformedONNXWireFormat ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:ONNXIngestSourceIdentifiedConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's math:ONNXIngestRun inlines text but names no math:sourceDigest. An ONNX model is blob-scale BINARY held by reference and never inlined, so the digest — not a retained literal — is the only record of WHICH byte stream the protobuf reader accepted; a run naming none points at no decoded stream, the graph-side residue of math:MalformedONNXWireFormat. The polarity mirrors the R and TSTP twins: here the retained literal discharges the shared math:IngestSourceHeldConstraint, leaving only the ONNX-specific identify-your-bytes obligation firing; the sh:sparql constraint of math:ONNXIngestSourceIdentifiedConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent." .
+
+ex:ecModelFormulaSlotNoExpression a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/model-formula-slot-no-expression.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:ModelFormulaSlotExpressionConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's math:ModelFormula carries an indexed math:ArgumentSlot with no math:slotExpression — the ~ binder's slot present with nothing bound into it, which is a formula the lift could not structure and the graph-side residue of math:UnliftableRComputation. It carries the one math:argumentSlot its own min-1 frame requires, so it is not math:UnframedFunction, and a single xsd:integer math:slotIndex. This cell asserts the shared SHACL component CODE and pins the law by IRI, NOT gmeow:expectedFailureClass isolation: math:ArgumentSlot itself carries owl:minQualifiedCardinality 1 on math:slotExpression (enforcing math:MalformedArgumentSlot), so an empty slot NECESSARILY trips that frame too. The overlap is a property of the vocabulary rather than of this fixture — no authorable graph can exhibit an unstructured slot without it — so claiming soleness here would assert an isolation the fixture cannot have." .
+
+ex:ecTensorGraphNoArchitecture a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tensor-graph-no-architecture.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:UnliftableTensorGraph ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:TensorGraphArchitectureConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's math:TensorComputationGraph names no model through math:architectureOf, so the lifted forward pass is a graph standing behind nothing and the self-structure reading has no subject — the graph-side residue of math:UnliftableTensorGraph. It carries the math:computationNode its own min-1 frame requires, so it is NOT math:MalformedTensorComputationGraph (the node-presence frame over an emitted graph); keeping that frame satisfied is what makes the fixture discriminate the two classes. The sh:sparql constraint of math:TensorGraphArchitectureConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent." .
+
+ex:ecProofDependencyGraphUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/proof-dependency-graph-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedFailureClass math:IllFoundedProofDerivation ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape math:ProofDependencyGraphAnchoredConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The counter-example's math:ProofDependencyGraph names no math:Proof through math:dependencyGraphOf, so the lifted declaration DAG underlies nothing and the goal-decomposed reading has no target — the graph-side residue of math:IllFoundedProofDerivation. The class carries no OWL frame of its own, so the unanchored node IS the whole violation; the sh:sparql constraint of math:ProofDependencyGraphAnchoredConstraint fires, so validation MUST emit shacl.SPARQLConstraintComponent." .
+
 # === Bridges: fitted-model data-and-specification =========================== #
 
 ex:ecFittedModelFitted a gmeow:ExampleConformance ;

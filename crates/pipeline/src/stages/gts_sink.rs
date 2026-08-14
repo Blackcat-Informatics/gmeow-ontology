@@ -587,7 +587,7 @@ mod tests {
         };
         assert_eq!(
             typed("CompressionDictionaryRealization").len(),
-            7,
+            6,
             "one realization per declared dictionary, IN graph/medium-registry"
         );
         let envelopes = typed("MediumEnvelope");

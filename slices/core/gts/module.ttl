@@ -485,23 +485,24 @@ gmeow:GTSSegment rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:gtsProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSProfile ] .
 
 # A chain head is written 'blake3:<64 lowercase hex>' — the lexical form of the
-# content-id the whole segment history commits to. Authored as the closed-world
-# reading of the head's value space: a faceted xsd:string data range, which
-# derive_validation_shapes lowers to sh:datatype + sh:pattern on the
-# gmeow:GTSSegment node shape. A free-form head is indistinguishable from a
-# truncated or foreign digest, so the shape of the string is part of the claim.
-# The canonical head-id shape obligation is stated ONCE, as
-# logic:GtsHeadIdCanonicalConstraint — a logic:StringPatternConstraint carrying the same
-# ^blake3:[0-9a-f]{64}$ through logic:stringPattern, which derive_validation_shapes lowers
-# to sh:datatype + sh:pattern on the gmeow:GTSSegment node shape.
+# content-id the whole segment history commits to. A free-form head is
+# indistinguishable from a truncated or foreign digest, so the shape of the string
+# is part of the claim.
 #
-# There is deliberately NO owl:withRestrictions datarange beside it. Authoring one restated
-# the identical pattern in a second vocabulary — a duplicate source of truth the slice's own
-# no-second-source rule forbids — and it was not inert: a datatype FACET is outside the
-# fragment the native reasoner decides, so carrying it in the reasoned closure made
-# `make reason-verify` refuse to decide consistency at all rather than reason past a
-# construct it cannot evaluate. Removing it loses no obligation: the constraint above is the
-# authority, and the shape it derives is byte-identical.
+# The obligation is stated ONCE, as logic:GtsHeadIdCanonicalConstraint above: a
+# class-scoped logic:StringPatternConstraint (logic:onClass gmeow:GTSSegment,
+# logic:valuePath gmeow:gtsHeadId). Being class-scoped it lowers BOTH ways from that
+# single record — declaratively to a sh:pattern component on the derived
+# gmeow:GTSSegment node shape, and procedurally to its sh:sparql twin.
+#
+# There is deliberately NO owl:withRestrictions datarange beside it. A datatype facet
+# is the only OTHER thing the shape deriver reads for a pattern, but authoring one is
+# not free: a LIVE pattern facet is outside the fragment the native reasoner decides
+# (XSD's regular-expression dialect is not the host engine's, so refute::datatype
+# withholds rather than guess), and one undecided facet family makes `make
+# reason-verify` refuse a consistency verdict for the WHOLE ontology. Deriving the
+# component from the logic: constraint keeps the obligation, keeps one authored
+# source, and leaves the reasoned closure in-fragment.
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -576,6 +577,7 @@ gmeow:GtsHeadIdCanonicalConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:gtsHeadId value must be canonical — the literal 'blake3:' prefix followed by exactly 64 lowercase hex digits (GTS spec §3.1, §9.1)."@x-gmeow-english ;
+    logic:onClass gmeow:GTSSegment ;
     logic:valuePath gmeow:gtsHeadId ;
     logic:stringOp "regexRequired" ;
     logic:stringPattern "^blake3:[0-9a-f]{64}$" ;

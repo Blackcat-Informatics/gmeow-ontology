@@ -2003,6 +2003,55 @@ pub fn derive_validation_shapes(
             .push(pc);
     }
 
+    // ── String-pattern sugar (logic:StringPatternConstraint) → declarative sh:pattern ─────────
+    // A CLASS-SCOPED regex record (one carrying `logic:onClass`) grounds a `sh:pattern` facet
+    // DECLARATIVELY on that class's node shape, on exactly the reasoning of the node-kind sugar
+    // above: `sh:pattern` is a faithful SHACL-Core facet, so it belongs on the class node shape
+    // the declarative readers consume, not only in the record's procedural SPARQL twin.
+    //
+    // This is the ONLY route by which a lexical-form obligation reaches a derived property
+    // shape. The alternative — an `owl:withRestrictions` datarange carrying `xsd:pattern` — is
+    // the only OTHER thing `datatype_facets` reads, and authoring one is not free: a LIVE
+    // pattern facet is outside the fragment the native reasoner decides (XSD's regular-
+    // expression dialect is not the host engine's, so `refute::datatype` withholds rather than
+    // guess), and one undecided facet family makes `reason-verify` refuse a consistency verdict
+    // for the WHOLE ontology. Deriving the component from the `logic:` constraint keeps the
+    // obligation, keeps a single authored source, and leaves the reasoned closure in-fragment.
+    //
+    // Only `regexRequired` lowers. A `regexForbidden` record is a NEGATED pattern, which SHACL
+    // Core cannot state as a property component (`sh:not` of a pattern needs a nested shape), so
+    // it keeps its procedural projection alone rather than lowering to a wrong positive facet.
+    let string_pattern_ty = Node::iri(logic_iri("StringPatternConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &string_pattern_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(regex)) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+            match value(store, &rec, &nn(&logic_iri("stringPattern"))) {
+                Some(Node::Lit { lexical, .. }) => Some(lexical),
+                _ => None,
+            },
+        ) else {
+            continue;
+        };
+        let op = value(store, &rec, &nn(&logic_iri("stringOp"))).map(|t| term_str(&t));
+        if op.as_deref() != Some("regexRequired") {
+            continue;
+        }
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::Pattern { regex, flags: None }],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
     let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
     for class in &classes {
