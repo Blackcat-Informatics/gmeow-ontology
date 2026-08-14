@@ -549,7 +549,7 @@ mod tests {
             .expect("the emitted bundle's header reads back");
         assert_eq!(
             pinned.len(),
-            7,
+            6,
             "the pack pins every declared dictionary in band; got {:?}",
             pinned.keys().collect::<Vec<_>>()
         );

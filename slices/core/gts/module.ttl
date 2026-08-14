@@ -490,27 +490,18 @@ gmeow:GTSSegment rdfs:subClassOf
 # derive_validation_shapes lowers to sh:datatype + sh:pattern on the
 # gmeow:GTSSegment node shape. A free-form head is indistinguishable from a
 # truncated or foreign digest, so the shape of the string is part of the claim.
-# Spelled in the owl: PROJECTION vocabulary, deliberately, and not in the canonical
-# logic: restriction vocabulary the rest of this slice's obligations use. A datatype
-# FACET is not EL-safe: the canonical logic: layer is what the native reasoner must
-# decide, and it refuses a datarange facet rather than guessing — correctly, since
-# `^blake3:[0-9a-f]{64}$` is a validation obligation about a string's shape, never an
-# entailment. Authoring it in logic: put a construct the single reasoning authority
-# cannot decide into the core it has to decide, and `make reason-verify` stopped
-# rather than reason past it. The obligation is unchanged and still gated:
-# derive_validation_shapes lowers this to sh:datatype + sh:pattern on the
-# gmeow:GTSSegment node shape, which is where a shape-of-the-string check belongs.
-# The datarange's rdfs:Datatype typing stays in its own vocabulary — it is not a
-# counted structural axiom, and the datarange lift keys on that typing.
-gmeow:GTSSegment rdfs:subClassOf
-    [ a owl:Restriction ;
-        owl:onProperty gmeow:gtsHeadId ;
-        owl:allValuesFrom [
-            a rdfs:Datatype ;
-            owl:onDatatype xsd:string ;
-            owl:withRestrictions ( [ xsd:pattern "^blake3:[0-9a-f]{64}$" ] ) ;
-        ] ;
-    ] .
+# The canonical head-id shape obligation is stated ONCE, as
+# logic:GtsHeadIdCanonicalConstraint — a logic:StringPatternConstraint carrying the same
+# ^blake3:[0-9a-f]{64}$ through logic:stringPattern, which derive_validation_shapes lowers
+# to sh:datatype + sh:pattern on the gmeow:GTSSegment node shape.
+#
+# There is deliberately NO owl:withRestrictions datarange beside it. Authoring one restated
+# the identical pattern in a second vocabulary — a duplicate source of truth the slice's own
+# no-second-source rule forbids — and it was not inert: a datatype FACET is outside the
+# fragment the native reasoner decides, so carrying it in the reasoned closure made
+# `make reason-verify` refuse to decide consistency at all rather than reason past a
+# construct it cannot evaluate. Removing it loses no obligation: the constraint above is the
+# authority, and the shape it derives is byte-identical.
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
