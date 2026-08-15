@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency (medium axis): which of the DECLARED selector kinds does each shipped
+# dictionary's training corpus actually use? The selector vocabulary is not enumerated in the
+# query — it is joined from the disjunctive-requiredness constraint that declares it, so a
+# fifth selector minted without a corpus using it, or a corpus using one the constraint does
+# not admit, changes this answer instead of passing unnoticed.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+SELECT DISTINCT ?dictionary ?corpus ?selector WHERE {
+    ?dictionary a gmeow:CompressionDictionary ;
+                gmeow:trainsOverCorpus ?corpus .
+    ?constraint logic:onClass gmeow:DictionaryCorpus ;
+                logic:anyOf ?selector .
+    ?corpus ?selector ?selected .
+}
+ORDER BY ?dictionary ?selector

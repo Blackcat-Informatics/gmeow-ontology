@@ -829,6 +829,15 @@ pub fn corpus_fingerprint_nquads(fingerprint: &str, record_digest: &str) -> Stri
     let triple = |p: &str, o: &str| format!("{subject} <{p}> {o} {graph} .\n");
     let literal = |value: &str| format!("\"{}\"", nq_escape(value));
     let mut out = String::new();
+    // The corpus is a TYPED object, not a bag of properties on a graph IRI: the two
+    // witnesses below are mandatory of a `gmeow:QualityAssessmentCorpus`
+    // (`gmeow:QualityAssessmentCorpusWitnessedConstraint` in the slice-quality-rubric
+    // slice, raising `gmeow:UnreadableQualityRecord`), and an untyped node is outside
+    // that constraint's reach — which would leave the obligation stated only in Rust.
+    out.push_str(&triple(
+        RDF_TYPE,
+        &format!("<{}QualityAssessmentCorpus>", crate::model::GMEOW),
+    ));
     out.push_str(&triple(VERSION_FINGERPRINT, &literal(fingerprint)));
     out.push_str(&triple(CONTENT_DIGEST, &literal(record_digest)));
     out.push_str(&triple(

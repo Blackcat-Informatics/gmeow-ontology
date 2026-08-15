@@ -134,7 +134,7 @@ CHECK_ARGS ?=
 # The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
 # because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
 # than by the change under test; each remains individually runnable by name.
-HEAVY_TASKS := wasm-parity acceptance bench-soak
+HEAVY_TASKS := wasm-parity acceptance bench-soak medium-consumer-surface
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
@@ -146,7 +146,7 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 
 .PHONY: help print-binaryen-ver \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate gts-frame-profile-gate reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
+	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
@@ -158,7 +158,8 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
-	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
+	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep \
+	maint-medium-model-facing-diff maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
 	maint-chasebench-corpus maint-gmn-cost-matrix
 
@@ -210,8 +211,28 @@ rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without 
 
 rust-test: nextest doctests ## Run the Rust workspace tests and doctests.
 
-gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame.
+gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with.
 	$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts
+
+medium-gate: ## Audit the whole medium axis of the materialized bundle: every frame decoded, every envelope re-derived, every dictionary paid for, and the declared reader contract matched.
+	$(GMEOW_DEV) medium-gate generated/dist/gmeow.gts
+
+medium-consumer-surface: rust-build ## HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites: the `gmeow medium` verbs and `gmeow-dev medium-gate`, each over a bundle a whole in-memory DAG run emitted.
+	@# Lifted off `make check` under P6 criterion 2 (docs/GATE-AND-PIPELINE.md): each of
+	@# these two suites runs the WHOLE production DAG in memory and then drives a shipped
+	@# CLI over its output plus a real runtime store and five tampered breach fixtures, so
+	@# its runtime is set by the breadth of the pipeline rather than by the edit under
+	@# test. Both reserve the host (`threads-required = "num-cpus"`), so on the local gate
+	@# they also serialize everything else behind them.
+	@#
+	@# What they prove is a CONSUMER-verb contract over shipped bytes; the axis's own
+	@# razor — the emission is the same claim under a second declared medium, and the
+	@# shipped bundle's medium is whole — stays ON `make check` as `medium_identity_gate`
+	@# and `medium_bundle`, which are change-dominated. The default nextest filter
+	@# excludes exactly these two binaries, so `maint-heavy` is the profile that can see
+	@# them.
+	cargo nextest run --profile maint-heavy \
+	  -E '(package(gmeow-cli) & binary(medium_cli)) | (package(gmeow-dev-cli) & binary(medium_gate))'
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
@@ -886,6 +907,104 @@ maint-bench-engines: ## (maintainer) Native benchmark over the committed mini co
 	    exit 1; \
 	  fi; \
 	  echo "✓ deterministic descriptors are byte-identical and total allocations remain in band ($$(wc -c < "$$tmpdir/cost-1.json")-byte artifact)"
+
+maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the full dictionary strategy x target-length sweep plus the global codec x level sweep.
+	@# The SINGLE producer of the committed dictionary winner table. It runs the real
+	@# DAG once, then for every MEASURABLE declared dictionary grid-searches
+	@# (strategy x target length) over the same corpus the build trains from, scoring
+	@# each cell by the TWO-PART CODE (the frames it primes, encoded through the cell's
+	@# dictionary, PLUS that dictionary's own in-band bytes) against the declared
+	@# no-dictionary gmeow:mediumProfileBaselineL12 code for the same frames. It also
+	@# prices the global (codec x level) grid so the mandated zstd-rsyncable @ 12 chain
+	@# is evidence rather than assertion.
+	@#
+	@# Mirrors maint-bench-baseline / maint-bench-cost-baseline: a deliberate,
+	@# hand-committed refresh, never auto-drift. `stage-medium-dictionaries` CONSUMES the
+	@# committed winners, so the shipped dictionaries stay a deterministic function of the
+	@# repository instead of a per-build search.
+	@#
+	@# It exits NON-ZERO on the one declared stop-and-ask condition — a dictionary does
+	@# not pay for itself at its best cell (retiring a shipped dictionary orphans every
+	@# artifact already primed with it). The artifact is written FIRST: the evidence is
+	@# the point. That the mandated chain is not the codec grid's SIZE argmin is RECORDED
+	@# rather than a stop: the question was raised once and answered (the chain is kept —
+	@# see bench/README.md), and re-raising it every refresh would make the lane fail
+	@# forever.
+	@# BOOTSTRAP: `stage-medium-dictionaries` refuses to run without a committed table,
+	@# and the sweep runs the whole DAG to produce one, so a tree with no table needs a
+	@# declaration-derived seed to get in. It carries ZERO measurements and is
+	@# overwritten by the real sweep on the next line; a committed seed is refused by
+	@# `the_committed_winner_table_carries_real_measurements`.
+	@test -f bench/medium-baseline.json || \
+	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
+	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
+	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
+
+maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
+	@# WHAT IT COMPARES, exactly: the set of paths the declared GMN-dialect predicate
+	@# (crates/pipeline/src/gmn_dialect.rs) selects out of each tree's materialized
+	@# generated/ directory — the EBNF / GBNF / Lark grammar surfaces, the whole versioned
+	@# GMN-1 pack, gmn1/v*/token-metrics.ttl and the operator glyph tables — first as SETS
+	@# (an artifact that appeared or vanished is a model-facing change) and then BYTE FOR
+	@# BYTE. Two predicate clauses are DECLARED to resolve to zero paths and are documented
+	@# in that module rather than silently absent: `abnf/**` (no authored grammar is inside
+	@# the ABNF-expressible fragment, so that target emits a SoundUnder record and no
+	@# artifact) and the GMN-1 primer (in memory, materialized only into the dist/llms.txt
+	@# blobs — frozen instead by the llms-shape freeze in tests/model_facing_invariance.rs).
+	@#
+	@# WHY IT IS A maint- LANE AND NOT AN ON-GATE TEST: the merge base carries ZERO medium
+	@# axis, so this branch's test binary cannot run there, and building the base workspace
+	@# inside an on-gate test would put a second (and much slower) compile of a DIFFERENT
+	@# commit inside `make check`. The base tree is regenerated ENTIRELY by its own
+	@# checkout — its own Makefile, its own rust-toolchain, its own Cargo.lock. This
+	@# branch's sources are never overlaid onto it; the only thing that crosses the
+	@# boundary is the read-only path predicate (`gmn-dialect-paths`), because classifying
+	@# the two trees with two different predicates would compare nothing.
+	@#
+	@# HOW TO RUN IT:
+	@#     make check-sync SYNC_MODE=update    # materialize THIS branch's generated/ tree
+	@#     make maint-medium-model-facing-diff  # regenerate the base and diff
+	@# It needs `origin/main` fetched (it resolves `git merge-base HEAD origin/main`) and
+	@# enough disk for a second full checkout + target dir. Exits non-zero on ANY set or
+	@# byte difference; prints the offending paths.
+	@set -eu; \
+	  base="$$(git merge-base HEAD origin/main)"; \
+	  echo "merge base: $$base"; \
+	  test -d generated/projections/lang || { \
+	    echo "ERROR: this branch's generated/ tree is not materialized — run 'make check-sync SYNC_MODE=update' first."; \
+	    echo "       Comparing an unmaterialized tree would report every artifact as unchanged"; \
+	    echo "       by comparing nothing."; \
+	    exit 1; \
+	  }; \
+	  cargo build -q -p gmeow-pipeline --bin gmn-dialect-paths; \
+	  lister="$$(cargo metadata --format-version 1 --no-deps -q | sed -n 's/.*"target_directory":"\([^"]*\)".*/\1/p')/debug/gmn-dialect-paths"; \
+	  test -x "$$lister" || { echo "ERROR: could not locate the gmn-dialect-paths binary at $$lister"; exit 1; }; \
+	  tmpdir="$$(mktemp -d)"; \
+	  trap 'git worktree remove --force "$$tmpdir/base" >/dev/null 2>&1 || true; rm -rf "$$tmpdir"' EXIT; \
+	  git worktree add --detach "$$tmpdir/base" "$$base" >/dev/null; \
+	  echo "regenerating the merge base in $$tmpdir/base with ITS OWN toolchain…"; \
+	  $(MAKE) -C "$$tmpdir/base" check-sync SYNC_MODE=update; \
+	  "$$lister" "$$tmpdir/base" > "$$tmpdir/base.paths"; \
+	  "$$lister" . > "$$tmpdir/head.paths"; \
+	  if ! diff -u "$$tmpdir/base.paths" "$$tmpdir/head.paths" > "$$tmpdir/paths.diff"; then \
+	    echo "ERROR: the GMN-dialect artifact SET changed between the merge base and this branch:"; \
+	    cat "$$tmpdir/paths.diff"; \
+	    exit 1; \
+	  fi; \
+	  moved=0; \
+	  while IFS= read -r path; do \
+	    if ! cmp -s "$$tmpdir/base/$$path" "./$$path"; then \
+	      echo "MOVED: $$path"; \
+	      moved=$$((moved + 1)); \
+	    fi; \
+	  done < "$$tmpdir/head.paths"; \
+	  if [ "$$moved" -ne 0 ]; then \
+	    echo "ERROR: $$moved GMN-dialect artifact(s) differ between the merge base and this"; \
+	    echo "       branch. The medium axis re-CODES the bundle's bytes; it may not change"; \
+	    echo "       what a model reads."; \
+	    exit 1; \
+	  fi; \
+	  echo "✓ $$(wc -l < "$$tmpdir/head.paths") GMN-dialect artifact(s) byte-identical across the merge base and this branch"
 
 maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh native run (offline; the drift-gated cost-ledger source).
 	@# The SINGLE producer of the committed deterministic cost/agreement baseline:

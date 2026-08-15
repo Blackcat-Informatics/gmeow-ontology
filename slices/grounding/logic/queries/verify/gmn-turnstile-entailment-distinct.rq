@@ -1,0 +1,42 @@
+# Negative test: the syntactic derivability turnstile logic:derives (⊢) and the semantic
+# entailment turnstile logic:entails (⊨) are DISTINCT relations — provability in a fixed
+# calculus versus truth in every model — and their GMN signs MUST stay structurally
+# distinct, never collapsed onto one. Soundness and completeness are the separate
+# meta-theorems that RELATE them; a notation that spelled both the same would erase that
+# distinction at the surface. Any returned row is a collapse: a single candidate claiming
+# both targets, or a derivability candidate and an entailment candidate sharing a
+# gmeow:gmnCandidateGlyph, a gmeow:gmnAsciiFallback, or a gmeow:gmnCodepoints value.
+#
+# The shipped population signs logic:derives as ⊢ / `derives` (U+22A2) and logic:entails
+# as ⊨ / `entails` (U+22A8) — distinct glyph, key, and codepoint — so this returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?derivesCand ?entailsCand ?shared WHERE {
+    {
+        # one candidate claiming BOTH turnstiles
+        ?derivesCand gmeow:gmnCandidateTarget logic:derives , logic:entails .
+        BIND(?derivesCand AS ?entailsCand)
+        BIND("same-candidate" AS ?shared)
+    }
+    UNION
+    {
+        ?derivesCand gmeow:gmnCandidateTarget logic:derives .
+        ?entailsCand gmeow:gmnCandidateTarget logic:entails .
+        {
+            ?derivesCand gmeow:gmnCandidateGlyph ?shared .
+            ?entailsCand gmeow:gmnCandidateGlyph ?shared .
+        }
+        UNION
+        {
+            ?derivesCand gmeow:gmnAsciiFallback ?shared .
+            ?entailsCand gmeow:gmnAsciiFallback ?shared .
+        }
+        UNION
+        {
+            ?derivesCand gmeow:gmnCodepoints ?shared .
+            ?entailsCand gmeow:gmnCodepoints ?shared .
+        }
+    }
+}
+ORDER BY ?derivesCand ?entailsCand ?shared

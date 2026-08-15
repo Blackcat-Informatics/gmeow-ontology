@@ -5,7 +5,7 @@
 # and generated ex:envelopeExportUnbound, which omits gmeow:gmnSecurityRing — the sh:sparql
 # of lang:GmnExportRingBindingShape fires shacl.SPARQLConstraintComponent
 # (lang:GmnUnringedExportCrossing). Because the omitted field is genuinely the ring, the
-# pre-existing general lang:GmnEnvelopeContractShape ALSO fires its sh:minCount 1 on
+# general derived gmeow:GmnEnvelope-shape ALSO fires its class-qualified ring minimum on
 # gmeow:gmnSecurityRing (shacl.MinCountConstraintComponent, lang:GmnMissingEnvelopeField) —
 # this fixture is not crafted to isolate a single shape the way the other GMN counter-
 # examples are, because ring-absence is inherently covered by both the general
@@ -42,5 +42,5 @@ ex:envelopeExportUnbound a gmeow:GmnEnvelope ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:exportRun ;
     gmeow:contentDigest "blake3:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0" ;
-    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43" ;
+    gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrExportEnvelope .

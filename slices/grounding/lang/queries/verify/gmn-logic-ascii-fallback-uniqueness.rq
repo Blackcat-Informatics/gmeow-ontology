@@ -1,0 +1,29 @@
+# Negative test: within the GMN logic plane, the gmeow:gmnAsciiFallback keys are a SECOND
+# parseable notation (the ASCII stream a downstream writer/parser must round-trip when the
+# Unicode sign is not adopted). Two DISTINCT logic operators/targets sharing one ASCII
+# fallback would make that stream ambiguous, so each logic-plane fallback MUST be unique
+# across distinct targets. Any returned row is a collision: two candidates with different
+# logic: targets declaring the same fallback key.
+#
+# Two candidates with the SAME target legitimately carry DIFFERENT fallbacks and are never a
+# collision; the ?targetA != ?targetB filter keeps the gate to genuine cross-operator key
+# clashes. The current logic-plane keys (not, is_subclass_of, implies, is_equiv_to, fa, ex,
+# and, or, iff, top, bot, derives, entails, box, dia, concept_and, concept_or, after, btrue,
+# bfalse, bboth, bnone, isupp, iopp, iboth, inone) are pairwise distinct across targets, so
+# this returns no rows. It mirrors gmn-ascii-fallback-uniqueness.rq (math plane), retargeted
+# to the logic: namespace.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?fallback ?candA ?candB ?targetA ?targetB WHERE {
+    ?candA a gmeow:GmnSymbolCandidate ;
+           gmeow:gmnCandidateTarget ?targetA ;
+           gmeow:gmnAsciiFallback ?fallback .
+    ?candB a gmeow:GmnSymbolCandidate ;
+           gmeow:gmnCandidateTarget ?targetB ;
+           gmeow:gmnAsciiFallback ?fallback .
+    FILTER (STRSTARTS(STR(?targetA), "https://blackcatinformatics.ca/logic/"))
+    FILTER (STRSTARTS(STR(?targetB), "https://blackcatinformatics.ca/logic/"))
+    FILTER (STR(?candA) < STR(?candB))
+    FILTER (?targetA != ?targetB)
+}
+ORDER BY ?fallback ?candA ?candB

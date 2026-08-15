@@ -26,7 +26,8 @@
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/sources> ,
         <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
-        <https://blackcatinformatics.ca/gmeow/slices/versions> ;
+        <https://blackcatinformatics.ca/gmeow/slices/versions> ,
+        <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:sliceConsumer "The meaning layer that gives forms denotations, the rendering-and-translation layer that maps between forms, and every generated lossy projection (OntoLex-Lemon, Universal Dependencies/CoNLL-U, NIF, TEI, BCP-47/ISO 639/ISO 15924, EBNF), each carrying a preservation judgment in the loss ledger. The Rust `lang-form` crate consumes the form AST as content-keyed forms — GMEOW's own identity discipline applied to language — and every textual, nominal, and notational surface across the ontology grounds in these sign-system and form terms. The `lang:` layer sits in the co-foundational grounding kernel (docs/GROUNDING.md): it denotes one way into `logic:` (which never depends back on it), the mathematics slice's rendering seam grafts onto the general `lang:` rendering theory rather than forking it, and its own declared/measured magnitudes (GMN codebook rates, glyph token costs) ground in `math:Quantity` through the registered quantity seam."@x-gmeow-english ;

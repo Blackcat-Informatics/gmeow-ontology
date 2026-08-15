@@ -64,8 +64,22 @@ pub const REP_SCHEMAS: &str = "schemas-archive";
 /// surface: co-derived from the SAME shape compilation as [`REP_SCHEMAS`], so a
 /// model's `model_json_schema()` agrees with the packed JSON Schema.
 pub const REP_MODELS_PYTHON: &str = "models-python";
-/// tar of `gmeow.jsonld` + `gmeow.yamlld` (the RDF 1.2-star serializations).
+/// tar of `gmeow.rdf12.jsonld` + `gmeow.rdf12.yamlld` — the JSON-LD-star and
+/// YAML-LD-star projections of the CLAIM CORPUS (the RDF 1.2 statement layer), the
+/// frame. It rides the dictionary-less medium: its claim dictionary was retired once the
+/// sweep priced it. The producer side re-exports this constant
+/// (`crate::stages::archive_blobs::REP_YAMLLD`), so no drift is possible.
+///
+/// NOT the whole carrier: that document is the `make build` deliverable
+/// `dist/gmeow.jsonld`, which is ~666 MB and is no bundle frame.
 pub const REP_YAMLLD: &str = "yaml-ld-archive";
+/// The [`REP_YAMLLD`] member carrying the JSON-LD-star projection of the claim corpus.
+/// Producer and reader share this ONE constant (the fold re-exports it), so a drifted
+/// member name cannot silently resolve to `None`.
+pub const YAMLLD_JSONLD_MEMBER: &str = "gmeow.rdf12.jsonld";
+/// The [`REP_YAMLLD`] member carrying the YAML-LD-star projection of the claim corpus
+/// (see [`YAMLLD_JSONLD_MEMBER`]).
+pub const YAMLLD_YAMLLD_MEMBER: &str = "gmeow.rdf12.yamlld";
 /// tar of the FULL SHACL shape surface, keyed by repo-relative path.
 pub const REP_SHAPES: &str = "shapes-archive";
 /// tar of the compiled logic/DL projection surface, keyed by repo-relative path.
@@ -377,15 +391,16 @@ impl Bundle {
         Ok(self.schemas()?.remove("validate-finding.schema.json"))
     }
 
-    /// The folded JSON-LD-star + YAML-LD-star serializations ([`REP_YAMLLD`]):
-    /// `gmeow.jsonld` + `gmeow.yamlld`.
+    /// The folded claim-corpus JSON-LD-star + YAML-LD-star projections
+    /// ([`REP_YAMLLD`]): `gmeow.rdf12.jsonld` + `gmeow.rdf12.yamlld`.
     pub fn yaml_ld(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
         self.archive(REP_YAMLLD)
     }
 
-    /// The bundled JSON-LD-star serialization (`gmeow.jsonld`), or `None` if absent.
+    /// The bundled claim-corpus JSON-LD-star serialization (`gmeow.rdf12.jsonld`), or
+    /// `None` if absent.
     pub fn jsonld_star(&self) -> Result<Option<Vec<u8>>, gmeow_errors::Diag> {
-        Ok(self.yaml_ld()?.remove("gmeow.jsonld"))
+        Ok(self.yaml_ld()?.remove(YAMLLD_JSONLD_MEMBER))
     }
 
     /// Folded cell TTLs under repo-relative `prefix` PLUS every slice mappings file.
@@ -921,10 +936,15 @@ mod tests {
             bundle.okf().unwrap().is_empty(),
             "okf-export must be absent"
         );
-        assert!(
-            bundle.yaml_ld().unwrap().is_empty(),
-            "yaml-ld-archive must be absent"
-        );
+        // NOT `yaml-ld-archive`. It used to be listed here as a documentation
+        // projection, which was only true because its writer was `#[cfg(test)]`. It is
+        // now a PRODUCTION frame folded by `stage-archive-blobs` (the claim corpus's
+        // JSON-LD-star / YAML-LD-star surface), so
+        // "absent" is no longer its contract. Its PRESENCE is asserted against a real
+        // DAG emission in `tests/medium_bundle.rs`
+        // (`the_claim_reps_are_real_frames_primed_by_claims`) rather than against this
+        // git-ignored local bundle, which a stale worktree copy would answer wrongly in
+        // either direction.
 
         let schemas = bundle.schemas().unwrap();
         assert!(

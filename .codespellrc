@@ -21,4 +21,4 @@ skip = Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/ext
 # atmost (the `at-most-one` choice-mode token, SHACL sh:maxCount analogue),
 # deriver (the JSON-Schema/SHACL projection deriver) and exemple (French for
 # "example" in a French translation-integrity test string in crates/docs/src/i18n.rs).
-ignore-words-list = lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost,deriver,exemple
+ignore-words-list = lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost,atleast,deriver,exemple

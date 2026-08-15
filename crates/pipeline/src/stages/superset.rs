@@ -9,10 +9,14 @@
 //!
 //! * an RDF output with a canonical graph fold is reconstructed from one named graph
 //!   (Turtle via the wasm-clean renderer; N-Quads via a graph-rooted serialization),
-//!   and
 //! * a byte-decorated output (including generated RDF reports whose committed files
 //!   contain comments / section markers) is a member of one inline content-addressed
-//!   archive blob.
+//!   archive blob, and
+//! * a trained zstd dictionary is reconstructed from the segment header's in-band
+//!   `"dct"` map — its ONE canonical home. Routing the `.zdict` bytes through the
+//!   generated-opaque archive instead would carry them twice (Constitution §18
+//!   forbids re-folding a blob the snapshot already carries) and would feed
+//!   high-entropy bytes to a compressor, inflating that archive.
 //!
 //! The forward sweep drives off the projection: every projection key MUST exist on
 //! disk with byte-matching content (`missing` = a projection key with no file on
@@ -76,16 +80,20 @@ pub struct BundleProjection {
 ///
 /// * **named-graph folds** — each EDOAL projection graph (`…/graph/projections/…`)
 ///   and RDF-fanout graph (`…/graph/fanout/…`) folds to its committed RDF bytes via
-///   [`reconstruct_graph`]; and
+///   [`reconstruct_graph`];
 /// * **inline blob members** — every archive member resolved to its committed
-///   `generated/` path by [`read_blob_members`].
+///   `generated/` path by [`read_blob_members`]; and
+/// * **header dictionaries** — every entry of the segment header's in-band `"dct"`
+///   map, resolved to `generated/medium/<dict-id>.zdict` by [`read_header_dicts`].
 ///
-/// The two rep classes are disjoint by construction (RDF travels as a named graph,
-/// opaque/byte-decorated output as a blob member), so no path is produced twice.
+/// The three rep classes are disjoint by construction (RDF travels as a named graph,
+/// opaque/byte-decorated output as a blob member, a trained zstd dictionary as a
+/// header `"dct"` entry), so no path is produced twice.
 pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors::Diag> {
     let dataset = read_dataset(gts_bytes)?;
     let dataset = dataset.as_ref();
     let blob_members = read_blob_members(gts_bytes)?;
+    let header_dicts = read_header_dicts(gts_bytes)?;
     // The path↔representative map as DATA: the gmeow:fanoutExtracts rows read back from the
     // bundle. The RDF-fanout / EDOAL rows are AUTHORED (pipeline slice, default graph); the
     // opaque rows are EMITTED by the carrier (one per generated-opaque archive member,
@@ -139,9 +147,29 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
         }
     }
 
-    // Family-scope the two bijections so an opaque row can never claim a named-graph path
-    // and vice versa: the RDF-fanout / EDOAL rows are proved against the reconstruction
-    // graphs, the opaque rows against the generated-opaque archive members.
+    // Header-dict reps: every entry of the segment header's in-band `"dct"` map, keyed
+    // by its committed `generated/medium/<dict-id>.zdict` path. The header is the
+    // dictionary's ONE home — it is where a consumer priming its own store reads the
+    // bytes from — so the projection reads them from there rather than carrying a
+    // second copy through the archive lane.
+    let mut header_dict_paths: BTreeSet<String> = BTreeSet::new();
+    for (path, bytes) in header_dicts {
+        header_dict_paths.insert(path.clone());
+        if files.insert(path.clone(), bytes).is_some() {
+            return Err(stage_err(&format!(
+                "{path} is carried by two representatives (header \"dct\" entry collides)"
+            )));
+        }
+    }
+
+    // Family-scope the three bijections so an opaque row can never claim a named-graph
+    // path (or a header dictionary) and vice versa: the RDF-fanout / EDOAL rows are
+    // proved against the reconstruction graphs, the opaque rows against the
+    // generated-opaque archive members, and the header-dict rows against the header's
+    // own `"dct"` map.
+    let (header_dict_rules, rules): (Vec<FanoutRule>, Vec<FanoutRule>) = rules
+        .into_iter()
+        .partition(|r| r.family == FanoutFamily::HeaderDict);
     let (opaque_rules, named_rules): (Vec<FanoutRule>, Vec<FanoutRule>) = rules
         .into_iter()
         .partition(|r| r.family == FanoutFamily::Opaque);
@@ -156,6 +184,28 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     // exactly one member — so the opaque byte lane is a DECLARED, bijection-checked
     // inventory, not a silent hidden set the superset gate never sees.
     check_opaque_bijection(&opaque_rules, &blob_members.opaque_paths)?;
+
+    // Bijection completeness HARD-FAIL (header dictionaries): every `"dct"` entry the
+    // shipped segment header pins resolves to exactly one authored header-dict row and
+    // every header-dict row is claimed by exactly one entry. Family-scoped for the same
+    // reason the opaque bijection is: a dictionary row must never be able to satisfy a
+    // named-graph path (or an archive member) it does not carry.
+    check_header_dict_bijection(&header_dict_rules, &header_dict_paths)?;
+
+    // The dictionary bytes are carried EXACTLY ONCE: a `generated/medium/*.zdict` path
+    // that ALSO rode the generated-opaque archive would ship the same high-entropy bytes
+    // twice (Constitution §18) and inflate that archive. The collision is impossible to
+    // reach through `files` (the insert above would have hard-failed), so it is proved
+    // here against the archive's own member set instead.
+    for path in &blob_members.opaque_paths {
+        if is_header_dict_path(path) {
+            return Err(stage_err(&format!(
+                "{path} rides the generated-opaque archive as well as the segment header's \
+                 \"dct\" map — a trained dictionary's ONE home is the header, so carrying it \
+                 twice re-folds a blob the snapshot already carries"
+            )));
+        }
+    }
 
     // ── Independent completeness anchor (PIPELINE_SPINE §6/§7). ──
     // The expected-output inventory is AUTHORED TTL (the pipeline slice's
@@ -172,7 +222,7 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     // gate (from the carrier's reconstruction-graph IRIs, independent of the authored TTL)
     // must have their authored members EXACTLY equal the derived members — so adding or
     // dropping a producing individual without its expected path HARD-fails.
-    check_derivable_families(&expected, &reconstructed_paths)?;
+    check_derivable_families(&expected, &reconstructed_paths, &header_dict_paths)?;
 
     Ok(BundleProjection { files })
 }
@@ -196,6 +246,13 @@ enum GraphForm {
     /// to [`reconstruct_graph`]; the enum arm exists only so [`read_fanout_rules`] can
     /// round-trip the `"blob"` form string of an opaque row.
     Blob,
+    /// No named-graph fold: the committed path is the verbatim bytes of one entry of
+    /// the GTS segment header's in-band `"dct"` map (the `"header-dict"` family).
+    /// Never produces a [`GraphRep`] — [`graph_rep_for_path`] skips header-dict rules
+    /// exactly as it skips opaque ones — so it is never handed to
+    /// [`reconstruct_graph`]; the enum arm exists only so [`read_fanout_rules`] can
+    /// round-trip the `"header-dict"` form string of a dictionary row.
+    HeaderDict,
 }
 
 /// A committed path carried as the fold of one named graph: the backing graph IRI
@@ -219,6 +276,15 @@ enum FanoutFamily {
     /// against the blob members by [`check_opaque_bijection`] — family-scoped so they
     /// never cross-contaminate the RDF-fanout / EDOAL named-graph bijection.
     Opaque,
+    /// No reconstruction graph and no archive member: the committed path
+    /// `generated/medium/<dict-id>.zdict` is the verbatim bytes of the `<dict-id>`
+    /// entry of the shipped segment header's in-band `"dct"` map (GTS spec §5), which
+    /// is a trained zstd dictionary's ONE canonical home. These rows are AUTHORED (the
+    /// declared dictionary set is stable, hand-written data — unlike the carrier-emitted
+    /// opaque rows) and are bijection-checked against the header's own `"dct"` map by
+    /// [`check_header_dict_bijection`] — family-scoped so they never cross-contaminate
+    /// the named-graph or opaque-archive bijections.
+    HeaderDict,
 }
 
 /// One parsed `gmeow:FanoutExtraction` row — the DATA the superset gate reads in place
@@ -403,6 +469,7 @@ pub(crate) fn read_fanout_rules(
                 "rdf-fanout" => FanoutFamily::RdfFanout,
                 "edoal" => FanoutFamily::Edoal,
                 "opaque" => FanoutFamily::Opaque,
+                "header-dict" => FanoutFamily::HeaderDict,
                 other => {
                     return Err(stage_err(&format!(
                         "fanout row {row} has unknown gmeow:extractsGraphFamily {other:?}"
@@ -415,6 +482,7 @@ pub(crate) fn read_fanout_rules(
             "nquads-self" => GraphForm::NQuadsSelf,
             "nquads-diagnostics" => GraphForm::NQuads(GRAPH_DIAGNOSTICS_IRI),
             "blob" => GraphForm::Blob,
+            "header-dict" => GraphForm::HeaderDict,
             other => {
                 return Err(stage_err(&format!(
                     "fanout row {row} has unknown gmeow:extractsForm {other:?}"
@@ -441,6 +509,33 @@ pub(crate) fn read_fanout_rules(
                  archive member is one byte-exact entry, never a prefix family)"
             )));
         }
+        // The `header-dict` family and form are mutually required in exactly the same
+        // way, for exactly the same reason: a dictionary row that lost its pairing would
+        // silently degrade to a named-graph fold of a graph that does not exist.
+        let is_header_dict = family == FanoutFamily::HeaderDict;
+        if is_header_dict != (form == GraphForm::HeaderDict) {
+            return Err(stage_err(&format!(
+                "fanout row {row} pairs gmeow:extractsGraphFamily/{family:?} with \
+                 gmeow:extractsForm/{form:?} (the \"header-dict\" family and form are \
+                 mutually required)"
+            )));
+        }
+        if is_header_dict {
+            if match_prefix {
+                return Err(stage_err(&format!(
+                    "header-dict fanout row {row} must use gmeow:extractsMatch \"exact\" (a \
+                     header \"dct\" entry is one byte-exact dictionary, never a prefix family)"
+                )));
+            }
+            if !is_header_dict_path(&path) {
+                return Err(stage_err(&format!(
+                    "header-dict fanout row {row} declares gmeow:extractsPath {path:?}, which is \
+                     not a {MEDIUM_DICT_PREFIX}<dict-id>{MEDIUM_DICT_SUFFIX} path — the header \
+                     \"dct\" key IS the committed file's stem, so any other path would name a \
+                     dictionary the header cannot resolve"
+                )));
+            }
+        }
         rules.push(FanoutRule {
             path,
             match_prefix,
@@ -459,16 +554,17 @@ pub(crate) fn read_fanout_rules(
 /// matched rule's family; the form is the rule's declared form, so `file == fold` holds
 /// by construction (the producing stage emits with the same form).
 fn graph_rep_for_path(rules: &[FanoutRule], path: &str) -> Option<GraphRep> {
-    // Opaque rows carry no named-graph rep (they reconstruct from the archive blob), so
-    // they are skipped here — a byte-decorated RDF path (`.ttl`) that now has an opaque row
-    // still falls through to its blob member, never a phantom named-graph fold.
-    let rule = rules
-        .iter()
-        .find(|r| r.family != FanoutFamily::Opaque && r.matches(path))?;
+    // Opaque and header-dict rows carry no named-graph rep (they reconstruct from the
+    // archive blob and from the segment header's `"dct"` map respectively), so they are
+    // skipped here — a byte-decorated RDF path (`.ttl`) that now has an opaque row still
+    // falls through to its blob member, never a phantom named-graph fold.
+    let rule = rules.iter().find(|r| {
+        !matches!(r.family, FanoutFamily::Opaque | FanoutFamily::HeaderDict) && r.matches(path)
+    })?;
     let iri = match rule.family {
         FanoutFamily::Edoal => edoal_projection_graph_iri(path)?,
         FanoutFamily::RdfFanout => rdf_fanout_graph_iri(path)?,
-        FanoutFamily::Opaque => return None,
+        FanoutFamily::Opaque | FanoutFamily::HeaderDict => return None,
     };
     Some(GraphRep {
         iri,
@@ -544,6 +640,104 @@ fn check_opaque_bijection(
                 message: format!(
                     "opaque gmeow:fanoutExtracts row for {:?} claims {n} generated-opaque \
                      archive members (want exactly 1)",
+                    rule.path
+                ),
+            }));
+        }
+    }
+    Ok(())
+}
+
+/// The committed-path family a trained zstd dictionary is projected onto. Mirrors
+/// [`crate::medium::MEDIUM_GENERATED_PREFIX`]; the compile-time assertion below turns a
+/// drift between the two into a build failure rather than an orphan sweep.
+pub(crate) const MEDIUM_DICT_PREFIX: &str = "generated/medium/";
+
+/// The extension every projected dictionary file carries.
+pub(crate) const MEDIUM_DICT_SUFFIX: &str = ".zdict";
+
+const _: () = assert!(
+    crate::medium::MEDIUM_GENERATED_PREFIX.len() == MEDIUM_DICT_PREFIX.len(),
+    "the medium axis's reserved path family and the gate's projection family must agree"
+);
+
+/// The committed path a header `"dct"` key projects onto.
+pub(crate) fn header_dict_path(dict_id: &str) -> String {
+    format!("{MEDIUM_DICT_PREFIX}{dict_id}{MEDIUM_DICT_SUFFIX}")
+}
+
+/// The header `"dct"` key a committed dictionary path names — the inverse of
+/// [`header_dict_path`], and `None` for any path outside the family.
+pub(crate) fn header_dict_id_for_path(path: &str) -> Option<&str> {
+    path.strip_prefix(MEDIUM_DICT_PREFIX)?
+        .strip_suffix(MEDIUM_DICT_SUFFIX)
+}
+
+/// Whether a committed path belongs to the header-dictionary family.
+pub(crate) fn is_header_dict_path(path: &str) -> bool {
+    header_dict_id_for_path(path).is_some()
+}
+
+/// Every dictionary the shipped segment header pins in band, keyed by its committed
+/// `generated/medium/<dict-id>.zdict` path.
+///
+/// The header's `"dct"` map is the dictionary's ONE home: it is where a consumer priming
+/// its own runtime store reads the bytes from, and it is the only channel that keeps the
+/// pack self-decoding. Reading the projection from there — rather than tarring a second
+/// copy into `REP_GENERATED` — is what makes "the bytes exist exactly once" a structural
+/// property of the bundle instead of a convention.
+///
+/// An empty `"dct"` map is legal and yields no paths: a deliberately unprimed bundle (a
+/// minimal fixture, a `convert --to gts` exit) declares no dictionaries, and the
+/// bijection below then proves it authors no header-dict rows either.
+fn read_header_dicts(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let dicts = gmeow_gts_profile::segment_dictionaries(gts_bytes)
+        .map_err(|e| stage_err(&format!("read gmeow.gts header dictionaries: {e}")))?;
+    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    for (id, bytes) in dicts {
+        if bytes.is_empty() {
+            return Err(stage_err(&format!(
+                "the segment header pins dictionary {id:?} with zero bytes — a named-but-empty \
+                 dictionary primes nothing while still raising the reader contract"
+            )));
+        }
+        out.insert(header_dict_path(&id), bytes);
+    }
+    Ok(out)
+}
+
+/// The completeness HARD-FAIL for the HEADER-DICT family of the fanout map: assert the
+/// authored `gmeow:extractsGraphFamily "header-dict"` rows are a BIJECTION against the
+/// entries of the shipped segment header's in-band `"dct"` map. Every pinned dictionary
+/// resolves to exactly one row (no undeclared dictionary), and every row is claimed by
+/// exactly one pinned dictionary (no stale row naming a dictionary the pack dropped).
+/// Family-scoped, exactly as [`check_opaque_bijection`] is, so a dictionary row can never
+/// satisfy a named-graph path or an archive member it does not carry. Header-dict rows are
+/// always `exact` matches, so `rule.matches(path)` is `path == rule.path`.
+fn check_header_dict_bijection(
+    header_dict_rules: &[FanoutRule],
+    dict_paths: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    // Forward: every pinned header dictionary is claimed by exactly one header-dict row.
+    for path in dict_paths {
+        let n = header_dict_rules.iter().filter(|r| r.matches(path)).count();
+        if n != 1 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "header \"dct\" entry {path} matches {n} header-dict \
+                     gmeow:fanoutExtracts rows (want exactly 1)"
+                ),
+            }));
+        }
+    }
+    // Reverse: every header-dict row is claimed by exactly one pinned dictionary.
+    for rule in header_dict_rules {
+        let n = dict_paths.iter().filter(|p| rule.matches(p)).count();
+        if n != 1 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "header-dict gmeow:fanoutExtracts row for {:?} claims {n} header \"dct\" \
+                     entries (want exactly 1)",
                     rule.path
                 ),
             }));
@@ -641,6 +835,20 @@ struct DerivableFamily {
     /// An optional suffix filter isolating the family within a shared directory (the EDOAL
     /// `.edoal.ttl` case, which shares `generated/projections/` with plain RDF projections).
     suffix: Option<&'static str>,
+    /// Which independently-derived path set this family's membership is proved against.
+    source: DerivedSource,
+}
+
+/// The gate-side oracle a [`DerivableFamily`]'s membership is re-derived from — always a
+/// source DISTINCT from the authored inventory it is checked against.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DerivedSource {
+    /// The carrier's reconstruction-graph IRIs (`graph/fanout/…`, `graph/projections/…`).
+    ReconstructionGraphs,
+    /// The shipped segment header's in-band `"dct"` map — a WIRE source, read straight off
+    /// the emitted bytes rather than out of any graph, so it is independent of both the
+    /// authored inventory and the carrier's named graphs.
+    HeaderDicts,
 }
 
 impl DerivableFamily {
@@ -650,17 +858,27 @@ impl DerivableFamily {
 }
 
 /// The prefix families whose membership is DERIVED (not merely authored): the RDF-fanout
-/// `generated/profiles/*` set and the EDOAL `generated/projections/*.edoal.ttl` set. Both
-/// travel entirely as reconstruction named graphs, so the carrier's reconstructed-path set
-/// yields their exact membership independently of the authored inventory.
-const DERIVABLE_FAMILIES: [DerivableFamily; 2] = [
+/// `generated/profiles/*` set and the EDOAL `generated/projections/*.edoal.ttl` set, both of
+/// which travel entirely as reconstruction named graphs; and the
+/// `generated/medium/*.zdict` set, whose membership is the shipped segment header's own
+/// `"dct"` map. Each yields its exact membership independently of the authored inventory, so
+/// a dictionary added to (or retired from) the medium axis without its expected path
+/// HARD-fails instead of silently shrinking the projection.
+const DERIVABLE_FAMILIES: [DerivableFamily; 3] = [
     DerivableFamily {
         prefix: "generated/profiles/",
         suffix: None,
+        source: DerivedSource::ReconstructionGraphs,
     },
     DerivableFamily {
         prefix: "generated/projections/",
         suffix: Some(".edoal.ttl"),
+        source: DerivedSource::ReconstructionGraphs,
+    },
+    DerivableFamily {
+        prefix: MEDIUM_DICT_PREFIX,
+        suffix: Some(MEDIUM_DICT_SUFFIX),
+        source: DerivedSource::HeaderDicts,
     },
 ];
 
@@ -672,14 +890,19 @@ const DERIVABLE_FAMILIES: [DerivableFamily; 2] = [
 fn check_derivable_families(
     expected: &BTreeSet<String>,
     reconstructed: &BTreeSet<String>,
+    header_dicts: &BTreeSet<String>,
 ) -> Result<(), gmeow_errors::Diag> {
     for family in &DERIVABLE_FAMILIES {
+        let oracle = match family.source {
+            DerivedSource::ReconstructionGraphs => reconstructed,
+            DerivedSource::HeaderDicts => header_dicts,
+        };
         let authored: BTreeSet<&str> = expected
             .iter()
             .filter(|p| family.contains(p))
             .map(String::as_str)
             .collect();
-        let derived: BTreeSet<&str> = reconstructed
+        let derived: BTreeSet<&str> = oracle
             .iter()
             .filter(|p| family.contains(p))
             .map(String::as_str)
@@ -912,10 +1135,11 @@ fn reconstruct_graph(dataset: &RdfDataset, rep: &GraphRep) -> Option<Vec<u8>> {
             let rooted = crate::stages::carrier::rooted_in_graph(&projected, &rep.iri).ok()?;
             canonical_ntriples(&rooted).ok()
         }
-        // Unreachable in practice: an opaque row never yields a `GraphRep`
-        // (`graph_rep_for_path` skips the opaque family), so a `Blob` form is never handed
-        // to a graph fold. Fail closed rather than panic if the invariant is ever violated.
-        GraphForm::Blob => None,
+        // Unreachable in practice: an opaque or header-dict row never yields a `GraphRep`
+        // (`graph_rep_for_path` skips both families), so neither the `Blob` nor the
+        // `HeaderDict` form is ever handed to a graph fold. Fail closed rather than panic
+        // if the invariant is ever violated.
+        GraphForm::Blob | GraphForm::HeaderDict => None,
     }
 }
 
@@ -1177,12 +1401,16 @@ mod tests {
             "generated/logic/perf-ledger.ttl",
             "generated/metadata/void.ttl",
             "generated/metadata/dcat.ttl",
+            // The statement layer's two: same reason, but they reconstruct from
+            // REP_STATEMENTS rather than REP_GENERATED — a rep is the unit a dictionary
+            // primes, and these are the claim corpus's byte frames.
             "generated/statements/gmeow-statements.owl.ttl",
             "generated/statements/gmeow.rdf12.ttl",
         ] {
             assert!(
                 graph_rep_for_path(&rules, path).is_none(),
-                "{path} has generated comments / section markers and must reconstruct from REP_GENERATED"
+                "{path} has generated comments / section markers, so it cannot reconstruct \
+                 from a canonical named-graph fold and must ride an archive member"
             );
         }
     }
@@ -1599,7 +1827,7 @@ gmeow:x gmeow:extractsPath "generated/n3/" ; gmeow:extractsMatch "prefix" ; gmeo
         let expected = authored_expected();
         assert_eq!(
             expected.len(),
-            407,
+            416,
             "the authored inventory must hold every non-terminal generated/ path"
         );
         for p in &expected {
@@ -1704,7 +1932,7 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
         let mut builder = SnapshotBuilder::new();
         builder.add_dataset(ds.as_ref()).expect("add_dataset");
         let gts =
-            crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+            gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
                 .expect("emit minimal expected-output bundle");
 
         // The REAL production path: parse the bundle -> reconstruct -> completeness check.
@@ -1737,8 +1965,14 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             .filter(|p| p.starts_with("generated/projections/") && p.ends_with(".edoal.ttl"))
             .map(String::as_str)
             .collect();
+        let dicts: BTreeSet<String> = expected
+            .iter()
+            .filter(|p| is_header_dict_path(p))
+            .cloned()
+            .collect();
         assert_eq!(profiles.len(), 8, "profiles family membership drifted");
         assert_eq!(edoal.len(), 47, "edoal family membership drifted");
+        assert_eq!(dicts.len(), 6, "header-dict family membership drifted");
 
         // Equal authored/derived over the derivable families passes.
         let reconstructed: BTreeSet<String> = expected
@@ -1749,19 +1983,242 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             })
             .cloned()
             .collect();
-        check_derivable_families(&expected, &reconstructed).expect("authored == derived");
+        check_derivable_families(&expected, &reconstructed, &dicts).expect("authored == derived");
 
         // A source individual added without its expected path (derived ⊋ authored) HARD-fails.
         let mut extra = reconstructed.clone();
         extra.insert("generated/profiles/newprofile.ttl".to_string());
-        let err = check_derivable_families(&expected, &extra).unwrap_err();
+        let err = check_derivable_families(&expected, &extra, &dicts).unwrap_err();
         assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
 
         // A stale authored path (authored ⊋ derived) HARD-fails too.
         let mut short = reconstructed.clone();
         assert!(short.remove("generated/profiles/full.ttl"));
-        let err = check_derivable_families(&expected, &short).unwrap_err();
+        let err = check_derivable_families(&expected, &short, &dicts).unwrap_err();
         assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+
+        // The header-dict family is derived from the WIRE (the header's own "dct" map),
+        // so both drift directions bite there too: a dictionary the medium axis pins but
+        // the inventory never declared, and an inventory entry the header dropped.
+        let mut extra_dict = dicts.clone();
+        extra_dict.insert(header_dict_path("gmeow-invented-v1"));
+        let err = check_derivable_families(&expected, &reconstructed, &extra_dict).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+        let mut short_dict = dicts.clone();
+        assert!(short_dict.remove(&header_dict_path("gmeow-core-v1")));
+        let err = check_derivable_families(&expected, &reconstructed, &short_dict).unwrap_err();
+        assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
+    }
+
+    /// The header-dict family: rows parse, resolve NO named-graph rep, and the
+    /// family-scoped bijection HARD-fails on an undeclared pinned dictionary AND on a
+    /// stale row naming a dictionary the pack no longer carries.
+    #[test]
+    fn header_dict_rows_parse_and_bijection_checks_the_pinned_dictionaries() {
+        let ttl = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:d1 gmeow:extractsPath "generated/medium/gmeow-core-v1.zdict" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+gmeow:d2 gmeow:extractsPath "generated/medium/gmeow-logic-v1.zdict" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+gmeow:r1 gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+gmeow:o1 gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "opaque" ; gmeow:extractsForm "blob" .
+"#;
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        let rules = read_fanout_rules(&ds).unwrap();
+        let (header_dict, rest): (Vec<FanoutRule>, Vec<FanoutRule>) = rules
+            .into_iter()
+            .partition(|r| r.family == FanoutFamily::HeaderDict);
+        assert_eq!(header_dict.len(), 2);
+        assert_eq!(rest.len(), 2);
+
+        // A header-dict row never resolves a named-graph rep — it rides the header lane.
+        for rule_set in [&header_dict, &rest] {
+            assert!(
+                graph_rep_for_path(rule_set, "generated/medium/gmeow-core-v1.zdict").is_none(),
+                "a .zdict path must never resolve a phantom named-graph fold"
+            );
+        }
+
+        let pinned: BTreeSet<String> = ["gmeow-core-v1", "gmeow-logic-v1"]
+            .iter()
+            .map(|id| header_dict_path(id))
+            .collect();
+        check_header_dict_bijection(&header_dict, &pinned).expect("header-dict bijection holds");
+
+        // An undeclared pinned dictionary (the medium axis grew a third) HARD-fails.
+        let mut undeclared = pinned.clone();
+        undeclared.insert(header_dict_path("gmeow-unrowed-v1"));
+        let err = check_header_dict_bijection(&header_dict, &undeclared).unwrap_err();
+        assert_eq!(err.code(), crate::error::FanoutBijection::register());
+
+        // A stale row (the pack stopped pinning that dictionary) HARD-fails too.
+        let mut stale = pinned.clone();
+        assert!(stale.remove(&header_dict_path("gmeow-core-v1")));
+        let err = check_header_dict_bijection(&header_dict, &stale).unwrap_err();
+        assert_eq!(err.code(), crate::error::FanoutBijection::register());
+    }
+
+    /// The `header-dict` family and form are mutually required, the match is always
+    /// `exact`, and the path must be a `generated/medium/<id>.zdict` one — otherwise the
+    /// row would name a dictionary the header cannot resolve.
+    #[test]
+    fn header_dict_family_form_match_and_path_shape_are_mutually_required() {
+        let cases = [
+            // family header-dict with a graph form.
+            r#"gmeow:x gmeow:extractsPath "generated/medium/a.zdict" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "turtle" ."#,
+            // form header-dict with a graph family.
+            r#"gmeow:x gmeow:extractsPath "generated/medium/a.zdict" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "header-dict" ."#,
+            // header-dict with a prefix match.
+            r#"gmeow:x gmeow:extractsPath "generated/medium/" ; gmeow:extractsMatch "prefix" ; gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" ."#,
+            // header-dict on a path outside the family.
+            r#"gmeow:x gmeow:extractsPath "generated/n3/gmeow.n3" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" ."#,
+        ];
+        for case in cases {
+            let ttl = format!("@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n{case}\n");
+            let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+            assert!(
+                read_fanout_rules(&ds).is_err(),
+                "malformed header-dict row accepted: {case}"
+            );
+        }
+    }
+
+    /// An unknown family / form string is still a HARD FAIL — the enums stay closed even
+    /// though a fourth family was added.
+    #[test]
+    fn an_unknown_fanout_family_or_form_still_hard_fails() {
+        for case in [
+            r#"gmeow:x gmeow:extractsPath "generated/a.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "header-dictionary" ; gmeow:extractsForm "turtle" ."#,
+            r#"gmeow:x gmeow:extractsPath "generated/a.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "zdict" ."#,
+            r#"gmeow:x gmeow:extractsPath "generated/a.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "invented" ; gmeow:extractsForm "turtle" ."#,
+        ] {
+            let ttl = format!("@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n{case}\n");
+            let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+            assert!(
+                read_fanout_rules(&ds).is_err(),
+                "unknown family/form accepted: {case}"
+            );
+        }
+    }
+
+    /// The one enumerated value set, read from BOTH sides: the `skos:definition`s of
+    /// `gmeow:extractsGraphFamily` / `gmeow:extractsForm` name exactly the strings the
+    /// Rust match arms accept. Without this the ontology could keep enumerating three
+    /// families while the code accepted four — a Principle 4 second source of truth in
+    /// which the shipped definition contradicts the shipped behaviour.
+    #[test]
+    fn the_rust_family_and_form_arms_equal_the_ontology_declared_value_sets() {
+        let ttl = std::fs::read_to_string(repo_root().join("slices/core/pipeline/module.ttl"))
+            .expect("the pipeline slice is readable");
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+
+        // Every family/form string the Rust reader accepts, proved by round-tripping a
+        // one-row document per value rather than by re-listing the arms (a second copy of
+        // the match would drift exactly as the prose did).
+        let accepted = |predicate: &str, value: &str| -> bool {
+            let (family, form) = match predicate {
+                "extractsGraphFamily" => (value, form_for_family(value)),
+                _ => (family_for_form(value), value),
+            };
+            let path = match family {
+                "header-dict" => "generated/medium/probe-v1.zdict",
+                _ => "generated/probe.ttl",
+            };
+            let doc = format!(
+                "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+                 gmeow:probe gmeow:extractsPath {path:?} ; gmeow:extractsMatch \"exact\" ; \
+                 gmeow:extractsGraphFamily {family:?} ; gmeow:extractsForm {form:?} .\n"
+            );
+            let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None).unwrap();
+            read_fanout_rules(&ds).is_ok()
+        };
+
+        for (predicate, rust_values) in [
+            (
+                "extractsGraphFamily",
+                vec!["rdf-fanout", "edoal", "opaque", "header-dict"],
+            ),
+            (
+                "extractsForm",
+                vec![
+                    "turtle",
+                    "ntriples",
+                    "nquads-self",
+                    "nquads-diagnostics",
+                    "blob",
+                    "header-dict",
+                ],
+            ),
+        ] {
+            // The Rust side really does accept every value claimed, and nothing else it
+            // was not told about.
+            for value in &rust_values {
+                assert!(
+                    accepted(predicate, value),
+                    "gmeow:{predicate} value {value:?} is claimed but the Rust reader rejects it"
+                );
+            }
+            assert!(
+                !accepted(predicate, "not-a-declared-value"),
+                "gmeow:{predicate} accepts an undeclared value"
+            );
+            let declared = declared_value_set(&ds, predicate);
+            assert_eq!(
+                declared,
+                rust_values.iter().map(|v| (*v).to_string()).collect(),
+                "the gmeow:{predicate} skos:definition and the Rust match arms disagree"
+            );
+        }
+    }
+
+    /// The form a family is REQUIRED to pair with, for the round-trip probe above.
+    fn form_for_family(family: &str) -> &'static str {
+        match family {
+            "opaque" => "blob",
+            "header-dict" => "header-dict",
+            _ => "turtle",
+        }
+    }
+
+    /// The family a form is REQUIRED to pair with, for the round-trip probe above.
+    fn family_for_form(form: &str) -> &'static str {
+        match form {
+            "blob" => "opaque",
+            "header-dict" => "header-dict",
+            _ => "rdf-fanout",
+        }
+    }
+
+    /// The value set a property's `skos:definition` DECLARES, read out of the normative
+    /// prose: the `"a" | "b" | …` list after the `are exactly:` marker. The enumeration
+    /// lives in the definition (not in a second machine-only vocabulary) so the shipped
+    /// English and the shipped behaviour cannot say different things.
+    fn declared_value_set(ds: &RdfDataset, local: &str) -> BTreeSet<String> {
+        const MARKER: &str = "are exactly:";
+        let subject = format!("https://blackcatinformatics.ca/gmeow/{local}");
+        let definition = ds
+            .owned_quads()
+            .filter(|q| {
+                q.subject == purrdf::RdfTerm::iri(&subject)
+                    && q.predicate == "http://www.w3.org/2004/02/skos/core#definition"
+            })
+            .find_map(|q| match q.object {
+                purrdf::RdfTerm::Literal(lit) => Some(lit.lexical_form),
+                _ => None,
+            })
+            .unwrap_or_else(|| panic!("gmeow:{local} carries no skos:definition"));
+        let tail = definition
+            .split_once(MARKER)
+            .unwrap_or_else(|| {
+                panic!("gmeow:{local}'s skos:definition must enumerate its values after {MARKER:?}")
+            })
+            .1;
+        let tail = tail.split_once('.').map_or(tail, |(head, _)| head);
+        tail.split('|')
+            .map(|part| {
+                let part = part.trim();
+                part.trim_matches('"').to_string()
+            })
+            .filter(|part| !part.is_empty())
+            .collect()
     }
 
     #[test]

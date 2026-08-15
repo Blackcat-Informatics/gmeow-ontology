@@ -325,10 +325,11 @@ ASK {
         ?m != gmeow:consumerLinkedDataTooling &&
         ?m != gmeow:consumerOfflineBook &&
         ?m != gmeow:consumerPrintArchive &&
-        ?m != gmeow:consumerTypedModelClient
+        ?m != gmeow:consumerTypedModelClient &&
+        ?m != gmeow:consumerIndexProjection
     )
 }""" ;
-    gmeow:saRationale "The kernel projection-consumer vocabulary is a closed fourteen-member enumeration (Principle 9): the original nine seeds plus the five documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client). The kernel module MUST NOT declare any gmeow:ProjectionContext individual outside this closed set." .
+    gmeow:saRationale "The kernel projection-consumer vocabulary is a closed fifteen-member enumeration (Principle 9): the original nine seeds, the five documentation-distribution audiences the external documentation distribution catalog references (offline book, print archive, knowledge federation, linked-data tooling, typed-model client), and the rebuildable index/retrieval projection consumer (gmeow:consumerIndexProjection). The kernel module MUST NOT declare any gmeow:ProjectionContext individual outside this closed set." .
 
 # --- 7.9 DisclosurePolicy seeds are declared (MUST) --------------------------
 ex:saDisclosurePolicySeedsDeclared a gmeow:StructuralAssertion ;

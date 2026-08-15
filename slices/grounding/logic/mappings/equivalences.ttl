@@ -109,3 +109,101 @@ logic:ConfConsistent skos:closeMatch <http://www.w3.org/2007/OWL/testOntology#Co
     logic:morphismKind logic:InstitutionMorphism ;
     logic:preservationKind logic:ValidationOnly
 |} .
+
+# Logic glyph-plane external alignment: the newly minted turnstile, DL concept,
+# and modal operators face published formal standards with no RDF namespace, so —
+# like the Common Logic bridge above — each is linked by reference (Principle 5) to
+# a stable Wikidata anchor for the framework, with the governing standard named in
+# the comment. logic:derives (⊢) and logic:entails (⊨) face ISO/IEC 24707 Common
+# Logic (Q5153563), which fixes the model-theoretic entailment a calculus's
+# derivability is judged against; logic:conceptIntersection (⊓) and
+# logic:conceptUnion (⊔) face description logic (Q387196, the Description Logic
+# Handbook); logic:necessarily (□) and logic:possibly (◇) face Kripke semantics
+# (Q2462350, the standard-translation reading). The nullary constants logic:Top /
+# logic:Bottom, logic:compose, logic:Sequent, and the raw logic:TruthValue values
+# carry no external row: like the FOL connectives they are internal canon — the
+# Belnap values are grounded internally by logic:realizedAsVerdict.
+
+logic:derives skos:relatedMatch wd:Q5153563 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Common Logic" ;
+    gmeow:comment "logic:derives is the syntactic derivability turnstile ⊢ (provability in a calculus). ISO/IEC 24707 Common Logic (wd:Q5153563) fixes the model-theoretic semantics against which a calculus's derivability is judged sound and complete, keeping ⊢ strictly distinct from the semantic logic:entails (⊨). relatedMatch — a proof-theoretic component notion of the framework, not the framework as a whole." ;
+    logic:sourceEndpoint logic:derives ;
+    logic:targetEndpoint wd:Q5153563 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:entails skos:relatedMatch wd:Q5153563 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-common-logic.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Common Logic" ;
+    gmeow:comment "logic:entails is the semantic entailment turnstile ⊨ (truth in every model). ISO/IEC 24707 Common Logic (wd:Q5153563) defines exactly this model-theoretic entailment, which a sound and complete calculus's logic:derives (⊢) then matches — the two remaining strictly distinct relations. relatedMatch — a model-theoretic component notion of the framework, not the framework as a whole." ;
+    logic:sourceEndpoint logic:entails ;
+    logic:targetEndpoint wd:Q5153563 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:conceptIntersection skos:relatedMatch wd:Q387196 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-description-logic.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "description logic" ;
+    gmeow:comment "logic:conceptIntersection is the Description Logic concept-conjunction constructor ⊓ (Concept × Concept → Concept). The Description Logic Handbook fixes its extensional intersection semantics; wd:Q387196 (description logic) is the family it belongs to. relatedMatch — one constructor of the DL family, not the family itself, and distinct from the sentence connective logic:and." ;
+    logic:sourceEndpoint logic:conceptIntersection ;
+    logic:targetEndpoint wd:Q387196 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:conceptUnion skos:relatedMatch wd:Q387196 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-description-logic.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "description logic" ;
+    gmeow:comment "logic:conceptUnion is the Description Logic concept-disjunction constructor ⊔ (Concept × Concept → Concept). The Description Logic Handbook fixes its extensional union semantics; wd:Q387196 (description logic) is the family it belongs to. relatedMatch — one constructor of the DL family, not the family itself, and distinct from the sentence connective logic:or." ;
+    logic:sourceEndpoint logic:conceptUnion ;
+    logic:targetEndpoint wd:Q387196 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:necessarily skos:relatedMatch wd:Q2462350 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-modal-logic.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Kripke semantics" ;
+    gmeow:comment "logic:necessarily is the box modality □, truth in every accessible context of the typed relation named on logic:overAccessibility. Standard Kripke standard-translation semantics (wd:Q2462350) fixes its reading over an accessibility relation. relatedMatch — the standard translation of one modal operator, evaluated over a named typed relation rather than the bare accessibility union, and distinct from the standpoint claim-modal-force register." ;
+    logic:sourceEndpoint logic:necessarily ;
+    logic:targetEndpoint wd:Q2462350 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .
+
+logic:possibly skos:relatedMatch wd:Q2462350 {|
+    a logic:GroundingCorrespondence ;
+    gmeow:sssomFile "gmeow-modal-logic.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "Kripke semantics" ;
+    gmeow:comment "logic:possibly is the diamond modality ◇, truth in some accessible context of the typed relation named on logic:overAccessibility — the dual of logic:necessarily. Standard Kripke standard-translation semantics (wd:Q2462350) fixes its reading over an accessibility relation. relatedMatch — the standard translation of one modal operator, evaluated over a named typed relation rather than the bare accessibility union, and distinct from the standpoint claim-modal-force register." ;
+    logic:sourceEndpoint logic:possibly ;
+    logic:targetEndpoint wd:Q2462350 ;
+    logic:morphismClass logic:AffineCorrespondence ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ValidationOnly
+|} .

@@ -13,7 +13,7 @@
 vec:corpus a gmeow:GmnConformancePack ;
     rdfs:label "Frozen GMN-1 conformance-vector corpus"@x-gmeow-english ;
     gmeow:references gmeow:gmnCodebookCurrent ;
-    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43"^^xsd:string ;
+    gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce"^^xsd:string ;
     rdfs:seeAlso vec:all-slots ,
         vec:by-ref-annotation ,
         vec:by-ref-confidence ,

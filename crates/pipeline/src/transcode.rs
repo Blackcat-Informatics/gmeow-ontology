@@ -43,8 +43,8 @@ use gmeow_logic_compile::projections::{
 };
 use purrdf::loss::pair_loss_ledger;
 use purrdf::{
-    NativeRdfFormat, RdfDataset, RdfLookaside, SerializeGraph, TermId, dataset_from_bytes,
-    import_gts_events, serialize_dataset_base_only, serialize_dataset_to_format,
+    NativeRdfFormat, RdfDataset, SerializeGraph, TermId, dataset_from_bytes, import_gts_events,
+    serialize_dataset_base_only, serialize_dataset_to_format,
 };
 
 /// A supported transcode codec (source or target).
@@ -355,13 +355,15 @@ pub fn transcode(
     };
 
     if to == Codec::Gts {
-        let bytes =
-            purrdf::gts_write::to_gts(&dataset, &RdfLookaside::default(), "gmeow-transcode")
-                .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
-                        message: e.to_string(),
-                    })
-                })?;
+        // Transformed consumer output is authored GMEOW GTS, so it takes the one
+        // mandated door. `purrdf::gts_write::to_gts` cannot: it authors its frames
+        // through `Writer::deterministic`, which passes no transform chain at all,
+        // so `gmeow convert --to gts` used to ship identity-framed bytes.
+        let bytes = gmeow_gts_profile::dataset_to_gmeow_gts(&dataset).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
+                message: e.to_string(),
+            })
+        })?;
         let realized = realize_losses(ledger.entries(), named_graph_count, 0, 0);
         return Ok(TranscodeOutput { bytes, realized });
     }
@@ -803,6 +805,38 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
         .expect("gts transcode");
         assert!(!out.bytes.is_empty());
         assert!(out.realized.is_empty(), "gts is lossless for turtle input");
+    }
+
+    /// Transformed consumer output is authored GMEOW GTS: the bytes `gmeow convert
+    /// --to gts` writes carry the one mandated transform on every payload frame.
+    /// This is the exact function the shipped CLI's `convert` verb calls, so the
+    /// audit here binds the shipped surface.
+    #[test]
+    fn gts_target_output_uses_the_mandated_frame_profile() {
+        let out = transcode(
+            STAR_FIXTURE_TTL.as_bytes(),
+            STAR_FIXTURE_FORMAT,
+            Codec::Gts,
+            None,
+        )
+        .expect("gts transcode");
+        gmeow_gts_profile::validate_mandated_frames(&out.bytes)
+            .expect("`convert --to gts` output uses the mandated zstd-rsyncable-L12 profile");
+    }
+
+    /// The same audit over a NAMED-GRAPH source: the graph slot rides the snapshot
+    /// frame, so the transform rule must hold for a multi-graph carrier too.
+    #[test]
+    fn named_graph_gts_output_uses_the_mandated_frame_profile() {
+        let out = transcode(
+            NAMED_GRAPH_FIXTURE_TRIG.as_bytes(),
+            Codec::TriG,
+            Codec::Gts,
+            None,
+        )
+        .expect("trig → gts transcode");
+        gmeow_gts_profile::validate_mandated_frames(&out.bytes)
+            .expect("named-graph `--to gts` output uses the mandated frame profile");
     }
 
     /// GTS round-trip: parse via GTS path, verify the round-tripped dataset has

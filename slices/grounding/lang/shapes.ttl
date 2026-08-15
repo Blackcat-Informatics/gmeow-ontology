@@ -111,8 +111,110 @@ lang:GmnScriptCodepointPresenceShape
     ] .
 
 # =========================================================================== #
+# GMN dictionary alias-injectivity gate. The section-
+# retraction witness gmeow:gmnCorrNormalToGmn now claims rests on the alias
+# table being a genuine BIJECTION over its covered term set. Two entries of one
+# gmeow:GmnDictionary aliasing two DIFFERENT terms with the SAME alias string
+# would corrupt read-back silently (the reader cannot tell which term the
+# alias names), so injectivity is a gated structural property, never merely
+# asserted prose.
+# =========================================================================== #
+
+lang:GmnDictionaryAliasInjectivityShape
+    a sh:NodeShape ;
+    rdfs:label "GMN dictionary alias injectivity shape"@x-gmeow-english ;
+    skos:definition "No two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary bind two different gmeow:gmnDictionaryEntryTerm values to the same gmeow:gmnDictionaryEntryAlias string — the alias table is a bijection over its covered term set, per dictionary version."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnDictionaryAliasInjectivityConstraint ;
+    gmeow:enforcesFailureClass lang:GmnDictionaryAliasCollision ;
+    sh:targetClass gmeow:GmnDictionary ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "Two entries of one GMN dictionary alias two different terms with the same alias string; the alias table is not injective." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry> ?e1 .
+                $this <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry> ?e2 .
+                ?e1 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> ?alias .
+                ?e2 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> ?alias .
+                ?e1 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> ?t1 .
+                ?e2 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> ?t2 .
+                FILTER(?e1 != ?e2)
+                FILTER(?t1 != ?t2)
+            }
+        """ ;
+    ] .
+
+lang:GmnVersionOverclaimShape
+    a sh:NodeShape ;
+    rdfs:label "GMN version overclaim shape"@x-gmeow-english ;
+    skos:definition "The GMN version machinery never claims more than its lineage discharges. A migration crossing (a subject of gmeow:gmnMigratesTo — the logic:Correspondence itself, or a lang:TranslationUnit carrying one) whose correspondence claims logic:mnemomorphic true is honest only over an additive bump: when the destination version's gmeow:VersionMembership carries a gmeow:versionScale other than gmeow:scaleMinor or gmeow:scaleTrivial, the scale's own classification says the change is not recoverable, so the recoverability witness is an overclaim. Separately, a gmeow:gmnAcceptWindow greater than 1 is silent tolerance, not judged migration."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnVersionOverclaimConstraint ;
+    gmeow:enforcesFailureClass lang:GmnVersionOverclaim ;
+    sh:targetSubjectsOf gmeow:gmnMigratesTo , gmeow:gmnAcceptWindow ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A GMN migration claims logic:mnemomorphic true over a stronger-than-additive version bump, or a gmeow:gmnAcceptWindow exceeds 1; the version machinery never claims more than its lineage discharges." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?v .
+                    $this <https://blackcatinformatics.ca/logic/mnemomorphic> true .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionMember> ?v .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionScale> ?sc .
+                    FILTER(?sc != <https://blackcatinformatics.ca/gmeow/scaleMinor> && ?sc != <https://blackcatinformatics.ca/gmeow/scaleTrivial>)
+                } UNION {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?v .
+                    $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c .
+                    ?c <https://blackcatinformatics.ca/logic/mnemomorphic> true .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionMember> ?v .
+                    ?m <https://blackcatinformatics.ca/gmeow/versionScale> ?sc .
+                    FILTER(?sc != <https://blackcatinformatics.ca/gmeow/scaleMinor> && ?sc != <https://blackcatinformatics.ca/gmeow/scaleTrivial>)
+                } UNION {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnAcceptWindow> ?w .
+                    FILTER(?w > 1)
+                }
+            }
+        """ ;
+    ] .
+
+# =========================================================================== #
 # Linguistic symbology plane gates: coverage and imported-plane attribution   #
 # =========================================================================== #
+
+# =========================================================================== #
+# Mentation <-> lang binding gate: gmeow:processExport                       #
+# (mentation, core tier) crossings bind to the ring model. A named            #
+# SHACL-SPARQL conformance row of the GMN dialect matrix                      #
+# (LANG-CONFORMANCE.md, lang:GmnUnringedExportCrossing), exercised over the   #
+# live fixture pair in tests/conformance-fixtures/gmn-export-ring-bound.ttl   #
+# (passes) and tests/counter-examples/gmn-export-crossing-no-ring.ttl         #
+# (fires). Because a ring-less export envelope is a strict subset of the      #
+# general nine-field contract's ring requirement, the counter-example        #
+# co-fires lang:GmnMissingEnvelopeField — the two-class trip set is           #
+# structurally irreducible, asserted exactly by the execution harness.        #
+# =========================================================================== #
+
+lang:GmnExportRingBindingShape
+    a sh:NodeShape ;
+    rdfs:label "GMN export-ring binding shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:GmnEnvelope generated by an activity typed gmeow:mentalProcessType gmeow:processExport (mentation's externalization/communication episode, the emit member of the train/audit/export triple) declares a gmeow:gmnSecurityRing. The binding runs through the envelope's existing gmeow:wasGeneratedBy provenance field — the 'generating activity' hook the nine-field contract already names — so mentation asserts no lang term and gains no gmeow:sliceDependsOn edge on lang; this slice alone reads the mentation individual its own envelope already points at. An export crossing a serialization boundary with an unringed envelope is exactly the disclosure gap this gate catches."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    logic:formalizes lang:GmnExportRingBindingConstraint ;
+    gmeow:enforcesFailureClass lang:GmnUnringedExportCrossing ;
+    sh:targetClass gmeow:GmnEnvelope ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnEnvelope was generated by an activity typed gmeow:mentalProcessType gmeow:processExport but declares no gmeow:gmnSecurityRing; an export crossing a serialization boundary must bind to the ring model." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ?act .
+                ?act <https://blackcatinformatics.ca/gmeow/mentalProcessType> <https://blackcatinformatics.ca/gmeow/processExport> .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gmnSecurityRing> ?ring . }
+            }
+        """ ;
+    ] .
 
 # =========================================================================== #
 # Flagship acceptance manifest — the slice's thin failure-range gate

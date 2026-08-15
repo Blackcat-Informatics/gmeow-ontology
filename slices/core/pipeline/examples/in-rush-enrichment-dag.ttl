@@ -1,0 +1,125 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a small SCHEDULED ENRICHMENT ("in-rush") DAG declared in the
+# general runtime-DAG vocabulary. It exercises the six families:
+# edge reasons (gmeow:FlowReason), a per-stage failure disposition on an execution
+# (gmeow:StageDisposition), stage obligations (gmeow:StageObligation), output
+# stability (gmeow:StageStability), a per-stage budget (gmeow:StageBudget), and a
+# content-addressed run receipt (gmeow:StageReceipt on a gmeow:PipelineRun).
+#
+# The load-bearing edge is ex:edge-gate-authority: an AUTHORITY edge from the
+# admission gate to the receipt writer. NO bytes flow across it — the writer reads
+# its bytes from ex:enrich (a plain gmeow:dataflowConsumes edge) — so a reasoner
+# that reduced the DAG to its byte-flow skeleton would see no dependency between the
+# gate and the writer and WRONGLY drop the ordering, letting the receipt be written
+# before the admission verdict exists. gmeow:RuntimeDagAdmissionConstraint (d)
+# forbids exactly that: an authority edge is a first-class ordering that admission
+# must keep even when no data rides it. The conformance CQ pins that it is retained.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/pipeline/> .
+
+# The enrichment DAG (a gmeow:Pipeline: the standing plan).
+ex:inRushEnrich a gmeow:Pipeline ;
+    logic:planGoal ex:goalEnrichedCandidate ;
+    logic:planSuccessMode logic:StrongPlanSuccess ;
+    logic:executedUnderContract logic:DagWorkflowContract ;
+    gmeow:hasStage ex:fetch , ex:canonicalize , ex:enrich , ex:gateAdmission , ex:writeReceipt , ex:enrichSink ;
+    logic:planFlowEdge ex:edge-gate-authority .
+
+ex:goalEnrichedCandidate a gmeow:Goal .
+
+# ── Stages ──
+ex:fetch a gmeow:PipelineStage ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "in_rush_fetch" ;
+    gmeow:hasCapability gmeow:sourceOrigin ;
+    gmeow:stageStability gmeow:stabilityPerTurnVariance ;
+    gmeow:stageObligation gmeow:obligationMandatory .
+
+# Canonicalization is byte-identical across turns, so it can sit in the prefix.
+ex:canonicalize a gmeow:PipelineStage ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "canonicalize" ;
+    gmeow:dataflowConsumes ex:fetch ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageObligation gmeow:obligationMandatory .
+
+# The enrichment itself is per-turn variant and budgeted; its absence is tolerable.
+ex:enrich a gmeow:PipelineStage ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "enrich" ;
+    gmeow:dataflowConsumes ex:canonicalize ;
+    gmeow:stageStability gmeow:stabilityPerTurnVariance ;
+    gmeow:stageObligation gmeow:obligationDegradable ;
+    gmeow:hasStageBudget ex:budget-enrich .
+
+ex:budget-enrich a gmeow:StageBudget ;
+    gmeow:budgetDeadline "PT30S"^^xsd:duration ;
+    gmeow:budgetMaxSteps 1000 ;
+    gmeow:budgetMaxAnswers 50 ;
+    gmeow:budgetMaxInputBytes 1048576 ;
+    gmeow:budgetMaxMemoryBytes 2147483648 .
+
+# The admission gate decides whether the candidate may be committed. Its verdict
+# authorizes the receipt writer, but it passes it NO bytes.
+ex:gateAdmission a gmeow:PipelineStage ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "gate_admission" ;
+    gmeow:dataflowConsumes ex:canonicalize ;
+    gmeow:stageObligation gmeow:obligationMandatory .
+
+# The receipt writer reads its bytes from ex:enrich (dataflow) but MUST run after
+# the admission gate (authority) — the ordering ex:edge-gate-authority encodes.
+ex:writeReceipt a gmeow:PipelineStage ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "write_receipt" ;
+    gmeow:dataflowConsumes ex:enrich ;
+    gmeow:stageObligation gmeow:obligationMandatory .
+
+ex:enrichSink a gmeow:PipelineStage ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "enrich_sink" ;
+    gmeow:dataflowConsumes ex:writeReceipt ;
+    gmeow:hasCapability gmeow:sinkCapability ;
+    gmeow:stageObligation gmeow:obligationMandatory .
+
+# ── The authority edge a pure-dataflow reasoner would drop ──
+ex:edge-gate-authority a gmeow:BuildDataFlow ;
+    rdfs:label "authority: gate-admission → write-receipt (no bytes, ordering only)"@x-gmeow-english ;
+    gmeow:buildFlowFrom ex:gateAdmission ;
+    gmeow:buildFlowTo ex:writeReceipt ;
+    gmeow:flowReason gmeow:flowReasonAuthority .
+
+# ── One run of the DAG, with a per-execution disposition and ordered receipts ──
+ex:run-42 a gmeow:PipelineRun ;
+    gmeow:hasStageExecution ex:exec-enrich-42 ;
+    gmeow:hasStageReceipt ex:receipt-canonicalize , ex:receipt-enrich .
+
+# The enrichment execution produced an explicit typed "nothing" — a valid answer,
+# not a failure — which its degradable obligation tolerates. It enacts the
+# ex:enrich stage (gmeow:executesStage) within run ex:run-42 (gmeow:hasStageExecution).
+ex:exec-enrich-42 a gmeow:StageExecution ;
+    gmeow:executesStage ex:enrich ;
+    gmeow:stageDisposition gmeow:dispositionTypedAbsence .
+
+# Receipts serialize in TOPOLOGICAL order (canonicalize precedes enrich), regardless
+# of wall-clock interleaving; each is content-addressed.
+ex:receipt-canonicalize a gmeow:StageReceipt ;
+    gmeow:receiptOfStage ex:canonicalize ;
+    gmeow:receiptDigest "blake3:1f9c0a5e" .
+
+ex:receipt-enrich a gmeow:StageReceipt ;
+    gmeow:receiptOfStage ex:enrich ;
+    gmeow:receiptOfExecution ex:exec-enrich-42 ;
+    gmeow:receiptDigest "blake3:77aa31b2" .

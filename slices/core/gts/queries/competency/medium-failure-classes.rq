@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency (medium axis): which named transport failure does a medium refusal raise, and
+# WHICH GATE raises it? Every gmeow:GtsConformanceFailure member must be reachable from a
+# gate through gmeow:enforcesFailureClass — a failure class no gate points at is a name with
+# no enforcement behind it, and a gate that points at none refuses under an unnamed code.
+# The family column is bound structurally (the gts-owned logic:Category that the members
+# subclass), never by a literal, so a renamed family moves the answer rather than hiding it.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?failure ?gate ?family WHERE {
+    ?failure a logic:Category ;
+             rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+             logic:subClassOf ?family .
+    ?family a logic:Category ;
+            rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> .
+    ?gate gmeow:enforcesFailureClass ?failure .
+}
+ORDER BY ?failure ?gate

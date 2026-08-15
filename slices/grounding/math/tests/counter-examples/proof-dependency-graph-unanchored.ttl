@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ProofDependencyGraphAnchoredConstraint: a
+# math:ProofDependencyGraph that names no math:Proof through math:dependencyGraphOf. A
+# lifted declaration DAG underlying no proof is a set of edges with nothing derived at
+# the end of them, so the goal-decomposed reading the proof bridge frames has no target;
+# that is the graph-side residue of the front-end's math:IllFoundedProofDerivation
+# refusal. The class's own definition already names the proof it underlies, so without
+# this constraint the naming is prose only and the DAG floats unattached.
+#
+# The class carries no OWL frame of its own, so the unanchored node IS the whole
+# violation and nothing further is needed to isolate it. It fires
+# math:ProofDependencyGraphAnchoredConstraint (shacl.SPARQLConstraintComponent →
+# math:IllFoundedProofDerivation).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/proof-dependency-graph-unanchored/> .
+
+ex:dag a math:ProofDependencyGraph .

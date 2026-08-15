@@ -181,3 +181,70 @@ fn verify_returns_false_when_snapshot_id_is_tampered() {
         "a bundle with a forged snapshot content id does not verify"
     );
 }
+
+/// The feedback bundle is authored GMEOW GTS output, so EVERY payload frame it
+/// carries — the snapshot frame AND the two small report blobs — must use the one
+/// mandated transform (`zstd-rsyncable` @ level 12). The SARIF/findings blobs sit
+/// well under the rsyncable threshold, which is exactly where a raw `emit_gts`
+/// call silently falls back to plain `zstd`.
+#[test]
+fn bundle_uses_the_mandated_frame_profile() {
+    let bundle = build_feedback_bundle(&sample_report()).expect("build feedback bundle");
+    gmeow_gts_profile::validate_mandated_frames(&bundle)
+        .expect("feedback bundle uses the mandated zstd-rsyncable-L12 frame profile");
+    // …and the SECOND half: the branch the ontology routes this producer to. The
+    // feedback bundle carries no medium registry of its own — which is exactly why the
+    // universal rule above must stay registry-independent — so its declaration is read
+    // from the slice that owns the producer→medium map.
+    audit_declared_media(&bundle);
+}
+
+/// Hold a feedback bundle to the medium `gmeow:gtsProducerFeedbackBundle` declares,
+/// and assert that declaration really routes to the whole-artifact branch.
+fn audit_declared_media(bundle: &[u8]) {
+    use gmeow_pipeline::medium::registry::{MediumRegistry, MediumSourceKind};
+
+    const PRODUCER: &str = "https://blackcatinformatics.ca/gmeow/gtsProducerFeedbackBundle";
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("workspace root");
+    let text = std::fs::read(root.join("slices/core/gts/module.ttl")).expect("the gts slice reads");
+    let ds = purrdf::parse_dataset(
+        &text,
+        "text/turtle",
+        Some("https://blackcatinformatics.ca/gmeow/"),
+    )
+    .expect("the gts slice parses");
+    let registry = MediumRegistry::from_dataset(&ds).expect("the live medium axis reads");
+    let medium_iri = gmeow_pipeline::declared_medium_of(&ds, PRODUCER)
+        .expect("the feedback producer is declared");
+    assert_eq!(
+        registry
+            .media()
+            .get(&medium_iri)
+            .expect("a declared gmeow:Medium")
+            .source_kind,
+        MediumSourceKind::WholeArtifact,
+        "the feedback bundle must route to the whole-artifact branch"
+    );
+    gmeow_pipeline::validate_declared_media(
+        bundle,
+        &gmeow_pipeline::MediumDeclaration {
+            medium: &medium_iri,
+            registry: &registry,
+        },
+    )
+    .expect("the feedback bundle satisfies its declared whole-artifact medium");
+}
+
+/// The same audit over the EMPTY report: an empty findings graph still emits a
+/// snapshot frame plus both (tiny) blob frames, so the no-size-threshold rule
+/// binds there too.
+#[test]
+fn empty_bundle_uses_the_mandated_frame_profile() {
+    let bundle = build_feedback_bundle(&Report::new("validate")).expect("build empty bundle");
+    gmeow_gts_profile::validate_mandated_frames(&bundle)
+        .expect("empty feedback bundle uses the mandated zstd-rsyncable-L12 frame profile");
+    audit_declared_media(&bundle);
+}

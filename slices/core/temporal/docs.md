@@ -130,6 +130,38 @@ tenure these are the clocks that let a fact be true *then*, asserted *later*, re
 Convenience datatype properties for simple event timing (`gmeow:atTime`,
 `gmeow:startedAtTime`, `gmeow:endedAtTime`) follow the flat-first pattern.
 
+### gmeow:observationCutoff and keep-on-unbound (Principle 9)
+
+`gmeow:observationCutoff` names the *derived* observation cutoff of a claim —
+`COALESCE(gmeow:assertedAt, gmeow:recordedNoLaterThan)`, prefer `assertedAt`, else the
+`recordedNoLaterThan` terminus ante quem — canonically computed by the bitemporal as-of
+query (`queries/tql/bitemporal.rq`). It is **never asserted directly**; cite the IRI
+instead of re-deriving the COALESCE.
+
+**Keep-on-unbound is normative.** A claim with no observation cutoff at all (neither
+`assertedAt` nor `recordedNoLaterThan` bound) has an *unknown* observation time, and the
+as-of query **retains** it rather than dropping it — an explicit open-world default, not
+an oversight. `!BOUND(?observed) || ?observed <= ?asOf` in `bitemporal.rq` is the
+normative expression of this: an unbound observation time never disqualifies a claim.
+
+**The stricter-than-slice pattern.** Some downstream consumers legitimately want a
+*narrower* reading — e.g. a compliance profile that must reject any claim it cannot date.
+The slice sanctions this as an explicit, profile-owned opt-in rather than changing the
+slice-wide default: a profile asserts `gmeow:observationWindowRequired true` on itself,
+declaring that IT requires a bound `gmeow:observationCutoff`, and that profile's own
+downstream projection classifies any claim whose cutoff is unbound into its own typed
+exclusion set (nonconforming for that profile only). The temporal slice ships the marker
+and names the pattern; it does not enforce the exclusion itself. Certifying that
+enforcement as a slice-level closed-world `logic:Constraint` over the statement-layer
+annotation clocks would exceed the range-restricted guarded fragment the native coherence
+gate decides (an annotation-property absence check is not an object/datatype edge the
+guarded existential/counting deciders reach), so the boundary is recorded honestly as
+`gmeow:ObservationWindowClosedWorldBoundary` (a `logic:expressivenessBoundary
+logic:FirstOrder` retained-withhold record, mirroring `logic:rdf12-nested-triple-term`)
+rather than improvised as an unsupported constraint. See
+[`docs/MIGRATING-SHAPES-TO-LOGIC.md`](../../../docs/MIGRATING-SHAPES-TO-LOGIC.md) for the
+doctrine on when a gap is an honest boundary rather than a constraint to author.
+
 ## Alignment & projection
 
 Aligned by reference to **OWL-Time** (`time:Instant`/`time:Interval`/`time:TRS`, the Allen
