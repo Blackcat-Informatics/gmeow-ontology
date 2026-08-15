@@ -273,9 +273,8 @@ fn schadenfreude_geometry(onto: &RdfDataset) -> gmeow_errors::Result<gmeow_affec
     builder
         .add_dataset(onto)
         .map_err(|e| transform(format!("add ontology carrier: {e}")))?;
-    let gts =
-        crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
-            .map_err(|e| transform(format!("emit affect fixture gts: {e}")))?;
+    let gts = gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+        .map_err(|e| transform(format!("emit affect fixture gts: {e}")))?;
     gmeow_affect::geometry_from_gts_bytes(&gts, Some(SF_INTENSITY_IRI))
         .map_err(|e| transform(e.to_string()))?
         .into_iter()

@@ -32,6 +32,10 @@ purrdf.workspace = true
 # Canonical Finding/Report model. Its surface is pure serde, so it is wasm-clean.
 gmeow-ns = { path = "../ns" }
 gmeow-errors = { path = "../errors" }
+# The mandated-frame validator: the repo-static GTS authorship seals prove the
+# profile crate is the single production door, and the Turtle-exit tests prove
+# the bytes it authors actually pass the audit.
+gmeow-gts-profile = { path = "../gts-profile" }
 # GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
 # CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's
 # `gts` feature builds; pure-Rust structured-zstd, no C/duckdb/zstd-sys linkage.

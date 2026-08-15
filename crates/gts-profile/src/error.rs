@@ -25,6 +25,7 @@ define_diag_kind! {
     code = "gts-profile.frame";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "GTS frame profile: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation";
 }
 
 /// The complete GTS-profile diagnostic-code catalog, in registration order.

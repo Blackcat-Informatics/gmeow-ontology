@@ -1,0 +1,29 @@
+# Negative test: a GMN logic-glyph-plane term MUST NOT carry BOTH an adopted-glyph
+# binding AND a fragmenting named-key / dictionary binding for the SAME target. A term
+# either wins an executable Unicode sign (gmeow:gmnDispositionAdoptedGlyph) or falls back
+# to a named key / dictionary alias — never both, or a downstream writer cannot decide
+# which spelling is canonical and the round-trip fragments. Any returned row is that
+# double binding: one target simultaneously adopted as a glyph and ruled to a key.
+#
+# The fragmenting binding is EITHER a second GmnSymbolCandidate on the same target whose
+# disposition is gmeow:gmnDispositionNamedKey, OR a dictionary alias entry
+# (gmeow:gmnDictionaryEntryTerm) for that target. In the shipped population each logic
+# term carries exactly one disposition and the adopted-glyph terms (¬ ⊑ → ≡ and the eight
+# Belnap grade signs) hold no dictionary alias, so this returns no rows.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?target ?adopted ?fragmenting WHERE {
+    ?adopted a gmeow:GmnSymbolCandidate ;
+             gmeow:gmnCandidateTarget ?target ;
+             gmeow:gmnSymbolDisposition gmeow:gmnDispositionAdoptedGlyph .
+    {
+        ?fragmenting a gmeow:GmnSymbolCandidate ;
+                     gmeow:gmnCandidateTarget ?target ;
+                     gmeow:gmnSymbolDisposition gmeow:gmnDispositionNamedKey .
+    }
+    UNION
+    {
+        ?fragmenting gmeow:gmnDictionaryEntryTerm ?target .
+    }
+}
+ORDER BY ?target ?adopted ?fragmenting

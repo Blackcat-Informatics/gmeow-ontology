@@ -37,7 +37,11 @@
 # gated by lang:FormSituatedShape).
 #
 # NOTE ON SHAPE NAMES IN PROSE. The retirement of hand-authored shapes in favour of
-# logic:-authored validation has shrunk shapes.ttl to four shapes, so a number of the
+# logic:-authored validation has shrunk shapes.ttl to the procedural residue alone —
+# every surviving shape carries an sh:sparql body backing a named logic:Constraint,
+# which is the one form the projection-purity rule permits a shape surface to keep.
+# A declarative obligation (cardinality, class, datatype, node-kind, value-set) is
+# authored in module.ttl and the shape is DERIVED from it. So a number of the
 # rationales below still name a hand-authored shape (lang:AnchorCompleteShape,
 # lang:FormSituatedShape, lang:GmnEnvelopeContractShape, lang:GmnRingLatticeWellFormedShape,
 # lang:SlotIndexPresentShape, lang:TranslationUnitShape, lang:TypedMorphologyShape,
@@ -479,7 +483,20 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 # (tests/conformance-fixtures/ambiguity-saw-her-duck.ttl) are exercised by the native
 # lint tests. lang:SilentDisambiguation (the co-resident-reading collapse) is likewise
 # a native gate, noted with the meaning-stratum fixtures above.
+#
+# The analyzer-stratum twin, lang:ProfileAttributionConstraint, is NOT native: it is a
+# logic:Constraint that projects to a sh:sparql shape
+# (lang:ProfileAttributionConstraintProceduralConstraintShape, targetClass
+# lang:AnalysisOutput, gmeow:enforcesFailureClass lang:UnattributedAnalysisProfile), so
+# its rejection IS a SHACL finding and DOES get a cell below.
 # =========================================================================== #
+
+ex:ecAnalysisOutputUnattributed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/analysis-output-unattributed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape lang:ProfileAttributionConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "A lang:AnalysisOutput names NO lang:CanonicalizationProfile through lang:analyzedUnderProfile (the FILTER NOT EXISTS body of lang:ProfileAttributionConstraint's projected sh:sparql, lang:ProfileAttributionConstraintProceduralConstraintShape, targetClass lang:AnalysisOutput), so the output is an unattributed canonicalization claim and validation MUST emit shacl.SPARQLConstraintComponent from that shape, which gmeow:expectedSourceShape pins by IRI (lang:UnattributedAnalysisProfile) — the analyzer-stratum twin of the native lang:UnattributedEngineClaim gate (ingestion-unattributed-engine-claim.ttl). The cell does NOT declare gmeow:expectedSoleFinding: see the header note on why this slice's reports are wider than one shape." .
 
 # =========================================================================== #
 # GMN dialect fixtures — the gmeow:gmn* graft's eight SHACL gates: canonical
@@ -504,7 +521,7 @@ ex:ecGmnScriptGlyphCanonical a gmeow:ExampleConformance ;
 ex:ecGmnEnvelopeComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-envelope-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A gmeow:GmnEnvelope carrying all nine contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, gmeow:gmnCodebookDigest, and a logic:Correspondence losslessness judgment — satisfies lang:GmnEnvelopeContractShape and validates with no findings." .
+    gmeow:conformanceRationale "A gmeow:GmnEnvelope carrying all nine contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, gmeow:gmnCodebookDigest, and a logic:Correspondence losslessness judgment — satisfies the derived gmeow:GmnEnvelope-shape and validates with no findings." .
 
 ex:ecGmnCompactionHonest a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-compaction-honest.ttl" ;
@@ -538,6 +555,24 @@ ex:ecGmnGlyphCollision a gmeow:ExampleConformance ;
     gmeow:expectedSourceShape lang:GmnGlyphCollisionConstraintProceduralConstraintShape ;
     gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "Two distinct graphemes of one script share the identical gmeow:gmnCodepoints \"U+03BC\" with NO gmeow:gmnSigilScope on either (the sh:sparql of lang:GmnGlyphCollisionShape — the sigil-scoped exemption requires BOTH to be scoped), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnGlyphCollision)." .
+
+ex:ecGmnLogicConfusableGlyph a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-logic-confusable-glyph.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two distinct LOGIC-plane turnstile graphemes of gmeow:gmnScript (the forcing turnstile ⊩ U+22A9 and the double-bar turnstile ⊫ U+22AB) are related by gmeow:gmnConfusableWith (the sh:sparql of lang:GmnConfusableGlyphShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnConfusableGlyph); their codepoint values are distinct and canonical, so the collision and codepoint gates stay quiet. The logic-plane sibling of ex:ecGmnConfusableGlyph — the confusables blocklist is plane-agnostic." .
+
+ex:ecGmnLogicNonCanonicalCodepoint a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-logic-noncanonical-codepoint.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.PatternConstraintComponent" ;
+    gmeow:conformanceRationale "A LOGIC-plane forcing-turnstile grapheme's gmeow:gmnCodepoints value \"22A9\" drops the canonical \"U+\" prefix (sh:pattern on lang:GmnCodepointCanonicalShape), so validation MUST emit shacl.PatternConstraintComponent and NO other finding (lang:GmnNonCanonicalCodepoint); the value is present, so the presence branch stays quiet. The logic-plane sibling of ex:ecGmnNonCanonicalCodepoint." .
+
+ex:ecGmnLogicGlyphCollision a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-logic-glyph-collision.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "Two distinct LOGIC-plane graphemes of one script share the identical gmeow:gmnCodepoints \"U+22AB\" with a gmeow:gmnSigilScope on ONLY ONE of them (the sh:sparql of lang:GmnGlyphCollisionShape — the sigil-scoped exemption requires BOTH to be scoped), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnGlyphCollision). The logic-plane sibling of ex:ecGmnGlyphCollision, tightened to the one-partner-scoped case." .
 
 ex:ecGmnEnvelopeMissingField a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-envelope-missing-field.ttl" ;
@@ -604,13 +639,13 @@ ex:ecGlossaryDeclaredHomograph a gmeow:ExampleConformance ;
 ex:ecGmnExportRingBound a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-export-ring-bound.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A gmeow:GmnEnvelope generated by an activity typed gmeow:mentalProcessType gmeow:processExport (mentation) and carrying a gmeow:gmnSecurityRing satisfies lang:GmnExportRingBindingShape (and the pre-existing lang:GmnEnvelopeContractShape, since every other contract field is also present) and validates with no findings." .
+    gmeow:conformanceRationale "A gmeow:GmnEnvelope generated by an activity typed gmeow:mentalProcessType gmeow:processExport (mentation) and carrying a gmeow:gmnSecurityRing satisfies lang:GmnExportRingBindingShape (and the derived gmeow:GmnEnvelope-shape, since every other contract field is also present) and validates with no findings." .
 
 ex:ecGmnExportCrossingNoRing a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-export-crossing-no-ring.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The gmeow:GmnEnvelope is generated by an activity typed gmeow:mentalProcessType gmeow:processExport (mentation) but declares no gmeow:gmnSecurityRing (the sh:sparql of lang:GmnExportRingBindingShape), so validation MUST emit shacl.SPARQLConstraintComponent (lang:GmnUnringedExportCrossing). The pre-existing sh:minCount 1 of lang:GmnEnvelopeContractShape ALSO fires on the same missing field (shacl.MinCountConstraintComponent, lang:GmnMissingEnvelopeField) — an honest double finding, since ring-absence is inherently covered by both the general envelope-contract gate and this export-specific binding gate; gmeow:expectedViolationCode pins the export-binding code this fixture exists to demonstrate." .
+    gmeow:conformanceRationale "The gmeow:GmnEnvelope is generated by an activity typed gmeow:mentalProcessType gmeow:processExport (mentation) but declares no gmeow:gmnSecurityRing (the sh:sparql of lang:GmnExportRingBindingShape), so validation MUST emit shacl.SPARQLConstraintComponent (lang:GmnUnringedExportCrossing). The class-qualified ring minimum of the derived gmeow:GmnEnvelope-shape ALSO fires on the same missing field (shacl.QualifiedMinCountConstraintComponent, lang:GmnMissingEnvelopeField) — an honest double finding, since ring-absence is inherently covered by both the general envelope-contract gate and this export-specific binding gate; gmeow:expectedViolationCode pins the export-binding code this fixture exists to demonstrate." .
 
 ex:ecGmnVersionOverclaim a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-version-overclaim.ttl" ;
@@ -624,7 +659,8 @@ ex:ecGmnCompactionWithoutProvenance a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:expectedSourceShape gmeow:GmnCompaction-shape ;
-    gmeow:conformanceRationale "The gmeow:GmnCompaction names its sources through gmeow:gmnCompacts but carries no attributing gmeow:vantage (sh:minCount 1 on lang:GmnCompactionProvenanceShape), so validation MUST emit shacl.MinCountConstraintComponent from gmeow:GmnCompaction-shape, which gmeow:expectedSourceShape pins by IRI (lang:GmnCompactionWithoutProvenance); it links no correspondence, so the overclaim gate stays quiet. The cell does NOT declare gmeow:expectedSoleFinding, because the report is not sole: it also carries MinCountConstraintComponent at lang:GmnCompactionProvenanceShape. See the header note on why this slice's reports are wider than one shape." .
+    gmeow:expectedSoleFinding true ;
+    gmeow:conformanceRationale "The gmeow:GmnCompaction names its sources through gmeow:gmnCompacts but carries no attributing gmeow:vantage (sh:minCount 1 on the derived gmeow:GmnCompaction-shape, which carries gmeow:enforcesFailureClass lang:GmnCompactionWithoutProvenance), so validation MUST emit shacl.MinCountConstraintComponent from gmeow:GmnCompaction-shape, which gmeow:expectedSourceShape pins by IRI; it links no correspondence, so the overclaim gate stays quiet. The retired hand-authored lang:GmnCompactionProvenanceShape stated the same provenance obligation, so the derived shape is now the sole authority and the cell declares gmeow:expectedSoleFinding." .
 
 ex:ecGmnCompactionOverclaim a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/gmn-compaction-overclaim.ttl" ;

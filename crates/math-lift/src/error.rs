@@ -38,6 +38,7 @@ define_diag_kind! {
     code = "math.lift.source.not-utf8";
     grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/UnreadableIngestSource";
 }
 
 define_diag_kind! {
@@ -48,6 +49,7 @@ define_diag_kind! {
     code = "math.lift.r.parse";
     grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/MalformedRScript";
 }
 
 define_diag_kind! {
@@ -59,6 +61,7 @@ define_diag_kind! {
     code = "math.lift.r.unliftable";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/UnliftableRComputation";
 }
 
 define_diag_kind! {
@@ -69,6 +72,7 @@ define_diag_kind! {
     code = "math.lift.onnx.wire";
     grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/MalformedONNXWireFormat";
 }
 
 define_diag_kind! {
@@ -79,6 +83,7 @@ define_diag_kind! {
     code = "math.lift.onnx.unliftable";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/UnliftableTensorGraph";
 }
 
 define_diag_kind! {
@@ -97,6 +102,7 @@ define_diag_kind! {
     code = "math.lift.proof.parse";
     grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/MalformedTSTPDerivation";
 }
 
 define_diag_kind! {
@@ -115,6 +121,7 @@ define_diag_kind! {
     code = "math.lift.proof.unliftable";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/IllFoundedProofDerivation";
 }
 
 define_diag_kind! {
@@ -125,6 +132,7 @@ define_diag_kind! {
     code = "math.lift.empty-codomain";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "{}", detail;
+    failure_class = "https://blackcatinformatics.ca/math/UnliftableIngest";
 }
 
 /// The complete `math-lift` diagnostic-code catalog, in registration order.

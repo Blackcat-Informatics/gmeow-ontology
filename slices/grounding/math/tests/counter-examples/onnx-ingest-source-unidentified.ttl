@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ONNXIngestSourceIdentifiedConstraint: a math:ONNXIngestRun
+# whose math:parseSource witness inlines text but names NO math:sourceDigest. An ONNX
+# model is blob-scale BINARY held by reference and is never inlined, so the digest — not
+# a retained literal — is the only record of WHICH byte stream the protobuf reader
+# accepted; a run naming none points at no decoded stream, which is the graph-side
+# residue of the front-end's math:MalformedONNXWireFormat refusal.
+#
+# The polarity is the mirror of the R and TSTP twins: here the RETAINED literal is what
+# discharges the shared math:IngestSourceHeldConstraint, leaving only the ONNX-specific
+# identify-your-bytes obligation firing. The run carries the full grounding frame and
+# produced a codomain. It fires math:ONNXIngestSourceIdentifiedConstraint
+# (shacl.SPARQLConstraintComponent → math:MalformedONNXWireFormat).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/onnx-ingest-source-unidentified/> .
+
+ex:run a math:ONNXIngestRun ;
+    math:parseSource ex:srcWitness ;
+    logic:instantiatesSchema ex:schema ;
+    logic:instantiatesPlan ex:plan ;
+    math:ingestCorrespondence ex:corr .
+
+# Inlined text standing in for a binary model — held, but not IDENTIFIED.
+ex:srcWitness a math:MathematicalObject ; logic:loadBearing true ;
+    math:retainedSource "ir_version: 8 graph { name: \"g\" }" .
+
+ex:schema a logic:ActionSchema .
+ex:plan a logic:Plan .
+ex:corr a logic:Correspondence ;
+    logic:morphismClass logic:LossyLens ;
+    logic:mnemomorphic true .
+
+ex:lifted a math:MathematicalObject ; gmeow:wasGeneratedBy ex:run .

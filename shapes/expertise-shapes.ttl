@@ -5,7 +5,7 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-# The expertise module's validation surface (issue #263 — SkillProficiency well-formedness
+# The expertise module's validation surface (SkillProficiency well-formedness
 # and level/scale consistency, Credential attestation/issuer/target-range checks) is authored
 # entirely as logic: core content in slices/core/expertise/module.ttl and projected to
 # generated/shapes/validation-shapes.ttl + generated/shapes/procedural-constraints.ttl. This

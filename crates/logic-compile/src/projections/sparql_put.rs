@@ -319,18 +319,9 @@ pub(crate) fn emit_put(
         .map(|t| format!("    {t}"))
         .collect::<Vec<_>>()
         .join("\n");
-    let where_clause = branches
-        .iter()
-        .enumerate()
-        .map(|(i, b)| {
-            if i == 0 {
-                b.clone()
-            } else {
-                format!("UNION {b}")
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("\n    ");
+    // Balanced UNION tree, not a flat left-associative chain — see
+    // [`super::sparql::balanced_union`] for why (the evaluator's graph-pattern nesting bound).
+    let where_clause = super::sparql::balanced_union(&branches);
     let body = format!("CONSTRUCT {{\n{construct_block}\n}}\nWHERE {{\n    {where_clause}\n}}\n");
     // A mixed profile (some CompleteOver, some ValidationOnly bindings) already carries the
     // mint envelopes for its ValidationOnly parts, so the honest, weaker header dominates:

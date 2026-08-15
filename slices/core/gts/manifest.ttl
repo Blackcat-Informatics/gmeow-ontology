@@ -19,5 +19,9 @@
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> ,
-        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/attestation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:sliceConsumer "Describing and dogfooding GTS transport artifacts: packages, segments, profiles, chain heads, opaque frames, codecs, and compaction lineage (GTS transport design, docs/GTS-SPEC.md)."@x-gmeow-english.

@@ -203,7 +203,7 @@ gmeow:buildFlowFrom
     rdfs:label "build flow from"@x-gmeow-english ;
     rdfs:domain gmeow:BuildDataFlow ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:BuildDataFlow edge to its producer stage — the source mediation leg, a specialization of the canonical logic:flowFrom. Paired with gmeow:buildFlowTo, the two ends that make the edge a well-formed relator."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its producer stage — the source mediation leg, a specialization of the canonical logic:flowFrom. Paired with gmeow:buildFlowTo, the two ends that make the edge a well-formed relator. Distinct from gmeow:buildFlowTo, which names the consumer leg, not this producer end."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowFrom gmeow:stage-compile-logic ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -214,7 +214,7 @@ gmeow:buildFlowTo
     rdfs:label "build flow to"@x-gmeow-english ;
     rdfs:domain gmeow:BuildDataFlow ;
     rdfs:range gmeow:PipelineStage ;
-    skos:definition "Relates a gmeow:BuildDataFlow edge to its consumer stage — the target mediation leg, a specialization of the canonical logic:flowTo. Paired with gmeow:buildFlowFrom."@x-gmeow-english ;
+    skos:definition "Relates a gmeow:BuildDataFlow edge to its consumer stage — the target mediation leg, a specialization of the canonical logic:flowTo. Paired with gmeow:buildFlowFrom. Distinct from gmeow:buildFlowFrom, which names the producer leg, not this consumer end."@x-gmeow-english ;
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:buildFlowTo gmeow:stage-reason ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -262,7 +262,7 @@ gmeow:FanoutExtraction
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Fanout Extraction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A reified row of the fanout generated-path ↔ carrier-representative map: how one committed generated/ path (or path family) is reconstructed from gmeow.gts, either as the fold of one named graph (the \"rdf-fanout\" / \"edoal\" families, PIPELINE_SPINE §6/§7) or as a byte-exact member of the inline generated-opaque archive blob (the \"opaque\" family). It carries the committed path matcher (gmeow:extractsPath + gmeow:extractsMatch, optionally gmeow:extractsSuffix), the reconstruction graph family (gmeow:extractsGraphFamily — how the per-file named-graph IRI derives from the path, or \"opaque\" for a blob member), and the serialization form whose fold equals the committed bytes (gmeow:extractsForm, or \"blob\" for an opaque member). Promoted from hard-coded Rust branches so the superset gate reads the map as data; the gate HARD-fails unless every reconstructed named-graph path resolves to exactly one non-opaque row and every opaque archive member resolves to exactly one opaque row — and every row is claimed (a bijection over each family — no path silently dropped from fanout). The rdf-fanout / edoal rows are AUTHORED here; the opaque rows are EMITTED by the carrier at build time (one per archive member, derived from the exact member set), never hand-authored."@x-gmeow-english ;
+    skos:definition "A reified row of the fanout generated-path ↔ carrier-representative map: how one committed generated/ path (or path family) is reconstructed from gmeow.gts — as the fold of one named graph (the \"rdf-fanout\" / \"edoal\" families, PIPELINE_SPINE §6/§7), as a byte-exact member of the inline generated-opaque archive blob (the \"opaque\" family), or as the verbatim bytes of one entry of the segment header's in-band \"dct\" dictionary map (the \"header-dict\" family, GTS spec §5). It carries the committed path matcher (gmeow:extractsPath + gmeow:extractsMatch, optionally gmeow:extractsSuffix), the reconstruction graph family (gmeow:extractsGraphFamily — how the per-file named-graph IRI derives from the path, or \"opaque\" for a blob member, or \"header-dict\" for a pinned dictionary), and the serialization form whose fold equals the committed bytes (gmeow:extractsForm, or \"blob\" for an opaque member, or \"header-dict\" for a pinned dictionary). Promoted from hard-coded Rust branches so the superset gate reads the map as data; the gate HARD-fails unless every reconstructed named-graph path resolves to exactly one non-opaque row, every opaque archive member resolves to exactly one opaque row, and every pinned \"dct\" entry resolves to exactly one header-dict row — and every row is claimed (a bijection over each family — no path silently dropped from fanout). The rdf-fanout / edoal / header-dict rows are AUTHORED here; the opaque rows are EMITTED by the carrier at build time (one per archive member, derived from the exact member set), never hand-authored. A header-dict row's bytes must NOT also ride the generated-opaque archive: a trained dictionary's one home is the header a consumer primes from, so a second copy would re-fold a blob the snapshot already carries (Constitution §18) and would feed high-entropy bytes to a compressor."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores a gmeow:FanoutExtraction ; gmeow:extractsPath \"generated/evals/scores.ttl\" ; gmeow:extractsMatch \"exact\" ; gmeow:extractsGraphFamily \"rdf-fanout\" ; gmeow:extractsForm \"turtle\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -315,7 +315,7 @@ gmeow:extractsGraphFamily
     rdfs:label "extracts graph family"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
     rdfs:range xsd:string ;
-    skos:definition "The reconstruction family that fixes how the committed path is recovered from gmeow.gts: \"rdf-fanout\" (the named graph graph/fanout/<path-without-generated/>) or \"edoal\" (the named graph graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl) — the gate folds the named graph at that IRI to the committed bytes; or \"opaque\" (no reconstruction graph — the committed path rides as a byte-exact member of the inline generated-opaque archive blob, the byte-decorated / non-RDF fanout files). For the \"opaque\" family the row's gmeow:extractsForm is \"blob\", the match is always \"exact\", and the carrier emits one such row per archive member so the opaque blob inventory is declared as data and the superset gate bijection-checks it exactly as it does the RDF fanout graphs."@x-gmeow-english ;
+    skos:definition "The reconstruction family that fixes how the committed path is recovered from gmeow.gts: \"rdf-fanout\" (the named graph graph/fanout/<path-without-generated/>) or \"edoal\" (the named graph graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl) — the gate folds the named graph at that IRI to the committed bytes; or \"opaque\" (no reconstruction graph — the committed path rides as a byte-exact member of the inline generated-opaque archive blob, the byte-decorated / non-RDF fanout files); or \"header-dict\" (no reconstruction graph and no archive member — the committed path generated/medium/<dict-id>.zdict is the verbatim bytes of the <dict-id> entry of the segment header's in-band \"dct\" map). For the \"opaque\" family the row's gmeow:extractsForm is \"blob\", the match is always \"exact\", and the carrier emits one such row per archive member so the opaque blob inventory is declared as data and the superset gate bijection-checks it exactly as it does the RDF fanout graphs. For the \"header-dict\" family the row's gmeow:extractsForm is \"header-dict\", the match is always \"exact\", and the rows are AUTHORED (the declared dictionary set is stable hand-written data) so the superset gate bijection-checks them against the header's own \"dct\" map exactly as it does the opaque archive members. The declared family values are exactly: \"rdf-fanout\" | \"edoal\" | \"opaque\" | \"header-dict\"."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores gmeow:extractsGraphFamily \"rdf-fanout\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -325,7 +325,7 @@ gmeow:extractsForm
     rdfs:label "extracts form"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
     rdfs:range xsd:string ;
-    skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches. The value \"blob\" marks an \"opaque\"-family row: the committed path is not a named-graph fold at all but a byte-exact member of the inline generated-opaque archive, so the gate resolves it from the archive lane rather than folding a graph."@x-gmeow-english ;
+    skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches. The value \"blob\" marks an \"opaque\"-family row: the committed path is not a named-graph fold at all but a byte-exact member of the inline generated-opaque archive, so the gate resolves it from the archive lane rather than folding a graph. The value \"header-dict\" marks a \"header-dict\"-family row on the same footing: the committed path is not a named-graph fold either but the verbatim bytes of one entry of the segment header's in-band \"dct\" map, so the gate resolves it from the header rather than folding a graph or unpacking an archive. The declared form values are exactly: \"turtle\" | \"ntriples\" | \"nquads-self\" | \"nquads-diagnostics\" | \"blob\" | \"header-dict\"."@x-gmeow-english ;
     skos:example "gmeow:fanout-shacl-diagnostics gmeow:extractsForm \"nquads-diagnostics\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -420,6 +420,7 @@ gmeow:pipeline-dataflow-compile-logic-source-load
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: source-load → compile-logic"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
     skos:definition "The typed dataflow edge from gmeow:stage-source-load to gmeow:stage-compile-logic: the logic compiler's five augmentation readers read only the graph/logic-compile-inputs named graph of the source-load product — the SOUND denylist narrowing of the whole authored corpus (root ontology + slices + imports) with every provably-never-read predicate family removed (documentation, alignment/mapping, foreign-domain example, and bibliographic-metadata vocabularies), leaving only the OWL/RDFS/XSD restriction and logic:/gmeow: structural surface the readers consume. Records the artifact-level dependency so the compiler's cache key folds that one graph's digest rather than the whole authored file closure, so an edit that touches only the inert families leaves the narrowed graph unchanged and skips re-running the compiler."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-source-load ;
@@ -435,6 +436,7 @@ gmeow:pipeline-dataflow-reason-compile-logic
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: compile-logic → reason"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
     skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-reason: the reasoner reads only the logic and relational-core named graphs of the compile-logic product. The shipped correspondence graph is a meta-formula envelope and stays outside object-level closure. Records the artifact-level dependency so the reasoner's cache key folds those two graphs' digests rather than the whole compile-logic product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-compile-logic ;
@@ -455,6 +457,7 @@ gmeow:pipeline-dataflow-validate-compile-logic
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: compile-logic → validate"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
     skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-validate: the validator reads the compile-logic product's projected validation-shape byte artifacts (the fresh generated/shapes union members), keyed by the complete logic, relational-core, and correspondence carrier graph set — the program-level digest those projections are functions of. The narrowing keeps the validator's graph/diagnostics attachment a genuine delta over its inputs while validation still covers the meta-level correspondence program."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-compile-logic ;
@@ -478,6 +481,7 @@ gmeow:pipeline-dataflow-validate-reason
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: reason → validate"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
     skos:definition "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-validate: the validator reads the reason product's graph/reasoning named graph so the abductive (constructive-advice) wing sees the reasoned graph — entailed types and relata, not only asserted ones — by unioning the derived closure with the authored source graph. Narrowed to graph/reasoning, whose reified derived axioms are a faithful cache key for the folded closure and keep the validator's graph/diagnostics attachment a genuine delta."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-reason ;
@@ -493,6 +497,7 @@ gmeow:pipeline-dataflow-goal-directed-reason
     a gmeow:BuildDataFlow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow: reason → goal-directed"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
     skos:definition "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-goal-directed: the goal-directed stage reads only the graph/reasoning named graph of the reason product — the typed Reasoning handle's backing graph, whose derived (non-EDB) rdfs:subClassOf axioms seed the order-sorted math-subsort demonstrator's unification lattice. Records the artifact-level dependency so the stage's cache key folds that one graph's digest rather than the whole reason product (its committed closure/explanations/ledger byte lanes)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:buildFlowFrom gmeow:stage-reason ;
@@ -578,6 +583,8 @@ gmeow:pipeline-build
         gmeow:stage-export-agreement ,
         gmeow:stage-export-lpg ,
         gmeow:stage-export-yaml-ld ,
+        gmeow:stage-archive-blobs ,
+        gmeow:stage-medium-dictionaries ,
         gmeow:stage-gts-sink .
 
 # ── Spine ──
@@ -597,7 +604,7 @@ gmeow:stage-statements
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "statements"@x-gmeow-english ;
-    skos:definition "Compile the RDF-1.2 statement lead and its OWL downcast from the loaded sources."@x-gmeow-english ;
+    skos:definition "Compile the RDF-1.2 statement lead and its OWL downcast from the loaded sources, and render that same frozen statement dataset into its JSON-LD-family surface — the JSON-LD-star and YAML-LD-star projections — on the INTERNAL pipeline/statements/ byte lane. The JSON-LD family is rendered HERE, once (the transform-once razor), because this stage owns the statement layer's projections; gmeow:stage-archive-blobs only TARS it into the bundle's yaml-ld-archive frame, which rides the dictionary-less medium alongside the statements-archive frame this stage's two committed byte projections ride. Those two artifacts ride the internal pipeline/ prefix rather than a committed generated/ file for the same reason the trained dictionaries do: their shipping channel is the bundle frame, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -997,7 +1004,7 @@ gmeow:stage-export-glossary
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: glossary"@x-gmeow-english ;
-    skos:definition "Emit the committed per-slice terminology glossary projections: the human-readable Markdown table (generated/catalog/glossary.md, grouped by slice then language with one row per reviewed source→target crossing) plus the two external terminology-interchange lowerings (Principle 17) — the OntoLex vartrans:translation Turtle (generated/projections/glossary.vartrans.ttl: one vartrans:Translation per crossing over the reused ontolex:LexicalSense structure) and the TBX ISO-30042 termbase (generated/projections/glossary.tbx: one termEntry per concept, one langSet per language). All three are derived from the SAME reviewed `.po` entry list the corpus folds (crate::stages::lang_glossary::build_entries) — lossy sanctioned projections, never a second parse, so they cannot drift from the graph; each lowering's honest drop list rides its lang:ProjectionEmission record in graph/lang-projection-corpus. A source-reading leaf like gmeow:stage-export-matrix: it reads the authored `.po` catalogs and homograph declarations directly. The `.vartrans.ttl` is RDF, so it rides as the canonical fold of the RDF-fanout named graph graph/fanout/projections/glossary.vartrans.ttl (attached by gmeow:stage-snapshot, reconstructed byte-for-byte by the superset gate); the non-RDF `.md` table and `.tbx` termbase stay opaque REP_GENERATED fanout members."@x-gmeow-english ;
+    skos:definition "Emit the committed per-slice terminology glossary projections: the human-readable Markdown table (generated/catalog/glossary.md, grouped by slice then language with one row per reviewed source→target crossing) plus the two external terminology-interchange lowerings (Principle 17) — the OntoLex vartrans:translation Turtle (generated/projections/glossary.vartrans.ttl: one vartrans:Translation per crossing over the reused ontolex:LexicalSense structure) and the TBX ISO-30042 termbase (generated/projections/glossary.tbx: one termEntry per concept, one langSet per language). All three are derived from the SAME reviewed `.po` entry list the corpus folds (crate::stages::lang_glossary::build_entries) — lossy sanctioned projections, never a second parse, so they cannot drift from the graph; each lowering's honest drop list rides its lang:ProjectionEmission record in graph/lang-projection-corpus. A source-reading leaf like gmeow:stage-export-matrix: it reads the authored `.po` catalogs and homograph declarations directly. The `.vartrans.ttl` is RDF, so it rides as the canonical fold of the RDF-fanout named graph graph/fanout/projections/glossary.vartrans.ttl (attached by gmeow:stage-snapshot, reconstructed byte-for-byte by the superset gate); the non-RDF `.md` table and `.tbx` termbase are opaque byte projections and ride the lang-projections-archive rep with the rest of the lang: deliverable family, tarred by gmeow:stage-archive-blobs off this leaf's product, because a rep is the unit a gmeow:CompressionDictionary primes and these two carry the natural-language term inventory gmeow:dictGmeowLangAstV1 is trained on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1123,19 +1130,70 @@ gmeow:stage-export-yaml-ld
     gmeow:producesFormat "json-ld" ;
     gmeow:requiresResource gmeow:serializationBufferResource .
 
+# ── The by-reference archive fold ──
+
+gmeow:stage-archive-blobs
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "archive blobs"@x-gmeow-english ;
+    skos:definition "Fold the eleven by-reference TAR archives a repo-free consumer reads back out of gmeow.gts — mappings-archive (the compiled SSSOM lift maps), cells-archive (the mapping-DSL cell sources), queries-archive (the generated SPARQL surface), tests-archive (the slice test-DSL specs), schemas-archive (the SHACL-derived JSON Schema and OpenAPI plus the two hand-authored self-describing schemas), shapes-archive (the FULL SHACL shape surface: authored shapes, per-slice shapes, and the generated shape projections), axioms-archive (the small committed logic/DL projections), lang-projections-archive (the whole lang: deliverable family: the generated/projections/lang/ external-format tree plus the two non-RDF terminology surfaces gmeow:stage-export-glossary projects, on their own rep because a rep is the unit a dictionary primes and these are one external-format family a consumer extracts on its own), statements-archive (the RDF 1.2 statement layer's two byte-decorated committed projections, compiled once by gmeow:stage-statements and only tarred here, on their own rep for the same reason), yaml-ld-archive (the claim corpus's JSON-LD-star and YAML-LD-star projections, rendered once by gmeow:stage-statements and only tarred here), and models-python (the generated Pydantic package) — and attach each to this stage's product on its own blob-representation lane. It is the SINGLE authority on archive membership: every generated member is sourced from an in-memory producer product (gmeow:stage-compile-logic, gmeow:stage-mappings, gmeow:stage-export-glossary, gmeow:stage-export-json-schema, gmeow:stage-export-pydantic, gmeow:stage-statements, and the three generated-shape export leaves), never from a committed generated/ file, which is not flushed until the post-run reconcile returns; only genuinely authored trees (dsl/mappings, the per-slice tests and shapes, and the top-level shapes directory) are read from source, and every one of them is declared as a raw cache input. The fold ran INSIDE the terminal sink before, so the archives did not exist as a product until the last node of the graph and any consumer of them would have closed a cycle; as its own stage they are available mid-graph, and the terminal now READS them instead of re-folding (the transform-once razor). A missing producer artifact or an archive that would fold empty is a HARD FAIL, never a degraded partial archive."@x-gmeow-english ;
+    skos:example "gmeow:stage-archive-blobs a gmeow:PipelineStage ; gmeow:stageImpl \"archive-blobs\" ; gmeow:attachesBlobRep \"cells-archive\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this stage covers the FOLD of the eleven by-reference TAR archives onto its own product's blob-representation lanes, and nothing else. It does not render any member — every generated member arrives from its producing leaf's in-memory product, so rendering one here would be a second producer of those bytes — it does not train or pin dictionaries and does not seal envelopes (gmeow:stage-medium-dictionaries and gmeow:stage-gts-sink own those), and it does not write gmeow.gts: the terminal READS these archives rather than re-folding them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:useWhen "Use when a repo-free consumer must be able to extract a whole generated family out of gmeow.gts as one archive, and when that family has to exist MID-DAG so a later stage — the dictionary trainer, the terminal — can read it instead of closing a cycle against the sink."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid sourcing a generated member from a committed generated/ file (nothing is flushed until the post-run reconcile returns, so the read would race the write), avoid rendering a member here rather than in its producing leaf, and avoid letting an archive fold empty — a missing producer artifact is a HARD FAIL, not a smaller archive."@x-gmeow-english ;
+    gmeow:howToUse "Declare the producing leaf on gmeow:dataflowConsumes, read its product in memory, and attach the tarred result under its own gmeow:attachesBlobRep lane; a rep is the unit a gmeow:CompressionDictionary primes, so give a family its own lane when it is meant to be primed or extracted on its own."@x-gmeow-english ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "archive-blobs" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-glossary ,
+        gmeow:stage-export-json-schema ,
+        gmeow:stage-export-pydantic ,
+        gmeow:stage-export-result-shapes ,
+        gmeow:stage-mappings ,
+        gmeow:stage-statements .
+
+# ── The medium axis: the shipped zstd dictionaries ──
+
+gmeow:stage-medium-dictionaries
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "medium dictionaries"@x-gmeow-english ;
+    skos:definition "Train the seven declared gmeow:CompressionDictionary definitions over their declared gmeow:DictionaryCorpus selectors, measure each into a gmeow:CompressionDictionaryRealization (content digest, byte length, zstd Dictionary_ID, measured strategy, measured target length), and attach the result as the build-time graph/medium-registry named graph. It is the SINGLE producer of the bundle's dictionaries: the terminal reads its product to pin them in the shipped segment header's in-band dct map and to seal one gmeow:MediumEnvelope per emitted frame. Its dataflow edges are DERIVED from the shipped corpora rather than chosen — the archive-rep selectors resolve against gmeow:stage-archive-blobs, the one sink-folded corpus (proof trace) selects the gmeow:stage-reason product directly because its archive exists only at the terminal, and the named-graph and generated-path selectors resolve against the assembled carrier (gmeow:stage-snapshot) and gmeow:stage-statements. Each archive-backed corpus is resolved under the declared gmeow:CorpusTrainingSplit, so the trainer sees a PROPER SUBSET of the archive's members and the tar the dictionary is later evaluated over still carries the rest; the identity of the whole resolution is recorded as gmeow:measuredCorpusDigest and checked against the committed sweep evidence, so a table measured over a corpus this build did not resolve REDS (gmeow:MediumCorpusDrift) rather than grading. A corpus that resolves to nothing, an archive-backed corpus the split holds nothing out of, a selector this build cannot evaluate, or a selector that reaches the medium pass's own output are each a HARD FAIL, never a silently smaller training set. The trained bytes ride an INTERNAL pipeline/ byte-artifact family rather than a committed generated/ file: a dictionary's shipping channel is the segment header, and a second on-disk copy would oblige the superset gate to reconstruct bytes the bundle already carries in band."@x-gmeow-english ;
+    skos:example "gmeow:stage-medium-dictionaries a gmeow:PipelineStage ; gmeow:stageImpl \"medium-dictionaries\" ; gmeow:dataflowConsumes gmeow:stage-archive-blobs ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this stage covers TRAINING and MEASURING the declared dictionaries into the graph/medium-registry named graph — what the shipped dictionaries ARE. It does not decide which payload rep uses which dictionary (that is authored on gmeow:PayloadSchema, never derived here), it does not pin them into the shipped segment header or seal a gmeow:MediumEnvelope (gmeow:stage-gts-sink does both), and it does not price them: whether a dictionary pays for itself is measured at the terminal into graph/medium-measurement, because only there does the whole emitted frame set exist."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:useWhen "Use when the bundle's compression dictionaries must exist as a mid-DAG product — trained once, measured once, and readable by the terminal and by any consumer of graph/medium-registry — rather than as bytes a writer conjures at emission time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a corpus selector that reaches this stage's own output (a dictionary trained on itself is a cycle, not a better dictionary), avoid a corpus that resolves to nothing or an archive-backed corpus the split holds nothing out of, and avoid writing the trained bytes to a committed generated/ file — their shipping channel is the segment header, so a second on-disk copy obliges the superset gate to reconstruct bytes the bundle already carries in band."@x-gmeow-english ;
+    gmeow:howToUse "Let its gmeow:dataflowConsumes edges follow from the shipped corpora rather than picking them: an archive-rep selector implies gmeow:stage-archive-blobs, a sink-folded corpus implies its producing stage, and a named-graph or generated-path selector implies the assembled carrier. Read its product from graph/medium-registry and compare each gmeow:measuredCorpusDigest against the committed sweep evidence before trusting any number taken from it."@x-gmeow-english ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "medium-dictionaries" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-archive-blobs ,
+        gmeow:stage-reason ,
+        gmeow:stage-snapshot ,
+        gmeow:stage-statements .
+
 # ── The single serialization exit (the gts narrow waist) ──
 
 gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once), and the by-reference blob archives are folded in alongside it: the fresh JSON-Schema/OpenAPI (gmeow:stage-export-json-schema), the compiled axiom surface (gmeow:stage-compile-logic), the native reasoning reports (gmeow:stage-reason), the byte-decorated RDF 1.2 statement lanes (gmeow:stage-statements), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor)."@x-gmeow-english ;
+    skos:definition "The terminal gts ARCHIVE writer (the ONE canonical exit / narrow waist): serialize the assembled carrier to generated/dist/gmeow.gts. GTS is exit-only — produced here and nowhere else; every fold-reading export leaf reads the carrier dataset off the gmeow:stage-snapshot bundle, never these bytes. The carrier is taken off the snapshot bundle (no re-assembly — the razor: transform transport→form at most once). The eleven by-reference TAR archives are READ off the gmeow:stage-archive-blobs product, folded once by that stage and never re-folded here; the terminal staples only the blob channels it alone can see: the document-scale language surface blobs, the native reasoning reports (gmeow:stage-reason), the opaque generated/ fanout archive over THIS run's carrier, the typed SHACL/ShEx validation sidecars (gmeow:stage-compile-logic), and the SHACL diagnostics SARIF/findings (gmeow:stage-validate). The embedded executable-docs 'try it' surface reasons over the object-level EDB, whose authored self-description graphs ride on gmeow:stage-source-load (read, never re-loaded). The opaque fanout members (references, bench, agreement matrix, apache config, matrix, eval/research-object sidecars, metadata void/dcat, the LinkML/TypeScript/GraphQL developer schema surfaces) ride in from their producing export leaves — rendered once, in the leaf, never re-rendered in the terminal (the transform-once razor) It is also where the MEDIUM's dictionary-effect measurement is taken and folded: the terminal is the one point at which the emission's whole BLOB frame set exists, so the two-part code of every shipped dictionary (gmeow:MediumDictionaryEffectMeasurement in graph/medium-measurement, plus its graph/fanout twin for generated/medium/dictionary-effect.ttl) is measured over exactly the frames it is about to write, on the mandated chain. The SNAPSHOT frame is excluded from that population by declaration — the measurement lands in the snapshot payload, so pricing that frame would make the reading self-referential — and that exclusion is permanent rather than a gap the two-pass gmeow:envelopeDigestStratum fixpoint could close: the digest fixpoint converges only because gmeow:strataDigest is taken over a REGION that excludes the added records, while a compressed LENGTH has no such region (compression is not additive over regions, so no proper sub-region's length equals the frame's, and a length over 'the payload minus the measurement subgraph' would describe bytes the bundle never writes). It is moot for the inventory in any case, because gmeow:payloadSchemaDictionary is maxQualifiedCardinality 1 and the snapshot schema binds exactly gmeow:dictGmeowCoreV1. A dictionary that does not pay for itself stops the emission with gmeow:MediumDictionaryRegression rather than shipping."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "gts_sink" ;
     gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:dataflowConsumes
+        gmeow:stage-archive-blobs ,
+        gmeow:stage-medium-dictionaries ,
         gmeow:stage-snapshot ,
         gmeow:stage-source-load ,
         gmeow:stage-export-agreement ,
@@ -1143,23 +1201,17 @@ gmeow:stage-gts-sink
         gmeow:stage-export-bench ,
         gmeow:stage-export-cost-ledger ,
         gmeow:stage-export-evals ,
-        gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-glossary ,
-        gmeow:stage-export-json-schema ,
-        gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-references ,
         gmeow:stage-export-research-objects ,
-        gmeow:stage-export-result-shapes ,
         gmeow:stage-export-schemas ,
-        gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
         gmeow:stage-export-projection-ceilings ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
-        gmeow:stage-statements ,
         gmeow:stage-validate .
 
 # =========================================================================== #
@@ -1235,6 +1287,22 @@ gmeow:stage-reason
 
 gmeow:stage-goal-directed
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/goal-directed> .
+
+gmeow:stage-medium-dictionaries
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/medium-registry> .
+
+gmeow:stage-archive-blobs
+    gmeow:attachesBlobRep "axioms-archive" ,
+        "cells-archive" ,
+        "lang-projections-archive" ,
+        "mappings-archive" ,
+        "models-python" ,
+        "queries-archive" ,
+        "schemas-archive" ,
+        "shapes-archive" ,
+        "statements-archive" ,
+        "tests-archive" ,
+        "yaml-ld-archive" .
 
 gmeow:stage-validate
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics>, <https://blackcatinformatics.ca/gmeow/graph/norm-claims> ;
@@ -1359,7 +1427,14 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-skos-surface ,
     gmeow:fanout-profiles ,
     gmeow:fanout-research-objects ,
-    gmeow:fanout-edoal-projections .
+    gmeow:fanout-edoal-projections ,
+    gmeow:fanout-medium-dictionary-effect ,
+    gmeow:fanout-medium-gmeow-core-v1 ,
+    gmeow:fanout-medium-gmeow-lang-ast-v1 ,
+    gmeow:fanout-medium-gmeow-logic-v1 ,
+    gmeow:fanout-medium-gmeow-memory-compact-v1 ,
+    gmeow:fanout-medium-gmeow-memory-hot-v1 ,
+    gmeow:fanout-medium-gmeow-prooftrace-v1 .
 
 gmeow:fanout-briefs-authoring-packets a gmeow:FanoutExtraction ;
     rdfs:label "fanout briefs authoring packets"@x-gmeow-english ;
@@ -1530,6 +1605,75 @@ gmeow:fanout-edoal-projections a gmeow:FanoutExtraction ;
     gmeow:extractsSuffix ".edoal.ttl" ;
     gmeow:extractsGraphFamily "edoal" ; gmeow:extractsForm "turtle" .
 
+# --- The header-dictionary family (one row per shipped zstd dictionary) ------ #
+# Each gmeow:CompressionDictionary individual declared in the gts slice is      #
+# pinned in the shipped segment header's in-band "dct" map (GTS spec            #
+# §5) — the channel a consumer priming its OWN runtime store reads the bytes    #
+# from. The gate projects that entry, and ONLY that entry, onto                 #
+# generated/medium/<dict-id>.zdict: routing the same bytes through the          #
+# generated-opaque archive as well would carry them twice (Constitution §18     #
+# forbids re-folding a blob the snapshot already carries) and would hand        #
+# high-entropy bytes to a compressor. These rows are AUTHORED because the       #
+# declared dictionary set is stable hand-written data, and the superset gate    #
+# bijection-checks them against the header's own "dct" map.                     #
+
+gmeow:fanout-medium-dictionary-effect a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary effect"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/dictionary-effect.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as canonical Turtle. It is the ONE row of the generated/medium/ family that is NOT a header dictionary: the family's other members are opaque .zdict byte blobs reconstructed from the segment header's in-band \"dct\" map, while this one is RDF and therefore travels as RDF (PIPELINE_SPINE §5) — the graph/medium-measurement corpus re-rooted into its graph/fanout twin. The gate keys the header-dict family on the .zdict suffix, so a .ttl under the same prefix falls to rdf-fanout by construction rather than by exception. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/dictionary-effect.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-medium-gmeow-core-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-core-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-core-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-core-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-core-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+
+gmeow:fanout-medium-gmeow-lang-ast-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-lang-ast-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-lang-ast-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-lang-ast-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-lang-ast-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-logic-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-logic-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-logic-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-logic-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-logic-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-memory-compact-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-memory-compact-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-memory-compact-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-memory-compact-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-memory-compact-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-memory-hot-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-memory-hot-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-memory-hot-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-memory-hot-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-memory-hot-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
+gmeow:fanout-medium-gmeow-prooftrace-v1 a gmeow:FanoutExtraction ;
+    rdfs:label "fanout medium dictionary gmeow-prooftrace-v1"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/medium/gmeow-prooftrace-v1.zdict is rebuilt from the shipped gmeow.gts as the verbatim bytes of the \"gmeow-prooftrace-v1\" entry of the segment header's in-band \"dct\" map. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/medium/gmeow-prooftrace-v1.zdict" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "header-dict" ; gmeow:extractsForm "header-dict" .
+
 
 # =========================================================================== #
 # Expected-output inventory (gmeow:expectsGeneratedOutput) — the                #
@@ -1649,6 +1793,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-coreference.sssom.tsv",
     "generated/mappings/gmeow-creative-works.sssom.tsv",
     "generated/mappings/gmeow-deception.sssom.tsv",
+    "generated/mappings/gmeow-description-logic.sssom.tsv",
     "generated/mappings/gmeow-determinacy.sssom.tsv",
     "generated/mappings/gmeow-diagnostics.sssom.tsv",
     "generated/mappings/gmeow-dlmf.sssom.tsv",
@@ -1701,6 +1846,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-logic-workflow-engines.sssom.tsv",
     "generated/mappings/gmeow-logic-yamato.sssom.tsv",
     "generated/mappings/gmeow-math-information.sssom.tsv",
+    "generated/mappings/gmeow-modal-logic.sssom.tsv",
     "generated/mappings/gmeow-math-obcs.sssom.tsv",
     "generated/mappings/gmeow-math-qb.sssom.tsv",
     "generated/mappings/gmeow-math-stato.sssom.tsv",
@@ -1739,6 +1885,13 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/mappings/gmeow-wikidata.sssom.tsv",
     "generated/mappings/gmeow-wordnet.sssom.tsv",
     "generated/mappings/gmeow-work-orchestration.sssom.tsv",
+    "generated/medium/dictionary-effect.ttl",
+    "generated/medium/gmeow-core-v1.zdict",
+    "generated/medium/gmeow-lang-ast-v1.zdict",
+    "generated/medium/gmeow-logic-v1.zdict",
+    "generated/medium/gmeow-memory-compact-v1.zdict",
+    "generated/medium/gmeow-memory-hot-v1.zdict",
+    "generated/medium/gmeow-prooftrace-v1.zdict",
     "generated/metadata/dcat.ttl",
     "generated/metadata/preservation.json",
     "generated/metadata/void.ttl",
@@ -1949,6 +2102,549 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
     "generated/transcode-matrix.json" .
 
 # =========================================================================== #
+# Runtime-DAG vocabulary — the GENERAL scheduled-enrichment DAG.               #
+#                                                                             #
+# gmeow:pipeline-build above is ONE consumer of the pipeline vocabulary: the   #
+# project's own build. This section adds the general runtime-DAG surface a     #
+# downstream SCHEDULED ENRICHMENT DAG (the in-rush enrichment planner consumed  #
+# by lillith_decodes) declares in GMEOW as its single canon: WHY an edge       #
+# exists (gmeow:FlowReason), how a stage-execution ENDED (gmeow:StageDisposition), #
+# whether a stage's absence invalidates the run (gmeow:StageObligation), whether #
+# its output is byte-stable across turns (gmeow:StageStability), the per-stage  #
+# resource BUDGETS (gmeow:StageBudget), the content-addressed run RECEIPTS      #
+# (gmeow:StageReceipt), and the admission law the declared graph must satisfy   #
+# (gmeow:RuntimeDagAdmissionConstraint). It is graph + constraint vocabulary    #
+# ONLY: no scheduler semantics are modelled here (non-goal of the issue). The   #
+# Rust projection consuming it is lillith_decodes' commitment, not this repo's. #
+# =========================================================================== #
+
+# ── (1) Edge reason — WHY a dataflow edge exists ───────────────────────────── #
+
+gmeow:FlowReason
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Flow Reason"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The declared REASON a gmeow:BuildDataFlow edge exists — a closed value vocabulary drawn through the required gmeow:flowReason property, read by an admission reasoner in place of assuming every edge is a byte-carrying dependency. A CLOSED set of three individuals: gmeow:flowReasonDataflow (bytes genuinely flow producer → consumer), gmeow:flowReasonAuthority (a first-class ORDERING constraint the consumer must run after the producer even when NO bytes flow — a decision-precedence a pure-dataflow reduction would wrongly collapse), and gmeow:flowReasonCost (an edge added only to serialize two stages that share a scarce resource, a scheduling hint rather than a semantic dependency). Modelled as a required property carrying a value rather than an AuthorityFlow subclass so it composes with the existing reified gmeow:BuildDataFlow edge: one edge, one typed reason."@x-gmeow-english ;
+    skos:example "gmeow:edge-x gmeow:flowReason gmeow:flowReasonAuthority ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:flowReason
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "flow reason"@x-gmeow-english ;
+    rdfs:domain gmeow:BuildDataFlow ;
+    rdfs:range gmeow:FlowReason ;
+    skos:definition "The REQUIRED reason a gmeow:BuildDataFlow edge exists: every reified edge carries exactly one gmeow:FlowReason (gmeow:minQualifiedCardinality 1, closed to the three declared individuals). It names whether the edge is a byte dependency (gmeow:flowReasonDataflow), a pure ordering authority (gmeow:flowReasonAuthority — retained even when no bytes flow), or a resource-serialization cost edge (gmeow:flowReasonCost). Required because an untyped edge is indistinguishable from a droppable dataflow dependency, and an admission reasoner that reduced the graph to its byte-flow skeleton would silently delete every authority edge — the exact corruption gmeow:RuntimeDagAdmissionConstraint forbids. It types WHY the edge exists, distinct from gmeow:flowEntity, which names WHAT flows on it, not the edge's reason."@x-gmeow-english ;
+    skos:example "gmeow:edge-annotate-after-canon gmeow:flowReason gmeow:flowReasonAuthority ."@x-gmeow-english ;
+    gmeow:useWhen "Declare, on every gmeow:BuildDataFlow edge, why the consumer depends on the producer — byte flow, ordering authority, or resource-cost serialization — so admission keeps the edge for the right reason."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT leave an authority-only edge with the default gmeow:flowReasonDataflow (that invites a dataflow reducer to drop it because no bytes flow), and do NOT mint a new reason value — the set is closed at three; a genuinely new reason is a vocabulary change, not an inline addition."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:flowReason per edge from {gmeow:flowReasonDataflow, gmeow:flowReasonAuthority, gmeow:flowReasonCost}; an authority edge (gmeow:flowReasonAuthority) is a first-class ordering constraint gmeow:RuntimeDagAdmissionConstraint requires be satisfied on a preceding path."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:flowReasonDataflow
+    a gmeow:FlowReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "flow reason: dataflow"@x-gmeow-english ;
+    skos:definition "The edge exists because BYTES genuinely flow producer → consumer: the consumer reads the producer's product (the ordinary gmeow:dataflowConsumes case). A dataflow reasoner may key the consumer's cache on the flowing entities' digests and is free to schedule producers first. The default and most common reason; the build DAG's own edges all carry it. Distinct from gmeow:flowReasonAuthority, whose edge carries no bytes and exists purely to order two stages."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:flowReasonAuthority
+    a gmeow:FlowReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "flow reason: authority"@x-gmeow-english ;
+    skos:definition "The edge is a FIRST-CLASS ORDERING CONSTRAINT the consumer must run AFTER the producer even though NO bytes flow between them: a decision precedence (the producer's verdict authorizes or forecloses the consumer's work), a commit ordering, or an idempotence fence. A pure-dataflow reasoner that reduced the graph to its byte-flow skeleton would see no flowing entity and WRONGLY DROP this edge, reordering or parallelizing two stages whose relative order is semantically required; gmeow:RuntimeDagAdmissionConstraint therefore treats every authority edge as a mandatory ordering that admission MUST preserve on a preceding path. The reason the reason vocabulary exists: authority is not dataflow, and the two must not be conflated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:flowReasonCost
+    a gmeow:FlowReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "flow reason: cost"@x-gmeow-english ;
+    skos:definition "The edge exists only to SERIALIZE two stages that would otherwise contend for a scarce resource (peak memory, an exclusive engine, a rate-limited external service): a scheduling hint that imposes an order to bound cost, not a semantic dependency. Distinct from gmeow:flowReasonAuthority (whose ordering is required by MEANING, not merely by resource economy) and from gmeow:flowReasonDataflow (which carries bytes). An admission reasoner may relax a cost edge if the resource conflict it guards is otherwise resolved, but must never relax an authority edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── (2) Per-stage-execution failure disposition + stage-level obligation ────── #
+
+gmeow:StageExecution
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Execution"@x-gmeow-english ;
+    rdfs:subClassOf logic:Event ;
+    skos:definition "ONE run of a gmeow:PipelineStage within a gmeow:PipelineRun — a perdurant occurrence (logic:Event), the enactment of the stage's logic:ActionSchema. Where gmeow:PipelineStage is the standing description of a unit of work, a gmeow:StageExecution is a single attempt at it, carrying how that attempt ENDED (gmeow:stageDisposition) so the enrichment planner can distinguish a stage that produced an answer, produced an explicit typed nothing, was rejected, may be retried, killed the candidate, or timed out. Distinct from the stage's declared, run-invariant obligation (gmeow:stageObligation) and output stability (gmeow:stageStability), which are properties of the stage, not of one execution of it."@x-gmeow-english ;
+    skos:example "gmeow:exec-annotate-42 a gmeow:StageExecution ; gmeow:stageDisposition gmeow:dispositionTypedAbsence ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:StageDisposition
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Disposition"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "How one gmeow:StageExecution ENDED — a CLOSED value vocabulary of six outcomes drawn through gmeow:stageDisposition: gmeow:dispositionCompleted (produced its normal product), gmeow:dispositionTypedAbsence (ran to completion and produced an explicit, typed 'nothing' — an answer, not a failure — linking a reason individual), gmeow:dispositionRejectedCandidate (the input candidate was rejected on validation), gmeow:dispositionRetryable (a transient failure the planner may re-attempt), gmeow:dispositionFatalToCandidate (a failure that invalidates the whole candidate, not just this stage), and gmeow:dispositionTimedOut (a budget deadline elapsed). Typed dispositions replace an untyped success/failure boolean: an explicit typed absence is a first-class result the downstream must be able to tell apart from a crash."@x-gmeow-english ;
+    skos:example "gmeow:exec-x gmeow:stageDisposition gmeow:dispositionRetryable ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:stageDisposition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stage disposition"@x-gmeow-english ;
+    rdfs:domain gmeow:StageExecution ;
+    rdfs:range gmeow:StageDisposition ;
+    skos:definition "Relates a gmeow:StageExecution to the one gmeow:StageDisposition it ended in — the typed outcome of that run (completed, typed-absence, rejected-candidate, retryable, fatal-to-candidate, timed-out). Closed to the six declared individuals. The enrichment planner reads it to decide retry, candidate eviction, or acceptance of a typed absence; a missing disposition is an incomplete execution record. It types a per-execution outcome, distinct from gmeow:stageObligation, which is the stage's standing policy, not this per-run result."@x-gmeow-english ;
+    skos:example "gmeow:exec-canonicalize gmeow:stageDisposition gmeow:dispositionCompleted ."@x-gmeow-english ;
+    gmeow:useWhen "Record on every gmeow:StageExecution how the attempt ended, so the planner can tell a typed absence apart from a retryable failure apart from a candidate-fatal one."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT use it to declare a stage's standing failure policy (that is gmeow:stageObligation on the stage) and do NOT mint a seventh outcome — the disposition set is closed at six."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:stageDisposition per execution from the closed six; gmeow:dispositionTypedAbsence marks a stage that RAN and produced an explicit typed 'nothing', linking its reason individual — not a stage that failed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:dispositionCompleted
+    a gmeow:StageDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "disposition: completed"@x-gmeow-english ;
+    skos:definition "The stage execution ran to completion and produced its normal product — the ordinary success outcome. Distinct from gmeow:dispositionTypedAbsence, which also ran successfully but produced an explicit typed 'nothing', not a positive product."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dispositionTypedAbsence
+    a gmeow:StageDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "disposition: typed absence"@x-gmeow-english ;
+    skos:definition "The stage execution RAN successfully and produced an explicit, typed 'nothing' — a first-class absence result (e.g. 'no enrichment applies to this candidate') that LINKS a reason individual, NOT a failure. It is distinguished from gmeow:dispositionCompleted (which carries a positive product) and from every failure outcome: an admission or acceptance reasoner must treat a typed absence as a valid, complete answer, never as a missing or degraded output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dispositionRejectedCandidate
+    a gmeow:StageDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "disposition: rejected candidate"@x-gmeow-english ;
+    skos:definition "The stage execution rejected its input candidate on a validation check — the candidate does not meet this stage's admission precondition. A verdict about the input, not a fault in the stage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dispositionRetryable
+    a gmeow:StageDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "disposition: retryable"@x-gmeow-english ;
+    skos:definition "The stage execution failed transiently (a timeout upstream, a temporarily unavailable service, a contended lock) in a way the planner MAY re-attempt without invalidating the candidate — a recoverable failure, distinct from gmeow:dispositionFatalToCandidate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dispositionFatalToCandidate
+    a gmeow:StageDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "disposition: fatal to candidate"@x-gmeow-english ;
+    skos:definition "The stage execution failed in a way that INVALIDATES THE WHOLE CANDIDATE, not merely this stage: no retry can rescue it and the candidate must be dropped from the run. Distinct from gmeow:dispositionRetryable (recoverable) and gmeow:dispositionRejectedCandidate (a clean admission rejection rather than a fault)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dispositionTimedOut
+    a gmeow:StageDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "disposition: timed out"@x-gmeow-english ;
+    skos:definition "The stage execution exceeded a declared budget deadline (gmeow:budgetDeadline) and was stopped before completing — a resource-bound outcome the planner treats per the stage's gmeow:stageObligation (mandatory ⇒ the run is invalid; degradable ⇒ the absence is tolerated). A resource-bound stop, distinct from gmeow:dispositionFatalToCandidate, which is an intrinsic fault rather than an exhausted budget."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:StageObligation
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Obligation"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "Whether a stage's ABSENCE invalidates the run — a CLOSED, run-invariant declaration drawn through gmeow:stageObligation, made a first-class property rather than left implicit: gmeow:obligationMandatory (the run is INVALID if this stage produces no product — its absence is a hard failure) and gmeow:obligationDegradable (the run may proceed without this stage's product, accepting a declared degradation). 'This stage's absence invalidates the run' is thereby a declared, queryable property of the stage, not a convention buried in scheduler code."@x-gmeow-english ;
+    skos:example "gmeow:stage-canon gmeow:stageObligation gmeow:obligationMandatory ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:stageObligation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stage obligation"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range gmeow:StageObligation ;
+    skos:definition "Relates a gmeow:PipelineStage to its run-invariant obligation level: gmeow:obligationMandatory (absence invalidates the run) or gmeow:obligationDegradable (absence is tolerated with declared degradation). Closed to the two declared individuals. The declarative replacement for a scheduler special-case: the planner reads it to decide whether a missing or absent stage product is a hard run failure or an accepted degradation. It declares the stage's run-invariant policy, distinct from gmeow:stageDisposition, which records one execution's outcome rather than a standing obligation."@x-gmeow-english ;
+    skos:example "gmeow:stage-enrich-authority gmeow:stageObligation gmeow:obligationMandatory ."@x-gmeow-english ;
+    gmeow:useWhen "Declare, per stage, whether the run is invalid without this stage's product (mandatory) or may proceed degraded (degradable)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT conflate it with a per-execution outcome (gmeow:stageDisposition) — obligation is the stage's standing policy, independent of any one run — and do NOT add a third level; the set is closed at two."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:stageObligation per stage; combined with a run's gmeow:dispositionTypedAbsence or a failure disposition, it decides whether the run stands or fails."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:obligationMandatory
+    a gmeow:StageObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "obligation: mandatory"@x-gmeow-english ;
+    skos:definition "The stage's product is MANDATORY: the run is invalid if this stage produces no product (a failure or an untyped absence). Its absence is a hard failure the planner must not silently accept."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:obligationDegradable
+    a gmeow:StageObligation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "obligation: degradable"@x-gmeow-english ;
+    skos:definition "The stage's product is DEGRADABLE: the run may proceed without it, accepting a declared, explicit degradation. Distinct from silent capability loss — the degradation is a first-class, declared tolerance, not a swallowed failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── (3) Stage-output stability across turns ────────────────────────────────── #
+
+gmeow:StageStability
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Stability"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The byte-stability of a stage's OUTPUT across turns — a CLOSED value vocabulary drawn through gmeow:stageStability: gmeow:stabilityStablePrefix (the stage's output is BYTE-IDENTICAL across turns, so it can be ordered ahead of variable stages to enable prefix-cache reuse) and gmeow:stabilityPerTurnVariance (the output varies turn to turn and cannot be prefix-cached). Declared so a scheduling projection can order the stable prefix first without re-deriving stability empirically."@x-gmeow-english ;
+    skos:example "gmeow:stage-canon gmeow:stageStability gmeow:stabilityStablePrefix ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:stageStability
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stage stability"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range gmeow:StageStability ;
+    skos:definition "Relates a gmeow:PipelineStage to the byte-stability of its output across turns: gmeow:stabilityStablePrefix (byte-identical across turns — enables prefix-cache ordering) or gmeow:stabilityPerTurnVariance (varies per turn). Closed to the two declared individuals. A projection that builds a prefix-cache-friendly order reads it to place every stable-prefix stage ahead of the first per-turn-variant one."@x-gmeow-english ;
+    skos:example "gmeow:stage-fetch-live gmeow:stageStability gmeow:stabilityPerTurnVariance ."@x-gmeow-english ;
+    gmeow:useWhen "Declare, per stage, whether its output is byte-identical across turns (stable prefix) or per-turn variant, so a prefix-cache-aware order is derivable."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT declare gmeow:stabilityStablePrefix for a stage whose output depends on turn-varying input (a live fetch, a timestamp) — a false stable-prefix claim corrupts prefix-cache reuse — and do NOT add a third value."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:stageStability per stage; gmeow:stabilityStablePrefix means byte-identical across turns, the precondition a prefix-cache ordering relies on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:stabilityStablePrefix
+    a gmeow:StageStability ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stability: stable prefix"@x-gmeow-english ;
+    skos:definition "The stage's output is BYTE-IDENTICAL across turns: given the same declared inputs it produces the same bytes every turn, so it can be placed in the stable prefix of a schedule and its result (and any downstream token prefix) reused from cache rather than recomputed. The precondition prefix-cache ordering depends on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:stabilityPerTurnVariance
+    a gmeow:StageStability ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stability: per-turn variance"@x-gmeow-english ;
+    skos:definition "The stage's output VARIES turn to turn (a live fetch, a sampled model call, a timestamped record) and therefore cannot be prefix-cached: it must be placed after the stable prefix, and everything downstream of it inherits the variance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── (4) Per-stage resource budgets ─────────────────────────────────────────── #
+
+gmeow:StageBudget
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Budget"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A reified per-stage RESOURCE BUDGET: the declared ceilings one gmeow:PipelineStage is permitted to consume in a run, gathered through gmeow:hasStageBudget. Grouped as a class (like gmeow:BuildDataFlow and gmeow:FanoutExtraction) rather than scattered as bare stage properties so a whole budget is one addressable record the planner reads and a run can echo. Carries the typed-literal ceilings gmeow:budgetDeadline, gmeow:budgetMaxSteps, gmeow:budgetMaxAnswers, gmeow:budgetMaxInputBytes and gmeow:budgetMaxMemoryBytes. A budget is a permit for a real cost, not a repair; exceeding gmeow:budgetDeadline yields a gmeow:dispositionTimedOut execution."@x-gmeow-english ;
+    skos:example "gmeow:budget-enrich a gmeow:StageBudget ; gmeow:budgetDeadline \"PT30S\"^^xsd:duration ; gmeow:budgetMaxSteps 1000 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:hasStageBudget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "has stage budget"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range gmeow:StageBudget ;
+    skos:definition "Relates a gmeow:PipelineStage to the gmeow:StageBudget declaring its per-run resource ceilings. The planner reads it to admit or throttle the stage and to detect a budget breach (which yields a gmeow:dispositionTimedOut for the deadline, or a candidate-fatal outcome for a hard resource ceiling). It relates a stage to its standing pre-run permit, distinct from gmeow:hasStageReceipt, which gathers a run's after-the-fact records rather than a budget."@x-gmeow-english ;
+    skos:example "gmeow:stage-enrich gmeow:hasStageBudget gmeow:budget-enrich ."@x-gmeow-english ;
+    gmeow:useWhen "Attach a budget to a stage whose resource consumption must be bounded — a deadline, a step/answer count, an input size, or a memory peak."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT scatter the individual budget literals directly on the stage — group them in one gmeow:StageBudget record so the whole budget is addressable — and do NOT use it to model the exclusive-resource conflict lane (that is gmeow:requiresResource)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:StageBudget per budgeted stage, set the ceilings that apply, and link it with gmeow:hasStageBudget; an unset ceiling means unbounded on that axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:budgetDeadline
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "budget deadline"@x-gmeow-english ;
+    rdfs:domain gmeow:StageBudget ;
+    rdfs:range xsd:duration ;
+    skos:definition "The wall-clock time budget a stage is permitted to run before it is stopped — an xsd:duration RELATIVE to the stage's start, deliberately chosen over an absolute xsd:dateTime: a relative budget is turn-invariant and replayable (the same declared budget yields the same admission decision on every run and in a replayed interleaved trace), whereas an absolute deadline would bake a specific run's clock into the canon and defeat deterministic replay. Exceeding it yields a gmeow:dispositionTimedOut execution. A ceiling on elapsed time, distinct from gmeow:budgetMaxSteps, which bounds internal iterations rather than wall-clock duration."@x-gmeow-english ;
+    skos:example "gmeow:budget-enrich gmeow:budgetDeadline \"PT30S\"^^xsd:duration ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:budgetMaxSteps
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "budget max steps"@x-gmeow-english ;
+    rdfs:domain gmeow:StageBudget ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The maximum number of internal steps (iterations, reasoning rounds, sub-calls) a stage may take before it is stopped — an xsd:nonNegativeInteger ceiling. Zero means the stage may take no steps (a pure pass-through); an unset value means unbounded on this axis. It bounds internal iterations, distinct from gmeow:budgetMaxAnswers, which bounds emitted results rather than steps taken."@x-gmeow-english ;
+    skos:example "gmeow:budget-enrich gmeow:budgetMaxSteps 1000 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:budgetMaxAnswers
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "budget max answers"@x-gmeow-english ;
+    rdfs:domain gmeow:StageBudget ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The maximum number of answers (result rows, enrichment candidates, emitted records) a stage may produce before it stops — an xsd:nonNegativeInteger ceiling bounding output cardinality. An unset value means unbounded. It caps emitted results, distinct from gmeow:budgetMaxSteps, which caps internal work rather than answers produced."@x-gmeow-english ;
+    skos:example "gmeow:budget-enrich gmeow:budgetMaxAnswers 50 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:budgetMaxInputBytes
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "budget max input bytes"@x-gmeow-english ;
+    rdfs:domain gmeow:StageBudget ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The maximum size, in bytes, of the input a stage will accept before it rejects the candidate — an xsd:nonNegativeInteger ceiling guarding against oversized inputs. An unset value means unbounded. It caps accepted input size, distinct from gmeow:budgetMaxMemoryBytes, which caps resident memory rather than input volume."@x-gmeow-english ;
+    skos:example "gmeow:budget-enrich gmeow:budgetMaxInputBytes 1048576 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:budgetMaxMemoryBytes
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "budget max memory bytes"@x-gmeow-english ;
+    rdfs:domain gmeow:StageBudget ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The maximum resident memory, in bytes, a stage's execution may occupy before it is stopped — an xsd:nonNegativeInteger peak-residency ceiling, the per-stage analogue of the whole-dataset gmeow:serializationBufferResource peak the build DAG guards. An unset value means unbounded. It caps peak resident memory, distinct from gmeow:budgetMaxInputBytes, which caps accepted input size, not runtime residency."@x-gmeow-english ;
+    skos:example "gmeow:budget-enrich gmeow:budgetMaxMemoryBytes 2147483648 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── (5) Run receipts — content-addressed, topologically ordered ────────────── #
+
+gmeow:PipelineRun
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Pipeline Run"@x-gmeow-english ;
+    rdfs:subClassOf logic:Event ;
+    skos:definition "ONE execution of a whole gmeow:Pipeline DAG — a perdurant occurrence (logic:Event) gathering the gmeow:StageExecution occurrences of its stages and, through gmeow:hasStageReceipt, the content-addressed gmeow:StageReceipt of each. The run individual is the replayable record of what happened: its receipts serialize in deterministic TOPOLOGICAL order even when stages ran concurrently, so an interleaved trace replays identically. Distinct from gmeow:Pipeline (the standing plan): a run is a single enactment of that plan."@x-gmeow-english ;
+    skos:example "gmeow:run-2026-08-05 a gmeow:PipelineRun ; gmeow:hasStageReceipt gmeow:receipt-canon ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:StageReceipt
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Receipt"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A content-addressed RECORD of one stage's contribution to a gmeow:PipelineRun: an information object carrying gmeow:receiptDigest (the content address of what the stage produced) and gmeow:receiptOfStage (the gmeow:PipelineStage it is the receipt of). Gathered on the run through gmeow:hasStageReceipt. Receipts serialize in deterministic TOPOLOGICAL order over the DAG even under concurrent execution: two runs whose stages interleaved differently in wall-clock time still emit their receipts in the same topological sequence, so a trace is replayable and two runs are byte-comparable. The digest makes each receipt an immutable, deduplicable fingerprint rather than a timestamped log line."@x-gmeow-english ;
+    skos:example "gmeow:receipt-canon a gmeow:StageReceipt ; gmeow:receiptOfStage gmeow:stage-canon ; gmeow:receiptDigest \"blake3:1f9c…\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:hasStageReceipt
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "has stage receipt"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineRun ;
+    rdfs:range gmeow:StageReceipt ;
+    skos:definition "Relates a gmeow:PipelineRun to each gmeow:StageReceipt it collected — one per stage execution. Multi-valued. The receipts it gathers are serialized in deterministic TOPOLOGICAL order of their stages over the DAG (not wall-clock order), so a run's receipt sequence is replayable and comparable across runs even when execution was concurrent and interleaved."@x-gmeow-english ;
+    skos:example "gmeow:run-2026-08-05 gmeow:hasStageReceipt gmeow:receipt-canon ."@x-gmeow-english ;
+    gmeow:useWhen "Attach every stage's content-addressed receipt to the run so the run is a replayable, byte-comparable record."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT rely on receipt ASSERTION order for meaning — the serialized order is TOPOLOGICAL, derived from the DAG, not the order triples happen to be written — and do NOT put run-level state on the standing gmeow:Pipeline plan."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:StageReceipt per stage execution with its gmeow:receiptDigest and gmeow:receiptOfStage, and gather them on the gmeow:PipelineRun with gmeow:hasStageReceipt; serialize them in topological order of gmeow:receiptOfStage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:receiptOfStage
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "receipt of stage"@x-gmeow-english ;
+    rdfs:domain gmeow:StageReceipt ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:StageReceipt to the gmeow:PipelineStage it is the receipt of — the anchor that makes the run's receipts orderable TOPOLOGICALLY over the DAG. Exactly one per receipt: a receipt records one stage's contribution. Distinct from gmeow:receiptOfExecution, which anchors the receipt to the specific occurrence, not the standing stage."@x-gmeow-english ;
+    skos:example "gmeow:receipt-canon gmeow:receiptOfStage gmeow:stage-canon ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:receiptDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "receipt digest"@x-gmeow-english ;
+    rdfs:domain gmeow:StageReceipt ;
+    rdfs:range xsd:string ;
+    skos:definition "The CONTENT ADDRESS of what a stage produced — a content-addressed digest string (algorithm-prefixed, e.g. \"blake3:…\") that fingerprints the stage's output. Two executions producing identical output carry the equal digest, so receipts deduplicate and two runs are byte-comparable stage by stage. A stable identifier string, not localizable prose; exactly one per receipt."@x-gmeow-english ;
+    skos:example "gmeow:receipt-canon gmeow:receiptDigest \"blake3:1f9c0a…\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Occurrence wiring: execution ↔ stage, run ↔ execution, receipt ↔ execution ─ #
+
+gmeow:executesStage
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "executes stage"@x-gmeow-english ;
+    rdfs:domain gmeow:StageExecution ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:StageExecution to the ONE gmeow:PipelineStage it is a run of — the standing unit of work this occurrence enacts. Functional: an execution enacts exactly one stage. Where gmeow:PipelineStage is the run-invariant description of a unit of work, gmeow:executesStage names the stage a single gmeow:StageExecution attempted, so a run's occurrences join back to the DAG's stages. Distinct from gmeow:hasStageExecution, which relates the run to its executions, not an execution to its stage."@x-gmeow-english ;
+    skos:example "gmeow:exec-annotate-42 gmeow:executesStage gmeow:stage-annotate ."@x-gmeow-english ;
+    gmeow:useWhen "Record on every gmeow:StageExecution the gmeow:PipelineStage it enacts, so each occurrence joins to its standing stage in the DAG."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT use it to gather a run's executions (that is gmeow:hasStageExecution on the gmeow:PipelineRun) and do NOT point it at a gmeow:StageReceipt or gmeow:PipelineRun — its range is the standing gmeow:PipelineStage."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:executesStage per gmeow:StageExecution naming the stage it ran; combined with gmeow:hasStageExecution on the run it links occurrence, run, and standing stage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasStageExecution
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "has stage execution"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineRun ;
+    rdfs:range gmeow:StageExecution ;
+    skos:definition "Relates a gmeow:PipelineRun to each gmeow:StageExecution it gathered — the perdurant occurrences of its stages, one per attempt. Multi-valued, the occurrence-level companion to gmeow:hasStageReceipt (which gathers the content-addressed records): where a receipt is the immutable fingerprint of what a stage produced, an execution is the run of the stage carrying how the attempt ENDED (gmeow:stageDisposition). Gathering the executions on the run makes the run the replayable record of what happened. Distinct from gmeow:hasStageReceipt, which gathers the content-addressed receipt records rather than the live occurrences."@x-gmeow-english ;
+    skos:example "gmeow:run-2026-08-05 gmeow:hasStageExecution gmeow:exec-annotate-42 ."@x-gmeow-english ;
+    gmeow:useWhen "Attach every gmeow:StageExecution to the gmeow:PipelineRun it occurred in, so the run gathers its occurrences alongside their receipts."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT put executions on the standing gmeow:Pipeline plan (a run is one enactment) and do NOT conflate it with gmeow:hasStageReceipt — an execution is the occurrence, a receipt is its content-addressed record."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:StageExecution per stage attempt (with its gmeow:executesStage and gmeow:stageDisposition) and gather them on the gmeow:PipelineRun with gmeow:hasStageExecution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:receiptOfExecution
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "receipt of execution"@x-gmeow-english ;
+    rdfs:domain gmeow:StageReceipt ;
+    rdfs:range gmeow:StageExecution ;
+    skos:definition "Relates a gmeow:StageReceipt to the ONE gmeow:StageExecution whose contribution it records — the occurrence that produced the receipt's gmeow:receiptDigest. Functional: a receipt records exactly one execution. Where gmeow:receiptOfStage anchors the receipt to the standing gmeow:PipelineStage (for topological ordering), gmeow:receiptOfExecution anchors it to the specific occurrence, so a receipt joins to how that attempt ENDED (gmeow:stageDisposition), not only to which stage it was."@x-gmeow-english ;
+    skos:example "gmeow:receipt-canon gmeow:receiptOfExecution gmeow:exec-canon-42 ."@x-gmeow-english ;
+    gmeow:useWhen "Record on a gmeow:StageReceipt the gmeow:StageExecution it is the receipt of, so the content-addressed record joins to the occurrence's disposition."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT use it in place of gmeow:receiptOfStage (which anchors the receipt to the standing stage for topological ordering) — a receipt carries both its stage AND its execution."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one gmeow:receiptOfExecution per receipt naming the execution it records, alongside gmeow:receiptOfStage and gmeow:receiptDigest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# (6) Runtime-DAG admission constraint — the declared law the graph satisfies. #
+#                                                                             #
+# Authored in logic: ONLY (a logic:Constraint + logic:Formula), never a hand-  #
+# authored SHACL shape. It states FOUR admission expectations of a runtime     #
+# DAG: (a) ACYCLICITY, (b) CONNECTIVITY (no unreachable/dead stage), (c) every #
+# gmeow:dataflowConsumes satisfied by a producing stage on a preceding path,   #
+# and (d) every AUTHORITY edge (gmeow:flowReasonAuthority) satisfied — retained #
+# as a first-class ordering a pure-dataflow reducer would wrongly drop. The     #
+# first-order-checkable core ((c) producer existence + (d) authority-edge well- #
+# formedness/retention) is carried as the logic:Formula; the transitive-closure #
+# parts ((a) acyclicity + (b) reachability) are certified by the                #
+# logic:DagWorkflowContract the DAG is executed under and disclosed as an       #
+# honest logic:expressivenessBoundary (they exceed the base first-order         #
+# fragment), never faked as a first-order formula (Principle 17).              #
+# =========================================================================== #
+
+gmeow:RuntimeDagAdmissionConstraint
+    a logic:Constraint ;
+    rdfs:label "Runtime-DAG admission constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The admission law a runtime enrichment DAG must satisfy before it is scheduled, stated as the declared graph's expectations and NOTHING about scheduler mechanism: (a) the gmeow:dataflowConsumes closure is ACYCLIC; (b) every stage is CONNECTED — reachable on the DAG, no unreachable or dead stage; (c) every gmeow:dataflowConsumes edge is SATISFIED by a producing stage on a preceding path; and (d) every AUTHORITY edge (a gmeow:BuildDataFlow with gmeow:flowReason gmeow:flowReasonAuthority) is SATISFIED — retained as a first-class ordering constraint that a pure-dataflow reasoner MUST NOT drop even when no bytes flow. The first-order-checkable core — producer existence (c) and authority-edge well-formedness/retention (d) — is carried by logic:integrity; acyclicity (a) and reachability (b) are transitive-closure properties certified by the logic:DagWorkflowContract the DAG runs under (as gmeow:pipeline-build already is) and disclosed honestly via gmeow:runtimeDagAdmissionBoundary, never faked as a first-order formula."@x-gmeow-english ;
+    logic:severity "Violation" ;
+    logic:formalizes gmeow:flowReason ;
+    rdfs:seeAlso gmeow:runtimeDagAdmissionBoundary ;
+    logic:message "A runtime enrichment DAG is admissible only if: (a) its gmeow:dataflowConsumes closure is acyclic; (b) every stage is reachable (no unreachable or dead stage); (c) every gmeow:dataflowConsumes edge is satisfied by a producing stage on a preceding path; and (d) every authority edge (gmeow:flowReason gmeow:flowReasonAuthority) is satisfied — a first-class ordering constraint that MUST be preserved even when no bytes flow. Dropping an authority edge because no data rides it is the corruption this rule forbids." ;
+    logic:integrity gmeow:radConj .
+
+# The first-order core: a conjunction of (c) dataflow-producer existence and
+# (d) authority-edge well-formedness / retention.
+gmeow:radConj a logic:Formula ;
+    rdfs:label "Runtime-DAG admission core conjunction"@x-gmeow-english ;
+    skos:definition "The first-order core of the runtime-DAG admission law: the conjunction of arm (c) dataflow-producer membership and arm (d) authority-edge retention that logic:integrity carries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:radDataflowForall , gmeow:radAuthorityForall .
+
+# (c) Every gmeow:dataflowConsumes edge is satisfied by a producing stage that is an
+# ASSERTED member of an enclosing pipeline: some gmeow:Pipeline names the producer through
+# gmeow:hasStage. This is the first-order shadow of "satisfied by some producer on a
+# preceding path" — and it must be an asserted membership, NOT merely producer rdf:type
+# gmeow:PipelineStage: gmeow:dataflowConsumes has rdfs:range gmeow:PipelineStage, so a bare
+# type check is ENTAILED by RDFS range inference for every consumed relatum and verifies
+# nothing. Requiring an explicit gmeow:hasStage membership triple cannot be satisfied by
+# that range inference, so the edge must point at a real, declared member stage.
+gmeow:radDataflowForall a logic:Formula ;
+    rdfs:label "Dataflow producer-membership universal"@x-gmeow-english ;
+    skos:definition "The universal over (consumer, producer) asserting arm (c): every consumed producer must be an asserted gmeow:hasStage member of some pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "consumer" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] ;
+    logic:forall gmeow:radDataflowImpl .
+gmeow:radDataflowImpl a logic:Formula ;
+    rdfs:label "Dataflow producer-membership implication"@x-gmeow-english ;
+    skos:definition "The implication of arm (c): if a consumer gmeow:dataflowConsumes a producer, then that producer is an asserted member stage of some pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:radConsumes ; logic:consequent gmeow:radProducerMember .
+gmeow:radConsumes a logic:Formula ;
+    rdfs:label "Dataflow-consumes antecedent atom"@x-gmeow-english ;
+    skos:definition "The antecedent atom of arm (c): the consumer stands in gmeow:dataflowConsumes to the producer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:dataflowConsumes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "consumer" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] .
+# The producer is an ASSERTED member stage of some pipeline: ∃ pipeline . pipeline gmeow:hasStage producer.
+gmeow:radProducerMember a logic:Formula ;
+    rdfs:label "Producer pipeline-membership existential"@x-gmeow-english ;
+    skos:definition "The existential of arm (c): some gmeow:Pipeline asserts the producer as a member stage."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pipeline" ] ;
+    logic:exists gmeow:radProducerHasStage .
+gmeow:radProducerHasStage a logic:Formula ;
+    rdfs:label "Producer gmeow:hasStage atom"@x-gmeow-english ;
+    skos:definition "The consequent atom of arm (c): some pipeline names the producer through gmeow:hasStage, an asserted membership no RDFS range inference can supply."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:hasStage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pipeline" ] , [ logic:termIndex 1 ; logic:termVariable "producer" ] .
+
+# (d) Every AUTHORITY edge is a well-formed, RETAINED ordering constraint: an edge
+# typed gmeow:BuildDataFlow whose gmeow:flowReason is gmeow:flowReasonAuthority and which
+# names a producer (gmeow:buildFlowFrom) MUST also name a consumer (gmeow:buildFlowTo) —
+# i.e. it is a complete ordering both of whose ends survive, never a half-edge a
+# dataflow reduction could collapse because no entity rides it.
+gmeow:radAuthorityForall a logic:Formula ;
+    rdfs:label "Authority-edge retention universal"@x-gmeow-english ;
+    skos:definition "The universal over (edge, from) asserting arm (d): every authority edge that names a producer must also name a consumer, so the ordering is retained whole."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termVariable "from" ] ;
+    logic:forall gmeow:radAuthorityImpl .
+gmeow:radAuthorityImpl a logic:Formula ;
+    rdfs:label "Authority-edge retention implication"@x-gmeow-english ;
+    skos:definition "The implication of arm (d): if an edge is a guarded authority edge naming a producer, then it also names a consumer."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:antecedent gmeow:radAuthorityGuard ; logic:consequent gmeow:radAuthorityConsumer .
+gmeow:radAuthorityGuard a logic:Formula ;
+    rdfs:label "Authority-edge guard conjunction"@x-gmeow-english ;
+    skos:definition "The antecedent guard of arm (d): the conjunction that an edge is typed gmeow:BuildDataFlow, has gmeow:flowReason gmeow:flowReasonAuthority, and names a producer via gmeow:buildFlowFrom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:and gmeow:radEdgeType , gmeow:radEdgeAuthority , gmeow:radEdgeFrom .
+gmeow:radEdgeType a logic:Formula ;
+    rdfs:label "Authority-edge type atom"@x-gmeow-english ;
+    skos:definition "A guard atom of arm (d): the edge is rdf:type gmeow:BuildDataFlow."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termIri gmeow:BuildDataFlow ] .
+gmeow:radEdgeAuthority a logic:Formula ;
+    rdfs:label "Authority-edge reason atom"@x-gmeow-english ;
+    skos:definition "A guard atom of arm (d): the edge's gmeow:flowReason is gmeow:flowReasonAuthority, marking it an authority ordering."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:flowReason ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termIri gmeow:flowReasonAuthority ] .
+gmeow:radEdgeFrom a logic:Formula ;
+    rdfs:label "Authority-edge producer atom"@x-gmeow-english ;
+    skos:definition "A guard atom of arm (d): the edge names its producer end via gmeow:buildFlowFrom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:buildFlowFrom ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termVariable "from" ] .
+gmeow:radAuthorityConsumer a logic:Formula ;
+    rdfs:label "Authority-edge consumer existential"@x-gmeow-english ;
+    skos:definition "The consequent existential of arm (d): the authority edge must name some consumer end, so the ordering survives whole rather than as a half-edge."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "to" ] ;
+    logic:exists gmeow:radEdgeTo .
+gmeow:radEdgeTo a logic:Formula ;
+    rdfs:label "Authority-edge consumer atom"@x-gmeow-english ;
+    skos:definition "The consequent atom of arm (d): the authority edge names its consumer end via gmeow:buildFlowTo."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:buildFlowTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "edge" ] , [ logic:termIndex 1 ; logic:termVariable "to" ] .
+
+# The honest boundary for the transitive-closure arms (a) acyclicity and (b)
+# reachability: both quantify over PATHS in the gmeow:dataflowConsumes closure, which
+# the base first-order formula fragment does not express. They are certified instead by
+# the logic:DagWorkflowContract the runtime DAG is executed under (the same certification
+# gmeow:pipeline-build carries), and the residue is disclosed here rather than faked as a
+# first-order formula (Principle 17).
+gmeow:runtimeDagAdmissionBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "runtime-DAG acyclicity/connectivity: an honest transitive-closure boundary"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    skos:definition "The loss-ledger boundary backing the acyclicity (a) and connectivity/reachability (b) arms of gmeow:RuntimeDagAdmissionConstraint. Both are TRANSITIVE-CLOSURE properties of the gmeow:dataflowConsumes relation — 'no cycle exists on any path' and 'every stage is reachable on some path' quantify over paths of unbounded length, which the base first-order formula fragment does not axiomatize. They are certified by the logic:DagWorkflowContract the runtime DAG is executed under (logic:DagWorkflowResource — the same acyclic-closure certification gmeow:pipeline-build carries), and disclosed here as an honest boundary rather than faked as a first-order formula. Sound-under-approximation: the first-order core (producer existence + authority retention) plus the contract's closure certification together admit exactly the well-formed DAGs, with the closure arms delegated to the certifier, never silently dropped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
@@ -1968,6 +2664,21 @@ gmeow:PipelineStage logic:subClassOf
 
 gmeow:Pipeline logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:hasStage ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+
+# Runtime-DAG vocabulary declarative axioms. A gmeow:BuildDataFlow
+# carries EXACTLY ONE gmeow:flowReason (required + closed to the three individuals);
+# the per-stage/per-execution value properties are closed to their declared sets via
+# logic:oneOf (projected declaratively to sh:in), matching the sibling-slice idiom.
+gmeow:BuildDataFlow rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:flowReason ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:FlowReason ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:flowReason ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FlowReason ] .
+gmeow:BuildDataFlow logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:flowReason ; logic:allValuesFrom [ logic:oneOf ( gmeow:flowReasonDataflow gmeow:flowReasonAuthority gmeow:flowReasonCost ) ] ] .
+gmeow:StageExecution logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageDisposition ; logic:allValuesFrom [ logic:oneOf ( gmeow:dispositionCompleted gmeow:dispositionTypedAbsence gmeow:dispositionRejectedCandidate gmeow:dispositionRetryable gmeow:dispositionFatalToCandidate gmeow:dispositionTimedOut ) ] ] .
+gmeow:PipelineStage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageObligation ; logic:allValuesFrom [ logic:oneOf ( gmeow:obligationMandatory gmeow:obligationDegradable ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:allValuesFrom [ logic:oneOf ( gmeow:stabilityStablePrefix gmeow:stabilityPerTurnVariance ) ] ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -2023,4 +2734,36 @@ gmeow:stageImplFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:stageImpl, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:stageImpl and nothing else. It is not a definition of gmeow:stageImpl (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:stageImplFunctionality logic:characterizes gmeow:stageImpl ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:executesStageFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "executesStage is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:executesStage is functional: a gmeow:StageExecution enacts exactly one gmeow:PipelineStage — one occurrence is a run of a single standing unit of work, so an execution bound to two stages is two executions, not one. This record is not a definition of the term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:executesStage ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:executesStage ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:executesStage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:executesStage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:executesStage and nothing else. It is not a definition of the term (that lives on the term itself), not a shape, and not a second place to state its meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:executesStageFunctionality logic:characterizes gmeow:executesStage ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:receiptOfExecutionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "receiptOfExecution is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:receiptOfExecution is functional: a gmeow:StageReceipt records exactly one gmeow:StageExecution — the single occurrence whose product it content-addresses, so a receipt bound to two executions is two receipts, not one. This record is not a definition of the term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:receiptOfExecution ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:receiptOfExecution ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:receiptOfExecution names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:receiptOfExecution, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:receiptOfExecution and nothing else. It is not a definition of the term (that lives on the term itself), not a shape, and not a second place to state its meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:receiptOfExecutionFunctionality logic:characterizes gmeow:receiptOfExecution ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

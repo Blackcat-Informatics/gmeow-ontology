@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: two distinct LOGIC-plane graphemes of the GMN script sharing an IDENTICAL
+# gmeow:gmnCodepoints value ("U+22AB") where only ONE carries a gmeow:gmnSigilScope — the
+# sigil-scoped collision exemption of lang:GmnGlyphCollisionShape requires BOTH partners to be
+# scoped, so the unscoped partner is an unlawful collision (fires lang:GmnGlyphCollision via the
+# sh:sparql of lang:GmnGlyphCollisionShape). Both graphemes are otherwise well-formed: grounded
+# in the repertoire (lang:hasGrapheme), canonical codepoints (so the codepoint shapes stay
+# quiet), no gmeow:gmnConfusableWith edge (so lang:GmnConfusableGlyphShape stays quiet), and each
+# carries its measured gmeow:gmnGlyphTokenCost feed (so lang:GmnScriptGlyphCoverageShape stays
+# satisfied and lang:GmnUncostedScriptGlyph stays quiet) — exactly the one unscoped-collision
+# finding fires. It is the logic-plane sibling of tests/counter-examples/gmn-glyph-collision.ttl,
+# tightened to the one-partner-scoped case the sigil exemption forbids.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/logic/> .
+
+gmeow:gmnScript lang:hasGrapheme ex:gScopedBarTurnstile , ex:gUnscopedBarTurnstile .
+
+ex:gScopedBarTurnstile a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+22AB" ;
+    gmeow:gmnSigilScope gmeow:gmnSigilLogic ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:gUnscopedBarTurnstile a lang:Grapheme ;
+    lang:inScript gmeow:gmnScript ;
+    gmeow:gmnCodepoints "U+22AB" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:qCostOne a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .

@@ -7262,6 +7262,355 @@ math:UngroundedIngestRun
     skos:definition "The failure raised when a math:IngestRun does not retain its source witness through math:parseSource, or does not carry the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan. A bridge run without its retained source and schema/plan witness cannot support the lawful put leg — the lift would be a backward-execution guess, not a mnemomorphic recovery — so it is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+
+# --- Bridge INGESTION-REFUSAL classes ---------------------------------------- #
+# math:UnliftableIngest above names the produced-nothing case of a run that was
+# EMITTED. The seven classes below name the refusals that happen one step earlier,
+# before a triple is written: an artifact offered to a front-end that the front-end
+# declines. Each is HARD FAIL — MATHEMATICS-RUNTIME.md's ingestion rules forbid a
+# string-valued placeholder, a partial lift, and an optional parser backend — and each
+# is raised by the executable front-end in crates/math-lift, whose typed math.lift.*
+# diagnostic binds to it. Each also carries a GRAPH-SIDE half: the structural residue
+# the same defect would leave if a run had been emitted anyway, authored as the
+# logic:Constraint named in the class's gmeow:howToUse. Neither half substitutes for
+# the other — the front-end refuses the source, the constraint condemns the record.
+
+math:UnreadableIngestSource
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unreadable Ingest Source"@x-gmeow-english ;
+    skos:definition "The failure raised when an artifact handed to a math: bridge cannot be READ at all in the form its front-end requires — bytes that are not valid UTF-8 offered to a textual front-end (the R and TSTP lifts), which therefore has no character stream to tokenize, no grammar to attempt, and nothing it could retain verbatim in a math:parseSource witness. It is a BYTE-level refusal and never a syntax judgment: the front-end stops before the grammar, so it is distinct from math:MalformedRScript and math:MalformedTSTPDerivation, both of which are raised only after the bytes decoded cleanly. HARD FAIL: a bridge does not retry with a lossy or replacement-character decode, because bytes read through U+FFFD are a DIFFERENT source and would lift into a plausible-looking graph that nobody's artifact supports. Its graph-side half is a math:parseSource witness that carries neither math:retainedSource nor math:sourceDigest — a witness holding nothing is the same defect one step later, since the put leg then has no complement to project along."@x-gmeow-english ;
+    skos:example "ex:mtcarsLatin1Ingest a math:UnreadableIngestSource ."@x-gmeow-english ;
+    skos:scopeNote "It is about the SOURCE ARTIFACT's readability, never about the completeness of what was lifted: a run that read its source cleanly and then produced no structured codomain is math:UnliftableIngest, and a run that produced a codomain but retained no witness is math:UngroundedIngestRun."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising it for a BINARY source (the ONNX lift reads bytes, so a non-UTF-8 stream is its normal input, not a failure), avoid using it for a decodable source the grammar then rejected (that is the per-dialect malformed class), and avoid resolving it by transcoding with replacement characters — that substitutes a different artifact for the one offered."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by gmeow_math_lift's math.lift.source.not-utf8 diagnostic before any parse is attempted, and by math:IngestSourceHeldConstraint over an emitted graph; resolve it by supplying the artifact in the encoding its front-end declares, never by relaxing the decode."@x-gmeow-english ;
+    gmeow:useWhen "Use to name an artifact a textual bridge could not decode into characters at all."@x-gmeow-english .
+
+math:MalformedRScript
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed R Script"@x-gmeow-english ;
+    skos:definition "The failure raised when an R source decodes as text but is not SYNTACTICALLY well-formed over the statistical subset the R front-end parses: an unterminated string, an unbalanced delimiter, an unexpected token, or a model formula that never resolves into its binder AST. The defect is in the script's grammar, not in its subject matter — so it is distinct from math:UnliftableRComputation, where the script parses cleanly and the lift finds no statistical content to carry, and distinct from math:UnreadableIngestSource, where the bytes never became text at all. HARD FAIL: the lift never falls back to carrying the offending region as an opaque string, because a string-valued placeholder is exactly the amnesic residue math:parseSource's witness contract forbids. Its graph-side half is a math:RIngestRun whose math:parseSource witness holds no math:retainedSource: an R script is TEXT, so a run that cannot show the script it parsed never had one in hand."@x-gmeow-english ;
+    skos:example "ex:unbalancedLmCallIngest a math:MalformedRScript ."@x-gmeow-english ;
+    skos:scopeNote "It covers the R dialect only. The ONNX and TSTP front-ends have their own syntax-level refusals (math:MalformedONNXWireFormat and math:MalformedTSTPDerivation); one class per dialect is deliberate, because 'which grammar rejected this' is the first question a producer asks."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising it for a well-formed script whose constructs simply have no image in math: (that is math:UnliftableRComputation) and avoid resolving it by deleting the offending lines from the retained source — the witness must show what was actually read."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by gmeow_math_lift's math.lift.r.parse diagnostic, and by math:RIngestSourceRetainedConstraint over an emitted graph; resolve it by correcting the script, never by widening the parser to accept an unparsed remainder."@x-gmeow-english ;
+    gmeow:useWhen "Use to name an R source the statistical-subset grammar rejected."@x-gmeow-english .
+
+math:UnliftableRComputation
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unliftable R Computation"@x-gmeow-english ;
+    skos:definition "The failure raised when an R script PARSES but its content has no image in the math: codomain: general computation or control flow carrying no statistical content, a model call whose formula argument is absent, or a construct that could only survive the lift as an opaque string. The grammar is satisfied and the lift map is not total on what the grammar produced, which is why it is distinct from math:MalformedRScript (a syntax verdict) and from math:UnliftableIngest (a run that WAS emitted and generated nothing). HARD FAIL: the R bridge declines rather than emitting a math: object whose only content is the source text, because 'for any R script' is a universality bar on the lift, not a best-effort aspiration. Its graph-side half is a math:ModelFormula whose math:ArgumentSlot operands carry no math:slotExpression — the ~ binder's slots present but empty is precisely a formula the lift could not structure."@x-gmeow-english ;
+    skos:example "ex:plotOnlyScriptIngest a math:UnliftableRComputation ."@x-gmeow-english ;
+    skos:scopeNote "Control flow and general computation are NOT unliftable per se: they route to logic: through math:compilesToLogicFormula with a declared math:logicLoweringPreservation rung. This fires only when nothing reaches EITHER codomain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising it for a construct that legitimately lowers into logic: with a declared preservation rung, avoid using it for a syntax error (math:MalformedRScript), and avoid resolving it by emitting a math:MathematicalObject whose sole content is the source text."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by gmeow_math_lift's math.lift.r.unliftable diagnostic, and by math:ModelFormulaSlotExpressionConstraint over an emitted graph; resolve it by extending the lift map to the construct, never by widening what counts as a lifted object."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a well-formed R script whose content the lift map does not reach."@x-gmeow-english .
+
+math:MalformedONNXWireFormat
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed ONNX Wire Format"@x-gmeow-english ;
+    skos:definition "The failure raised when an .onnx byte stream is not a well-formed protobuf message: a truncated varint or length-delimited field, an unknown wire type, a declared length running past the end of the buffer, or a nested message that never closes. The refusal is at the WIRE layer, below any model semantics, so it is distinct from math:UnliftableTensorGraph, where the protobuf decoded and the decoded graph could not be structured — and it is never math:UnreadableIngestSource, because the ONNX front-end reads bytes rather than characters and a non-UTF-8 stream is its ordinary input. HARD FAIL: a partially-decoded message is not a smaller model, it is an unknown one, so the lift stops at the first inconsistent field rather than salvaging the prefix. Its graph-side half is a math:ONNXIngestRun whose math:parseSource witness names no math:sourceDigest: an ONNX model is blob-scale binary held BY REFERENCE, so the digest is the only record of which byte stream actually decoded, and a run naming none points at nothing."@x-gmeow-english ;
+    skos:example "ex:truncatedOpset18Ingest a math:MalformedONNXWireFormat ."@x-gmeow-english ;
+    skos:scopeNote "It is a protobuf-framing verdict, not an opset or operator-coverage verdict: a model whose operators the lift does not know decodes perfectly well and fails, if at all, as math:UnliftableTensorGraph."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising it for a decodable model whose graph the lift could not structure (math:UnliftableTensorGraph), and avoid resolving it by decoding the well-formed prefix — a prefix is a different model, not a partial one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by gmeow_math_lift's math.lift.onnx.wire diagnostic, and by math:ONNXIngestSourceIdentifiedConstraint over an emitted graph; resolve it by re-exporting the model, never by tolerating an unknown wire type."@x-gmeow-english ;
+    gmeow:useWhen "Use to name an .onnx artifact the protobuf reader rejected."@x-gmeow-english .
+
+math:UnliftableTensorGraph
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unliftable Tensor Graph"@x-gmeow-english ;
+    skos:definition "The failure raised when an ONNX model DECODES as protobuf but its graph cannot be structured into the math: codomain: the message carries no graph, the graph carries no computation node, or a node references a tensor the graph never declares. The bytes were fine and the model is not one the lift can render as a math:TensorComputationGraph, which is why it is distinct from math:MalformedONNXWireFormat (a framing verdict). It is also NOT math:MalformedTensorComputationGraph: that class is the already-shipped node-PRESENCE frame over an emitted graph, whereas this one names the refusal to emit at all. HARD FAIL: a dangling tensor reference would ship a self-structure object whose operands do not exist, and the learning charter's whole point is that a model can read its own architecture back. Its graph-side half is a math:TensorComputationGraph naming no math:architectureOf model — a lifted forward pass that is the architecture of nothing has no model standing behind it."@x-gmeow-english ;
+    skos:example "ex:danglingInitializerIngest a math:UnliftableTensorGraph ."@x-gmeow-english ;
+    skos:scopeNote "The residue discipline still applies to what DOES cross: an initializer's raw weight payload and the metadata_props block are enumerated as math:unmappedConstruct on the witness rather than triggering this refusal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising it for a byte-level decode failure (math:MalformedONNXWireFormat), avoid using it for an emitted graph that merely lacks a math:computationNode (math:MalformedTensorComputationGraph), and avoid resolving it by synthesising the missing tensor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by gmeow_math_lift's math.lift.onnx.unliftable diagnostic, and by math:TensorGraphArchitectureConstraint over an emitted graph; resolve it by exporting a graph whose every node operand is declared."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a decoded ONNX model whose graph the lift map does not reach."@x-gmeow-english .
+
+math:MalformedTSTPDerivation
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed TSTP Derivation"@x-gmeow-english ;
+    skos:definition "The failure raised when a TSTP derivation is not SYNTACTICALLY well-formed: a malformed annotated formula, an unterminated inference(...) record, an unquoted atom where a term is required, connectives mixed without the parentheses TPTP requires, or a dialect outside the first-order fragment the proof bridge reads (tff, thf, tcf, include). Both cnf AND fof parse — a real prover writes either, and a fof conclusion is carried as a formula rather than coerced into a clause shape — so this is never a verdict about which of those two a prover chose. It is distinct from math:IllFoundedProofDerivation, where the syntax is fine and the dependency structure does not resolve. HARD FAIL: an unparsed annotated formula cannot be attributed to a step, and a derivation with an unattributable step is not a proof. Its graph-side half is a math:ProofIngestRun whose math:parseSource witness holds no math:retainedSource: TSTP is TEXT, so a run that cannot show the derivation lines it read never had a derivation."@x-gmeow-english ;
+    skos:example "ex:thfDerivationIngest a math:MalformedTSTPDerivation ."@x-gmeow-english ;
+    skos:scopeNote "Refusing tff/thf/tcf/include is a declared DOMAIN boundary of this front-end, recorded here as a typed refusal rather than silently accepted and half-lifted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising it for a well-formed derivation whose parents do not resolve (math:IllFoundedProofDerivation), and avoid resolving it by skipping the annotated formulas that failed to parse — a derivation missing steps is a different derivation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by gmeow_math_lift's math.lift.proof.parse diagnostic, and by math:ProofIngestSourceRetainedConstraint over an emitted graph; resolve it by supplying a first-order TSTP derivation, never by dropping the records that did not parse."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a TSTP artifact the derivation grammar rejected."@x-gmeow-english .
+
+math:IllFoundedProofDerivation
+    a owl:Class ;
+    logic:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ill-Founded Proof Derivation"@x-gmeow-english ;
+    skos:definition "The failure raised when a TSTP derivation PARSES but carries no well-founded proof to lift: no derived step at all, a parent name the derivation never introduces, or a cycle in the dependency graph. Well-foundedness is what makes the lifted DAG a proof rather than a set of assertions, so this is a structural verdict, distinct from math:MalformedTSTPDerivation (a grammar verdict). It is deliberately NOT raised for a construct the lift can carry at a weaker rung: a file(...)/theory(...)/introduced(...) source becomes an external warrant, and a non-thm SZS status, an unknown role, and a <useful_info> field are enumerated as math:unmappedConstruct residue that DOWNGRADES the run's correspondence off logic:SectionRetraction rather than refusing it. HARD FAIL for the cases it does cover: a cyclic dependency lifted as a math:ProofDependencyGraph would assert that a lemma proves itself. Its graph-side half is a math:ProofDependencyGraph naming no math:Proof through math:dependencyGraphOf — a lifted DAG underlying nothing."@x-gmeow-english ;
+    skos:example "ex:cyclicLemmaIngest a math:IllFoundedProofDerivation ."@x-gmeow-english ;
+    skos:scopeNote "It concerns the derivation's own dependency structure, never the soundness of the calculus that produced it: the bridge lifts a proof as a process and does not re-derive it, which is why the QED lands as a vantage-held gmeow:Observation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid raising it for a construct enumerable as residue at a weaker rung, avoid using it for a syntax error (math:MalformedTSTPDerivation), and avoid resolving it by cutting the cycle at an arbitrary edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by gmeow_math_lift's math.lift.proof.unliftable diagnostic, and by math:ProofDependencyGraphAnchoredConstraint over an emitted graph; resolve it by supplying a derivation whose every parent is introduced and whose dependency relation is acyclic."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a parsed TSTP derivation whose dependency structure does not stand up."@x-gmeow-english .
+
+# --- The graph-side halves of the seven ingestion refusals -------------------- #
+# Each is a CROSS-NODE closed-world integrity constraint (the obligation is about the
+# run's witness, or the formula's slots, not about the bearer's own cardinality), so
+# none has an OWL antecedent and each is authored here as a canonical logic:Constraint
+# with its reified logic:integrity formula, lowered to a sh:sparql constraint. Written
+# in the ∀this. C(this) → ¬∃x. (edge ∧ ¬∃y. required) shape the shipped
+# logic:MediumDictionaryResolutionConstraint uses, so a bearer with no edge is
+# vacuously clean and only a present-but-empty neighbour is condemned.
+
+math:IngestSourceHeldConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ingest-source held constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: the math:parseSource witness of every math:IngestRun HOLDS its source — verbatim through math:retainedSource, or by reference through math:sourceDigest. A witness carrying neither retains nothing, so the up-projection (put) leg has no complement to project along and the source is unrecoverable; that is the same defect the front-end refuses one step earlier when the artifact's bytes cannot be read at all (math:UnreadableIngestSource)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnreadableIngestSource ;
+    logic:formalizes math:IngestRun ;
+    logic:severity "Violation" ;
+    logic:message "A math:IngestRun's math:parseSource witness must carry math:retainedSource or math:sourceDigest; a witness holding neither retains nothing (math:UnreadableIngestSource)." ;
+    logic:integrity math:ishForall .
+math:ishForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ingest-source-held formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→¬∃ integrity formula of math:IngestSourceHeldConstraint: no math:IngestRun has a math:parseSource witness that holds neither the source nor a digest of it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:ishImpl .
+math:ishImpl a logic:Formula ; logic:antecedent math:ishGuard ; logic:consequent math:ishNot .
+math:ishGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:IngestRun ] .
+math:ishNot a logic:Formula ; logic:not math:ishEx .
+math:ishEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists math:ishBody .
+math:ishBody a logic:Formula ; logic:and math:ishEdge , math:ishNoRetained , math:ishNoDigest .
+math:ishEdge a logic:Formula ; logic:relation math:parseSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+math:ishNoRetained a logic:Formula ; logic:not math:ishRetainedEx .
+math:ishRetainedEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists math:ishRetainedAtom .
+math:ishRetainedAtom a logic:Formula ; logic:relation math:retainedSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+math:ishNoDigest a logic:Formula ; logic:not math:ishDigestEx .
+math:ishDigestEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists math:ishDigestAtom .
+math:ishDigestAtom a logic:Formula ; logic:relation math:sourceDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
+math:RIngestSourceRetainedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "R ingest-source retained constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: the math:parseSource witness of a math:RIngestRun retains its script VERBATIM through math:retainedSource. An R script is TEXT and is never blob-scale, so the by-reference math:sourceDigest form does not apply to it; a run that cannot show the script it parsed never had a parseable script in hand, which is the graph-side residue of the front-end's math:MalformedRScript refusal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:MalformedRScript ;
+    logic:formalizes math:RIngestRun ;
+    logic:severity "Violation" ;
+    logic:message "A math:RIngestRun's math:parseSource witness must carry math:retainedSource — an R script is text, and a run that cannot show the script it parsed never had one (math:MalformedRScript)." ;
+    logic:integrity math:risrForall .
+math:risrForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "R-ingest-source-retained formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→¬∃ integrity formula of math:RIngestSourceRetainedConstraint: no math:RIngestRun has a math:parseSource witness lacking math:retainedSource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:risrImpl .
+math:risrImpl a logic:Formula ; logic:antecedent math:risrGuard ; logic:consequent math:risrNot .
+math:risrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:RIngestRun ] .
+math:risrNot a logic:Formula ; logic:not math:risrEx .
+math:risrEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists math:risrBody .
+math:risrBody a logic:Formula ; logic:and math:risrEdge , math:risrNoRetained .
+math:risrEdge a logic:Formula ; logic:relation math:parseSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+math:risrNoRetained a logic:Formula ; logic:not math:risrRetainedEx .
+math:risrRetainedEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists math:risrRetainedAtom .
+math:risrRetainedAtom a logic:Formula ; logic:relation math:retainedSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+math:ProofIngestSourceRetainedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof ingest-source retained constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: the math:parseSource witness of a math:ProofIngestRun retains its derivation VERBATIM through math:retainedSource. TSTP is TEXT, so the by-reference math:sourceDigest form does not apply; a run that cannot show the annotated formulas it read never had a derivation to lift, which is the graph-side residue of the front-end's math:MalformedTSTPDerivation refusal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:MalformedTSTPDerivation ;
+    logic:formalizes math:ProofIngestRun ;
+    logic:severity "Violation" ;
+    logic:message "A math:ProofIngestRun's math:parseSource witness must carry math:retainedSource — TSTP is text, and a run that cannot show the derivation it read never had one (math:MalformedTSTPDerivation)." ;
+    logic:integrity math:pisrForall .
+math:pisrForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proof-ingest-source-retained formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→¬∃ integrity formula of math:ProofIngestSourceRetainedConstraint: no math:ProofIngestRun has a math:parseSource witness lacking math:retainedSource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:pisrImpl .
+math:pisrImpl a logic:Formula ; logic:antecedent math:pisrGuard ; logic:consequent math:pisrNot .
+math:pisrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:ProofIngestRun ] .
+math:pisrNot a logic:Formula ; logic:not math:pisrEx .
+math:pisrEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists math:pisrBody .
+math:pisrBody a logic:Formula ; logic:and math:pisrEdge , math:pisrNoRetained .
+math:pisrEdge a logic:Formula ; logic:relation math:parseSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+math:pisrNoRetained a logic:Formula ; logic:not math:pisrRetainedEx .
+math:pisrRetainedEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists math:pisrRetainedAtom .
+math:pisrRetainedAtom a logic:Formula ; logic:relation math:retainedSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+math:ONNXIngestSourceIdentifiedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ONNX ingest-source identified constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: the math:parseSource witness of a math:ONNXIngestRun names the model it decoded through math:sourceDigest. An ONNX model is blob-scale BINARY held by reference and is never inlined, so the digest — not a retained literal — is the only record of WHICH byte stream the protobuf reader accepted; a run naming none points at no decoded stream, which is the graph-side residue of the front-end's math:MalformedONNXWireFormat refusal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:MalformedONNXWireFormat ;
+    logic:formalizes math:ONNXIngestRun ;
+    logic:severity "Violation" ;
+    logic:message "A math:ONNXIngestRun's math:parseSource witness must carry math:sourceDigest — the model is held by reference, so the digest is the only record of which byte stream decoded (math:MalformedONNXWireFormat)." ;
+    logic:integrity math:oisiForall .
+math:oisiForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "ONNX-ingest-source-identified formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→¬∃ integrity formula of math:ONNXIngestSourceIdentifiedConstraint: no math:ONNXIngestRun has a math:parseSource witness lacking math:sourceDigest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:oisiImpl .
+math:oisiImpl a logic:Formula ; logic:antecedent math:oisiGuard ; logic:consequent math:oisiNot .
+math:oisiGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:ONNXIngestRun ] .
+math:oisiNot a logic:Formula ; logic:not math:oisiEx .
+math:oisiEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists math:oisiBody .
+math:oisiBody a logic:Formula ; logic:and math:oisiEdge , math:oisiNoDigest .
+math:oisiEdge a logic:Formula ; logic:relation math:parseSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+math:oisiNoDigest a logic:Formula ; logic:not math:oisiDigestEx .
+math:oisiDigestEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists math:oisiDigestAtom .
+math:oisiDigestAtom a logic:Formula ; logic:relation math:sourceDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+
+math:ModelFormulaSlotExpressionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Model-formula slot-expression constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: every math:ArgumentSlot of a math:ModelFormula carries a math:slotExpression. The R lift renders a model formula as a binder over INDEXED operand slots precisely so the response, terms, interactions, and offsets are inspectable structure; a slot with an index and no expression is a formula the lift could not structure, which is the graph-side residue of the front-end's math:UnliftableRComputation refusal. The obligation is about the SLOT and not about the formula's own cardinality, so it has no OWL antecedent and math:ArgumentSlot's own max-1 restriction does not reach it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnliftableRComputation ;
+    logic:formalizes math:ModelFormula ;
+    logic:severity "Violation" ;
+    logic:message "Every math:ArgumentSlot of a math:ModelFormula must carry a math:slotExpression — an indexed slot with no expression is a formula the lift never structured (math:UnliftableRComputation)." ;
+    logic:integrity math:mfseForall .
+math:mfseForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "model-formula-slot-expression formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→¬∃ integrity formula of math:ModelFormulaSlotExpressionConstraint: no math:ModelFormula has a math:argumentSlot operand lacking math:slotExpression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:mfseImpl .
+math:mfseImpl a logic:Formula ; logic:antecedent math:mfseGuard ; logic:consequent math:mfseNot .
+math:mfseGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:ModelFormula ] .
+math:mfseNot a logic:Formula ; logic:not math:mfseEx .
+math:mfseEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists math:mfseBody .
+math:mfseBody a logic:Formula ; logic:and math:mfseEdge , math:mfseNoExpression .
+math:mfseEdge a logic:Formula ; logic:relation math:argumentSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+math:mfseNoExpression a logic:Formula ; logic:not math:mfseExpressionEx .
+math:mfseExpressionEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists math:mfseExpressionAtom .
+math:mfseExpressionAtom a logic:Formula ; logic:relation math:slotExpression ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+
+math:TensorGraphArchitectureConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor-graph architecture constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: every math:TensorComputationGraph names the model it is the architecture OF through math:architectureOf. A lifted forward pass anchored to no math:LearnedModel is a graph standing behind nothing, so the self-structure reading — an AI reading its own architecture back — has no subject; that is the graph-side residue of the front-end's math:UnliftableTensorGraph refusal. It is authored as a logic:Constraint rather than a class restriction because math:TensorComputationGraph is already committed to the DIFFERENT single gmeow:enforcesFailureClass math:MalformedTensorComputationGraph (its node-presence frame), and the frontend hard-fails a class carrying two distinct failure classes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnliftableTensorGraph ;
+    logic:formalizes math:TensorComputationGraph ;
+    logic:severity "Violation" ;
+    logic:message "A math:TensorComputationGraph must name the model it is the architecture of through math:architectureOf; a forward pass anchored to no model has no subject (math:UnliftableTensorGraph)." ;
+    logic:integrity math:tgaForall .
+math:tgaForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tensor-graph-architecture formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→∃ integrity formula of math:TensorGraphArchitectureConstraint: every math:TensorComputationGraph carries a math:architectureOf edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:tgaImpl .
+math:tgaImpl a logic:Formula ; logic:antecedent math:tgaGuard ; logic:consequent math:tgaCons .
+math:tgaGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:TensorComputationGraph ] .
+math:tgaCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] ;
+    logic:exists math:tgaAtom .
+math:tgaAtom a logic:Formula ; logic:relation math:architectureOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
+
+math:ProofDependencyGraphAnchoredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof dependency-graph anchored constraint"@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: every math:ProofDependencyGraph names the math:Proof it underlies through math:dependencyGraphOf. A lifted declaration DAG that underlies no proof is a set of edges with nothing derived at the end of them, so the goal-decomposed reading the proof bridge frames has no target; that is the graph-side residue of the front-end's math:IllFoundedProofDerivation refusal. The class's own definition already names the proof it underlies, so without this the naming is prose only and the DAG floats unattached."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:IllFoundedProofDerivation ;
+    logic:formalizes math:ProofDependencyGraph ;
+    logic:severity "Violation" ;
+    logic:message "A math:ProofDependencyGraph must name the math:Proof it underlies through math:dependencyGraphOf; a DAG underlying nothing has no derived conclusion (math:IllFoundedProofDerivation)." ;
+    logic:integrity math:pdgaForall .
+math:pdgaForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "proof-dependency-graph-anchored formula"@x-gmeow-english ;
+    skos:definition "The top-level ∀→∃ integrity formula of math:ProofDependencyGraphAnchoredConstraint: every math:ProofDependencyGraph carries a math:dependencyGraphOf edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:pdgaImpl .
+math:pdgaImpl a logic:Formula ; logic:antecedent math:pdgaGuard ; logic:consequent math:pdgaCons .
+math:pdgaGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:ProofDependencyGraph ] .
+math:pdgaCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists math:pdgaAtom .
+math:pdgaAtom a logic:Formula ; logic:relation math:dependencyGraphOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
+
 math:UngroundedVerificationResult
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
@@ -16096,6 +16445,13 @@ math:UnframedOperator a logic:Situation .
 math:UnframedProbabilityValue a logic:Situation .
 math:UnframedWeightTensor a logic:Situation .
 math:UngroundedIngestRun a logic:Situation .
+math:IllFoundedProofDerivation a logic:Situation .
+math:MalformedONNXWireFormat a logic:Situation .
+math:MalformedRScript a logic:Situation .
+math:MalformedTSTPDerivation a logic:Situation .
+math:UnliftableRComputation a logic:Situation .
+math:UnliftableTensorGraph a logic:Situation .
+math:UnreadableIngestSource a logic:Situation .
 math:UngroundedResultClaim a logic:Situation .
 math:UngroundedStabilityCalibration a logic:Situation .
 math:UngroundedTheoremClaim a logic:Situation .

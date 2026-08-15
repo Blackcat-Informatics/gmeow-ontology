@@ -239,6 +239,9 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
             | "iff"
             | "forall"
             | "exists"
+            | "necessarily"
+            | "possibly"
+            | "overAccessibility"
             | "quantifiedVariable"
             | "termIndex"
             | "termIri"
@@ -1964,6 +1967,91 @@ pub fn derive_validation_shapes(
             .push(pc);
     }
 
+    // ── Node-kind sugar (logic:PathNodeKindConstraint) → declarative sh:nodeKind ──────────────
+    // A CLASS-SCOPED node-kind record (one carrying `logic:onClass`) grounds a `sh:nodeKind`
+    // facet DECLARATIVELY on that class's node shape, exactly as the unique-language sugar above
+    // grounds `sh:uniqueLang`: `sh:nodeKind` is a faithful SHACL-Core facet, so it belongs on the
+    // class node shape the declarative readers (JSON-Schema / Pydantic / ShEx) consume, not only
+    // in the record's procedural SPARQL twin. It is the ONLY authored form for an IRI-vs-blank
+    // obligation: `sh:class C` admits a blank node typed `C`, and OWL's universal fillers invert
+    // to at most `sh:BlankNodeOrIRI` (`owl:Thing`) — neither can say "IRI, not blank".
+    // A record with NO `logic:onClass` is PATH-scoped (its guard is the value path itself, and
+    // its target is `sh:targetSubjectsOf`, not a class), so it has no class node shape to ride
+    // and keeps its procedural projection alone.
+    let node_kind_ty = Node::iri(logic_iri("PathNodeKindConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &node_kind_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(kind)) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+            value(store, &rec, &nn(&logic_iri("nodeKind")))
+                .and_then(|t| shacl_node_kind_of(&term_str(&t))),
+        ) else {
+            continue;
+        };
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::NodeKindShacl(kind)],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
+    // ── String-pattern sugar (logic:StringPatternConstraint) → declarative sh:pattern ─────────
+    // A CLASS-SCOPED regex record (one carrying `logic:onClass`) grounds a `sh:pattern` facet
+    // DECLARATIVELY on that class's node shape, on exactly the reasoning of the node-kind sugar
+    // above: `sh:pattern` is a faithful SHACL-Core facet, so it belongs on the class node shape
+    // the declarative readers consume, not only in the record's procedural SPARQL twin.
+    //
+    // This is the ONLY route by which a lexical-form obligation reaches a derived property
+    // shape. The alternative — an `owl:withRestrictions` datarange carrying `xsd:pattern` — is
+    // the only OTHER thing `datatype_facets` reads, and authoring one is not free: a LIVE
+    // pattern facet is outside the fragment the native reasoner decides (XSD's regular-
+    // expression dialect is not the host engine's, so `refute::datatype` withholds rather than
+    // guess), and one undecided facet family makes `reason-verify` refuse a consistency verdict
+    // for the WHOLE ontology. Deriving the component from the `logic:` constraint keeps the
+    // obligation, keeps a single authored source, and leaves the reasoned closure in-fragment.
+    //
+    // Only `regexRequired` lowers. A `regexForbidden` record is a NEGATED pattern, which SHACL
+    // Core cannot state as a property component (`sh:not` of a pattern needs a nested shape), so
+    // it keeps its procedural projection alone rather than lowering to a wrong positive facet.
+    let string_pattern_ty = Node::iri(logic_iri("StringPatternConstraint"));
+    for rec in subjects_with(store, &nn(RDF_TYPE), &string_pattern_ty) {
+        let (Some(Node::Iri(class_iri)), Some(Node::Iri(path)), Some(regex)) = (
+            value(store, &rec, &nn(&logic_iri("onClass"))),
+            value(store, &rec, &nn(&logic_iri("valuePath"))),
+            match value(store, &rec, &nn(&logic_iri("stringPattern"))) {
+                Some(Node::Lit { lexical, .. }) => Some(lexical),
+                _ => None,
+            },
+        ) else {
+            continue;
+        };
+        let op = value(store, &rec, &nn(&logic_iri("stringOp"))).map(|t| term_str(&t));
+        if op.as_deref() != Some("regexRequired") {
+            continue;
+        }
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) || optouts.contains(&path) {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &path,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::Pattern { regex, flags: None }],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
     let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
     for class in &classes {
@@ -3327,7 +3415,10 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
 
 /// The sub-formula link predicates: a `logic:Formula` reached through any of these is a
 /// COMPONENT of another formula, so it is not a top-level assertion (`logic:hasFormula`).
-const FORMULA_SUBLINKS: [&str; 8] = [
+/// `necessarily`/`possibly` are the modal-operator body links: a modal node's body is a
+/// component reached by the standard-translation expansion, never a free-standing top-level
+/// formula.
+const FORMULA_SUBLINKS: [&str; 10] = [
     "not",
     "and",
     "or",
@@ -3336,6 +3427,27 @@ const FORMULA_SUBLINKS: [&str; 8] = [
     "iff",
     "forall",
     "exists",
+    "necessarily",
+    "possibly",
+];
+
+/// The base world at which a top-level modal `logic:Formula` is evaluated: the standard
+/// translation ST(φ, w) begins here and threads a fresh world variable through each modal
+/// operator. A module-level constant so the parse-time expansion and any downstream reader
+/// name the same actual world.
+const ACTUAL_WORLD_IRI: &str = "https://blackcatinformatics.ca/logic/actualWorld";
+
+/// The six typed accessibility relations a modal node may pin on `logic:overAccessibility`.
+/// The bare `logic:accessibleFrom` superproperty is intentionally EXCLUDED: it licenses no
+/// cross-type entailment, so a well-formed modal node must pin exactly one typed relation and
+/// the standard translation is taken over it, never over the blurred union.
+const MODAL_ACCESSIBILITY_RELATIONS: [&str; 6] = [
+    "https://blackcatinformatics.ca/logic/epistemicallyPossible",
+    "https://blackcatinformatics.ca/logic/doxasticallyAccessible",
+    "https://blackcatinformatics.ca/logic/deonticallyIdeal",
+    "https://blackcatinformatics.ca/logic/temporallySucceeds",
+    "https://blackcatinformatics.ca/logic/counterfactuallyCloser",
+    "https://blackcatinformatics.ca/gmeow/sharpens",
 ];
 
 /// Read top-level `logic:Formula` trees into [`Formula`]s. A malformed node emits an
@@ -3557,7 +3669,13 @@ fn parse_formula_inner(
         let consequent = formula_objects(store, node, "consequent");
         let forall = formula_objects(store, node, "forall");
         let exists = formula_objects(store, node, "exists");
+        let necessarily = formula_objects(store, node, "necessarily");
+        let possibly = formula_objects(store, node, "possibly");
 
+        // `logic:overAccessibility` is a SATELLITE of a modal node, not a constructor family:
+        // it is read separately by `read_over_accessibility` and must never enter the
+        // exactly-one-family guard (exactly like `logic:quantifiedVariable`/`logic:argument`,
+        // which are also read as satellites of their owning family).
         let families = [
             ("relation", !relation.is_empty()),
             ("not", !not.is_empty()),
@@ -3570,6 +3688,8 @@ fn parse_formula_inner(
             ),
             ("forall", !forall.is_empty()),
             ("exists", !exists.is_empty()),
+            ("necessarily", !necessarily.is_empty()),
+            ("possibly", !possibly.is_empty()),
         ];
         let present: Vec<&str> = families
             .iter()
@@ -3698,6 +3818,16 @@ fn parse_formula_inner(
                     Formula::Exists { vars, body }
                 })
             }
+            "necessarily" | "possibly" => {
+                // Parse-time STANDARD-TRANSLATION sugar entry: a top-level modal node carries no
+                // new Formula IR variant — it expands (□/◇) into the existing FOL core, beginning
+                // at the actual world (modal depth 0). `st_expand_modal` recurses only into the
+                // BODY node (never `node` itself), so the shared cycle guard is not tripped by the
+                // node this `parse_formula_inner` frame has already pushed.
+                let world =
+                    Term::iri(ACTUAL_WORLD_IRI).map_err(|e| formula_err(node, e.message()))?;
+                st_expand_modal(store, node, present[0], &world, 0, active)
+            }
             _ => unreachable!("constructor family was selected from a closed local array"),
         }
     })();
@@ -3705,6 +3835,299 @@ fn parse_formula_inner(
     let popped = active.pop();
     debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
     result
+}
+
+/// Expand a single modal operator (`link` = `"necessarily"` = □ / `"possibly"` = ◇) rooted at
+/// `node` into the FOL core, relativized to world `w` at modal `depth`. Shared by
+/// [`parse_formula_inner`] (top-level entry) and [`st_translate`] (nested) so the expansion lives
+/// in one place. It recurses via [`st_translate`] into the BODY node ONLY — never `node` itself —
+/// so the caller's already-pushed cycle-guard frame for `node` is never re-entered.
+///
+/// * □B over R ↦ `∀ __w{depth} . R(w, __w{depth}) → ST(B, __w{depth}, depth+1)`
+/// * ◇B over R ↦ `∃ __w{depth} . R(w, __w{depth}) ∧ ST(B, __w{depth}, depth+1)`
+fn st_expand_modal(
+    store: &RdfDataset,
+    node: &Subject,
+    link: &str,
+    world: &Term,
+    depth: usize,
+    active: &mut Vec<String>,
+) -> gmeow_errors::Result<Formula> {
+    let body_node = one_child_subject(store, node, link)?;
+    let relation_iri = read_over_accessibility(store, node)?;
+    let accessibility =
+        Term::iri(relation_iri.as_str()).map_err(|e| formula_err(node, e.message()))?;
+    let next_world = Term::Var(format!("__w{depth}"));
+    let acc_atom = Formula::atom(accessibility, vec![world.clone(), next_world.clone()])
+        .map_err(|e| formula_err(node, e.message()))?;
+    let inner = st_translate(store, &body_node, &next_world, depth + 1, active)?;
+    Ok(if link == "necessarily" {
+        Formula::Forall {
+            vars: vec![format!("__w{depth}")],
+            body: Box::new(Formula::Implies(Box::new(acc_atom), Box::new(inner))),
+        }
+    } else {
+        Formula::Exists {
+            vars: vec![format!("__w{depth}")],
+            body: Box::new(Formula::And(vec![acc_atom, inner])),
+        }
+    })
+}
+
+/// The **standard translation** ST(φ, w): expand a `logic:Formula` rooted at `node` into the
+/// existing 8-variant FOL [`Formula`] IR, relativized to the world term `w`. This is the
+/// parse-time expansion of the modal operators (`logic:necessarily` = □, `logic:possibly` = ◇)
+/// — NO new IR variant is minted, mirroring the frontend-only sugar of the constraint records.
+///
+/// * □B over R ↦ `∀ __w{depth} . R(w, __w{depth}) → ST(B, __w{depth}, depth+1)`
+/// * ◇B over R ↦ `∃ __w{depth} . R(w, __w{depth}) ∧ ST(B, __w{depth}, depth+1)`
+/// * an atom `P(a₁…aₙ)` gains the world as its first argument: `P(w, a₁…aₙ)`
+/// * the boolean connectives and the individual quantifiers are homomorphic — the SAME world
+///   `w` and the SAME modal `depth` thread through unchanged (individual binders are preserved).
+///
+/// `R` is the single typed accessibility relation the node pins via `logic:overAccessibility`
+/// ([`read_over_accessibility`]); the fresh world variable name `__w{depth}` is derived from the
+/// modal nesting depth so a nested □◇ threads distinct world variables. The cycle guard, family
+/// dispatch, and satellite readers are shared verbatim with [`parse_formula_inner`].
+fn st_translate(
+    store: &RdfDataset,
+    node: &Subject,
+    world: &Term,
+    depth: usize,
+    active: &mut Vec<String>,
+) -> gmeow_errors::Result<Formula> {
+    let node_id = subject_str(node);
+    if let Some(cycle_start) = active.iter().position(|member| member == &node_id) {
+        let mut members = active[cycle_start..].to_vec();
+        members.sort();
+        members.dedup();
+        let focus = members.first().cloned().unwrap_or_else(|| node_id.clone());
+        return Err(formula_err_for(
+            focus,
+            format!(
+                "logic:Formula recursive constructor cycle among {}",
+                members.join(", ")
+            ),
+        ));
+    }
+    active.push(node_id.clone());
+
+    let result = (|| {
+        let relation = formula_objects(store, node, "relation");
+        let not = formula_objects(store, node, "not");
+        let and = formula_objects(store, node, "and");
+        let or = formula_objects(store, node, "or");
+        let iff = formula_objects(store, node, "iff");
+        let antecedent = formula_objects(store, node, "antecedent");
+        let consequent = formula_objects(store, node, "consequent");
+        let forall = formula_objects(store, node, "forall");
+        let exists = formula_objects(store, node, "exists");
+        let necessarily = formula_objects(store, node, "necessarily");
+        let possibly = formula_objects(store, node, "possibly");
+
+        let families = [
+            ("relation", !relation.is_empty()),
+            ("not", !not.is_empty()),
+            ("and", !and.is_empty()),
+            ("or", !or.is_empty()),
+            ("iff", !iff.is_empty()),
+            (
+                "antecedent/consequent",
+                !antecedent.is_empty() || !consequent.is_empty(),
+            ),
+            ("forall", !forall.is_empty()),
+            ("exists", !exists.is_empty()),
+            ("necessarily", !necessarily.is_empty()),
+            ("possibly", !possibly.is_empty()),
+        ];
+        let present: Vec<&str> = families
+            .iter()
+            .filter_map(|(name, is_present)| is_present.then_some(*name))
+            .collect();
+        if present.len() != 1 {
+            return Err(formula_err(
+                node,
+                format!(
+                    "logic:Formula {node_id} requires exactly one constructor family; found {} ({})",
+                    present.len(),
+                    present.join(", ")
+                ),
+            ));
+        }
+
+        match present[0] {
+            "relation" => {
+                if relation.len() != 1 {
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} requires exactly one logic:relation; found {}",
+                            relation.len()
+                        ),
+                    ));
+                }
+                let Node::Iri(relation_iri) = &relation[0] else {
+                    return Err(formula_err(
+                        node,
+                        format!("logic:Formula {node_id} requires an IRI-valued logic:relation"),
+                    ));
+                };
+                let relation =
+                    Term::iri(relation_iri.clone()).map_err(|e| formula_err(node, e.message()))?;
+                let args = parse_term_carriers(store, node, "argument", &mut Vec::new())?;
+                if args.is_empty() {
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} atomic predication requires at least one logic:argument"
+                        ),
+                    ));
+                }
+                // The standard translation relativizes each atom to the current world: prepend
+                // `w` as its first argument, so `P(a₁…aₙ)` becomes `P(w, a₁…aₙ)`.
+                let mut world_args = Vec::with_capacity(args.len() + 1);
+                world_args.push(world.clone());
+                world_args.extend(args);
+                Formula::atom(relation, world_args).map_err(|e| formula_err(node, e.message()))
+            }
+            "not" => {
+                let child = one_child_subject(store, node, "not")?;
+                Ok(Formula::Not(Box::new(st_translate(
+                    store, &child, world, depth, active,
+                )?)))
+            }
+            "and" | "or" => {
+                let link = present[0];
+                let child_terms = if link == "and" { &and } else { &or };
+                if child_terms.len() < 2 {
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} logic:{link} requires at least two operands; found {}",
+                            child_terms.len()
+                        ),
+                    ));
+                }
+                let mut parsed = Vec::with_capacity(child_terms.len());
+                for child in child_terms {
+                    let child = term_as_subject(child).ok_or_else(|| {
+                        formula_err(
+                            node,
+                            format!(
+                                "logic:Formula {node_id} has a non-resource logic:{link} operand"
+                            ),
+                        )
+                    })?;
+                    parsed.push(st_translate(store, &child, world, depth, active)?);
+                }
+                Ok(if link == "and" {
+                    Formula::And(parsed)
+                } else {
+                    Formula::Or(parsed)
+                })
+            }
+            "iff" => {
+                if iff.len() != 2 {
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} logic:iff requires exactly two operands; found {}",
+                            iff.len()
+                        ),
+                    ));
+                }
+                let a = term_as_subject(&iff[0]).ok_or_else(|| {
+                    formula_err(
+                        node,
+                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
+                    )
+                })?;
+                let b = term_as_subject(&iff[1]).ok_or_else(|| {
+                    formula_err(
+                        node,
+                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
+                    )
+                })?;
+                Ok(Formula::Iff(
+                    Box::new(st_translate(store, &a, world, depth, active)?),
+                    Box::new(st_translate(store, &b, world, depth, active)?),
+                ))
+            }
+            "antecedent/consequent" => {
+                let a = one_child_subject(store, node, "antecedent")?;
+                let c = one_child_subject(store, node, "consequent")?;
+                Ok(Formula::Implies(
+                    Box::new(st_translate(store, &a, world, depth, active)?),
+                    Box::new(st_translate(store, &c, world, depth, active)?),
+                ))
+            }
+            "forall" | "exists" => {
+                let link = present[0];
+                let body_node = one_child_subject(store, node, link)?;
+                let vars = parse_bound_vars(store, node)?;
+                // An individual quantifier is homomorphic: the SAME world and modal depth thread
+                // through, and the authored bound variables are preserved unchanged.
+                let body = Box::new(st_translate(store, &body_node, world, depth, active)?);
+                Ok(if link == "forall" {
+                    Formula::Forall { vars, body }
+                } else {
+                    Formula::Exists { vars, body }
+                })
+            }
+            "necessarily" | "possibly" => {
+                // A NESTED modal operator: recurse via the shared expander, threading the
+                // current world and modal depth (a fresh world var __w{depth} is bound here).
+                st_expand_modal(store, node, present[0], world, depth, active)
+            }
+            _ => unreachable!("constructor family was selected from a closed local array"),
+        }
+    })();
+
+    let popped = active.pop();
+    debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
+    result
+}
+
+/// Read the single typed accessibility relation a modal node pins on `logic:overAccessibility`.
+///
+/// A well-formed modal node pins EXACTLY ONE IRI drawn from the six typed accessibility
+/// relations ([`MODAL_ACCESSIBILITY_RELATIONS`]). An absent, plural, non-IRI, or out-of-set
+/// value is malformed: in particular the bare `logic:accessibleFrom` superproperty and any
+/// `gmeow:modalForce*` register IRI are rejected, because the standard translation must be taken
+/// over a single typed relation, never the blurred union. Every rejection routes through
+/// [`formula_err`] so the shared `MALFORMED_FORMULA` error path reports it.
+fn read_over_accessibility(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<String> {
+    let values = formula_objects(store, node, "overAccessibility");
+    if values.len() != 1 {
+        return Err(formula_err(
+            node,
+            format!(
+                "modal logic:Formula {} requires exactly one logic:overAccessibility typed accessibility relation; found {}",
+                subject_str(node),
+                values.len()
+            ),
+        ));
+    }
+    let Node::Iri(iri) = &values[0] else {
+        return Err(formula_err(
+            node,
+            format!(
+                "modal logic:Formula {} requires an IRI-valued logic:overAccessibility",
+                subject_str(node)
+            ),
+        ));
+    };
+    if !MODAL_ACCESSIBILITY_RELATIONS.contains(&iri.as_str()) {
+        return Err(formula_err(
+            node,
+            format!(
+                "modal logic:Formula {} logic:overAccessibility {} is not one of the six typed accessibility relations; the bare logic:accessibleFrom superproperty, any gmeow:modalForce* register, and any other IRI are rejected",
+                subject_str(node),
+                iri.as_str()
+            ),
+        ));
+    }
+    Ok(iri.as_str().to_owned())
 }
 
 /// Read an ordered argument list from `node`'s `logic:<link>` term-carriers (sorted by
@@ -5411,6 +5834,20 @@ fn node_kind_relation(kind: &str) -> Option<&'static str> {
         "IRI" | "iri" => Some("termIsIri"),
         "Literal" | "literal" => Some("termIsLiteral"),
         "BlankNodeOrIRI" | "BlankNodeOrIri" | "blankNodeOrIri" => Some("termIsBlankOrIri"),
+        _ => None,
+    }
+}
+
+/// The SHACL node-kind an authored `logic:nodeKind` token names — the DECLARATIVE peer of
+/// [`node_kind_relation`] (which names the same token's `logic:` term relation for the procedural
+/// lowering). Accepts exactly the same token spellings, so the two projections of one record can
+/// never disagree about which kinds are authorable; an unrecognized token yields `None` in both
+/// (the procedural reader then raises the authoritative `MALFORMED_CONSTRAINT`).
+fn shacl_node_kind_of(kind: &str) -> Option<ShaclNodeKind> {
+    match node_kind_relation(kind)? {
+        "termIsIri" => Some(ShaclNodeKind::Iri),
+        "termIsLiteral" => Some(ShaclNodeKind::Literal),
+        "termIsBlankOrIri" => Some(ShaclNodeKind::BlankNodeOrIri),
         _ => None,
     }
 }

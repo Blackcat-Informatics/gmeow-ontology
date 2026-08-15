@@ -52,3 +52,36 @@
 # be surfaced on the issue and the PR, and stated plainly in the completion
 # report. Three entries for one issue means the issue was not implemented:
 # stop and say so.
+
+=========================================================================
+## From #1373 — logic glyph enrichment / GMN operator symbology plane (recorded 2026-08-10)
+PR #1626, merged green. The issue's own deliverable — the modal SIGNS (□ ◇, their
+codepoints, fixity/precedence and provenance) — ships and is gated. The entry below is
+about a capability added BEYOND that deliverable.
+
+D1. The modal-EVALUATION reasoner bridge never runs on shipped content: nothing in the
+    pipeline calls it.
+    Decided-by: Patrick Audley on 2026-08-10 — asked whether to wire the modal pass into
+                reason_all_certified now, remove the bridge, or land and correct the
+                record, answered "let's get this merged now, I really want to clean up
+                these old branches and then attack all the CI fallout at once."
+    crates/logic/src/foundation.rs evaluate_modal_formulas (:2441) has exactly ONE caller,
+    foundation::evaluate (:3424). crates/pipeline never calls foundation::evaluate — the
+    reasoner the bundle is built from is gmeow_logic::reason::reason_all_certified
+    (crates/pipeline/src/stages/reason.rs:158), which carries no modal pass at all. The only
+    production caller of foundation::evaluate is crates/conformance/src/run.rs:970, and
+    crates/conformance is not a dependency of the shipped gmeow CLI. Observable consequence:
+    generated/logic/inferred-closure.rdf12.ttl (149k lines) contains ZERO modal verdict
+    instances — no logic:modalNecessityHolds / Fails / Undetermined, no
+    logic:modalPossibilityHolds / Fails, no logic:modalCounterexampleWorld. Authoring a modal
+    logic:Formula into any ingested source does NOT change this, because the evaluator is not
+    on the path regardless of content. Secondary, and moot until the above is fixed: the
+    evaluator decides a body that is a SINGLE GROUND ATOM only; a compound (∧/∨/¬/→) or
+    nested-modal body is an explicit foundation_err hard fail, never a silent partial
+    verdict, so no wrong modal verdict can be produced.
+    Forward path: wire the modal pass into reason_all_certified so it runs on every bundle
+                  build, then author a modal logic:Formula (body atom pinned by
+                  logic:atomSubject/atomPredicate/atomObject, plus logic:modalEvalWorld and
+                  one typed logic:overAccessibility) and a non-empty accessibility frame so
+                  the verdict is real rather than a vacuous hold. Lifting the single-atom
+                  body restriction (recursive per-world sub-formula evaluation) follows.

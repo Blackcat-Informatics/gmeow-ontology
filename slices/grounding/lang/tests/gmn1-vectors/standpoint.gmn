@@ -1,2 +1,2 @@
 @gmn{v: 1, aliases: dict-v3, glyphs: 2}
-@s{s: gmeow__sensorCrew, p: rdf__type, o: gmeow__Standpoint}
+@s{s: gmeow__sensorCrew, p: rdf__type, o: st}

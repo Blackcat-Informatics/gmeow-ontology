@@ -3,7 +3,7 @@
 # Conforming GMN fixture: a complete envelope. The gmeow:GmnEnvelope carries its full
 # nine-field contract (the three dialect coordinates, the declared codebook identity, the
 # boundary ring, the asserting standpoint, the generating activity, the byte-exact digest,
-# and the losslessness judgment) so lang:GmnEnvelopeContractShape validates with no findings.
+# and the losslessness judgment) so the derived gmeow:GmnEnvelope-shape validates with no findings.
 # The gmeow:gmnCodebookDigest is the codebook's recomputed Merkle root (the SAME value the
 # frozen gmn1-vectors manifest.ttl pins), so the native GMN codebook-digest gate passes. The
 # judgment is a logic:Correspondence — the honest section/retraction verdict of the GMN-0 →
@@ -29,7 +29,7 @@ ex:envelopeComplete a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
     gmeow:gmnDictionaryVersion "3" ;
     gmeow:gmnGlyphTableVersion "2" ;
-    gmeow:gmnCodebookDigest "blake3:f93d8b8380cb11f90800342edd0867193d8d6006b5f7c033dee2f3db66c9ae43" ;
+    gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce" ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;

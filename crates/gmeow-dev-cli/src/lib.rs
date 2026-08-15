@@ -171,6 +171,17 @@ pub enum Commands {
         #[arg(default_value = "generated/dist/gmeow.gts")]
         gts: PathBuf,
     },
+    /// Audit the whole MEDIUM axis of any GMEOW-authored GTS artifact — the dist
+    /// bundle, a runtime `~/.gmeow/*.gts` store, or a whole-artifact product.
+    #[command(name = "medium-gate")]
+    MediumGate {
+        #[arg(default_value = "generated/dist/gmeow.gts")]
+        gts: PathBuf,
+        /// The bundle whose medium registry an artifact that carries none of its own
+        /// (a runtime store) is audited against — the bundle its dictionaries came from.
+        #[arg(long = "registry", default_value = "generated/dist/gmeow.gts")]
+        registry: PathBuf,
+    },
     /// Validate Turtle syntax, term annotations, and SHACL conformance.
     Validate {
         #[arg(long = "timings")]
@@ -818,6 +829,7 @@ pub fn run() -> i32 {
             &evidence,
         ),
         Commands::GtsFrameProfile { gts } => dev_validate::gts_frame_profile(&gts),
+        Commands::MediumGate { gts, registry } => dev_validate::medium_gate(&gts, &registry),
         Commands::Validate {
             timings,
             timings_json,

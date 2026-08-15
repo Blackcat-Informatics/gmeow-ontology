@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency (medium axis): which coordinates is each medium-axis record OBLIGED to carry?
+# Read off the canonical logic: restriction axioms the slice authors (the derive-source the
+# SHACL surface is projected from), never off the projected shapes — so the answer is the
+# obligation itself, not a reading of its lowering. A record missing an obliged coordinate is
+# a DIFFERENT claim, not a weaker one, which is why every one of these is min-1.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?record ?coordinate WHERE {
+    ?record rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+            logic:subClassOf ?restriction .
+    ?restriction a logic:Restriction ;
+                 logic:onProperty ?coordinate ;
+                 logic:minQualifiedCardinality ?atLeast .
+}
+ORDER BY ?record ?coordinate

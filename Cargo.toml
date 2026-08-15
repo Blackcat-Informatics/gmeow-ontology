@@ -131,11 +131,22 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-# EXACT, not a caret range. Every docs wasm engine statically links this crate and records
-# the resolved version it was built against; a range lets `cargo update` relink the RDF core
-# while the manifest still reads the same, which is precisely the drift the substrate record
-# exists to catch.
-purrdf = "=0.12.0"
+# PINNED BY EXACT GIT REV — an immutable commit is even stronger than an `=x.y.z` crates.io
+# pin: `cargo update` cannot relink the RDF core to a different commit, so the docs wasm
+# engines that statically link this crate cannot drift from the substrate record, which now
+# keys off the commit SHA the lock records. Rev `a59d9f2d` is the purrdf-main
+# deterministic-evaluation-governor merge, which unified `PagedQueryError::{Cancelled,
+# DeadlineExceeded}` into `Stopped { cause: StopCause, .. }`; the crates.io 0.12.0 release
+# predates that API and cannot carry it.
+#
+# The rev is downstream of `rust-v0.12.0`, so it also carries what the machine-compression
+# medium consumes: the multi-dictionary GTS writer (many named in-band dictionaries,
+# per-frame selection, `zstd-rsyncable` dictionary priming, an explicit training seed and a
+# declared catalog `level`) plus `DictStrategy::Pinned`, which lets a compaction plan carry
+# the SHIPPED dictionary bytes verbatim so one `gmeow:dictionaryId` resolves to exactly one
+# byte sequence. It likewise supersedes the older rev pin that carried the ownership
+# analyzer's term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term).
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "a59d9f2d" }
 
 # EXACT, and declared ONCE. The wasm-bindgen CLI that generates the JS bindings refuses to
 # run against a library version it does not match byte for byte, and one CLI is on PATH for

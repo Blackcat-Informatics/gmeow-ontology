@@ -225,6 +225,7 @@ https://blackcatinformatics.ca/gmeow/exceptionOriginalDate
 https://blackcatinformatics.ca/gmeow/exceptionReplacementEvent
 https://blackcatinformatics.ca/gmeow/exceptionSchedule
 https://blackcatinformatics.ca/gmeow/exceptionType
+https://blackcatinformatics.ca/gmeow/executesStage
 https://blackcatinformatics.ca/gmeow/exemplarPolarity
 https://blackcatinformatics.ca/gmeow/exemptionDate
 https://blackcatinformatics.ca/gmeow/exifTagId
@@ -503,6 +504,7 @@ https://blackcatinformatics.ca/gmeow/ratioNumerator
 https://blackcatinformatics.ca/gmeow/readingOf
 https://blackcatinformatics.ca/gmeow/realizationMode
 https://blackcatinformatics.ca/gmeow/receiptKind
+https://blackcatinformatics.ca/gmeow/receiptOfExecution
 https://blackcatinformatics.ca/gmeow/recurrenceRuleText
 https://blackcatinformatics.ca/gmeow/referenceAuthority
 https://blackcatinformatics.ca/gmeow/referenceJurisdiction
@@ -722,6 +724,7 @@ https://blackcatinformatics.ca/logic/not
 https://blackcatinformatics.ca/logic/objectiveValue
 https://blackcatinformatics.ca/logic/obligationForbiddenPredicate
 https://blackcatinformatics.ca/logic/observation
+https://blackcatinformatics.ca/logic/overAccessibility
 https://blackcatinformatics.ca/logic/planGoal
 https://blackcatinformatics.ca/logic/planSuccessMode
 https://blackcatinformatics.ca/logic/programQuery
