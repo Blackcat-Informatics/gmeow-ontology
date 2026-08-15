@@ -587,3 +587,81 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         "the aggregate quality gate must require the retained quality jobs"
     );
 }
+
+/// The `validate` target's help string must stay in lock-step with the
+/// declarative coverage registry `gmeow_validate::dsl_coverage::VALIDATE_PHASE_COVERAGE`:
+/// it must NAME every DSL surface the live gate actually runs
+/// (`home == OnValidate`), and it must ATTRIBUTE every deliberately-excluded
+/// phase (`home == OnRustTest`) to where it does run. This is the machine-checked
+/// half of the fix — the original defect was help that advertised "DSL SHACL"
+/// while the live entrypoint ran none of it, indistinguishable from the outside
+/// from a gate that ran and found nothing. A future edit that drops a DSL
+/// surface from the wiring (or adds a phase without updating the help) fails here.
+#[test]
+fn validate_help_matches_the_phase_coverage_registry() {
+    use gmeow_validate::dsl_coverage::{PhaseHome, VALIDATE_PHASE_COVERAGE};
+
+    let makefile = makefile();
+    let header = target_header(&makefile, "validate");
+    let help = header
+        .split_once("## ")
+        .map(|(_, help)| help)
+        .expect("the validate target carries a `## ` help string");
+
+    assert!(
+        help.contains("DSL SHACL"),
+        "validate help must state that DSL SHACL runs: {help:?}"
+    );
+
+    // Every DSL surface the gate runs live must be named in the help. The token
+    // is derived from the phase label (`<kind>-dsl-shacl` -> `<kind>`), so a new
+    // OnValidate DSL surface forces its kind into the help or this fails.
+    let onvalidate_dsl_tokens = VALIDATE_PHASE_COVERAGE
+        .iter()
+        .filter(|phase| phase.home == PhaseHome::OnValidate)
+        .filter_map(|phase| phase.phase.strip_suffix("-dsl-shacl"))
+        .collect::<Vec<_>>();
+    assert!(
+        !onvalidate_dsl_tokens.is_empty(),
+        "the registry must declare at least one OnValidate DSL surface"
+    );
+    for token in &onvalidate_dsl_tokens {
+        assert!(
+            help.contains(token),
+            "validate help omits the OnValidate DSL surface {token:?}: it advertises DSL SHACL \
+             but does not name every surface the gate runs — the help has drifted from \
+             VALIDATE_PHASE_COVERAGE: {help:?}"
+        );
+    }
+
+    // Every phase the gate deliberately does NOT run live must be attributed to
+    // where it DOES run, so the help never implies it runs in `make validate`.
+    let owner_help_token = |owner: &str| -> &'static str {
+        match owner {
+            "example_sweep" => "per-example",
+            "slicetest" => "slice-test",
+            other => panic!(
+                "VALIDATE_PHASE_COVERAGE has an OnRustTest owner {other:?} with no help-token \
+                 mapping; add its human phrasing here and to the validate help string"
+            ),
+        }
+    };
+    let mut saw_rust_test_owner = false;
+    for phase in VALIDATE_PHASE_COVERAGE {
+        if let PhaseHome::OnRustTest(owner) = phase.home {
+            saw_rust_test_owner = true;
+            let token = owner_help_token(owner);
+            assert!(
+                help.contains(token),
+                "validate help does not say where the excluded phase {:?} runs (expected token \
+                 {token:?} for owner {owner:?}): {help:?}",
+                phase.phase
+            );
+        }
+    }
+    assert!(
+        saw_rust_test_owner && help.contains("Rust test"),
+        "the help must state that the excluded per-example / slice-test SHACL run in the Rust \
+         test gate: {help:?}"
+    );
+}

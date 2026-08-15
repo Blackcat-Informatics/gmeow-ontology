@@ -86,6 +86,11 @@ pub mod distinctiveness;
 pub mod dsl;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod dsl_shacl;
+// Declarative `validate`-gate coverage registry + the committed central-DSL SHACL
+// input resolver. Native-only: it walks the authored `dsl/` tree and reads
+// committed `shapes/` files.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod dsl_coverage;
 // The single proof-carrying enrichment entry point (`enrich_findings`) over a
 // consumer Report — attaches rule identity + registry-authored remediation. Reused by
 // the CLI validate/verify path and the pipeline validate stage so the two
