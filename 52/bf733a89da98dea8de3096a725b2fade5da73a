@@ -1,0 +1,15 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 52bf733a89da98dea8de3096a725b2fade5da73a
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Pull-Request: 1686
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 3a9125848a4f6cf033d1b57b169e119dc405857d
+GhpRsq-Head-Ref: agent/issue-1669-stage-1
+GhpRsq-Head-OID: 52bf733a89da98dea8de3096a725b2fade5da73a
+GhpRsq-Result-Tree: 433dab4252e181ee4b8d35e37fe755012e8124bb
+GhpRsq-Result-Commit: b3a9b0459f40c0a690eeed72b433d49763a485d0
+GhpRsq-Parent-Hashes: 52bf733a89da98dea8de3096a725b2fade5da73a
+GhpRsq-Squash-Notes-SHA256: ec3630e7322393cf7246ea59a0bb0633ac6f712bada6d314df413438f1481b08
