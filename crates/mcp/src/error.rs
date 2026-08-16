@@ -135,11 +135,11 @@ define_diag_kind! {
     /// — there is no weaker unprimed store to fall back to, because the store's OWN
     /// header is what makes it decodable, and writing it unprimed would silently discard
     /// the density the dictionary exists to provide.
-    pub struct MediumUndeclaredDictionary { detail: String }
-    code = "mcp.medium.undeclared-dictionary";
+    pub struct MediumUnpinnedStoreDictionary { detail: String }
+    code = "mcp.medium.unpinned-store-dictionary";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "medium: undeclared dictionary — {}", detail;
-    failure_class = "https://blackcatinformatics.ca/gmeow/MediumUndeclaredDictionary";
+    message = "medium: unpinned store dictionary — {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/MediumUnpinnedStoreDictionary";
 }
 
 /// The complete MCP diagnostic-code catalog, in registration order.
@@ -159,7 +159,7 @@ pub const MCP_DIAG_CODES: &[&str] = &[
     DuplicateRegistration::CODE,
     InvalidRegistration::CODE,
     SegmentNotLoaded::CODE,
-    MediumUndeclaredDictionary::CODE,
+    MediumUnpinnedStoreDictionary::CODE,
 ];
 
 /// Eagerly intern every MCP diagnostic code (idempotent).
@@ -172,7 +172,7 @@ pub fn register_all() -> Vec<Code> {
         DuplicateRegistration::register(),
         InvalidRegistration::register(),
         SegmentNotLoaded::register(),
-        MediumUndeclaredDictionary::register(),
+        MediumUnpinnedStoreDictionary::register(),
     ]
 }
 

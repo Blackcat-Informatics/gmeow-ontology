@@ -194,11 +194,15 @@ use purrdf::gts::examples::agent_memory::{RevisionOptions, StoreOptions, ToolCal
 // The GTS WRITE side: only the six WRITE tools mint segments, so the writer and its term
 // model travel with the segment their commit gate lives in.
 #[cfg(feature = "reasoning")]
+// The ONE mandated GMEOW GTS authorship door. `purrdf::gts::writer::Writer` is NOT it:
+// its default catalog states no zstd level, so a segment authored through it satisfies the
+// codec-name half of the frame profile while leaving the level unstated — and therefore
+// unverifiable — on the artifact. The repo-static authorship seal enforces this.
+use gmeow_gts_profile::GmeowGtsWriter as GtsWriter;
+#[cfg(feature = "reasoning")]
 use purrdf::TermValue;
 #[cfg(feature = "reasoning")]
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
-#[cfg(feature = "reasoning")]
-use purrdf::gts::writer::Writer as GtsWriter;
 use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 // Content addressing for the append-only library segments the WRITE tools commit.
 #[cfg(feature = "reasoning")]
@@ -5009,7 +5013,7 @@ impl McpServer {
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
                 "1970-01-01T00:00:00Z",
-            );
+            )?;
             append_library_segments(library_ref, &[withdrawal_segment, audit_segment])?;
             Ok(json!({
                 "ok": true,
@@ -5592,7 +5596,7 @@ pub fn run_conjecture_test(
         MCP_PERSIST_CONJECTURE_SCHEMA,
         &obtains,
         "1970-01-01T00:00:00Z",
-    );
+    )?;
     with_library_lock(library.as_ref(), || {
         append_library_segments(library.as_ref(), &[verdict_segment, audit_segment])
     })?;
@@ -5803,7 +5807,7 @@ pub fn run_submit_candidate(
         MCP_SUBMIT_CANDIDATE_SCHEMA,
         obtains,
         "1970-01-01T00:00:00Z",
-    );
+    )?;
     with_library_lock(library.as_ref(), || {
         append_library_segments(library.as_ref(), &[verdict_segment, audit_segment])
     })?;
@@ -5887,7 +5891,7 @@ pub fn run_withdraw_candidate(
             MCP_WITHDRAW_CANDIDATE_SCHEMA,
             &[MCP_CANDIDATE_IN_LIBRARY],
             "1970-01-01T00:00:00Z",
-        );
+        )?;
         append_library_segments(library_ref, &[withdrawal_segment, audit_segment])?;
         Ok(json!({
             "ok": true,
@@ -7454,7 +7458,7 @@ fn write_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
-    store.append_audit_segment(&build_audit_segment(call_id, schema_iri, obtains, at_time))
+    store.append_audit_segment(&build_audit_segment(call_id, schema_iri, obtains, at_time)?)
 }
 
 /// Build one trajectory-audit context segment's serialized bytes — the PURE, side-effect-free
@@ -7468,7 +7472,7 @@ fn build_audit_segment(
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
-) -> Vec<u8> {
+) -> gmeow_errors::Result<Vec<u8>> {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
@@ -7505,9 +7509,9 @@ fn build_audit_segment(
     }
 
     let mut writer = GtsWriter::new("ai-package");
-    writer.add_terms(&terms);
-    writer.add_quads(&quads);
-    writer.to_bytes()
+    writer.add_terms(&terms)?;
+    writer.add_quads(&quads)?;
+    Ok(writer.into_bytes())
 }
 
 // ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
@@ -7668,7 +7672,7 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut writer = GtsWriter::new("ai-package");
     writer.add_terms(&terms);
     writer.add_quads(&quads);
-    Ok(writer.to_bytes())
+    Ok(writer.into_bytes())
 }
 
 /// Hold the library's exclusive lock for the duration of `f`, serializing every
@@ -13395,7 +13399,7 @@ mod tests {
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
                 "1970-01-01T00:00:00Z",
-            );
+            )?;
             let library = library_at(&path);
             with_library_lock(library.as_ref(), || {
                 append_library_segments(library.as_ref(), &[lib_segment, audit_segment])
@@ -16228,7 +16232,7 @@ pub fn store_medium(
 ) -> gmeow_errors::Result<gmeow_gts_profile::StoreMedium> {
     let dicts = gmeow_gts_profile::segment_dictionaries(snapshot)?;
     let bytes = dicts.get(dictionary).cloned().ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::MediumUndeclaredDictionary {
+        gmeow_errors::Diag::of_kind(crate::error::MediumUnpinnedStoreDictionary {
             detail: format!(
                 "the loaded gmeow.gts pins no in-band dictionary named {dictionary:?} (pinned: \
                  {:?}) — a runtime store cannot be primed with an id the bundle does not carry, \

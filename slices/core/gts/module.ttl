@@ -1859,7 +1859,7 @@ gmeow:gtsProducerRuntimeStores
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS producer — the append-only runtime stores"@x-gmeow-english ;
     skos:definition "The MCP agent-memory, conjecture-library and compaction lanes. They carry no graph/medium-registry — they cite bundle dictionaries by id, read out of the shipped pack's in-band \"dct\" map — so they resolve their dictionary from the segment header, which is what gmeow:mediumProfileStoreL12 declares."@x-gmeow-english ;
-    gmeow:producerCallSite "crates/pipeline/src/mcp.rs" ;
+    gmeow:producerCallSite "crates/mcp/src/lib.rs" ;
     gmeow:producerMedium gmeow:mediumProfileStoreL12 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -1899,7 +1899,7 @@ gmeow:gtsProducerConvertExit
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS producer — the convert --to gts exit"@x-gmeow-english ;
     skos:definition "The transformed-consumer-output door: `gmeow convert --to gts` serializes a frozen carrier straight to GTS bytes. The output describes whatever the consumer handed in, so it carries no registry of its own and one declared medium governs the whole artifact."@x-gmeow-english ;
-    gmeow:producerCallSite "crates/pipeline/src/transcode.rs" ;
+    gmeow:producerCallSite "crates/transcode/src/lib.rs" ;
     gmeow:producerMedium gmeow:mediumProfileBaselineL12 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -2699,6 +2699,23 @@ gmeow:MediumUndeclaredDictionary
     gmeow:howToUse "Raised by the derived gmeow:MediumEnvelope contract shape whenever a field of the seven-field contract is absent or duplicated; the fix is to emit the declaration, never to decode without it."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name a primed payload whose priming dictionary was never written down."@x-gmeow-english .
+
+gmeow:MediumUnpinnedStoreDictionary
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Medium Unpinned Store Dictionary"@x-gmeow-english ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    skos:definition "The failure raised when a CONSUMER's runtime store — agent memory, the conjecture library, the candidate library — must be primed with a shipped dictionary the loaded gmeow.gts pins no in-band bytes for. The bundle is the dictionary's distribution channel: it pins every declared dictionary in its segment header precisely so a consumer writes the exact bytes the build trained, never a re-derivation that could differ under the same id and never an out-of-band artifact a wheel-mode install would not have. HARD FAIL: there is no weaker unprimed store to fall back to, because the store's OWN header is what makes it decodable, and writing it unprimed would silently discard the density the dictionary exists to provide. It is a READ-SIDE failure of the shipped artifact, which is what distinguishes it from gmeow:MediumUndeclaredDictionary (an authoring-side omission — a rep or envelope that never wrote its contract down) and from gmeow:MediumUnknownDictionary (a declaration that resolves to no registered gmeow:CompressionDictionary): here the declaration is fine and the BUNDLE is short."@x-gmeow-english ;
+    skos:example "ex:store a gmeow:MediumUnpinnedStoreDictionary ."@x-gmeow-english ;
+    skos:scopeNote "Scope: the consumer engine's store lane alone. The producer is the engine that opens the store (crates/mcp), never the build — the pipeline's own rep-to-medium checks raise gmeow:MediumUndeclaredDictionary, and one failure class carries exactly one producer so 'which code raised this' always has an answer."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it for an authoring omission (gmeow:MediumUndeclaredDictionary), for a declaration that fails to resolve (gmeow:MediumUnknownDictionary), or for the dictionary-less baseline medium, where naming no dictionary IS the selection."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernGTSPackaging ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Raised by the consumer engine when it resolves a store's medium out of the loaded bundle's in-band \"dct\" map and the id is absent; the fix is to regenerate the bundle so it ships the dictionary, never to open the store unprimed."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name a runtime store that cannot be primed because the shipped bundle does not carry the dictionary it names."@x-gmeow-english .
 
 gmeow:MediumUnknownDictionary
     a logic:Category ,
