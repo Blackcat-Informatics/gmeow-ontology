@@ -83,6 +83,7 @@ define_diag_kind! {
     code = "mcp.duplicate-registration";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "duplicate MCP registration: {}", key;
+    failure_class = "https://blackcatinformatics.ca/logic/DuplicateToolRegistration";
 }
 
 define_diag_kind! {
@@ -95,6 +96,7 @@ define_diag_kind! {
     code = "mcp.invalid-registration";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "invalid MCP registration: {}", message;
+    failure_class = "https://blackcatinformatics.ca/logic/UnregisteredToolSchema";
 }
 
 define_diag_kind! {

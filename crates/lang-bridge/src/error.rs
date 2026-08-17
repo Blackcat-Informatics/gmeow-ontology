@@ -131,6 +131,7 @@ define_diag_kind! {
     code = "lang-bridge.gmn1.unpinned-glyph-cost";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "glyph '{}' has no pinned token cost — re-pin GLYPH_TOKEN_COSTS (the native anti-rot test reports the real BPE value)", glyph;
+    failure_class = "https://blackcatinformatics.ca/lang/GmnUncostedScriptGlyph";
 }
 
 /// The complete `lang:` bridge diagnostic-code catalog, in registration order.

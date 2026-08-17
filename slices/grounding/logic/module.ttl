@@ -19093,6 +19093,27 @@ logic:GoalEvaluation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:evaluatesGoal ; logic:allValuesFrom gmeow:Goal ] .
 
 logic:ActionSchema logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:mcpToolName ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ;
+    gmeow:enforcesFailureClass logic:UnregisteredToolSchema .
+
+logic:mcpToolNameKey
+    a owl:NamedIndividual ,
+        logic:KeyAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an action schema is keyed by its MCP tool name"@x-gmeow-english ;
+    skos:definition "Asserts that a logic:ActionSchema is identified by its logic:mcpToolName: the wire name is the join a client's `tools/call` resolves through, so two schemas sharing it would leave the dispatcher without an answer to which precondition, effect and compensation govern the call. The name therefore uniquely identifies its schema, and the native DL consistency gate forces two schemas asserted distinct yet sharing a name into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property logic:mcpToolName would be OWL 2 Full."@x-gmeow-english ;
+    logic:keyClass logic:ActionSchema ;
+    logic:keyProperty logic:mcpToolName ;
+    logic:formalizes logic:mcpToolName ;
+    gmeow:enforcesFailureClass logic:DuplicateToolRegistration ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over logic:ActionSchema; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when logic:ActionSchema no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name logic:ActionSchema and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:ActionSchema and nothing else. It is not a definition of logic:ActionSchema, not a shape, and not a second place to state the term's meaning."@x-gmeow-english ;
+    skos:example "logic:mcpToolNameKey logic:characterizes logic:ActionSchema ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:ActionSchema logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:precondition ; logic:allValuesFrom owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty logic:capability ; logic:allValuesFrom owl:Thing ] .
 
@@ -19318,6 +19339,22 @@ logic:LogicConformanceFailure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Logic Conformance Failure"@x-gmeow-english ;
     skos:definition "The root of the logic grounding layer's typed conformance-failure lattice: every well-formedness violation the logic: slice detects is an instance of one of its subclasses, so a failure is a first-class queryable object rather than an out-of-band error string. Its five bedrock subclasses cover the flagship acceptance scenarios — an incomplete EL/RL/DL closure, a violated correspondence section obligation, an unentrenched counterfactual, an unwitnessed refutation, and an uncertified chase — plus logic:UnwiredFlagshipScenario for an acceptance scenario that does not bind all its realizing/enforcing artifacts and logic:EnactmentIntegrityViolation for an enactment record that breaks one of the enactment kernel's authored integrity laws."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnregisteredToolSchema
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unregistered Tool Schema"@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:ActionSchema carries no logic:mcpToolName — a governed action with no wire name. The action theory is the authority over the engine's tool surface precisely because every advertised tool is tied to exactly one schema by that name; a schema without one governs nothing reachable, so the tool it describes can be dispatched with no precondition, effect or compensation in force. HARD FAIL rather than a schema the registry skips: a silently unregistered schema is indistinguishable from an action nobody wrote down, which is the state the action theory exists to make impossible."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DuplicateToolRegistration
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Duplicate Tool Registration"@x-gmeow-english ;
+    skos:definition "The failure raised when two distinct logic:ActionSchema individuals claim the SAME logic:mcpToolName. The wire name is the join between a client's `tools/call` and the action governing it, so two schemas sharing one name make that join ambiguous: which precondition must hold, which effect is claimed, and which compensation applies all become unanswerable, and an engine would have to pick one silently. HARD FAIL: the name identifies the schema, so two schemas agreeing on it are either the same action written twice or a collision, and both are defects rather than a choice the dispatcher may resolve."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:IncompleteClosure
