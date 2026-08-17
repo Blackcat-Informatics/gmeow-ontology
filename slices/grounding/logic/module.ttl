@@ -19092,10 +19092,6 @@ logic:GoalEvaluation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:goalEvaluationStatus ; logic:allValuesFrom logic:GoalEvaluationStatus ] ,
     [ a logic:Restriction ; logic:onProperty logic:evaluatesGoal ; logic:allValuesFrom gmeow:Goal ] .
 
-logic:ActionSchema logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:mcpToolName ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ;
-    gmeow:enforcesFailureClass logic:UnregisteredToolSchema .
-
 logic:mcpToolNameKey
     a owl:NamedIndividual ,
         logic:KeyAssertion ;
@@ -19339,14 +19335,6 @@ logic:LogicConformanceFailure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Logic Conformance Failure"@x-gmeow-english ;
     skos:definition "The root of the logic grounding layer's typed conformance-failure lattice: every well-formedness violation the logic: slice detects is an instance of one of its subclasses, so a failure is a first-class queryable object rather than an out-of-band error string. Its five bedrock subclasses cover the flagship acceptance scenarios — an incomplete EL/RL/DL closure, a violated correspondence section obligation, an unentrenched counterfactual, an unwitnessed refutation, and an uncertified chase — plus logic:UnwiredFlagshipScenario for an acceptance scenario that does not bind all its realizing/enforcing artifacts and logic:EnactmentIntegrityViolation for an enactment record that breaks one of the enactment kernel's authored integrity laws."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
-logic:UnregisteredToolSchema
-    a owl:Class ;
-    logic:subClassOf logic:LogicConformanceFailure ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Unregistered Tool Schema"@x-gmeow-english ;
-    skos:definition "The failure raised when a logic:ActionSchema carries no logic:mcpToolName — a governed action with no wire name. The action theory is the authority over the engine's tool surface precisely because every advertised tool is tied to exactly one schema by that name; a schema without one governs nothing reachable, so the tool it describes can be dispatched with no precondition, effect or compensation in force. HARD FAIL rather than a schema the registry skips: a silently unregistered schema is indistinguishable from an action nobody wrote down, which is the state the action theory exists to make impossible."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:DuplicateToolRegistration
