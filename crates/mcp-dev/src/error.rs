@@ -22,6 +22,7 @@ define_diag_kind! {
     code = "mcp-dev.error";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "mcp dev tool error: {}", message;
+    failure_class = "https://blackcatinformatics.ca/logic/DevToolSurfaceFailure";
 }
 
 /// The complete developer-MCP diagnostic-code catalog, in registration order.

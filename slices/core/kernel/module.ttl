@@ -454,6 +454,37 @@ gmeow:coequalFacet
     skos:definition "Marks a property as one co-equal identity-facet axis among peers (CONSTITUTION P9, co-equal facet lint). Every property annotated coequalFacet true is held orthogonal to every other by the generated reasoning lint: its range is its own (distinct from every other axis), no rdfs:subPropertyOf or owl:equivalentProperty bridge may connect two axes, none may be owl:FunctionalProperty (a single locked value invites exactly the owl:sameAs collapse Principle 5 forbids), and all axis ranges must be jointly declared owl:AllDisjointClasses. A new annotated axis receives Principle 9 enforcement by construction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:KernelConformanceFailure
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Kernel Conformance Failure"@x-gmeow-english ;
+    skos:definition "The parent of the kernel's well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each constraint points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces WELL-FORMEDNESS of the kernel's own published surfaces — the distribution catalog a consumer reads to learn which artifacts a release ships, and the derived formal-concept lattice over the surface/capability incidence — never the truth of the content those surfaces describe."@x-gmeow-english ;
+    skos:example "gmeow:UntypedFormalConcept logic:subClassOf gmeow:KernelConformanceFailure ."@x-gmeow-english ;
+    skos:scopeNote "Scope: this class roots the kernel surface well-formedness vocabulary and nothing else. It does not cover a content claim being false, a validation report record, or the gate that raises a failure — a constraint points at its failure class, and the class stays the name of the violation rather than the name of the check."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it for a content claim being false, and avoid minting a failure subclass with no constraint that raises it — an unenforced failure class is documentation, not a gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Subclass it for each kernel surface well-formedness violation, and point the constraint that detects the violation at the subclass through gmeow:enforcesFailureClass."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the parent when naming a way one of the kernel's published surfaces can be malformed."@x-gmeow-english .
+
+gmeow:UnreadableDistributionCatalog
+    a owl:Class ;
+    logic:subClassOf gmeow:KernelConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Unreadable Distribution Catalog"@x-gmeow-english ;
+    skos:definition "The failure raised when the meta-level distribution catalog cannot be read out of a materialized gmeow.gts: the snapshot will not fold, the catalog named graph is absent or empty, it carries no gmeow:DocumentationDistribution subject, or a subject is missing a facet the matrix is keyed on. The catalog tells a consumer WHICH surfaces the release ships and what each loses, so a partial read is not a smaller answer but a different one, and a matrix built from it would under-report loss while looking complete."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:UntypedFormalConcept
+    a owl:Class ;
+    logic:subClassOf gmeow:KernelConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Untyped Formal Concept"@x-gmeow-english ;
+    skos:definition "The failure raised when a node carries gmeow:conceptExtent or gmeow:conceptIntent without being typed gmeow:FormalConcept. The lattice reader filters on the type, so an untyped concept is not read as malformed — it is not read AT ALL, and the emitted lattice is silently smaller than the incidence it was derived from. That silence is the defect: nothing downstream can distinguish a concept that was excluded from one that never existed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:conceptExtent
     a owl:ObjectProperty ;
     rdfs:domain gmeow:FormalConcept ;

@@ -29,6 +29,7 @@ define_diag_kind! {
     code = "bundle-view.io";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "I/O error: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable";
 }
 
 define_diag_kind! {
@@ -39,6 +40,7 @@ define_diag_kind! {
     code = "bundle-view.rdf.parse";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "RDF parse error: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/BundleSourceUnparseable";
 }
 
 define_diag_kind! {
@@ -49,6 +51,7 @@ define_diag_kind! {
     code = "bundle-view.export";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "export projection error: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/FlatExportRefused";
 }
 
 /// The complete bundle-view diagnostic-code catalog, in registration order.

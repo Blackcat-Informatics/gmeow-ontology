@@ -29,6 +29,7 @@ define_diag_kind! {
     code = "docs-catalog.distribution";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "distribution catalog error: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/UnreadableDistributionCatalog";
 }
 
 define_diag_kind! {
@@ -44,6 +45,7 @@ define_diag_kind! {
     code = "docs-catalog.concept-lattice";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "concept lattice error: {}", message;
+    failure_class = "https://blackcatinformatics.ca/gmeow/UntypedFormalConcept";
 }
 
 /// The complete docs-catalog diagnostic-code catalog, in registration order.

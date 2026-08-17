@@ -62,6 +62,7 @@ define_diag_kind! {
     code = "mcp.unknown-tool";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "unknown tool: {}", name;
+    failure_class = "https://blackcatinformatics.ca/logic/UnadvertisedToolInvocation";
 }
 
 define_diag_kind! {
@@ -71,6 +72,7 @@ define_diag_kind! {
     code = "mcp.unknown-resource";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "unknown resource: {}", uri;
+    failure_class = "https://blackcatinformatics.ca/logic/UnadvertisedResourceRead";
 }
 
 define_diag_kind! {
@@ -96,6 +98,7 @@ define_diag_kind! {
     code = "mcp.invalid-registration";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "invalid MCP registration: {}", message;
+    failure_class = "https://blackcatinformatics.ca/logic/BrokenToolRegistration";
 }
 
 define_diag_kind! {
@@ -124,6 +127,7 @@ define_diag_kind! {
     code = "mcp.segment-not-loaded";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "`{}` is served by the `{}` engine segment, which this deployment has not loaded; load that segment and re-dispatch the same frame", tool, segment;
+    failure_class = "https://blackcatinformatics.ca/logic/UnloadedEngineSegment";
 }
 
 define_diag_kind! {

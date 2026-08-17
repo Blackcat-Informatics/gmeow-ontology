@@ -2700,6 +2700,30 @@ gmeow:MediumUndeclaredDictionary
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name a primed payload whose priming dictionary was never written down."@x-gmeow-english .
 
+gmeow:BundleArtifactUnreadable
+    a owl:Class ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Bundle Artifact Unreadable"@x-gmeow-english ;
+    skos:definition "The failure raised when a read-side consumer cannot READ a source artifact at all — a Turtle source handed to the native query substrate, or a materialized gmeow.gts. It is a byte-level refusal below any RDF judgment: nothing was parsed, so nothing can be said about what the artifact contains. HARD FAIL rather than an empty dataset, because an empty result is indistinguishable from an artifact that legitimately carries nothing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:BundleSourceUnparseable
+    a owl:Class ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Bundle Source Unparseable"@x-gmeow-english ;
+    skos:definition "The failure raised on the READ side when bytes were obtained but are not the RDF the reader requires: a syntactically invalid Turtle source, a query evaluation failure, or a query whose result form is not the one the caller demands. Distinct from gmeow:BundleArtifactUnreadable, where the bytes never arrived: here they did and are wrong, so the reader refuses rather than returning a partial binding set that would read as a complete answer over less data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:FlatExportRefused
+    a owl:Class ;
+    logic:subClassOf gmeow:GtsConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Flat Export Refused"@x-gmeow-english ;
+    skos:definition "The failure raised when a flat-export projection — CSVW, SKOS, OBO Graphs, N-Quads, TriG — cannot carry a term the bundle holds, or is asked for a configuration it refuses. The projection is REFUSED rather than degraded: a flat surface that silently drops a term it cannot encode publishes a smaller ontology under the same name, and a consumer has no way to learn what is missing. Every declared loss belongs in the distribution catalog, where it is queryable, never in a projection that quietly omits."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 gmeow:MediumUnpinnedStoreDictionary
     a logic:Category ,
         owl:Class ;

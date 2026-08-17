@@ -19345,6 +19345,73 @@ logic:DuplicateToolRegistration
     skos:definition "The failure raised when two distinct logic:ActionSchema individuals claim the SAME logic:mcpToolName. The wire name is the join between a client's `tools/call` and the action governing it, so two schemas sharing one name make that join ambiguous: which precondition must hold, which effect is claimed, and which compensation applies all become unanswerable, and an engine would have to pick one silently. HARD FAIL: the name identifies the schema, so two schemas agreeing on it are either the same action written twice or a collision, and both are defects rather than a choice the dispatcher may resolve."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:UnadvertisedToolInvocation
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unadvertised Tool Invocation"@x-gmeow-english ;
+    skos:definition "The failure raised when a tools/call names a tool the engine surface does not advertise. The action theory is the authority over that surface — one logic:ActionSchema per advertised tool, joined by logic:mcpToolName — so a call resolving to no schema is a call with no precondition to check, no effect to claim and no compensation to run. HARD FAIL rather than a best-effort dispatch: an engine that guessed which action was meant would execute an unlicensed one. Distinct from logic:UnloadedEngineSegment, where the tool IS advertised and the deployment has merely not loaded the segment serving it; 'does not exist' and 'not here yet' are different facts a caller must be able to tell apart mechanically."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnadvertisedResourceRead
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unadvertised Resource Read"@x-gmeow-english ;
+    skos:definition "The failure raised when a resources/read names a URI the engine does not advertise. The resource half of the surface is declared exactly as the tool half is and served from the descriptors the index publishes, so a read of an unlisted URI has no declared media type and no handler. HARD FAIL rather than an empty body: an empty result is indistinguishable from a resource that exists and is empty, which is the ambiguity the refusal removes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnloadedEngineSegment
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unloaded Engine Segment"@x-gmeow-english ;
+    skos:definition "The failure raised when a dispatch names a tool the surface DOES advertise and DOES govern, but whose implementation lives in an engine segment this deployment has not loaded. It is a ROUTING signal, not a refusal: the payload names both the dispatch key and the segment providing it, so a host loads exactly that segment and re-dispatches the identical frame for an answer identical to the full engine's. That is what makes it a deployment tier rather than a reduced theory — the call becomes slower, never weaker."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:BrokenToolRegistration
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Broken Tool Registration"@x-gmeow-english ;
+    skos:definition "The failure raised when the engine's own registry is not a bijection: a descriptor carrying no name (tool) or no URI and media type (resource), or a descriptor list and handler list that disagree at some index. Every case means advertised-but-not-dispatchable, or dispatchable-but-not-advertised, and the totality contract forbids both — a surface that advertises what it cannot serve lies to every client that reads the index, and one that serves what it does not advertise is unreachable by contract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DevToolSurfaceFailure
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dev Tool Surface Failure"@x-gmeow-english ;
+    skos:definition "The failure raised by a repo-reading developer tool of the MCP surface — the native reasoner refusing the bundle's carrier graph, or the checked-out Constitution failing to read. These tools are the ONLY ones that reach outside the bundle, so their failures are about the working tree rather than the shipped artifact, and they are typed separately for exactly that reason: a consumer running the shipped engine can never raise one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:McpToolGovernedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "McpToolGoverned constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema names the wire tool it governs. The action theory is the authority over the advertised surface only if the join is total — a schema with no name governs nothing reachable, and a call landing on the gap has no precondition to check, no effect to claim and no compensation to run. This is the graph-side counterpart of the engine's unknown-tool refusal, one step earlier."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:UnadvertisedToolInvocation ;
+    logic:formalizes logic:McpActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:McpActionSchema must name the wire tool it governs through logic:mcpToolName; a governed action with no name is a tool the surface can advertise and the theory cannot place (logic:UnadvertisedToolInvocation)." ;
+    logic:integrity logic:mtgForall .
+logic:mtgForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "McpToolGoverned constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:McpToolGovernedConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mtgImpl .
+logic:mtgImpl a logic:Formula ; logic:antecedent logic:mtgGuard ; logic:consequent logic:mtgCons .
+logic:mtgGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:McpActionSchema ] .
+logic:mtgCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:mtgAtom .
+logic:mtgAtom a logic:Formula ; logic:relation logic:mcpToolName ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
 logic:IncompleteClosure
     a owl:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
