@@ -2169,7 +2169,12 @@ fn check_dsl(
 }
 
 /// Recursively collect all `.ttl` files under `dir`, sorted deterministically.
-fn collect_ttl_paths(dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
+///
+/// Public so the DSL-coverage resolver and its liveness/correspondence tests
+/// enumerate the exact file set the DSL SHACL phases validate — one authority
+/// for "which `.ttl` files a `dsl/` surface contributes", never a second walk
+/// that could drift.
+pub fn collect_ttl_paths(dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let root = PathBuf::from(dir);
     let mut paths: Vec<PathBuf> = Vec::new();
     collect_ttl_paths_recursive(&root, &mut paths)?;

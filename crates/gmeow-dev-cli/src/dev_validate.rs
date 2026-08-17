@@ -222,20 +222,22 @@ pub fn validate(
         };
         ValidationRun::run(&[], "", "", "", &lint_config, &options)
     } else {
-        let source_paths: Vec<String> =
-            match gmeow_pipeline::stages::source_load::authored_files(&root) {
-                Ok(paths) => paths.iter().map(|p| p.display().to_string()).collect(),
-                Err(e) => return fail(format!("cannot list authored sources: {e}")),
-            };
-        let options = ValidateOptions {
-            timings,
-            project_root: Some(root.clone()),
-            deep,
-            shape_union_root: Some(root.clone()),
-            merged_shacl,
-            ..ValidateOptions::default()
+        // The authored-source invocation — source paths + the DSL SHACL wiring — is
+        // assembled in ONE testable place (`authored_source_invocation`) so the
+        // wiring cannot silently regress to the historical defect of empty DSL
+        // args. `authored_source_invocation_wires_every_dsl_surface` binds it.
+        let inv = match authored_source_invocation(&root, timings, deep, merged_shacl) {
+            Ok(inv) => inv,
+            Err(code) => return code,
         };
-        ValidationRun::run(&source_paths, "", "", "", &lint_config, &options)
+        ValidationRun::run(
+            &inv.source_paths,
+            "",
+            &inv.mapping_dsl_dir,
+            &inv.statement_dsl_dir,
+            &lint_config,
+            &inv.options,
+        )
     };
     let run = match run {
         Ok(r) => r,
@@ -265,6 +267,72 @@ pub fn validate(
     } else {
         fail(format!("{} error(s)", report.error_count()))
     }
+}
+
+/// The fully-assembled authored-source invocation for `gmeow-dev validate` (the
+/// `make validate` gate): the source paths, the mapping/statement DSL directories
+/// passed positionally to [`ValidationRun::run`], and the [`ValidateOptions`] that
+/// carry the central-DSL SHACL surfaces (the three `*_shapes_ttl` and `test_dsl_dir`).
+///
+/// It exists so the DSL wiring lives in ONE testable place: the exact args whose
+/// prior absence was the historical original defect are built here, and
+/// `authored_source_invocation_wires_every_dsl_surface` binds them.
+pub(crate) struct AuthoredSourceInvocation {
+    pub source_paths: Vec<String>,
+    pub mapping_dsl_dir: String,
+    pub statement_dsl_dir: String,
+    pub options: ValidateOptions,
+}
+
+/// Assemble the authored-source invocation onto the `make validate` gate.
+///
+/// Wires the committed central-DSL SHACL surfaces (mapping/statement/test) resolved
+/// by [`gmeow_validate::dsl_coverage::authored_dsl_shacl_inputs`]; a missing DSL
+/// input is a HARD FAIL there (no-optionality), never a silent skip. `slices_dir` is
+/// deliberately left UNSET so per-example SHACL (owned by the `example_sweep`
+/// rust-test) and slice-local test DSL (owned by `slicetest`) are not re-run as a
+/// duplicate whole-corpus pass — see `docs/DSL-VALIDATION-COVERAGE.md` and the
+/// `VALIDATE_PHASE_COVERAGE` registry.
+///
+/// `merged_shacl` is a PARAMETER (not resolved here) so this assembly — and its
+/// test — never depend on a materialized `generated/` tree.
+///
+/// # Errors
+/// Returns the CLI failure code if the authored source set or the DSL inputs cannot
+/// be resolved.
+pub(crate) fn authored_source_invocation(
+    root: &Path,
+    timings: bool,
+    deep: bool,
+    merged_shacl: MergedShacl,
+) -> Result<AuthoredSourceInvocation, i32> {
+    let source_paths: Vec<String> = match gmeow_pipeline::stages::source_load::authored_files(root)
+    {
+        Ok(paths) => paths.iter().map(|p| p.display().to_string()).collect(),
+        Err(e) => return Err(fail(format!("cannot list authored sources: {e}"))),
+    };
+    let dsl = match gmeow_validate::dsl_coverage::authored_dsl_shacl_inputs(root) {
+        Ok(dsl) => dsl,
+        Err(e) => return Err(fail(format!("cannot resolve DSL SHACL inputs: {e}"))),
+    };
+    let options = ValidateOptions {
+        timings,
+        project_root: Some(root.to_path_buf()),
+        deep,
+        shape_union_root: Some(root.to_path_buf()),
+        merged_shacl,
+        mapping_shapes_ttl: Some(dsl.mapping_shapes),
+        statement_shapes_ttl: Some(dsl.statement_shapes),
+        test_dsl_shapes_ttl: Some(dsl.test_shapes),
+        test_dsl_dir: Some(dsl.test_dir),
+        ..ValidateOptions::default()
+    };
+    Ok(AuthoredSourceInvocation {
+        source_paths,
+        mapping_dsl_dir: dsl.mapping_dir,
+        statement_dsl_dir: dsl.statement_dir,
+        options,
+    })
 }
 
 /// `stage-validate`'s recorded whole-corpus merged-SHACL verdict, admitted ONLY after
@@ -405,4 +473,71 @@ fn build_signature_config(
         config.trusted_key = Some(armor);
     }
     Ok(config)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gmeow_validate::validate_all::MergedShacl;
+
+    /// Repo root: this crate's manifest is `<repo>/crates/gmeow-dev-cli`.
+    fn repo_root() -> std::path::PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root must resolve from crates/gmeow-dev-cli")
+    }
+
+    /// The regression guard that binds the PRODUCTION call site. The historical
+    /// original defect was `dev_validate` passing empty DSL dir/shape arguments to
+    /// `ValidationRun::run`, so the mapping/statement/test DSL SHACL phases never
+    /// executed on `make validate`. The other guards check the resolver, the engine,
+    /// and the help-text — but NOT the args `validate()` actually assembles. This one
+    /// does: it drives the real assembly ([`authored_source_invocation`], the single
+    /// place those args are built) against the real repository and asserts every DSL
+    /// surface is wired. Reverting any surface to an empty dir or a `None`/empty
+    /// shapes text makes this FAIL, on every `make check`, with no `generated/`
+    /// dependency — so the exact original regression can no longer pass green.
+    #[test]
+    fn authored_source_invocation_wires_every_dsl_surface() {
+        let root = repo_root();
+        // `MergedShacl::Live` is a stand-in so the assembly does not touch
+        // `generated/`; the DSL wiring under test is independent of it.
+        let inv = authored_source_invocation(&root, false, false, MergedShacl::Live)
+            .expect("authored-source invocation must assemble on the real repo");
+
+        assert!(
+            !inv.source_paths.is_empty(),
+            "the authored source set must be non-empty"
+        );
+        // Positional args 3 and 4 to ValidationRun::run — the mapping/statement DSL
+        // directories. Empty here IS the historical original defect.
+        assert!(
+            !inv.mapping_dsl_dir.is_empty(),
+            "mapping DSL dir (ValidationRun::run arg 3) must be wired, not empty"
+        );
+        assert!(
+            !inv.statement_dsl_dir.is_empty(),
+            "statement DSL dir (ValidationRun::run arg 4) must be wired, not empty"
+        );
+        // The three committed DSL shape texts + the test DSL dir carried on options.
+        for (label, value) in [
+            ("mapping_shapes_ttl", &inv.options.mapping_shapes_ttl),
+            ("statement_shapes_ttl", &inv.options.statement_shapes_ttl),
+            ("test_dsl_shapes_ttl", &inv.options.test_dsl_shapes_ttl),
+        ] {
+            assert!(
+                value.as_deref().is_some_and(|s| !s.trim().is_empty()),
+                "options.{label} must be wired with non-empty committed shapes text"
+            );
+        }
+        assert!(
+            inv.options
+                .test_dsl_dir
+                .as_deref()
+                .is_some_and(|d| !d.is_empty()),
+            "options.test_dsl_dir must be wired, not None/empty"
+        );
+    }
 }

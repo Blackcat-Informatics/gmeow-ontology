@@ -387,6 +387,62 @@ fn validate_passes_on_the_clean_repo() {
         .stdout(predicate::str::contains("validation passed"));
 }
 
+/// End-to-end negative twin of [`validate_passes_on_the_clean_repo`]:
+/// with a deliberately-nonconforming statement-DSL cell planted in the REAL `dsl/`
+/// corpus the gate reads, `gmeow-dev validate` must FAIL and name the statement DSL
+/// violation. This drives the actual `validate()` entrypoint end-to-end, so a
+/// regression that unwired the DSL phases (the original defect) — which the fast
+/// unit guard `authored_source_invocation_wires_every_dsl_surface` catches at the
+/// assembly, and which any bypass of that assembly would still have to defeat here —
+/// cannot pass on the production surface. The probe is removed on `Drop`, even on
+/// panic. (Heavy lane: needs `generated/` materialized, exactly like its twin.)
+#[test]
+#[ignore = "maintainer lane: end-to-end DSL SHACL negative (plants a nonconforming dsl/ file)"]
+fn validate_fails_when_a_dsl_file_is_nonconforming() {
+    if !heavy_enabled() {
+        return;
+    }
+
+    /// Removes the planted probe on drop so the worktree is never left dirty, even
+    /// if an assertion panics.
+    struct Probe(PathBuf);
+    impl Drop for Probe {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+
+    let probe_path = repo_root()
+        .join("dsl")
+        .join("statements")
+        .join("zzz_cli_parity_nonconforming_probe.ttl");
+    std::fs::write(
+        &probe_path,
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gmeow:CliParityNonconformingProbe a gmeow:StatementMetadata .\n",
+    )
+    .expect("plant nonconforming statement-DSL probe");
+    let _probe = Probe(probe_path);
+
+    // `.failure()` asserts a nonzero exit; then confirm the failure is the statement
+    // DSL SHACL violation (not, say, a missing `generated/` record) so the test
+    // genuinely exercises the DSL phase on the production surface.
+    let assert = dev_cmd().arg("validate").assert().failure();
+    let out = assert.get_output();
+    let combined = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        combined.contains("statement")
+            || combined.contains("StatementMetadata")
+            || combined.contains("zzz_cli_parity_nonconforming_probe"),
+        "gmeow-dev validate must fail with a statement DSL SHACL violation when a \
+         nonconforming dsl/statements/ cell is present; got:\n{combined}"
+    );
+}
+
 #[test]
 #[ignore = "maintainer lane: exhaustive whole-bundle and corpus audit"]
 fn up_projection_audit_runs() {

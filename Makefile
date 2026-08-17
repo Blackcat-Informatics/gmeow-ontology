@@ -208,7 +208,7 @@ lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clip
 check-lint:
 	SKIP=cargo-clippy pre-commit run --all-files --show-diff-on-failure
 
-validate: ## Validate syntax, term annotations, SHACL, and DSL SHACL.
+validate: ## Validate syntax, term annotations, merged SHACL, and mapping/statement/test DSL SHACL (per-example and slice-test SHACL run in the Rust test gate).
 	$(GMEOW_DEV) validate
 
 reason: ## Run the native Docker-free EL/DL reasoning authority.
