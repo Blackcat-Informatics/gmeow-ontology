@@ -263,12 +263,23 @@ const ASSET_TIERS: &[(&str, Fetch)] = &[
     ("assets/blake3.mjs", Fetch::PageLoad),
     ("assets/bundle-manifest.json", Fetch::PageLoad),
     ("assets/conjectures.ttl", Fetch::Never),
-    ("assets/docs-controller.mjs", Fetch::Never),
+    ("assets/gmeow-docs.js", Fetch::Never),
     ("assets/gmeow.gts", Fetch::PageLoad),
     ("assets/mcp-core/", Fetch::PageLoad),
     ("assets/mcp-transport.mjs", Fetch::PageLoad),
     ("assets/mcp/", Fetch::Demand),
-    ("assets/purrdf/", Fetch::InstallOnly),
+    // The DOCUMENTATION SITE's own assets, which reach this map because `console_files`
+    // folds `interactive_asset_files` and the site emits its four per-capability wasm
+    // engines plus its controller there. The console does not dispatch to any of them —
+    // every console widget speaks JSON-RPC to the MCP segments above — so they are
+    // `Never`: the console tree does not carry them and the service worker never caches
+    // them. They are listed rather than filtered out because an emitted asset with no
+    // tier is a hard error by design, and silence is exactly what that rule prevents.
+    ("assets/gmn/", Fetch::Never),
+    ("assets/playground.trig", Fetch::Never),
+    ("assets/query/", Fetch::Never),
+    ("assets/reason/", Fetch::Never),
+    ("assets/validate/", Fetch::Never),
 ];
 
 /// The authored service worker, whose `SHELL` array and cache name [`console_files`]

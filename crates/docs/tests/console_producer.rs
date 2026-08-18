@@ -196,7 +196,7 @@ fn the_install_shell_omits_the_demand_loaded_segment() {
         );
     }
     // …and the two site-only assets the console never asks for.
-    for key in ["assets/conjectures.ttl", "assets/docs-controller.mjs"] {
+    for key in ["assets/conjectures.ttl", "assets/gmeow-docs.js"] {
         assert!(
             files.contains_key(key),
             "{key} must be in the assembled tree for this check to be meaningful"
@@ -579,7 +579,7 @@ fn every_page_with_a_control_loads_the_controller() {
         }
         checked += 1;
         assert!(
-            html.contains("assets/docs-controller.mjs"),
+            html.contains("assets/gmeow-docs.js"),
             "{path} carries an interactive control but loads no controller"
         );
     }
@@ -657,7 +657,7 @@ fn base64_decode(input: &str) -> Vec<u8> {
 
 /// Every activation a rendered body determines, in a stable order.
 ///
-/// This mirrors `validationRequest()` in `assets/docs-controller.mjs` exactly: read the
+/// This mirrors `validationRequest()` in `assets/gmeow-docs.js` exactly: read the
 /// control's `data-turtle`, base64-decode it, and dispatch `validate_local` with
 /// `{data, format: "turtle"}`. There is one controller and one mapping, so computing it
 /// here is computing what the browser would send.
@@ -753,13 +753,13 @@ fn static_and_mdbook_shells_agree() {
     //    path. Both sets must be the single controller module.
     let boot = String::from_utf8(book.files["mdbook-boot.js"].clone()).unwrap();
     let static_modules: BTreeSet<&str> = static_html
-        .contains("assets/docs-controller.mjs")
-        .then_some("assets/docs-controller.mjs")
+        .contains("assets/gmeow-docs.js")
+        .then_some("assets/gmeow-docs.js")
         .into_iter()
         .collect();
     let book_modules: BTreeSet<&str> = boot
-        .contains("assets/docs-controller.mjs")
-        .then_some("assets/docs-controller.mjs")
+        .contains("assets/gmeow-docs.js")
+        .then_some("assets/gmeow-docs.js")
         .into_iter()
         .collect();
     assert_eq!(

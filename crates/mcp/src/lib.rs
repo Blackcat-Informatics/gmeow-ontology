@@ -7670,8 +7670,8 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     }
 
     let mut writer = GtsWriter::new("ai-package");
-    writer.add_terms(&terms);
-    writer.add_quads(&quads);
+    writer.add_terms(&terms)?;
+    writer.add_quads(&quads)?;
     Ok(writer.into_bytes())
 }
 

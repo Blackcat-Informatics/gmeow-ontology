@@ -19346,7 +19346,8 @@ logic:DuplicateToolRegistration
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:UnadvertisedToolInvocation
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unadvertised Tool Invocation"@x-gmeow-english ;
@@ -19354,7 +19355,8 @@ logic:UnadvertisedToolInvocation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:UnadvertisedResourceRead
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unadvertised Resource Read"@x-gmeow-english ;
@@ -19362,7 +19364,8 @@ logic:UnadvertisedResourceRead
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:UnloadedEngineSegment
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unloaded Engine Segment"@x-gmeow-english ;
@@ -19370,7 +19373,8 @@ logic:UnloadedEngineSegment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:BrokenToolRegistration
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Broken Tool Registration"@x-gmeow-english ;
@@ -19378,7 +19382,8 @@ logic:BrokenToolRegistration
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:DevToolSurfaceFailure
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Dev Tool Surface Failure"@x-gmeow-english ;
