@@ -19390,11 +19390,11 @@ logic:McpToolGovernedConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "McpToolGoverned constraint"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema names the wire tool it governs. The action theory is the authority over the advertised surface only if the join is total — a schema with no name governs nothing reachable, and a call landing on the gap has no precondition to check, no effect to claim and no compensation to run. This is the graph-side counterpart of the engine's unknown-tool refusal, one step earlier."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:capability a dispatcher routes on. The action theory is the authority over the advertised surface only if every governed action can be PLACED — a schema carrying no capability is advertised and unroutable, so a call reaching it has nothing to dispatch against. This is the graph-side counterpart of the engine's unknown-tool refusal, one step earlier. The obligation is measured to hold over every authored logic:McpActionSchema, so the constraint is a live gate rather than a claim about data nobody checked."@x-gmeow-english ;
     gmeow:enforcesFailureClass logic:UnadvertisedToolInvocation ;
     logic:formalizes logic:McpActionSchema ;
     logic:severity "Violation" ;
-    logic:message "Every logic:McpActionSchema must name the wire tool it governs through logic:mcpToolName; a governed action with no name is a tool the surface can advertise and the theory cannot place (logic:UnadvertisedToolInvocation)." ;
+    logic:message "Every logic:McpActionSchema must declare the logic:capability a dispatcher routes on; a schema the surface advertises but cannot place is advertised-but-not-dispatchable, which the totality contract forbids (logic:UnadvertisedToolInvocation)." ;
     logic:integrity logic:mtgForall .
 logic:mtgForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -19409,7 +19409,7 @@ logic:mtgGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
 logic:mtgCons a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists logic:mtgAtom .
-logic:mtgAtom a logic:Formula ; logic:relation logic:mcpToolName ;
+logic:mtgAtom a logic:Formula ; logic:relation logic:capability ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 logic:IncompleteClosure
