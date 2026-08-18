@@ -2700,6 +2700,114 @@ gmeow:MediumUndeclaredDictionary
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to name a primed payload whose priming dictionary was never written down."@x-gmeow-english .
 
+gmeow:GtsDocumentSegmentedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:GTSDocument carries at least one gmeow:gtsSegment. A document IS its ordered segment list — the composite identity is the heads taken in index order — so a document declaring no segment has no content to read and no identity to verify. A reader handed one cannot distinguish it from a file it failed to open, which is why the refusal happens here rather than being reported as an empty result."@x-gmeow-english ;
+    gmeow:enforcesFailureClass gmeow:BundleArtifactUnreadable ;
+    logic:formalizes gmeow:GTSDocument ;
+    logic:severity "Violation" ;
+    logic:message "Every gmeow:GTSDocument must carry at least one gmeow:gtsSegment; a document with none has no content to read and no identity to verify (gmeow:BundleArtifactUnreadable)." ;
+    logic:integrity gmeow:gdsForall .
+gmeow:gdsForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of gmeow:GtsDocumentSegmentedConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:gdsImpl .
+gmeow:gdsImpl a logic:Formula ; logic:antecedent gmeow:gdsGuard ; logic:consequent gmeow:gdsCons .
+gmeow:gdsGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSDocument ] .
+gmeow:gdsCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists gmeow:gdsAtom .
+gmeow:gdsAtom a logic:Formula ; logic:relation gmeow:gtsSegment ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:GtsSegmentHeadedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment headed constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:GTSSegment carries its gmeow:gtsHeadId. The head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so it is what makes the bytes CHECKABLE — a segment without one can be parsed into terms but never verified against the chain it claims to continue, and a reader has no way to tell a good read from a corrupted one."@x-gmeow-english ;
+    gmeow:enforcesFailureClass gmeow:BundleSourceUnparseable ;
+    logic:formalizes gmeow:GTSSegment ;
+    logic:severity "Violation" ;
+    logic:message "Every gmeow:GTSSegment must carry a gmeow:gtsHeadId; a segment with no head can be parsed but never verified against the chain it claims to continue (gmeow:BundleSourceUnparseable)." ;
+    logic:integrity gmeow:gshForall .
+gmeow:gshForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment headed constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of gmeow:GtsSegmentHeadedConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:gshImpl .
+gmeow:gshImpl a logic:Formula ; logic:antecedent gmeow:gshGuard ; logic:consequent gmeow:gshCons .
+gmeow:gshGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSSegment ] .
+gmeow:gshCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists gmeow:gshAtom .
+gmeow:gshAtom a logic:Formula ; logic:relation gmeow:gtsHeadId ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:GtsSegmentProfiledConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment profiled constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:GTSSegment declares its gmeow:gtsProfile. The profile states what the segment is FOR, and a flat projection reads it to decide which of the segment's claims a lossy surface may carry — CSVW, SKOS, OBO Graphs and the rest each drop what they cannot encode. A segment with no declared profile leaves the projector guessing, and a projector that guesses publishes a smaller ontology under the same name rather than refusing."@x-gmeow-english ;
+    gmeow:enforcesFailureClass gmeow:FlatExportRefused ;
+    logic:formalizes gmeow:GTSSegment ;
+    logic:severity "Violation" ;
+    logic:message "Every gmeow:GTSSegment must declare a gmeow:gtsProfile; a projector reading an undeclared segment guesses what it may drop (gmeow:FlatExportRefused)." ;
+    logic:integrity gmeow:gspForall .
+gmeow:gspForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment profiled constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of gmeow:GtsSegmentProfiledConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:gspImpl .
+gmeow:gspImpl a logic:Formula ; logic:antecedent gmeow:gspGuard ; logic:consequent gmeow:gspCons .
+gmeow:gspGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSSegment ] .
+gmeow:gspCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists gmeow:gspAtom .
+gmeow:gspAtom a logic:Formula ; logic:relation gmeow:gtsProfile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:CompressionDictionaryIdentifiedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "Compression dictionary identified constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:CompressionDictionary declares the gmeow:dictionaryId it is pinned under. The id is the ONLY key a consumer has: a runtime store resolves its priming bytes by looking that string up in the shipped bundle's in-band header map, so a dictionary declared without one can be trained, shipped and still be unreachable — the store asks for a name the bundle never wrote down, and there is no weaker unprimed store to fall back to because the store's own header is what makes it decodable. This is the authoring-side cause of the consumer engine's refusal, caught where the dictionary is declared rather than where it is opened. Measured to hold over all six shipped dictionaries, so the record is a live gate."@x-gmeow-english ;
+    gmeow:enforcesFailureClass gmeow:MediumUnpinnedStoreDictionary ;
+    logic:formalizes gmeow:CompressionDictionary ;
+    logic:severity "Violation" ;
+    logic:message "Every gmeow:CompressionDictionary must declare a gmeow:dictionaryId; a dictionary with no id cannot be resolved out of the shipped bundle's in-band map (gmeow:MediumUnpinnedStoreDictionary)." ;
+    logic:integrity gmeow:cdiForall .
+gmeow:cdiForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "compression-dictionary-identified formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of gmeow:CompressionDictionaryIdentifiedConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:cdiImpl .
+gmeow:cdiImpl a logic:Formula ; logic:antecedent gmeow:cdiGuard ; logic:consequent gmeow:cdiCons .
+gmeow:cdiGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompressionDictionary ] .
+gmeow:cdiCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists gmeow:cdiAtom .
+gmeow:cdiAtom a logic:Formula ; logic:relation gmeow:dictionaryId ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
 gmeow:BundleArtifactUnreadable
     a owl:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;

@@ -454,6 +454,60 @@ gmeow:coequalFacet
     skos:definition "Marks a property as one co-equal identity-facet axis among peers (CONSTITUTION P9, co-equal facet lint). Every property annotated coequalFacet true is held orthogonal to every other by the generated reasoning lint: its range is its own (distinct from every other axis), no rdfs:subPropertyOf or owl:equivalentProperty bridge may connect two axes, none may be owl:FunctionalProperty (a single locked value invites exactly the owl:sameAs collapse Principle 5 forbids), and all axis ranges must be jointly declared owl:AllDisjointClasses. A new annotated axis receives Principle 9 enforcement by construction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:DistributionFamilyDeclaredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Distribution family declared constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:DocumentationDistribution names its gmeow:distributionFamily. The family decides whether an artifact may declare a capability loss at all — a rendering loses capabilities and a re-serialization does not — so a distribution carrying none is a catalog row the matrix cannot grade, and a matrix that omits an ungradeable row under-reports loss while looking complete. The authored slices declare no distribution individuals; the catalog is emitted into the bundle, which is where this obligation bites."@x-gmeow-english ;
+    gmeow:enforcesFailureClass gmeow:UnreadableDistributionCatalog ;
+    logic:formalizes gmeow:DocumentationDistribution ;
+    logic:severity "Violation" ;
+    logic:message "Every gmeow:DocumentationDistribution must name a gmeow:distributionFamily; a row with no family is one the matrix cannot grade (gmeow:UnreadableDistributionCatalog)." ;
+    logic:integrity gmeow:dfdForall .
+gmeow:dfdForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Distribution family declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of gmeow:DistributionFamilyDeclaredConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:dfdImpl .
+gmeow:dfdImpl a logic:Formula ; logic:antecedent gmeow:dfdGuard ; logic:consequent gmeow:dfdCons .
+gmeow:dfdGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DocumentationDistribution ] .
+gmeow:dfdCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists gmeow:dfdAtom .
+gmeow:dfdAtom a logic:Formula ; logic:relation gmeow:distributionFamily ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:FormalConceptExtentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Formal concept extent constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:FormalConcept carries the gmeow:conceptExtent it was derived with. The lattice reader filters on the type and reads the extent, so a concept without one contributes nothing and is indistinguishable from a concept that was never derived — the emitted lattice is then quietly smaller than the incidence it came from. An empty extent is lawful (the lattice's lower bound legitimately has one); an ABSENT extent is not."@x-gmeow-english ;
+    gmeow:enforcesFailureClass gmeow:UntypedFormalConcept ;
+    logic:formalizes gmeow:FormalConcept ;
+    logic:severity "Violation" ;
+    logic:message "Every gmeow:FormalConcept must carry a gmeow:conceptExtent; a concept with none is indistinguishable from one never derived (gmeow:UntypedFormalConcept)." ;
+    logic:integrity gmeow:fceForall .
+gmeow:fceForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "Formal concept extent constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of gmeow:FormalConceptExtentConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:fceImpl .
+gmeow:fceImpl a logic:Formula ; logic:antecedent gmeow:fceGuard ; logic:consequent gmeow:fceCons .
+gmeow:fceGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FormalConcept ] .
+gmeow:fceCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists gmeow:fceAtom .
+gmeow:fceAtom a logic:Formula ; logic:relation gmeow:conceptExtent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
 gmeow:KernelConformanceFailure
     a logic:Category ,
         owl:Class ;

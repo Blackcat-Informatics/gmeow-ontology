@@ -19412,6 +19412,114 @@ logic:mtgCons a logic:Formula ;
 logic:mtgAtom a logic:Formula ; logic:relation logic:capability ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
+logic:McpResourceDeclaredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mcp resource declared constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema states the logic:precondition its dispatch must satisfy. The resource half of the surface is declared and served from the same descriptors as the tool half, so a schema carrying no precondition is one the engine can list and cannot decide to serve — and a read that reaches it has nothing to check before answering. Measured to hold over every authored schema, so the record is a live gate rather than an assertion about unchecked data."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:UnadvertisedResourceRead ;
+    logic:formalizes logic:McpActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:McpActionSchema must state a logic:precondition; a schema the surface lists with nothing to check cannot decide whether to serve a read (logic:UnadvertisedResourceRead)." ;
+    logic:integrity logic:mrdForall .
+logic:mrdForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mcp resource declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:McpResourceDeclaredConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mrdImpl .
+logic:mrdImpl a logic:Formula ; logic:antecedent logic:mrdGuard ; logic:consequent logic:mrdCons .
+logic:mrdGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:McpActionSchema ] .
+logic:mrdCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:mrdAtom .
+logic:mrdAtom a logic:Formula ; logic:relation logic:precondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+logic:ActionDispatchPreconditionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action dispatch precondition constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:ActionSchema states the logic:precondition its action requires. A deployment may carry fewer SEGMENTS than the theory governs, but it may never carry fewer OBLIGATIONS: the deferral signal re-dispatches an identical frame to the segment that serves it, and the answer must be identical to the full engine's, which is only true if the precondition travelled with the action rather than with the image. A schema without one has nothing to re-check on arrival."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:UnloadedEngineSegment ;
+    logic:formalizes logic:ActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:ActionSchema must state a logic:precondition; an action whose obligation does not travel with it cannot be re-dispatched to another segment for an identical answer (logic:UnloadedEngineSegment)." ;
+    logic:integrity logic:adpForall .
+logic:adpForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action dispatch precondition constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:ActionDispatchPreconditionConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:adpImpl .
+logic:adpImpl a logic:Formula ; logic:antecedent logic:adpGuard ; logic:consequent logic:adpCons .
+logic:adpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ActionSchema ] .
+logic:adpCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:adpAtom .
+logic:adpAtom a logic:Formula ; logic:relation logic:precondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+logic:ActionCapabilityDeclaredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action capability declared constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:ActionSchema declares the logic:capability it exercises. The registry is a bijection between what the surface advertises and what it can dispatch, and the capability is the routing key that makes an advertised action reachable — a schema declaring none is advertised-but-not-dispatchable, which is exactly half of what a broken registration is. The converse half, dispatchable-but-not-advertised, is unreachable by contract and is the same defect read from the other side."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:BrokenToolRegistration ;
+    logic:formalizes logic:ActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:ActionSchema must declare the logic:capability it exercises; an action with no routing key is advertised and undispatchable (logic:BrokenToolRegistration)." ;
+    logic:integrity logic:acdForall .
+logic:acdForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action capability declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:ActionCapabilityDeclaredConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:acdImpl .
+logic:acdImpl a logic:Formula ; logic:antecedent logic:acdGuard ; logic:consequent logic:acdCons .
+logic:acdGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ActionSchema ] .
+logic:acdCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:acdAtom .
+logic:acdAtom a logic:Formula ; logic:relation logic:capability ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+logic:DevToolEffectDeclaredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dev tool effect declared constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:effect its action claims. The repo-reading developer tools are the only ones that reach outside the bundle, so what they change is the one thing a caller cannot infer from the shipped artifact — an undeclared effect makes a working-tree write indistinguishable from a read, and the tool surface stops being auditable from the theory alone."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:DevToolSurfaceFailure ;
+    logic:formalizes logic:McpActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:McpActionSchema must declare its logic:effect; a repo-reading tool whose change is undeclared is not auditable from the action theory (logic:DevToolSurfaceFailure)." ;
+    logic:integrity logic:dteForall .
+logic:dteForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dev tool effect declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:DevToolEffectDeclaredConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dteImpl .
+logic:dteImpl a logic:Formula ; logic:antecedent logic:dteGuard ; logic:consequent logic:dteCons .
+logic:dteGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:McpActionSchema ] .
+logic:dteCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:dteAtom .
+logic:dteAtom a logic:Formula ; logic:relation logic:effect ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
 logic:IncompleteClosure
     a owl:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;

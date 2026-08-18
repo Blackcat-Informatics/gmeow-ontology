@@ -34,25 +34,20 @@ fn main() -> gmeow_errors::Result<()> {
 
     // (class, required predicate)
     let probes = [
-        ("logic/McpActionSchema", "logic/capability"),
         ("logic/McpActionSchema", "logic/precondition"),
-        ("logic/McpActionSchema", "logic/effect"),
-        ("logic/McpActionSchema", "logic/compensation"),
-        ("logic/McpActionSchema", "logic/mcpToolName"),
         ("logic/ActionSchema", "logic/capability"),
         ("logic/ActionSchema", "logic/precondition"),
+        ("logic/ActionSchema", "logic/formalizes"),
+        ("logic/Constraint", "logic/severity"),
+        ("logic/Constraint", "logic/message"),
+        ("gmeow/GTSDocument", "gmeow/gtsSegment"),
         ("gmeow/GTSSegment", "gmeow/gtsHeadId"),
         ("gmeow/GTSSegment", "gmeow/gtsProfile"),
-        ("gmeow/GTSSegment", "gmeow/gtsSegmentIndex"),
-        ("gmeow/GTSDocument", "gmeow/gtsSegment"),
         ("gmeow/FormalConcept", "gmeow/conceptExtent"),
         (
             "gmeow/DocumentationDistribution",
             "gmeow/distributionFamily",
         ),
-        ("gmeow/Medium", "gmeow/mediumCodec"),
-        ("gmeow/CompressionDictionary", "gmeow/dictionaryId"),
-        ("gmeow/CompressionDictionary", "gmeow/trainsOverCorpus"),
     ];
     for (c, p) in probes {
         let cls = format!("https://blackcatinformatics.ca/{c}");
