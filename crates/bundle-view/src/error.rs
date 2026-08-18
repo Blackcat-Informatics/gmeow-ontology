@@ -40,7 +40,7 @@ define_diag_kind! {
     code = "bundle-view.rdf.parse";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
     message = "RDF parse error: {}", message;
-    failure_class = "https://blackcatinformatics.ca/gmeow/BundleSourceUnparseable";
+    failure_class = "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable";
 }
 
 define_diag_kind! {

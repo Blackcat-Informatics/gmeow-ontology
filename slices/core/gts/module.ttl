@@ -2733,10 +2733,10 @@ gmeow:GtsSegmentHeadedConstraint
     rdfs:label "GTS segment headed constraint"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:GTSSegment carries its gmeow:gtsHeadId. The head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so it is what makes the bytes CHECKABLE — a segment without one can be parsed into terms but never verified against the chain it claims to continue, and a reader has no way to tell a good read from a corrupted one."@x-gmeow-english ;
-    gmeow:enforcesFailureClass gmeow:BundleSourceUnparseable ;
+    gmeow:enforcesFailureClass gmeow:BundleSourceUnparsable ;
     logic:formalizes gmeow:GTSSegment ;
     logic:severity "Violation" ;
-    logic:message "Every gmeow:GTSSegment must carry a gmeow:gtsHeadId; a segment with no head can be parsed but never verified against the chain it claims to continue (gmeow:BundleSourceUnparseable)." ;
+    logic:message "Every gmeow:GTSSegment must carry a gmeow:gtsHeadId; a segment with no head can be parsed but never verified against the chain it claims to continue (gmeow:BundleSourceUnparsable)." ;
     logic:integrity gmeow:gshForall .
 gmeow:gshForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
@@ -2816,11 +2816,11 @@ gmeow:BundleArtifactUnreadable
     skos:definition "The failure raised when a read-side consumer cannot READ a source artifact at all — a Turtle source handed to the native query substrate, or a materialized gmeow.gts. It is a byte-level refusal below any RDF judgment: nothing was parsed, so nothing can be said about what the artifact contains. HARD FAIL rather than an empty dataset, because an empty result is indistinguishable from an artifact that legitimately carries nothing."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:BundleSourceUnparseable
+gmeow:BundleSourceUnparsable
     a owl:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
-    rdfs:label "Bundle Source Unparseable"@x-gmeow-english ;
+    rdfs:label "Bundle Source Unparsable"@x-gmeow-english ;
     skos:definition "The failure raised on the READ side when bytes were obtained but are not the RDF the reader requires: a syntactically invalid Turtle source, a query evaluation failure, or a query whose result form is not the one the caller demands. Distinct from gmeow:BundleArtifactUnreadable, where the bytes never arrived: here they did and are wrong, so the reader refuses rather than returning a partial binding set that would read as a complete answer over less data."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
