@@ -276,7 +276,6 @@ const ASSET_TIERS: &[(&str, Fetch)] = &[
     // them. They are listed rather than filtered out because an emitted asset with no
     // tier is a hard error by design, and silence is exactly what that rule prevents.
     ("assets/gmn/", Fetch::Never),
-    ("assets/playground.trig", Fetch::Never),
     ("assets/query/", Fetch::Never),
     ("assets/reason/", Fetch::Never),
     ("assets/validate/", Fetch::Never),

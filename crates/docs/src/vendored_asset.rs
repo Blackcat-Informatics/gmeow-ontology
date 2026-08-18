@@ -478,6 +478,7 @@ pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         ),
     ],
     vendored_files: &[
+        "SUBSTRATE.txt",
         "WITNESS.core-deferral.json",
         "index.mjs",
         "pkg/gmeow_mcp_core_wasm.d.ts",
@@ -532,6 +533,7 @@ pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         ),
     ],
     vendored_files: &[
+        "SUBSTRATE.txt",
         "WITNESS.mcp.json",
         "index.mjs",
         "pkg/gmeow_mcp_wasm.d.ts",
