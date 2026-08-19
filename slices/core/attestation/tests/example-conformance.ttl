@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Example-conformance cells for the reconciliation kernel. The harness
+# (crates/slicetest run_conformance_cell) unions attestation/module.ttl + the one
+# bound gmeow:exampleFile and validates against the DERIVED procedural constraints
+# (generated/shapes/procedural-constraints.ttl) — attestation ships no hand-authored
+# shapes.ttl, so gmeow:PinAgreementConstraint / gmeow:PinCoverageConstraint are
+# projected purely from the authored logic:Constraint nodes. The source-level twin
+# of these cells (no generated/ dependency) is
+# crates/logic-compile/tests/substrate_reconciliation.rs.
+#
+# The conforming fixture lives under tests/conformance-fixtures/ and the
+# counter-examples under tests/counter-examples/, so the global make validate gate
+# never loads them as data; they are validated SLICE-SCOPED only.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/tests/> .
+
+# --- Conforming: agreeing claims, full expected-site coverage → no findings ----
+ex:ecPinReconciliationHolds a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pin-reconciliation-holds.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Both expected claim sites (lockfile, shipped artifact) assert the same crate version 0.12.0, so gmeow:PinAgreementConstraint finds no distinct value and gmeow:PinCoverageConstraint finds every expected site witnessed — the projected procedural constraints emit no finding." .
+
+# --- Violating: two sites disagree on the crate version → agreement finding -----
+ex:ecPinDisagreement a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/pin-disagreement.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:PinAgreementConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The lockfile claim asserts crate version 0.12.0 and the shipped-artifact claim asserts 0.13.0 for the same component and dimension, so gmeow:PinAgreementConstraint's projected sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:PinAgreementConstraintProceduralConstraintShape — substrate drift caught as a finding, not a bash exit code." .
+
+# --- Violating: an expected claim site has no claim → coverage finding ----------
+ex:ecPinMissingSite a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/pin-missing-site.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:PinCoverageConstraintProceduralConstraintShape ;
+    gmeow:conformanceRationale "The component expects a claim at the prose site but none asserts it there, so gmeow:PinCoverageConstraint's projected sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:PinCoverageConstraintProceduralConstraintShape — the completeness half of drift (a silently missing site) caught as a finding." .

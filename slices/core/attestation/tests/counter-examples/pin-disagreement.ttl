@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:PinAgreementConstraint (substrate drift): two pin
+# claims about the SAME component and SAME dimension (crate version) carry DIFFERENT
+# values — the lockfile says 0.12.0, the shipped artifact stamp says 0.13.0. The
+# projected procedural constraint MUST flag this disagreement (a gmeow:Finding, the
+# drift the reconciliation law catches). Coverage is satisfied (both expected sites
+# present), so ONLY the agreement constraint fires. Lives under tests/ so the global
+# make validate gate never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/tests/> .
+
+ex:purrdfComp a gmeow:SubstrateComponent , gmeow:Component ;
+    gmeow:componentName "purrdf" ;
+    gmeow:expectedClaimSite gmeow:claimSiteLockfile , gmeow:claimSiteShippedArtifact .
+
+ex:claimLockfile a gmeow:PinClaim ;
+    gmeow:claimedComponent ex:purrdfComp ;
+    gmeow:claimSite gmeow:claimSiteLockfile ;
+    gmeow:claimDimension gmeow:dimensionCrateVersion ;
+    gmeow:claimedValue "0.12.0" .
+
+ex:claimShipped a gmeow:PinClaim ;
+    gmeow:claimedComponent ex:purrdfComp ;
+    gmeow:claimSite gmeow:claimSiteShippedArtifact ;
+    gmeow:claimDimension gmeow:dimensionCrateVersion ;
+    gmeow:claimedValue "0.13.0" .
