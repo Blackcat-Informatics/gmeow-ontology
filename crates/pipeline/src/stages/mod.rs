@@ -93,6 +93,7 @@ pub mod native_query;
 pub mod okf;
 pub mod profiles;
 pub mod provenance_graph;
+pub mod substrate_graph;
 // The SHACL-derived Pydantic v2 package emitter (`gmeow_models/<slice>.py`),
 // co-derived from the SAME shape compilation as the JSON-Schema stage so the two
 // surfaces agree (Task 8).

@@ -750,6 +750,15 @@ pub(crate) fn build_self_description_dataset_with_quality(
         run_verify_attestation(&edb)?
     };
     let provenance_nt = build_provenance_projection(root)?;
+    // graph/provenance also carries the substrate reconciliation A-Box (issue 1672): one
+    // gmeow:SubstrateComponent per external engine/library, a gmeow:PinClaim per (site,
+    // component, dimension) read from build INPUTS (manifests, lockfile, linked
+    // constants, shipped SUBSTRATE.txt stamps, prose), a gmeow:ReconciledPin per
+    // (component, dimension) whose sites agree, and gmeow:embeds edges. Rides the
+    // existing graph/provenance (the dogfooded build-provenance graph) rather than
+    // minting a new named graph; the authored PinAgreement/PinCoverage constraints
+    // reason over it so drift surfaces as a gmeow:Finding.
+    let substrate_nt = crate::stages::substrate_graph::build_substrate_projection(root)?;
     // graph/quality-assessment — every slice scored against the ontology-resident rubric,
     // projected as `gmeow:QualityAssessment` observations. A per-slice sweep over the
     // authored slices (the natural sibling of the slice-analysis graph), built ONCE here
@@ -774,6 +783,13 @@ pub(crate) fn build_self_description_dataset_with_quality(
         parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
         parse_into_graph(
             provenance_nt.as_bytes(),
+            "application/n-triples",
+            crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+        // The substrate reconciliation A-Box (issue 1672) folds into the SAME
+        // graph/provenance named graph — no new graph is minted.
+        parse_into_graph(
+            substrate_nt.as_bytes(),
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
         )?,
