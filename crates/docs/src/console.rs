@@ -276,6 +276,7 @@ const ASSET_TIERS: &[(&str, Fetch)] = &[
     // them. They are listed rather than filtered out because an emitted asset with no
     // tier is a hard error by design, and silence is exactly what that rule prevents.
     ("assets/gmn/", Fetch::Never),
+    ("assets/playground.trig", Fetch::Never),
     ("assets/query/", Fetch::Never),
     ("assets/reason/", Fetch::Never),
     ("assets/validate/", Fetch::Never),
@@ -952,6 +953,12 @@ mod tests {
         ExecutableDocsData {
             full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
             conjectures_ttl: b"@prefix ex: <http://example/> .".to_vec(),
+            // The playground TriG too: `console_files` folds `interactive_asset_files`,
+            // and the site emits its playground asset there. A fixture without it renders
+            // a STRICT SUBSET of the interactive surface, so the exactness check below
+            // would call a live tier row dead purely because the fixture never triggered
+            // the asset it classifies.
+            playground_trig: b"@prefix ex: <http://example/> .\nex:a ex:b ex:c .".to_vec(),
             ..Default::default()
         }
     }

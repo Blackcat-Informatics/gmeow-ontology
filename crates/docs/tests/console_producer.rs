@@ -150,10 +150,11 @@ fn the_page_load_tier_is_strictly_inside_the_pre_cache() {
          numbers are one number under two headings"
     );
     // Named, so this cannot pass on some incidental difference: these are the assets the
-    // published table used to count as "fetched before any pane runs".
+    // published table counts as "fetched before any pane runs". The documentation site's
+    // per-capability wasm engines are deliberately absent: the console dispatches JSON-RPC
+    // to the MCP segments and reaches none of them, so they are Fetch::Never and belong to
+    // neither published number.
     for key in [
-        "assets/purrdf/index.mjs",
-        "assets/purrdf/pkg/purrdf_wasm_bg.wasm",
         "console/manifest.webmanifest",
         "console/icon-maskable-512.png",
         "console/sw.mjs",
@@ -444,7 +445,7 @@ fn the_site_readme_carries_the_site_sections_and_the_authored_one_does_not() {
         "## Offline",
         "## Measured bytes",
         "__GMEOW_CONSOLE_BYTE_TABLE__",
-        "assets/purrdf/",
+        "assets/query/",
         "icon-maskable-512.png",
     ] {
         assert!(
@@ -460,7 +461,7 @@ fn the_site_readme_carries_the_site_sections_and_the_authored_one_does_not() {
         !site.contains(SITE_SECTIONS_MARKER),
         "the site README still carries the unsubstituted site-sections marker"
     );
-    for site_only in ["## Offline", "## Measured bytes", "assets/purrdf/"] {
+    for site_only in ["## Offline", "## Measured bytes", "assets/query/"] {
         assert!(
             site.contains(site_only),
             "the site README is missing the substituted section {site_only}"
@@ -480,7 +481,7 @@ fn the_site_readme_carries_the_site_sections_and_the_authored_one_does_not() {
 ///
 /// The byte table is already gated this way — every measured row is published — and this is
 /// the same rule over the prose. On the site the one reference that dangled was
-/// `assets/purrdf/PROVENANCE.md`: the producer emits three purrdf files and never that one,
+/// `assets/query/PROVENANCE.md`: the producer emits the engine files and never that one,
 /// so the sentence pointing a reader at it was a 404 for every deployed reader.
 #[test]
 fn every_path_the_site_readme_names_exists_in_the_site_tree() {
