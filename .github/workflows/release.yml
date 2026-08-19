@@ -70,13 +70,15 @@ jobs:
           tool: wasm-bindgen-cli@0.2.125
 
       # wasm-opt (binaryen) is a REQUIRED build step: every `*-wasm-pkg` lane hard-fails
-      # without it. The SAME pinned official release ci.yml provisions, so the optimized
-      # artifact bytes are reproducible rather than whatever the runner image preinstalls.
+      # without it. DERIVED from the Makefile exactly as ci.yml derives it, never repeated
+      # as a literal here: the two drifted once — this workflow provisioned a release
+      # predating `--enable-bulk-memory-opt`, so every wasm-opt rule died on an unknown
+      # option — and a second copy of the version is what made that possible.
       - name: Install binaryen (wasm-opt) — pinned release
-        env:
-          BINARYEN_VER: version_119
         run: |
           set -euo pipefail
+          BINARYEN_VER="$(make --no-print-directory print-binaryen-ver)"
+          echo "pinned binaryen: ${BINARYEN_VER}"
           curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/binaryen.tar.gz \
             "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN_VER}/binaryen-${BINARYEN_VER}-x86_64-linux.tar.gz"
           mkdir -p /tmp/binaryen

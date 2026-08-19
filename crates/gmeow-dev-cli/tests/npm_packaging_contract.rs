@@ -770,20 +770,24 @@ fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
         .expect("ci.yml pins wasm-bindgen-cli")
         .trim()
         .to_string();
-    let binaryen_pin = ci
-        .lines()
-        .find_map(|line| line.trim().strip_prefix("BINARYEN_VER: "))
-        .expect("ci.yml pins binaryen")
-        .trim()
-        .to_string();
+    // ci.yml DERIVES the binaryen version from the Makefile (`make print-binaryen-ver`)
+    // rather than repeating the literal, because the two drifted once and every wasm-opt
+    // rule died on an unknown option. The contract is therefore that BOTH workflows derive
+    // it the same way — a literal in either one is the drift this replaced.
+    let binaryen_pin = "make --no-print-directory print-binaryen-ver".to_string();
+    assert!(
+        ci.contains(&binaryen_pin),
+        "ci.yml must DERIVE the binaryen version from the Makefile, not repeat the literal"
+    );
 
     assert!(
         release.contains(&format!("wasm-bindgen-cli@{wasm_bindgen_pin}")),
         "release.yml must install the SAME pinned wasm-bindgen-cli@{wasm_bindgen_pin} ci.yml uses"
     );
     assert!(
-        release.contains(&format!("BINARYEN_VER: {binaryen_pin}")),
-        "release.yml must install the SAME pinned binaryen {binaryen_pin} ci.yml uses"
+        release.contains(&binaryen_pin),
+        "release.yml must derive the binaryen version the same way ci.yml does ({binaryen_pin}), \
+         so the two cannot drift"
     );
     assert!(
         release.contains("targets: wasm32-unknown-unknown"),
@@ -801,7 +805,7 @@ fn release_installs_the_same_pinned_wasm_toolchain_as_ci() {
         "actions/setup-node@",
         "targets: wasm32-unknown-unknown",
         &format!("wasm-bindgen-cli@{wasm_bindgen_pin}"),
-        &format!("BINARYEN_VER: {binaryen_pin}"),
+        &binaryen_pin,
     ] {
         assert!(
             line_index(&release, needed) < parity,
