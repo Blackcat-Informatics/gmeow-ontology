@@ -7,7 +7,7 @@ never hand-authored, so neither can drift from what actually ships.
 What it pre-caches is **both pre-cached tiers of the table below, and nothing else**: the
 page-load set (the shell, the transport, the always-resident core engine image and the
 ontology snapshot) together with the install-only set (the worker itself, the PWA manifest
-and its icons, and the vendored purrdf engine the published tree offers an embedder). Those
+and its icons). Those
 two are measured and published separately, because they answer different questions — what a
 reader's page load costs, and what the worker stores so that reader can come back offline.
 
@@ -55,15 +55,8 @@ surface of the documentation site — SPARQL, describe, conjectures — speaks J
 same MCP segments listed above, over the same shipped bundle. One protocol, one engine, and
 what the console can do an agent can do.
 
-`assets/purrdf/` in the table above is not an exception to that. It is the sibling
-[purrdf](https://github.com/Blackcat-Informatics/purrdf) RDF-1.2 kernel's browser build
-(`MIT OR Apache-2.0`, vendored from its published npm package, refreshed by lower bound
-rather than pinned), shipped so that a page **embedding** this tree can `import` an offline
-RDF/JS store and run SPARQL over **its own** dataset — the one question `query_local` does
-not answer, because its scopes are the shipped bundle and the frame you hand it, not a
-standing dataset you keep. Nothing in the console imports it and no capability is attested
-against it, which is exactly why it is measured as install-only above: no page load fetches
-a byte of it, and it is pre-cached all the same, because an importable engine that was not
-cached would 404 for exactly the offline reader it is there for. Its provenance, its
-licensing and the rule for refreshing it are recorded in the repository, at
-`crates/docs/assets/purrdf/PROVENANCE.md`.
+The documentation site alongside this console ships its own per-capability engines under
+`assets/query/`, `assets/validate/`, `assets/reason/` and `assets/gmn/`. The console
+reaches none of them: they are the site's dispatch surface, and every console widget
+speaks JSON-RPC to the MCP segments above. They are neither fetched on page load nor
+pre-cached here, so they appear in neither published byte number.

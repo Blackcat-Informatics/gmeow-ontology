@@ -954,6 +954,11 @@ pub(crate) fn to_markdown_exec_with_map(
             append_slice_executable_sections(&mut md, model, slug, exec);
             md
         }
+        Page::Landing => {
+            let mut md = to_markdown_base(model, page, page_map);
+            append_landing_interactive_nav(&mut md, model, exec);
+            md
+        }
         Page::SparqlPlayground => md_playground(model, exec),
         Page::BundleExplorer => md_bundle_explorer(model, exec),
         Page::ConjecturePlayground => md_conjecture_playground(model, exec),
@@ -1399,6 +1404,65 @@ fn url_query_encode(s: &str) -> String {
         }
     }
     out
+}
+
+/// Link the interactive surfaces from the landing page, for the ones this render carries.
+///
+/// The explorer and the conjecture playground were RENDERED and unreachable: only the SPARQL
+/// playground was ever linked, and only from slice and term pages. A page nothing navigates to
+/// is a page nobody opens, and the shipped site is the deliverable — so the nav is derived from
+/// the same `exec` predicates that decide whether the page is emitted at all, rather than from a
+/// hand-kept list that can fall out of step with what was built.
+fn append_landing_interactive_nav(out: &mut String, model: &DocsModel, exec: &ExecutableDocsData) {
+    let surfaces: Vec<(String, &str, &str)> = [(
+        Page::SparqlPlayground.dir(),
+        "SPARQL playground",
+        "query the shipped bundle in your browser, offline.",
+    )]
+    .into_iter()
+    .filter(|_| exec.has_playground())
+    .chain(
+        [(
+            Page::BundleExplorer.dir(),
+            "Bundle explorer",
+            "read any term's full description straight out of `gmeow.gts`.",
+        )]
+        .into_iter()
+        .filter(|_| exec.has_bundle()),
+    )
+    .chain(
+        [(
+            Page::ConjecturePlayground.dir(),
+            "Conjecture playground",
+            "put a conjecture to the reasoner and read the verdict.",
+        )]
+        .into_iter()
+        .filter(|_| exec.has_conjectures()),
+    )
+    .chain(
+        [(
+            crate::console::CONSOLE_PREFIX
+                .trim_end_matches('/')
+                .to_string(),
+            "Standalone console",
+            "the same engine in its own shell, installable and offline-first.",
+        )]
+        .into_iter()
+        .filter(|_| exec.has_bundle()),
+    )
+    .collect();
+    if surfaces.is_empty() {
+        return;
+    }
+    let from = Page::Landing.dir();
+    heading(out, 2, model.ui("body_interactive"));
+    for (dir, title, blurb) in surfaces {
+        push_line(
+            out,
+            &format!("- [{title}]({}index.md) — {blurb}", rel(&from, &dir)),
+        );
+    }
+    blank(out);
 }
 
 fn md_landing(model: &DocsModel) -> String {
@@ -6568,7 +6632,15 @@ pub(crate) fn to_html_lang_exec_with_map(
     // The playground page loads the controller module (query execution + result
     // transcoding). Empty for every other page and every model-only render, so the
     // shell's `body_scripts` slot is byte-neutral there.
-    let body_scripts = if (matches!(page, Page::SparqlPlayground) && exec.has_playground())
+    // ANY page whose body carries a control the controller drives loads it — not a
+    // hand-listed three. Term pages render `.gmeow-run-validation` controls, so the
+    // enumeration shipped a validation button on every term page with nothing bound to
+    // it, while the mdbook shell's boot shim imported the controller globally and wired
+    // the identical markup. Two shells, same controls, different behaviour. Derived from
+    // CONTROLLER_HOOKS, whose agreement with the shipped module is itself gated, so a new
+    // widget cannot render a dead control by forgetting to extend a list here.
+    let body_scripts = if body_carries_interactive_control(&body_html)
+        || (matches!(page, Page::SparqlPlayground) && exec.has_playground())
         || (matches!(page, Page::BundleExplorer) && exec.has_bundle())
         || (matches!(page, Page::ConjecturePlayground) && exec.has_conjectures())
     {
