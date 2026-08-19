@@ -908,6 +908,7 @@ ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     logic:UnwiredFlagshipScenario (logic:subClassOf|rdfs:subClassOf) logic:LogicConformanceFailure .
 }""" ;

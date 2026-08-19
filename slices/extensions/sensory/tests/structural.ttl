@@ -111,6 +111,7 @@ ex:saSensoryQuantityRdfsTwinSurvives a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX math: <https://blackcatinformatics.ca/math/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 ASK {
     gmeow:SensoryQuantity (logic:subClassOf|rdfs:subClassOf) math:Quantity .
 }""" ;

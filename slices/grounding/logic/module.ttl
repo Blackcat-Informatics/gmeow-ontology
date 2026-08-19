@@ -19498,21 +19498,21 @@ logic:acdCons a logic:Formula ;
 logic:acdAtom a logic:Formula ; logic:relation logic:capability ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
-logic:DevToolEffectDeclaredConstraint
+logic:DevToolCompensationDeclaredConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Dev tool effect declared constraint"@x-gmeow-english ;
+    rdfs:label "Dev tool compensation declared constraint"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:effect its action claims. The repo-reading developer tools are the only ones that reach outside the bundle, so what they change is the one thing a caller cannot infer from the shipped artifact — an undeclared effect makes a working-tree write indistinguishable from a read, and the tool surface stops being auditable from the theory alone."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:compensation that undoes its action. The repo-reading developer tools are the only ones that reach outside the bundle and the only ones that write to a working tree, so an action carrying no compensation is one a caller cannot back out of — a failed multi-step run leaves the tree in a state nothing in the theory says how to restore. Declaring the undo is what makes the write recoverable rather than merely recorded."@x-gmeow-english ;
     gmeow:enforcesFailureClass logic:DevToolSurfaceFailure ;
     logic:formalizes logic:McpActionSchema ;
     logic:severity "Violation" ;
-    logic:message "Every logic:McpActionSchema must declare its logic:effect; a repo-reading tool whose change is undeclared is not auditable from the action theory (logic:DevToolSurfaceFailure)." ;
+    logic:message "Every logic:McpActionSchema must declare its logic:compensation; a repo-reading tool whose write cannot be undone is unrecoverable, not merely unaudited (logic:DevToolSurfaceFailure)." ;
     logic:integrity logic:dteForall .
 logic:dteForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Dev tool effect declared constraint formula"@x-gmeow-english ;
-    skos:definition "The top-level forall-implies-exists integrity formula of logic:DevToolEffectDeclaredConstraint."@x-gmeow-english ;
+    rdfs:label "Dev tool compensation declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:DevToolCompensationDeclaredConstraint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:dteImpl .
@@ -19522,7 +19522,7 @@ logic:dteGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
 logic:dteCons a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists logic:dteAtom .
-logic:dteAtom a logic:Formula ; logic:relation logic:effect ;
+logic:dteAtom a logic:Formula ; logic:relation logic:compensation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 logic:IncompleteClosure

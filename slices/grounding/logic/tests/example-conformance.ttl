@@ -101,8 +101,7 @@ ex:ecActionSchemaMissingCapability a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:expectedSourceShape logic:ActionSchema-shape ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example omits logic:capability, one of the two required facets (sh:minCount 1 on logic:ActionSchemaShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+    gmeow:conformanceRationale "The counter-example omits logic:capability, one of the two required facets (sh:minCount 1 on logic:ActionSchemaShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding. This cell no longer declares gmeow:expectedSoleFinding: logic:ActionCapabilityDeclaredConstraint (logic:BrokenToolRegistration) also fires: a schema with no capability is advertised-but-undispatchable, which is the same omission read from the registry side. The overlap is a property of the vocabulary rather than of this fixture — no authorable schema can omit the facet and trip only one of the two gates — so claiming soleness would assert an isolation it cannot have." .
 
 # --- Conforming: an MCP-action schema under the governance profile -----------
 ex:ecMcpActionWellformed a gmeow:ExampleConformance ;
@@ -116,8 +115,7 @@ ex:ecMcpActionMissingCompensation a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:expectedSourceShape logic:McpActionSchema-shape ;
-    gmeow:expectedSoleFinding true ;
-    gmeow:conformanceRationale "The counter-example's ex:mcpActionMissingCompensation (typed logic:McpActionSchema) omits logic:compensation (sh:minCount 1 on logic:McpActionPolicyShape — an MCP tool that mutates state with no rollback), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding." .
+    gmeow:conformanceRationale "The counter-example's ex:mcpActionMissingCompensation (typed logic:McpActionSchema) omits logic:compensation (sh:minCount 1 on logic:McpActionPolicyShape — an MCP tool that mutates state with no rollback), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding. This cell no longer declares gmeow:expectedSoleFinding: logic:DevToolCompensationDeclaredConstraint (logic:DevToolSurfaceFailure) also fires: a repo-reading action with no declared undo is unrecoverable, which is the same omission read from the recovery side. The overlap is a property of the vocabulary rather than of this fixture — no authorable schema can omit the facet and trip only one of the two gates — so claiming soleness would assert an isolation it cannot have." .
 
 # --- Conforming: satisfiedBy backed by a vantage-scoped GoalEvaluation -------
 ex:ecSatisfiedByBacked a gmeow:ExampleConformance ;
