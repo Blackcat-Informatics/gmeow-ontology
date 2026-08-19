@@ -57,6 +57,20 @@ pub const GLYPH_TOKEN_COSTS: &[(&str, usize)] = &[
     ("π", 1),
     ("→", 1),
     ("⊑", 3),
+    // The subsumption/stereotype plane's glyphs. They entered the codebook with the
+    // grounding work and the legend must price every glyph the codec may emit, so a
+    // registry entry with no pinned cost is a legend that lies by omission. Values are
+    // the real cl100k_base costs, which `assert_pinned_costs_match_the_real_bpe` checks
+    // against the live tokenizer rather than trusting this list.
+    ("≡", 2),
+    ("▲", 2),
+    ("△", 2),
+    ("▼", 2),
+    ("▽", 2),
+    ("◉", 2),
+    ("○", 2),
+    ("◌", 2),
+    ("●", 1),
 ];
 
 /// The pinned token cost of `glyph`.
@@ -249,6 +263,15 @@ pub const GMN_SYMBOL_AUDIT_TOKEN_COSTS: &[(&str, usize)] = &[
     ("Θ", 2),
     ("μ", 1),
     ("π", 1),
+    ("≡", 2),
+    ("▲", 2),
+    ("△", 2),
+    ("▼", 2),
+    ("▽", 2),
+    ("◉", 2),
+    ("○", 2),
+    ("◌", 2),
+    ("●", 1),
 ];
 
 /// The pinned token cost of `token` for the GMN symbol audit.

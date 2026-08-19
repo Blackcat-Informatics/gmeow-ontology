@@ -402,7 +402,7 @@ use session_common::*;
 /// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
 /// class expression, so its reasoning verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "545d0b2fc49854794d518a7ffeffeb1d41e4c9c946ce95e9957f0e81545ea962";
+    "498b44c6cdb7bad7d373c9b5ffdcaa6d7ad47d650a169ec60615af791f92d8ca";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -596,7 +596,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// edge-only input authors no class expression in either spelling, so its reasoning verdict
 /// is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "6c419ca04cd8d6bafbb6c6353845a3bad9615eee52d4b28baec06ed21a20b3c7";
+    "128b4c4648ec46d0261d0325044ae54bf29bfbf76889e5400cbb569415fb1c50";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
