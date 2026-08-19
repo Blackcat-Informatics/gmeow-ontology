@@ -118,6 +118,15 @@
 //!   claim fingerprints, and the browser backend's record ids.
 //! * `tempfile` — atomic write-then-rename for the NATIVE library commit path
 //!   (`cfg(not(target_arch = "wasm32"))`; the browser backend needs none).
+//! * `gmeow-gts-profile` — the ONE mandated GTS authorship door. The append-only library
+//!   segments are authored GMEOW GTS, so they go through it rather than purrdf's raw
+//!   writer, whose default catalog states no zstd level and would leave the frame
+//!   profile unverifiable on the artifact. It also resolves a runtime store's priming
+//!   bytes out of the loaded bundle's in-band map (`store_medium`).
+//! * `ed25519-dalek` — the store COMPACTION lane's mandatory packaging signature:
+//!   purrdf's `compact_streamable` takes the ordering-commitment signer as a plain tuple
+//!   rather than an `Option`, so an unsigned repack is unrepresentable and the lane has
+//!   to name the key type.
 
 pub mod error;
 
@@ -8357,7 +8366,7 @@ mod tests {
         let bytes = build_nt_segment(BYTE_PARITY_NT_BODY).expect("representative body must parse");
         assert_eq!(
             sha256_hex(&bytes),
-            "8be75532bab466852c33fea79c803ba2a847c14c0a063db6435dcb63468e0405",
+            "6417ead627845b8aaab5190bfba8423228ab4b0d4a402912410743145192d639",
             "build_nt_segment output digest changed; segment bytes are append-only content-addressed",
         );
     }
