@@ -4,7 +4,7 @@
     "mandated_codec": "zstd-rsyncable",
     "mandated_level": 12,
     "corpus_frame_count": 19,
-    "corpus_bytes": 140419031,
+    "corpus_bytes": 140507607,
     "excluded_reps": [
       "docs-book",
       "docs-print",
@@ -15,42 +15,42 @@
       {
         "codec": "zstd",
         "level": 3,
-        "bytes": 9463862
+        "bytes": 9488784
       },
       {
         "codec": "zstd",
         "level": 9,
-        "bytes": 7127737
+        "bytes": 7148427
       },
       {
         "codec": "zstd",
         "level": 12,
-        "bytes": 6991428
+        "bytes": 7011791
       },
       {
         "codec": "zstd",
         "level": 19,
-        "bytes": 6008287
+        "bytes": 6029086
       },
       {
         "codec": "zstd-rsyncable",
         "level": 3,
-        "bytes": 14137418
+        "bytes": 14162661
       },
       {
         "codec": "zstd-rsyncable",
         "level": 9,
-        "bytes": 13065271
+        "bytes": 13088560
       },
       {
         "codec": "zstd-rsyncable",
         "level": 12,
-        "bytes": 12990193
+        "bytes": 13013369
       },
       {
         "codec": "zstd-rsyncable",
         "level": 19,
-        "bytes": 12571744
+        "bytes": 12594033
       }
     ],
     "mandated_is_argmin": false
@@ -64,87 +64,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 65536,
       "declared_is_argmin": true,
-      "bytes_on_disk": 5009068,
-      "bytes_on_disk_baseline": 5561820,
+      "bytes_on_disk": 5011645,
+      "bytes_on_disk_baseline": 5562026,
       "dictionary_in_band_bytes": 65536,
-      "two_part_code_bytes": 5074604,
-      "dictionary_gain_fraction": "0.087600",
+      "two_part_code_bytes": 5077181,
+      "dictionary_gain_fraction": "0.087171",
       "corpus_sample_count": 795,
       "held_out_sample_count": 17,
-      "corpus_digest": "blake3:cab419cc599cfb2fccb045a03dae12316f07b2836bec4a4cfa0a009256d8aa43",
+      "corpus_digest": "blake3:93d456f010f620a170697bc4ea8d56050c1a9f05feabacd7f5dc35bd7436130a",
       "evaluated_frame_count": 7,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 5381562
+          "two_part_code_bytes": 5379344
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 5231897
+          "two_part_code_bytes": 5209035
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 5074604
+          "two_part_code_bytes": 5077181
         },
         {
           "strategy": "trained",
           "target_length": 262144,
-          "dictionary_bytes": 262144,
-          "two_part_code_bytes": 5221285
+          "dictionary_bytes": 262139,
+          "two_part_code_bytes": 5221605
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 5482481
+          "two_part_code_bytes": 5482330
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 5420099
+          "two_part_code_bytes": 5420033
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 5408469
+          "two_part_code_bytes": 5408413
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 5529144
+          "two_part_code_bytes": 5528964
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 5506512
+          "two_part_code_bytes": 5506661
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 5471646
+          "two_part_code_bytes": 5471900
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 5460215
+          "two_part_code_bytes": 5460479
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 5703524
+          "two_part_code_bytes": 5703780
         }
       ]
     },
@@ -156,87 +156,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 65536,
       "declared_is_argmin": true,
-      "bytes_on_disk": 4126933,
-      "bytes_on_disk_baseline": 5151169,
+      "bytes_on_disk": 4148594,
+      "bytes_on_disk_baseline": 5174139,
       "dictionary_in_band_bytes": 65536,
-      "two_part_code_bytes": 4192469,
-      "dictionary_gain_fraction": "0.186113",
+      "two_part_code_bytes": 4214130,
+      "dictionary_gain_fraction": "0.185540",
       "corpus_sample_count": 243,
       "held_out_sample_count": 5,
-      "corpus_digest": "blake3:cd623783d126c30c8983f64008b67984f9ca3229bf83d3fb5c7def110213abff",
+      "corpus_digest": "blake3:6789cfad85a6923aa346636f5b1eaa547d0e1cd9105157c50a6a3c033b7da7e4",
       "evaluated_frame_count": 3,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 4789886
+          "two_part_code_bytes": 4813023
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 4509604
+          "two_part_code_bytes": 4534092
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 4192469
+          "two_part_code_bytes": 4214130
         },
         {
           "strategy": "trained",
           "target_length": 262144,
-          "dictionary_bytes": 262144,
-          "two_part_code_bytes": 4236156
+          "dictionary_bytes": 262142,
+          "two_part_code_bytes": 4253176
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 5129286
+          "two_part_code_bytes": 5157075
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 5116387
+          "two_part_code_bytes": 5142249
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 5150889
+          "two_part_code_bytes": 5175310
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 4768717
+          "two_part_code_bytes": 4789607
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 5130028
+          "two_part_code_bytes": 5152908
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 5111221
+          "two_part_code_bytes": 5133916
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 5130716
+          "two_part_code_bytes": 5153201
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 5323335
+          "two_part_code_bytes": 5345956
         }
       ]
     },
@@ -248,81 +248,81 @@
       "winning_strategy": "trained",
       "winning_target_length": 65536,
       "declared_is_argmin": true,
-      "bytes_on_disk": 1253149,
+      "bytes_on_disk": 1250598,
       "bytes_on_disk_baseline": 1508762,
       "dictionary_in_band_bytes": 65536,
-      "two_part_code_bytes": 1318685,
-      "dictionary_gain_fraction": "0.125982",
+      "two_part_code_bytes": 1316134,
+      "dictionary_gain_fraction": "0.127673",
       "corpus_sample_count": 154,
       "held_out_sample_count": 1,
-      "corpus_digest": "blake3:3a672f4e9bcc25fc2b1b1d4add7a19e0e5a92cd8ad27f159a71dd72f37c6bc4b",
+      "corpus_digest": "blake3:851aff951a499b1adcdf58bcd270aca020f9b4ba4177819941ee2031a5d4c028",
       "evaluated_frame_count": 6,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 1440939
+          "two_part_code_bytes": 1441695
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 1375745
+          "two_part_code_bytes": 1376994
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 1318685
+          "two_part_code_bytes": 1316134
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 1415621
+          "two_part_code_bytes": 1417267
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 1494563
+          "two_part_code_bytes": 1494538
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 1473795
+          "two_part_code_bytes": 1473750
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 1469613
+          "two_part_code_bytes": 1469552
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 1579300
+          "two_part_code_bytes": 1579207
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 1502567
+          "two_part_code_bytes": 1502570
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 1504230
+          "two_part_code_bytes": 1504227
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 1541192
+          "two_part_code_bytes": 1541191
         },
         {
           "strategy": "term-table",
@@ -340,87 +340,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 85716,
-      "bytes_on_disk_baseline": 92383,
+      "bytes_on_disk": 85644,
+      "bytes_on_disk_baseline": 92372,
       "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 89812,
-      "dictionary_gain_fraction": "0.027830",
+      "two_part_code_bytes": 89740,
+      "dictionary_gain_fraction": "0.028493",
       "corpus_sample_count": 1,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:71cfcfc9e1d755e6f0a0ec9fc3fafac60a0cf3f41dfda183bd95ff13f0e98ceb",
+      "corpus_digest": "blake3:07ff55aa99c9c7f61750386862c776b7708761c05575a138e5c03780144b0557",
       "evaluated_frame_count": 114,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 89812
+          "two_part_code_bytes": 89740
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 101672
+          "two_part_code_bytes": 101648
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 149302
+          "two_part_code_bytes": 149425
         },
         {
           "strategy": "trained",
           "target_length": 262144,
-          "dictionary_bytes": 262139,
-          "two_part_code_bytes": 344838
+          "dictionary_bytes": 262144,
+          "two_part_code_bytes": 344783
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 92657
+          "two_part_code_bytes": 92707
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 103143
+          "two_part_code_bytes": 103165
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 152265
+          "two_part_code_bytes": 152323
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 348891
+          "two_part_code_bytes": 348976
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 95871
+          "two_part_code_bytes": 95749
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 107899
+          "two_part_code_bytes": 107766
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 156007
+          "two_part_code_bytes": 155824
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 351535
+          "two_part_code_bytes": 351390
         }
       ]
     },
@@ -432,87 +432,87 @@
       "winning_strategy": "trained",
       "winning_target_length": 4096,
       "declared_is_argmin": true,
-      "bytes_on_disk": 86197,
-      "bytes_on_disk_baseline": 92372,
+      "bytes_on_disk": 86112,
+      "bytes_on_disk_baseline": 92370,
       "dictionary_in_band_bytes": 4096,
-      "two_part_code_bytes": 90293,
-      "dictionary_gain_fraction": "0.022507",
+      "two_part_code_bytes": 90208,
+      "dictionary_gain_fraction": "0.023406",
       "corpus_sample_count": 3,
       "held_out_sample_count": 0,
-      "corpus_digest": "blake3:ba71bfbe17d7c333ba0c6beb72e33590c37ef35cb08b4f5db1c440d8783cf53a",
+      "corpus_digest": "blake3:49c59ca8558ff56b1232c85ee3e9dda43bdbf609b8405017aec707884ca3847b",
       "evaluated_frame_count": 114,
       "grid": [
         {
           "strategy": "trained",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 90293
+          "two_part_code_bytes": 90208
         },
         {
           "strategy": "trained",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 101107
+          "two_part_code_bytes": 100797
         },
         {
           "strategy": "trained",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 148574
+          "two_part_code_bytes": 148451
         },
         {
           "strategy": "trained",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 342688
+          "two_part_code_bytes": 342566
         },
         {
           "strategy": "raw-content",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 92669
+          "two_part_code_bytes": 92652
         },
         {
           "strategy": "raw-content",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 103113
+          "two_part_code_bytes": 103131
         },
         {
           "strategy": "raw-content",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 152302
+          "two_part_code_bytes": 152281
         },
         {
           "strategy": "raw-content",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 348905
+          "two_part_code_bytes": 348904
         },
         {
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 95880
+          "two_part_code_bytes": 95696
         },
         {
           "strategy": "term-table",
           "target_length": 16384,
           "dictionary_bytes": 16384,
-          "two_part_code_bytes": 107924
+          "two_part_code_bytes": 107742
         },
         {
           "strategy": "term-table",
           "target_length": 65536,
           "dictionary_bytes": 65536,
-          "two_part_code_bytes": 156005
+          "two_part_code_bytes": 155776
         },
         {
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 351534
+          "two_part_code_bytes": 351371
         }
       ]
     },
@@ -586,7 +586,7 @@
           "strategy": "term-table",
           "target_length": 4096,
           "dictionary_bytes": 4096,
-          "two_part_code_bytes": 732898
+          "two_part_code_bytes": 732887
         },
         {
           "strategy": "term-table",
@@ -604,7 +604,7 @@
           "strategy": "term-table",
           "target_length": 262144,
           "dictionary_bytes": 262144,
-          "two_part_code_bytes": 1001243
+          "two_part_code_bytes": 1001238
         }
       ]
     }
