@@ -63,6 +63,16 @@ use gmeow_pipeline::gmn_dialect::ModelFacingReport;
 pub struct FrozenItem {
     /// Repo-relative path, forward slashes.
     pub path: &'static str,
+    /// Where the SAME item lived at the merge base, when a change moved it between files.
+    ///
+    /// A freeze is about an item's bytes, not its address, so an item that moves house has to
+    /// be looked up at its old address in the base and its new one on the branch; without this
+    /// the gate reads a missing file and grades nothing, which is the one outcome a freeze may
+    /// never have. `None` means the item did not move.
+    pub base_path: Option<&'static str>,
+    /// Which item carried this freeze at the merge base, when a change renamed it or split it
+    /// out of its old home. `None` means the item kept its name.
+    pub base_item: Option<ItemRef>,
     /// Which item of that file is frozen.
     pub item: ItemRef,
     /// Why this item carries the model-facing shape.
@@ -78,6 +88,28 @@ pub enum ItemRef {
     Function(&'static str),
     /// A `const` item, by name.
     Const(&'static str),
+}
+
+impl FrozenItem {
+    /// Where this item is looked up at the MERGE BASE: its old address when a change moved
+    /// it between files, its current one otherwise.
+    #[must_use]
+    pub fn base_lookup_path(self) -> &'static str {
+        match self.base_path {
+            Some(path) => path,
+            None => self.path,
+        }
+    }
+
+    /// Which item this freeze is looked up as at the MERGE BASE: its old name when a change
+    /// renamed or relocated it, its current one otherwise.
+    #[must_use]
+    pub fn base_lookup_item(self) -> ItemRef {
+        match self.base_item {
+            Some(item) => item,
+            None => self.item,
+        }
+    }
 }
 
 impl ItemRef {
@@ -99,7 +131,9 @@ impl ItemRef {
 /// ontology-derived delta instead of frozen outright.
 pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     FrozenItem {
-        path: "crates/docs/src/llms.rs",
+        path: "crates/docs-model/src/llms.rs",
+        base_path: Some("crates/docs/src/llms.rs"),
+        base_item: None,
         item: ItemRef::WholeFile,
         why: "the ONE llmstxt.org skeleton emitter — header, blockquote, bullet form, \
               note cap, token budgets, the standing Reference section and its page list. \
@@ -108,34 +142,46 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     },
     FrozenItem {
         path: "crates/pipeline/src/stages/export.rs",
+        base_path: None,
+        base_item: None,
         item: ItemRef::Function("llms_sections"),
         why: "the section HEADINGS (Classes / Properties / Individuals) and their order",
     },
     FrozenItem {
         path: "crates/pipeline/src/stages/export.rs",
+        base_path: None,
+        base_item: None,
         item: ItemRef::Function("llms_signature"),
         why: "the notation conventions — the `⊑` subclass and `→` domain/range spellings \
               a model reads off every bullet",
     },
     FrozenItem {
         path: "crates/pipeline/src/stages/export.rs",
+        base_path: None,
+        base_item: None,
         item: ItemRef::Function("llms_note"),
         why: "the bullet-note convention (definition, label fallback, the `[fallback: en]` \
               marker)",
     },
     FrozenItem {
         path: "crates/pipeline/src/stages/export.rs",
+        base_path: None,
+        base_item: None,
         item: ItemRef::Function("llms_prose"),
         why: "the shared prose line every index form carries under its header",
     },
     FrozenItem {
         path: "crates/pipeline/src/stages/export.rs",
+        base_path: None,
+        base_item: None,
         item: ItemRef::Function("write_llms_txt"),
         why: "the section ORDERING of the index form: term sections, then the standing \
               Reference section, then the GMN-1 primer section",
     },
     FrozenItem {
         path: "crates/docs/src/gmn1_primer.rs",
+        base_path: None,
+        base_item: None,
         item: ItemRef::Const("PRIMER_HEADING"),
         why: "the primer's section heading — the anchor every surface's primer section is \
               found by",
@@ -144,8 +190,10 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
 
 /// The MCP consumer-index item whose LIST may grow with the vocabulary a change declares.
 pub const MCP_RESOURCE_LIST: FrozenItem = FrozenItem {
-    path: "crates/pipeline/src/mcp.rs",
-    item: ItemRef::Function("resources_result"),
+    path: "crates/mcp/src/extension.rs",
+    base_path: Some("crates/pipeline/src/mcp.rs"),
+    base_item: Some(ItemRef::Function("resources_result")),
+    item: ItemRef::Function("resource_descriptors"),
     why: "the MCP consumer-index resource list: its structure is frozen, and its entries \
           may grow only to surface `gmeow:` vocabulary the change itself declares",
 };
@@ -357,7 +405,7 @@ pub fn check_frozen_item(
     report: &mut ModelFacingReport,
 ) {
     let label = format!("{} :: {}", item.path, item.item.label());
-    let Some(base) = extract_item(base_text, item.item) else {
+    let Some(base) = extract_item(base_text, item.base_lookup_item()) else {
         report.problem(format!(
             "{label}: absent at the merge base — the freeze has no comparand"
         ));
@@ -853,6 +901,8 @@ fn resources_result(&self) -> Value {
     fn an_unchanged_item_passes_the_freeze() {
         let item = FrozenItem {
             path: "fixture.rs",
+            base_path: None,
+            base_item: None,
             item: ItemRef::Function("llms_sections"),
             why: "fixture",
         };
@@ -868,6 +918,8 @@ fn resources_result(&self) -> Value {
     fn reordering_a_section_header_reds_the_freeze() {
         let item = FrozenItem {
             path: "fixture.rs",
+            base_path: None,
+            base_item: None,
             item: ItemRef::Function("llms_sections"),
             why: "fixture",
         };
@@ -884,6 +936,8 @@ fn resources_result(&self) -> Value {
     fn removing_a_frozen_item_reds_the_freeze() {
         let item = FrozenItem {
             path: "fixture.rs",
+            base_path: None,
+            base_item: None,
             item: ItemRef::Const("PRIMER_HEADING"),
             why: "fixture",
         };

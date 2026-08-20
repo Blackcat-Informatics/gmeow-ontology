@@ -397,7 +397,7 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
     for item in FROZEN_LLMS_SHAPE {
         let work = std::fs::read_to_string(root.join(item.path))
             .unwrap_or_else(|err| panic!("{}: unreadable on this branch: {err}", item.path));
-        let Some(base_text) = base_text(&root, &base, item.path) else {
+        let Some(base_text) = base_text(&root, &base, item.base_lookup_path()) else {
             panic!(
                 "{}: absent at the merge base. Every frozen llms-shape source predates this \
                  change; a missing comparand means the freeze list drifted from the tree",
@@ -428,12 +428,12 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
     // merge base did not.
     let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path))
         .expect("the MCP module is readable");
-    let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.path)
+    let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.base_lookup_path())
         .expect("the MCP module predates this change");
     let work_body =
         extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch");
-    let base_body =
-        extract_item(&base_mcp, MCP_RESOURCE_LIST.item).expect("resources_result at the base");
+    let base_body = extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
+        .expect("resources_result at the base");
     let surfaces = declared_surfaces(&root, &base);
     // NON-VACUITY, both sides: a derivation that read no term at all would license every
     // addition as "undeclared-but-unchecked" or refuse every one of them for the wrong
@@ -471,7 +471,8 @@ fn leg4_red_fixture_reordering_a_section_header_reds() {
         .find(|item| item.item == ItemRef::Function("llms_sections"))
         .expect("the section-heading item is frozen");
     let work = std::fs::read_to_string(root.join(item.path)).expect("readable");
-    let base_source = base_text(&root, &base, item.path).expect("present at the base");
+    let base_source =
+        base_text(&root, &base, item.base_lookup_path()).expect("present at the base");
 
     // The live ordering is Classes, Properties, Individuals. Swap the first two.
     let reordered = work.replacen(
@@ -495,9 +496,11 @@ fn leg4_red_fixture_reordering_a_section_header_reds() {
 /// The live MCP resource-list bodies at the base and on this branch.
 fn mcp_bodies(root: &Path, base: &str) -> (String, String) {
     let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path)).expect("readable");
-    let base_mcp = base_text(root, base, MCP_RESOURCE_LIST.path).expect("present at the base");
+    let base_mcp =
+        base_text(root, base, MCP_RESOURCE_LIST.base_lookup_path()).expect("present at the base");
     (
-        extract_item(&base_mcp, MCP_RESOURCE_LIST.item).expect("resources_result at the base"),
+        extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
+            .expect("resources_result at the base"),
         extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch"),
     )
 }

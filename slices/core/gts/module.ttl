@@ -1864,6 +1864,16 @@ gmeow:gtsProducerRuntimeStores
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
+gmeow:gtsProducerRuntimeStoreSegments
+    a gmeow:GtsProducer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS producer — the runtime store segment boundary"@x-gmeow-english ;
+    skos:definition "The storage backend that opens a runtime store's segment when the store's tail does not already pin the medium the server resolved. A segment declares exactly ONE codec catalog, so a store whose tail predates the current medium needs a boundary before anything is appended into it; without one the appended record names a catalog that tail never declared and the store stops reconstructing. It authors a segment HEADER only — the records themselves are written by gmeow:gtsProducerRuntimeStores through the same gmeow:mediumProfileStoreL12."@x-gmeow-english ;
+    gmeow:producerCallSite "crates/mcp/src/storage.rs" ;
+    gmeow:producerMedium gmeow:mediumProfileStoreL12 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
 gmeow:gtsProducerFeedbackBundle
     a gmeow:GtsProducer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
