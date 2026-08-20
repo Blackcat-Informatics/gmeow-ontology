@@ -416,9 +416,16 @@ fn every_medium_axis_class_carries_a_ufo_meta_type_and_a_docs_concern() {
 /// crate edge (the pipeline depends on validate, so the reverse edge would be a cycle)
 /// while still failing the moment a new representation is added without a schema.
 fn carrier_rep_constants() -> BTreeMap<String, String> {
-    let src = repo_root().join("crates/pipeline/src");
+    // BOTH carrier crates: `gmeow-bundle-view` OWNS the representation ids the read side
+    // addresses, and `gmeow-pipeline` defines the write-side-only ones. Scanning just one
+    // of them is how this check silently stopped seeing REP_DENIED — a scan that misses a
+    // constant reports a clean registry rather than an unregistered payload.
+    let roots = [
+        repo_root().join("crates/pipeline/src"),
+        repo_root().join("crates/bundle-view/src"),
+    ];
     let mut out = BTreeMap::new();
-    let mut stack = vec![src.clone()];
+    let mut stack: Vec<_> = roots.to_vec();
     while let Some(dir) = stack.pop() {
         for entry in std::fs::read_dir(&dir).expect("carrier source directory readable") {
             let entry = entry.expect("readable directory entry");
@@ -449,8 +456,7 @@ fn carrier_rep_constants() -> BTreeMap<String, String> {
     }
     assert!(
         !out.is_empty(),
-        "found no REP_* constants under {} — the scan is broken, not the registry",
-        src.display()
+        "found no REP_* constants under {roots:?} — the scan is broken, not the registry"
     );
     out
 }

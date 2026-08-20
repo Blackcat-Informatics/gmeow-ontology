@@ -2538,6 +2538,17 @@ gmeow:payloadSchemaTestsArchive
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
 
+gmeow:payloadSchemaExamplesArchive
+    a gmeow:PayloadSchema ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "payload schema — examples archive"@x-gmeow-english ;
+    skos:definition "The slices' example Turtle sources, keyed by repo-relative path. The bytes travel with the bundle while the statements stay out of the object-level closure, on the same terms as the mapping and test-DSL sources."@x-gmeow-english ;
+    gmeow:payloadSchemaId "examples-archive" ;
+    gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
+    gmeow:payloadSchemaDictionary gmeow:dictGmeowCoreV1 ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox .
+
 gmeow:payloadSchemaTransformDenied
     a gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;

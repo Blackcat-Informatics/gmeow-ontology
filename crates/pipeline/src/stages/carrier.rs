@@ -2016,22 +2016,14 @@ pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 // `stage-statements`' rendered claim-corpus surface, and the sink READS it back with
 // the other nine — one authority for archive membership, no inline sink fold.
 
-/// tar of the Rust-rendered OKF bundle, member = `gmeow-okf/...`.
+/// The archive representation ids, from the crate that OWNS them: `gmeow-bundle-view`
+/// addresses these blobs on the read side, and a second definition here would be a second
+/// source of truth for a string the two sides have to agree on exactly.
+pub(crate) use gmeow_bundle_view::bundle_blobs::REP_REASONING;
+/// The archive ids this module only names from its tests, owned by `gmeow-bundle-view`.
 #[cfg(test)]
-const REP_OKF: &str = "okf-export";
-/// The full rendered ontology-docs static site. The rep MUST equal the
-/// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
-/// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow export-docs` finds it.
-#[cfg(test)]
-const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
-/// tar of the native reasoner's REPORT artifacts: the entailment
-/// explanations + the DL/EL cross-check ledger over THIS run's reasoned closure. The
-/// closure itself already rides the bundle GRAPH (gts-compose folds `stage-reason`'s
-/// closure); the reports are deliberately kept OUT of the ontology graph, so this
-/// blob channel is how a repo-free consumer reads WHY each entailment holds and the
-/// DL/EL agreement ledger WITHOUT re-running the engine (maximal information flow).
-/// The Python reader (`bundle.bundled_reasoning`) MUST use this exact rep string.
-const REP_REASONING: &str = "reasoning-archive";
+pub(crate) use gmeow_bundle_view::bundle_blobs::{REP_OKF, REP_ONTOLOGY_DOCS};
+
 pub(crate) const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 
 /// The full committed-path → bytes artifact map a producing `stage` attached to the
