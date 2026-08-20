@@ -292,3 +292,163 @@ msgstr "范围：该记录仅承载关于 gmeow:logIndex 的一项完整性义�
 msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:transactionHash and nothing else. It is not a definition of gmeow:transactionHash (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:transactionHash 的一项完整性义务，别无其他。它不是 gmeow:transactionHash 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Component|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Component"
+msgstr "组件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Component|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An external engine, library, or toolchain a build depends on or statically embeds — the reconciliation subject whose version is asserted at several mutually-unaware claim sites (a manifest pin, a lockfile, a compiled-in constant, a shipped artifact stamp, prose). The generic kernel class; gmeow:SubstrateComponent is its seeded first specialization. Unlike a gmeow:PinClaim it is not an assertion about a version, and distinct from a gmeow:ReconciledPin it is never the reconciled consensus value — the component is the thing versioned, not a statement about it."
+msgstr "一次构建所依赖或静态嵌入的外部引擎、库或工具链——其版本在若干互不知晓的声明点（清单固定项、锁文件、编译进二进制的常量、已交付制品的戳记、散文）上被断言的调和主体。通用的内核类；gmeow:SubstrateComponent 是其首个预置的特化。与 gmeow:PinClaim 不同，它并非关于某个版本的断言；与 gmeow:ReconciledPin 不同，它绝不是调和后的共识值——组件是被赋予版本的事物，而非关于它的陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubstrateComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Substrate Component"
+msgstr "基底组件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubstrateComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A gmeow:Component that is part of the GMEOW substrate — the RDF/GTS engine the bundle is built against and the toolchain that produced the shipped artifacts (purrdf, and the wasm-bindgen / binaryen toolchain the committed .wasm engines are compiled with). The seeded first instance of the reconciliation kernel; carries no substrate-specific logic or derived SHACL of its own. Unlike a plain gmeow:Component it is never an arbitrary build dependency — only the engine or toolchain the shipped bundle is built against or embeds qualifies, not a library the artifact neither carries nor was produced by."
+msgstr "属于 GMEOW 基底的 gmeow:Component——该包所针对构建的 RDF/GTS 引擎，以及生产已交付制品的工具链（purrdf，以及编译已提交的 .wasm 引擎所用的 wasm-bindgen / binaryen 工具链）。调和内核的首个预置实例；自身不携带任何基底专属逻辑或派生的 SHACL。与普通的 gmeow:Component 不同，它绝不是任意的构建依赖——只有已交付包所针对构建或所嵌入的引擎或工具链才符合条件，而非制品既不携带、也非由其生产的库。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PinClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Pin Claim"
+msgstr "固定声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PinClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One assertion, made at exactly one claim site, of one versioned dimension of one component — e.g. 'the workspace manifest pins purrdf's git rev to a59d9f2d' or 'the lockfile resolves purrdf's crate version to 0.12.0'. The reified per-site claim the agreement law reconciles; several PinClaims about the same (component, dimension) that disagree are drift. Unlike a gmeow:ReconciledPin it is a single-site assertion rather than the agreed consensus, and it is not the component itself."
+msgstr "在恰好一个声明点上，对某个组件的某个版本化维度所作的一次断言——例如「工作区清单将 purrdf 的 git 修订固定为 a59d9f2d」或「锁文件将 purrdf 的 crate 版本解析为 0.12.0」。一致性法则据以调和的、按声明点具体化的声明；关于同一 (组件, 维度) 而彼此不一致的多个 PinClaim 即为漂移。与 gmeow:ReconciledPin 不同，它是单点断言而非达成一致的共识，并且它不是组件本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReconciledPin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reconciled Pin"
+msgstr "调和固定项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReconciledPin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consensus record minted for one (component, dimension) when every present claim site agrees — the single reconciled value, carried once so a consumer (or the SPDX SBOM projection) reads 'what produced this bundle' as an O(1) node rather than re-folding the claims. Absent when the sites disagree (drift) — its absence is itself a signal."
+msgstr "当某个 (组件, 维度) 的所有在场声明点都达成一致时为其铸造的共识记录——单一的调和值，只携带一次，以便消费方（或 SPDX SBOM 投影）将「是什么生产了此包」读作一个 O(1) 节点，而非重新折叠这些声明。当各声明点不一致（漂移）时缺失——其缺失本身即是一个信号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimSite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Claim Site"
+msgstr "声明点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimSite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The place a pin claim is asserted — a value vocabulary (individuals, never subclasses). The six mutually-unaware representations of a substrate pin: workspace manifest, fuzz manifest, lockfile, linked constant, shipped artifact, and prose."
+msgstr "固定声明被断言之处——一个值词汇表（个体，绝非子类）。基底固定项的六种互不知晓的表示：工作区清单、fuzz 清单、锁文件、链接常量、已交付制品和散文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Claim Dimension"
+msgstr "声明维度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The versioned dimension a pin claim asserts — a value vocabulary (individuals, never subclasses). Different dimensions assert different-kind values, so agreement is keyed per (component, dimension): crate version, git rev, shapes version, wire version, and zstd level."
+msgstr "固定声明所断言的版本化维度——一个值词汇表（个体，绝非子类）。不同维度断言不同种类的值，因此一致性按 (组件, 维度) 为键：crate 版本、git 修订、shapes 版本、wire 版本和 zstd 级别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "component name"
+msgstr "组件名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical name of a build component (e.g. \"purrdf\", \"wasm-bindgen\", \"binaryen\"). Functional: a component has exactly one canonical name. It names the component, not its version (gmeow:componentVersion), and unlike a per-site gmeow:claimedValue it is never a claimed string subject to reconciliation."
+msgstr "构建组件的规范名称（例如 \"purrdf\"、\"wasm-bindgen\"、\"binaryen\"）。函数性：一个组件恰好拥有一个规范名称。它命名组件，而非其版本（gmeow:componentVersion），并且与按声明点的 gmeow:claimedValue 不同，它绝不是受调和约束的被声明字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "component version"
+msgstr "组件版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reconciled crate/semantic version of a component (e.g. \"0.12.0\"), carried on the component once reconciliation of its crate-version dimension succeeds. Functional: one reconciled version per component. Unlike a single site's gmeow:claimedValue it is the agreed consensus, not a pre-reconciliation assertion, and never a non-crate dimension (git rev, zstd level ride gmeow:ReconciledPin per dimension instead)."
+msgstr "组件的调和后 crate/语义版本（例如 \"0.12.0\"），在其 crate 版本维度调和成功后携带于组件之上。函数性：每个组件一个调和后版本。与单个声明点的 gmeow:claimedValue 不同，它是达成一致的共识，而非调和前的断言，且绝不是非 crate 维度（git 修订、zstd 级别改为按维度依附于 gmeow:ReconciledPin）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "embeds"
+msgstr "嵌入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Records that one component (a shipped engine artifact) statically embeds another (a library/substrate it was linked against) — e.g. a committed .wasm engine embeds purrdf. The SBOM 'contains' relationship: the SPDX projection maps it to spdx:relationship / spdx:relationshipType_contains. Non-functional: one artifact may embed several components. Unlike a plain per-site claim it records static containment in the shipped bytes, not a build-time dependency that is never carried in the artifact."
+msgstr "记录某个组件（一件已交付的引擎制品）静态嵌入另一个组件（它所链接的库/基底）——例如一个已提交的 .wasm 引擎嵌入 purrdf。SBOM 的「包含」关系：SPDX 投影将其映射为 spdx:relationship / spdx:relationshipType_contains。非函数性：一件制品可嵌入多个组件。与单纯的按声明点声明不同，它记录已交付字节中的静态包含，而非从不携带于制品中的构建期依赖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimed component"
+msgstr "被声明组件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The component a pin claim is about. Functional: one claim asserts about exactly one component. Unlike gmeow:reconciledComponent it is the subject of a single-site claim, never the reconciled consensus record's component."
+msgstr "固定声明所关于的组件。函数性：一次声明恰好关于一个组件。与 gmeow:reconciledComponent 不同，它是单点声明的主体，绝非调和后共识记录的组件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claim site"
+msgstr "声明点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "WHERE a pin claim is asserted — one of the six gmeow:ClaimSite individuals (workspace manifest, fuzz manifest, lockfile, linked constant, shipped artifact, prose). Functional: one claim comes from exactly one site. It records WHERE a claim was read, not WHICH fact it asserts (gmeow:claimDimension), and unlike gmeow:expectedClaimSite it names a site a claim actually came from rather than one that merely ought to assert."
+msgstr "固定声明在何处被断言——六个 gmeow:ClaimSite 个体之一（工作区清单、fuzz 清单、锁文件、链接常量、已交付制品、散文）。函数性：一次声明恰好来自一个声明点。它记录声明在何处被读取，而非它断言哪个事实（gmeow:claimDimension），并且与 gmeow:expectedClaimSite 不同，它命名的是某次声明实际来自的声明点，而非仅仅应当断言的声明点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claim dimension"
+msgstr "声明维度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "WHICH versioned fact a pin claim asserts — one of the gmeow:ClaimDimension individuals (crate version, git rev, shapes version, wire version, zstd level). Agreement is keyed per (component, dimension), since the sites assert different-kind values. Functional: one claim asserts exactly one dimension. It records WHICH versioned fact, not WHERE it was asserted (gmeow:claimSite); the agreement law never compares a crate version against a git rev."
+msgstr "固定声明断言哪个版本化事实——gmeow:ClaimDimension 个体之一（crate 版本、git 修订、shapes 版本、wire 版本、zstd 级别）。一致性按 (组件, 维度) 为键，因为各声明点断言不同种类的值。函数性：一次声明恰好断言一个维度。它记录哪个版本化事实，而非它在何处被断言（gmeow:claimSite）；一致性法则绝不将 crate 版本与 git 修订相比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimed value"
+msgstr "被声明值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The value a pin claim asserts, as a string, already NORMALIZED at carrier emission (in particular git-rev claims are canonicalized so an abbreviated manifest rev and a full lockfile SHA compare equal). Functional: one claim carries one value. Unlike gmeow:reconciledValue it is one site's raw normalized assertion, not the agreed consensus, which reconciliation may or may not confirm."
+msgstr "固定声明所断言的值，以字符串形式，在载体发射时已被规范化（尤其是 git 修订声明经过规范化，使得缩写的清单修订与完整的锁文件 SHA 比较为相等）。函数性：一次声明携带一个值。与 gmeow:reconciledValue 不同，它是单个声明点的原始规范化断言，而非达成一致的共识，调和可能确认也可能不确认它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedClaimSite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected claim site"
+msgstr "期望声明点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedClaimSite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A claim site that MUST assert this component — the expected-coverage declaration the coverage law reads. An absent expected site yields zero claims and would silently, vacuously 'agree'; declaring it expected turns the absence into a coverage finding. Non-functional: a component expects several sites. Unlike gmeow:claimSite it names a site that OUGHT to assert the component rather than one a present claim actually came from; a declared expected site that is never witnessed becomes a coverage finding."
+msgstr "必须断言此组件的声明点——覆盖法则所读取的期望覆盖声明。缺失的期望声明点产生零条声明，并会静默地、空洞地「一致」；将其声明为期望，便把这种缺失转化为一项覆盖发现。非函数性：一个组件期望多个声明点。与 gmeow:claimSite 不同，它命名的是应当断言该组件的声明点，而非某次在场声明实际来自的声明点；一个已声明的期望声明点若从未被见证，便成为一项覆盖发现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciled component"
+msgstr "调和组件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The component a reconciled consensus record is about. Functional: one gmeow:ReconciledPin is about exactly one component. Unlike gmeow:claimedComponent it is the subject of the agreed consensus, not a single-site claim."
+msgstr "调和后共识记录所关于的组件。函数性：一个 gmeow:ReconciledPin 恰好关于一个组件。与 gmeow:claimedComponent 不同，它是达成一致的共识的主体，而非单点声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciled dimension"
+msgstr "调和维度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimension a reconciled consensus record is about. Functional: one gmeow:ReconciledPin reconciles exactly one dimension. Unlike gmeow:claimDimension it is the dimension of the agreed consensus, not of a single-site claim."
+msgstr "调和后共识记录所关于的维度。函数性：一个 gmeow:ReconciledPin 恰好调和一个维度。与 gmeow:claimDimension 不同，它是达成一致的共识的维度，而非单点声明的维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciled value"
+msgstr "调和值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single agreed value carried by a consensus record once a (component, dimension)'s present sites all agree. Functional: one reconciled value per gmeow:ReconciledPin. Unlike gmeow:claimedValue it is the agreed consensus, emitted only when the sites do not disagree, never a single site's raw assertion."
+msgstr "在某个 (组件, 维度) 的所有在场声明点全部一致后，由共识记录携带的单一约定值。函数性：每个 gmeow:ReconciledPin 一个调和值。与 gmeow:claimedValue 不同，它是达成一致的共识，仅在各声明点不发生分歧时才发射，绝非单个声明点的原始断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationComponentSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:Component rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. Component(x) → InformationObject(x) — every build component is an information object, an identity carried by the graph, not a material artifact."
+msgstr "gmeow:Component rdfs:subClassOf gmeow:InformationObject 这条分类学边所投影自的包摄公理：∀x. Component(x) → InformationObject(x)——每个构建组件都是一个信息对象，是图所承载的一个身份，而非一件物质制品。"
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationSubstrateComponentSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:SubstrateComponent rdfs:subClassOf gmeow:Component taxonomy edge projects from: ∀x. SubstrateComponent(x) → Component(x) — every substrate component is a build component, specialized to the bundle's own engine and toolchain."
+msgstr "gmeow:SubstrateComponent rdfs:subClassOf gmeow:Component 这条分类学边所投影自的包摄公理：∀x. SubstrateComponent(x) → Component(x)——每个基底组件都是一个构建组件，特化为该包自身的引擎与工具链。"
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationPinClaimSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:PinClaim rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. PinClaim(x) → InformationObject(x) — every reified per-site claim is an information object, a statement the graph carries."
+msgstr "gmeow:PinClaim rdfs:subClassOf gmeow:InformationObject 这条分类学边所投影自的包摄公理：∀x. PinClaim(x) → InformationObject(x)——每个具体化的按声明点声明都是一个信息对象，是图所承载的一个陈述。"
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationReconciledPinSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:ReconciledPin rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. ReconciledPin(x) → InformationObject(x) — every reconciled consensus record is an information object, the agreed value carried once."
+msgstr "gmeow:ReconciledPin rdfs:subClassOf gmeow:InformationObject 这条分类学边所投影自的包摄公理：∀x. ReconciledPin(x) → InformationObject(x)——每个调和后共识记录都是一个信息对象，是只携带一次的约定值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationClaimSiteSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:ClaimSite rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimSite(x) → QualityValue(x) — every claim site is an enumerated quality value, a member of the value vocabulary naming where a claim was read."
+msgstr "gmeow:ClaimSite rdfs:subClassOf logic:QualityValue 这条分类学边所投影自的包摄公理：∀x. ClaimSite(x) → QualityValue(x)——每个声明点都是一个枚举的质量值，是命名声明在何处被读取的值词汇表的成员。"
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationClaimDimensionSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimDimension(x) → QualityValue(x) — every claim dimension is an enumerated quality value, a member of the value vocabulary naming which versioned fact a claim asserts."
+msgstr "gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue 这条分类学边所投影自的包摄公理：∀x. ClaimDimension(x) → QualityValue(x)——每个声明维度都是一个枚举的质量值，是命名声明断言哪个版本化事实的值词汇表的成员。"
