@@ -20142,6 +20142,999 @@ logic:withRestrictions
     gmeow:howToUse "Attach one RDF list of datatype-facet records beside exactly one logic:onDatatype value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# ── Canonical typing markers ───────────────────────────────────────────────────
+# The rdf:type objects the frontend, refuters, and projection read a term's kind
+# by name. Each is the canonical logic: authoring spelling; the W3C OWL term is a
+# generated projection (Principle 17), recorded by a grounding correspondence law
+# in the block below.
+
+logic:Class
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Class"@x-gmeow-english ;
+    skos:definition "The canonical marker typing a named class expression on the logic: reasoning surface. It is not an instance-level individual; its generated OWL projection is the Class type object a reader recognizes a class by."@x-gmeow-english ;
+    skos:example "ex:Animal a logic:Class ."@x-gmeow-english ;
+    skos:scopeNote "Typing a resource as a class licenses subsumption and membership reasoning over it."@x-gmeow-english ;
+    gmeow:useWhen "Use to type a resource that denotes a set of individuals."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not author the OWL Class projection as a second canonical source."@x-gmeow-english ;
+    gmeow:howToUse "Type the resource with logic:Class before asserting its subclass, equivalence, or restriction axioms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ObjectProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Object Property"@x-gmeow-english ;
+    skos:definition "The canonical marker typing a relation whose values are individuals. It is not a datatype or annotation relation; its generated OWL projection is the ObjectProperty type object."@x-gmeow-english ;
+    skos:example "ex:memberOf a logic:ObjectProperty ."@x-gmeow-english ;
+    skos:scopeNote "An object property relates individuals to individuals and can carry logical characteristics."@x-gmeow-english ;
+    gmeow:useWhen "Use to type a relation whose object is an individual rather than a literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a relation whose values are literals; use logic:DatatypeProperty."@x-gmeow-english ;
+    gmeow:howToUse "Type the relation with logic:ObjectProperty before adding its domain, range, or characteristics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DatatypeProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Datatype Property"@x-gmeow-english ;
+    skos:definition "The canonical marker typing a relation whose values are literals. It is not an object or annotation relation; its generated OWL projection is the DatatypeProperty type object."@x-gmeow-english ;
+    skos:example "ex:age a logic:DatatypeProperty ."@x-gmeow-english ;
+    skos:scopeNote "A datatype property relates individuals to literals in a datatype value space."@x-gmeow-english ;
+    gmeow:useWhen "Use to type a relation whose object is a literal value."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a relation whose values are individuals; use logic:ObjectProperty."@x-gmeow-english ;
+    gmeow:howToUse "Type the relation with logic:DatatypeProperty and constrain its literal range separately."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AnnotationProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Annotation Property"@x-gmeow-english ;
+    skos:definition "The canonical marker typing a non-logical annotation relation that carries documentation rather than entailment. It is not an object or datatype property in the reasoning theory; its generated OWL projection is the AnnotationProperty type object."@x-gmeow-english ;
+    skos:example "ex:editorialNote a logic:AnnotationProperty ."@x-gmeow-english ;
+    skos:scopeNote "Annotation-property triples are out-of-band metadata and license no logical inference."@x-gmeow-english ;
+    gmeow:useWhen "Use to type a relation that documents a term without asserting reasoning content."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a relation whose triples must participate in entailment."@x-gmeow-english ;
+    gmeow:howToUse "Type the documentation relation with logic:AnnotationProperty so consumers treat its triples as annotations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:NamedIndividual
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Named Individual"@x-gmeow-english ;
+    skos:definition "The canonical marker typing a named ABox individual. It is not a class or property; its generated OWL projection is the NamedIndividual type object a reader recognizes an individual by."@x-gmeow-english ;
+    skos:example "ex:socrates a logic:NamedIndividual ."@x-gmeow-english ;
+    skos:scopeNote "The marker records that a resource denotes one individual, distinct from a class or property."@x-gmeow-english ;
+    gmeow:useWhen "Use to make a resource's individual status explicit alongside its type assertions."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to type a class or a property."@x-gmeow-english ;
+    gmeow:howToUse "Type the individual with logic:NamedIndividual in addition to its domain classes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Ontology
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Ontology"@x-gmeow-english ;
+    skos:definition "The canonical marker typing an ontology or module header resource that carries importation and versioning metadata. It is not a domain class; its generated OWL projection is the Ontology type object."@x-gmeow-english ;
+    skos:example "ex:myModule a logic:Ontology ."@x-gmeow-english ;
+    skos:scopeNote "The header resource anchors module-level metadata such as imports and version information."@x-gmeow-english ;
+    gmeow:useWhen "Use to type the header resource of a module or ontology document."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a domain class or an individual."@x-gmeow-english ;
+    gmeow:howToUse "Type the header resource with logic:Ontology and attach its logic:imports and logic:versionInfo metadata."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Thing
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Thing"@x-gmeow-english ;
+    skos:definition "The canonical universal (top) class: every individual is a logic:Thing. It is not a domain root that authors should subclass casually; its generated OWL projection is the Thing top the clash readers compare against."@x-gmeow-english ;
+    skos:example "ex:anyRestriction logic:onClass logic:Thing ."@x-gmeow-english ;
+    skos:scopeNote "Top denotes the whole domain of discourse and subsumes every class."@x-gmeow-english ;
+    gmeow:useWhen "Use as the unqualified filler class of a cardinality restriction or as an explicit universal bound."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as a substitute for a real domain superclass."@x-gmeow-english ;
+    gmeow:howToUse "Reference logic:Thing where a restriction needs the universal class as its qualifier."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:Nothing
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Nothing"@x-gmeow-english ;
+    skos:definition "The canonical empty (bottom) class: no individual is a logic:Nothing. It is not a modelling placeholder for missing data; its generated OWL projection is the Nothing bottom an inconsistency collapses to."@x-gmeow-english ;
+    skos:example "ex:SquareCircle logic:equivalentClass logic:Nothing ."@x-gmeow-english ;
+    skos:scopeNote "Bottom is the unsatisfiable class; deriving membership in it signals an inconsistency."@x-gmeow-english ;
+    gmeow:useWhen "Use to state that a class expression is necessarily empty."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to represent an as-yet-unpopulated but satisfiable class."@x-gmeow-english ;
+    gmeow:howToUse "Equate the unsatisfiable class expression with logic:Nothing when emptiness is an ontological commitment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# ── Canonical class and property axiom vocabulary ──────────────────────────────
+# The set-forming class constructors, individual (in)equality edges, and n-ary
+# axiom markers the frontend lifts and the projection lowers.
+
+logic:unionOf
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "union of"@x-gmeow-english ;
+    skos:definition "Links a class expression to the RDF list of class expressions whose union it denotes: an individual is a member exactly when it is a member of at least one listed class. It is not a subclass hint; its generated OWL projection is the unionOf constructor."@x-gmeow-english ;
+    skos:example "ex:Parent logic:unionOf ( ex:Mother ex:Father ) ."@x-gmeow-english ;
+    skos:scopeNote "The union extension is the set-theoretic union of the listed class extensions."@x-gmeow-english ;
+    gmeow:useWhen "Use to define a class as the disjunction of a finite list of class expressions."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for an open-ended or approximate grouping."@x-gmeow-english ;
+    gmeow:howToUse "Attach one RDF list of the class expressions that compose the union."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:intersectionOf
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "intersection of"@x-gmeow-english ;
+    skos:definition "Links a class expression to the RDF list of class expressions whose intersection it denotes: an individual is a member exactly when it is a member of every listed class. It is not a subclass chain; its generated OWL projection is the intersectionOf constructor."@x-gmeow-english ;
+    skos:example "ex:WorkingParent logic:intersectionOf ( ex:Parent ex:Employee ) ."@x-gmeow-english ;
+    skos:scopeNote "The intersection extension is the set-theoretic intersection of the listed class extensions."@x-gmeow-english ;
+    gmeow:useWhen "Use to define a class as the conjunction of a finite list of class expressions."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use where a single subclass edge already captures the intended narrowing."@x-gmeow-english ;
+    gmeow:howToUse "Attach one RDF list of the class expressions that compose the intersection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:disjointUnionOf
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "disjoint union of"@x-gmeow-english ;
+    skos:definition "Links a class to the RDF list of pairwise-disjoint classes that exhaustively partition it: every instance belongs to exactly one listed class. It is not a bare union, which permits overlap; its generated OWL projection is the disjointUnionOf constructor."@x-gmeow-english ;
+    skos:example "ex:Person logic:disjointUnionOf ( ex:Child ex:Adult ) ."@x-gmeow-english ;
+    skos:scopeNote "The axiom asserts both exhaustive coverage and pairwise disjointness of the listed classes."@x-gmeow-english ;
+    gmeow:useWhen "Use to partition a class into mutually exclusive, jointly exhaustive subclasses."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use when the subclasses may overlap or need not cover the parent; use logic:unionOf."@x-gmeow-english ;
+    gmeow:howToUse "Attach one RDF list of the partition classes after confirming they are disjoint and exhaustive."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:sameAs
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "same as"@x-gmeow-english ;
+    skos:definition "Canonical individual identity: the two related IRIs denote the same individual, so their assertions merge. It is not class equivalence or similarity; its generated OWL projection is the sameAs relation."@x-gmeow-english ;
+    skos:example "ex:samuelClemens logic:sameAs ex:markTwain ."@x-gmeow-english ;
+    skos:scopeNote "Identity is symmetric and transitive and licenses substitution of one IRI for the other."@x-gmeow-english ;
+    gmeow:useWhen "Use only when two IRIs are known to refer to one and the same individual."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for two merely similar or closely related individuals."@x-gmeow-english ;
+    gmeow:howToUse "Relate the coreferent IRIs after a competency case confirms their assertions may be merged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:differentFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "different from"@x-gmeow-english ;
+    skos:definition "Canonical individual distinctness: the two related IRIs denote distinct individuals and may never be merged. It is not class disjointness; its generated OWL projection is the differentFrom relation."@x-gmeow-english ;
+    skos:example "ex:markTwain logic:differentFrom ex:charlesDickens ."@x-gmeow-english ;
+    skos:scopeNote "The assertion blocks an identity inference that would otherwise unify the two individuals."@x-gmeow-english ;
+    gmeow:useWhen "Use when two individuals must be kept distinct under the unique-name-defeating open world."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for classes; use logic:disjointWith there."@x-gmeow-english ;
+    gmeow:howToUse "Relate the two individuals to forbid their identification."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:propertyChainAxiom
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "property chain axiom"@x-gmeow-english ;
+    skos:definition "Links a property to the RDF list of properties whose ordered composition it subsumes: following the chain entails the head property. It is not a subproperty edge over a single property; its generated OWL projection is the propertyChainAxiom constructor."@x-gmeow-english ;
+    skos:example "ex:hasGrandparent logic:propertyChainAxiom ( ex:hasParent ex:hasParent ) ."@x-gmeow-english ;
+    skos:scopeNote "The list order matters: the chain composes the properties left to right."@x-gmeow-english ;
+    gmeow:useWhen "Use to entail a relation from the ordered composition of two or more relations."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use where a plain logic:subPropertyOf edge suffices."@x-gmeow-english ;
+    gmeow:howToUse "Attach the ordered RDF list of chained properties to the entailed head property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:propertyDisjointWith
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "property disjoint with"@x-gmeow-english ;
+    skos:definition "Canonical property disjointness: no ordered pair may be related by both properties at once. It is not class disjointness; its generated OWL projection is the propertyDisjointWith relation."@x-gmeow-english ;
+    skos:example "ex:parentOf logic:propertyDisjointWith ex:siblingOf ."@x-gmeow-english ;
+    skos:scopeNote "The disjointness is symmetric between the two properties at the ordered-pair level."@x-gmeow-english ;
+    gmeow:useWhen "Use when a single ordered pair related by both properties must be inconsistent."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use merely because two relations rarely co-occur in current data."@x-gmeow-english ;
+    gmeow:howToUse "Relate the two properties after a negative competency case confirms the overlap is contradictory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:hasKey
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has key"@x-gmeow-english ;
+    skos:definition "Links a class to the RDF list of properties that jointly identify its instances: two class members agreeing on every key value are the same individual. It is not inverse functionality of a single property; its generated OWL projection is the hasKey constructor."@x-gmeow-english ;
+    skos:example "ex:Country logic:hasKey ( ex:isoCode ) ."@x-gmeow-english ;
+    skos:scopeNote "The key is a closed-world identification over named individuals of the class."@x-gmeow-english ;
+    gmeow:useWhen "Use when a tuple of property values uniquely identifies a class instance."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to constrain cardinality; a key licenses identity, not counting."@x-gmeow-english ;
+    gmeow:howToUse "Attach the RDF list of identifying properties to the class whose instances they key."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:members
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "members"@x-gmeow-english ;
+    skos:definition "Links an n-ary disjointness axiom resource to the RDF list of the classes or properties it declares pairwise disjoint. It is not a class-extension membership edge; its generated OWL projection is the members constructor."@x-gmeow-english ;
+    skos:example "ex:disjointColours logic:members ( ex:Red ex:Green ex:Blue ) ."@x-gmeow-english ;
+    skos:scopeNote "The list carries the terms of a logic:AllDisjointClasses or logic:AllDisjointProperties axiom."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the term list of an n-ary all-pairwise-disjoint axiom."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to state that an individual is a member of a class."@x-gmeow-english ;
+    gmeow:howToUse "Attach one RDF list of the mutually disjoint classes or properties to the axiom resource."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:hasSelf
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "has self"@x-gmeow-english ;
+    skos:definition "Self restriction: the constrained logic:onProperty relates each instance to itself. Its truth-valued object is the local reflexivity flag of one restriction, not the global logic:reflexiveProperty characteristic; its generated OWL projection is the hasSelf restriction."@x-gmeow-english ;
+    skos:example "ex:selfAwareRestriction logic:onProperty ex:knows ; logic:hasSelf true ."@x-gmeow-english ;
+    skos:scopeNote "The flag constrains the self-edge of one property inside a single class expression."@x-gmeow-english ;
+    gmeow:useWhen "Use to require, within a restriction, that the property relates an instance to itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to declare a property globally reflexive; use logic:reflexiveProperty."@x-gmeow-english ;
+    gmeow:howToUse "Pair a boolean value with logic:onProperty on the same restriction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:AllDisjointClasses
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "All Disjoint Classes"@x-gmeow-english ;
+    skos:definition "Typing marker for an n-ary axiom asserting that every class in its logic:members list is pairwise disjoint from every other. It is not a binary logic:disjointWith edge; its generated OWL projection is the AllDisjointClasses axiom type."@x-gmeow-english ;
+    skos:example "ex:primaryColourDisjointness a logic:AllDisjointClasses ; logic:members ( ex:Red ex:Green ex:Blue ) ."@x-gmeow-english ;
+    skos:scopeNote "One axiom resource captures the full pairwise disjointness of three or more classes."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare three or more classes mutually disjoint in a single axiom."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a single pair; use logic:disjointWith."@x-gmeow-english ;
+    gmeow:howToUse "Type the axiom resource and attach the disjoint classes through logic:members."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AllDisjointProperties
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "All Disjoint Properties"@x-gmeow-english ;
+    skos:definition "Typing marker for an n-ary axiom asserting that every property in its logic:members list is pairwise disjoint from every other. It is not a binary logic:propertyDisjointWith edge; its generated OWL projection is the AllDisjointProperties axiom type."@x-gmeow-english ;
+    skos:example "ex:kinshipDisjointness a logic:AllDisjointProperties ; logic:members ( ex:parentOf ex:siblingOf ex:spouseOf ) ."@x-gmeow-english ;
+    skos:scopeNote "One axiom resource captures the full pairwise disjointness of three or more properties."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare three or more properties mutually disjoint in a single axiom."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for a single pair; use logic:propertyDisjointWith."@x-gmeow-english ;
+    gmeow:howToUse "Type the axiom resource and attach the disjoint properties through logic:members."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# ── Canonical ontology-header metadata vocabulary ──────────────────────────────
+# The reified-axiom marker and the two header annotation properties an ontology
+# header carries. logic:imports is already declared above.
+
+logic:Axiom
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Axiom"@x-gmeow-english ;
+    skos:definition "Typing marker for a reified axiom resource that carries out-of-band annotations on an asserted statement. It is not the asserted statement itself; its generated OWL projection is the Axiom reification type."@x-gmeow-english ;
+    skos:example "ex:reifiedClaim a logic:Axiom ."@x-gmeow-english ;
+    skos:scopeNote "The reifier hangs annotations on a statement without changing the statement's assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use to annotate a specific asserted axiom with provenance or editorial metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use as an ordinary domain class."@x-gmeow-english ;
+    gmeow:howToUse "Type the reifier with logic:Axiom and attach its annotations to it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:deprecated
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "deprecated"@x-gmeow-english ;
+    skos:definition "Annotation marking a term as deprecated and scheduled for removal, so consumers avoid authoring against it. It carries no logical entailment; its generated OWL projection is the deprecated annotation."@x-gmeow-english ;
+    skos:example "ex:legacyProperty logic:deprecated true ."@x-gmeow-english ;
+    skos:scopeNote "Deprecation is advisory metadata, not a retraction of the term's existing assertions."@x-gmeow-english ;
+    gmeow:useWhen "Use to flag a term that remains present but should no longer be used."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use to delete a term; remove it under the greenfield discipline instead."@x-gmeow-english ;
+    gmeow:howToUse "Attach a boolean deprecation flag to the term being retired."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:versionInfo
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "version info"@x-gmeow-english ;
+    skos:definition "Annotation carrying free-text version information for an ontology header or term. It carries no logical entailment; its generated OWL projection is the versionInfo annotation."@x-gmeow-english ;
+    skos:example "ex:myModule logic:versionInfo \"2026-08-19\" ."@x-gmeow-english ;
+    skos:scopeNote "The value is human-readable version metadata, not a machine-ordered version identifier."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a human-readable version string on a module header or term."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use for structured provenance that a dedicated property already carries."@x-gmeow-english ;
+    gmeow:howToUse "Attach one version string to the ontology header or annotated term."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# ── Grounding correspondence laws for the canonical construct vocabulary ────────
+# One logic:GroundingCorrespondence per canonical construct above, shipped as
+# meta-level correspondence data for graph/correspondence-laws (routed by type,
+# outside object-level closure). Each records that the W3C OWL/RDFS spelling is a
+# GENERATED projection of the canonical logic: term (Principle 17): an exact
+# structural rename, so logic:morphismClass logic:Isomorphism and
+# logic:preservationKind logic:ExactPreservation (the preservation-consistency gate
+# admits ExactPreservation only for an injective rung such as an Isomorphism). The
+# target endpoint is written as a FULL IRI, never the owl:/rdfs: prefix, so the
+# authored slice surface reaches zero prefixed W3C authoring terms once the domain
+# slices flip. This mirrors, in shipped ontology content, the reasoner's
+# CALCULUS_VOCABULARY lowering table.
+
+logic:corrSubClassOfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:subClassOf to W3C RDFS subClassOf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:subClassOf ;
+    logic:targetEndpoint <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:subClassOf edge is projected to the W3C RDFS subClassOf edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. RDFS is a lossy projection surface overall (Principle 17), yet this single subsumption edge is preserved exactly and invertibly."@x-gmeow-english .
+
+logic:corrSubPropertyOfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:subPropertyOf to W3C RDFS subPropertyOf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:subPropertyOf ;
+    logic:targetEndpoint <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:subPropertyOf edge is projected to the W3C RDFS subPropertyOf edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation; the relation-subsumption edge is preserved exactly and invertibly."@x-gmeow-english .
+
+logic:corrEquivalentClassGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:equivalentClass to W3C OWL equivalentClass grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:equivalentClass ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#equivalentClass> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:equivalentClass term is projected to the W3C OWL equivalentClass construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation, the projection changing only the namespace of an otherwise identical term."@x-gmeow-english .
+
+logic:corrRestrictionGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:Restriction to W3C OWL Restriction grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:Restriction ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#Restriction> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:Restriction term is projected to the W3C OWL Restriction construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrOnPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:onProperty to W3C OWL onProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:onProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#onProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:onProperty term is projected to the W3C OWL onProperty construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrSomeValuesFromGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:someValuesFrom to W3C OWL someValuesFrom grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:someValuesFrom ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#someValuesFrom> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:someValuesFrom term is projected to the W3C OWL someValuesFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrAllValuesFromGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:allValuesFrom to W3C OWL allValuesFrom grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:allValuesFrom ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#allValuesFrom> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:allValuesFrom term is projected to the W3C OWL allValuesFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrHasValueGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:hasValue to W3C OWL hasValue grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:hasValue ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#hasValue> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:hasValue term is projected to the W3C OWL hasValue construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrOnClassGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:onClass to W3C OWL onClass grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:onClass ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#onClass> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:onClass term is projected to the W3C OWL onClass construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrOnDataRangeGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:onDataRange to W3C OWL onDataRange grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:onDataRange ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#onDataRange> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:onDataRange term is projected to the W3C OWL onDataRange construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrOnDatatypeGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:onDatatype to W3C OWL onDatatype grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:onDatatype ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#onDatatype> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:onDatatype term is projected to the W3C OWL onDatatype construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrWithRestrictionsGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:withRestrictions to W3C OWL withRestrictions grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:withRestrictions ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#withRestrictions> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:withRestrictions term is projected to the W3C OWL withRestrictions construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrCardinalityGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:cardinality to W3C OWL cardinality grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:cardinality ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#cardinality> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:cardinality term is projected to the W3C OWL cardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrMinCardinalityGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:minCardinality to W3C OWL minCardinality grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:minCardinality ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#minCardinality> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:minCardinality term is projected to the W3C OWL minCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrMaxCardinalityGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:maxCardinality to W3C OWL maxCardinality grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:maxCardinality ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#maxCardinality> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:maxCardinality term is projected to the W3C OWL maxCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrQualifiedCardinalityGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:qualifiedCardinality to W3C OWL qualifiedCardinality grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:qualifiedCardinality ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#qualifiedCardinality> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:qualifiedCardinality term is projected to the W3C OWL qualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrMinQualifiedCardinalityGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:minQualifiedCardinality to W3C OWL minQualifiedCardinality grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:minQualifiedCardinality ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#minQualifiedCardinality> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:minQualifiedCardinality term is projected to the W3C OWL minQualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrMaxQualifiedCardinalityGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:maxQualifiedCardinality to W3C OWL maxQualifiedCardinality grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:maxQualifiedCardinality ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#maxQualifiedCardinality> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:maxQualifiedCardinality term is projected to the W3C OWL maxQualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrClassGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:Class to W3C OWL Class grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:Class ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#Class> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:Class typing marker is projected to the W3C OWL Class type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrObjectPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:ObjectProperty to W3C OWL ObjectProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:ObjectProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#ObjectProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:ObjectProperty typing marker is projected to the W3C OWL ObjectProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrDatatypePropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:DatatypeProperty to W3C OWL DatatypeProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:DatatypeProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#DatatypeProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:DatatypeProperty typing marker is projected to the W3C OWL DatatypeProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrNamedIndividualGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:NamedIndividual to W3C OWL NamedIndividual grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:NamedIndividual ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#NamedIndividual> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:NamedIndividual typing marker is projected to the W3C OWL NamedIndividual type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrAnnotationPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:AnnotationProperty to W3C OWL AnnotationProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:AnnotationProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#AnnotationProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:AnnotationProperty typing marker is projected to the W3C OWL AnnotationProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrOntologyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:Ontology to W3C OWL Ontology grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:Ontology ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#Ontology> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:Ontology typing marker is projected to the W3C OWL Ontology type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrThingGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:Thing to W3C OWL Thing grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:Thing ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#Thing> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:Thing top class is projected to the W3C OWL Thing top as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrNothingGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:Nothing to W3C OWL Nothing grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:Nothing ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#Nothing> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:Nothing bottom class is projected to the W3C OWL Nothing bottom as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrFunctionalPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:functionalProperty to W3C OWL FunctionalProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:functionalProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#FunctionalProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:functionalProperty characteristic marker is projected to the W3C OWL FunctionalProperty type. The rename is construct-aware — the canonical lower-camel spelling maps to the upper-camel W3C marker — but remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation, the property-characteristic semantics being preserved exactly and invertibly."@x-gmeow-english .
+
+logic:corrInverseFunctionalPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:inverseFunctionalProperty to W3C OWL InverseFunctionalProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:inverseFunctionalProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:inverseFunctionalProperty characteristic marker is projected to the W3C OWL InverseFunctionalProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrTransitivePropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:transitiveProperty to W3C OWL TransitiveProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:transitiveProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#TransitiveProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:transitiveProperty characteristic marker is projected to the W3C OWL TransitiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrSymmetricPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:symmetricProperty to W3C OWL SymmetricProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:symmetricProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#SymmetricProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:symmetricProperty characteristic marker is projected to the W3C OWL SymmetricProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrAsymmetricPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:asymmetricProperty to W3C OWL AsymmetricProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:asymmetricProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#AsymmetricProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:asymmetricProperty characteristic marker is projected to the W3C OWL AsymmetricProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrReflexivePropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:reflexiveProperty to W3C OWL ReflexiveProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:reflexiveProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#ReflexiveProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:reflexiveProperty characteristic marker is projected to the W3C OWL ReflexiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrIrreflexivePropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:irreflexiveProperty to W3C OWL IrreflexiveProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:irreflexiveProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#IrreflexiveProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:irreflexiveProperty characteristic marker is projected to the W3C OWL IrreflexiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrDisjointWithGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:disjointWith to W3C OWL disjointWith grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:disjointWith ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#disjointWith> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:disjointWith term is projected to the W3C OWL disjointWith construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrInverseOfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:inverseOf to W3C OWL inverseOf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:inverseOf ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#inverseOf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:inverseOf term is projected to the W3C OWL inverseOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrUnionOfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:unionOf to W3C OWL unionOf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:unionOf ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#unionOf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:unionOf term is projected to the W3C OWL unionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrOneOfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:oneOf to W3C OWL oneOf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:oneOf ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#oneOf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:oneOf term is projected to the W3C OWL oneOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrIntersectionOfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:intersectionOf to W3C OWL intersectionOf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:intersectionOf ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#intersectionOf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:intersectionOf term is projected to the W3C OWL intersectionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrDisjointUnionOfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:disjointUnionOf to W3C OWL disjointUnionOf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:disjointUnionOf ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#disjointUnionOf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:disjointUnionOf term is projected to the W3C OWL disjointUnionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrSameAsGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:sameAs to W3C OWL sameAs grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:sameAs ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#sameAs> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:sameAs term is projected to the W3C OWL sameAs construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrDifferentFromGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:differentFrom to W3C OWL differentFrom grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:differentFrom ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#differentFrom> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:differentFrom term is projected to the W3C OWL differentFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrEquivalentPropertyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:equivalentProperty to W3C OWL equivalentProperty grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:equivalentProperty ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#equivalentProperty> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:equivalentProperty term is projected to the W3C OWL equivalentProperty construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrPropertyChainAxiomGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:propertyChainAxiom to W3C OWL propertyChainAxiom grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:propertyChainAxiom ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#propertyChainAxiom> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:propertyChainAxiom term is projected to the W3C OWL propertyChainAxiom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrPropertyDisjointWithGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:propertyDisjointWith to W3C OWL propertyDisjointWith grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:propertyDisjointWith ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#propertyDisjointWith> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:propertyDisjointWith term is projected to the W3C OWL propertyDisjointWith construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrHasKeyGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:hasKey to W3C OWL hasKey grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:hasKey ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#hasKey> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:hasKey term is projected to the W3C OWL hasKey construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrMembersGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:members to W3C OWL members grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:members ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#members> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:members term is projected to the W3C OWL members construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrHasSelfGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:hasSelf to W3C OWL hasSelf grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:hasSelf ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#hasSelf> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:hasSelf term is projected to the W3C OWL hasSelf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrAllDisjointClassesGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:AllDisjointClasses to W3C OWL AllDisjointClasses grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:AllDisjointClasses ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#AllDisjointClasses> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:AllDisjointClasses axiom type is projected to the W3C OWL AllDisjointClasses type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrAllDisjointPropertiesGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:AllDisjointProperties to W3C OWL AllDisjointProperties grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:AllDisjointProperties ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#AllDisjointProperties> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:AllDisjointProperties axiom type is projected to the W3C OWL AllDisjointProperties type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrAxiomGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:Axiom to W3C OWL Axiom grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:Axiom ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#Axiom> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:Axiom reification marker is projected to the W3C OWL Axiom type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrDeprecatedGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:deprecated to W3C OWL deprecated grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:deprecated ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#deprecated> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:deprecated annotation is projected to the W3C OWL deprecated annotation as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrImportsGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:imports to W3C OWL imports grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:imports ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#imports> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:imports module-importation edge is projected to the W3C OWL imports edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
+logic:corrVersionInfoGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:versionInfo to W3C OWL versionInfo grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:versionInfo ;
+    logic:targetEndpoint <http://www.w3.org/2002/07/owl#versionInfo> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:versionInfo annotation is projected to the W3C OWL versionInfo annotation as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."@x-gmeow-english .
+
 # --------------------------------------------------------------------------- #
 # The self-describing existential-chase demonstrator.
 #

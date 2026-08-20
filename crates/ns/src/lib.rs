@@ -123,6 +123,61 @@ pub const SUB_CLASS_OF: [&str; 2] = [LOGIC_SUB_CLASS_OF, RDFS_SUB_CLASS_OF];
 /// Both spellings of the PROPERTY-subsumption edge, canonical first.
 pub const SUB_PROPERTY_OF: [&str; 2] = [LOGIC_SUB_PROPERTY_OF, RDFS_SUB_PROPERTY_OF];
 
+// ── Canonical construct typing markers ──────────────────────────────────────
+//
+// The rdf:type objects a reader recognizes a term's kind by. Each pairs the
+// canonical `logic:` spelling with its generated W3C OWL projection (Principle
+// 17), exactly as [`LOGIC_SUB_CLASS_OF`] pairs with [`RDFS_SUB_CLASS_OF`]. The
+// grounding correspondence law backing each pair ships in the `logic:` slice's
+// `graph/correspondence-laws` corpus, and the reasoner's calculus-vocabulary
+// lowering carries the same map at the EDB boundary.
+
+/// `logic:Class` — the canonical class typing marker.
+pub const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
+/// `owl:Class` — the generated OWL projection of [`LOGIC_CLASS`].
+pub const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+
+/// `logic:ObjectProperty` — the canonical object-property typing marker.
+pub const LOGIC_OBJECT_PROPERTY: &str = "https://blackcatinformatics.ca/logic/ObjectProperty";
+/// `owl:ObjectProperty` — the generated OWL projection of [`LOGIC_OBJECT_PROPERTY`].
+pub const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
+
+/// `logic:DatatypeProperty` — the canonical datatype-property typing marker.
+pub const LOGIC_DATATYPE_PROPERTY: &str = "https://blackcatinformatics.ca/logic/DatatypeProperty";
+/// `owl:DatatypeProperty` — the generated OWL projection of [`LOGIC_DATATYPE_PROPERTY`].
+pub const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+
+/// `logic:AnnotationProperty` — the canonical annotation-property typing marker.
+pub const LOGIC_ANNOTATION_PROPERTY: &str =
+    "https://blackcatinformatics.ca/logic/AnnotationProperty";
+/// `owl:AnnotationProperty` — the generated OWL projection of [`LOGIC_ANNOTATION_PROPERTY`].
+pub const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
+
+/// `logic:NamedIndividual` — the canonical named-individual typing marker.
+pub const LOGIC_NAMED_INDIVIDUAL: &str = "https://blackcatinformatics.ca/logic/NamedIndividual";
+/// `owl:NamedIndividual` — the generated OWL projection of [`LOGIC_NAMED_INDIVIDUAL`].
+pub const OWL_NAMED_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#NamedIndividual";
+
+/// `logic:Ontology` — the canonical ontology-header typing marker.
+pub const LOGIC_ONTOLOGY: &str = "https://blackcatinformatics.ca/logic/Ontology";
+/// `owl:Ontology` — the generated OWL projection of [`LOGIC_ONTOLOGY`].
+pub const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
+
+/// `logic:Thing` — the canonical universal (top) class.
+pub const LOGIC_THING: &str = "https://blackcatinformatics.ca/logic/Thing";
+/// `owl:Thing` — the generated OWL projection of [`LOGIC_THING`].
+pub const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
+
+/// `logic:Nothing` — the canonical empty (bottom) class.
+pub const LOGIC_NOTHING: &str = "https://blackcatinformatics.ca/logic/Nothing";
+/// `owl:Nothing` — the generated OWL projection of [`LOGIC_NOTHING`].
+pub const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+
+/// `logic:Restriction` — the canonical class-expression restriction marker.
+pub const LOGIC_RESTRICTION: &str = "https://blackcatinformatics.ca/logic/Restriction";
+/// `owl:Restriction` — the generated OWL projection of [`LOGIC_RESTRICTION`].
+pub const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
+
 /// **The** definition of "this triple asserts a subsumption edge": every predicate
 /// a reader must scan to see the whole authored taxonomy, in a fixed order —
 /// canonical class, projected class, canonical property, projected property.
