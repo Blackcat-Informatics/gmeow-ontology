@@ -78,19 +78,40 @@ use crate::error::McpDev;
 /// The URI of the Constitution resource this crate adds to the resource surface.
 pub const CONSTITUTION_URI: &str = "gmeow://ontology/constitution";
 
+/// The medium-registry resource URI, re-exported from the leaf that defines the surface.
+pub use gmeow_mcp::MEDIUM_RESOURCE_URI as MEDIUM_URI;
+
 /// The four repo-reading developer tools plus the Constitution resource, bound to
 /// the checkout at `root`.
 ///
 /// Each handler captures its own copy of `root`: the seam passes only the server and
 /// the call arguments, so the checkout path is carried by the tools that need it
 /// rather than by the server that does not.
+/// The medium registry resource, as an [`Extension`].
+///
+/// It rode the consumer surface directly while the MCP engine lived inside `gmeow-pipeline`.
+/// The engine is now a leaf that deliberately does NOT link the build executor — the medium
+/// layer's sweep, training and measurement live there — so the leaf cannot compute this
+/// inventory, and a consumer that genuinely cannot compute it (the browser engine) must not
+/// advertise it. This is the same shape the dev tools take: a capability is registered by the
+/// layer that owns the reader, so every host holding that reader keeps the surface and no
+/// host claims one it cannot answer.
+#[must_use]
+pub fn medium_extension() -> Extension {
+    Extension::new().with_resource(gmeow_mcp::medium_resource_descriptor(), |server, _args| {
+        gmeow_pipeline::medium::inspect::inventory_json(server.view().gts_bytes())
+    })
+}
+
 #[must_use]
 pub fn dev_extension(root: PathBuf) -> Extension {
     let validate_root = root.clone();
     let sync_root = root.clone();
     let constitution_tool_root = root.clone();
     let constitution_resource_root = root;
-    Extension::new()
+    // Built ON the medium extension rather than beside it: the dev server is a superset of
+    // the consumer surface, and composing it here is what keeps the two from drifting.
+    medium_extension()
         .with_tool(
             tool("validate", "Run the native validation/check surface.", &[]),
             move |_server, _args| run_pipeline(&validate_root, "check"),
@@ -206,7 +227,7 @@ mod tests {
     /// The DEV surface is the 38 consumer tools plus exactly 4, and the 5 consumer
     /// resources plus exactly 1. The dev tools are advertised AFTER the builtins.
     #[test]
-    fn dev_surface_is_forty_two_tools_and_six_resources() {
+    fn dev_surface_is_forty_two_tools_and_seven_resources() {
         let server = dev_server(&snapshot(), repo_root()).expect("dev server constructs");
         let names = server.surface().tool_names();
         assert_eq!(
@@ -222,12 +243,19 @@ mod tests {
         let resources = server.surface().resource_descriptors();
         assert_eq!(
             resources.len(),
-            6,
-            "the dev resource surface is the 5 consumer resources + the Constitution"
+            7,
+            "the dev resource surface is the 5 consumer resources + the medium registry \
+             (which needs the build executor's reader, so it rides an extension) + the \
+             Constitution"
         );
         assert_eq!(
-            resources[5]["uri"], CONSTITUTION_URI,
-            "the Constitution resource is advertised after the consumer builtins"
+            resources[5]["uri"], MEDIUM_URI,
+            "the medium registry is advertised after the consumer builtins — the dev \
+             extension is composed ON the medium one, so its resource lands first"
+        );
+        assert_eq!(
+            resources[6]["uri"], CONSTITUTION_URI,
+            "the Constitution resource is advertised last"
         );
     }
 

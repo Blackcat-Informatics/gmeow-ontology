@@ -314,8 +314,11 @@ fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
         std::env::set_var("GMEOW_CONJECTURE_PATH", home.join("conjectures.gts"));
         std::env::remove_var("GMEOW_LANG");
     }
-    let server =
-        McpServer::from_snapshot(bundle).expect("the freshly emitted bundle serves an MCP session");
+    // The medium registry rides an Extension: the MCP engine is a leaf that does not link the
+    // build executor, so the host that owns the reader registers the surface. Asserting against
+    // the bare leaf would assert a capability no leaf can have.
+    let server = McpServer::from_snapshot_with(bundle, gmeow_mcp_dev::medium_extension())
+        .expect("the freshly emitted bundle serves an MCP session");
     assert_medium_resource(&server);
     for text in [
         "a claim stored through the production memory path",

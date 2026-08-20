@@ -1363,7 +1363,12 @@ impl McpView {
 
     /// The raw `gmeow.gts` snapshot bytes this view serves, for the native
     /// validation surface that reads the folded `shapes-archive` blob directly.
-    fn gts_bytes(&self) -> &[u8] {
+    ///
+    /// PUBLIC because an [`Extension`](crate::Extension) handler is by definition code the
+    /// leaf does not carry: a host that owns a reader this crate deliberately does not link
+    /// — the medium registry among them — still has to be handed the same bytes the builtin
+    /// surface answers from, or it would be answering about a different artifact.
+    pub fn gts_bytes(&self) -> &[u8] {
         &self.gts
     }
 
@@ -6280,6 +6285,29 @@ fn rdf_media_type(tool: &str, format: &str) -> gmeow_errors::Result<&'static str
         // a code change here, not a runtime input.
         other => unreachable!("unmapped canonical RDF format token: {other}"),
     })
+}
+
+/// The medium-registry resource URI.
+pub const MEDIUM_RESOURCE_URI: &str = "gmeow://ontology/medium";
+
+/// The medium-registry resource DESCRIPTOR — the surface definition, single-sourced here.
+///
+/// The handler is not here and cannot be: computing the inventory needs the medium reader,
+/// which lives in the build executor this leaf deliberately does not link. A host that owns
+/// that reader registers this descriptor with its own handler through
+/// [`Extension::with_resource`](crate::extension::Extension::with_resource), so every host
+/// that CAN answer advertises the same surface, worded identically, and one that cannot does
+/// not claim it.
+#[must_use]
+pub fn medium_resource_descriptor() -> Value {
+    resource(
+        MEDIUM_RESOURCE_URI,
+        "medium",
+        "The medium registry read off the loaded bundle alone: declared media, \
+         dictionaries with their content digests and zstd Dictionary_IDs, the \
+         envelope count, and the total rep to medium assignment.",
+        "application/json",
+    )
 }
 
 pub fn resource(uri: &str, name: &str, description: &str, mime: &str) -> Value {

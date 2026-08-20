@@ -4526,7 +4526,13 @@ pub fn crossref(reporter: &dyn Reporter, out: &Path, gts: Option<&Path>) -> i32 
 /// to a nonzero exit.
 pub fn mcp(reporter: &dyn Reporter) -> i32 {
     use gmeow_mcp::McpServer;
-    let server = match McpServer::from_snapshot(BUNDLE_GTS) {
+    // The medium registry rides an extension because the MCP engine is a leaf that does not
+    // link the build executor; this binary DOES, so the shipped consumer surface is unchanged.
+    let medium = gmeow_mcp::extension::Extension::new()
+        .with_resource(gmeow_mcp::medium_resource_descriptor(), |server, _args| {
+            gmeow_pipeline::medium::inspect::inventory_json(server.view().gts_bytes())
+        });
+    let server = match McpServer::from_snapshot_with(BUNDLE_GTS, medium) {
         Ok(server) => server,
         Err(e) => return fail(reporter, "gmeow-cli.mcp.construct", format!("mcp: {e}")),
     };
