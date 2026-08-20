@@ -5247,7 +5247,25 @@ impl McpServer {
     /// package from nowhere, and saying so in the type system is what keeps that true.
     #[cfg(feature = "reasoning")]
     fn claim_store(&self) -> gmeow_errors::Result<Arc<dyn ClaimStore>> {
-        storage().claim_store()
+        storage().claim_store(&self.store_medium()?)
+    }
+
+    /// The medium a runtime claim store is PRIMED with: the [`MEMORY_HOT_DICTIONARY`] bytes the
+    /// loaded bundle pins.
+    ///
+    /// Priming is not an optimisation. A GTS segment declares exactly ONE codec catalog, so the
+    /// claim package and the engine-minted trajectory-audit segment appended beside it have to
+    /// name the SAME one; an unprimed store lets the two diverge, and the file then stops
+    /// reconstructing — `Memory::graph()` yields `None`, so `claims()` reports an EMPTY store and
+    /// `revise` rejects a claim that was stored moments earlier as unknown.
+    ///
+    /// # Errors
+    ///
+    /// The loaded bundle pins no [`MEMORY_HOT_DICTIONARY`] — a store cannot be primed with an id
+    /// the bundle does not carry, and there is no unprimed fallback.
+    #[cfg(feature = "reasoning")]
+    fn store_medium(&self) -> gmeow_errors::Result<StoreMedium> {
+        store_medium(self.view.gts_bytes(), MEMORY_HOT_DICTIONARY)
     }
 }
 
@@ -7446,6 +7464,11 @@ fn gts_literal_dt(value: &str, datatype: usize) -> GtsTerm {
     }
 }
 
+/// One quad as the GTS writers take it: subject, predicate and object as indices into the
+/// segment's term table, plus the optional graph term.
+#[cfg(feature = "reasoning")]
+type GtsQuadRow = (usize, usize, usize, Option<usize>);
+
 #[cfg(feature = "reasoning")]
 fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
     terms.push(term);
@@ -7467,7 +7490,52 @@ fn write_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
-    store.append_audit_segment(&build_audit_segment(call_id, schema_iri, obtains, at_time)?)
+    let existing = store.store_bytes()?;
+    store.append_audit_segment(&build_store_audit_segment(
+        &existing, call_id, schema_iri, obtains, at_time,
+    )?)
+}
+
+/// The medium a store's CURRENT tail was written through, or `None` for a store with no bytes yet.
+///
+/// A GTS segment declares exactly ONE codec catalog. A record appended to a store whose tail was
+/// written through a DIFFERENT medium names a catalog that tail never declared, and the store stops
+/// reconstructing: `Memory::graph()` yields `None` and every reifier-walking reader — `claims()`
+/// among them — then reports an EMPTY store rather than an error. Reading the medium back off the
+/// store's own bytes is what keeps the appended segment inside the tail's catalog.
+#[cfg(feature = "reasoning")]
+fn store_tail_medium(existing: &[u8]) -> gmeow_errors::Result<Option<StoreMedium>> {
+    if existing.is_empty() {
+        return Ok(None);
+    }
+    Ok(gmeow_gts_profile::segment_dictionaries(existing)?
+        .into_iter()
+        .next()
+        .map(|(dictionary, bytes)| StoreMedium { dictionary, bytes }))
+}
+
+/// Build one trajectory-audit segment as a CONTINUATION of `existing` — the claim-store variant of
+/// [`build_audit_segment`], which authors a standalone segment for the append-only libraries.
+///
+/// `store_writer` continues the tail when it already declares the medium's dictionary and opens a
+/// freshly-headed segment when it does not; either way the appended bytes name a catalog the file
+/// declares, which is the invariant [`store_tail_medium`] documents.
+#[cfg(feature = "reasoning")]
+fn build_store_audit_segment(
+    existing: &[u8],
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+) -> gmeow_errors::Result<Vec<u8>> {
+    let (terms, quads) = audit_terms_and_quads(call_id, schema_iri, obtains, at_time);
+    let mut writer = match store_tail_medium(existing)? {
+        Some(medium) => gmeow_gts_profile::store_writer("ai-package", existing, &medium)?,
+        None => GtsWriter::new("ai-package"),
+    };
+    writer.add_terms(&terms)?;
+    writer.add_quads(&quads)?;
+    Ok(writer.into_bytes())
 }
 
 /// Build one trajectory-audit context segment's serialized bytes — the PURE, side-effect-free
@@ -7482,6 +7550,23 @@ fn build_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<Vec<u8>> {
+    let (terms, quads) = audit_terms_and_quads(call_id, schema_iri, obtains, at_time);
+    let mut writer = GtsWriter::new("ai-package");
+    writer.add_terms(&terms)?;
+    writer.add_quads(&quads)?;
+    Ok(writer.into_bytes())
+}
+
+/// The terms and quads of ONE trajectory-audit context — the carrier-independent half, shared by
+/// the standalone library segment ([`build_audit_segment`]) and the tail-continuing store segment
+/// ([`build_store_audit_segment`]) so the two can never describe the turn differently.
+#[cfg(feature = "reasoning")]
+fn audit_terms_and_quads(
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+) -> (Vec<GtsTerm>, Vec<GtsQuadRow>) {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
@@ -7517,10 +7602,7 @@ fn build_audit_segment(
         quads.push((t_start, t_so, t_sit, None));
     }
 
-    let mut writer = GtsWriter::new("ai-package");
-    writer.add_terms(&terms)?;
-    writer.add_quads(&quads)?;
-    Ok(writer.into_bytes())
+    (terms, quads)
 }
 
 // ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
@@ -15869,6 +15951,126 @@ mod tests {
     }
 }
 
+/// The shipped dictionary every HOT runtime store — agent memory, the conjecture
+/// library, the candidate library — primes its segments with
+/// (`gmeow:dictGmeowMemoryHotV1`).
+///
+/// The store's payloads are short, highly repetitive RDF written a few hundred bytes
+/// at a time, which is the single best case for a primed zstd stream and the single
+/// worst case for an unprimed one: with no dictionary each record re-learns the same
+/// IRIs from scratch.
+pub const MEMORY_HOT_DICTIONARY: &str = "gmeow-memory-hot-v1";
+
+/// The shipped dictionary the COMPACTION lane repacks a store under
+/// (`gmeow:dictGmeowMemoryCompactV1`).
+///
+/// Resolved out of the loaded bundle by [`store_medium`] exactly as
+/// [`MEMORY_HOT_DICTIONARY`] is, and fed to the repack VERBATIM
+/// (`purrdf::gts::compact::DictStrategy::Pinned`), so this id names exactly one byte
+/// sequence everywhere it appears: in the bundle header, in
+/// `generated/medium/gmeow-memory-compact-v1.zdict`, and in the header of every
+/// compacted store.
+pub const MEMORY_COMPACT_DICTIONARY: &str = "gmeow-memory-compact-v1";
+
+/// Resolve a runtime store's medium out of the SHIPPED bundle's in-band `"dct"` map.
+///
+/// The bundle is the dictionary's distribution channel: `gmeow.gts` pins every declared
+/// dictionary in its segment header, so a consumer priming its own store reads the exact
+/// bytes the build trained — never a re-derivation that could differ under the same id,
+/// and never an out-of-band artifact a wheel-mode install would not have.
+///
+/// # Errors
+/// The snapshot carries no readable header, or does not pin `dictionary` — which is
+/// `gmeow:MediumUndeclaredDictionary`: an id that names no bytes, and there is no weaker
+/// unprimed store to fall back to, because the store's OWN header is what makes it
+/// decodable.
+pub fn store_medium(
+    snapshot: &[u8],
+    dictionary: &str,
+) -> gmeow_errors::Result<gmeow_gts_profile::StoreMedium> {
+    let dicts = gmeow_gts_profile::segment_dictionaries(snapshot)?;
+    let bytes = dicts.get(dictionary).cloned().ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::MediumUnpinnedStoreDictionary {
+            detail: format!(
+                "the loaded gmeow.gts pins no in-band dictionary named {dictionary:?} (pinned: \
+                 {:?}) — a runtime store cannot be primed with an id the bundle does not carry, \
+                 and writing it unprimed would silently discard the density the dictionary exists \
+                 to provide. Regenerate the bundle.",
+                dicts.keys().collect::<Vec<_>>()
+            ),
+        })
+    })?;
+    Ok(gmeow_gts_profile::StoreMedium {
+        dictionary: dictionary.to_string(),
+        bytes,
+    })
+}
+
+/// lane.
+///
+/// A long-lived pack accumulates one segment boundary per medium change and one frame
+/// per record; compaction rewrites that into a single streamable segment under a
+/// single declared medium. The content claims are rewrite-invariant, so what changes
+/// is the LAYOUT and the MEDIUM, never a statement.
+///
+/// # The dictionary is PINNED, not derived
+///
+/// `medium` is the resolved [`StoreMedium`] — the bytes [`store_medium`] read out of
+/// the loaded bundle's in-band `"dct"` map — and they are handed to upstream as
+/// `purrdf::gts::compact::DictStrategy::Pinned`: used verbatim, no training, no corpus
+/// derivation, no truncation. That is what makes one `gmeow:dictionaryId` resolve to
+/// exactly one byte sequence. Deriving the dictionary from the pack's own content-blob
+/// corpus instead would label PACK-LOCAL bytes with the shipped id, so two compacted
+/// stores could pin different dictionaries under the same name — precisely what the
+/// envelope contract exists to make impossible.
+///
+/// Pinning also removes the corpus precondition the derived strategies carry: a
+/// wholly-pinned plan never touches the content-blob corpus, so an agent-memory store
+/// — whose records are `terms`/`quads` frames and which has no content blobs at all —
+/// compacts exactly like any other pack. The dictionary rides the new header in band,
+/// so the compacted file stays self-decoding without the bundle.
+///
+/// The whole read → rewrite → replace runs under the store lock, and the replace is
+/// atomic: a compaction that fails part-way leaves the PRIOR store completely intact
+/// rather than a half-rewritten one.
+///
+/// # Errors
+/// The store cannot be read, is not safely compactable (refuse-don't-trust), or the
+/// atomic replace fails.
+pub fn compact_store(
+    path: &std::path::Path,
+    timestamp: &str,
+    medium: &StoreMedium,
+    packaging_signer: (ed25519_dalek::SigningKey, String),
+) -> gmeow_errors::Result<()> {
+    // The branch's lock is LIBRARY-scoped rather than path-scoped: a store is reached
+    // through its `SegmentLibrary`, so the compaction lane takes the same lock every
+    // other writer to that store takes.
+    let library = crate::storage::fs_segment_library(path.to_path_buf());
+    with_library_lock(library.as_ref(), move || {
+        let bytes = std::fs::read(path)?;
+        let compacted = gmeow_gts_profile::compact_gmeow_gts(
+            &bytes,
+            timestamp,
+            &medium.dictionary,
+            purrdf::gts::compact::DictStrategy::Pinned(medium.bytes.clone()),
+            packaging_signer,
+        )?;
+        let dir = path
+            .parent()
+            .filter(|parent| !parent.as_os_str().is_empty())
+            .map_or_else(|| std::path::PathBuf::from("."), std::path::PathBuf::from);
+        let mut tmp = tempfile::Builder::new()
+            .prefix(".compact-")
+            .suffix(".tmp")
+            .tempfile_in(&dir)?;
+        std::io::Write::write_all(&mut tmp, &compacted)?;
+        tmp.as_file().sync_all()?;
+        tmp.persist(path)?;
+        Ok(())
+    })
+}
+
 /// The BROWSER backend's suite: the in-process storage the wasm build runs on.
 ///
 /// Compiled on every target, `wasm32` gate deliberately absent. The whole claim of
@@ -16193,8 +16395,14 @@ mod browser_storage_tests {
     #[test]
     fn the_browser_backend_shares_one_store_across_calls() {
         let backend = InMemoryStorage::new();
+        // The browser backend keeps claims as live values, not as GTS segments, so no codec
+        // catalog applies to it — it is the one store a medium says nothing about.
+        let medium = crate::StoreMedium {
+            dictionary: crate::MEMORY_HOT_DICTIONARY.to_string(),
+            bytes: Vec::new(),
+        };
         backend
-            .claim_store()
+            .claim_store(&medium)
             .expect("the browser backend always has a claim store")
             .store_claim(
                 "persisted across calls",
@@ -16207,7 +16415,7 @@ mod browser_storage_tests {
             .expect("stores");
 
         let seen = backend
-            .claim_store()
+            .claim_store(&medium)
             .expect("the browser backend always has a claim store")
             .claims()
             .expect("reads");
@@ -16223,124 +16431,4 @@ mod browser_storage_tests {
         backend.set_env("GMEOW_LANG", "fr");
         assert_eq!(backend.env_var("GMEOW_LANG").as_deref(), Some("fr"));
     }
-}
-
-/// The shipped dictionary every HOT runtime store — agent memory, the conjecture
-/// library, the candidate library — primes its segments with
-/// (`gmeow:dictGmeowMemoryHotV1`).
-///
-/// The store's payloads are short, highly repetitive RDF written a few hundred bytes
-/// at a time, which is the single best case for a primed zstd stream and the single
-/// worst case for an unprimed one: with no dictionary each record re-learns the same
-/// IRIs from scratch.
-pub const MEMORY_HOT_DICTIONARY: &str = "gmeow-memory-hot-v1";
-
-/// The shipped dictionary the COMPACTION lane repacks a store under
-/// (`gmeow:dictGmeowMemoryCompactV1`).
-///
-/// Resolved out of the loaded bundle by [`store_medium`] exactly as
-/// [`MEMORY_HOT_DICTIONARY`] is, and fed to the repack VERBATIM
-/// (`purrdf::gts::compact::DictStrategy::Pinned`), so this id names exactly one byte
-/// sequence everywhere it appears: in the bundle header, in
-/// `generated/medium/gmeow-memory-compact-v1.zdict`, and in the header of every
-/// compacted store.
-pub const MEMORY_COMPACT_DICTIONARY: &str = "gmeow-memory-compact-v1";
-
-/// Resolve a runtime store's medium out of the SHIPPED bundle's in-band `"dct"` map.
-///
-/// The bundle is the dictionary's distribution channel: `gmeow.gts` pins every declared
-/// dictionary in its segment header, so a consumer priming its own store reads the exact
-/// bytes the build trained — never a re-derivation that could differ under the same id,
-/// and never an out-of-band artifact a wheel-mode install would not have.
-///
-/// # Errors
-/// The snapshot carries no readable header, or does not pin `dictionary` — which is
-/// `gmeow:MediumUndeclaredDictionary`: an id that names no bytes, and there is no weaker
-/// unprimed store to fall back to, because the store's OWN header is what makes it
-/// decodable.
-pub fn store_medium(
-    snapshot: &[u8],
-    dictionary: &str,
-) -> gmeow_errors::Result<gmeow_gts_profile::StoreMedium> {
-    let dicts = gmeow_gts_profile::segment_dictionaries(snapshot)?;
-    let bytes = dicts.get(dictionary).cloned().ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::MediumUnpinnedStoreDictionary {
-            detail: format!(
-                "the loaded gmeow.gts pins no in-band dictionary named {dictionary:?} (pinned: \
-                 {:?}) — a runtime store cannot be primed with an id the bundle does not carry, \
-                 and writing it unprimed would silently discard the density the dictionary exists \
-                 to provide. Regenerate the bundle.",
-                dicts.keys().collect::<Vec<_>>()
-            ),
-        })
-    })?;
-    Ok(gmeow_gts_profile::StoreMedium {
-        dictionary: dictionary.to_string(),
-        bytes,
-    })
-}
-
-/// lane.
-///
-/// A long-lived pack accumulates one segment boundary per medium change and one frame
-/// per record; compaction rewrites that into a single streamable segment under a
-/// single declared medium. The content claims are rewrite-invariant, so what changes
-/// is the LAYOUT and the MEDIUM, never a statement.
-///
-/// # The dictionary is PINNED, not derived
-///
-/// `medium` is the resolved [`StoreMedium`] — the bytes [`store_medium`] read out of
-/// the loaded bundle's in-band `"dct"` map — and they are handed to upstream as
-/// `purrdf::gts::compact::DictStrategy::Pinned`: used verbatim, no training, no corpus
-/// derivation, no truncation. That is what makes one `gmeow:dictionaryId` resolve to
-/// exactly one byte sequence. Deriving the dictionary from the pack's own content-blob
-/// corpus instead would label PACK-LOCAL bytes with the shipped id, so two compacted
-/// stores could pin different dictionaries under the same name — precisely what the
-/// envelope contract exists to make impossible.
-///
-/// Pinning also removes the corpus precondition the derived strategies carry: a
-/// wholly-pinned plan never touches the content-blob corpus, so an agent-memory store
-/// — whose records are `terms`/`quads` frames and which has no content blobs at all —
-/// compacts exactly like any other pack. The dictionary rides the new header in band,
-/// so the compacted file stays self-decoding without the bundle.
-///
-/// The whole read → rewrite → replace runs under the store lock, and the replace is
-/// atomic: a compaction that fails part-way leaves the PRIOR store completely intact
-/// rather than a half-rewritten one.
-///
-/// # Errors
-/// The store cannot be read, is not safely compactable (refuse-don't-trust), or the
-/// atomic replace fails.
-pub fn compact_store(
-    path: &std::path::Path,
-    timestamp: &str,
-    medium: &StoreMedium,
-    packaging_signer: (ed25519_dalek::SigningKey, String),
-) -> gmeow_errors::Result<()> {
-    // The branch's lock is LIBRARY-scoped rather than path-scoped: a store is reached
-    // through its `SegmentLibrary`, so the compaction lane takes the same lock every
-    // other writer to that store takes.
-    let library = crate::storage::fs_segment_library(path.to_path_buf());
-    with_library_lock(library.as_ref(), move || {
-        let bytes = std::fs::read(path)?;
-        let compacted = gmeow_gts_profile::compact_gmeow_gts(
-            &bytes,
-            timestamp,
-            &medium.dictionary,
-            purrdf::gts::compact::DictStrategy::Pinned(medium.bytes.clone()),
-            packaging_signer,
-        )?;
-        let dir = path
-            .parent()
-            .filter(|parent| !parent.as_os_str().is_empty())
-            .map_or_else(|| std::path::PathBuf::from("."), std::path::PathBuf::from);
-        let mut tmp = tempfile::Builder::new()
-            .prefix(".compact-")
-            .suffix(".tmp")
-            .tempfile_in(&dir)?;
-        std::io::Write::write_all(&mut tmp, &compacted)?;
-        tmp.as_file().sync_all()?;
-        tmp.persist(path)?;
-        Ok(())
-    })
 }

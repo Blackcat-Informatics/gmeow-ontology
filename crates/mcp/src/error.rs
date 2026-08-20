@@ -149,7 +149,6 @@ define_diag_kind! {
 
 /// The complete MCP diagnostic-code catalog, in registration order.
 ///
-
 /// TOTAL over the crate regardless of which cargo features are selected — the catalog
 /// is the diagnostic THEORY, and a lean deployment is a reduced deployment, not a
 /// reduced theory (exactly as its [`TOOL_COUNT`](crate::TOOL_COUNT)-tool surface stays

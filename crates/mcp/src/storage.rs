@@ -59,6 +59,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
+use gmeow_gts_profile::StoreMedium;
 use purrdf::gts::examples::agent_memory::{
     Claim, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions, ToolCallRecord,
 };
@@ -135,6 +136,18 @@ pub trait ClaimStore: Send + Sync {
     ///
     /// A backend write failure.
     fn append_audit_segment(&self, segment: &[u8]) -> Result<()>;
+
+    /// This store's CURRENT serialized bytes, empty when it holds none yet.
+    ///
+    /// [`append_audit_segment`](Self::append_audit_segment) takes a segment that is already
+    /// serialized, so the caller has to see these bytes to author one the store can still read
+    /// back: a GTS segment declares exactly ONE codec catalog, and a segment appended through a
+    /// different medium than the tail leaves the file naming a catalog it never declared.
+    ///
+    /// # Errors
+    ///
+    /// A backend read failure.
+    fn store_bytes(&self) -> Result<Vec<u8>>;
 
     /// This store's whole readable contents as the shared session-store transport segment
     /// (N-Quads) — see [`claim_segment`].
@@ -220,7 +233,7 @@ pub trait Storage: Send + Sync {
     ///
     /// A backend that cannot resolve or open its package (natively: neither `HOME` nor
     /// `USERPROFILE` set with `GMEOW_MEMORY_PATH` empty).
-    fn claim_store(&self) -> Result<Arc<dyn ClaimStore>>;
+    fn claim_store(&self, medium: &StoreMedium) -> Result<Arc<dyn ClaimStore>>;
 
     /// The append-only conjecture library.
     ///
@@ -710,10 +723,36 @@ mod native {
     use std::sync::Arc;
 
     use gmeow_errors::Result;
+    use gmeow_gts_profile::{StoreMedium, open_store_segment, store_tail_pins};
     use purrdf::gts::examples::agent_memory::{
-        Claim, Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
-        ToolCallRecord,
+        Claim, Memory, MemoryOptions, RecallOptions, RevisionOptions, StoreOptions,
+        ToolCallOptions, ToolCallRecord,
     };
+
+    /// The GTS profile every GMEOW runtime store declares in its segment headers.
+    const STORE_PROFILE: &str = "ai-package";
+
+    /// Give the store at `path` a segment whose header pins `medium` when its tail does not
+    /// already pin it.
+    ///
+    /// A GTS segment declares exactly ONE codec catalog, so a medium change needs a segment
+    /// boundary: without one, a record appended to a store whose tail was written through a
+    /// different medium names a catalog that tail never declared, and the file stops
+    /// reconstructing entirely.
+    fn open_store_segment_if_medium_changed(path: &Path, medium: &StoreMedium) -> Result<()> {
+        let existing = match fs::read(path) {
+            Ok(bytes) => bytes,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(()),
+            Err(e) => return Err(e.into()),
+        };
+        if existing.is_empty() || store_tail_pins(&existing, &medium.dictionary)? {
+            return Ok(());
+        }
+        let header = open_store_segment(STORE_PROFILE, medium)?;
+        let mut file = fs::OpenOptions::new().append(true).open(path)?;
+        file.write_all(&header)?;
+        Ok(())
+    }
 
     use super::{ClaimStore, FsStorage, LibraryLock, SegmentLibrary, Storage, err};
 
@@ -809,11 +848,24 @@ mod native {
             "1970-01-01T00:00:00Z".to_owned()
         }
 
-        fn claim_store(&self) -> Result<Arc<dyn ClaimStore>> {
+        fn claim_store(&self, medium: &StoreMedium) -> Result<Arc<dyn ClaimStore>> {
             let path = resolve_path("GMEOW_MEMORY_PATH", "memory.gts")?;
             ensure_parent(&path)?;
+            // A segment declares ONE codec catalog, so a store whose tail predates this medium
+            // gets a fresh segment boundary before anything is appended into it.
+            open_store_segment_if_medium_changed(&path, medium)?;
             Ok(Arc::new(FsClaimStore {
-                memory: Memory::new(path.clone()),
+                memory: Memory::with_options(
+                    path.clone(),
+                    MemoryOptions {
+                        dicts: vec![(medium.dictionary.clone(), medium.bytes.clone())],
+                        dict: Some(medium.dictionary.clone()),
+                        // profile / transform / level stay upstream's defaults, which ARE the
+                        // mandated GMEOW profile (`ai-package`, zstd-rsyncable, level 12);
+                        // restating them here would be a second copy of the same pin.
+                        ..MemoryOptions::default()
+                    },
+                ),
                 path,
             }))
         }
@@ -868,6 +920,14 @@ mod native {
 
         fn tool_calls(&self) -> Result<Vec<ToolCallRecord>> {
             Ok(self.memory.tool_calls()?)
+        }
+
+        fn store_bytes(&self) -> Result<Vec<u8>> {
+            match fs::read(&self.path) {
+                Ok(bytes) => Ok(bytes),
+                Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(Vec::new()),
+                Err(e) => Err(e.into()),
+            }
         }
 
         fn append_audit_segment(&self, segment: &[u8]) -> Result<()> {
@@ -1022,7 +1082,7 @@ impl Storage for InMemoryStorage {
         self.claims.tick()
     }
 
-    fn claim_store(&self) -> Result<Arc<dyn ClaimStore>> {
+    fn claim_store(&self, _medium: &StoreMedium) -> Result<Arc<dyn ClaimStore>> {
         Ok(Arc::clone(&self.claims) as Arc<dyn ClaimStore>)
     }
 
@@ -1340,6 +1400,15 @@ impl ClaimStore for InMemoryClaimStore {
             .lock()
             .expect("in-memory claim store lock")
             .calls
+            .clone())
+    }
+
+    fn store_bytes(&self) -> Result<Vec<u8>> {
+        Ok(self
+            .state
+            .lock()
+            .expect("in-memory claim store lock")
+            .audit
             .clone())
     }
 
