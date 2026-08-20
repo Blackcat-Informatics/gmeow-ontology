@@ -386,3 +386,59 @@ msgstr "范围：本类涵盖「生产点到介质」映射中的一行：编写
 msgctxt "https://blackcatinformatics.ca/gmeow/Medium|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this class covers the lawful (encode, decode) PAIR and the coordinates that pick it out. It is not the codec alone (gmeow:TransformCodec names an algorithm, and several media may share one), not a GTS profile (gmeow:GTSProfile names a segment's purpose and requirement set, not a byte transform), and not the per-frame record of what a payload was written through (gmeow:MediumEnvelope). The round-trip claim is not stored here either: it lives on the correspondence the medium points at."
 msgstr "范围：本类涵盖合法的（编码, 解码）配对及标识该配对的诸坐标。它不是单独的编解码器（gmeow:TransformCodec 命名一种算法，多个介质可共用其一），不是 GTS 规格（gmeow:GTSProfile 命名段的目的与要求，而非字节变换），也不是有效载荷写入所经内容的逐帧记录（gmeow:MediumEnvelope）。往返主张亦不存放于此：它位于该介质所指向的对应关系之上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bundle Artifact Unreadable"
+msgstr "捆绑产物不可读"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a read-side consumer cannot READ a source artifact at all — a Turtle source handed to the native query substrate, or a materialized gmeow.gts. It is a byte-level refusal below any RDF judgment: nothing was parsed, so nothing can be said about what the artifact contains. HARD FAIL rather than an empty dataset, because an empty result is indistinguishable from an artifact that legitimately carries nothing."
+msgstr "当读取侧的消费者根本无法「读取」某个源产物时引发的失败——交给原生查询基质的 Turtle 源，或已物化的 gmeow.gts。这是低于任何 RDF 判断的字节级拒绝：什么都没有被解析，因此对该产物的内容无从置评。硬性失败而非空数据集，因为空结果与一个合法地什么都不承载的产物无从分辨。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bundle Source Unparsable"
+msgstr "捆绑源不可解析"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised on the READ side when bytes were obtained but are not the RDF the reader requires: a syntactically invalid Turtle source, a query evaluation failure, or a query whose result form is not the one the caller demands. Distinct from gmeow:BundleArtifactUnreadable, where the bytes never arrived: here they did and are wrong, so the reader refuses rather than returning a partial binding set that would read as a complete answer over less data."
+msgstr "在「读取」侧，当字节已取得却并非读取方所要求的 RDF 时引发的失败：语法无效的 Turtle 源、查询求值失败，或查询的结果形态并非调用方所要求者。它有别于 gmeow:BundleArtifactUnreadable——在后者中字节从未抵达；而在此处字节确已抵达且是错的，因此读取方选择拒绝，而不是返回一个会被当作完整答案来读、实则基于更少数据的部分绑定集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FlatExportRefused|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Flat Export Refused"
+msgstr "扁平导出被拒"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FlatExportRefused|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a flat-export projection — CSVW, SKOS, OBO Graphs, N-Quads, TriG — cannot carry a term the bundle holds, or is asked for a configuration it refuses. The projection is REFUSED rather than degraded: a flat surface that silently drops a term it cannot encode publishes a smaller ontology under the same name, and a consumer has no way to learn what is missing. Every declared loss belongs in the distribution catalog, where it is queryable, never in a projection that quietly omits."
+msgstr "当扁平导出投影——CSVW、SKOS、OBO Graphs、N-Quads、TriG——无法承载捆绑包所持有的某个术语，或被要求以其拒绝的配置输出时引发的失败。该投影被「拒绝」而非降级：悄悄丢弃自己无法编码之术语的扁平表面，是在以同一名称发布一个更小的本体，而消费者无从得知缺了什么。任何已声明的损失都应归入分发目录，在那里它是可查询的，绝不应藏在一个静默省略的投影里。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryIdentifiedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compression dictionary identified constraint"
+msgstr "压缩字典已标识约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryIdentifiedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:CompressionDictionary declares the gmeow:dictionaryId it is pinned under. The id is the ONLY key a consumer has: a runtime store resolves its priming bytes by looking that string up in the shipped bundle's in-band header map, so a dictionary declared without one can be trained, shipped and still be unreachable — the store asks for a name the bundle never wrote down, and there is no weaker unprimed store to fall back to because the store's own header is what makes it decodable. This is the authoring-side cause of the consumer engine's refusal, caught where the dictionary is declared rather than where it is opened. Measured to hold over all six shipped dictionaries, so the record is a live gate."
+msgstr "一条封闭世界完整性约束：每个 gmeow:CompressionDictionary 都声明其被固定所用的 gmeow:dictionaryId。该标识是消费者拥有的「唯一」键：运行期存储通过在所交付捆绑包的带内头部映射中查找该字符串来解析其预热字节，因此声明时不带标识的字典可以被训练、被交付，却仍然不可达——存储所索取的名称，捆绑包从未记录在案；而且并不存在可供退守的、更弱的未预热存储，因为正是存储自身的头部使其可解码。这是消费者引擎拒绝行为在撰写侧的成因，在字典被「声明」处而非被「打开」处捕获。经测量在全部六个已交付字典上成立，因此这条记录是活的关卡。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsDocumentSegmentedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS document segmented constraint"
+msgstr "GTS 文档已分段约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsDocumentSegmentedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:GTSDocument carries at least one gmeow:gtsSegment. A document IS its ordered segment list — the composite identity is the heads taken in index order — so a document declaring no segment has no content to read and no identity to verify. A reader handed one cannot distinguish it from a file it failed to open, which is why the refusal happens here rather than being reported as an empty result."
+msgstr "一条封闭世界完整性约束：每个 gmeow:GTSDocument 至少承载一个 gmeow:gtsSegment。文档「就是」其有序的段列表——复合身份即按索引顺序取得的各段头——因此不声明任何段的文档既无内容可读，也无身份可验。拿到这样一个文档的读取方，无法将其与一个自己未能打开的文件区分开来；正因如此，拒绝发生在此处，而不是被报告为一个空结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentHeadedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS segment headed constraint"
+msgstr "GTS 段带头约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentHeadedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:GTSSegment carries its gmeow:gtsHeadId. The head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so it is what makes the bytes CHECKABLE — a segment without one can be parsed into terms but never verified against the chain it claims to continue, and a reader has no way to tell a good read from a corrupted one."
+msgstr "一条封闭世界完整性约束：每个 gmeow:GTSSegment 都承载其 gmeow:gtsHeadId。段头是一个 BLAKE3 内容标识，传递性地承诺该段的整个帧历史，因此正是它使字节「可校验」——没有段头的段可以被解析成词项，却永远无法针对它自称所延续的链条加以验证，读取方也就无从分辨一次良好的读取与一次损坏的读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS segment profiled constraint"
+msgstr "GTS 段带剖面约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:GTSSegment declares its gmeow:gtsProfile. The profile states what the segment is FOR, and a flat projection reads it to decide which of the segment's claims a lossy surface may carry — CSVW, SKOS, OBO Graphs and the rest each drop what they cannot encode. A segment with no declared profile leaves the projector guessing, and a projector that guesses publishes a smaller ontology under the same name rather than refusing."
+msgstr "一条封闭世界完整性约束：每个 gmeow:GTSSegment 都声明其 gmeow:gtsProfile。剖面陈述该段「用于何事」，扁平投影据以决定有损表面可以承载该段的哪些主张——CSVW、SKOS、OBO Graphs 等等各自丢弃它们无法编码之物。未声明剖面的段会让投影器只能猜测，而猜测的投影器会以同一名称发布一个更小的本体，而不是予以拒绝。"

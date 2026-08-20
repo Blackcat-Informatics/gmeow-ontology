@@ -2910,7 +2910,8 @@ gmeow:cdiAtom a logic:Formula ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 gmeow:BundleArtifactUnreadable
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Bundle Artifact Unreadable"@x-gmeow-english ;
@@ -2918,7 +2919,8 @@ gmeow:BundleArtifactUnreadable
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:BundleSourceUnparsable
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Bundle Source Unparsable"@x-gmeow-english ;
@@ -2926,7 +2928,8 @@ gmeow:BundleSourceUnparsable
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FlatExportRefused
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Flat Export Refused"@x-gmeow-english ;

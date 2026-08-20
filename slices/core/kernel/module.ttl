@@ -554,7 +554,8 @@ gmeow:KernelConformanceFailure
     gmeow:useWhen "Use as the parent when naming a way one of the kernel's published surfaces can be malformed."@x-gmeow-english .
 
 gmeow:UnreadableDistributionCatalog
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf gmeow:KernelConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Unreadable Distribution Catalog"@x-gmeow-english ;
@@ -562,7 +563,8 @@ gmeow:UnreadableDistributionCatalog
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:UntypedFormalConcept
-    a owl:Class ;
+    a logic:Category ,
+        owl:Class ;
     logic:subClassOf gmeow:KernelConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Untyped Formal Concept"@x-gmeow-english ;

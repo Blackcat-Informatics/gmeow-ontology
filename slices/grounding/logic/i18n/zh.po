@@ -18897,3 +18897,83 @@ msgstr "在规范载体上断言 logic:overAccessibility 是函数性的：模�
 msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：本记录仅承载关于 logic:overAccessibility 的一项完整性义务，别无其他。它不是 logic:overAccessibility 的定义（定义位于该术语本身），不是形状，也不是陈述该术语含义的第二处——应停用该记录，而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionCapabilityDeclaredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action capability declared constraint"
+msgstr "已声明动作能力约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionCapabilityDeclaredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:ActionSchema declares the logic:capability it exercises. The registry is a bijection between what the surface advertises and what it can dispatch, and the capability is the routing key that makes an advertised action reachable — a schema declaring none is advertised-but-not-dispatchable, which is exactly half of what a broken registration is. The converse half, dispatchable-but-not-advertised, is unreachable by contract and is the same defect read from the other side."
+msgstr "一条封闭世界完整性约束：每个 logic:ActionSchema 都声明它所行使的 logic:capability。注册表是所公布的表面与其可派发内容之间的双射，而能力正是使已公布动作可达的路由键——不声明能力的模式即为「已公布但不可派发」，这恰好是注册损坏的一半。另一半「可派发但未公布」按契约不可达，是同一缺陷从另一侧读出的结果。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionDispatchPreconditionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action dispatch precondition constraint"
+msgstr "动作派发前置条件约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionDispatchPreconditionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:ActionSchema states the logic:precondition its action requires. A deployment may carry fewer SEGMENTS than the theory governs, but it may never carry fewer OBLIGATIONS: the deferral signal re-dispatches an identical frame to the segment that serves it, and the answer must be identical to the full engine's, which is only true if the precondition travelled with the action rather than with the image. A schema without one has nothing to re-check on arrival."
+msgstr "一条封闭世界完整性约束：每个 logic:ActionSchema 都陈述其动作所要求的 logic:precondition。一次部署可以携带比理论所治理者更少的「段」，但绝不可携带更少的「义务」：延后信号会把完全相同的帧重新派发给服务它的段，而答案必须与完整引擎的答案一致；唯有前置条件随动作而非随镜像一同传递，这一点才成立。没有前置条件的模式在抵达时无从复核。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BrokenToolRegistration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Broken Tool Registration"
+msgstr "工具注册损坏"
+
+msgctxt "https://blackcatinformatics.ca/logic/BrokenToolRegistration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when the engine's own registry is not a bijection: a descriptor carrying no name (tool) or no URI and media type (resource), or a descriptor list and handler list that disagree at some index. Every case means advertised-but-not-dispatchable, or dispatchable-but-not-advertised, and the totality contract forbids both — a surface that advertises what it cannot serve lies to every client that reads the index, and one that serves what it does not advertise is unreachable by contract."
+msgstr "当引擎自身的注册表不是双射时引发的失败：描述符不带名称（工具）或不带 URI 与媒体类型（资源），或描述符列表与处理器列表在某个索引处不一致。每一种情形都意味着「已公布但不可派发」或「可派发但未公布」，而完全性契约二者皆禁——公布自己无法提供之物的表面，是在对每一个读取索引的客户端撒谎；而提供自己未曾公布之物的表面，则按契约不可达。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolCompensationDeclaredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dev tool compensation declared constraint"
+msgstr "已声明开发工具补偿约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolCompensationDeclaredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:compensation that undoes its action. The repo-reading developer tools are the only ones that reach outside the bundle and the only ones that write to a working tree, so an action carrying no compensation is one a caller cannot back out of — a failed multi-step run leaves the tree in a state nothing in the theory says how to restore. Declaring the undo is what makes the write recoverable rather than merely recorded."
+msgstr "一条封闭世界完整性约束：每个 logic:McpActionSchema 都声明用以撤销其动作的 logic:compensation。读取仓库的开发工具是唯一伸出捆绑包之外者，也是唯一写入工作树者，因此不带补偿的动作是调用方无法回退的动作——一次失败的多步执行会把工作树留在理论中无从恢复的状态。声明撤销方式，正是使写入可恢复而非仅被记录的原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolSurfaceFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dev Tool Surface Failure"
+msgstr "开发工具表面失败"
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolSurfaceFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised by a repo-reading developer tool of the MCP surface — the native reasoner refusing the bundle's carrier graph, or the checked-out Constitution failing to read. These tools are the ONLY ones that reach outside the bundle, so their failures are about the working tree rather than the shipped artifact, and they are typed separately for exactly that reason: a consumer running the shipped engine can never raise one."
+msgstr "由 MCP 表面中读取仓库的开发工具引发的失败——原生推理器拒绝捆绑包的载体图，或已检出的《宪章》无法读取。这些工具是唯一伸出捆绑包之外者，因此其失败关乎工作树而非交付的产物；正是出于这一原因它们被单独定型：运行所交付引擎的消费者永远不可能引发此类失败。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DuplicateToolRegistration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Duplicate Tool Registration"
+msgstr "工具注册重复"
+
+msgctxt "https://blackcatinformatics.ca/logic/DuplicateToolRegistration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when two distinct logic:ActionSchema individuals claim the SAME logic:mcpToolName. The wire name is the join between a client's `tools/call` and the action governing it, so two schemas sharing one name make that join ambiguous: which precondition must hold, which effect is claimed, and which compensation applies all become unanswerable, and an engine would have to pick one silently. HARD FAIL: the name identifies the schema, so two schemas agreeing on it are either the same action written twice or a collision, and both are defects rather than a choice the dispatcher may resolve."
+msgstr "当两个不同的 logic:ActionSchema 个体主张「同一个」logic:mcpToolName 时引发的失败。线上名称是客户端 `tools/call` 与治理它的动作之间的连接键，因此两个模式共用一个名称会使该连接含混：哪条前置条件必须成立、主张的是哪个效果、适用哪条补偿，全都无从回答，而引擎将不得不悄悄择一。硬性失败：名称即模式的标识，因此两个模式在名称上相同，要么是同一动作被写了两遍，要么是一次碰撞，二者都是缺陷，而非派发器可以裁断的选择。"
+
+msgctxt "https://blackcatinformatics.ca/logic/McpResourceDeclaredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mcp resource declared constraint"
+msgstr "已声明 MCP 资源约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/McpResourceDeclaredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:McpActionSchema states the logic:precondition its dispatch must satisfy. The resource half of the surface is declared and served from the same descriptors as the tool half, so a schema carrying no precondition is one the engine can list and cannot decide to serve — and a read that reaches it has nothing to check before answering. Measured to hold over every authored schema, so the record is a live gate rather than an assertion about unchecked data."
+msgstr "一条封闭世界完整性约束：每个 logic:McpActionSchema 都陈述其派发必须满足的 logic:precondition。表面的资源一半与工具一半由相同的描述符声明并提供，因此不带前置条件的模式是引擎能够列出却无法决定是否提供的模式——而抵达它的读取在回答之前无从检查。该义务经测量在每一个已撰写的模式上成立，因此这条记录是活的关卡，而非关于未经检查数据的断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/McpToolGovernedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "McpToolGoverned constraint"
+msgstr "MCP 工具受治理约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/McpToolGovernedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:capability a dispatcher routes on. The action theory is the authority over the advertised surface only if every governed action can be PLACED — a schema carrying no capability is advertised and unroutable, so a call reaching it has nothing to dispatch against. This is the graph-side counterpart of the engine's unknown-tool refusal, one step earlier. The obligation is measured to hold over every authored logic:McpActionSchema, so the constraint is a live gate rather than a claim about data nobody checked."
+msgstr "一条封闭世界完整性约束：每个 logic:McpActionSchema 都声明派发器据以路由的 logic:capability。唯有每个受治理的动作都能被「安放」，动作理论才对所公布的表面拥有权威——不带能力的模式已被公布却不可路由，因此抵达它的调用无从据以派发。这是引擎「未知工具」拒绝在图一侧的对应物，只是发生得更早一步。该义务经测量在每一个已撰写的 logic:McpActionSchema 上成立，因此这条约束是活的关卡，而非关于无人核验数据的主张。"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedResourceRead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unadvertised Resource Read"
+msgstr "读取未公布资源"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedResourceRead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a resources/read names a URI the engine does not advertise. The resource half of the surface is declared exactly as the tool half is and served from the descriptors the index publishes, so a read of an unlisted URI has no declared media type and no handler. HARD FAIL rather than an empty body: an empty result is indistinguishable from a resource that exists and is empty, which is the ambiguity the refusal removes."
+msgstr "当 resources/read 指名引擎并未公布的 URI 时引发的失败。表面的资源一半与工具一半以完全相同的方式声明，并由索引所发布的描述符提供，因此对未列出 URI 的读取既无已声明的媒体类型，也无处理器。硬性失败而非空正文：空结果与一个确实存在且为空的资源无从分辨，而这正是拒绝所消除的含混。"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedToolInvocation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unadvertised Tool Invocation"
+msgstr "调用未公布工具"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedToolInvocation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a tools/call names a tool the engine surface does not advertise. The action theory is the authority over that surface — one logic:ActionSchema per advertised tool, joined by logic:mcpToolName — so a call resolving to no schema is a call with no precondition to check, no effect to claim and no compensation to run. HARD FAIL rather than a best-effort dispatch: an engine that guessed which action was meant would execute an unlicensed one. Distinct from logic:UnloadedEngineSegment, where the tool IS advertised and the deployment has merely not loaded the segment serving it; 'does not exist' and 'not here yet' are different facts a caller must be able to tell apart mechanically."
+msgstr "当 tools/call 指名引擎表面并未公布的工具时引发的失败。动作理论对该表面拥有权威——每个已公布工具对应一个 logic:ActionSchema，由 logic:mcpToolName 相连——因此解析不到任何模式的调用，是一次没有前置条件可查、没有效果可主张、也没有补偿可执行的调用。硬性失败而非尽力派发：会猜测意指哪个动作的引擎，将执行一个未获许可的动作。它有别于 logic:UnloadedEngineSegment——在后者中工具「确已」公布，只是部署尚未加载提供它的段；「不存在」与「尚未在此」是调用方必须能够机械区分的两个不同事实。"
