@@ -18,7 +18,6 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 
@@ -28,7 +27,7 @@
 
 gmeow:ComplexCompilation
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Complex Compilation"@x-gmeow-english ;
     logic:subClassOf gmeow:Activity ;
@@ -36,7 +35,7 @@ gmeow:ComplexCompilation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:compilesEvidence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "compiles evidence"@x-gmeow-english ;
@@ -45,7 +44,7 @@ gmeow:compilesEvidence
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:compilesToComplex
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "compiles to complex"@x-gmeow-english ;
@@ -54,7 +53,7 @@ gmeow:compilesToComplex
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:compilesToFiltration
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "compiles to filtration"@x-gmeow-english ;
@@ -63,7 +62,7 @@ gmeow:compilesToFiltration
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:recordsCorrespondence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "records correspondence"@x-gmeow-english ;
@@ -72,7 +71,7 @@ gmeow:recordsCorrespondence
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:recordsPreservation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "records preservation"@x-gmeow-english ;
@@ -83,7 +82,7 @@ gmeow:recordsPreservation
 # --- The epistemic-context binding properties (reuse core/logic contexts) ---------
 
 gmeow:compilationStandpoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "compilation standpoint"@x-gmeow-english ;
@@ -92,7 +91,7 @@ gmeow:compilationStandpoint
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:compilationWorld
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "compilation world"@x-gmeow-english ;
@@ -101,7 +100,7 @@ gmeow:compilationWorld
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:compilationTimeScope
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "compilation time scope"@x-gmeow-english ;
@@ -110,7 +109,7 @@ gmeow:compilationTimeScope
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:compilationScenario
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplexCompilation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "compilation scenario"@x-gmeow-english ;
@@ -124,7 +123,7 @@ gmeow:compilationScenario
 
 gmeow:CellSourceCorrespondence
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Cell-Source Correspondence"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -132,7 +131,7 @@ gmeow:CellSourceCorrespondence
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:correspondenceCell
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CellSourceCorrespondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "correspondence cell"@x-gmeow-english ;
@@ -141,7 +140,7 @@ gmeow:correspondenceCell
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:cellSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain math:Cell ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "cell source"@x-gmeow-english ;
@@ -156,7 +155,7 @@ gmeow:cellSource
 
 gmeow:CompilationPreservationRecord
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation Preservation Record"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -168,8 +167,8 @@ gmeow:CompilationPreservationRecord
 # exact-one pattern in slices/core/epistemics/module.ttl) — a record naming zero kinds
 # is caught here as sh:minCount 1, never left to pass vacuously.
 gmeow:CompilationPreservationRecord logic:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:preservationKind ; owl:minQualifiedCardinality 1 ; owl:onClass logic:PreservationKind ] ,
-    [ a owl:Restriction ; owl:onProperty logic:preservationKind ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:PreservationKind ] .
+    [ a logic:Restriction ; logic:onProperty logic:preservationKind ; logic:minQualifiedCardinality 1 ; logic:onClass logic:PreservationKind ] ,
+    [ a logic:Restriction ; logic:onProperty logic:preservationKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:PreservationKind ] .
 
 # =========================================================================== #
 # Computation activity, result artifact, and their binding                     #
@@ -177,7 +176,7 @@ gmeow:CompilationPreservationRecord logic:subClassOf
 
 gmeow:TopologyComputation
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Computation"@x-gmeow-english ;
     logic:subClassOf gmeow:Activity ;
@@ -185,7 +184,7 @@ gmeow:TopologyComputation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:computationOverCompilation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyComputation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "computation over compilation"@x-gmeow-english ;
@@ -194,7 +193,7 @@ gmeow:computationOverCompilation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employsAnalysis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyComputation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "employs analysis"@x-gmeow-english ;
@@ -203,7 +202,7 @@ gmeow:employsAnalysis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:producesResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyComputation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "produces result"@x-gmeow-english ;
@@ -213,7 +212,7 @@ gmeow:producesResult
 
 gmeow:TopologyResult
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Result"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -221,7 +220,7 @@ gmeow:TopologyResult
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:resultArtifact
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "result artifact"@x-gmeow-english ;
@@ -230,7 +229,7 @@ gmeow:resultArtifact
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:assertsGlobalTruth
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TopologyComputation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "asserts global truth"@x-gmeow-english ;
@@ -247,7 +246,7 @@ gmeow:assertsGlobalTruth
 
 gmeow:TopologyClaim
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Claim"@x-gmeow-english ;
     rdfs:seeAlso gmeow:Finding ;
@@ -256,7 +255,7 @@ gmeow:TopologyClaim
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:claimResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "claim result"@x-gmeow-english ;
@@ -265,7 +264,7 @@ gmeow:claimResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:claimForComputation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "claim for computation"@x-gmeow-english ;
@@ -274,7 +273,7 @@ gmeow:claimForComputation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:claimLocalSection
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "claim local section"@x-gmeow-english ;
@@ -283,7 +282,7 @@ gmeow:claimLocalSection
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extendsToGlobalSection
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "extends to global section"@x-gmeow-english ;
@@ -292,7 +291,7 @@ gmeow:extendsToGlobalSection
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dischargesObstruction
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TopologyClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "discharges obstruction"@x-gmeow-english ;
@@ -315,14 +314,14 @@ gmeow:dischargesObstruction
 # =========================================================================== #
 
 gmeow:TopologyConformanceFailure
-    a owl:Class ;
+    a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Conformance Failure"@x-gmeow-english ;
     skos:definition "The parent of the semantic-topology well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each SHACL shape derived from a slice logic:Constraint points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces WELL-FORMEDNESS and the local-vs-global discipline, never mathematical or empirical truth."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CompilationMissingContext
-    a owl:Class ;
+    a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Compilation Missing Context"@x-gmeow-english ;
     logic:subClassOf gmeow:TopologyConformanceFailure ;
@@ -330,7 +329,7 @@ gmeow:CompilationMissingContext
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TopologyClaimMissingStatus
-    a owl:Class ;
+    a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Topology Claim Missing Status"@x-gmeow-english ;
     logic:subClassOf gmeow:TopologyConformanceFailure ;
@@ -338,7 +337,7 @@ gmeow:TopologyClaimMissingStatus
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ResultObjectConflation
-    a owl:Class ;
+    a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "Result Object Conflation"@x-gmeow-english ;
     logic:subClassOf gmeow:TopologyConformanceFailure ;
@@ -885,7 +884,7 @@ gmeow:rocMathNs a logic:Formula ;
 # =========================================================================== #
 
 <https://blackcatinformatics.ca/gmeow/slices/semantic-topology>
-    a owl:Ontology ;
+    a logic:Ontology ;
     rdfs:comment "The extension mints ONLY bridge terms (Principle 19): it COMPOSES the shipped math: topology objects (math:CellComplex/math:SimplicialComplex, math:Filtration, math:Cell, math:PersistentHomology and the math:PersistenceDiagram/Barcode/Landscape/BettiSummary/HodgeDecomposition/Holonomy result artifacts, math:GlobalSection/math:LocalSection/math:GluingObstruction, math:StabilityCalibrationRecord/math:bottleneckStabilityTheorem), the logic: loss ledger (logic:preservationKind, logic:expressivenessBoundary), and the core claim/evidence/standpoint spine — grounding NOTHING itself and hand-authoring no shapes (the pipeline derives them). Compiled RDF 1.2 claim/evidence/proof INSTANCE data lives in the consumer lillith_decodes; this slice is the vocabulary."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "GMEOW Semantic-Topology Module"@x-gmeow-english ;
@@ -914,7 +913,7 @@ gmeow:ResultObjectConflation a logic:Situation .
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -922,7 +921,7 @@ gmeow:ResultObjectConflation a logic:Situation .
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:claimResultFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "claimResult is functional"@x-gmeow-english ;
@@ -937,7 +936,7 @@ gmeow:claimResultFunctionality
     skos:example "gmeow:claimResultFunctionality logic:characterizes gmeow:claimResult ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:computationOverCompilationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/semantic-topology> ;
     rdfs:label "computationOverCompilation is functional"@x-gmeow-english ;

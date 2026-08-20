@@ -523,6 +523,40 @@ fn extract_annotation_axioms(
     axioms
 }
 
+/// Collect the blank-node labels of anonymous boolean class expressions — a blank node
+/// carrying a `logic:` boolean class constructor (`unionOf` / `intersectionOf` /
+/// `disjointUnionOf` / `complementOf`). These are anonymous OWL-style class expressions
+/// consumed directly off the store by the shape-derivation / OWL grounding readers (which
+/// read both the `owl:` and `logic:` spellings), never domain facts. Like the restriction /
+/// enumeration / datarange skolemizer nodes, their internal constructor triple and their
+/// `rdf:type logic:Class` typing must be kept OUT of the flat axiom set: their blank
+/// subject / object would otherwise leak into the canonical RDF 1.2 projection as an invalid
+/// relative IRI (`<c14n…>`), breaking the round-trip (the projection's triple sink only
+/// carries IRIs — anonymous class expressions reach it only after skolemization to stable
+/// IRIs). `logic:oneOf` is deliberately excluded: it is a first-class `logic:Enumeration`
+/// skolemized into stable list-cell IRIs by `skolemize_enumerations`, not a bare leak.
+fn anonymous_boolean_class_expr_labels(store: &RdfDataset) -> BTreeSet<String> {
+    const BOOLEAN_CLASS_CONSTRUCTORS: [&str; 4] = [
+        "unionOf",
+        "intersectionOf",
+        "disjointUnionOf",
+        "complementOf",
+    ];
+    let ctor_iris: Vec<String> = BOOLEAN_CLASS_CONSTRUCTORS
+        .iter()
+        .map(|local| logic_iri(local))
+        .collect();
+    let mut labels = BTreeSet::new();
+    for quad in default_graph_quads(store) {
+        if subject_is_blank(&quad.subject)
+            && ctor_iris.iter().any(|iri| quad.predicate.as_str() == iri)
+        {
+            labels.insert(subject_str(&quad.subject));
+        }
+    }
+    labels
+}
+
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
@@ -545,6 +579,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     let mut rnodes = restriction::restriction_node_labels(store, &logic_vocab);
     rnodes.extend(restriction::enumeration_node_labels(store, &logic_vocab));
     rnodes.extend(restriction::datarange_node_labels(store, &logic_vocab));
+    rnodes.extend(anonymous_boolean_class_expr_labels(store));
     let mut lifted_class_exprs =
         restriction::skolemize_restrictions(store, &logic_vocab, diagnostics);
     lifted_class_exprs.extend(restriction::skolemize_enumerations(
@@ -1604,6 +1639,11 @@ pub fn derive_validation_shapes(
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
     let owl_thing = format!("{owl}Thing");
+    // The canonical `logic:Thing` is the same individual-domain top as its `owl:Thing` view, so the
+    // universal-top guards below (open node-kind, unqualified-cardinality collapse) must fire for
+    // EITHER spelling — a slice authors `logic:onClass logic:Thing` after the surface flip.
+    let logic_thing = logic_iri("Thing");
+    let is_top_thing = |iri: &str| iri == owl_thing || iri == logic_thing;
     let rdfs_datatype = Node::iri(format!("{rdfs}Datatype"));
     let rdfs_literal = format!("{rdfs}Literal");
     let rdfs_resource = format!("{rdfs}Resource");
@@ -1698,7 +1738,7 @@ pub fn derive_validation_shapes(
     let classify = |iri: &str| -> Option<ConstraintComponent> {
         if iri == rdfs_resource {
             None
-        } else if iri == owl_thing {
+        } else if is_top_thing(iri) {
             Some(ConstraintComponent::NodeKindShacl(
                 ShaclNodeKind::BlankNodeOrIri,
             ))
@@ -1745,7 +1785,7 @@ pub fn derive_validation_shapes(
     // `gmeow:Chunk` are the corpus witness). The redirect is keyed on the property's own
     // declaration, so it can never narrow an object-valued or undeclared path.
     let classify_on = |on: &str, iri: &str| -> Option<ConstraintComponent> {
-        if iri == owl_thing && is_datatype_property(on) {
+        if is_top_thing(iri) && is_datatype_property(on) {
             classify(&rdfs_literal)
         } else {
             classify(iri)
@@ -2119,7 +2159,7 @@ pub fn derive_validation_shapes(
                     let filler = restriction_value(m, &p_some, &p_logic_some);
                     match (on_p, filler) {
                         (Some(Node::Iri(p)), Some(Node::Iri(f)))
-                            if f == owl_thing && !optouts.contains(&p) =>
+                            if is_top_thing(&f) && !optouts.contains(&p) =>
                         {
                             paths.push(p);
                         }
@@ -2354,7 +2394,7 @@ pub fn derive_validation_shapes(
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
                     Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
-                    Some(Node::Iri(q)) if q == owl_thing => {
+                    Some(Node::Iri(q)) if is_top_thing(&q) => {
                         // `owl:onClass owl:Thing` qualifies over "any individual" — the qualified
                         // count degrades to an unqualified `sh:minCount`/`sh:maxCount` rather than
                         // a vacuous inner shape.

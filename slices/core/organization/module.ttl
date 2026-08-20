@@ -2,26 +2,25 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Identifier
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Identifier"@x-gmeow-english ;
     rdfs:subClassOf logic:FunctionalComplex ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:identifierScheme ;
-            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:identifierScheme ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:identifierUrl ;
-            owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:identifierUrl ;
+            logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "A reified external-identifier record bundling a scheme-local value with its scheme, and optionally the authority URL that resolves it and a human-readable name — an ORCID, a geni profile id, a Nostr nip05, a LEI, a ROR ID, a NAICS code. Reification ensures that when an entity carries multiple identifiers, each value is paired with its correct scheme (and url/name) in projections. The structured sibling of gmeow:authorityLink: a flat authorityLink points at an external record by IRI; an Identifier decomposes the scheme/value/url/name a schema:PropertyValue or DataCite relatedIdentifier carries."@x-gmeow-english ;
     skos:example "ex:acmeLei a gmeow:Identifier ; gmeow:identifierScheme \"lei\" ; gmeow:identifierValue \"529900T8BM49AURSDO55\" ."@x-gmeow-english ;
@@ -33,7 +32,7 @@ gmeow:Identifier
 
 gmeow:Membership
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Membership"@x-gmeow-english ;
     logic:mediates gmeow:membershipMember ,
@@ -52,7 +51,7 @@ gmeow:Membership
 
 gmeow:Occupation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Occupation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -65,7 +64,7 @@ gmeow:Occupation
 
 gmeow:Offering
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Offering"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -78,7 +77,7 @@ gmeow:Offering
 
 gmeow:OpeningHoursSpecification
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Opening Hours Specification"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -91,7 +90,7 @@ gmeow:OpeningHoursSpecification
 
 gmeow:OrganizationType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Organization Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -104,14 +103,14 @@ gmeow:OrganizationType
 
 gmeow:Post
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Post"@x-gmeow-english ;
     rdfs:subClassOf logic:FunctionalComplex ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:postIn ;
-            owl:someValuesFrom gmeow:Organization ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:postIn ;
+            logic:someValuesFrom gmeow:Organization ;
         ] ;
     skos:definition "A seat or position that exists independently of who currently holds it — the CFO chair is not the person now in it. A Post bundles a gmeow:Role within a specific gmeow:Organization, enabling 'vacant post' and 'succession in a post' queries."@x-gmeow-english ;
     skos:example "ex:cfoPost a gmeow:Post ; gmeow:postIn ex:acme ; gmeow:hasRole ex:cfoRole ."@x-gmeow-english ;
@@ -122,7 +121,7 @@ gmeow:Post
 
 gmeow:Role
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Role"@x-gmeow-english ;
     rdfs:subClassOf logic:FunctionalComplex ;
@@ -135,7 +134,7 @@ gmeow:Role
 
 gmeow:ServiceOffering
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Service Offering"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -148,7 +147,7 @@ gmeow:ServiceOffering
 
 gmeow:ServiceType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Service Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -161,7 +160,7 @@ gmeow:ServiceType
 
 gmeow:SiteType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Site Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -173,7 +172,7 @@ gmeow:SiteType
     gmeow:useWhen "Use as the value vocabulary for the site-purpose axis — the open set (headquarters, branch, registered, …) referenced through gmeow:siteType."@x-gmeow-english .
 
 gmeow:acceptsCurrency
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "accepts currency"@x-gmeow-english ;
@@ -186,7 +185,7 @@ gmeow:acceptsCurrency
     gmeow:useWhen "Use to record which currencies a business accepts, referencing a first-class currency gmeow:ReferenceFrame (a member of gmeow:frameRealmCurrency) rather than a flat ISO code."@x-gmeow-english .
 
 gmeow:acceptsPaymentMethod
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "accepts payment method"@x-gmeow-english ;
@@ -199,7 +198,7 @@ gmeow:acceptsPaymentMethod
     gmeow:useWhen "Use to record which payment methods a business accepts, referencing the accounts-slice gmeow:PaymentMethod value individuals (cash, credit card, bank transfer, cryptocurrency)."@x-gmeow-english .
 
 gmeow:alumniOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "alumnus of"@x-gmeow-english ;
@@ -212,7 +211,7 @@ gmeow:alumniOf
     gmeow:useWhen "Use for the flat fact that a person is an alumnus/alumna of an organization — typically an educational institution — when the affiliation's period and role need not be first-class."@x-gmeow-english .
 
 gmeow:areaServed
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Offering ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "area served"@x-gmeow-english ;
@@ -225,7 +224,7 @@ gmeow:areaServed
     gmeow:useWhen "Use to record the geographic area a gmeow:Offering or service serves, referencing a gmeow:Location."@x-gmeow-english .
 
 gmeow:closesAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OpeningHoursSpecification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "closes at"@x-gmeow-english ;
@@ -238,7 +237,7 @@ gmeow:closesAt
     gmeow:useWhen "Use to record the closing time of a gmeow:OpeningHoursSpecification window as an xsd:time."@x-gmeow-english .
 
 gmeow:fillsPost
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Membership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "fills post"@x-gmeow-english ;
@@ -251,7 +250,7 @@ gmeow:fillsPost
     gmeow:useWhen "Use to seat the member of a gmeow:Membership in a holder-independent gmeow:Post — recording who currently occupies a named chair so vacancy and succession stay queryable."@x-gmeow-english .
 
 gmeow:foundedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "founded by"@x-gmeow-english ;
@@ -264,12 +263,12 @@ gmeow:foundedBy
     gmeow:useWhen "Use for the flat fact that an agent founded an organization when the founding date and circumstances need not be first-class."@x-gmeow-english .
 
 gmeow:founderOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "founder of"@x-gmeow-english ;
     rdfs:range gmeow:Organization ;
-    owl:inverseOf gmeow:foundedBy ;
+    logic:inverseOf gmeow:foundedBy ;
     skos:definition "Relates an agent to an organization it founded. Inverse of gmeow:foundedBy. Non-functional — an agent may found several organizations."@x-gmeow-english ;
     skos:example "ex:alice gmeow:founderOf ex:acme ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting gmeow:founderOf directly when the organization's perspective is natural — assert gmeow:foundedBy and read this as its inverse — and avoid it where the founding date matters (use a founding gmeow:Event)."@x-gmeow-english ;
@@ -278,7 +277,7 @@ gmeow:founderOf
     gmeow:useWhen "Use when traversing or projecting from a founder to the organizations they founded — the agent-rooted direction."@x-gmeow-english .
 
 gmeow:hasIdentifier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "has identifier"@x-gmeow-english ;
@@ -292,12 +291,12 @@ gmeow:hasIdentifier
     gmeow:useWhen "Use to attach a reified gmeow:Identifier to any entity — person, organization, work, or place — when a scheme-local external code must be carried with its scheme intact."@x-gmeow-english .
 
 gmeow:hasMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "has member"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    owl:inverseOf gmeow:memberOf ;
+    logic:inverseOf gmeow:memberOf ;
     skos:definition "Relates an organization to one of its member agents; the inverse of gmeow:memberOf. Non-functional — an organization has many members."@x-gmeow-english ;
     skos:example "ex:acme gmeow:hasMember ex:alice ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting gmeow:hasMember directly when the member's perspective is the natural one — assert gmeow:memberOf and read gmeow:hasMember as its inverse — and avoid it where role or period matter (use a gmeow:Membership)."@x-gmeow-english ;
@@ -306,7 +305,7 @@ gmeow:hasMember
     gmeow:useWhen "Use when traversing or projecting from an organization to its members — the whole-rooted direction where stating the organization first is natural."@x-gmeow-english .
 
 gmeow:hasOpeningHours
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Offering ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "has opening hours"@x-gmeow-english ;
@@ -319,7 +318,7 @@ gmeow:hasOpeningHours
     gmeow:useWhen "Use to attach a reified gmeow:OpeningHoursSpecification window to an offering (or the organization/place behind it)."@x-gmeow-english .
 
 gmeow:hasRole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Membership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "has role"@x-gmeow-english ;
@@ -332,7 +331,7 @@ gmeow:hasRole
     gmeow:useWhen "Use to bind a gmeow:Role to a gmeow:Membership — the function the member plays within the organization for the duration of that membership."@x-gmeow-english .
 
 gmeow:hasSite
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "has site"@x-gmeow-english ;
@@ -345,7 +344,7 @@ gmeow:hasSite
     gmeow:useWhen "Use to relate an organization to a gmeow:Location it operates from — a headquarters, branch, or registered office — reusing the places-module location rather than minting an organization-local place."@x-gmeow-english .
 
 gmeow:identifierScheme
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Identifier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifier scheme"@x-gmeow-english ;
@@ -358,7 +357,7 @@ gmeow:identifierScheme
     gmeow:useWhen "Use to name the scheme of a gmeow:Identifier — 'lei', 'ror', 'naics', 'tax', 'wikidata' — so its scheme-local gmeow:identifierValue is interpretable; the scheme also guards schema:taxID and similar projection cells."@x-gmeow-english .
 
 gmeow:identifierUrl
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Identifier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifier url"@x-gmeow-english ;
@@ -370,7 +369,7 @@ gmeow:identifierUrl
     gmeow:useWhen "Use to carry the resolvable authority URL of a gmeow:Identifier — the landing page that dereferences the scheme-local code."@x-gmeow-english .
 
 gmeow:identifierValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Identifier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifier value"@x-gmeow-english ;
@@ -383,7 +382,7 @@ gmeow:identifierValue
     gmeow:useWhen "Use to carry the scheme-local literal code of a gmeow:Identifier — the actual LEI, NAICS, ORCID, or registration string."@x-gmeow-english .
 
 gmeow:industryClassification
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "industry classification"@x-gmeow-english ;
@@ -397,7 +396,7 @@ gmeow:industryClassification
     gmeow:useWhen "Use to attach an industry-code gmeow:Identifier to an organization — a NAICS, ISIC, or schema.org industry code — the org-scoped specialization of gmeow:hasIdentifier for sector classification."@x-gmeow-english .
 
 gmeow:itemOffered
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Offering ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "item offered"@x-gmeow-english ;
@@ -410,7 +409,7 @@ gmeow:itemOffered
     gmeow:useWhen "Use to name what a gmeow:Offering provides — a gmeow:ServiceOffering, a product, or any entity being offered."@x-gmeow-english .
 
 gmeow:jurisdiction
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Identifier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "jurisdiction"@x-gmeow-english ;
@@ -423,7 +422,7 @@ gmeow:jurisdiction
     gmeow:useWhen "Use to record the legal or regulatory jurisdiction a gmeow:Identifier was issued under — the country, state, or province governing a company-registration code."@x-gmeow-english .
 
 gmeow:legalIdentifier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "legal identifier"@x-gmeow-english ;
@@ -437,7 +436,7 @@ gmeow:legalIdentifier
     gmeow:useWhen "Use to attach a legal-registration gmeow:Identifier to an organization — a LEI, ROR ID, or company-registration number — the org-scoped specialization of gmeow:hasIdentifier."@x-gmeow-english .
 
 gmeow:makesOffer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "makes offer"@x-gmeow-english ;
@@ -450,12 +449,12 @@ gmeow:makesOffer
     gmeow:useWhen "Use to relate an agent to a gmeow:Offering it makes — the entry point into the offerings surface."@x-gmeow-english .
 
 gmeow:memberOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "member of"@x-gmeow-english ;
     rdfs:range gmeow:Organization ;
-    owl:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) ;
+    logic:propertyChainAxiom ( gmeow:memberOf gmeow:subOrganizationOf ) ;
     skos:definition "Relates an agent to an organization it belongs to. The flat shortcut (Principle 4); membership propagates up the organizational part/whole hierarchy via the property chain with gmeow:subOrganizationOf, so a department member is a member of the containing organization. Non-functional and standpoint-indexable — contested memberships coexist (Principle 9). Projects to schema:memberOf / org:memberOf."@x-gmeow-english ;
     skos:example "ex:alice gmeow:memberOf ex:acme ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it where role or period matter (promote to a gmeow:Membership relator) and avoid asserting the department-to-parent membership by hand — the property chain with gmeow:subOrganizationOf infers it."@x-gmeow-english ;
@@ -464,7 +463,7 @@ gmeow:memberOf
     gmeow:useWhen "Use for the direct, flat fact that an agent belongs to an organization when role, post, period, and evidence need not be first-class."@x-gmeow-english .
 
 gmeow:membershipMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Membership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "membership member"@x-gmeow-english ;
@@ -477,7 +476,7 @@ gmeow:membershipMember
     gmeow:useWhen "Use to bind the member player of a gmeow:Membership — the agent whose affiliation the relator reifies, so role and period can be carried on it."@x-gmeow-english .
 
 gmeow:membershipOrganization
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Membership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "membership organization"@x-gmeow-english ;
@@ -490,7 +489,7 @@ gmeow:membershipOrganization
     gmeow:useWhen "Use to bind the organization player of a gmeow:Membership — which organization (or department) the reified affiliation is in."@x-gmeow-english .
 
 gmeow:offeringProvider
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Offering ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "offering provider"@x-gmeow-english ;
@@ -503,7 +502,7 @@ gmeow:offeringProvider
     gmeow:useWhen "Use to name the agent that provides a gmeow:Offering — the provider behind the offered item."@x-gmeow-english .
 
 gmeow:openingDay
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OpeningHoursSpecification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "opening day"@x-gmeow-english ;
@@ -516,7 +515,7 @@ gmeow:openingDay
     gmeow:useWhen "Use to record which day(s) a gmeow:OpeningHoursSpecification window applies to, referencing gmeow:DayOfWeek value individuals."@x-gmeow-english .
 
 gmeow:opensAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OpeningHoursSpecification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "opens at"@x-gmeow-english ;
@@ -529,7 +528,7 @@ gmeow:opensAt
     gmeow:useWhen "Use to record the opening time of a gmeow:OpeningHoursSpecification window as an xsd:time."@x-gmeow-english .
 
 gmeow:organizationPurpose
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "organization purpose"@x-gmeow-english ;
@@ -542,7 +541,7 @@ gmeow:organizationPurpose
     gmeow:useWhen "Use for a free-text statement of an organization's purpose, mission, or objective when no structured goal model is needed."@x-gmeow-english .
 
 gmeow:organizationType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "organization type"@x-gmeow-english ;
@@ -597,12 +596,12 @@ gmeow:organizationTypeNonprofit
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:ownedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "owned by"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
-    owl:inverseOf gmeow:ownerOf ;
+    logic:inverseOf gmeow:ownerOf ;
     skos:definition "Relates something to an agent that owns it. Inverse of gmeow:ownerOf. Non-functional — an entity may have several owners."@x-gmeow-english ;
     skos:example "ex:acme gmeow:ownedBy ex:alice ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting gmeow:ownedBy directly when the owner's perspective is natural — assert gmeow:ownerOf and read this as its inverse — and avoid it where share or period matter (use an ownership relator)."@x-gmeow-english ;
@@ -611,7 +610,7 @@ gmeow:ownedBy
     gmeow:useWhen "Use when traversing or projecting from an owned entity to its owners — the asset-rooted direction."@x-gmeow-english .
 
 gmeow:ownerOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "owner of"@x-gmeow-english ;
@@ -624,7 +623,7 @@ gmeow:ownerOf
     gmeow:useWhen "Use for the flat fact that an agent owns an entity — an organization, asset, or work — when share, period, and jurisdiction need not be first-class."@x-gmeow-english .
 
 gmeow:postIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Post ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "post in"@x-gmeow-english ;
@@ -637,7 +636,7 @@ gmeow:postIn
     gmeow:useWhen "Use to bind a gmeow:Post to the one organization whose seat it is."@x-gmeow-english .
 
 gmeow:predecessorOrganization
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "predecessor organization"@x-gmeow-english ;
@@ -650,7 +649,7 @@ gmeow:predecessorOrganization
     gmeow:useWhen "Use on a multi-organization change gmeow:Event (merger, split, acquisition, rename) to name an organization that ceased or transformed in it."@x-gmeow-english .
 
 gmeow:priceRange
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "price range"@x-gmeow-english ;
@@ -663,7 +662,7 @@ gmeow:priceRange
     gmeow:useWhen "Use for a coarse, human-readable indication of a business's price level — the presentational '$$' summary a directory listing shows."@x-gmeow-english .
 
 gmeow:serviceType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ServiceOffering ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "service type"@x-gmeow-english ;
@@ -676,7 +675,7 @@ gmeow:serviceType
     gmeow:useWhen "Use to tag the kind(s) of a gmeow:ServiceOffering by referencing gmeow:ServiceType value individuals — consulting, hosting, support."@x-gmeow-english .
 
 gmeow:siteType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Location ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "site type"@x-gmeow-english ;
@@ -710,7 +709,7 @@ gmeow:siteTypeRegistered
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:slogan
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "slogan"@x-gmeow-english ;
@@ -723,8 +722,8 @@ gmeow:slogan
     gmeow:useWhen "Use to carry an agent's promotional tagline or motto — a short marketing phrase displayed as-is."@x-gmeow-english .
 
 gmeow:subOrganizationOf
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "sub-organization of"@x-gmeow-english ;
@@ -738,7 +737,7 @@ gmeow:subOrganizationOf
     gmeow:useWhen "Use to nest one organization inside a larger one — a department in a company, a team in a department — so the organizational part/whole hierarchy and membership propagation hold."@x-gmeow-english .
 
 gmeow:successorOrganization
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "successor organization"@x-gmeow-english ;
@@ -751,7 +750,7 @@ gmeow:successorOrganization
     gmeow:useWhen "Use on a multi-organization change gmeow:Event to name an organization that began or resulted from it — the surviving merged entity, a spun-off division, a renamed body."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/organization>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Organizational roles and memberships (the ORG-superset layer).
 
@@ -923,7 +922,7 @@ logic:ssoSuccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -931,7 +930,7 @@ logic:ssoSuccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:closesAtFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "closesAt is functional"@x-gmeow-english ;
@@ -946,7 +945,7 @@ gmeow:closesAtFunctionality
     skos:example "gmeow:closesAtFunctionality logic:characterizes gmeow:closesAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:identifierSchemeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifierScheme is functional"@x-gmeow-english ;
@@ -961,7 +960,7 @@ gmeow:identifierSchemeFunctionality
     skos:example "gmeow:identifierSchemeFunctionality logic:characterizes gmeow:identifierScheme ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:identifierUrlFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifierUrl is functional"@x-gmeow-english ;
@@ -976,7 +975,7 @@ gmeow:identifierUrlFunctionality
     skos:example "gmeow:identifierUrlFunctionality logic:characterizes gmeow:identifierUrl ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:identifierValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "identifierValue is functional"@x-gmeow-english ;
@@ -991,7 +990,7 @@ gmeow:identifierValueFunctionality
     skos:example "gmeow:identifierValueFunctionality logic:characterizes gmeow:identifierValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:membershipMemberFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "membershipMember is functional"@x-gmeow-english ;
@@ -1006,7 +1005,7 @@ gmeow:membershipMemberFunctionality
     skos:example "gmeow:membershipMemberFunctionality logic:characterizes gmeow:membershipMember ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:membershipOrganizationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "membershipOrganization is functional"@x-gmeow-english ;
@@ -1021,7 +1020,7 @@ gmeow:membershipOrganizationFunctionality
     skos:example "gmeow:membershipOrganizationFunctionality logic:characterizes gmeow:membershipOrganization ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:opensAtFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "opensAt is functional"@x-gmeow-english ;
@@ -1036,7 +1035,7 @@ gmeow:opensAtFunctionality
     skos:example "gmeow:opensAtFunctionality logic:characterizes gmeow:opensAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:postInFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "postIn is functional"@x-gmeow-english ;

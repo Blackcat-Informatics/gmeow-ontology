@@ -2,7 +2,6 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -11,7 +10,7 @@
 
 gmeow:Scenario
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Scenario"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -25,7 +24,7 @@ gmeow:Scenario
 
 gmeow:Standpoint
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:comment "Coexistence is explicitly permitted: contradictory gmeow:accordingTo-scoped claims over the same subject/predicate are co-equal and must NOT be flagged — there is deliberately no constraint on their coexistence (Principle 9, no single slot to win). This is the intent the retired documentation-only gmeow:StandpointCoexistenceShape recorded: coexistence is proven by the positive fixtures, not by a SHACL constraint, because the OWL-infers / SHACL-validates split means SHACL only ever rejects closed-world malformations, never co-equal contradiction."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint"@x-gmeow-english ;
@@ -42,7 +41,7 @@ gmeow:Standpoint
 
 gmeow:StandpointModality
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint Modality"@x-gmeow-english ;
     logic:instantiatesFramework logic:ModalFramework ;
@@ -57,19 +56,19 @@ gmeow:StandpointModality
 
 gmeow:StandpointTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureStandpoint ;
-            owl:someValuesFrom gmeow:Standpoint ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:tenureStandpoint ;
+            logic:someValuesFrom gmeow:Standpoint ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:standpointClaim ;
-            owl:someValuesFrom gmeow:StandpointClaim ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:standpointClaim ;
+            logic:someValuesFrom gmeow:StandpointClaim ;
         ] ;
     skos:definition "The reified, time-scoped fact that a standpoint held a particular position over an interval — recognition granted in 2008 and withdrawn in 2030 is an opened-then-closed tenure, never a deletion (Principle 10). Use only when the adoption / withdrawal of the position is itself worth modelling; the common case is a bare gmeow:accordingTo annotation. Carries its standpoint-time interval via gmeow:duringInterval (temporal module). A StandpointTenure generates a gmeow:standpointClaim observation. The tenure is the time-scoped fact; the claim is the observation of that fact. The tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature."@x-gmeow-english ;
     skos:example "ex:recognition a gmeow:StandpointTenure ; gmeow:tenureStandpoint ex:stateA ; gmeow:duringInterval ex:2008to2030 ."@x-gmeow-english ;
@@ -109,7 +108,7 @@ gmeow:tenurePositionReificationObligation
 
 gmeow:State
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "State"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -122,7 +121,7 @@ gmeow:State
     gmeow:useWhen "Use to name one state of affairs along a history — a position on a logic:Path that a logic:Situation realizes — when path-relative truth or temporal succession of configurations must be modelled."@x-gmeow-english .
 
 gmeow:accordingTo
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "according to"@x-gmeow-english ;
     skos:definition "The standpoint / frame within which the annotated statement is asserted true — *according to whom*. DISTINCT from gmeow:wasAttributedTo (which source RECORDED the claim) and gmeow:confidence (how sure we are); a claim may carry all three with no inferential bridge among them. Its value is a gmeow:Agent (a polity, community, or organization IRI) or a gmeow:Standpoint individual (a frame that needs its own identity). When a statement is promoted to a reified gmeow:Observation, gmeow:accordingTo becomes the gmeow:vantage of the relator (vantage ⊑ accordingTo — documented, not axiomatised, because accordingTo is an AnnotationProperty and vantage is an ObjectProperty). Standpoint-TIME — when the frame held this position — rides gmeow:validFrom / gmeow:validUntil on the same statement in the light case, or a reified gmeow:StandpointTenure when the adoption / withdrawal is itself the fact of interest. The range is intentionally open. An unindexed statement is held in gmeow:unspecifiedStandpoint — unspecified, not universal; only an explicit gmeow:universalStandpoint index (or explicit quantification over all contexts of a stated type) propagates as universal."@x-gmeow-english ;
@@ -146,7 +145,7 @@ gmeow:bullshit
         gmeow:boxCBox .
 
 gmeow:claimModality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim modality"@x-gmeow-english ;
@@ -202,8 +201,8 @@ gmeow:refuted
         gmeow:boxCBox .
 
 gmeow:sharpens
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Standpoint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "sharpens"@x-gmeow-english ;
@@ -217,7 +216,7 @@ gmeow:sharpens
     gmeow:useWhen "Use to order two standpoints by precisification — when one frame is a strict refinement of another (every precisification it admits is admitted by the broader frame), building the standpoint poset whose top is gmeow:universalStandpoint."@x-gmeow-english .
 
 gmeow:standpointClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint claim"@x-gmeow-english ;
@@ -231,7 +230,7 @@ gmeow:standpointClaim
     gmeow:useWhen "Use to link a gmeow:StandpointTenure to the single gmeow:StandpointClaim observation it generates — the bridge from the time-scoped situation to its observation, so the tenure's position is queryable on the universal observation spine."@x-gmeow-english .
 
 gmeow:standpointModality
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint modality"@x-gmeow-english ;
     rdfs:range gmeow:StandpointModality ;
@@ -242,7 +241,7 @@ gmeow:standpointModality
         gmeow:boxRBox .
 
 gmeow:tenurePosition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "tenure position"@x-gmeow-english ;
@@ -255,7 +254,7 @@ gmeow:tenurePosition
     gmeow:useWhen "Use to name the standpoint-indexed claim a gmeow:StandpointTenure says the frame held over its interval — the reified statement that becomes the gmeow:observedFeature of the generated StandpointClaim."@x-gmeow-english .
 
 gmeow:tenureStandpoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "tenure standpoint"@x-gmeow-english ;
@@ -321,7 +320,7 @@ gmeow:gmeowBestPractice
 
 gmeow:Polarity
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Polarity"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -359,7 +358,7 @@ gmeow:polaritySuspend
 
 gmeow:ModalForce
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Modal Force"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -405,7 +404,7 @@ gmeow:modalForceCounterfactual
 
 gmeow:CredenceLevel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Credence Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -451,7 +450,7 @@ gmeow:credenceUnspecified
 
 gmeow:AssertoricForce
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Assertoric Force"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -497,7 +496,7 @@ gmeow:assertoricRetract
 
 gmeow:TruthDirectedness
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Truth Directedness"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -535,7 +534,7 @@ gmeow:truthStrategic
 
 gmeow:SupportStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Support Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -586,7 +585,7 @@ gmeow:supportNeither
 # ── Annotation twins (flattened / annotated-statement form, mirror gmeow:standpointModality) ──
 
 gmeow:standpointPolarity
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint polarity"@x-gmeow-english ;
     rdfs:range gmeow:Polarity ;
@@ -597,7 +596,7 @@ gmeow:standpointPolarity
         gmeow:boxRBox .
 
 gmeow:standpointModalForce
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint modal force"@x-gmeow-english ;
     rdfs:range gmeow:ModalForce ;
@@ -608,7 +607,7 @@ gmeow:standpointModalForce
         gmeow:boxRBox .
 
 gmeow:standpointCredence
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint credence"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
@@ -619,7 +618,7 @@ gmeow:standpointCredence
         gmeow:boxRBox .
 
 gmeow:standpointCredenceLevel
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint credence level"@x-gmeow-english ;
     rdfs:range gmeow:CredenceLevel ;
@@ -630,7 +629,7 @@ gmeow:standpointCredenceLevel
         gmeow:boxRBox .
 
 gmeow:standpointAssertoricForce
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint assertoric force"@x-gmeow-english ;
     rdfs:range gmeow:AssertoricForce ;
@@ -641,7 +640,7 @@ gmeow:standpointAssertoricForce
         gmeow:boxRBox .
 
 gmeow:standpointTruthDirectedness
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint truth directedness"@x-gmeow-english ;
     rdfs:range gmeow:TruthDirectedness ;
@@ -652,7 +651,7 @@ gmeow:standpointTruthDirectedness
         gmeow:boxRBox .
 
 gmeow:standpointSupportStatus
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpoint support status"@x-gmeow-english ;
     rdfs:range gmeow:SupportStatus ;
@@ -665,7 +664,7 @@ gmeow:standpointSupportStatus
 # ── Reified twins (StandpointClaim form, mirror gmeow:claimModality; functional; NOT subPropertyOf observationResult) ──
 
 gmeow:claimPolarity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim polarity"@x-gmeow-english ;
@@ -679,7 +678,7 @@ gmeow:claimPolarity
     gmeow:useWhen "Use to assign the affirm / deny / suspend direction a gmeow:StandpointClaim takes — the reified-relator counterpart of gmeow:standpointPolarity and the canonical carrier of the legacy refuted (deny)."@x-gmeow-english .
 
 gmeow:claimModalForce
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim modal force"@x-gmeow-english ;
@@ -693,7 +692,7 @@ gmeow:claimModalForce
     gmeow:useWhen "Use to assign the alethic □/◊ register a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointModalForce, kept distinct from credence and confidence."@x-gmeow-english .
 
 gmeow:claimCredence
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim credence"@x-gmeow-english ;
@@ -707,7 +706,7 @@ gmeow:claimCredence
     gmeow:useWhen "Use to record the precise numeric credence a gmeow:StandpointClaim carries — the advisory finer-grained surface that must be consistent with the authoritative qualitative band whose threshold range contains it."@x-gmeow-english .
 
 gmeow:claimCredenceLevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim credence level"@x-gmeow-english ;
@@ -721,7 +720,7 @@ gmeow:claimCredenceLevel
     gmeow:useWhen "Use to assign the qualitative credence band a gmeow:StandpointClaim carries — the surface the lossless legacy projection keys on."@x-gmeow-english .
 
 gmeow:claimAssertoricForce
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim assertoric force"@x-gmeow-english ;
@@ -735,7 +734,7 @@ gmeow:claimAssertoricForce
     gmeow:useWhen "Use to assign the speech-act force a gmeow:StandpointClaim carries — the reified-relator counterpart of gmeow:standpointAssertoricForce."@x-gmeow-english .
 
 gmeow:claimTruthDirectedness
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim truth directedness"@x-gmeow-english ;
@@ -749,7 +748,7 @@ gmeow:claimTruthDirectedness
     gmeow:useWhen "Use to assign the standpoint's truth-orientation a gmeow:StandpointClaim carries — the canonical carrier of the legacy bullshit (indifferent)."@x-gmeow-english .
 
 gmeow:claimSupportStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claim support status"@x-gmeow-english ;
@@ -765,7 +764,7 @@ gmeow:claimSupportStatus
 # ── Decomposition bundle property: each legacy gmeow:StandpointModality value declares its canonical six-axis decomposition (mirror of logic:expandsToFacet). The lossless projection in crates/slice/src/standpoint_modality.rs cross-checks the Rust table against these bundles. ──
 
 gmeow:decomposesToAxis
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "decomposes to axis"@x-gmeow-english ;
     skos:definition "Relates a legacy gmeow:StandpointModality value to its canonical six-axis decomposition — one value individual from each of gmeow:Polarity, gmeow:ModalForce, gmeow:CredenceLevel, gmeow:AssertoricForce, gmeow:TruthDirectedness, gmeow:SupportStatus. The declarative source of truth (mirror of logic:expandsToFacet) the Rust lossless projection round-trips against. The range is intentionally open (the six axis value-classes); an annotation property to keep the OWL downcast DL-clean."@x-gmeow-english ;
@@ -785,7 +784,7 @@ gmeow:heldIn
     gmeow:useWhen "Use to scope a SPARQL query to the claims held in a standpoint (or any sharper standpoint) — the query-surface counterpart of the gmeow:accordingTo / gmeow:sharpens standpoint poset."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/standpoint>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Cross-cutting foundational facility (a peer of the temporal module): the standpoint axis — *according to whom* a statement is held true. It lands in the statement/provenance layer and is consumed by every slice that records contested facts (events, locations, genealogy, organizations, trust, naming).
 
@@ -794,7 +793,7 @@ DOCTRINE.
   * Two clocks kept apart: fact-time (gmeow:validFrom / gmeow:validUntil — when the claimed fact holds) ⟂ standpoint-time (when the standpoint held the position — light via validFrom/Until on the statement, heavy via a reified gmeow:StandpointTenure).
   * No single slot to win (CONSTITUTION Principle 9): a contested fact is several standpoint-indexed claims that coexist; there is no preferredRank / primary* selector.
   * Suppression, never erasure (Principle 10): a withdrawn claim or a closed tenure sets gmeow:displayable false; it is retained, not deleted.
-  * DL-clean by construction (Principle 3): the standpoint axis is an owl:AnnotationProperty, so the generated OWL downcast stays OWL 2 DL.
+  * DL-clean by construction (Principle 3): the standpoint axis is an OWL AnnotationProperty, so the generated OWL downcast stays OWL 2 DL.
   * Factored modality: claim modality is six orthogonal canonical axes — gmeow:Polarity (affirm/deny/suspend) ⟂ gmeow:ModalForce (necessary/actual/possible/counterfactual) ⟂ gmeow:CredenceLevel + numeric gmeow:standpointCredence ⟂ gmeow:AssertoricForce (assert/conjecture/assume/retract) ⟂ gmeow:TruthDirectedness (truth-aimed/indifferent/strategic) ⟂ gmeow:SupportStatus (Belnap supported/opposed/both/neither). The legacy five-value gmeow:StandpointModality is RETAINED as a lossless projection of the axes (each value carries its canonical decomposition via gmeow:decomposesToAxis; the projection is round-tripped in crates/slice/src/standpoint_modality.rs, which hard-fails any axis tuple with no legacy equivalent rather than approximating). bullshit = truthDirectedness indifferent (not a truth value); refuted = polarity deny (frame-relative, never global-false). The logic: machinery (Standpoint-Logic □/◊, Belnap support) stays central in slices/grounding/logic, referenced here by prose only — no asserted logic: triples.
 
 FORMAL GROUNDING. The facility realises Standpoint Logic (Gómez Álvarez & Rudolph): gmeow:accordingTo is the axiom-level standpoint label (cf. Standpoint-OWL 2 standpointLabel); gmeow:standpointModality unequivocal / conceivable are the □_S / ◊_S operators (gmeow:modalForceNecessary / gmeow:modalForcePossible on the factored axis); gmeow:sharpens is the standpoint ⊆ / precisification relation; gmeow:universalStandpoint is the universal standpoint *. See docs/standpoints.md."""@x-gmeow-english ;
@@ -808,8 +807,8 @@ FORMAL GROUNDING. The facility realises Standpoint Logic (Gómez Álvarez & Rudo
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:StandpointTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureStandpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:standpointClaim ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:StandpointClaim ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureStandpoint ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:standpointClaim ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StandpointClaim ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -866,8 +865,8 @@ logic:ccuHigh a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] .
 
 # Additional DECLARATIVE backing for the same [0,1] range, class-scoped on gmeow:claimCredence's
-# own rdfs:domain gmeow:StandpointClaim (unlike gmeow:standpointCredence, an owl:AnnotationProperty
-# with no domain, gmeow:claimCredence IS a domain-bearing owl:DatatypeProperty, so a class-scoped
+# own rdfs:domain gmeow:StandpointClaim (unlike gmeow:standpointCredence, an OWL AnnotationProperty
+# with no domain, gmeow:claimCredence IS a domain-bearing OWL DatatypeProperty, so a class-scoped
 # logic:ValueRangeConstraint is legitimate here). Lowers to sh:minInclusive/sh:maxInclusive on the
 # StandpointClaim shape declaratively, alongside the subjectsOf-scoped procedural pair above.
 gmeow:ClaimCredenceRangeConstraint
@@ -1059,14 +1058,14 @@ logic:npcPreferred a logic:Formula ; logic:relation logic:termStrStarts ;
 # gmeow:StandpointTenureShape — a StandpointTenure records exactly one standpoint and exactly one
 # generated StandpointClaim.
 gmeow:StandpointTenure logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:tenureStandpoint ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:standpointClaim ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureStandpoint ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:standpointClaim ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1074,7 +1073,7 @@ gmeow:StandpointTenure logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:sharpensTransitivity
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "sharpens is transitive"@x-gmeow-english ;
@@ -1089,7 +1088,7 @@ gmeow:sharpensTransitivity
     skos:example "gmeow:sharpensTransitivity logic:characterizes gmeow:sharpens ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimAssertoricForceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimAssertoricForce is functional"@x-gmeow-english ;
@@ -1104,7 +1103,7 @@ gmeow:claimAssertoricForceFunctionality
     skos:example "gmeow:claimAssertoricForceFunctionality logic:characterizes gmeow:claimAssertoricForce ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimCredenceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimCredence is functional"@x-gmeow-english ;
@@ -1119,7 +1118,7 @@ gmeow:claimCredenceFunctionality
     skos:example "gmeow:claimCredenceFunctionality logic:characterizes gmeow:claimCredence ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimCredenceLevelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimCredenceLevel is functional"@x-gmeow-english ;
@@ -1134,7 +1133,7 @@ gmeow:claimCredenceLevelFunctionality
     skos:example "gmeow:claimCredenceLevelFunctionality logic:characterizes gmeow:claimCredenceLevel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimModalForceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimModalForce is functional"@x-gmeow-english ;
@@ -1149,7 +1148,7 @@ gmeow:claimModalForceFunctionality
     skos:example "gmeow:claimModalForceFunctionality logic:characterizes gmeow:claimModalForce ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimModalityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimModality is functional"@x-gmeow-english ;
@@ -1164,7 +1163,7 @@ gmeow:claimModalityFunctionality
     skos:example "gmeow:claimModalityFunctionality logic:characterizes gmeow:claimModality ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimPolarityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimPolarity is functional"@x-gmeow-english ;
@@ -1179,7 +1178,7 @@ gmeow:claimPolarityFunctionality
     skos:example "gmeow:claimPolarityFunctionality logic:characterizes gmeow:claimPolarity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimSupportStatusFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimSupportStatus is functional"@x-gmeow-english ;
@@ -1194,7 +1193,7 @@ gmeow:claimSupportStatusFunctionality
     skos:example "gmeow:claimSupportStatusFunctionality logic:characterizes gmeow:claimSupportStatus ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimTruthDirectednessFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "claimTruthDirectedness is functional"@x-gmeow-english ;
@@ -1209,7 +1208,7 @@ gmeow:claimTruthDirectednessFunctionality
     skos:example "gmeow:claimTruthDirectednessFunctionality logic:characterizes gmeow:claimTruthDirectedness ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:standpointClaimFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "standpointClaim is functional"@x-gmeow-english ;
@@ -1224,7 +1223,7 @@ gmeow:standpointClaimFunctionality
     skos:example "gmeow:standpointClaimFunctionality logic:characterizes gmeow:standpointClaim ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tenureStandpointFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "tenureStandpoint is functional"@x-gmeow-english ;

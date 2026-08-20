@@ -2,7 +2,6 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
@@ -10,7 +9,7 @@
 
 gmeow:DiagnosticSeverity
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Diagnostic Severity"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -23,19 +22,19 @@ gmeow:DiagnosticSeverity
 
 gmeow:Finding
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Finding"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:findingCode ;
-            owl:someValuesFrom xsd:string ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:findingCode ;
+            logic:someValuesFrom xsd:string ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:findingMessage ;
-            owl:someValuesFrom xsd:string ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:findingMessage ;
+            logic:someValuesFrom xsd:string ;
         ] ;
     logic:subClassOf
         [
@@ -53,7 +52,7 @@ gmeow:Finding
 
 gmeow:ValidationRule
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Validation Rule"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -66,7 +65,7 @@ gmeow:ValidationRule
     gmeow:useWhen "Use to record the definition of an enforced check as a first-class, queryable RDF entity — the machine-readable constraint catalog that lets a validator finding code resolve to what it enforces, which terms it governs, and the prose it formalizes."@x-gmeow-english .
 
 gmeow:appliesToTerm
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "applies to term"@x-gmeow-english ;
     skos:definition "A bridge annotation from a gmeow:ValidationRule to a gmeow:/logic: term the rule governs: the class, property, or individual whose data or modelling the check constrains. Subject is a ValidationRule, object a governed term; an annotation property, never a reasoned axiom, so it carries no DL or EL profile weight and does not constrain the term. The catalog generator resolves the governed terms from the reasoned graph (the disjointness members, the mediated relator, the frame-carrier class), so a reader can ask 'which rules touch this term'."@x-gmeow-english ;
@@ -77,7 +76,7 @@ gmeow:appliesToTerm
     gmeow:useWhen "Use to link an enforced check to the terms it governs so the constraint catalog can be read per-term as well as per-rule."@x-gmeow-english .
 
 gmeow:enforcedByShape
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "enforced by shape"@x-gmeow-english ;
     skos:definition "A bridge annotation from a gmeow:ValidationRule to the SHACL sh:NodeShape or constraint component that operationalises it at validation time. Per Principle 17 the SHACL shape is a generated, lossy PROJECTION of the canonical logic: axiom (reached via logic:formalizes) — enforcedByShape names that projection, not the source, so a reader can jump from a finding code to the exact shape that fired. An annotation property crossing into the SHACL artifact; it carries no DL or EL weight."@x-gmeow-english ;
@@ -88,7 +87,7 @@ gmeow:enforcedByShape
     gmeow:useWhen "Use to link an enforced check to the SHACL shape that realises it, so a finding code resolves to both its canonical logic: source and its concrete enforcing projection."@x-gmeow-english .
 
 gmeow:findingCategory
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding category"@x-gmeow-english ;
@@ -101,7 +100,7 @@ gmeow:findingCategory
     gmeow:useWhen "Use to record the KIND of a finding so a consumer can separate genuine failures from coherent-but-noteworthy findings — chiefly a permitted, disclosed contradiction under a glut-admitting reasoning contract."@x-gmeow-english .
 
 gmeow:findingCode
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding code"@x-gmeow-english ;
@@ -114,7 +113,7 @@ gmeow:findingCode
     gmeow:useWhen "Use to carry the stable rule code of a finding so consumers can group, route, and suppress by rule."@x-gmeow-english .
 
 gmeow:findingHelpUri
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding help URI"@x-gmeow-english ;
@@ -127,7 +126,7 @@ gmeow:findingHelpUri
     gmeow:useWhen "Use to carry a finding's 'learn more' link — chiefly on advisory findings whose deonticRecommendation points at modeling guidance."@x-gmeow-english .
 
 gmeow:findingLocation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding location"@x-gmeow-english ;
@@ -141,7 +140,7 @@ gmeow:findingLocation
     gmeow:useWhen "Use to anchor a gmeow:Finding to the statement or term it diagnoses — typically the reified RDF 1.2 statement carrying the GTS wire coordinates."@x-gmeow-english .
 
 gmeow:findingMessage
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding message"@x-gmeow-english ;
@@ -154,7 +153,7 @@ gmeow:findingMessage
     gmeow:useWhen "Use to carry the human-readable explanation of a finding for display surfaces."@x-gmeow-english .
 
 gmeow:findingSeverity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding severity"@x-gmeow-english ;
@@ -168,7 +167,7 @@ gmeow:findingSeverity
     gmeow:useWhen "Use to grade a gmeow:Finding — pointing it at exactly one gmeow:DiagnosticSeverity so SARIF level, CLI colour, and gate pass/fail all derive from one value."@x-gmeow-english .
 
 gmeow:findingSuggestion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding suggestion"@x-gmeow-english ;
@@ -181,7 +180,7 @@ gmeow:findingSuggestion
     gmeow:useWhen "Use to carry one or more remediation suggestions on a finding — chiefly advisory findings recommending a better modeling choice."@x-gmeow-english .
 
 gmeow:findingTool
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding tool"@x-gmeow-english ;
@@ -194,7 +193,7 @@ gmeow:findingTool
     gmeow:useWhen "Use to carry the producing tool's short name on a finding for cheap filtering and SARIF driver attribution."@x-gmeow-english .
 
 gmeow:gtsFrameIndex
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "GTS frame index"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -206,7 +205,7 @@ gmeow:gtsFrameIndex
     gmeow:useWhen "Use on a finding's location node to pin the GTS frame index of the diagnosed content."@x-gmeow-english .
 
 gmeow:gtsQuadIndex
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "GTS quad index"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -218,7 +217,7 @@ gmeow:gtsQuadIndex
     gmeow:useWhen "Use on a finding's location node to pin the GTS quad index of the statement diagnosed."@x-gmeow-english .
 
 gmeow:gtsReifierId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "GTS reifier id"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -235,7 +234,7 @@ gmeow:gtsReifierId
 # concerns is at index N"); diagnostics does not redeclare it (single-owner invariant).
 
 gmeow:gtsTermId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "GTS term id"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -247,7 +246,7 @@ gmeow:gtsTermId
     gmeow:useWhen "Use on a finding's location node to pin the GTS term-id of the term diagnosed."@x-gmeow-english .
 
 gmeow:ruleCategory
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ValidationRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "rule category"@x-gmeow-english ;
@@ -260,7 +259,7 @@ gmeow:ruleCategory
     gmeow:useWhen "Use to record the kind of an enforced check on its ValidationRule, over the same logic:FindingCategory axis its findings carry."@x-gmeow-english .
 
 gmeow:ruleCode
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ValidationRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "rule code"@x-gmeow-english ;
@@ -273,7 +272,7 @@ gmeow:ruleCode
     gmeow:useWhen "Use to carry the stable code of an enforced check on its ValidationRule so findings can resolve to their catalog entry by code."@x-gmeow-english .
 
 gmeow:ruleHelpUri
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ValidationRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "rule help URI"@x-gmeow-english ;
@@ -333,7 +332,7 @@ gmeow:severityWarning
 
 gmeow:BlockingDisposition
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Blocking Disposition"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -346,7 +345,7 @@ gmeow:BlockingDisposition
 
 gmeow:DiagnosticStandpoint
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Diagnostic Standpoint"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -360,7 +359,7 @@ gmeow:DiagnosticStandpoint
 
 gmeow:GateVerdict
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Gate Verdict"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -372,7 +371,7 @@ gmeow:GateVerdict
     gmeow:useWhen "Use as the value vocabulary for the outcome of the gate — the single fatality decision every finding's grade folds to."@x-gmeow-english .
 
 gmeow:categoryBlocking
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:FindingCategory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "category blocking"@x-gmeow-english ;
@@ -385,7 +384,7 @@ gmeow:categoryBlocking
     gmeow:useWhen "Use to state a finding kind's gating projection — whether a category is a Blocking failure or a Coherent, non-gating disclosure — as the single asserted source the gate consumes."@x-gmeow-english .
 
 gmeow:findingGateVerdict
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding gate verdict"@x-gmeow-english ;
@@ -399,7 +398,7 @@ gmeow:findingGateVerdict
     gmeow:useWhen "Use to carry the derived fatality verdict of a finding so a gate or SPARQL consumer can select the fatal findings without re-implementing the gate policy."@x-gmeow-english .
 
 gmeow:findingStandpoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding standpoint"@x-gmeow-english ;
@@ -486,7 +485,7 @@ logic:FindingTransientChatter gmeow:categoryBlocking gmeow:blockingCoherent .
 # the math slice; here the ordinal is carried on each existing chain member. This
 # is NOT a parallel gmeow:Grade subtree — it annotates the members already minted.
 gmeow:gradeOrdinal
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain logic:QualityValue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "grade ordinal"@x-gmeow-english ;
@@ -500,7 +499,7 @@ gmeow:gradeOrdinal
     gmeow:useWhen "Use to order the named members of a diagnostics truth-order chain — the integer a query reads to compare two grades on the same axis, grounding the ⊑ order numerically (Principle 19)."@x-gmeow-english .
 
 gmeow:groundsContextAxis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "grounds context axis"@x-gmeow-english ;
     rdfs:range logic:ContextAxis ;
@@ -517,7 +516,7 @@ gmeow:groundsContextAxis
 # English sign system, so the prose is a queryable surface rather than only a bare
 # literal. gmeow:GateVerdict points at it through gmeow:proseSurface.
 gmeow:proseSurface
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "prose surface"@x-gmeow-english ;
     rdfs:range lang:SurfaceForm ;
@@ -555,7 +554,7 @@ gmeow:GateVerdict gmeow:proseSurface gmeow:gatePolicyProse .
 # ════════════════════════════════════════════════════════════════════════════
 
 gmeow:ruleRemediation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ValidationRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "rule remediation"@x-gmeow-english ;
@@ -568,7 +567,7 @@ gmeow:ruleRemediation
     gmeow:useWhen "Use to carry the standing fix guidance of an enforced check — authored in the validator rule registry and projected into the bundle onto its ValidationRule — the rule-level source every finding's remediation projects from."@x-gmeow-english .
 
 gmeow:findingRemediation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding remediation"@x-gmeow-english ;
@@ -602,7 +601,7 @@ gmeow:findingRemediation
 
 gmeow:AdviceEntry
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Advice Entry"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -615,7 +614,7 @@ gmeow:AdviceEntry
     gmeow:useWhen "Use to record the definition of a harvested recommendation as a first-class, queryable RDF entity — the machine-readable advice catalog that lets an advisory finding code resolve to the avoid/use/how-to prose it recommends for a governed term."@x-gmeow-english .
 
 gmeow:documentedByRule
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AdviceEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "documented by rule"@x-gmeow-english ;
@@ -628,7 +627,7 @@ gmeow:documentedByRule
     gmeow:useWhen "Use to link a harvested recommendation to the finding-family rule that documents it, so the advice catalog can be read rule-down (all advice of the family) as well as term-up."@x-gmeow-english .
 
 gmeow:adviceAvoidWhen
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AdviceEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "advice avoid when"@x-gmeow-english ;
@@ -641,7 +640,7 @@ gmeow:adviceAvoidWhen
     gmeow:useWhen "Use to carry the prohibition (avoid-when) recommendation of a harvested advice entry, projected verbatim from the governed term's realized advisory carrier."@x-gmeow-english .
 
 gmeow:adviceUseWhen
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AdviceEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "advice use when"@x-gmeow-english ;
@@ -654,7 +653,7 @@ gmeow:adviceUseWhen
     gmeow:useWhen "Use to carry the conditional-permission (use-when) recommendation of a harvested advice entry, projected verbatim from the governed term's realized guidance carrier."@x-gmeow-english .
 
 gmeow:adviceHowToUse
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AdviceEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "advice how to use"@x-gmeow-english ;
@@ -677,7 +676,7 @@ gmeow:adviceHowToUse
 # ════════════════════════════════════════════════════════════════════════════
 
 gmeow:findingHowToUse
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding how to use"@x-gmeow-english ;
@@ -690,7 +689,7 @@ gmeow:findingHowToUse
     gmeow:useWhen "Use to carry a finding's governing/documented term's HOW-facet usage guidance on the occurrence, so a consumer sees how the term is normally used without re-resolving the term."@x-gmeow-english .
 
 gmeow:findingUseWhen
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding use when"@x-gmeow-english ;
@@ -703,7 +702,7 @@ gmeow:findingUseWhen
     gmeow:useWhen "Use to carry a finding's governing/documented term's WHEN-facet usage guidance on the occurrence, so a consumer sees the modeling situation the term is meant for without re-resolving the term."@x-gmeow-english .
 
 gmeow:findingAvoidWhen
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding avoid when"@x-gmeow-english ;
@@ -725,7 +724,7 @@ gmeow:findingAvoidWhen
 # ════════════════════════════════════════════════════════════════════════════
 
 gmeow:findingDerivedFromQuad
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding derived from quad"@x-gmeow-english ;
@@ -748,7 +747,7 @@ gmeow:findingDerivedFromQuad
 # ════════════════════════════════════════════════════════════════════════════
 
 gmeow:findingFailureClass
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding failure class"@x-gmeow-english ;
@@ -760,7 +759,7 @@ gmeow:findingFailureClass
     gmeow:useWhen "Use to carry the typed failure a finding instantiates on the occurrence, so a consumer can name and query the specific authored failure instead of only the generic constraint-component code it shares with every other gate of that shape."@x-gmeow-english .
 
 gmeow:findingAntecedent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding antecedent"@x-gmeow-english ;
@@ -773,7 +772,7 @@ gmeow:findingAntecedent
     gmeow:useWhen "Use to record the derivation lineage between findings — the provenance-DAG edge that enables reasoner root-cause joins over the witness DAG."@x-gmeow-english .
 
 gmeow:findingAnchor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding anchor"@x-gmeow-english ;
@@ -800,7 +799,7 @@ gmeow:findingAnchor
 
 gmeow:InventedWitness
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Invented Witness"@x-gmeow-english ;
     skos:definition "A chase-invented existential null — a Skolem witness the native existential chase mints to satisfy a C ⊑ ∃p.D obligation. It types the OBJECT of a reasoned head quad p(x, null): when the chase fires the existential rule for a frontier binding x, it invents a fresh witness null and writes p(x, null), and that null is a gmeow:InventedWitness. It is recognized also by the /skolem/ IRI prefix its content-addressed identity is minted under (firing rule + existential ordinal + frontier binding). It is a RIGID entity that supplies its OWN principle of identity — hence a logic:Kind, never a gmeow:Finding and never rdfs:subClassOf gmeow:Finding. Its presence in the reasoned graph and the diagnostics projection is the structured, queryable proof that the existential chase actually FIRED, not a bare assertion that an existential holds."@x-gmeow-english ;
@@ -812,7 +811,7 @@ gmeow:InventedWitness
     gmeow:useWhen "Use to mark the object of a reasoned head quad p(x, null) as a chase-invented existential null — the structured, queryable proof that the native existential chase fired to discharge a C ⊑ ∃p.D obligation."@x-gmeow-english .
 
 gmeow:existentialOrdinal
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:InventedWitness ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "existential ordinal"@x-gmeow-english ;
@@ -838,7 +837,7 @@ gmeow:existentialOrdinal
 
 gmeow:DiagnosticMetaRule
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Diagnostic Meta-Rule"@x-gmeow-english ;
     rdfs:subClassOf logic:Rule ;
@@ -862,7 +861,7 @@ gmeow:DiagnosticMetaRule
 # ════════════════════════════════════════════════════════════════════════════
 
 gmeow:categoryPolarity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:FindingCategory ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "category polarity"@x-gmeow-english ;
@@ -899,7 +898,7 @@ logic:FindingTransientChatter gmeow:categoryPolarity logic:InfoNeither .
 # ════════════════════════════════════════════════════════════════════════════
 
 gmeow:findingRootCause
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding root cause"@x-gmeow-english ;
@@ -913,7 +912,7 @@ gmeow:findingRootCause
 
 gmeow:FindingCluster
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Finding Cluster"@x-gmeow-english ;
     skos:definition "A reasoner-minted grouping of findings that share one gmeow:findingRootCause — the readable 'N findings share root R' surface. DERIVED by a diagnostic meta-rule (gmeow:DiagnosticMetaRule) over the projected diagnostic graph, never authored by hand: its members are the findings linked to it by gmeow:findingCluster, and its shared root is carried by gmeow:clusterRoot. It exists to render root-cause grouping as a first-class, queryable node rather than a repeated per-finding annotation."@x-gmeow-english ;
@@ -924,7 +923,7 @@ gmeow:FindingCluster
     gmeow:useWhen "Use as the reasoner-derived grouping node that gathers the findings sharing one root cause into a single readable surface."@x-gmeow-english .
 
 gmeow:findingCluster
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding cluster"@x-gmeow-english ;
@@ -937,7 +936,7 @@ gmeow:findingCluster
     gmeow:useWhen "Use to carry a finding's membership in its derived root-cause cluster so a consumer can list every finding in one group."@x-gmeow-english .
 
 gmeow:clusterRoot
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FindingCluster ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "cluster root"@x-gmeow-english ;
@@ -951,7 +950,7 @@ gmeow:clusterRoot
 
 gmeow:CrossNodeGlutWitness
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Cross-Node Glut Witness"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Finding ;
@@ -963,7 +962,7 @@ gmeow:CrossNodeGlutWitness
     gmeow:useWhen "Use as the reasoner-derived meta-finding for a cross-node glut — two opposing-polarity findings at one anchor the same-fingerprint merge cannot detect across codes."@x-gmeow-english .
 
 gmeow:glutWitnessOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CrossNodeGlutWitness ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "glut witness of"@x-gmeow-english ;
@@ -994,7 +993,7 @@ gmeow:glutWitnessOf
 # ════════════════════════════════════════════════════════════════════════════
 
 gmeow:findingTraces
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding traces"@x-gmeow-english ;
@@ -1007,8 +1006,8 @@ gmeow:findingTraces
     gmeow:useWhen "Use to carry the derived transitive reachability of a finding over the witness DAG — the intermediate the root-cause rule narrows to a childless root."@x-gmeow-english .
 
 gmeow:findingHasAntecedent
-    a owl:ObjectProperty ,
-        owl:ReflexiveProperty ;
+    a logic:ObjectProperty ,
+        logic:reflexiveProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding has antecedent"@x-gmeow-english ;
@@ -1022,7 +1021,7 @@ gmeow:findingHasAntecedent
 
 gmeow:NonTrivialAnchor
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Non-Trivial Anchor"@x-gmeow-english ;
     skos:definition "The marker class of a gmeow:findingAnchor that carries a genuine source position — a path or focus — as opposed to the shared default anchor that locationless findings collapse onto. Set by the diagnostics PROJECTION on exactly the anchors computed from a real (location, term role, focus), never on the empty/default anchor. It is the guard the cross-node-glut meta-rule joins on: without it, every locationless finding would share one constant anchor and the glut rule would false-join unrelated opposing-polarity findings. The projection asserts it, the rule requires it, so the glut join fires only at anchors that name a real place."@x-gmeow-english ;
@@ -1033,8 +1032,8 @@ gmeow:NonTrivialAnchor
     gmeow:useWhen "Use to mark a finding anchor that names a real source position, gating the cross-node-glut join off the shared default anchor of locationless findings."@x-gmeow-english .
 
 gmeow:crossNodeGlutWith
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "cross-node glut with"@x-gmeow-english ;
@@ -1048,7 +1047,7 @@ gmeow:crossNodeGlutWith
 
 gmeow:RootFinding
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Root Finding"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Finding ;
@@ -1072,7 +1071,7 @@ gmeow:RootFinding
 
 gmeow:VerdictLatticeRelation
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Verdict Lattice Relation"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -1080,7 +1079,7 @@ gmeow:VerdictLatticeRelation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:VerdictEquivalent
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:VerdictLatticeRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Verdict Equivalent"@x-gmeow-english ;
@@ -1088,7 +1087,7 @@ gmeow:VerdictEquivalent
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:VerdictWeaker
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:VerdictLatticeRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Verdict Weaker"@x-gmeow-english ;
@@ -1096,7 +1095,7 @@ gmeow:VerdictWeaker
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:VerdictIncomparable
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:VerdictLatticeRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Verdict Incomparable"@x-gmeow-english ;
@@ -1105,7 +1104,7 @@ gmeow:VerdictIncomparable
 
 gmeow:ConformanceComparison
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Conformance Comparison"@x-gmeow-english ;
     skos:definition "A reified native↔published verdict comparison for a single external-corpus case in a single world — the folded, content-addressed individual that records one row of the conformance grading in the reasoned bundle, so EVERY comparison (agreement, coverage gap, or disagreement) is retained as first-class ontological data rather than only the divergent rows surviving as findings. It carries the case coordinates (gmeow:comparisonCorpus, gmeow:comparisonCase, gmeow:comparisonWorld), the two graded verdicts (gmeow:comparisonNativeVerdict and gmeow:comparisonPublishedVerdict, each a logic:ConformanceVerdict), the verbatim published token (logic:rawStatusToken) as provenance, and the derived gmeow:comparisonLatticeRelation classifying how the native verdict stands to the published one. Rides in the graph/conformance named graph beside the divergence gmeow:Finding graph it is the aggregate-preserving twin of."@x-gmeow-english ;
@@ -1113,84 +1112,84 @@ gmeow:ConformanceComparison
 
 gmeow:CorpusAgreementTally
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Corpus Agreement Tally"@x-gmeow-english ;
     skos:definition "One external corpus's aggregate native↔published tally — the folded, content-addressed individual that records a corpus's partition of graded comparisons into agree / corpus-only / dl-gap counts, so the reasoned bundle carries the per-corpus pass rate as first-class ontological data rather than only in the projected markdown dashboard. It carries gmeow:tallyCorpus (the corpus name), gmeow:tallyCases (the total graded), and the three partition counts gmeow:tallyAgree, gmeow:tallyCorpusOnly and gmeow:tallyDlGap, whose sum equals gmeow:tallyCases by construction. The aggregate twin of the per-case gmeow:ConformanceComparison individuals, riding in the same graph/conformance named graph."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:comparisonCorpus
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "comparison corpus"@x-gmeow-english ;
     skos:definition "The external-corpus name a gmeow:ConformanceComparison belongs to — the cases/external/<corpus>/ directory whose native↔published grading this comparison reifies. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:comparisonCase
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "comparison case"@x-gmeow-english ;
     skos:definition "The case id a gmeow:ConformanceComparison grades — the <case> subdirectory within its corpus, unique per corpus. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:comparisonWorld
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "comparison world"@x-gmeow-english ;
     skos:definition "The scoped world IRI a gmeow:ConformanceComparison's verdicts were decided in — the single world a committed external case scopes its premises to. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:comparisonNativeVerdict
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "comparison native verdict"@x-gmeow-english ;
     skos:definition "The logic:ConformanceVerdict the native reasoner decided for a gmeow:ConformanceComparison's case/world. Domain gmeow:ConformanceComparison, range logic:ConformanceVerdict (stated in prose) — the RDF image of the native runner's verdict-status token."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:comparisonPublishedVerdict
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "comparison published verdict"@x-gmeow-english ;
     skos:definition "The logic:ConformanceVerdict the community source published as the ground truth for a gmeow:ConformanceComparison's case/world. Domain gmeow:ConformanceComparison, range logic:ConformanceVerdict (stated in prose) — the coarse projection of the verbatim published token preserved alongside on logic:rawStatusToken."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:comparisonLatticeRelation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "comparison lattice relation"@x-gmeow-english ;
     skos:definition "The gmeow:VerdictLatticeRelation classifying how a gmeow:ConformanceComparison's native verdict stands to its published one, DERIVED from the two verdicts: coincident → gmeow:VerdictEquivalent, native logic:ConfIncomplete → gmeow:VerdictWeaker, two distinct decided verdicts → gmeow:VerdictIncomparable. Domain gmeow:ConformanceComparison, range gmeow:VerdictLatticeRelation (stated in prose) — the reified image of the comparison's DivergenceKind."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tallyCorpus
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "tally corpus"@x-gmeow-english ;
     skos:definition "The external-corpus name a gmeow:CorpusAgreementTally aggregates — the cases/external/<corpus>/ directory whose graded comparisons it partitions. Domain gmeow:CorpusAgreementTally, range xsd:string (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tallyCases
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "tally cases"@x-gmeow-english ;
     skos:definition "The total graded native↔published comparisons in a gmeow:CorpusAgreementTally's corpus — the count gmeow:tallyAgree, gmeow:tallyCorpusOnly and gmeow:tallyDlGap partition. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tallyAgree
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "tally agree"@x-gmeow-english ;
     skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus where the native verdict matched the published expected — the agreeing (gmeow:VerdictEquivalent) partition, folded as non-blocking corroboration. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tallyCorpusOnly
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "tally corpus-only"@x-gmeow-english ;
     skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path DECIDED but disagreed with the published expected — the disagreeing (gmeow:VerdictIncomparable) partition. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tallyDlGap
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "tally dl-gap"@x-gmeow-english ;
     skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path could not decide (native logic:ConfIncomplete) — the coverage-gap (gmeow:VerdictWeaker) partition, an honest native capability gap. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
@@ -1207,14 +1206,14 @@ gmeow:tallyDlGap
 
 gmeow:GapShape
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Gap Shape"@x-gmeow-english ;
     skos:definition "The closed value class of the structured reason a conformance conclusion could not be graded as a single refutation case — the RDF image of the Rust gmeow_logic::entail::CapabilityGapShape taxonomy. Its five named individuals are gmeow:GapShapeRoleAssertion, gmeow:GapShapeExistentialWitness, gmeow:GapShapeNativeCoverage, and gmeow:GapShapeMalformed (four genuine REASONER-FRAGMENT gaps — a conclusion shape the native DL fragment cannot soundly refute at all) and gmeow:GapShapeVendoringMultiGoal (NOT a reasoner-fragment gap — a VENDORING-FORMAT limit: dl_entails decides a conjunctive multi-triple conclusion perfectly well, as n independent refutations, but it cannot be frozen as one single-EDB consistency case). The set is closed, so a misspelt shape names no declared value and is rejected."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:GapShapeRoleAssertion
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:GapShape ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Gap Shape Role Assertion"@x-gmeow-english ;
@@ -1222,7 +1221,7 @@ gmeow:GapShapeRoleAssertion
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:GapShapeExistentialWitness
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:GapShape ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Gap Shape Existential Witness"@x-gmeow-english ;
@@ -1230,7 +1229,7 @@ gmeow:GapShapeExistentialWitness
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:GapShapeNativeCoverage
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:GapShape ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Gap Shape Native Coverage"@x-gmeow-english ;
@@ -1238,7 +1237,7 @@ gmeow:GapShapeNativeCoverage
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:GapShapeMalformed
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:GapShape ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Gap Shape Malformed"@x-gmeow-english ;
@@ -1246,7 +1245,7 @@ gmeow:GapShapeMalformed
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:GapShapeVendoringMultiGoal
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:GapShape ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Gap Shape Vendoring Multi Goal"@x-gmeow-english ;
@@ -1254,7 +1253,7 @@ gmeow:GapShapeVendoringMultiGoal
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:isReasonerFragmentGap
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GapShape ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "is reasoner fragment gap"@x-gmeow-english ;
@@ -1273,14 +1272,14 @@ gmeow:GapShapeVendoringMultiGoal gmeow:isReasonerFragmentGap "false"^^xsd:boolea
 
 gmeow:CapabilityGap
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Capability Gap"@x-gmeow-english ;
     skos:definition "A reified structured capability-gap case — one committed divergence case the native reasoner could not grade as a single refutation case — carrying its corpus (gmeow:capabilityGapCorpus), case (gmeow:capabilityGapCase), and structured shape (gmeow:gapShape). Rides in the graph/conformance named graph beside the divergence gmeow:Finding graph and the gmeow:ConformanceComparison individuals. The first-class ontological image of the agreement-matrix \"Capability gaps (by shape)\" breakdown."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:capabilityGapCorpus
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CapabilityGap ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "capability gap corpus"@x-gmeow-english ;
@@ -1288,7 +1287,7 @@ gmeow:capabilityGapCorpus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:capabilityGapCase
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CapabilityGap ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "capability gap case"@x-gmeow-english ;
@@ -1296,7 +1295,7 @@ gmeow:capabilityGapCase
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:gapShape
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CapabilityGap ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "gap shape"@x-gmeow-english ;
@@ -1304,7 +1303,7 @@ gmeow:gapShape
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The ontological face of the first-class diagnostics system.
 
@@ -1325,30 +1324,30 @@ DOCTRINE.
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both owl:*Cardinality and
-# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# (Principle 17). A restriction carrying both OWL*Cardinality and
+# OWL allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / value-range / disjunctive
 # (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
 gmeow:Finding rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:findingCode ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:findingMessage ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:findingCode ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:findingMessage ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
 # gmeow:CrossNodeGlutWitnessShape wants EXACTLY TWO gmeow:glutWitnessOf links.
 # A qualified-cardinality-2-onClass-<SpecificClass> restriction projects only
 # sh:qualifiedMinCount/MaxCount (never the legacy bare sh:minCount/maxCount) —
-# but onClass owl:Thing DEGRADES a qualified count of ANY N (not just 1) to the
+# but onClass OWL Thing DEGRADES a qualified count of ANY N (not just 1) to the
 # bare sh:minCount/maxCount (frontend.rs derive_validation_shapes), exactly like
-# the CitationAct/Embedding min1/max1 idiom generalized to N=2. owl:cardinality 2
-# (unqualified) is out of EL and forbidden; this qualified-onClass-owl:Thing form
+# the CitationAct/Embedding min1/max1 idiom generalized to N=2. OWL cardinality 2
+# (unqualified) is out of EL and forbidden; this qualified-onClass-OWL Thing form
 # is EL-adjacent and already used throughout the corpus. The class component
 # (sh:class Finding) comes from the someValuesFrom restriction below. The
 # gmeow:CrossNodeGlutWitnessCountConstraint logic:AggregateConstraint further
 # down is additional procedural belt-and-suspenders backing for the same shape.
 gmeow:CrossNodeGlutWitness logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:glutWitnessOf ; logic:maxQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:glutWitnessOf ; logic:maxQualifiedCardinality 2 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -1440,8 +1439,8 @@ logic:capabilityGapFragmentShapeClassified a logic:Formula ; logic:relation gmeo
 
 # =========================================================================== #
 # Cross-node glut witness EXACT-count constraint: a procedural COUNT-aggregate #
-# additional to the declarative owl:min/maxQualifiedCardinality 2 (onClass     #
-# owl:Thing) restrictions above, which already project the bare               #
+# additional to the declarative OWL min/maxQualifiedCardinality 2 (onClass     #
+# OWL Thing) restrictions above, which already project the bare               #
 # sh:minCount 2 / sh:maxCount 2 pair onto gmeow:CrossNodeGlutWitnessShape.     #
 # Additive: the OWL restriction stays; this is a second, procedural avenue     #
 # onto the same shape.                                                        #
@@ -1462,13 +1461,13 @@ gmeow:CrossNodeGlutWitnessCountConstraint
     logic:message "A gmeow:CrossNodeGlutWitness must carry exactly two gmeow:glutWitnessOf links (one per conflicting finding)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .
+<https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; logic:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1476,7 +1475,7 @@ gmeow:CrossNodeGlutWitnessCountConstraint
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:existentialOrdinalFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "existentialOrdinal is functional"@x-gmeow-english ;
@@ -1491,7 +1490,7 @@ gmeow:existentialOrdinalFunctionality
     skos:example "gmeow:existentialOrdinalFunctionality logic:characterizes gmeow:existentialOrdinal ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:findingCodeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "findingCode is functional"@x-gmeow-english ;
@@ -1506,7 +1505,7 @@ gmeow:findingCodeFunctionality
     skos:example "gmeow:findingCodeFunctionality logic:characterizes gmeow:findingCode ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:findingMessageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "findingMessage is functional"@x-gmeow-english ;
@@ -1521,7 +1520,7 @@ gmeow:findingMessageFunctionality
     skos:example "gmeow:findingMessageFunctionality logic:characterizes gmeow:findingMessage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:findingSeverityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "findingSeverity is functional"@x-gmeow-english ;

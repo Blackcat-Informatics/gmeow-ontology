@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ToolCall
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "Tool Call"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -38,7 +37,7 @@ gmeow:ToolCall
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:calledByInvocation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "called by invocation"@x-gmeow-english ;
@@ -47,7 +46,7 @@ gmeow:calledByInvocation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:toolArguments
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "tool arguments"@x-gmeow-english ;
@@ -56,7 +55,7 @@ gmeow:toolArguments
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:toolResult
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "tool result"@x-gmeow-english ;
@@ -65,7 +64,7 @@ gmeow:toolResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:usedTool
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "used tool"@x-gmeow-english ;
@@ -74,7 +73,7 @@ gmeow:usedTool
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/agentic>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Agentic tool-call provenance — the ModelInvocation idiom one level down.
 
@@ -97,31 +96,31 @@ DOCTRINE.
 # world cardinality / class / literal obligations the hand-authored
 # gmeow:ToolCallShape states, authored here once as OWL restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). owl:maxQualifiedCardinality (onClass owl:Thing) -> sh:maxCount;
-# owl:maxQualifiedCardinality 1 (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1;
-# owl:allValuesFrom C -> sh:class C;
-# owl:allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
+# (Principle 17). OWL maxQualifiedCardinality (onClass OWL Thing) -> sh:maxCount;
+# OWL maxQualifiedCardinality 1 (onClass OWL Thing) -> sh:minCount 1 + sh:maxCount 1;
+# OWL allValuesFrom C -> sh:class C;
+# OWL allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
 # facet). The `sh:nodeKind sh:IRI` facet on the object-valued paths has no
-# ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
+# ordinary-OWL antecedent (OWL Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
 # stays on the procedural constraint fragment.
 # =========================================================================== #
 
 gmeow:ToolCall logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:calledByInvocation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:toolArguments ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:toolResult ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:calledByInvocation ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolArguments ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolResult ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-# onClass owl:Thing (not the specific class) so the qualified count degrades to
+# onClass OWL Thing (not the specific class) so the qualified count degrades to
 # the bare sh:minCount/maxCount gmeow:ToolCallShape wants, matching the class
 # component already supplied by the someValuesFrom/allValuesFrom restrictions
 # in this class's own definition above.
-gmeow:ToolCall logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:ToolCall logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:usedTool ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-# gmeow:ToolCallShape: gmeow:calledByInvocation is already owl:FunctionalProperty
+# gmeow:ToolCallShape: gmeow:calledByInvocation is already OWL FunctionalProperty
 # with rdfs:range gmeow:ModelInvocation (sh:maxCount 1); the explicit allValuesFrom
 # restriction below is the class-restriction idiom (Pattern 2) alongside it.
 gmeow:ToolCall logic:subClassOf
@@ -131,7 +130,7 @@ gmeow:ToolCall logic:subClassOf
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -139,7 +138,7 @@ gmeow:ToolCall logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:calledByInvocationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "calledByInvocation is functional"@x-gmeow-english ;
@@ -154,7 +153,7 @@ gmeow:calledByInvocationFunctionality
     skos:example "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByInvocation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:toolArgumentsFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "toolArguments is functional"@x-gmeow-english ;
@@ -169,7 +168,7 @@ gmeow:toolArgumentsFunctionality
     skos:example "gmeow:toolArgumentsFunctionality logic:characterizes gmeow:toolArguments ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:toolResultFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "toolResult is functional"@x-gmeow-english ;
@@ -184,7 +183,7 @@ gmeow:toolResultFunctionality
     skos:example "gmeow:toolResultFunctionality logic:characterizes gmeow:toolResult ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:usedToolFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "usedTool is functional"@x-gmeow-english ;

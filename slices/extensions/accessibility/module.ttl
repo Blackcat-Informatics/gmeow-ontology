@@ -1,33 +1,32 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AccessibilityAssertion
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "Accessibility Assertion"@x-gmeow-english ;
     logic:mediates gmeow:assertionSubject ,
         gmeow:assertionFacet ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assertionSubject ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assertionSubject ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assertionFacet ;
-            owl:someValuesFrom gmeow:AccessibilityFacet ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assertionFacet ;
+            logic:someValuesFrom gmeow:AccessibilityFacet ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assertionPolarity ;
-            owl:someValuesFrom gmeow:AccessibilityPolarity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assertionPolarity ;
+            logic:someValuesFrom gmeow:AccessibilityPolarity ;
         ] ;
     skos:definition "A reified claim that a location or connection has a positive accessibility feature, a barrier, or a limited status for a given facet. Bears provenance (vantage, confidence, temporal scope) and suppression (displayable false — Principle 10). The flat shortcuts are gmeow:hasAccessibilityFeature and gmeow:hasBarrier; promote to AccessibilityAssertion when the claim itself must be a node."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
@@ -35,7 +34,7 @@ gmeow:AccessibilityAssertion
 
 gmeow:AccessibilityFacet
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "Accessibility Facet"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -44,7 +43,7 @@ gmeow:AccessibilityFacet
 
 gmeow:AccessibilityPolarity
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "Accessibility Polarity"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -52,7 +51,7 @@ gmeow:AccessibilityPolarity
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:assertionFacet
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AccessibilityAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertion facet"@x-gmeow-english ;
@@ -62,7 +61,7 @@ gmeow:assertionFacet
         gmeow:boxRBox .
 
 gmeow:assertionPolarity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AccessibilityAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertion polarity"@x-gmeow-english ;
@@ -72,7 +71,7 @@ gmeow:assertionPolarity
         gmeow:boxRBox .
 
 gmeow:assertionSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AccessibilityAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertion subject"@x-gmeow-english ;
@@ -131,7 +130,7 @@ gmeow:facetWheelchair
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hasAccessibilityFeature
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Location ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "has accessibility feature"@x-gmeow-english ;
@@ -140,7 +139,7 @@ gmeow:hasAccessibilityFeature
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasAccessibilityNeed
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "has accessibility need"@x-gmeow-english ;
@@ -149,7 +148,7 @@ gmeow:hasAccessibilityNeed
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasBarrier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Location ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "has barrier"@x-gmeow-english ;
@@ -179,7 +178,7 @@ gmeow:polarityLimited
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/accessibility>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Cross-cutting accessibility layer — whether an entity can reach or use a location under constraints (wheelchair/step-free, sensory, clearance, life-support). Accessibility features, barriers, and needs are modelled as orthogonal, co-equal value facets (Principle 9). The flat shortcuts (hasAccessibilityFeature, hasBarrier, hasAccessibilityNeed) cover the 80 % case; promote to AccessibilityAssertion when provenance, confidence, temporal scope, or suppression matter (Principle 10). Accessible routes are computed by the solver layer, not asserted in OWL (Principle 12). Part of the Location-as-reference-frame design."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
@@ -234,15 +233,15 @@ logic:supAxDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # gmeow:AccessibilityAssertionShape — an AccessibilityAssertion assesses exactly one subject,
 # asserts exactly one facet, and declares exactly one polarity.
 gmeow:AccessibilityAssertion logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:assertionSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:assertionFacet ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:assertionPolarity ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:assertionSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assertionFacet ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assertionPolarity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -250,7 +249,7 @@ gmeow:AccessibilityAssertion logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:assertionFacetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertionFacet is functional"@x-gmeow-english ;
@@ -265,7 +264,7 @@ gmeow:assertionFacetFunctionality
     skos:example "gmeow:assertionFacetFunctionality logic:characterizes gmeow:assertionFacet ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assertionPolarityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertionPolarity is functional"@x-gmeow-english ;
@@ -280,7 +279,7 @@ gmeow:assertionPolarityFunctionality
     skos:example "gmeow:assertionPolarityFunctionality logic:characterizes gmeow:assertionPolarity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assertionSubjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "assertionSubject is functional"@x-gmeow-english ;

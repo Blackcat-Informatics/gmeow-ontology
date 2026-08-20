@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AtomicConstraint
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Atomic Constraint"@x-gmeow-english ;
     logic:mediates gmeow:leftOperand ,
@@ -26,7 +25,7 @@ gmeow:AtomicConstraint
             a logic:Restriction ;
             logic:onProperty gmeow:leftOperand ;
             logic:maxQualifiedCardinality 1 ;
-            logic:onClass owl:Thing ;
+            logic:onClass logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
@@ -37,7 +36,7 @@ gmeow:AtomicConstraint
             a logic:Restriction ;
             logic:onProperty gmeow:constraintOperator ;
             logic:maxQualifiedCardinality 1 ;
-            logic:onClass owl:Thing ;
+            logic:onClass logic:Thing ;
         ] ;
     skos:definition "A single ODRL constraint comparison: a gmeow:leftOperand (the dimension tested), a gmeow:constraintOperator (the comparison), and a gmeow:rightOperand (the value). It is not a boolean group of comparisons; use gmeow:LogicalConstraint for that. E.g. leftOperand dateTime, operator lteq, rightOperand 2030-01-01 — 'valid until 2030'."@x-gmeow-english ;
     skos:example "ex:until2030 a gmeow:AtomicConstraint ; gmeow:leftOperand gmeow:leftOpDateTime ; gmeow:constraintOperator gmeow:operatorLteq ; gmeow:rightOperand \"2030-01-01\" ."@x-gmeow-english ;
@@ -48,7 +47,7 @@ gmeow:AtomicConstraint
 
 gmeow:ConflictStrategy
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Conflict Strategy"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -61,7 +60,7 @@ gmeow:ConflictStrategy
 
 gmeow:Constraint
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Constraint"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ;
@@ -74,7 +73,7 @@ gmeow:Constraint
 
 gmeow:ConstraintLogic
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Constraint Logic"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -87,7 +86,7 @@ gmeow:ConstraintLogic
 
 gmeow:ConstraintOperator
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Constraint Operator"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -100,21 +99,21 @@ gmeow:ConstraintOperator
 
 gmeow:Copyright
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Copyright"@x-gmeow-english ;
     logic:mediates gmeow:copyrightWork ,
         gmeow:copyrightHolder ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:copyrightWork ;
-            owl:someValuesFrom gmeow:InformationObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:copyrightWork ;
+            logic:someValuesFrom gmeow:InformationObject ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:copyrightHolder ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:copyrightHolder ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "The reified copyright over a work — binding the work, its holder(s), the copyright year and the human-readable notice. It is not a licence grant or an ODRL policy; its status (in-copyright, public-domain, …) is a gmeow:copyrightStatus value aligned to RightsStatements.org / PREMIS."@x-gmeow-english ;
     skos:example "ex:reportCopyright a gmeow:Copyright ; gmeow:copyrightWork ex:report ; gmeow:copyrightHolder ex:blackcat ; gmeow:copyrightYear \"2026\" ."@x-gmeow-english ;
@@ -128,7 +127,7 @@ gmeow:Copyright
 
 gmeow:CopyrightStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Copyright Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -141,7 +140,7 @@ gmeow:CopyrightStatus
 
 gmeow:Duty
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Duty"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Rule ;
@@ -154,7 +153,7 @@ gmeow:Duty
 
 gmeow:LeftOperand
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Left Operand"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -167,14 +166,14 @@ gmeow:LeftOperand
 
 gmeow:License
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "License"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agreement ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:licensor ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:licensor ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A licence granting rights in a work — modelled as a gmeow:Agreement (it binds licensor and licensee and creates permissions / duties). It is not the copyright itself and not the full rights policy; explicit deontic rules live on gmeow:RightsStatement. The canonical superset of cc:License / an ODRL Offer / dcterms:LicenseDocument. Its validity window rides gmeow:validFrom / gmeow:validUntil; its family is a gmeow:licenseFamily value."@x-gmeow-english ;
     skos:example "ex:ccByLicense a gmeow:License ; gmeow:spdxLicenseId \"CC-BY-4.0\" ; gmeow:licenseFamily gmeow:licenseFamilyCC ; gmeow:licensor ex:blackcat ."@x-gmeow-english ;
@@ -189,7 +188,7 @@ gmeow:License
 
 gmeow:LicenseFamily
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "License Family"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -202,21 +201,21 @@ gmeow:LicenseFamily
 
 gmeow:LogicalConstraint
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Logical Constraint"@x-gmeow-english ;
     logic:mediates gmeow:constraintLogic ,
         gmeow:logicConstraintMember ;
     rdfs:subClassOf gmeow:Constraint ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:constraintLogic ;
-            owl:someValuesFrom gmeow:ConstraintLogic ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:constraintLogic ;
+            logic:someValuesFrom gmeow:ConstraintLogic ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:logicConstraintMember ;
-            owl:someValuesFrom gmeow:Constraint ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:logicConstraintMember ;
+            logic:someValuesFrom gmeow:Constraint ;
         ] ;
     skos:definition "A boolean combination of constraints under a gmeow:constraintLogic operator (odrl:and / odrl:or / odrl:xone / odrl:andSequence) over its gmeow:logicConstraintMember constraints — the ODRL LogicalConstraint, modelling the deontic constraint logic. It is not a single operand/operator/value comparison."@x-gmeow-english ;
     skos:example "ex:euAndUntil2030 a gmeow:LogicalConstraint ; gmeow:constraintLogic gmeow:logicAnd ; gmeow:logicConstraintMember ex:inEu, ex:until2030 ."@x-gmeow-english ;
@@ -227,7 +226,7 @@ gmeow:LogicalConstraint
 
 gmeow:Mark
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Mark"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -240,7 +239,7 @@ gmeow:Mark
 
 gmeow:Permission
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Permission"@x-gmeow-english ;
     logic:instantiatesFramework logic:DeonticFramework ;
@@ -254,7 +253,7 @@ gmeow:Permission
 
 gmeow:PrivacyNotice
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Privacy Notice"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -269,7 +268,7 @@ gmeow:PrivacyNotice
 
 gmeow:Prohibition
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Prohibition"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Rule ;
@@ -282,7 +281,7 @@ gmeow:Prohibition
 
 gmeow:RightsAction
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rights Action"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -295,7 +294,7 @@ gmeow:RightsAction
 
 gmeow:RightsStatement
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rights Statement"@x-gmeow-english ;
     logic:mediates gmeow:statementAbout ,
@@ -304,9 +303,9 @@ gmeow:RightsStatement
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:statementAbout ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:statementAbout ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A reified, machine-readable statement of the rights situation of an entity — an observation in the universal claim stack (observation-spine bridge). Who may do what with it, under what licence, with what copyright, attributed to whom, over what term. The canonical superset of an ODRL Policy / Set: it bears gmeow:Permission, gmeow:Prohibition and gmeow:Duty rules and points at the asset it governs via gmeow:statementAbout (the observedFeature). Promote a flat gmeow:hasLicense / gmeow:hasCopyright to a RightsStatement only when the deontic rules are needed."@x-gmeow-english ;
     skos:example "ex:photoRights a gmeow:RightsStatement ; gmeow:statementAbout ex:photo ; gmeow:hasPermission ex:mayReproduce ; gmeow:hasDuty ex:mustAttribute ."@x-gmeow-english ;
@@ -323,7 +322,7 @@ gmeow:RightsStatement
 
 gmeow:RightsType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rights Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -336,7 +335,7 @@ gmeow:RightsType
 
 gmeow:Rule
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rule"@x-gmeow-english ;
     logic:mediates gmeow:ruleAction ,
@@ -358,21 +357,21 @@ gmeow:Rule
 
 gmeow:Trademark
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Trademark"@x-gmeow-english ;
     logic:mediates gmeow:trademarkMark ,
         gmeow:trademarkHolder ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:trademarkMark ;
-            owl:someValuesFrom gmeow:Mark ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:trademarkMark ;
+            logic:someValuesFrom gmeow:Mark ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:trademarkHolder ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:trademarkHolder ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "The reified trademark right over a mark — binding the mark, its holder, the registration number and the ™/®/status value. Aligned (by reference) to schema:Brand, the WIPO trademark vocabulary and Wikidata."@x-gmeow-english ;
     skos:example "ex:blackcatTM a gmeow:Trademark ; gmeow:trademarkMark ex:blackcatMark ; gmeow:trademarkHolder ex:blackcat ; gmeow:trademarkStatus gmeow:trademarkStatusRegistered ."@x-gmeow-english ;
@@ -385,7 +384,7 @@ gmeow:Trademark
 
 gmeow:TrademarkStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Trademark Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -397,7 +396,7 @@ gmeow:TrademarkStatus
     gmeow:useWhen "Use as the open value vocabulary for the trademark-status axis — the registration states (unregistered ™, registered ®, pending, expired, cancelled) a trademark declares via gmeow:trademarkStatus."@x-gmeow-english .
 
 gmeow:acquireLicensePage
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "acquire license page"@x-gmeow-english ;
@@ -748,7 +747,7 @@ gmeow:actionWatermark
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:attributionText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "attribution text"@x-gmeow-english ;
@@ -763,7 +762,7 @@ gmeow:attributionText
     gmeow:useWhen "Use to carry the ready-to-display credit line for reusing an asset (schema:creditText, cc:attributionName) — the human-readable string an attribution duty asks reusers to show."@x-gmeow-english .
 
 gmeow:attributionUrl
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "attribution url"@x-gmeow-english ;
@@ -778,7 +777,7 @@ gmeow:attributionUrl
     gmeow:useWhen "Use to carry the URL the displayed attribution credit should link to (cc:attributionURL) — the reuser's link target for the credit line."@x-gmeow-english .
 
 gmeow:conditionsOfAccess
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "conditions of access"@x-gmeow-english ;
@@ -814,7 +813,7 @@ gmeow:conflictProhibit
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:conflictStrategy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "conflict strategy"@x-gmeow-english ;
@@ -827,7 +826,7 @@ gmeow:conflictStrategy
     gmeow:useWhen "Use to declare how a rights statement settles a permission-vs-prohibition conflict over the same action (the odrl:conflict strategy) — permission wins, prohibition wins, or the policy is void."@x-gmeow-english .
 
 gmeow:constraintLogic
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LogicalConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "constraint logic"@x-gmeow-english ;
@@ -840,7 +839,7 @@ gmeow:constraintLogic
     gmeow:useWhen "Use to name the boolean operator that combines a logical constraint's members — AND, OR, XONE, or AND-sequence — by referencing a gmeow:ConstraintLogic value."@x-gmeow-english .
 
 gmeow:constraintOperator
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "constraint operator"@x-gmeow-english ;
@@ -853,7 +852,7 @@ gmeow:constraintOperator
     gmeow:useWhen "Use to name the comparison an atomic constraint applies (the odrl:operator) — eq, neq, lt, lteq, gt, gteq, isPartOf, isAnyOf, … — by referencing a gmeow:ConstraintOperator value."@x-gmeow-english .
 
 gmeow:copyrightHolder
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright holder"@x-gmeow-english ;
@@ -870,7 +869,7 @@ gmeow:copyrightHolder
     gmeow:useWhen "Use to attribute a copyright to the agent(s) that hold it (schema:copyrightHolder, dcterms:rightsHolder) — the canonical rights-holder attribution, reusing gmeow:wasAttributedTo."@x-gmeow-english .
 
 gmeow:copyrightNotice
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright notice"@x-gmeow-english ;
@@ -885,7 +884,7 @@ gmeow:copyrightNotice
     gmeow:useWhen "Use to carry the ready-to-display © notice string for a work (schema:copyrightNotice) on its gmeow:Copyright relator."@x-gmeow-english .
 
 gmeow:copyrightStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright status"@x-gmeow-english ;
@@ -989,7 +988,7 @@ gmeow:copyrightStatusUndetermined
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:copyrightWork
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright work"@x-gmeow-english ;
@@ -1002,7 +1001,7 @@ gmeow:copyrightWork
     gmeow:useWhen "Use to bind the protected work to its gmeow:Copyright relator — the work-side player of the copyright."@x-gmeow-english .
 
 gmeow:copyrightYear
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Copyright ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyright year"@x-gmeow-english ;
@@ -1015,7 +1014,7 @@ gmeow:copyrightYear
     gmeow:useWhen "Use to record the year copyright was asserted (schema:copyrightYear) on a gmeow:Copyright relator."@x-gmeow-english .
 
 gmeow:hasCopyright
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has copyright"@x-gmeow-english ;
@@ -1031,7 +1030,7 @@ gmeow:hasCopyright
     gmeow:useWhen "Use as the flat-first link from a work to its reified gmeow:Copyright — the common case where copyright holder, year, and status are recorded without a full deontic policy."@x-gmeow-english .
 
 gmeow:hasDataController
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has data controller"@x-gmeow-english ;
@@ -1044,7 +1043,7 @@ gmeow:hasDataController
     gmeow:useWhen "Use to name the data controller of a processing rights statement — the agent that determines the purposes and means of processing the data subject's personal data."@x-gmeow-english .
 
 gmeow:hasDataSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has data subject"@x-gmeow-english ;
@@ -1060,10 +1059,10 @@ gmeow:hasDataSubject
     gmeow:useWhen "Use to name the data subject a consent or processing rights statement is about — the person whose personal data is processed under rules over gmeow:actionProcessPersonalData."@x-gmeow-english .
 
 gmeow:hasDuty
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain [
-        a owl:Class ;
-        owl:unionOf ( gmeow:RightsStatement gmeow:Permission ) ;
+        a logic:Class ;
+        logic:unionOf ( gmeow:RightsStatement gmeow:Permission ) ;
     ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has duty"@x-gmeow-english ;
@@ -1076,7 +1075,7 @@ gmeow:hasDuty
     gmeow:useWhen "Use to attach a gmeow:Duty — an obligation that must be discharged (attribute, share-alike, retain notice) — to a gmeow:RightsStatement or, more often, to the gmeow:Permission it conditions (the odrl:duty / odrl:obligation link)."@x-gmeow-english .
 
 gmeow:hasLicense
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has license"@x-gmeow-english ;
@@ -1095,7 +1094,7 @@ gmeow:hasLicense
     gmeow:useWhen "Use as the flat-first link from any licensable asset to the gmeow:License granting rights in it (dcterms:license, schema:license) — the common case, the flat half paired with gmeow:License."@x-gmeow-english .
 
 gmeow:hasPermission
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has permission"@x-gmeow-english ;
@@ -1108,7 +1107,7 @@ gmeow:hasPermission
     gmeow:useWhen "Use to attach a gmeow:Permission rule — an action the assignee is allowed to exercise — to a gmeow:RightsStatement (the odrl:permission link)."@x-gmeow-english .
 
 gmeow:hasPrivacyNotice
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has privacy notice"@x-gmeow-english ;
     rdfs:range gmeow:PrivacyNotice ;
@@ -1122,7 +1121,7 @@ gmeow:hasPrivacyNotice
     gmeow:useWhen "Use to attach a gmeow:PrivacyNotice to whatever it documents — a governed entity, a gmeow:License, or a gmeow:RightsStatement; domain-free so any of them may bear it."@x-gmeow-english .
 
 gmeow:hasProhibition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has prohibition"@x-gmeow-english ;
@@ -1135,7 +1134,7 @@ gmeow:hasProhibition
     gmeow:useWhen "Use to attach a gmeow:Prohibition rule — an action the assignee is forbidden to exercise — to a gmeow:RightsStatement (the odrl:prohibition link)."@x-gmeow-english .
 
 gmeow:hasRightsStatement
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has rights statement"@x-gmeow-english ;
@@ -1149,7 +1148,7 @@ gmeow:hasRightsStatement
     gmeow:useWhen "Use to attach a reified gmeow:RightsStatement to the asset it governs when permissions, prohibitions, or duties are expressed; the rights-bearing analogue of odrl:hasPolicy."@x-gmeow-english .
 
 gmeow:hasTrademark
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "has trademark"@x-gmeow-english ;
@@ -1164,7 +1163,7 @@ gmeow:hasTrademark
     gmeow:useWhen "Use to link an entity — a mark, product, or organization — to the gmeow:Trademark right held over it."@x-gmeow-english .
 
 gmeow:isAccessibleForFree
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "is accessible for free"@x-gmeow-english ;
@@ -1179,7 +1178,7 @@ gmeow:isAccessibleForFree
     gmeow:useWhen "Use to record whether an asset is accessible without payment (schema:isAccessibleForFree) — the free/paywalled signal for a work or dataset."@x-gmeow-english .
 
 gmeow:isOsiApproved
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "is OSI approved"@x-gmeow-english ;
@@ -1434,7 +1433,7 @@ gmeow:leftOpVirtualLocation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:leftOperand
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "left operand"@x-gmeow-english ;
@@ -1447,7 +1446,7 @@ gmeow:leftOperand
     gmeow:useWhen "Use to name the dimension an atomic constraint tests (the odrl:leftOperand) — dateTime, spatial, count, purpose, recipient, … — by referencing a gmeow:LeftOperand value."@x-gmeow-english .
 
 gmeow:licenseFamily
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "license family"@x-gmeow-english ;
@@ -1502,7 +1501,7 @@ gmeow:licenseFamilyPublicDomain
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:licenseText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "license text"@x-gmeow-english ;
@@ -1515,7 +1514,7 @@ gmeow:licenseText
     gmeow:useWhen "Use to carry the full legal text of a licence (spdx:licenseText) — typically only for a custom or bespoke licence whose text is not a standard SPDX-identified one."@x-gmeow-english .
 
 gmeow:licensedWork
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "licensed work"@x-gmeow-english ;
@@ -1528,7 +1527,7 @@ gmeow:licensedWork
     gmeow:useWhen "Use to bind the work a licence grants rights in to the gmeow:License relator — the work-side player of the licence."@x-gmeow-english .
 
 gmeow:licensee
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "licensee"@x-gmeow-english ;
@@ -1542,7 +1541,7 @@ gmeow:licensee
     gmeow:useWhen "Use to name the party receiving a licence (the odrl:assignee) when a grant is to a specific agent — the licence-scoped specialisation of gmeow:hasParty."@x-gmeow-english .
 
 gmeow:licensor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "licensor"@x-gmeow-english ;
@@ -1570,7 +1569,7 @@ gmeow:logicAndSequence
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:logicConstraintMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LogicalConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "logic constraint member"@x-gmeow-english ;
@@ -1597,7 +1596,7 @@ gmeow:logicXone
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:markText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Mark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "mark text"@x-gmeow-english ;
@@ -1696,7 +1695,7 @@ gmeow:operatorNeq
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:registrationNumber
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "registration number"@x-gmeow-english ;
@@ -1709,7 +1708,7 @@ gmeow:registrationNumber
     gmeow:useWhen "Use to carry the registry registration number of a trademark — a CIPO, USPTO, or WIPO identifier — on its gmeow:Trademark relator."@x-gmeow-english .
 
 gmeow:rightOperand
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "right operand"@x-gmeow-english ;
@@ -1722,7 +1721,7 @@ gmeow:rightOperand
     gmeow:useWhen "Use to carry the literal value an atomic constraint tests against (the odrl:rightOperand) — a date, a region code, a count."@x-gmeow-english .
 
 gmeow:rightOperandReference
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AtomicConstraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "right operand reference"@x-gmeow-english ;
@@ -1735,7 +1734,7 @@ gmeow:rightOperandReference
     gmeow:useWhen "Use to carry an IRI-valued tested value of an atomic constraint (the odrl:rightOperandReference) — a place, party, or vocabulary individual the constraint compares against."@x-gmeow-english .
 
 gmeow:rightsType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rights type"@x-gmeow-english ;
@@ -1811,7 +1810,7 @@ gmeow:rightsTypeTrademark
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:ruleAction
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rule action"@x-gmeow-english ;
@@ -1824,7 +1823,7 @@ gmeow:ruleAction
     gmeow:useWhen "Use to name the single action a permission, prohibition, or duty regulates (the odrl:action) by pointing at a gmeow:RightsAction value."@x-gmeow-english .
 
 gmeow:ruleAssignee
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rule assignee"@x-gmeow-english ;
@@ -1837,7 +1836,7 @@ gmeow:ruleAssignee
     gmeow:useWhen "Use to name the party a rule binds (the odrl:assignee) when a permission, prohibition, or duty applies to a specific agent rather than to everyone."@x-gmeow-english .
 
 gmeow:ruleConsequence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rule consequence"@x-gmeow-english ;
@@ -1850,7 +1849,7 @@ gmeow:ruleConsequence
     gmeow:useWhen "Use to chain a remedy or consequence duty to a rule — the gmeow:Duty triggered when a duty is unfulfilled (odrl:consequence) or a prohibition is violated (odrl:remedy)."@x-gmeow-english .
 
 gmeow:ruleConstraint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rule constraint"@x-gmeow-english ;
@@ -1863,7 +1862,7 @@ gmeow:ruleConstraint
     gmeow:useWhen "Use to condition a rule on a constraint (the odrl:constraint link) — a permission, prohibition, or duty that holds only when the constraint is satisfied."@x-gmeow-english .
 
 gmeow:ruleTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Rule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rule target"@x-gmeow-english ;
@@ -1876,7 +1875,7 @@ gmeow:ruleTarget
     gmeow:useWhen "Use to narrow a rule to a specific asset (the odrl:target) when it differs from the enclosing statement's overall subject — e.g. a permission that applies only to a thumbnail."@x-gmeow-english .
 
 gmeow:spdxLicenseId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "SPDX license id"@x-gmeow-english ;
@@ -1892,7 +1891,7 @@ gmeow:spdxLicenseId
     gmeow:useWhen "Use to carry the canonical SPDX short identifier of a licence — the machine-readable id that bridges to SPDX / SBOM tooling and resolves to a stable SPDX IRI by reference (P5)."@x-gmeow-english .
 
 gmeow:spdxLicenseName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:License ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "SPDX license name"@x-gmeow-english ;
@@ -1907,7 +1906,7 @@ gmeow:spdxLicenseName
     gmeow:useWhen "Use to carry the full human-readable SPDX List name of a licence (spdx:name) alongside the short gmeow:spdxLicenseId."@x-gmeow-english .
 
 gmeow:statementAbout
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RightsStatement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "statement about"@x-gmeow-english ;
@@ -1921,7 +1920,7 @@ gmeow:statementAbout
     gmeow:useWhen "Use to name the governed asset on the gmeow:RightsStatement relator (the observedFeature) — the ODRL target — so the statement carries its own subject and can be projected standalone."@x-gmeow-english .
 
 gmeow:trademarkHolder
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "trademark holder"@x-gmeow-english ;
@@ -1937,7 +1936,7 @@ gmeow:trademarkHolder
     gmeow:useWhen "Use to attribute a trademark to its proprietor agent(s) — the trademark-side rights-holder attribution, reusing gmeow:wasAttributedTo."@x-gmeow-english .
 
 gmeow:trademarkMark
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "trademark mark"@x-gmeow-english ;
@@ -1950,7 +1949,7 @@ gmeow:trademarkMark
     gmeow:useWhen "Use to bind the protected sign to its gmeow:Trademark relator — the mark-side player of the trademark."@x-gmeow-english .
 
 gmeow:trademarkStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Trademark ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "trademark status"@x-gmeow-english ;
@@ -1998,7 +1997,7 @@ gmeow:trademarkStatusUnregistered
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:usageInfo
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "usage info"@x-gmeow-english ;
@@ -2013,7 +2012,7 @@ gmeow:usageInfo
     gmeow:useWhen "Use to carry free-text supplementary usage or licensing guidance (schema:usageInfo) that does not fit the structured licence, permission, and duty model."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/rights>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Cross-cutting, foundational, INSTANCE-level rights / IP / trademark / licensing facility (rights facility) — the machine-readable rights superset layer (ODRL, CC REL, dcterms, schema.org, RightsStatements.org, WIPO). Distinct from the ontology-ALIGNMENT license policy in the native LinkPolicy in `crates/license` (LinkPolicy / policy_for_license), which governs whether an external vocabulary's AXIOMS may be copied INTO GMEOW; this module governs the rights of the INSTANCES GMEOW describes. It generalises the metadata-level dcterms:license / dc:rights on the root ontology to arbitrary works, images, brands, software and data. The Images super-ontology and the Employment / publication block build on it, so it ships first.
 
@@ -2035,56 +2034,56 @@ REUSE. gmeow:Agreement / gmeow:hasParty (agreements), gmeow:wasAttributedTo / gm
         gmeow:boxTBox .
 
 _:b0
-    a owl:AllDisjointClasses ;
-    owl:members ( gmeow:Permission gmeow:Prohibition gmeow:Duty ) .
+    a logic:AllDisjointClasses ;
+    logic:members ( gmeow:Permission gmeow:Prohibition gmeow:Duty ) .
 
 _:b1
-    a owl:AllDisjointClasses ;
-    owl:members ( gmeow:AtomicConstraint gmeow:LogicalConstraint ) .
+    a logic:AllDisjointClasses ;
+    logic:members ( gmeow:AtomicConstraint gmeow:LogicalConstraint ) .
 
 # Closed-world cardinality axioms backing the hand-authored SHACL well-formedness
 # shapes for the rights relators (the OWL antecedent the validation-shape
 # projection reads; procedural range/suppression checks stay in the shape layer).
 gmeow:RightsStatement logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Permission logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
 
 gmeow:Prohibition logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
 
 gmeow:Duty logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:hasDuty ; logic:allValuesFrom gmeow:Duty ] .
 
 gmeow:License logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:licensor ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:licensor ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:licenseFamily ; logic:someValuesFrom gmeow:LicenseFamily ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:licenseFamily ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:licenseFamily ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Trademark logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:trademarkHolder ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:trademarkHolder ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
-gmeow:Permission logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
-gmeow:Prohibition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
-gmeow:Duty logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
-gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:Permission logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:Prohibition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:Duty logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:RuleShape retargets onto the ABSTRACT base gmeow:Rule too (sh:targetClass Rule,
 # Permission, Prohibition, Duty), which previously carried only a `someValuesFrom
 # RightsAction` restriction (sh:class only, no min) — Permission/Prohibition/Duty each
-# already carry their OWN owl:Thing-qualified min1 restriction above, but the base Rule
+# already carry their OWN OWL Thing-qualified min1 restriction above, but the base Rule
 # class itself never did, so the Rule-targeted retarget compared min=1 (legacy) against
 # min=None (projected) and failed. allValuesFrom + a class-scoped ClosureEntry supplies
 # the bare min1 half on Rule directly (Pattern 3); max1 rides gmeow:ruleAction's own
-# global owl:FunctionalProperty declaration (folded into the class comparison whenever
+# global OWL FunctionalProperty declaration (folded into the class comparison whenever
 # the legacy shape's own max matches it — no Rule-scoped max restriction needed).
 [ a logic:ClosureEntry ; logic:onClass gmeow:Rule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/ruleAction" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -2350,10 +2349,10 @@ gmeow:Rule logic:subClassOf
 gmeow:AtomicConstraint logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rightOperand ; logic:allValuesFrom rdfs:Literal ] .
 # gmeow:rightOperandReference is NOT globally functional (unlike leftOperand/
 # constraintOperator/rightOperand), so its class-local sh:maxCount 1 needs its own
-# owl:Thing-qualified restriction (bare max1; no sh:class is legacy-required here).
+# OWL Thing-qualified restriction (bare max1; no sh:class is legacy-required here).
 gmeow:AtomicConstraint logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:rightOperandReference ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
-# gmeow:licensedWork is globally owl:FunctionalProperty with rdfs:range
+    [ a logic:Restriction ; logic:onProperty gmeow:rightOperandReference ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+# gmeow:licensedWork is globally OWL FunctionalProperty with rdfs:range
 # gmeow:InformationObject, but (like ConceptCategorization's observedFeature) had only a
 # `someValuesFrom` restriction (sh:class only, no min) — replaced with allValuesFrom + a
 # class-scoped ClosureEntry for the bare min1+class half; max1 rides the global
@@ -2376,7 +2375,7 @@ gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty 
 gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasPermission ; logic:allValuesFrom gmeow:Permission ] .
 gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:hasProhibition ; logic:allValuesFrom gmeow:Prohibition ] .
 gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rightsType ; logic:allValuesFrom gmeow:RightsType ] .
-gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:someValuesFrom owl:Thing ] .
+gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:someValuesFrom logic:Thing ] .
 gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:registrationNumber ; logic:allValuesFrom rdfs:Literal ] .
 gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkHolder ; logic:someValuesFrom gmeow:Agent ] .
 gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:someValuesFrom gmeow:Mark ] .
@@ -2439,17 +2438,17 @@ gmeow:LogicalConstraintMemberCountConstraint
 
 # LogicalConstraint: gmeow:constraintLogic is functional per constraint (max 1).
 gmeow:LogicalConstraint logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:constraintLogic ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:constraintLogic ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # LogicalConstraint: at least two member constraints, as a BARE sh:minCount 2.
 gmeow:LogicalConstraint logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:logicConstraintMember ; logic:minQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:logicConstraintMember ; logic:minQualifiedCardinality 2 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -2457,7 +2456,7 @@ gmeow:LogicalConstraint logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:conflictStrategyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "conflictStrategy is functional"@x-gmeow-english ;
@@ -2472,7 +2471,7 @@ gmeow:conflictStrategyFunctionality
     skos:example "gmeow:conflictStrategyFunctionality logic:characterizes gmeow:conflictStrategy ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:constraintLogicFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "constraintLogic is functional"@x-gmeow-english ;
@@ -2487,7 +2486,7 @@ gmeow:constraintLogicFunctionality
     skos:example "gmeow:constraintLogicFunctionality logic:characterizes gmeow:constraintLogic ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:constraintOperatorFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "constraintOperator is functional"@x-gmeow-english ;
@@ -2502,7 +2501,7 @@ gmeow:constraintOperatorFunctionality
     skos:example "gmeow:constraintOperatorFunctionality logic:characterizes gmeow:constraintOperator ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:copyrightNoticeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyrightNotice is functional"@x-gmeow-english ;
@@ -2517,7 +2516,7 @@ gmeow:copyrightNoticeFunctionality
     skos:example "gmeow:copyrightNoticeFunctionality logic:characterizes gmeow:copyrightNotice ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:copyrightStatusFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyrightStatus is functional"@x-gmeow-english ;
@@ -2532,7 +2531,7 @@ gmeow:copyrightStatusFunctionality
     skos:example "gmeow:copyrightStatusFunctionality logic:characterizes gmeow:copyrightStatus ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:copyrightWorkFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyrightWork is functional"@x-gmeow-english ;
@@ -2547,7 +2546,7 @@ gmeow:copyrightWorkFunctionality
     skos:example "gmeow:copyrightWorkFunctionality logic:characterizes gmeow:copyrightWork ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:copyrightYearFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "copyrightYear is functional"@x-gmeow-english ;
@@ -2562,7 +2561,7 @@ gmeow:copyrightYearFunctionality
     skos:example "gmeow:copyrightYearFunctionality logic:characterizes gmeow:copyrightYear ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:leftOperandFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "leftOperand is functional"@x-gmeow-english ;
@@ -2577,7 +2576,7 @@ gmeow:leftOperandFunctionality
     skos:example "gmeow:leftOperandFunctionality logic:characterizes gmeow:leftOperand ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:licensedWorkFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "licensedWork is functional"@x-gmeow-english ;
@@ -2592,7 +2591,7 @@ gmeow:licensedWorkFunctionality
     skos:example "gmeow:licensedWorkFunctionality logic:characterizes gmeow:licensedWork ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:licenseFamilyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "licenseFamily is functional"@x-gmeow-english ;
@@ -2607,7 +2606,7 @@ gmeow:licenseFamilyFunctionality
     skos:example "gmeow:licenseFamilyFunctionality logic:characterizes gmeow:licenseFamily ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:markTextFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "markText is functional"@x-gmeow-english ;
@@ -2622,7 +2621,7 @@ gmeow:markTextFunctionality
     skos:example "gmeow:markTextFunctionality logic:characterizes gmeow:markText ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:registrationNumberFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "registrationNumber is functional"@x-gmeow-english ;
@@ -2637,7 +2636,7 @@ gmeow:registrationNumberFunctionality
     skos:example "gmeow:registrationNumberFunctionality logic:characterizes gmeow:registrationNumber ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:rightOperandFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "rightOperand is functional"@x-gmeow-english ;
@@ -2652,7 +2651,7 @@ gmeow:rightOperandFunctionality
     skos:example "gmeow:rightOperandFunctionality logic:characterizes gmeow:rightOperand ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:ruleActionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "ruleAction is functional"@x-gmeow-english ;
@@ -2667,7 +2666,7 @@ gmeow:ruleActionFunctionality
     skos:example "gmeow:ruleActionFunctionality logic:characterizes gmeow:ruleAction ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:ruleTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "ruleTarget is functional"@x-gmeow-english ;
@@ -2682,7 +2681,7 @@ gmeow:ruleTargetFunctionality
     skos:example "gmeow:ruleTargetFunctionality logic:characterizes gmeow:ruleTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:spdxLicenseIdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "spdxLicenseId is functional"@x-gmeow-english ;
@@ -2697,7 +2696,7 @@ gmeow:spdxLicenseIdFunctionality
     skos:example "gmeow:spdxLicenseIdFunctionality logic:characterizes gmeow:spdxLicenseId ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:trademarkMarkFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "trademarkMark is functional"@x-gmeow-english ;
@@ -2712,7 +2711,7 @@ gmeow:trademarkMarkFunctionality
     skos:example "gmeow:trademarkMarkFunctionality logic:characterizes gmeow:trademarkMark ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:trademarkStatusFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "trademarkStatus is functional"@x-gmeow-english ;

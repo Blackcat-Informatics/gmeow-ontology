@@ -2,17 +2,16 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Agent
-    a owl:Class .
+    a logic:Class .
 
 gmeow:AuthorIdentity
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Author Identity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -21,7 +20,7 @@ gmeow:AuthorIdentity
 
 gmeow:Blob
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Blob"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SourceNode ;
@@ -29,14 +28,14 @@ gmeow:Blob
         [
             a logic:Restriction ;
             logic:onProperty gmeow:contentDigest ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "A content-addressed blob of raw file content — the leaf of a Merkle source tree, independent of filename or path. Aligned to git blob objects and Software Heritage Content by reference. A Blob is the bytes only; the name is carried by the TreeEntry that points to it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Branch
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Branch"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -45,29 +44,29 @@ gmeow:Branch
 
 gmeow:BuildActivity
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Build Activity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:buildSource ;
-            owl:someValuesFrom [
-                a owl:Class ;
-                owl:unionOf ( gmeow:Commit gmeow:Repository ) ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:buildSource ;
+            logic:someValuesFrom [
+                a logic:Class ;
+                logic:unionOf ( gmeow:Commit gmeow:Repository ) ;
             ] ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:buildOutput ;
-            owl:someValuesFrom gmeow:Distribution ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:buildOutput ;
+            logic:someValuesFrom gmeow:Distribution ;
         ] ;
     skos:definition "A software build process that transforms source code into one or more distribution artifacts. The build activity consumes a commit or repository and produces a concrete distribution (tarball, wheel, binary, container image). Aligned to SLSA provenance buildType and PROV-O Activity by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Builder
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Builder"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SoftwareAgent ;
@@ -76,7 +75,7 @@ gmeow:Builder
 
 gmeow:CodeReview
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Code Review"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Event ;
@@ -85,72 +84,72 @@ gmeow:CodeReview
 
 gmeow:Commit
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Commit"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:authoredBy ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:authoredBy ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:commitAuthorIdentity ;
-            owl:someValuesFrom gmeow:AuthorIdentity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:commitAuthorIdentity ;
+            logic:someValuesFrom gmeow:AuthorIdentity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:commitCommitterIdentity ;
-            owl:someValuesFrom gmeow:AuthorIdentity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:commitCommitterIdentity ;
+            logic:someValuesFrom gmeow:AuthorIdentity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:commitTree ;
-            owl:someValuesFrom gmeow:SourceTree ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:commitTree ;
+            logic:someValuesFrom gmeow:SourceTree ;
         ] ;
     logic:subClassOf
         [
             a logic:Restriction ;
             logic:onProperty gmeow:contentDigest ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a content digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Diff
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Diff"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:diffFrom ;
-            owl:someValuesFrom gmeow:Commit ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:diffFrom ;
+            logic:someValuesFrom gmeow:Commit ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:diffTo ;
-            owl:someValuesFrom gmeow:Commit ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:diffTo ;
+            logic:someValuesFrom gmeow:Commit ;
         ] ;
     logic:subClassOf
         [
             a logic:Restriction ;
             logic:onProperty gmeow:diffFrom ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:diffTo ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "A patch or diff — an information object describing the changes between two commits (or two trees). Carries textual diff content and references the from- and to- commits."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Distribution
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Distribution"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -159,7 +158,7 @@ gmeow:Distribution
 
 gmeow:ForgePlatform
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Forge Platform"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -168,7 +167,7 @@ gmeow:ForgePlatform
 
 gmeow:GovernanceModel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Governance Model"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -177,7 +176,7 @@ gmeow:GovernanceModel
 
 gmeow:Issue
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Issue"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -186,7 +185,7 @@ gmeow:Issue
 
 gmeow:MaintenanceStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Maintenance Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -195,7 +194,7 @@ gmeow:MaintenanceStatus
 
 gmeow:Merge
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Merge"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -203,29 +202,29 @@ gmeow:Merge
         [
             a logic:Restriction ;
             logic:onProperty gmeow:mergeBase ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:mergeSource ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:mergeTarget ;
-            logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:mergeTarget ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "The event of merging one branch of development into another — an activity with a merge-base commit, a source branch or ref, a target branch, and a resulting merge commit. The event type is gmeow:eventTypeMerge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MergeRequest
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Merge Request"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -234,7 +233,7 @@ gmeow:MergeRequest
 
 gmeow:Package
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Package"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -244,7 +243,7 @@ gmeow:Package
 
 gmeow:Project
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Project"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -256,17 +255,17 @@ gmeow:Project
 # on the generated facet-orthogonality shape; the native DL-coherence gate enforces the
 # disjointness directly.
 gmeow:softwareFacetDisjointness
-    a owl:AllDisjointClasses ;
+    a logic:AllDisjointClasses ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "software-facet disjointness"@x-gmeow-english ;
     skos:definition "The named carrier of the six-facet software-orthogonality axiom: Project, SoftwareProduct, SourceTree, Repository, Commit, and Release are mutually disjoint — no individual fills two (Principle 9, anti-overtyping). Named (not a blank axiom node) so the generated SHACL orthogonality shape can carry a logic:formalizes back-reference to it."@x-gmeow-english ;
-    owl:members ( gmeow:Project gmeow:SoftwareProduct gmeow:SourceTree gmeow:Repository gmeow:Commit gmeow:Release ) ;
+    logic:members ( gmeow:Project gmeow:SoftwareProduct gmeow:SourceTree gmeow:Repository gmeow:Commit gmeow:Release ) ;
     logic:formalizes gmeow:SoftwareProduct ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Push
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Push"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -275,7 +274,7 @@ gmeow:Push
 
 gmeow:Ref
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Ref"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -284,27 +283,27 @@ gmeow:Ref
 
 gmeow:Release
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Release"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Event ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:releaseOf ;
-            owl:someValuesFrom gmeow:Project ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:releaseOf ;
+            logic:someValuesFrom gmeow:Project ;
         ] ;
     logic:subClassOf
         [
             a logic:Restriction ;
             logic:onProperty gmeow:releaseOf ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "A software release — an event that produces a versioned software product, typically associated with a tag, a DOI, and one or more distribution artifacts. The event facet of the five-facet model; a release is an occurrence, not the product itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Repository
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Repository"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -312,14 +311,14 @@ gmeow:Repository
         [
             a logic:Restriction ;
             logic:onProperty gmeow:repositoryType ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "A version-control repository — the location/hosting facet of a software project. Holds source code history, branches, tags, and refs. Distinct from the project (endeavour), the product (work), the codebase (content), and the history (events). Aligned to Software Heritage Origin and ForgeFed Repository by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RepositoryType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Repository Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -328,7 +327,7 @@ gmeow:RepositoryType
 
 gmeow:Review
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Review"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -337,7 +336,7 @@ gmeow:Review
 
 gmeow:SLSALevel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "SLSA Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -346,7 +345,7 @@ gmeow:SLSALevel
 
 gmeow:SoftwareName
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Software Name"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Appellation ;
@@ -355,7 +354,7 @@ gmeow:SoftwareName
 
 gmeow:SoftwareProduct
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Software Product"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -364,7 +363,7 @@ gmeow:SoftwareProduct
 
 gmeow:SoftwareProject
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Software Project"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Project ;
@@ -373,7 +372,7 @@ gmeow:SoftwareProject
 
 gmeow:SourceDirectory
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source Directory"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SourceTree ;
@@ -383,7 +382,7 @@ gmeow:SourceDirectory
 
 gmeow:SourceFile
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source File"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SourceNode ;
@@ -393,7 +392,7 @@ gmeow:SourceFile
 
 gmeow:SourceNode
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source Node"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -403,7 +402,7 @@ gmeow:SourceNode
 
 gmeow:SourceTree
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Source Tree"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SourceNode ;
@@ -413,46 +412,46 @@ gmeow:SourceTree
 
 gmeow:TreeEntry
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Tree Entry"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:treeEntryName ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryName ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:treeEntryMode ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryMode ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:treeEntryObject ;
-            owl:someValuesFrom gmeow:SourceNode ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:treeEntryObject ;
+            logic:someValuesFrom gmeow:SourceNode ;
         ] ;
     logic:subClassOf
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryName ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryMode ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryObject ;
-            logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
     skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:authorIdentityString
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthorIdentity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "author identity string"@x-gmeow-english ;
@@ -461,7 +460,7 @@ gmeow:authorIdentityString
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authorTime
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "author time"@x-gmeow-english ;
@@ -470,7 +469,7 @@ gmeow:authorTime
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authoredBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "authored by"@x-gmeow-english ;
@@ -479,7 +478,7 @@ gmeow:authoredBy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:bugDatabase
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "bug database"@x-gmeow-english ;
@@ -487,7 +486,7 @@ gmeow:bugDatabase
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:buildConfigUri
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:BuildActivity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "build config URI"@x-gmeow-english ;
@@ -497,7 +496,7 @@ gmeow:buildConfigUri
         gmeow:boxRBox .
 
 gmeow:buildOutput
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:BuildActivity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "build output"@x-gmeow-english ;
@@ -506,20 +505,20 @@ gmeow:buildOutput
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:buildSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:BuildActivity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "build source"@x-gmeow-english ;
     rdfs:range [
-        a owl:Class ;
-        owl:unionOf ( gmeow:Commit gmeow:Repository ) ;
+        a logic:Class ;
+        logic:unionOf ( gmeow:Commit gmeow:Repository ) ;
     ] ;
     skos:definition "The source commit or repository that a build activity consumes. Non-functional: a build may consume multiple commits (monorepo) or a repository at a specific ref."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
 gmeow:canonicalizedIdentity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AuthorIdentity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "canonicalized identity"@x-gmeow-english ;
@@ -528,7 +527,7 @@ gmeow:canonicalizedIdentity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:cloneUrl
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Repository ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "clone URL"@x-gmeow-english ;
@@ -537,8 +536,8 @@ gmeow:cloneUrl
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitAncestor
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit ancestor"@x-gmeow-english ;
@@ -548,7 +547,7 @@ gmeow:commitAncestor
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitAuthorIdentity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit author identity"@x-gmeow-english ;
@@ -557,7 +556,7 @@ gmeow:commitAuthorIdentity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitCommitterIdentity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit committer identity"@x-gmeow-english ;
@@ -566,18 +565,18 @@ gmeow:commitCommitterIdentity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitDescendant
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit descendant"@x-gmeow-english ;
     rdfs:range gmeow:Commit ;
-    owl:inverseOf gmeow:commitAncestor ;
+    logic:inverseOf gmeow:commitAncestor ;
     skos:definition "The transitive closure of the inverse of parentCommit — any descendant commit in the DAG. Transitive, non-simple: kept out of all cardinality / functional axioms. Inverse of gmeow:commitAncestor."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitInRepository
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit in repository"@x-gmeow-english ;
@@ -586,7 +585,7 @@ gmeow:commitInRepository
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:commitTree
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commit tree"@x-gmeow-english ;
@@ -595,7 +594,7 @@ gmeow:commitTree
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:committedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "committed by"@x-gmeow-english ;
@@ -604,7 +603,7 @@ gmeow:committedBy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:committerTime
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "committer time"@x-gmeow-english ;
@@ -613,7 +612,7 @@ gmeow:committerTime
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:diffFrom
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Diff ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diff from"@x-gmeow-english ;
@@ -622,7 +621,7 @@ gmeow:diffFrom
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:diffTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Diff ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diff to"@x-gmeow-english ;
@@ -631,7 +630,7 @@ gmeow:diffTo
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:distributionFormat
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Distribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "distribution format"@x-gmeow-english ;
@@ -640,7 +639,7 @@ gmeow:distributionFormat
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:downloadPage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "download page"@x-gmeow-english ;
@@ -690,7 +689,7 @@ gmeow:governanceMeritocracy
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:governanceModel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "governance model"@x-gmeow-english ;
@@ -699,7 +698,7 @@ gmeow:governanceModel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasDistribution
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Package ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "has distribution"@x-gmeow-english ;
@@ -708,7 +707,7 @@ gmeow:hasDistribution
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasRelease
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "has release"@x-gmeow-english ;
@@ -717,7 +716,7 @@ gmeow:hasRelease
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasRepository
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "has repository"@x-gmeow-english ;
@@ -726,7 +725,7 @@ gmeow:hasRepository
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasSLSALevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "has SLSA level"@x-gmeow-english ;
@@ -735,7 +734,7 @@ gmeow:hasSLSALevel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasSoftwareName
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "has software name"@x-gmeow-english ;
     rdfs:range gmeow:SoftwareName ;
@@ -744,7 +743,7 @@ gmeow:hasSoftwareName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hostedAt
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Repository ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "hosted at"@x-gmeow-english ;
@@ -753,7 +752,7 @@ gmeow:hostedAt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailmapEntry
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "mailmap entry"@x-gmeow-english ;
@@ -762,7 +761,7 @@ gmeow:mailmapEntry
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:maintenanceStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "maintenance status"@x-gmeow-english ;
@@ -771,7 +770,7 @@ gmeow:maintenanceStatus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:materializationDepth
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Repository ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "materialization depth"@x-gmeow-english ;
@@ -780,7 +779,7 @@ gmeow:materializationDepth
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mergeBase
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Merge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "merge base"@x-gmeow-english ;
@@ -789,7 +788,7 @@ gmeow:mergeBase
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mergeSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Merge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "merge source"@x-gmeow-english ;
@@ -799,7 +798,7 @@ gmeow:mergeSource
         gmeow:boxRBox .
 
 gmeow:mergeTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Merge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "merge target"@x-gmeow-english ;
@@ -808,7 +807,7 @@ gmeow:mergeTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packageOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Package ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "package of"@x-gmeow-english ;
@@ -818,7 +817,7 @@ gmeow:packageOf
         gmeow:boxRBox .
 
 gmeow:parentCommit
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "parent commit"@x-gmeow-english ;
@@ -829,7 +828,7 @@ gmeow:parentCommit
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:pointsToCommit
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Ref ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "points to commit"@x-gmeow-english ;
@@ -838,7 +837,7 @@ gmeow:pointsToCommit
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:programmingLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "programming language"@x-gmeow-english ;
@@ -847,7 +846,7 @@ gmeow:programmingLanguage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:projectHomepage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "project homepage"@x-gmeow-english ;
@@ -855,7 +854,7 @@ gmeow:projectHomepage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:projectIdentifier
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "project identifier"@x-gmeow-english ;
@@ -864,7 +863,7 @@ gmeow:projectIdentifier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:projectLicense
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Project ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "project license"@x-gmeow-english ;
@@ -873,19 +872,19 @@ gmeow:projectLicense
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:pushTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Push ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "push target"@x-gmeow-english ;
     rdfs:range [
-        a owl:Class ;
-        owl:unionOf ( gmeow:Repository gmeow:Ref ) ;
+        a logic:Class ;
+        logic:unionOf ( gmeow:Repository gmeow:Ref ) ;
     ] ;
     skos:definition "The repository or ref that a push event targets. Non-functional: a single push operation may target multiple refs in the same repository."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:releaseDoi
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Release ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "release DOI"@x-gmeow-english ;
@@ -894,7 +893,7 @@ gmeow:releaseDoi
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:releaseOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Release ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "release of"@x-gmeow-english ;
@@ -903,7 +902,7 @@ gmeow:releaseOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:releaseTag
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Release ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "release tag"@x-gmeow-english ;
@@ -912,7 +911,7 @@ gmeow:releaseTag
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:releaseVersion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Release ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "release version"@x-gmeow-english ;
@@ -963,7 +962,7 @@ gmeow:repoTypeSVN
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:repositoryType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Repository ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "repository type"@x-gmeow-english ;
@@ -972,7 +971,7 @@ gmeow:repositoryType
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewCommit
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CodeReview ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "review commit"@x-gmeow-english ;
@@ -981,7 +980,7 @@ gmeow:reviewCommit
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CodeReview ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "review of"@x-gmeow-english ;
@@ -1053,7 +1052,7 @@ gmeow:statusMaintained
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:treeEntryMode
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry mode"@x-gmeow-english ;
@@ -1062,7 +1061,7 @@ gmeow:treeEntryMode
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:treeEntryName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry name"@x-gmeow-english ;
@@ -1071,7 +1070,7 @@ gmeow:treeEntryName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:treeEntryObject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry object"@x-gmeow-english ;
@@ -1080,7 +1079,7 @@ gmeow:treeEntryObject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:webUrl
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Repository ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "web URL"@x-gmeow-english ;
@@ -1089,7 +1088,7 @@ gmeow:webUrl
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/software>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The software slice: a five-facet de-conflation of the project domain.
 
@@ -1118,13 +1117,13 @@ Contribution relator and hasContributor shortcut supersede it."""@x-gmeow-englis
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-gmeow:Merge logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mergeTarget ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:Merge logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mergeTarget ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1132,7 +1131,7 @@ gmeow:Merge logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:merg
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:authorIdentityStringFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "authorIdentityString is functional"@x-gmeow-english ;
@@ -1147,7 +1146,7 @@ gmeow:authorIdentityStringFunctionality
     skos:example "gmeow:authorIdentityStringFunctionality logic:characterizes gmeow:authorIdentityString ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:buildConfigUriFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "buildConfigUri is functional"@x-gmeow-english ;
@@ -1162,7 +1161,7 @@ gmeow:buildConfigUriFunctionality
     skos:example "gmeow:buildConfigUriFunctionality logic:characterizes gmeow:buildConfigUri ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:commitAuthorIdentityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commitAuthorIdentity is functional"@x-gmeow-english ;
@@ -1177,7 +1176,7 @@ gmeow:commitAuthorIdentityFunctionality
     skos:example "gmeow:commitAuthorIdentityFunctionality logic:characterizes gmeow:commitAuthorIdentity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:commitCommitterIdentityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commitCommitterIdentity is functional"@x-gmeow-english ;
@@ -1192,7 +1191,7 @@ gmeow:commitCommitterIdentityFunctionality
     skos:example "gmeow:commitCommitterIdentityFunctionality logic:characterizes gmeow:commitCommitterIdentity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:commitInRepositoryFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commitInRepository is functional"@x-gmeow-english ;
@@ -1207,7 +1206,7 @@ gmeow:commitInRepositoryFunctionality
     skos:example "gmeow:commitInRepositoryFunctionality logic:characterizes gmeow:commitInRepository ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:commitTreeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "commitTree is functional"@x-gmeow-english ;
@@ -1222,7 +1221,7 @@ gmeow:commitTreeFunctionality
     skos:example "gmeow:commitTreeFunctionality logic:characterizes gmeow:commitTree ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:diffFromFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diffFrom is functional"@x-gmeow-english ;
@@ -1237,7 +1236,7 @@ gmeow:diffFromFunctionality
     skos:example "gmeow:diffFromFunctionality logic:characterizes gmeow:diffFrom ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:diffToFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "diffTo is functional"@x-gmeow-english ;
@@ -1252,7 +1251,7 @@ gmeow:diffToFunctionality
     skos:example "gmeow:diffToFunctionality logic:characterizes gmeow:diffTo ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:materializationDepthFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "materializationDepth is functional"@x-gmeow-english ;
@@ -1267,7 +1266,7 @@ gmeow:materializationDepthFunctionality
     skos:example "gmeow:materializationDepthFunctionality logic:characterizes gmeow:materializationDepth ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:mergeTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "mergeTarget is functional"@x-gmeow-english ;
@@ -1282,7 +1281,7 @@ gmeow:mergeTargetFunctionality
     skos:example "gmeow:mergeTargetFunctionality logic:characterizes gmeow:mergeTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:projectHomepageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "projectHomepage is functional"@x-gmeow-english ;
@@ -1297,7 +1296,7 @@ gmeow:projectHomepageFunctionality
     skos:example "gmeow:projectHomepageFunctionality logic:characterizes gmeow:projectHomepage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:releaseOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "releaseOf is functional"@x-gmeow-english ;
@@ -1312,7 +1311,7 @@ gmeow:releaseOfFunctionality
     skos:example "gmeow:releaseOfFunctionality logic:characterizes gmeow:releaseOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:repositoryTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "repositoryType is functional"@x-gmeow-english ;
@@ -1327,7 +1326,7 @@ gmeow:repositoryTypeFunctionality
     skos:example "gmeow:repositoryTypeFunctionality logic:characterizes gmeow:repositoryType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:treeEntryModeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryMode is functional"@x-gmeow-english ;
@@ -1342,7 +1341,7 @@ gmeow:treeEntryModeFunctionality
     skos:example "gmeow:treeEntryModeFunctionality logic:characterizes gmeow:treeEntryMode ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:treeEntryNameFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryName is functional"@x-gmeow-english ;
@@ -1357,7 +1356,7 @@ gmeow:treeEntryNameFunctionality
     skos:example "gmeow:treeEntryNameFunctionality logic:characterizes gmeow:treeEntryName ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:treeEntryObjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryObject is functional"@x-gmeow-english ;

@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Tag
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "Tag"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -16,12 +15,12 @@ gmeow:Tag
     skos:example "ex:tagUrgent a gmeow:Tag ; rdfs:label \"urgent\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the label should change what an entity IS (use rdf:type and a real sortal) or record what a resource is ABOUT (use gmeow:isAbout); a tag is a co-equal label, never a type or a subject relation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the tag as an individual, carry its surface form on rdfs:label (multiple labels for synonyms, distinct IRIs for homonyms), and attach it with gmeow:hasTag; resolve coreference in data rather than collapsing two tags with owl:sameAs."@x-gmeow-english ;
+    gmeow:howToUse "Mint the tag as an individual, carry its surface form on rdfs:label (multiple labels for synonyms, distinct IRIs for homonyms), and attach it with gmeow:hasTag; resolve coreference in data rather than collapsing two tags with OWL sameAs."@x-gmeow-english ;
     gmeow:useWhen "Use to mint an informal, user-applied label whose identity is its IRI — a folksonomy keyword that classifies entities without the inferential weight of a type or the subject-matter commitment of aboutness."@x-gmeow-english .
 
 gmeow:TagScheme
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "Tag Scheme"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -34,7 +33,7 @@ gmeow:TagScheme
 
 gmeow:Tagging
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "Tagging"@x-gmeow-english ;
     logic:mediates gmeow:taggingTagged ,
@@ -42,19 +41,19 @@ gmeow:Tagging
         gmeow:taggingTagger ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:taggingTagged ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:taggingTagged ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:taggingTag ;
-            owl:someValuesFrom gmeow:Tag ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:taggingTag ;
+            logic:someValuesFrom gmeow:Tag ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:taggingTagger ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:taggingTagger ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified tagging act — a gufo:Relator mediating a tagged resource, a tag, a tagger, and optionally a scheme and time interval. Bears provenance (gmeow:wasAttributedTo), confidence (gmeow:confidence), and suppression (gmeow:displayable false for retraction without deletion — Principle 10). Structurally the NameUsage/IdentityFacet idiom wearing a different hat, inheriting time-scoping, confidence-weighting, and retract-without-delete for free. The canonical form when the act of tagging must itself be a node; the flat shortcut is gmeow:hasTag."@x-gmeow-english ;
     skos:example "ex:t1 a gmeow:Tagging ; gmeow:taggingTagged ex:report ; gmeow:taggingTag ex:tagUrgent ; gmeow:taggingTagger ex:lillith ."@x-gmeow-english ;
@@ -64,8 +63,8 @@ gmeow:Tagging
     gmeow:useWhen "Use when the act of tagging must itself be a node — to record who tagged, when, under which scheme, with what confidence, or to retract a tag without deleting it (gmeow:displayable false)."@x-gmeow-english .
 
 gmeow:broaderTag
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Tag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "broader tag"@x-gmeow-english ;
@@ -78,12 +77,12 @@ gmeow:broaderTag
     gmeow:useWhen "Use to layer optional hierarchy onto a folksonomy — point a specific tag at a more general one when a controlled-vocabulary structure is worth having (the counterpart of skos:broader)."@x-gmeow-english .
 
 gmeow:hasTag
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "has tag"@x-gmeow-english ;
     rdfs:range gmeow:Tag ;
-    owl:propertyDisjointWith gmeow:isAbout ;
+    logic:propertyDisjointWith gmeow:isAbout ;
     skos:definition "Relates an entity to a user-minted tag — the 80% flat shortcut. Non-functional: an entity may carry many co-equal tags. Period, confidence, tagger and suppression are carried via RDF-star statement annotations (gmeow:validFrom, gmeow:validUntil, gmeow:confidence, gmeow:displayable) on the shortcut; promote to a gmeow:Tagging relator when the act itself must be a node."@x-gmeow-english ;
     skos:example "ex:report gmeow:hasTag ex:tagUrgent ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the act of tagging must be a first-class node with full provenance (promote to gmeow:Tagging) and avoid using it for subject-matter (gmeow:isAbout) or classification (rdf:type); the three axes are disjoint."@x-gmeow-english ;
@@ -95,7 +94,7 @@ gmeow:hasTag
     gmeow:useWhen "Use as the default, flat way to attach an informal label to any entity; carry period, confidence, tagger, or suppression as RDF-star annotations on the statement when the simple metadata is enough."@x-gmeow-english .
 
 gmeow:isAbout
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "is about"@x-gmeow-english ;
@@ -108,12 +107,12 @@ gmeow:isAbout
     gmeow:useWhen "Use to record what a resource is genuinely about — its subject matter — when that is a semantic relation to another entity rather than an informal label or a classification."@x-gmeow-english .
 
 gmeow:narrowerTag
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Tag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "narrower tag"@x-gmeow-english ;
     rdfs:range gmeow:Tag ;
-    owl:inverseOf gmeow:broaderTag ;
+    logic:inverseOf gmeow:broaderTag ;
     skos:definition "A narrower, more specific tag. Inverse of gmeow:broaderTag. Optional."@x-gmeow-english ;
     skos:example "ex:tagAnimal gmeow:narrowerTag ex:tagMammal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when gmeow:broaderTag (its inverse) is the more natural statement; prefer asserting broader and reading narrower by inversion, and avoid it for associative links (gmeow:relatedTag)."@x-gmeow-english ;
@@ -122,8 +121,8 @@ gmeow:narrowerTag
     gmeow:useWhen "Use in whole-rooted traversals where stating the narrowing direction is the natural one — a broader tag pointing down to its more specific children."@x-gmeow-english .
 
 gmeow:relatedTag
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:Tag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "related tag"@x-gmeow-english ;
@@ -136,7 +135,7 @@ gmeow:relatedTag
     gmeow:useWhen "Use to link two tags by a non-hierarchical association — they travel together or co-occur — when neither is broader or narrower than the other (the counterpart of skos:related)."@x-gmeow-english .
 
 gmeow:tagInScheme
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Tag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tag in scheme"@x-gmeow-english ;
@@ -170,7 +169,7 @@ gmeow:tagUrgent
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:taggingInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging interval"@x-gmeow-english ;
@@ -183,7 +182,7 @@ gmeow:taggingInterval
     gmeow:useWhen "Use to time-scope a reified gmeow:Tagging — the period over which the tag was held to apply, when validity has a beginning or end."@x-gmeow-english .
 
 gmeow:taggingScheme
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging scheme"@x-gmeow-english ;
@@ -196,7 +195,7 @@ gmeow:taggingScheme
     gmeow:useWhen "Use to record the single scheme under which a reified gmeow:Tagging act was performed — the vocabulary context of this particular application."@x-gmeow-english .
 
 gmeow:taggingTag
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging tag"@x-gmeow-english ;
@@ -209,7 +208,7 @@ gmeow:taggingTag
     gmeow:useWhen "Use to name which gmeow:Tag a reified gmeow:Tagging act applies — the label being attached in this particular tagging."@x-gmeow-english .
 
 gmeow:taggingTagged
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging tagged"@x-gmeow-english ;
@@ -222,7 +221,7 @@ gmeow:taggingTagged
     gmeow:useWhen "Use to name the tagged resource inside a reified gmeow:Tagging relator — the entity that the tagging act applies to."@x-gmeow-english .
 
 gmeow:taggingTagger
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Tagging ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "tagging tagger"@x-gmeow-english ;
@@ -235,7 +234,7 @@ gmeow:taggingTagger
     gmeow:useWhen "Use to record who applied the tag inside a reified gmeow:Tagging — the provenance of the act when authorship of the label matters."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/tags>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Universal tagging building block — open folksonomy, aboutness, and typing as three distinct axes (Principle 9). A gmeow:Tag is an information-object value (like a skos:Concept); a gmeow:TagScheme is its namespace bucket; and gmeow:Tagging is a gufo:Relator that reifies the act of tagging with provenance, confidence, temporal scope and suppression (Principle 10). The flat gmeow:hasTag shortcut covers the 80% case; promote to Tagging when the act itself must be a node. Tags align (lossily) to SKOS, schema.org, W3C Web Annotation and MOAT."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
@@ -292,15 +291,15 @@ logic:supTgDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # --- Wave B1 shape-drain: tagging cardinality + suppression ---
 # gmeow:TaggingHasPlayersShape — a Tagging tags exactly one entity with exactly one tag and one tagger.
 gmeow:Tagging logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:taggingTagged ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:taggingTag ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:taggingTagger ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:taggingTagged ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:taggingTag ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:taggingTagger ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -308,7 +307,7 @@ gmeow:Tagging logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:taggingSchemeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "taggingScheme is functional"@x-gmeow-english ;
@@ -323,7 +322,7 @@ gmeow:taggingSchemeFunctionality
     skos:example "gmeow:taggingSchemeFunctionality logic:characterizes gmeow:taggingScheme ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:taggingTagFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "taggingTag is functional"@x-gmeow-english ;
@@ -338,7 +337,7 @@ gmeow:taggingTagFunctionality
     skos:example "gmeow:taggingTagFunctionality logic:characterizes gmeow:taggingTag ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:taggingTaggedFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "taggingTagged is functional"@x-gmeow-english ;

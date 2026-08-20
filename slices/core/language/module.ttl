@@ -3,14 +3,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Language
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Language"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
@@ -24,7 +23,7 @@ gmeow:Language
 
 gmeow:TransliterationScheme
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Transliteration Scheme"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -36,7 +35,7 @@ gmeow:TransliterationScheme
     gmeow:useWhen "Use as the value vocabulary for the transliteration axis — the named systems (Hepburn, Pinyin, ISO 233, IPA, …) a romanization can declare it was produced by via gmeow:transliterationScheme."@x-gmeow-english .
 
 gmeow:languageCode
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Language ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "language code"@x-gmeow-english ;
@@ -49,7 +48,7 @@ gmeow:languageCode
     gmeow:useWhen "Use to record a language's registry code(s) — ISO 639-3, BCP-47 primary subtag, Glottocode — as a see-also alignment for interop and lookup, while the self-minted IRI remains the identity."@x-gmeow-english .
 
 gmeow:transliterationScheme
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "transliteration scheme"@x-gmeow-english ;
@@ -62,7 +61,7 @@ gmeow:transliterationScheme
     gmeow:useWhen "Use to record which transliteration/romanization system produced an appellation's gmeow:romanization, so competing systems (Hepburn vs Kunrei, Pinyin vs Wade-Giles) are distinguished rather than silently merged."@x-gmeow-english .
 
 gmeow:writtenInLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "written in language"@x-gmeow-english ;
@@ -75,7 +74,7 @@ gmeow:writtenInLanguage
     gmeow:useWhen "Use to state the language(s) an information object is written in by pointing at first-class gmeow:Language IRIs — the registry-independent replacement for flat inLanguage code tags, covering documents, expressions, source trees, and inscription readings alike."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/language>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "The CORE half of the languages split, grafted onto the lang: grounding layer: gmeow:Language is a first-class, registry-independent gmeow:InformationObject that is now also a lang:SignSystem, so a language is a sign-system individual and never a bare tag. The natural/formal/programming distinction is carried by the lang:SignSystemKind individuals (lang:naturalLanguageKind, lang:formalLanguageKind, lang:programmingLanguageKind) rather than a local subclass ladder; the identity of a language and the framework's own translation-target carriers (English, French, Mandarin) live as lang: sign systems and their carrier lang:LanguageVariety individuals, with the private-use x-gmeow-* tag carried by lang:carrierTag and the standard BCP-47 tag derived by projection from the variety structure. gmeow:languageCode (registry alignment), gmeow:writtenInLanguage, and gmeow:transliterationScheme / gmeow:TransliterationScheme remain here. The rich sociolinguistic machinery (proficiency, writing-system usage, varieties, diachronic states, version lineage, conlangs) lives in the languages extension slice, which extends these classes."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;

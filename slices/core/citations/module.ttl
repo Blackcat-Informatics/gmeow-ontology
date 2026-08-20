@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CitationAct
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Citation Act"@x-gmeow-english ;
     logic:mediates gmeow:citingEntity ,
@@ -16,19 +15,19 @@ gmeow:CitationAct
         gmeow:citationIntent ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:citingEntity ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:citingEntity ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:citedEntity ;
-            owl:someValuesFrom gmeow:CreativeWork ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:citedEntity ;
+            logic:someValuesFrom gmeow:CreativeWork ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:citationIntent ;
-            owl:someValuesFrom gmeow:CitationIntent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:citationIntent ;
+            logic:someValuesFrom gmeow:CitationIntent ;
         ] ;
     skos:definition "A reified citation: a citing entity cites a cited entity with a typed intent, optionally via a selector (a pinpoint into the cited work), carrying provenance, confidence, and standpoint. Replaces the old hasSource/citesSource: genealogical evidence is a CitationAct with intent intentCitesAsDataSource toward a creative work, via a selector. ENACTS rather than describes the cited work (kernel gmeow:hasAboutness gmeow:aboutnessEnacts): the act points at the work, it does not become a description of it."@x-gmeow-english ;
     skos:example "ex:citeAct a gmeow:CitationAct ; gmeow:citingEntity ex:birthClaim ; gmeow:citedEntity ex:parishRegister ; gmeow:citationIntent gmeow:intentCitesAsDataSource ; gmeow:viaSelector ex:page42 ."@x-gmeow-english ;
@@ -42,7 +41,7 @@ gmeow:CitationAct
 
 gmeow:CitationIntent
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Citation Intent"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -55,7 +54,7 @@ gmeow:CitationIntent
 
 gmeow:ContributionDegree
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Contribution Degree"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -68,7 +67,7 @@ gmeow:ContributionDegree
 
 gmeow:Selector
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Selector"@x-gmeow-english ;
     rdfs:subClassOf gmeow:EvidenceSpan ;
@@ -81,7 +80,7 @@ gmeow:Selector
 
 gmeow:SourceRole
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Source Role"@x-gmeow-english ;
     rdfs:subClassOf logic:FunctionalComplex ,
@@ -95,7 +94,7 @@ gmeow:SourceRole
     gmeow:useWhen "Use (sparingly) when source-hood needs a named handle — to type a gmeow:CreativeWork as contingently playing the source role for queries or display — beyond the relator-mediated citation it normally rides on."@x-gmeow-english .
 
 gmeow:citationIntent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citation intent"@x-gmeow-english ;
@@ -108,7 +107,7 @@ gmeow:citationIntent
     gmeow:useWhen "Use to type WHY a gmeow:CitationAct cites — data source, method, extension, agreement, disagreement — by referencing a gmeow:CitationIntent value, the axis that projects to CiTO sub-properties."@x-gmeow-english .
 
 gmeow:citedEntity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "cited entity"@x-gmeow-english ;
@@ -121,7 +120,7 @@ gmeow:citedEntity
     gmeow:useWhen "Use to bind the cited player of a gmeow:CitationAct — the gmeow:CreativeWork (any WEMI tier) the citation points at."@x-gmeow-english .
 
 gmeow:cites
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "cites"@x-gmeow-english ;
@@ -138,7 +137,7 @@ gmeow:cites
     gmeow:useWhen "Use for the flat, direct case where an entity simply cites a creative work and the intent, locus, provenance, and standpoint of the citation need not be first-class."@x-gmeow-english .
 
 gmeow:citingEntity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citing entity"@x-gmeow-english ;
@@ -243,12 +242,12 @@ gmeow:intentUsesMethodIn
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:isReferencedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "is referenced by"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    owl:inverseOf gmeow:references ;
+    logic:inverseOf gmeow:references ;
     skos:definition "A related resource that references, cites, or otherwise points to the described resource. Inverse of gmeow:references."@x-gmeow-english ;
     skos:example "ex:originalMessage gmeow:isReferencedBy ex:reply ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when gmeow:references already states the forward link (let it follow by inversion) and avoid using it for typed citations, where a gmeow:CitationAct carries the intent and locus."@x-gmeow-english ;
@@ -257,7 +256,7 @@ gmeow:isReferencedBy
     gmeow:useWhen "Use when traversing or projecting from a resource to the things that point at it — back-references in a message thread or citation graph — reading the inverse direction of gmeow:references."@x-gmeow-english .
 
 gmeow:references
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "references"@x-gmeow-english ;
@@ -270,7 +269,7 @@ gmeow:references
     gmeow:useWhen "Use for the generic, flat-first pointer from one entity to a related resource it points to — a message-thread reference or a bibliographic reference — when the kind, locus, or standpoint of the link need not be typed."@x-gmeow-english .
 
 gmeow:selectorLocator
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "selector locator"@x-gmeow-english ;
@@ -283,7 +282,7 @@ gmeow:selectorLocator
     gmeow:useWhen "Use to record a structural or domain locator a gmeow:Selector pinpoints when neither a page nor a character offset fits — a section, figure, image, table, or register entry."@x-gmeow-english .
 
 gmeow:selectorPage
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "selector page"@x-gmeow-english ;
@@ -296,7 +295,7 @@ gmeow:selectorPage
     gmeow:useWhen "Use to record the page or page range a gmeow:Selector pinpoints within a cited work."@x-gmeow-english .
 
 gmeow:selectorTextPosition
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "selector text position"@x-gmeow-english ;
@@ -309,7 +308,7 @@ gmeow:selectorTextPosition
     gmeow:useWhen "Use to record a character offset or text-position range a gmeow:Selector pinpoints — the machine-precise locus into a digital cited work."@x-gmeow-english .
 
 gmeow:selectorTextQuote
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Selector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "selector text quote"@x-gmeow-english ;
@@ -322,7 +321,7 @@ gmeow:selectorTextQuote
     gmeow:useWhen "Use to record the verbatim passage a gmeow:Selector anchors on — the durable, re-locatable form of a pinpoint that survives re-pagination of the cited work."@x-gmeow-english .
 
 gmeow:viaSelector
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "via selector"@x-gmeow-english ;
@@ -335,7 +334,7 @@ gmeow:viaSelector
     gmeow:useWhen "Use to pinpoint WHERE in the cited work a gmeow:CitationAct lands — a page, text position, quote, or generic locator — when the citation targets a specific locus rather than the whole work."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/citations>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Citation, credit, and attribution — the universal CitationAct relator,
 Contribution degree, and selector vocabulary. Replaces the old sources.ttl evidence link
@@ -434,15 +433,15 @@ logic:speOtherIn a logic:Formula ; logic:relation logic:termIn ;
 # gmeow:CitationActShape — a CitationAct has exactly one citing entity, one cited entity, and one
 # citation intent.
 gmeow:CitationAct logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:citingEntity ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:citedEntity ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:citationIntent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:citingEntity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:citedEntity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:citationIntent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -450,7 +449,7 @@ gmeow:CitationAct logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:citationIntentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citationIntent is functional"@x-gmeow-english ;
@@ -465,7 +464,7 @@ gmeow:citationIntentFunctionality
     skos:example "gmeow:citationIntentFunctionality logic:characterizes gmeow:citationIntent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:citedEntityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citedEntity is functional"@x-gmeow-english ;
@@ -480,7 +479,7 @@ gmeow:citedEntityFunctionality
     skos:example "gmeow:citedEntityFunctionality logic:characterizes gmeow:citedEntity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:citingEntityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "citingEntity is functional"@x-gmeow-english ;

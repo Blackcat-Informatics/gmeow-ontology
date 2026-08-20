@@ -20,7 +20,6 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -32,7 +31,7 @@
 
 gmeow:DocumentedTerm
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -47,7 +46,7 @@ gmeow:DocumentedTerm
 
 gmeow:DocumentedSlice
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -62,7 +61,7 @@ gmeow:DocumentedSlice
 
 gmeow:DocumentedConcern
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -77,7 +76,7 @@ gmeow:DocumentedConcern
 
 gmeow:DocumentedMappingSet
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -92,7 +91,7 @@ gmeow:DocumentedMappingSet
 
 gmeow:DocumentedDocument
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -133,13 +132,13 @@ logic:documentedDocumentSuper a logic:Formula ; logic:relation rdf:type ;
 
 gmeow:DocEvidence
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "Doc Evidence"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "One uniform proof-carrying evidence node in a documented term's justification DAG: a claim (gmeow:docClaim) held together WITH its grounds (one or more MANDATORY gmeow:docGroundedBy carrier truthmakers), classified by exactly one gmeow:DocEvidenceKind (competency, diagnostics, fixture, loss, provenance) via gmeow:docEvidenceKind. Every kind carries the SAME shape — claim, grounding, typed counts, optional judgment — so a future evidence source plugs in as a new kind, not a new predicate family. An ungrounded DocEvidence node is the doc-layer analogue of a DARK finding and is forbidden by construction: the grounding obligation is enforced by the SHACL gmeow:DocEvidenceGroundingShape (shapes.ttl) and, over the live projection, by crates/docs/tests/doc_evidence.rs — NOT by an owl:minCardinality restriction, because gmeow:docGroundedBy carries both IRI and literal objects and so is an owl:AnnotationProperty (a cardinality restriction on it would leave OWL 2 DL). It is emitted ONLY when the term genuinely carries that evidence — never a vacuous node."@x-gmeow-english ;
+    skos:definition "One uniform proof-carrying evidence node in a documented term's justification DAG: a claim (gmeow:docClaim) held together WITH its grounds (one or more MANDATORY gmeow:docGroundedBy carrier truthmakers), classified by exactly one gmeow:DocEvidenceKind (competency, diagnostics, fixture, loss, provenance) via gmeow:docEvidenceKind. Every kind carries the SAME shape — claim, grounding, typed counts, optional judgment — so a future evidence source plugs in as a new kind, not a new predicate family. An ungrounded DocEvidence node is the doc-layer analogue of a DARK finding and is forbidden by construction: the grounding obligation is enforced by the SHACL gmeow:DocEvidenceGroundingShape (shapes.ttl) and, over the live projection, by crates/docs/tests/doc_evidence.rs — NOT by an OWL minCardinality restriction, because gmeow:docGroundedBy carries both IRI and literal objects and so is an OWL AnnotationProperty (a cardinality restriction on it would leave OWL 2 DL). It is emitted ONLY when the term genuinely carries that evidence — never a vacuous node."@x-gmeow-english ;
     skos:example "ex:evCatCompetency a gmeow:DocEvidence ; gmeow:documents gmeow:Cat ; gmeow:docEvidenceKind gmeow:docEvidenceKindCompetency ; gmeow:docClaim \"exercised by 1 competency question\" ; gmeow:docGroundedBy ex:cqCatsAreAnimals ; gmeow:docCompetencyCount 1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting one without a gmeow:docGroundedBy truthmaker (an ungrounded evidence node is a DARK claim), avoid a vacuous node for a kind the term does not carry, and avoid splitting the kinds into parallel predicate families — the uniform shape is the point."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -153,7 +152,7 @@ gmeow:DocEvidence
 
 gmeow:DocEvidenceKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -205,18 +204,18 @@ gmeow:docEvidenceKindProvenance
 # gmeow:documents / gmeow:docOwnerSlice point at TBox terms and slice/ontology
 # nodes; gmeow:docGroundedBy carries BOTH IRI truthmakers (competency, stage,
 # fixture IRIs) and code literals (finding codes, loss-target ids). All three are
-# owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) so the
+# OWL AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) so the
 # generated OWL stays in OWL 2 DL despite pointing at classes/properties (which a
 # logical object property would pun as individuals) or mixing IRI and literal
-# objects (which no single owl:ObjectProperty / owl:DatatypeProperty could hold).
+# objects (which no single OWL ObjectProperty / OWL DatatypeProperty could hold).
 
 gmeow:documents
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "documents"@x-gmeow-english ;
-    skos:definition "Links a documentation-projection record (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet / gmeow:DocEvidence) to the real subject IRI it documents — the term, slice, concern, or mapping set. An owl:AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual; the annotation form keeps the generated OWL in OWL 2 DL."@x-gmeow-english ;
+    skos:definition "Links a documentation-projection record (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet / gmeow:DocEvidence) to the real subject IRI it documents — the term, slice, concern, or mapping set. An OWL AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual; the annotation form keeps the generated OWL in OWL 2 DL."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:documents gmeow:Cat ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at the documentation record itself (it points AT the documented subject, not back at the record) and avoid using it as a logical object property — its object is often a class or property, so it stays an annotation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -224,12 +223,12 @@ gmeow:documents
     gmeow:useWhen "Use to name the subject a documentation record is about — the bridge from the documentation graph back to the term, slice, concern, or mapping set it describes."@x-gmeow-english .
 
 gmeow:docOwnerSlice
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc owner slice"@x-gmeow-english ;
-    skos:definition "Names the slice that owns the term a gmeow:DocumentedTerm documents — the slice whose module.ttl defines the term (its rdfs:isDefinedBy). An owl:AnnotationProperty because its object is a slice node that is simultaneously an owl:Ontology, which a logical object property would pun; the annotation form keeps the generated OWL in OWL 2 DL."@x-gmeow-english ;
+    skos:definition "Names the slice that owns the term a gmeow:DocumentedTerm documents — the slice whose module.ttl defines the term (its rdfs:isDefinedBy). An OWL AnnotationProperty because its object is a slice node that is simultaneously an OWL Ontology, which a logical object property would pun; the annotation form keeps the generated OWL in OWL 2 DL."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docOwnerSlice ex:sliceZoo ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at anything but the term's OWNING slice (the one whose module defines it), and avoid deriving ownership from where a term is merely referenced — ownership is the single rdfs:isDefinedBy slice."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -237,12 +236,12 @@ gmeow:docOwnerSlice
     gmeow:useWhen "Use to record which slice a documented term belongs to, so the documentation surface can group terms by owning slice and link a term back to its slice page."@x-gmeow-english .
 
 gmeow:docGroundedBy
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc grounded by"@x-gmeow-english ;
-    skos:definition "The MANDATORY carrier truthmaker(s) that ground a gmeow:DocEvidence claim — the reason the claim is asserted. Its object is EITHER an IRI (a competency-question IRI, the stage-docs-render IRI, a minted fixture IRI) OR a code literal (a diagnostic finding code, a loss-target identifier), depending on the evidence kind. Because it mixes IRI and literal objects — which no single owl:ObjectProperty or owl:DatatypeProperty could carry — it is an owl:AnnotationProperty. Every gmeow:DocEvidence node MUST carry at least one (the fail-fast grounding invariant); an ungrounded node is the doc-layer analogue of a DARK finding."@x-gmeow-english ;
+    skos:definition "The MANDATORY carrier truthmaker(s) that ground a gmeow:DocEvidence claim — the reason the claim is asserted. Its object is EITHER an IRI (a competency-question IRI, the stage-docs-render IRI, a minted fixture IRI) OR a code literal (a diagnostic finding code, a loss-target identifier), depending on the evidence kind. Because it mixes IRI and literal objects — which no single OWL ObjectProperty or OWL DatatypeProperty could carry — it is an OWL AnnotationProperty. Every gmeow:DocEvidence node MUST carry at least one (the fail-fast grounding invariant); an ungrounded node is the doc-layer analogue of a DARK finding."@x-gmeow-english ;
     skos:example "ex:evCatCompetency gmeow:docGroundedBy ex:cqCatsAreAnimals ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid emitting a gmeow:DocEvidence node without one (an ungrounded claim is DARK), and avoid inventing a truthmaker to satisfy the invariant — ground it in the real carrier fact or do not emit the node."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -252,14 +251,14 @@ gmeow:docGroundedBy
 # ── The evidence-kind classifier (instance → value) ──────────────────────────
 
 gmeow:docEvidenceKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc evidence kind"@x-gmeow-english ;
     rdfs:range gmeow:DocEvidenceKind ;
-    skos:definition "Classifies a gmeow:DocEvidence node by exactly one gmeow:DocEvidenceKind value (competency, diagnostics, fixture, loss, provenance). An instance-level owl:ObjectProperty from an evidence node to an enumerated kind individual — the join key that lets the uniform evidence shape absorb a new source as a new kind rather than a new predicate family."@x-gmeow-english ;
+    skos:definition "Classifies a gmeow:DocEvidence node by exactly one gmeow:DocEvidenceKind value (competency, diagnostics, fixture, loss, provenance). An instance-level OWL ObjectProperty from an evidence node to an enumerated kind individual — the join key that lets the uniform evidence shape absorb a new source as a new kind rather than a new predicate family."@x-gmeow-english ;
     skos:example "ex:evCatLoss gmeow:docEvidenceKind gmeow:docEvidenceKindLoss ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at a string literal (the kind is a first-class join-able individual, not a label) and avoid asserting more than one kind per node — a node is one kind's evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -269,7 +268,7 @@ gmeow:docEvidenceKind
 # ── Typed datatype predicates on the projection records ──────────────────────
 
 gmeow:docCategory
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedTerm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -284,7 +283,7 @@ gmeow:docCategory
     gmeow:useWhen "Use to record the coarse vocabulary category of a documented term for display and grouping on the documentation surface."@x-gmeow-english .
 
 gmeow:docHasDefinition
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedTerm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -299,7 +298,7 @@ gmeow:docHasDefinition
     gmeow:useWhen "Use to record whether a documented term has a definition, so the documentation surface can surface definition-completeness at a glance."@x-gmeow-english .
 
 gmeow:docUrl
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -313,14 +312,14 @@ gmeow:docUrl
     gmeow:useWhen "Use to record where a documentation record's page lives on the rendered site, so the documentation graph can link to its own HTML."@x-gmeow-english .
 
 gmeow:docReasoningStatus
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedTerm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc reasoning status"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The per-term native-reasoner verdict, projected ONLY when a reasoning verdict is attached — one of \"satisfiable\", \"unsatisfiable\" (a class proven to entail owl:Nothing), or \"not-evaluated\" (a property, individual, or datatype the reasoner decides no satisfiability for). Absent rather than fabricated when no verdict is attached: the documentation surface never carries an unfounded satisfiability claim."@x-gmeow-english ;
+    skos:definition "The per-term native-reasoner verdict, projected ONLY when a reasoning verdict is attached — one of \"satisfiable\", \"unsatisfiable\" (a class proven to entail OWL Nothing), or \"not-evaluated\" (a property, individual, or datatype the reasoner decides no satisfiability for). Absent rather than fabricated when no verdict is attached: the documentation surface never carries an unfounded satisfiability claim."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docReasoningStatus \"satisfiable\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid emitting it without a real reasoner verdict (an unfounded satisfiability claim is worse than an honest absence) and avoid reading \"not-evaluated\" as \"satisfiable\" — the two never collapse."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -328,7 +327,7 @@ gmeow:docReasoningStatus
     gmeow:useWhen "Use to record a documented class's satisfiability under the native reasoner, so the documentation surface can flag an inconsistent term."@x-gmeow-english .
 
 gmeow:docClaim
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -343,7 +342,7 @@ gmeow:docClaim
     gmeow:useWhen "Use to record the one-line human summary of what a documentation evidence node asserts about its term."@x-gmeow-english .
 
 gmeow:docProducedByChain
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -358,7 +357,7 @@ gmeow:docProducedByChain
     gmeow:useWhen "Use to record the human-readable build lineage that produced a documentation evidence node, so a reader can trace which stages made it."@x-gmeow-english .
 
 gmeow:docJudgment
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -373,7 +372,7 @@ gmeow:docJudgment
     gmeow:useWhen "Use to record a preservation or confidence verdict on a documentation evidence node, where the kind supplies one."@x-gmeow-english .
 
 gmeow:docCompetencyCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -388,7 +387,7 @@ gmeow:docCompetencyCount
     gmeow:useWhen "Use to record how many competency questions exercise a documented term on its competency evidence node."@x-gmeow-english .
 
 gmeow:docCompetencyQueryDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -403,7 +402,7 @@ gmeow:docCompetencyQueryDigest
     gmeow:useWhen "Use to fingerprint the competency queries that exercise a documented term, so query drift is detectable from the documentation graph alone."@x-gmeow-english .
 
 gmeow:docFindingCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -418,7 +417,7 @@ gmeow:docFindingCount
     gmeow:useWhen "Use to record how many diagnostic findings concern a documented term on its diagnostics evidence node."@x-gmeow-english .
 
 gmeow:docFixtureCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -433,7 +432,7 @@ gmeow:docFixtureCount
     gmeow:useWhen "Use to record how many conformance fixtures reference a documented term on its fixture evidence node."@x-gmeow-english .
 
 gmeow:docLossRowCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -448,7 +447,7 @@ gmeow:docLossRowCount
     gmeow:useWhen "Use to record how many projection-loss rows a documented term incurs on its loss evidence node."@x-gmeow-english .
 
 gmeow:docProvenanceDepth
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocEvidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -470,7 +469,7 @@ gmeow:docProvenanceDepth
 
 gmeow:DocFixture
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -485,7 +484,7 @@ gmeow:DocFixture
 
 gmeow:DocFixtureKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -513,14 +512,14 @@ gmeow:docFixtureKindCounterExample
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:docFixtureKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DocFixture ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc fixture kind"@x-gmeow-english ;
     rdfs:range gmeow:DocFixtureKind ;
-    skos:definition "Classifies a gmeow:DocFixture by exactly one gmeow:DocFixtureKind value — well-formed or counter-example. An instance-level owl:ObjectProperty from the fixture record to an enumerated kind individual, never a plain string tag."@x-gmeow-english ;
+    skos:definition "Classifies a gmeow:DocFixture by exactly one gmeow:DocFixtureKind value — well-formed or counter-example. An instance-level OWL ObjectProperty from the fixture record to an enumerated kind individual, never a plain string tag."@x-gmeow-english ;
     skos:example "ex:fixtureCatOk gmeow:docFixtureKind gmeow:docFixtureKindWellformed ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at a string literal (the kind is a first-class individual) and avoid asserting more than one kind per fixture."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -528,7 +527,7 @@ gmeow:docFixtureKind
     gmeow:useWhen "Use to record whether a documentation fixture is a well-formed instance or a counter-example."@x-gmeow-english .
 
 gmeow:docFixtureText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocFixture ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -543,7 +542,7 @@ gmeow:docFixtureText
     gmeow:useWhen "Use to carry the full Turtle body of a conformance fixture so an offline consumer can read or run it from the documentation graph."@x-gmeow-english .
 
 gmeow:docExpectedOutcome
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocFixture ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -558,7 +557,7 @@ gmeow:docExpectedOutcome
     gmeow:useWhen "Use to record whether a bound conformance fixture is expected to conform or violate."@x-gmeow-english .
 
 gmeow:docViolationCode
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocFixture ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -573,7 +572,7 @@ gmeow:docViolationCode
     gmeow:useWhen "Use to record the constraint a counter-example fixture is expected to violate."@x-gmeow-english .
 
 gmeow:conformanceRationale
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocFixture ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -596,7 +595,7 @@ gmeow:conformanceRationale
 
 gmeow:DocumentedCompetency
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -611,7 +610,7 @@ gmeow:DocumentedCompetency
 
 gmeow:CompetencyExpectedRow
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -625,7 +624,7 @@ gmeow:CompetencyExpectedRow
     gmeow:useWhen "Use to carry one enumerated expected result row of a competency question as queryable RDF."@x-gmeow-english .
 
 gmeow:cqQueryText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedCompetency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -640,7 +639,7 @@ gmeow:cqQueryText
     gmeow:useWhen "Use to carry the runnable SPARQL body of a competency question so an offline consumer can execute it from the documentation graph."@x-gmeow-english .
 
 gmeow:cqExpectRowCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedCompetency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -655,7 +654,7 @@ gmeow:cqExpectRowCount
     gmeow:useWhen "Use to record the expected cardinality of a competency question that pins a row count rather than enumerating rows."@x-gmeow-english .
 
 gmeow:cqExactRows
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedCompetency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -670,7 +669,7 @@ gmeow:cqExactRows
     gmeow:useWhen "Use to record whether a competency question's enumerated rows are the exact result set or a required subset."@x-gmeow-english .
 
 gmeow:cqRationale
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedCompetency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -685,7 +684,7 @@ gmeow:cqRationale
     gmeow:useWhen "Use to record why the ontology must answer a competency question."@x-gmeow-english .
 
 gmeow:cqExpectedRow
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DocumentedCompetency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -700,7 +699,7 @@ gmeow:cqExpectedRow
     gmeow:useWhen "Use to attach an enumerated expected result row to a documented competency question."@x-gmeow-english .
 
 gmeow:cqCellVar
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompetencyExpectedRow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -715,12 +714,12 @@ gmeow:cqCellVar
     gmeow:useWhen "Use to record which SPARQL variable an expected-row cell binds."@x-gmeow-english .
 
 gmeow:cqCellValueIri
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq cell value iri"@x-gmeow-english ;
-    skos:definition "The expected IRI binding of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a resource — distinct from gmeow:cqCellValueLiteral, which carries a literal lexical form instead of a resource IRI. An owl:AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual."@x-gmeow-english ;
+    skos:definition "The expected IRI binding of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a resource — distinct from gmeow:cqCellValueLiteral, which carries a literal lexical form instead of a resource IRI. An OWL AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual."@x-gmeow-english ;
     skos:example "ex:cqCatsRow0 gmeow:cqCellValueIri gmeow:Cat ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it alongside gmeow:cqCellValueLiteral on the same cell (a cell binds either a resource or a literal) and avoid using it as a logical object property."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -728,7 +727,7 @@ gmeow:cqCellValueIri
     gmeow:useWhen "Use to record the expected IRI an expected-row cell binds."@x-gmeow-english .
 
 gmeow:cqCellValueLiteral
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompetencyExpectedRow ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -750,7 +749,7 @@ gmeow:cqCellValueLiteral
 
 gmeow:Entailment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -764,7 +763,7 @@ gmeow:Entailment
     gmeow:useWhen "Use to name one reasoner derivation about a documented term as queryable RDF in the documentation graph."@x-gmeow-english .
 
 gmeow:entailmentRule
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entailment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -779,7 +778,7 @@ gmeow:entailmentRule
     gmeow:useWhen "Use to record which rule fired to produce a documented-term entailment."@x-gmeow-english .
 
 gmeow:entailmentConclusion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entailment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -794,7 +793,7 @@ gmeow:entailmentConclusion
     gmeow:useWhen "Use to record the triple a documented-term entailment derives."@x-gmeow-english .
 
 gmeow:entailmentPremise
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entailment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -821,7 +820,7 @@ gmeow:entailmentPremise
 
 gmeow:DocCoverageDimension
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -978,7 +977,7 @@ gmeow:dimLossJudgmentSound
 
 gmeow:DocMaturity
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -1065,14 +1064,14 @@ gmeow:docMaturityMaximal
 # ── Maturity + coverage projection predicates ────────────────────────────────
 
 gmeow:maturityRequiresDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DocMaturity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "maturity requires dimension"@x-gmeow-english ;
     rdfs:range gmeow:DocCoverageDimension ;
-    skos:definition "Names one gmeow:DocCoverageDimension in a gmeow:DocMaturity anchor's INTENT — the structural coverage facts the anchor requires. The union of an anchor's gmeow:maturityRequiresDimension objects IS its intent; the anchors are authored so their intents nest (Minimal ⊆ Basic ⊆ Full ⊆ Maximal), and a term/slice earns an anchor exactly when its covered-dimension set ⊇ the anchor's intent. An instance-level owl:ObjectProperty from an anchor value to a dimension value — the join the Formal-Concept closure runs over."@x-gmeow-english ;
+    skos:definition "Names one gmeow:DocCoverageDimension in a gmeow:DocMaturity anchor's INTENT — the structural coverage facts the anchor requires. The union of an anchor's gmeow:maturityRequiresDimension objects IS its intent; the anchors are authored so their intents nest (Minimal ⊆ Basic ⊆ Full ⊆ Maximal), and a term/slice earns an anchor exactly when its covered-dimension set ⊇ the anchor's intent. An instance-level OWL ObjectProperty from an anchor value to a dimension value — the join the Formal-Concept closure runs over."@x-gmeow-english ;
     skos:example "gmeow:docMaturityFull gmeow:maturityRequiresDimension gmeow:dimFixturePair ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting an intent that breaks nesting (a lower anchor requiring a dimension a higher one does not); avoid pointing it at anything but a seeded gmeow:DocCoverageDimension individual; avoid deriving the intent by inference rather than authoring it explicitly — the structural gate checks the authored triples."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1080,13 +1079,13 @@ gmeow:maturityRequiresDimension
     gmeow:useWhen "Use to declare which coverage dimensions a maturity anchor requires — the anchor's intent, the set a documented record's coverage must include to earn it."@x-gmeow-english .
 
 gmeow:sliceDocMaturity
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "slice doc maturity"@x-gmeow-english ;
     rdfs:range gmeow:DocMaturity ;
-    skos:definition "The documentation-maturity anchor a slice CLAIMS — asserted about the slice in its manifest, a gmeow:DocMaturity individual. An owl:AnnotationProperty (the gmeow:termStability pattern, Principle 3) because it is asserted ABOUT a slice / owl:Ontology node, keeping the generated OWL in OWL 2 DL. When absent, the docs generator derives the slice's maturity from its EARNED floor (gmeow:docEarnedMaturity); an explicit assertion is the CLAIM the asserted ⊄ earned gate checks against the earned floor."@x-gmeow-english ;
+    skos:definition "The documentation-maturity anchor a slice CLAIMS — asserted about the slice in its manifest, a gmeow:DocMaturity individual. An OWL AnnotationProperty (the gmeow:termStability pattern, Principle 3) because it is asserted ABOUT a slice / OWL Ontology node, keeping the generated OWL in OWL 2 DL. When absent, the docs generator derives the slice's maturity from its EARNED floor (gmeow:docEarnedMaturity); an explicit assertion is the CLAIM the asserted ⊄ earned gate checks against the earned floor."@x-gmeow-english ;
     skos:example "ex:sliceZoo gmeow:sliceDocMaturity gmeow:docMaturityFull ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting a maturity the slice's coverage does not support (the earned floor will be lower and the gate bites) and avoid using it on a term rather than a slice — a term's coverage rolls up into its slice's earned maturity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1094,13 +1093,13 @@ gmeow:sliceDocMaturity
     gmeow:useWhen "Use to record the documentation-maturity tier a slice claims for itself, so the gate can check the claim against the maturity its coverage earns."@x-gmeow-english .
 
 gmeow:docEarnedMaturity
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc earned maturity"@x-gmeow-english ;
     rdfs:range gmeow:DocMaturity ;
-    skos:definition "The documentation-maturity anchor a term or slice EARNS — the projected floor: the largest gmeow:DocMaturity anchor whose intent (its gmeow:maturityRequiresDimension set) is a subset of the record's covered-dimension set, computed by the deterministic Formal-Concept closure over the gmeow:docCoversDimension incidence. Emitted by the docs projection (crates/docs), never authored. An owl:AnnotationProperty (mirroring gmeow:sliceDocMaturity) because it is asserted about a slice / documented-term record whose subject a logical object property would pun. The gate is exactly gmeow:sliceDocMaturity ⊄ gmeow:docEarnedMaturity → violation."@x-gmeow-english ;
+    skos:definition "The documentation-maturity anchor a term or slice EARNS — the projected floor: the largest gmeow:DocMaturity anchor whose intent (its gmeow:maturityRequiresDimension set) is a subset of the record's covered-dimension set, computed by the deterministic Formal-Concept closure over the gmeow:docCoversDimension incidence. Emitted by the docs projection (crates/docs), never authored. An OWL AnnotationProperty (mirroring gmeow:sliceDocMaturity) because it is asserted about a slice / documented-term record whose subject a logical object property would pun. The gate is exactly gmeow:sliceDocMaturity ⊄ gmeow:docEarnedMaturity → violation."@x-gmeow-english ;
     skos:example "ex:sliceZoo gmeow:docEarnedMaturity gmeow:docMaturityBasic ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid authoring it by hand (it is a projection of the covered-dimension set) and avoid reading it as the claim — it is the EARNED floor the claim (gmeow:sliceDocMaturity) is checked against."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1108,13 +1107,13 @@ gmeow:docEarnedMaturity
     gmeow:useWhen "Use to record the documentation maturity a term or slice actually earns from its coverage, so the gate and the health page read one projected floor rather than re-deriving it."@x-gmeow-english .
 
 gmeow:coverageFraction
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "coverage fraction"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "The bounded coverage fraction of a documented record against a maturity intent — |covered ∩ intent| / |intent|, a decimal in the closed interval [0,1] (an empty intent yields 1.0). The ONLY numeric on the maturity surface, and a bounded fraction by construction (never an unbounded ratio), so it can never be tuned to a target: it reports how much of an anchor's intent a record's coverage meets. An owl:AnnotationProperty mirroring gmeow:docEarnedMaturity (asserted about a slice / documented-term record), keeping the generated OWL in OWL 2 DL."@x-gmeow-english ;
+    skos:definition "The bounded coverage fraction of a documented record against a maturity intent — |covered ∩ intent| / |intent|, a decimal in the closed interval [0,1] (an empty intent yields 1.0). The ONLY numeric on the maturity surface, and a bounded fraction by construction (never an unbounded ratio), so it can never be tuned to a target: it reports how much of an anchor's intent a record's coverage meets. An OWL AnnotationProperty mirroring gmeow:docEarnedMaturity (asserted about a slice / documented-term record), keeping the generated OWL in OWL 2 DL."@x-gmeow-english ;
     skos:example "ex:sliceZoo gmeow:coverageFraction \"0.5\"^^xsd:decimal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as a tunable score or ranking axis (it is a bounded objective fraction, not a grade), avoid values outside [0,1], and avoid substituting it for the earned anchor — the anchor is the gate, the fraction is the burn-down readout."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1122,13 +1121,13 @@ gmeow:coverageFraction
     gmeow:useWhen "Use to record how much of a maturity anchor's intent a documented record's coverage meets, as a bounded [0,1] fraction driving the gap-to-next-tier burn-down."@x-gmeow-english .
 
 gmeow:docCoversDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc covers dimension"@x-gmeow-english ;
     rdfs:range gmeow:DocCoverageDimension ;
-    skos:definition "The positive incidence relation the Formal-Concept closure runs over: the documented record (a gmeow:DocumentedTerm or gmeow:DocumentedSlice) COVERS this gmeow:DocCoverageDimension — the dimension's deterministic structural detector fires for the record. Emitted per record by the docs projection (crates/docs); the union of a record's covered dimensions is its concept intent, from which gmeow:docEarnedMaturity and gmeow:coverageFraction are computed. An instance-level owl:ObjectProperty into the value vocabulary (mirrors gmeow:docEvidenceKind); its domain is left open (both gmeow:DocumentedTerm and gmeow:DocumentedSlice records carry it)."@x-gmeow-english ;
+    skos:definition "The positive incidence relation the Formal-Concept closure runs over: the documented record (a gmeow:DocumentedTerm or gmeow:DocumentedSlice) COVERS this gmeow:DocCoverageDimension — the dimension's deterministic structural detector fires for the record. Emitted per record by the docs projection (crates/docs); the union of a record's covered dimensions is its concept intent, from which gmeow:docEarnedMaturity and gmeow:coverageFraction are computed. An instance-level OWL ObjectProperty into the value vocabulary (mirrors gmeow:docEvidenceKind); its domain is left open (both gmeow:DocumentedTerm and gmeow:DocumentedSlice records carry it)."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docCoversDimension gmeow:dimDefinition ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it for a dimension whose detector did not fire (it is the actual incidence, not an aspiration) and avoid asserting both gmeow:docCoversDimension and gmeow:docMissesDimension for the same record/dimension pair — a dimension is covered XOR missed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1136,13 +1135,13 @@ gmeow:docCoversDimension
     gmeow:useWhen "Use to record that a documented term or slice covers a coverage dimension — the positive edge of the incidence the maturity anchors are intents over."@x-gmeow-english .
 
 gmeow:docMissesDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc misses dimension"@x-gmeow-english ;
     rdfs:range gmeow:DocCoverageDimension ;
-    skos:definition "The negative incidence relation: the documented record (a gmeow:DocumentedTerm or gmeow:DocumentedSlice) MISSES this gmeow:DocCoverageDimension — the dimension's deterministic structural detector did NOT fire for the record. Emitted per record by the docs projection (crates/docs) as the complement of gmeow:docCoversDimension, so the health page can render the gap-to-next-tier burn-down directly rather than re-deriving it. An instance-level owl:ObjectProperty into the value vocabulary (mirrors gmeow:docEvidenceKind); its domain is left open (both record kinds carry it)."@x-gmeow-english ;
+    skos:definition "The negative incidence relation: the documented record (a gmeow:DocumentedTerm or gmeow:DocumentedSlice) MISSES this gmeow:DocCoverageDimension — the dimension's deterministic structural detector did NOT fire for the record. Emitted per record by the docs projection (crates/docs) as the complement of gmeow:docCoversDimension, so the health page can render the gap-to-next-tier burn-down directly rather than re-deriving it. An instance-level OWL ObjectProperty into the value vocabulary (mirrors gmeow:docEvidenceKind); its domain is left open (both record kinds carry it)."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docMissesDimension gmeow:dimScopeNote ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it for a dimension whose detector fired (that is gmeow:docCoversDimension) and avoid asserting both for the same record/dimension pair — a dimension is covered XOR missed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1158,7 +1157,7 @@ gmeow:docMissesDimension
 # never diverge.
 
 gmeow:docSearchLabel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -1172,7 +1171,7 @@ gmeow:docSearchLabel
     gmeow:useWhen "Use to carry the real display label of a documentation record as the primary field an offline docs_search matches over the documentation graph."@x-gmeow-english .
 
 gmeow:docSearchDefinition
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -1186,7 +1185,7 @@ gmeow:docSearchDefinition
     gmeow:useWhen "Use to carry the real definition prose of a documentation record so an offline docs_search can match on the definition text."@x-gmeow-english .
 
 gmeow:docSourcePath
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedDocument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -1202,7 +1201,7 @@ gmeow:docSourcePath
     gmeow:useWhen "Use to carry and query the authored source path a rendered documentation page projects."@x-gmeow-english .
 
 gmeow:docTitle
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedDocument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -1218,7 +1217,7 @@ gmeow:docTitle
     gmeow:useWhen "Use to carry and query the human title of a rendered documentation page."@x-gmeow-english .
 
 gmeow:docRawDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedDocument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -1234,7 +1233,7 @@ gmeow:docRawDigest
     gmeow:useWhen "Use to carry and query the content address of the source bytes a rendered documentation page projects."@x-gmeow-english .
 
 gmeow:docSearchAdvice
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedTerm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -1249,7 +1248,7 @@ gmeow:docSearchAdvice
     gmeow:useWhen "Use to carry a term's advisory prose as a repeatable searchable field so an offline docs_search can match on usage guidance."@x-gmeow-english .
 
 gmeow:docSearchAlignment
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DocumentedTerm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     gmeow:addedInVersion "0.1.0" ;
@@ -1267,12 +1266,12 @@ gmeow:docSearchAlignment
 # Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl
 # and to procedural logic:Constraint checks, Principle 17).
 #
-# gmeow:docGroundedBy and gmeow:docOwnerSlice are DELIBERATELY owl:AnnotationProperty
+# gmeow:docGroundedBy and gmeow:docOwnerSlice are DELIBERATELY OWL AnnotationProperty
 # (docGroundedBy mixes IRI and literal objects; docOwnerSlice's object is a slice
-# node that is simultaneously an owl:Ontology) — a plain owl:Restriction cannot
+# node that is simultaneously an OWL Ontology) — a plain OWL Restriction cannot
 # target an AnnotationProperty without leaving OWL 2 DL. The canonical logic:
 # restriction vocabulary (logic:subClassOf / logic:Restriction / logic:onProperty,
-# of which owl:Restriction is a generated dialect form, per logic:Restriction's own
+# of which OWL Restriction is a generated dialect form, per logic:Restriction's own
 # skos:definition) is not so constrained, so their cardinality obligations are
 # authored there, with an explicit logic:ClosureEntry opt-in — the exact idiom
 # already proven in THIS slice's own gmeow:HasGranularityShape / gmeow:CoarsenToShape
@@ -1282,7 +1281,7 @@ gmeow:docSearchAlignment
 # =========================================================================== #
 
 gmeow:docEvidenceKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     rdfs:label "docEvidenceKind is functional"@x-gmeow-english ;
@@ -1292,7 +1291,7 @@ gmeow:docEvidenceKindFunctionality
     logic:formalizes gmeow:docEvidenceKind ;
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:docEvidenceKind names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:docEvidenceKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:docEvidenceKind, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects OWL FunctionalProperty from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:docEvidenceKind and nothing else. It is not a definition of gmeow:docEvidenceKind (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:docEvidenceKindFunctionality logic:characterizes gmeow:docEvidenceKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
@@ -1306,7 +1305,7 @@ gmeow:DocumentedTerm logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # gmeow:DocumentedTermShape's gmeow:docOwnerSlice min1/max1 pair is already fully
-# grounded above (the owl:Thing-qualified logic:Restriction pair a few lines up
+# grounded above (the OWL Thing-qualified logic:Restriction pair a few lines up
 # in this file); its remaining ungrounded facet is gmeow:docCategory's
 # sh:minCount 1 (the allValuesFrom restriction just above types the value but
 # never requires one). Authored procedurally (P3 disjunctive-requiredness
@@ -1327,9 +1326,9 @@ gmeow:DocumentedTermCategoryConstraint
 # one gmeow:docGroundedBy truthmaker (the fail-fast grounding invariant; an
 # ungrounded evidence node is the doc-layer analogue of a DARK finding).
 # gmeow:docGroundedBy is NOT restricted with someValuesFrom/allValuesFrom
-# owl:Thing here: its value is EITHER an IRI (competency/fixture/provenance
+# OWL Thing here: its value is EITHER an IRI (competency/fixture/provenance
 # truthmaker) OR a literal (a finding code / loss-target id) by design (see its
-# skos:definition), but someValuesFrom/allValuesFrom owl:Thing classifies to
+# skos:definition), but someValuesFrom/allValuesFrom OWL Thing classifies to
 # sh:nodeKind sh:BlankNodeOrIRI (frontend.rs classify()), which would wrongly
 # reject the literal-valued truthmakers the property legitimately carries. The
 # min-existence obligation is instead authored procedurally (P3 disjunctive-
@@ -1348,23 +1347,23 @@ gmeow:DocEvidenceGroundingConstraint
 
 # gmeow:DocumentedTermShape — every gmeow:DocumentedTerm names exactly one
 # gmeow:docOwnerSlice (the slice whose module defines the term). The min1+max1
-# pair below is fully grounded (owl:Thing-qualified, the proven CitationAct
+# pair below is fully grounded (OWL Thing-qualified, the proven CitationAct
 # idiom); the legacy shape's sh:nodeKind sh:IRI facet is a GENUINE boundary for
-# an owl:AnnotationProperty — classify() can only ever emit NodeKindShacl
-# BlankNodeOrIri for an owl:Thing filler (never bare Iri), and the oracle's
+# an OWL AnnotationProperty — classify() can only ever emit NodeKindShacl
+# BlankNodeOrIri for an OWL Thing filler (never bare Iri), and the oracle's
 # automatic "object property ⇒ IRI" credit does not extend to annotation
 # properties (docOwnerSlice must stay an AnnotationProperty: its object is
-# simultaneously an owl:Ontology, so an owl:ObjectProperty would pun). No
+# simultaneously an OWL Ontology, so an OWL ObjectProperty would pun). No
 # declarative or procedural GMEOW builtin currently tests "is this term an
 # IRI", so the nodeKind:IRI sub-facet is retained as an honest, undischarged
 # residue rather than faked.
 gmeow:DocumentedTerm logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:someValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:someValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:docOwnerSlice ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docOwnerSlice" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 <https://blackcatinformatics.ca/gmeow/slices/documentation>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "The TBox for the self-hosting documentation projection: the gmeow:doc* vocabulary that crates/docs projects into the gmeow:graph/documentation named graph as generated A-Box, so the documentation surface is itself SPARQL-queryable RDF folded into gmeow.gts beside the ontology it describes (Principle 4). The record classes (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet) reify per-artifact documentation pages; the uniform gmeow:DocEvidence node reifies one grounded 'claim with its grounds' unit per (term, gmeow:DocEvidenceKind), so a new evidence source enters as a new kind rather than a new predicate family. The per-instance provenance predicates the projection reuses (gmeow:addedInVersion, gmeow:definitionDigest, gmeow:hasChangelogEntry, gmeow:entryVersion, gmeow:entryNote, gmeow:ChangelogEntry) stay owned by slices/core/versions."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;

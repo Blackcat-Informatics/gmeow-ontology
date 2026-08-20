@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Certification
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Certification"@x-gmeow-english ;
     logic:mediates gmeow:certifier ,
@@ -17,19 +16,19 @@ gmeow:Certification
         gmeow:certifiedIdentity ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:certifier ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:certifier ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:certifiedKey ;
-            owl:someValuesFrom gmeow:CryptographicKey ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:certifiedKey ;
+            logic:someValuesFrom gmeow:CryptographicKey ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:certifiedIdentity ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:certifiedIdentity ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified attestation that a cryptographic key belongs to a given identity, made by a certifying agent (a PGP key-signature / Web-of-Trust certification). Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil."@x-gmeow-english ;
     skos:example "ex:cert1 a gmeow:Certification ; gmeow:certifier ex:bob ; gmeow:certifiedKey ex:lillithKey ; gmeow:certifiedIdentity ex:lillith ."@x-gmeow-english ;
@@ -40,7 +39,7 @@ gmeow:Certification
 
 gmeow:CryptographicKey
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Cryptographic Key"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -53,7 +52,7 @@ gmeow:CryptographicKey
 
 gmeow:CryptographicSignature
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Cryptographic Signature"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -66,7 +65,7 @@ gmeow:CryptographicSignature
 
 gmeow:KeyScheme
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Key Scheme"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -79,7 +78,7 @@ gmeow:KeyScheme
 
 gmeow:PGPSignature
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "PGP Signature"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
@@ -92,7 +91,7 @@ gmeow:PGPSignature
 
 gmeow:SMIMESignature
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "S/MIME Signature"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
@@ -105,21 +104,21 @@ gmeow:SMIMESignature
 
 gmeow:TrustAssertion
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Trust Assertion"@x-gmeow-english ;
     logic:mediates gmeow:trustor ,
         gmeow:trustee ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:trustor ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:trustor ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:trustee ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:trustee ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified, perspectival assertion that one agent (the trustor) trusts another (the trustee), optionally as an introducer to a given depth — the OpenPGP owner-trust notion. Its validity window is carried with gmeow:validFrom/validUntil."@x-gmeow-english ;
     skos:example "ex:t1 a gmeow:TrustAssertion ; gmeow:trustor ex:lillith ; gmeow:trustee ex:bob ; gmeow:trustLevel \"full\" ."@x-gmeow-english ;
@@ -134,7 +133,7 @@ gmeow:TrustAssertion
     gmeow:useWhen "Use whenever trust is HELD by a particular agent rather than asserted globally — owner-trust, an introducer designation, a leveled and dated vouching — so the claim names its trustor frame holder explicitly (Principle 9: A trusts B according to A's vantage, never a global verdict)."@x-gmeow-english .
 
 gmeow:accountKey
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "account key"@x-gmeow-english ;
@@ -147,7 +146,7 @@ gmeow:accountKey
     gmeow:useWhen "Use to join a decentralized-identity account to the key that identifies it — promoting an account's raw pubkey literal (e.g. a Nostr nostrPubkey) into a first-class gmeow:CryptographicKey."@x-gmeow-english .
 
 gmeow:certificationLevel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certification level"@x-gmeow-english ;
@@ -160,7 +159,7 @@ gmeow:certificationLevel
     gmeow:useWhen "Use to record how carefully a certifier verified the binding — the OpenPGP certification level (generic, persona, casual, positive) that signals the rigour behind the attestation."@x-gmeow-english .
 
 gmeow:certifiedIdentity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certified identity"@x-gmeow-english ;
@@ -173,7 +172,7 @@ gmeow:certifiedIdentity
     gmeow:useWhen "Use to name the agent identity a certification binds the key to — the identity half of the attested key↔identity binding."@x-gmeow-english .
 
 gmeow:certifiedKey
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certified key"@x-gmeow-english ;
@@ -186,7 +185,7 @@ gmeow:certifiedKey
     gmeow:useWhen "Use to name the cryptographic key a certification vouches for — the key half of the attested key↔identity binding."@x-gmeow-english .
 
 gmeow:certifier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Certification ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certifier"@x-gmeow-english ;
@@ -199,7 +198,7 @@ gmeow:certifier
     gmeow:useWhen "Use to name the agent who made a certification — the WoT signer vouching for the key↔identity binding."@x-gmeow-english .
 
 gmeow:endorses
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "endorses"@x-gmeow-english ;
@@ -212,7 +211,7 @@ gmeow:endorses
     gmeow:useWhen "Use as the flat shortcut for a directional vouch between two agents when level, date, and introducer parameters do not matter — the reify-on-demand companion of gmeow:TrustAssertion."@x-gmeow-english .
 
 gmeow:fingerprint
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicKey ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "fingerprint"@x-gmeow-english ;
@@ -225,7 +224,7 @@ gmeow:fingerprint
     gmeow:useWhen "Use to record a key's fingerprint (hash) as reported by a source — the human-checkable identifier used to confirm a key out of band."@x-gmeow-english .
 
 gmeow:holdsKey
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "holds key"@x-gmeow-english ;
@@ -238,7 +237,7 @@ gmeow:holdsKey
     gmeow:useWhen "Use to record that an agent holds a cryptographic key — the holder-to-key edge that a signature's gmeow:signingKey and a certification's gmeow:certifiedKey both reference."@x-gmeow-english .
 
 gmeow:introducerAmount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducer amount"@x-gmeow-english ;
@@ -251,7 +250,7 @@ gmeow:introducerAmount
     gmeow:useWhen "Use to record the weight a trustor assigns to a trustee as an introducer — the OpenPGP trust-signature amount a projection metric accumulates toward a validity threshold."@x-gmeow-english .
 
 gmeow:introducerDepth
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducer depth"@x-gmeow-english ;
@@ -264,7 +263,7 @@ gmeow:introducerDepth
     gmeow:useWhen "Use to record how many levels of indirect introducers a trustor is willing to follow — the OpenPGP trust-signature depth that bounds the chain a projection metric may walk."@x-gmeow-english .
 
 gmeow:keyAlgorithm
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicKey ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "key algorithm"@x-gmeow-english ;
@@ -277,7 +276,7 @@ gmeow:keyAlgorithm
     gmeow:useWhen "Use to record the cryptographic primitive a key uses — rsa, ed25519, secp256k1 — so consumers can assess or filter keys by algorithm strength."@x-gmeow-english .
 
 gmeow:keyExpiresAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicKey ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "key expires at"@x-gmeow-english ;
@@ -290,7 +289,7 @@ gmeow:keyExpiresAt
     gmeow:useWhen "Use to record when a key is scheduled to expire — the self-declared validity bound carried in the key's own metadata."@x-gmeow-english .
 
 gmeow:keyId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicKey ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "key id"@x-gmeow-english ;
@@ -303,7 +302,7 @@ gmeow:keyId
     gmeow:useWhen "Use to record a key's short identifier (e.g. a PGP long key id) — the compact handle a source uses to refer to the key."@x-gmeow-english .
 
 gmeow:keyMaterial
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicKey ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "key material"@x-gmeow-english ;
@@ -316,7 +315,7 @@ gmeow:keyMaterial
     gmeow:useWhen "Use to carry the actual public key bytes — armored or hex form — when the key material itself must travel with the entity rather than only a fingerprint reference."@x-gmeow-english .
 
 gmeow:keyScheme
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CryptographicKey ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "key scheme"@x-gmeow-english ;
@@ -357,7 +356,7 @@ gmeow:keySchemeX509
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:signatureAlgorithm
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signature algorithm"@x-gmeow-english ;
@@ -370,7 +369,7 @@ gmeow:signatureAlgorithm
     gmeow:useWhen "Use to record the algorithm a signature was made with — rsa-sha256, ed25519 — so a verifier can assess its strength or compatibility."@x-gmeow-english .
 
 gmeow:signedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signed by"@x-gmeow-english ;
@@ -383,7 +382,7 @@ gmeow:signedBy
     gmeow:useWhen "Use to name the agent or signing identity that produced a signature — the WHO of the signing act, complementing the WHICH-KEY of gmeow:signingKey."@x-gmeow-english .
 
 gmeow:signingDomain
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signing domain"@x-gmeow-english ;
@@ -396,7 +395,7 @@ gmeow:signingDomain
     gmeow:useWhen "Use to record the domain a signature asserts on behalf of — the DKIM d= tag and like domain-scoped signing claims."@x-gmeow-english .
 
 gmeow:signingKey
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signing key"@x-gmeow-english ;
@@ -409,7 +408,7 @@ gmeow:signingKey
     gmeow:useWhen "Use to name the cryptographic key that produced a signature — the WHICH-KEY half of the signing act, the key whose binding to the signer a certification vouches for."@x-gmeow-english .
 
 gmeow:trustLevel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trust level"@x-gmeow-english ;
@@ -422,7 +421,7 @@ gmeow:trustLevel
     gmeow:useWhen "Use to record the degree of owner-trust a trustor expresses in a trustee — the OpenPGP level (ultimate, full, marginal, none) that bounds how much weight an introducer carries."@x-gmeow-english .
 
 gmeow:trustee
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustee"@x-gmeow-english ;
@@ -435,7 +434,7 @@ gmeow:trustee
     gmeow:useWhen "Use to name the agent that is trusted in a trust assertion — the trustee the trustor vouches for or designates as an introducer."@x-gmeow-english .
 
 gmeow:trustor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TrustAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustor"@x-gmeow-english ;
@@ -448,7 +447,7 @@ gmeow:trustor
     gmeow:useWhen "Use to name the agent FROM WHOSE standpoint a trust assertion is held — the frame holder whose subjective trust the relator expresses (the trust-side counterpart of gmeow:accordingTo)."@x-gmeow-english .
 
 gmeow:verificationStatus
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "verification status"@x-gmeow-english ;
@@ -462,7 +461,7 @@ gmeow:verificationStatus
     gmeow:useWhen "Use to record the outcome of checking a signature — verified, failed, or unverified — the result a verifier reached for this signature."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/trust>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """A cross-cutting trust facility: cryptographic keys, certifications (key↔identity attestations) and perspectival owner-trust — the Web-of-Trust superset layer (OpenPGP RFC 4880/9580, X.509, SSH, Nostr; aligned to the WOT schema). Reused wherever identity must be vouched for: contacts, accounts, and message signatures (the messaging-trust module builds on this). Trust here is asserted and perspectival; trust METRICS (transitive validity propagation) are deliberately left outside the logical core — represent inputs and outputs, never compute them in OWL.
 
@@ -477,7 +476,7 @@ STANDPOINT DOCTRINE. The trust module exercises the three-axis separation that g
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -485,7 +484,7 @@ STANDPOINT DOCTRINE. The trust module exercises the three-axis separation that g
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:certificationLevelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certificationLevel is functional"@x-gmeow-english ;
@@ -500,7 +499,7 @@ gmeow:certificationLevelFunctionality
     skos:example "gmeow:certificationLevelFunctionality logic:characterizes gmeow:certificationLevel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:certifiedIdentityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certifiedIdentity is functional"@x-gmeow-english ;
@@ -515,7 +514,7 @@ gmeow:certifiedIdentityFunctionality
     skos:example "gmeow:certifiedIdentityFunctionality logic:characterizes gmeow:certifiedIdentity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:certifiedKeyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certifiedKey is functional"@x-gmeow-english ;
@@ -530,7 +529,7 @@ gmeow:certifiedKeyFunctionality
     skos:example "gmeow:certifiedKeyFunctionality logic:characterizes gmeow:certifiedKey ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:certifierFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "certifier is functional"@x-gmeow-english ;
@@ -545,7 +544,7 @@ gmeow:certifierFunctionality
     skos:example "gmeow:certifierFunctionality logic:characterizes gmeow:certifier ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:introducerAmountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducerAmount is functional"@x-gmeow-english ;
@@ -560,7 +559,7 @@ gmeow:introducerAmountFunctionality
     skos:example "gmeow:introducerAmountFunctionality logic:characterizes gmeow:introducerAmount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:introducerDepthFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "introducerDepth is functional"@x-gmeow-english ;
@@ -575,7 +574,7 @@ gmeow:introducerDepthFunctionality
     skos:example "gmeow:introducerDepthFunctionality logic:characterizes gmeow:introducerDepth ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:keySchemeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "keyScheme is functional"@x-gmeow-english ;
@@ -590,7 +589,7 @@ gmeow:keySchemeFunctionality
     skos:example "gmeow:keySchemeFunctionality logic:characterizes gmeow:keyScheme ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:signatureAlgorithmFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signatureAlgorithm is functional"@x-gmeow-english ;
@@ -605,7 +604,7 @@ gmeow:signatureAlgorithmFunctionality
     skos:example "gmeow:signatureAlgorithmFunctionality logic:characterizes gmeow:signatureAlgorithm ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:signingDomainFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signingDomain is functional"@x-gmeow-english ;
@@ -620,7 +619,7 @@ gmeow:signingDomainFunctionality
     skos:example "gmeow:signingDomainFunctionality logic:characterizes gmeow:signingDomain ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:signingKeyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "signingKey is functional"@x-gmeow-english ;
@@ -635,7 +634,7 @@ gmeow:signingKeyFunctionality
     skos:example "gmeow:signingKeyFunctionality logic:characterizes gmeow:signingKey ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:trusteeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustee is functional"@x-gmeow-english ;
@@ -650,7 +649,7 @@ gmeow:trusteeFunctionality
     skos:example "gmeow:trusteeFunctionality logic:characterizes gmeow:trustee ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:trustLevelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustLevel is functional"@x-gmeow-english ;
@@ -665,7 +664,7 @@ gmeow:trustLevelFunctionality
     skos:example "gmeow:trustLevelFunctionality logic:characterizes gmeow:trustLevel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:trustorFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "trustor is functional"@x-gmeow-english ;
@@ -680,7 +679,7 @@ gmeow:trustorFunctionality
     skos:example "gmeow:trustorFunctionality logic:characterizes gmeow:trustor ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:verificationStatusFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "verificationStatus is functional"@x-gmeow-english ;

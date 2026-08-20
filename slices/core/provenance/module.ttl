@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Activity
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Activity"@x-gmeow-english ;
     logic:instantiatesFramework logic:TemporalFramework ;
@@ -24,7 +23,7 @@ gmeow:Activity
 
 gmeow:ImportActivity
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Import Activity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -42,7 +41,7 @@ gmeow:ImportActivity
 
 gmeow:Summary
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Summary"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -58,7 +57,7 @@ gmeow:Summary
 
 gmeow:TextExtraction
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Text Extraction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Document ;
@@ -73,7 +72,7 @@ gmeow:TextExtraction
     gmeow:useWhen "Use for the text content pulled verbatim out of a source object — OCR or extraction from a PDF, image, or binary attachment — whose lineage to that source must be recorded."@x-gmeow-english .
 
 gmeow:confidence
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "confidence"@x-gmeow-english ;
     logic:instantiatesFramework logic:ProbabilisticFramework ;
@@ -84,7 +83,7 @@ gmeow:confidence
         gmeow:boxRBox .
 
 gmeow:importanceLevel
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "importance level"@x-gmeow-english ;
     skos:definition "Relative import/source importance of a claim on a 0–10 scale; projection takes the maximum across imports."@x-gmeow-english ;
@@ -92,7 +91,7 @@ gmeow:importanceLevel
         gmeow:boxRBox .
 
 gmeow:ingestedAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ImportActivity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "ingested at"@x-gmeow-english ;
@@ -106,7 +105,7 @@ gmeow:ingestedAt
     gmeow:useWhen "Use to stamp a gmeow:ImportActivity with its transaction time — the instant the system learned the claims — so bitemporal queries can separate when-learned from when-asserted and when-valid."@x-gmeow-english .
 
 gmeow:mappedFrom
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "mapped from"@x-gmeow-english ;
     skos:definition "The source property a claim was derived from during ingestion, recorded for mapping-step audit."@x-gmeow-english ;
@@ -114,7 +113,7 @@ gmeow:mappedFrom
         gmeow:boxRBox .
 
 gmeow:provenance
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "provenance"@x-gmeow-english ;
@@ -128,7 +127,7 @@ gmeow:provenance
     gmeow:useWhen "Use for a human-readable custody/ownership narrative that resists structured modelling — provenance prose imported from a catalogue record or curator's note."@x-gmeow-english .
 
 gmeow:wasAssociatedWith
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Activity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "was associated with"@x-gmeow-english ;
@@ -142,7 +141,7 @@ gmeow:wasAssociatedWith
     gmeow:useWhen "Use to tie an activity to the agent that carried it out — the software agent that ran an import, the person who performed a transformation — the activity-side companion of gmeow:wasAttributedTo."@x-gmeow-english .
 
 gmeow:wasAttributedTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "was attributed to"@x-gmeow-english ;
@@ -158,7 +157,7 @@ gmeow:wasAttributedTo
     gmeow:useWhen "Use to ascribe responsibility for an enduring entity — a document, dataset, or artifact — to the agent who authored, owns, or is accountable for it."@x-gmeow-english .
 
 gmeow:indirectContributor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "indirect contributor"@x-gmeow-english ;
@@ -173,7 +172,7 @@ gmeow:indirectContributor
     gmeow:useWhen "Use to read off the agents that indirectly contributed to an entity through the activities that generated it — the performers reached by composing generation with association — as distinct from the entity's directly attributed author or owner."@x-gmeow-english .
 
 gmeow:wasDerivedFrom
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "was derived from"@x-gmeow-english ;
     skos:definition "Relates a derived thing to the thing it was derived from — e.g. a text extraction, summary, or embedding to its source; a commit to its parent commit; a trajectory to its sample stream. The derivation's confidence and generating agent are recorded with gmeow:confidence and gmeow:wasGeneratedBy. Domain-free so that events, endurants, and information objects may all participate in derivation chains."@x-gmeow-english ;
@@ -186,7 +185,7 @@ gmeow:wasDerivedFrom
     gmeow:useWhen "Use to link a derived artifact to its source — a summary, text extraction, or embedding to the document it came from, a commit to its parent — building the derivation chain that lets consumers trace a value back to its origin."@x-gmeow-english .
 
 gmeow:wasGeneratedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "was generated by"@x-gmeow-english ;
@@ -201,7 +200,7 @@ gmeow:wasGeneratedBy
     gmeow:useWhen "Use to link an enduring product to the gmeow:Activity that produced it — a summary to its summarization run, a commit to its build — so the occurrent cause and its timing and agent become recoverable."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/provenance>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Activities, attribution, and the cross-cutting statement-level annotation properties (confidence, importance, mapping provenance) used across every slice (the PROV-O superset layer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
@@ -215,7 +214,7 @@ gmeow:wasGeneratedBy
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -223,7 +222,7 @@ gmeow:wasGeneratedBy
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:ingestedAtFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "ingestedAt is functional"@x-gmeow-english ;

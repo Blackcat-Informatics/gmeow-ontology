@@ -5,7 +5,6 @@
 @prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -15,7 +14,7 @@
 
 gmeow:Recipe
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Recipe"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -24,7 +23,7 @@ gmeow:Recipe
 
 gmeow:LearningPath
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Learning Path"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -32,8 +31,8 @@ gmeow:LearningPath
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:guideGoal
-    a owl:DatatypeProperty ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    a logic:DatatypeProperty ;
+    rdfs:domain [ a logic:Class ; logic:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "guide goal"@x-gmeow-english ;
@@ -41,7 +40,7 @@ gmeow:guideGoal
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:learningAudience
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:LearningPath ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -50,8 +49,8 @@ gmeow:learningAudience
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:usesExamplePath
-    a owl:DatatypeProperty ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    a logic:DatatypeProperty ;
+    rdfs:domain [ a logic:Class ; logic:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "uses example path"@x-gmeow-english ;
@@ -59,8 +58,8 @@ gmeow:usesExamplePath
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:usesTerm
-    a owl:ObjectProperty ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    a logic:ObjectProperty ;
+    rdfs:domain [ a logic:Class ; logic:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
     rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "uses term"@x-gmeow-english ;
@@ -68,7 +67,7 @@ gmeow:usesTerm
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:includesRecipe
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LearningPath ;
     rdfs:range gmeow:Recipe ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -77,7 +76,7 @@ gmeow:includesRecipe
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:adoptionTarget
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:LearningPath ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -86,7 +85,7 @@ gmeow:adoptionTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:followsGuidePath
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Recipe ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -95,8 +94,8 @@ gmeow:followsGuidePath
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:guideTitle
-    a owl:DatatypeProperty ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    a logic:DatatypeProperty ;
+    rdfs:domain [ a logic:Class ; logic:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "guide title"@x-gmeow-english ;
@@ -104,8 +103,8 @@ gmeow:guideTitle
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:guideSlug
-    a owl:DatatypeProperty ;
-    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    a logic:DatatypeProperty ;
+    rdfs:domain [ a logic:Class ; logic:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "guide slug"@x-gmeow-english ;
@@ -116,7 +115,7 @@ gmeow:guideSlug
 
 gmeow:AuthoringPacket
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Authoring Packet"@x-gmeow-english ;
     rdfs:subClassOf logic:AbstractIndividual ;
@@ -130,7 +129,7 @@ gmeow:AuthoringPacket
 
 gmeow:GroundingCoverage
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Grounding Coverage"@x-gmeow-english ;
     rdfs:subClassOf logic:AbstractIndividual ;
@@ -144,7 +143,7 @@ gmeow:GroundingCoverage
 
 gmeow:GroundingAttribute
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Grounding Attribute"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -258,7 +257,7 @@ logic:guidesAuthoringCandidateSuper a logic:Formula ; logic:relation rdf:type ;
 # Authoring-packet properties (RBox)
 
 gmeow:packetSourceSlice
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range gmeow:Slice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -268,7 +267,7 @@ gmeow:packetSourceSlice
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetAxis
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -278,7 +277,7 @@ gmeow:packetAxis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetBatch
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -288,7 +287,7 @@ gmeow:packetBatch
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -298,7 +297,7 @@ gmeow:packetDigest
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetCoversTerm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -308,7 +307,7 @@ gmeow:packetCoversTerm
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetExemplar
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -318,7 +317,7 @@ gmeow:packetExemplar
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetGrounding
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range gmeow:GroundingCoverage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -328,7 +327,7 @@ gmeow:packetGrounding
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetTermCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -338,7 +337,7 @@ gmeow:packetTermCount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetFrPresent
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -348,7 +347,7 @@ gmeow:packetFrPresent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetFrAbsent
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -358,7 +357,7 @@ gmeow:packetFrAbsent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetZhPresent
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -368,7 +367,7 @@ gmeow:packetZhPresent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetZhAbsent
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -378,7 +377,7 @@ gmeow:packetZhAbsent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetExternalMapped
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -388,7 +387,7 @@ gmeow:packetExternalMapped
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:packetExternalAbsent
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -398,7 +397,7 @@ gmeow:packetExternalAbsent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:exemplarShortfall
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthoringPacket ;
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -408,7 +407,7 @@ gmeow:exemplarShortfall
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingTerm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -418,7 +417,7 @@ gmeow:groundingTerm
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingAttribute
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range gmeow:GroundingAttribute ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -428,7 +427,7 @@ gmeow:groundingAttribute
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingPredicate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -438,7 +437,7 @@ gmeow:groundingPredicate
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -448,7 +447,7 @@ gmeow:groundingValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingExternalEntity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -458,7 +457,7 @@ gmeow:groundingExternalEntity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingExternalLabel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -468,7 +467,7 @@ gmeow:groundingExternalLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingAlignPredicate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -478,7 +477,7 @@ gmeow:groundingAlignPredicate
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingConfidence
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range xsd:decimal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -488,7 +487,7 @@ gmeow:groundingConfidence
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingConflict
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range xsd:boolean ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -498,7 +497,7 @@ gmeow:groundingConflict
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingConflictWith
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GroundingCoverage ;
     rdfs:range rdfs:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -511,7 +510,7 @@ gmeow:groundingConflictWith
 
 gmeow:AuthoringCandidate
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Authoring Candidate"@x-gmeow-english ;
     rdfs:subClassOf logic:Conjecture ;
@@ -522,7 +521,7 @@ gmeow:AuthoringCandidate
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:candidateForSlice
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AuthoringCandidate ;
     rdfs:range gmeow:Slice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -532,7 +531,7 @@ gmeow:candidateForSlice
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:candidateForPacket
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AuthoringCandidate ;
     rdfs:range gmeow:AuthoringPacket ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
@@ -701,7 +700,7 @@ gmeow:pathAuditAiOrGraphRag
 # ── Ontology header ────────────────────────────────────────────────────────────
 
 <https://blackcatinformatics.ca/gmeow/slices/guides>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The pedagogy and adoption-guides slice: it dogfoods the curated recipes and learning paths that were formerly hardcoded in the documentation tooling, modelling them as gmeow:Recipe and gmeow:LearningPath individuals so they are authored-once GMEOW data sourced through the slice catalog rather than literals embedded in a Python module.
 

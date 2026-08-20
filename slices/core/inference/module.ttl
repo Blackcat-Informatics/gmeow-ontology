@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AcceptanceStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Acceptance Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -18,7 +17,7 @@ gmeow:AcceptanceStatus
 
 gmeow:Analogy
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Analogy"@x-gmeow-english ;
     logic:mediates gmeow:analogicalSource ,
@@ -30,7 +29,7 @@ gmeow:Analogy
 
 gmeow:Argument
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Argument"@x-gmeow-english ;
     logic:mediates gmeow:argumentConclusion ,
@@ -39,35 +38,35 @@ gmeow:Argument
     logic:instantiatesFramework logic:EpistemicFramework ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:hasPremiseUse ;
-            owl:allValuesFrom gmeow:PremiseUse ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:hasPremiseUse ;
+            logic:allValuesFrom gmeow:PremiseUse ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:hasInferenceApplication ;
-            owl:allValuesFrom gmeow:InferenceApplication ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:hasInferenceApplication ;
+            logic:allValuesFrom gmeow:InferenceApplication ;
         ] ;
     skos:definition "A node in an argumentation framework — the attackable, supportable unit a named acceptability semantics is evaluated over (Dung / ASPIC+). An Argument wraps at most one Toulmin step (gmeow:argumentInferenceStep -> gmeow:InferenceCommitment), rests on the premises it actually uses (gmeow:hasPremiseUse) via the rule it applies (gmeow:hasInferenceApplication), and establishes a conclusion (gmeow:argumentConclusion). It bears the typed gmeow:Attack and the accruing gmeow:Support relations toward other arguments, and is the proper domain the epistemics gmeow:attacksClaim / gmeow:supportsClaim hooks pair with. A relator, not a process (the gmeow:Commitment idiom); whether it survives is the solver-layer gmeow:ArgumentEvaluation, never an asserted accepted bit (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ArgumentEvaluation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Argument Evaluation"@x-gmeow-english ;
     logic:mediates gmeow:evaluatesArgument ,
         gmeow:extensionMember ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:evaluatesArgument ;
-            owl:allValuesFrom gmeow:Argument ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:evaluatesArgument ;
+            logic:allValuesFrom gmeow:Argument ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:acceptanceStatus ;
-            owl:allValuesFrom gmeow:AcceptanceStatus ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:acceptanceStatus ;
+            logic:allValuesFrom gmeow:AcceptanceStatus ;
         ] ;
     skos:definition "A reified, solver-set verdict on a gmeow:Argument — the gmeow:AcceptanceStatus it carries (gmeow:acceptanceStatus) under a named acceptability semantics (gmeow:underSemantics -> logic:ArgumentationSemantics), together with the extension it belongs to (gmeow:extensionMember). The argument-graph evaluation is COMPUTED, never asserted (Principle 12): there is no accepted / isBest bit, only the engine-written status; under a credulous (preferred) semantics several evaluations of one argument coexist, one per extension (Principle 9). Reifies the assessment so its semantics, status, and extension travel as one auditable bundle."@x-gmeow-english ;
     skos:scopeNote "Couples to the central acceptability semantics by reference (gmeow:underSemantics -> logic:GroundedArgumentation / logic:PreferredArgumentation / logic:NoArgumentation / logic:PolicySpecificArgumentation), with no asserted triples into logic:. The named-acceptability-semantics account is canonical in design/LOGIC-FOUNDATION.md (Argumentation and epistemic standards), referenced here by prose (Principle 5)."@x-gmeow-english ;
@@ -75,28 +74,28 @@ gmeow:ArgumentEvaluation
 
 gmeow:Attack
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Attack"@x-gmeow-english ;
     logic:mediates gmeow:attackSource ,
         gmeow:attackTarget ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attackKind ;
-            owl:allValuesFrom gmeow:AttackKind ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attackKind ;
+            logic:allValuesFrom gmeow:AttackKind ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attackSource ;
-            owl:allValuesFrom gmeow:Argument ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attackSource ;
+            logic:allValuesFrom gmeow:Argument ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attackTarget ;
-            owl:allValuesFrom [
-                a owl:Class ;
-                owl:unionOf ( gmeow:PremiseUse gmeow:InferenceApplication gmeow:StandpointClaim ) ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attackTarget ;
+            logic:allValuesFrom [
+                a logic:Class ;
+                logic:unionOf ( gmeow:PremiseUse gmeow:InferenceApplication gmeow:StandpointClaim ) ;
             ] ;
         ] ;
     skos:definition "A reified, TYPED attack between arguments — a structural conflict that names WHAT it attacks and HOW. It relates an attacking structure (gmeow:attackSource) to a target (gmeow:attackTarget, a gmeow:AttackTarget) under a kind (gmeow:attackKind, a gmeow:AttackKind): gmeow:attackUndermine attacks a gmeow:PremiseUse, gmeow:attackUndercut attacks a gmeow:InferenceApplication (the warrant), gmeow:attackRebut attacks the conclusion gmeow:StandpointClaim. The attack is the structural relation, never the adjudicated outcome — which argument survives is the solver-layer gmeow:ArgumentEvaluation. Self-attack is forbidden by SHACL, not OWL (the gmeow:competesWith discipline — doctrine in SHACL, keeping the DL profile clean)."@x-gmeow-english ;
@@ -104,7 +103,7 @@ gmeow:Attack
 
 gmeow:AttackKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Attack Kind"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -113,20 +112,20 @@ gmeow:AttackKind
 
 gmeow:AttackTarget
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Attack Target"@x-gmeow-english ;
-    rdfs:subClassOf owl:Thing ;
-    owl:equivalentClass [
-        a owl:Class ;
-        owl:unionOf ( gmeow:PremiseUse gmeow:InferenceApplication gmeow:StandpointClaim ) ;
+    rdfs:subClassOf logic:Thing ;
+    logic:equivalentClass [
+        a logic:Class ;
+        logic:unionOf ( gmeow:PremiseUse gmeow:InferenceApplication gmeow:StandpointClaim ) ;
     ] ;
-    skos:definition "The class of things a typed gmeow:Attack can target — a gmeow:PremiseUse (undermine), a gmeow:InferenceApplication (undercut), or a conclusion gmeow:StandpointClaim (rebut). Introduced as a named superclass so that schema projections can assign a single range to gmeow:attackTarget instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:definition "The class of things a typed gmeow:Attack can target — a gmeow:PremiseUse (undermine), a gmeow:InferenceApplication (undercut), or a conclusion gmeow:StandpointClaim (rebut). Introduced as a named superclass so that schema projections can assign a single range to gmeow:attackTarget instead of losing a blank-node OWL unionOf."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Correspondence
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Correspondence"@x-gmeow-english ;
     logic:mediates gmeow:correspondingSource ,
@@ -137,23 +136,23 @@ gmeow:Correspondence
 
 gmeow:InferenceApplication
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Application"@x-gmeow-english ;
     logic:mediates gmeow:appliedRule ,
         gmeow:appliedSubstitution ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:appliedSubstitution ;
-            owl:allValuesFrom xsd:string ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:appliedSubstitution ;
+            logic:allValuesFrom xsd:string ;
         ] ;
     skos:definition "A reified application of an inference rule within a gmeow:Argument — the rule that licenses the step (gmeow:appliedRule, by reference at a logic: rule / proof-trace) together with the substitution that instantiates it (gmeow:appliedSubstitution). The target of an undercutting gmeow:Attack: granting the premises, an undercut denies that THIS rule-application supports the conclusion. Rule-applicability stays defeasible even where the deductive step is contract-local indefeasible (design/LOGIC-FOUNDATION.md)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceCommitment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Commitment"@x-gmeow-english ;
     logic:mediates gmeow:candidateHypothesis ,
@@ -162,16 +161,16 @@ gmeow:InferenceCommitment
         gmeow:warrant ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:conclusion ;
-            owl:allValuesFrom gmeow:StandpointClaim ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:conclusion ;
+            logic:allValuesFrom gmeow:StandpointClaim ;
         ] ;
     skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), and its mode (gmeow:inferenceModeOf). The argumentation layer wraps it in a gmeow:Argument (gmeow:argumentInferenceStep) to bear the typed gmeow:Attack and accruing gmeow:Support relations. A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceMode
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Mode"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -180,7 +179,7 @@ gmeow:InferenceMode
 
 gmeow:InferenceProcess
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Process"@x-gmeow-english ;
     rdfs:subClassOf gmeow:MentalProcess ;
@@ -190,7 +189,7 @@ gmeow:InferenceProcess
 
 gmeow:InferenceTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -199,7 +198,7 @@ gmeow:InferenceTenure
 
 gmeow:PremiseUse
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Premise Use"@x-gmeow-english ;
     logic:mediates gmeow:premiseUsed ,
@@ -210,23 +209,23 @@ gmeow:PremiseUse
 
 gmeow:Support
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Support"@x-gmeow-english ;
     logic:mediates gmeow:supportSource ,
         gmeow:supportTarget ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:supportTarget ;
-            owl:allValuesFrom gmeow:Argument ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:supportTarget ;
+            logic:allValuesFrom gmeow:Argument ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:supportSource ;
-            owl:allValuesFrom [
-                a owl:Class ;
-                owl:unionOf ( gmeow:Argument gmeow:StandpointClaim ) ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:supportSource ;
+            logic:allValuesFrom [
+                a logic:Class ;
+                logic:unionOf ( gmeow:Argument gmeow:StandpointClaim ) ;
             ] ;
         ] ;
     skos:definition "A reified, ACCRUING support relation in bipolar argumentation — an instance relating a supporting structure (gmeow:supportSource) to the gmeow:Argument it supports (gmeow:supportTarget). Each independent support is its own Support instance, so support ACCRUES: several independent supports for one conclusion combine rather than counting once (Principle 9; design/LOGIC-FOUNDATION.md). The support pole of bipolar argumentation; the attack pole is gmeow:Attack."@x-gmeow-english ;
@@ -234,15 +233,15 @@ gmeow:Support
 
 gmeow:SupportSource
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Support Source"@x-gmeow-english ;
-    rdfs:subClassOf owl:Thing ;
-    owl:equivalentClass [
-        a owl:Class ;
-        owl:unionOf ( gmeow:Argument gmeow:StandpointClaim ) ;
+    rdfs:subClassOf logic:Thing ;
+    logic:equivalentClass [
+        a logic:Class ;
+        logic:unionOf ( gmeow:Argument gmeow:StandpointClaim ) ;
     ] ;
-    skos:definition "The class of things that can supply support to an gmeow:Argument — another gmeow:Argument or a gmeow:StandpointClaim (an evidential consideration may be carried by either). Introduced as a named superclass so that schema projections can assign a single range to gmeow:supportSource instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:definition "The class of things that can supply support to an gmeow:Argument — another gmeow:Argument or a gmeow:StandpointClaim (an evidential consideration may be carried by either). Introduced as a named superclass so that schema projections can assign a single range to gmeow:supportSource instead of losing a blank-node OWL unionOf."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:acceptanceIn
@@ -260,7 +259,7 @@ gmeow:acceptanceOut
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:acceptanceStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "acceptance status"@x-gmeow-english ;
@@ -276,7 +275,7 @@ gmeow:acceptanceUndecided
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:analogicalSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Analogy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "analogical source"@x-gmeow-english ;
@@ -286,7 +285,7 @@ gmeow:analogicalSource
         gmeow:boxRBox .
 
 gmeow:analogicalTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Analogy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "analogical target"@x-gmeow-english ;
@@ -295,7 +294,7 @@ gmeow:analogicalTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appliedRule
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceApplication ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "applied rule"@x-gmeow-english ;
@@ -304,7 +303,7 @@ gmeow:appliedRule
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appliedSubstitution
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:InferenceApplication ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "applied substitution"@x-gmeow-english ;
@@ -313,7 +312,7 @@ gmeow:appliedSubstitution
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:argumentConclusion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argument conclusion"@x-gmeow-english ;
@@ -322,7 +321,7 @@ gmeow:argumentConclusion
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:argumentInferenceStep
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argument inference step"@x-gmeow-english ;
@@ -331,7 +330,7 @@ gmeow:argumentInferenceStep
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attackKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attack ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attack kind"@x-gmeow-english ;
@@ -347,7 +346,7 @@ gmeow:attackRebut
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:attackSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attack ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attack source"@x-gmeow-english ;
@@ -356,7 +355,7 @@ gmeow:attackSource
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attackTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attack ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attack target"@x-gmeow-english ;
@@ -379,7 +378,7 @@ gmeow:attackUndermine
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:candidateHypothesis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "candidate hypothesis"@x-gmeow-english ;
@@ -388,8 +387,8 @@ gmeow:candidateHypothesis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:competesWith
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "competes with"@x-gmeow-english ;
@@ -398,7 +397,7 @@ gmeow:competesWith
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:conclusion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "conclusion"@x-gmeow-english ;
@@ -407,7 +406,7 @@ gmeow:conclusion
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:correspondingSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "corresponding source"@x-gmeow-english ;
@@ -417,7 +416,7 @@ gmeow:correspondingSource
         gmeow:boxRBox .
 
 gmeow:correspondingTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "corresponding target"@x-gmeow-english ;
@@ -426,7 +425,7 @@ gmeow:correspondingTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:evaluatesArgument
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "evaluates argument"@x-gmeow-english ;
@@ -435,7 +434,7 @@ gmeow:evaluatesArgument
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explains
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "explains"@x-gmeow-english ;
@@ -444,7 +443,7 @@ gmeow:explains
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explanandum
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "explanandum"@x-gmeow-english ;
@@ -453,7 +452,7 @@ gmeow:explanandum
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explanatoryScore
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "explanatory score"@x-gmeow-english ;
@@ -462,7 +461,7 @@ gmeow:explanatoryScore
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extensionMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "extension member"@x-gmeow-english ;
@@ -471,7 +470,7 @@ gmeow:extensionMember
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasCorrespondence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Analogy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "has correspondence"@x-gmeow-english ;
@@ -480,7 +479,7 @@ gmeow:hasCorrespondence
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasInferenceApplication
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "has inference application"@x-gmeow-english ;
@@ -489,7 +488,7 @@ gmeow:hasInferenceApplication
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasInferenceCommitment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "has inference commitment"@x-gmeow-english ;
@@ -498,7 +497,7 @@ gmeow:hasInferenceCommitment
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasPremiseUse
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "has premise use"@x-gmeow-english ;
@@ -507,7 +506,7 @@ gmeow:hasPremiseUse
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:inferenceMode
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "inference mode"@x-gmeow-english ;
@@ -516,7 +515,7 @@ gmeow:inferenceMode
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:inferenceModeOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "inference mode of"@x-gmeow-english ;
@@ -525,7 +524,7 @@ gmeow:inferenceModeOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:inferredFrom
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "inferred from"@x-gmeow-english ;
@@ -547,23 +546,23 @@ gmeow:modeAbduction
 # commitment with gmeow:inferenceModeOf gmeow:modeAbduction must name the fact it explains
 # (gmeow:explanandum) and at least one candidate explanation (gmeow:candidateHypothesis).
 [
-    a owl:Restriction ;
-    owl:onProperty gmeow:inferenceModeOf ;
-    owl:hasValue gmeow:modeAbduction ;
+    a logic:Restriction ;
+    logic:onProperty gmeow:inferenceModeOf ;
+    logic:hasValue gmeow:modeAbduction ;
 ] rdfs:subClassOf [
-    a owl:Restriction ;
-    owl:onProperty gmeow:explanandum ;
-    owl:someValuesFrom owl:Thing ;
+    a logic:Restriction ;
+    logic:onProperty gmeow:explanandum ;
+    logic:someValuesFrom logic:Thing ;
 ] .
 
 [
-    a owl:Restriction ;
-    owl:onProperty gmeow:inferenceModeOf ;
-    owl:hasValue gmeow:modeAbduction ;
+    a logic:Restriction ;
+    logic:onProperty gmeow:inferenceModeOf ;
+    logic:hasValue gmeow:modeAbduction ;
 ] rdfs:subClassOf [
-    a owl:Restriction ;
-    owl:onProperty gmeow:candidateHypothesis ;
-    owl:someValuesFrom gmeow:StandpointClaim ;
+    a logic:Restriction ;
+    logic:onProperty gmeow:candidateHypothesis ;
+    logic:someValuesFrom gmeow:StandpointClaim ;
 ] .
 
 gmeow:modeAnalogical
@@ -588,7 +587,7 @@ gmeow:modeInduction
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:premise
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "premise"@x-gmeow-english ;
@@ -597,7 +596,7 @@ gmeow:premise
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:premiseUsed
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PremiseUse ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "premise used"@x-gmeow-english ;
@@ -606,7 +605,7 @@ gmeow:premiseUsed
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:supportSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Support ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "support source"@x-gmeow-english ;
@@ -615,7 +614,7 @@ gmeow:supportSource
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:supportTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Support ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "support target"@x-gmeow-english ;
@@ -624,7 +623,7 @@ gmeow:supportTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:systematicity
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Analogy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "systematicity"@x-gmeow-english ;
@@ -633,7 +632,7 @@ gmeow:systematicity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tenureOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "tenure of"@x-gmeow-english ;
@@ -642,7 +641,7 @@ gmeow:tenureOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:underSemantics
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArgumentEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "under semantics"@x-gmeow-english ;
@@ -651,7 +650,7 @@ gmeow:underSemantics
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:warrant
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InferenceCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "warrant"@x-gmeow-english ;
@@ -661,7 +660,7 @@ gmeow:warrant
         gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/inference>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Inference as the EPISTEMIC FACE of a logic: derivation — what an agent believes when it accepts a reasoning step's conclusion. The conclusion of every inference is an ordinary gmeow:StandpointClaim (vantage = the reasoner, observedFeature = the concluded proposition, gmeow:claimModality = the mode's default).
 
@@ -691,32 +690,32 @@ ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferencePro
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both owl:*Cardinality and
-# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# (Principle 17). A restriction carrying both OWL*Cardinality and
+# OWL allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / disjunctive-range / value-keyed
 # (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL antecedent and remain
 # the procedural fragment .
 # =========================================================================== #
 
 gmeow:InferenceCommitment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:conclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:StandpointClaim ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:premise ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:inferenceModeOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:conclusion ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StandpointClaim ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:premise ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:inferenceModeOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Analogy rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:analogicalSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:analogicalTarget ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasCorrespondence ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:analogicalSource ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:analogicalTarget ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasCorrespondence ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Correspondence rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:correspondingSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:correspondingTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondingSource ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:correspondingTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Argument rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:argumentConclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:argumentInferenceStep ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasPremiseUse ; owl:allValuesFrom gmeow:PremiseUse ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasInferenceApplication ; owl:allValuesFrom gmeow:InferenceApplication ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:argumentConclusion ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:argumentInferenceStep ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasPremiseUse ; logic:allValuesFrom gmeow:PremiseUse ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasInferenceApplication ; logic:allValuesFrom gmeow:InferenceApplication ] .
 
 # gmeow:attackTarget / gmeow:supportSource carry an sh:or disjunctive range
 # (PremiseUse|InferenceApplication|StandpointClaim resp. Argument|StandpointClaim)
@@ -724,25 +723,25 @@ gmeow:Argument rdfs:subClassOf
 # classify; only the exact-one cardinality lowers here, the disjoint-range check
 # stays procedural .
 gmeow:Attack rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:attackTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attackKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AttackKind ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attackSource ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Argument ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:attackTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:attackKind ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:AttackKind ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:attackSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Argument ] .
 
 gmeow:Support rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:supportTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Argument ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:supportTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Argument ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:supportSource ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:ArgumentEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:evaluatesArgument ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Argument ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:underSemantics ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:acceptanceStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AcceptanceStatus ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluatesArgument ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Argument ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:underSemantics ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:acceptanceStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:AcceptanceStatus ] .
 
 gmeow:PremiseUse rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:premiseUsed ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:premiseUsed ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:InferenceApplication rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:appliedRule ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appliedSubstitution ; owl:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:appliedRule ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:appliedSubstitution ; logic:allValuesFrom xsd:string ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -907,7 +906,7 @@ gmeow:SupportNotSelfConstraint
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -918,7 +917,7 @@ gmeow:SupportNotSelfConstraint
 #   logic:RoleCompositionExclusionAssertion — the two named roles must not stand in a whole/part composition.
 
 gmeow:acceptanceStatusFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "acceptanceStatus is functional"@x-gmeow-english ;
@@ -933,7 +932,7 @@ gmeow:acceptanceStatusFunctionality
     skos:example "gmeow:acceptanceStatusFunctionality logic:characterizes gmeow:acceptanceStatus ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:appliedRuleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "appliedRule is functional"@x-gmeow-english ;
@@ -948,7 +947,7 @@ gmeow:appliedRuleFunctionality
     skos:example "gmeow:appliedRuleFunctionality logic:characterizes gmeow:appliedRule ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:argumentConclusionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argumentConclusion is functional"@x-gmeow-english ;
@@ -963,7 +962,7 @@ gmeow:argumentConclusionFunctionality
     skos:example "gmeow:argumentConclusionFunctionality logic:characterizes gmeow:argumentConclusion ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:argumentInferenceStepFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "argumentInferenceStep is functional"@x-gmeow-english ;
@@ -978,7 +977,7 @@ gmeow:argumentInferenceStepFunctionality
     skos:example "gmeow:argumentInferenceStepFunctionality logic:characterizes gmeow:argumentInferenceStep ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attackKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attackKind is functional"@x-gmeow-english ;
@@ -993,7 +992,7 @@ gmeow:attackKindFunctionality
     skos:example "gmeow:attackKindFunctionality logic:characterizes gmeow:attackKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attackTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "attackTarget is functional"@x-gmeow-english ;
@@ -1008,7 +1007,7 @@ gmeow:attackTargetFunctionality
     skos:example "gmeow:attackTargetFunctionality logic:characterizes gmeow:attackTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:conclusionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "conclusion is functional"@x-gmeow-english ;
@@ -1023,7 +1022,7 @@ gmeow:conclusionFunctionality
     skos:example "gmeow:conclusionFunctionality logic:characterizes gmeow:conclusion ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:correspondingSourceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "correspondingSource is functional"@x-gmeow-english ;
@@ -1038,7 +1037,7 @@ gmeow:correspondingSourceFunctionality
     skos:example "gmeow:correspondingSourceFunctionality logic:characterizes gmeow:correspondingSource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:correspondingTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "correspondingTarget is functional"@x-gmeow-english ;
@@ -1053,7 +1052,7 @@ gmeow:correspondingTargetFunctionality
     skos:example "gmeow:correspondingTargetFunctionality logic:characterizes gmeow:correspondingTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:evaluatesArgumentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "evaluatesArgument is functional"@x-gmeow-english ;
@@ -1068,7 +1067,7 @@ gmeow:evaluatesArgumentFunctionality
     skos:example "gmeow:evaluatesArgumentFunctionality logic:characterizes gmeow:evaluatesArgument ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:inferenceModeOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "inferenceModeOf is functional"@x-gmeow-english ;
@@ -1083,7 +1082,7 @@ gmeow:inferenceModeOfFunctionality
     skos:example "gmeow:inferenceModeOfFunctionality logic:characterizes gmeow:inferenceModeOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:premiseUsedFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "premiseUsed is functional"@x-gmeow-english ;
@@ -1098,7 +1097,7 @@ gmeow:premiseUsedFunctionality
     skos:example "gmeow:premiseUsedFunctionality logic:characterizes gmeow:premiseUsed ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:supportTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "supportTarget is functional"@x-gmeow-english ;
@@ -1113,7 +1112,7 @@ gmeow:supportTargetFunctionality
     skos:example "gmeow:supportTargetFunctionality logic:characterizes gmeow:supportTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tenureOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "tenureOf is functional"@x-gmeow-english ;
@@ -1128,7 +1127,7 @@ gmeow:tenureOfFunctionality
     skos:example "gmeow:tenureOfFunctionality logic:characterizes gmeow:tenureOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:underSemanticsFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "underSemantics is functional"@x-gmeow-english ;
@@ -1143,11 +1142,11 @@ gmeow:underSemanticsFunctionality
     skos:example "gmeow:underSemanticsFunctionality logic:characterizes gmeow:underSemantics ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:competesWithIrreflexivity
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "competesWith is irreflexive"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:competesWith is irreflexive: a rival standpoint claim never competes with itself, as its skos:definition states. gmeow:competesWith is symmetric (owl:SymmetricProperty) but irreflexive; irreflexivity is enforced here on the canonical carrier — kept out of OWL to hold the reasoned profile within OWL 2 DL (the deception discipline) — and the native coherence gate raises a violation for a claim asserted to compete with itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:competesWith is irreflexive: a rival standpoint claim never competes with itself, as its skos:definition states. gmeow:competesWith is symmetric (OWL SymmetricProperty) but irreflexive; irreflexivity is enforced here on the canonical carrier — kept out of OWL to hold the reasoned profile within OWL 2 DL (the deception discipline) — and the native coherence gate raises a violation for a claim asserted to compete with itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
     logic:characterizes gmeow:competesWith ;
     logic:characteristicSort logic:irreflexiveProperty ;
     logic:formalizes gmeow:competesWith ;
@@ -1158,7 +1157,7 @@ gmeow:competesWithIrreflexivity
     skos:example "gmeow:competesWithIrreflexivity logic:characterizes gmeow:competesWith ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:inferencePremiseConclusionDistinctness
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "an inference commitment's premise and conclusion are distinct"@x-gmeow-english ;
@@ -1173,7 +1172,7 @@ gmeow:inferencePremiseConclusionDistinctness
     skos:example "gmeow:inferencePremiseConclusionDistinctness logic:characterizes gmeow:InferenceCommitment ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attackSelfAttackExclusion
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "a typed attack's source and target are distinct"@x-gmeow-english ;
@@ -1188,7 +1187,7 @@ gmeow:attackSelfAttackExclusion
     skos:example "gmeow:attackSelfAttackExclusion logic:characterizes gmeow:Attack ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:supportSelfSupportExclusion
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "a support's source and target are distinct"@x-gmeow-english ;
@@ -1203,7 +1202,7 @@ gmeow:supportSelfSupportExclusion
     skos:example "gmeow:supportSelfSupportExclusion logic:characterizes gmeow:Support ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attackUndermineTargetsPremiseUse
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "an undermining attack targets a premise use"@x-gmeow-english ;
@@ -1221,7 +1220,7 @@ gmeow:attackUndermineTargetsPremiseUse
     skos:example "gmeow:attackUndermineTargetsPremiseUse logic:characterizes gmeow:Attack ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attackUndercutTargetsInferenceApplication
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "an undercutting attack targets an inference application"@x-gmeow-english ;
@@ -1239,7 +1238,7 @@ gmeow:attackUndercutTargetsInferenceApplication
     skos:example "gmeow:attackUndercutTargetsInferenceApplication logic:characterizes gmeow:Attack ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attackRebutTargetsStandpointClaim
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:ConditionalRangeAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "a rebutting attack targets a standpoint claim"@x-gmeow-english ;
@@ -1257,7 +1256,7 @@ gmeow:attackRebutTargetsStandpointClaim
     skos:example "gmeow:attackRebutTargetsStandpointClaim logic:characterizes gmeow:Attack ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attackComponentSelfExclusion
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RoleCompositionExclusionAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "an argument does not attack its own component"@x-gmeow-english ;

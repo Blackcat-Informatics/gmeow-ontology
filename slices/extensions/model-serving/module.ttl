@@ -4,7 +4,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -33,7 +32,7 @@
 # provenance, awareness). gmeow:ModelArtifact is aligned to the software slice's
 # gmeow:Distribution BY REFERENCE (a sibling Kind under gmeow:InformationObject,
 # NOT rdfs:subClassOf gmeow:Distribution) — a range/subclass axiom is a real
-# dependency regardless of owl:imports, and an extension may not depend on another
+# dependency regardless of OWL imports, and an extension may not depend on another
 # extension. gmeow:ModelInvocation / gmeow:ToolCall / gmeow:usedTool /
 # logic:ActionSchema are REUSED at the instance level, never re-minted
 # (Principle 5); gmeow:usedCapability — the passive-capability discriminator of
@@ -44,7 +43,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 <https://blackcatinformatics.ca/gmeow/slices/model-serving>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "The model-serving topology: the served model artifact, its deployment (a relator binding artifact·service·host·endpoint·configuration·interval), the runtime execution (an occurrent), and the agent session (an event aggregate) — each with an explicit identity criterion rather than collapsed onto a gmeow:AwarenessTenure. Reusable beyond inhabitation; depends only on core. The multi-hop de-conflation path is projected flat for the hot path by computed, drift-gated upper-projections (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
@@ -59,7 +58,7 @@
 
 gmeow:AgentSession
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "Agent Session"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -73,7 +72,7 @@ gmeow:AgentSession
 
 gmeow:ModelArtifact
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "Model Artifact"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -87,28 +86,28 @@ gmeow:ModelArtifact
 
 gmeow:ModelDeployment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     logic:mediates gmeow:deploymentArtifact ,
         gmeow:deploymentService ,
         gmeow:deploymentHost ;
-    owl:disjointWith gmeow:Agent ;
+    logic:disjointWith gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "Model Deployment"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:deploymentArtifact ;
-            owl:allValuesFrom gmeow:ModelArtifact ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:deploymentArtifact ;
+            logic:allValuesFrom gmeow:ModelArtifact ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:deploymentService ;
-            owl:allValuesFrom gmeow:SoftwareAgent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:deploymentService ;
+            logic:allValuesFrom gmeow:SoftwareAgent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:deploymentHost ;
-            owl:allValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:deploymentHost ;
+            logic:allValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A served, callable realization of a model artifact — the relator binding an artifact, a service identity, a host / runtime, an endpoint, a configuration, an operator, a policy, and a serving interval. Distinct from the artifact (what runs) and from any one execution (an occurrent). Its serving mode over an interval is recorded as a FACET by a gmeow:AwarenessTenure(modeOnlineInference) whose gmeow:awarenessSubject is the deployment's service gmeow:SoftwareAgent, not by the deployment being a tenure."@x-gmeow-english ;
     skos:example "ex:opusDeployment a gmeow:ModelDeployment ; gmeow:deploymentArtifact ex:opus-artifact ; gmeow:deploymentService ex:opusServiceAgent ; gmeow:deploymentHost ex:usEast1 ."@x-gmeow-english ;
@@ -120,19 +119,19 @@ gmeow:ModelDeployment
 
 gmeow:ModelCard
     rdfs:subClassOf [
-            a owl:Restriction ;
-            owl:onProperty gmeow:describesModelArtifact ;
-            owl:allValuesFrom gmeow:ModelArtifact ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:describesModelArtifact ;
+            logic:allValuesFrom gmeow:ModelArtifact ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:describesModelService ;
-            owl:allValuesFrom gmeow:ModelDeployment ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:describesModelService ;
+            logic:allValuesFrom gmeow:ModelDeployment ;
         ] .
 
 gmeow:RuntimeExecution
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "Runtime Execution"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -149,7 +148,7 @@ gmeow:RuntimeExecution
 # ─────────────────────────────────────────────────────────────────────────────
 
 gmeow:deploymentArtifact
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment artifact"@x-gmeow-english ;
@@ -159,7 +158,7 @@ gmeow:deploymentArtifact
         gmeow:boxRBox .
 
 gmeow:deploymentEndpoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment endpoint"@x-gmeow-english ;
@@ -168,7 +167,7 @@ gmeow:deploymentEndpoint
         gmeow:boxRBox .
 
 gmeow:deploymentHost
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment host"@x-gmeow-english ;
@@ -178,7 +177,7 @@ gmeow:deploymentHost
         gmeow:boxRBox .
 
 gmeow:deploymentService
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment service"@x-gmeow-english ;
@@ -188,7 +187,7 @@ gmeow:deploymentService
         gmeow:boxRBox .
 
 gmeow:describesModelArtifact
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "describes model artifact"@x-gmeow-english ;
@@ -198,7 +197,7 @@ gmeow:describesModelArtifact
         gmeow:boxRBox .
 
 gmeow:describesModelService
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "describes model service"@x-gmeow-english ;
@@ -208,7 +207,7 @@ gmeow:describesModelService
         gmeow:boxRBox .
 
 gmeow:executionOfDeployment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RuntimeExecution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "execution of deployment"@x-gmeow-english ;
@@ -218,7 +217,7 @@ gmeow:executionOfDeployment
         gmeow:boxRBox .
 
 gmeow:generatedForSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "generated for subject"@x-gmeow-english ;
     rdfs:comment "COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by the projection CONSTRUCT queries/project/upper-projection.rq as the one-hop collapse of the multi-hop path output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionSubjectStage → subject stage (and onward, where core/inhabitation is composed — the agent-runtime profile — gmeow:stageOfLineage → durable lineage, via the query's COALESCE that prefers the deeper lineage). The canonical nested situations remain the source of truth for deep audits; real-time recall reads this flat shortcut. Never hand-assert it in the authored corpus — the slice-test harness runs the projection over the canon (gmeow:cqProject) so the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq) compares the MATERIALIZED shortcut against the collapse of the canon (Principle 7); the gate is non-circular precisely because the shortcut is produced by the rule, not typed by hand."@x-gmeow-english ;
@@ -228,7 +227,7 @@ gmeow:generatedForSubject
         gmeow:boxRBox .
 
 gmeow:generatedUnderConfiguration
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "generated under configuration"@x-gmeow-english ;
     rdfs:comment "COMPUTED PROJECTION, generated not authored (Principle 12). Materialized by the projection CONSTRUCT queries/project/upper-projection.rq as the one-hop collapse of output → gmeow:wasGeneratedBy → invocation → gmeow:subEventOf → session → gmeow:sessionConfiguration → active configuration. Never hand-assert it in the authored corpus; the slice-test harness runs the projection over the canon (gmeow:cqProject) so the projection-agreement gate compares the MATERIALIZED shortcut against the collapse of the canon (Principle 7), non-circularly."@x-gmeow-english ;
@@ -238,7 +237,7 @@ gmeow:generatedUnderConfiguration
         gmeow:boxRBox .
 
 gmeow:invocationInExecution
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelInvocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "invocation in execution"@x-gmeow-english ;
@@ -248,7 +247,7 @@ gmeow:invocationInExecution
         gmeow:boxRBox .
 
 gmeow:sessionConfiguration
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AgentSession ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "session configuration"@x-gmeow-english ;
@@ -257,7 +256,7 @@ gmeow:sessionConfiguration
         gmeow:boxRBox .
 
 gmeow:sessionSubjectStage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AgentSession ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "session subject stage"@x-gmeow-english ;
@@ -266,7 +265,7 @@ gmeow:sessionSubjectStage
         gmeow:boxRBox .
 
 gmeow:usedCapability
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Activity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "used capability"@x-gmeow-english ;
@@ -295,32 +294,32 @@ gmeow:eventTypeAgentEpisode
 # state (gmeow:ModelDeploymentShape, gmeow:ModelCardServingSplitShape,
 # gmeow:AgentSessionShape), authored here once as OWL restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by
-# derive_validation_shapes (Principle 17). A restriction carrying owl:maxQualifiedCardinality
-# (onClass owl:Thing) lowers to sh:maxCount; owl:allValuesFrom C to sh:class C. The deployment /
-# awareness-subject disjointness rides the existing owl:disjointWith gmeow:Agent
+# derive_validation_shapes (Principle 17). A restriction carrying OWL maxQualifiedCardinality
+# (onClass OWL Thing) lowers to sh:maxCount; OWL allValuesFrom C to sh:class C. The deployment /
+# awareness-subject disjointness rides the existing OWL disjointWith gmeow:Agent
 # (a procedural sh:not twin has no ordinary-OWL antecedent — the disjointWith IS
 # the antecedent and already projects). No numeric-range / sh:sparql conditions
 # here, so nothing is carried to the procedural constraint fragment.
 # =========================================================================== #
 
 gmeow:ModelDeployment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:deploymentArtifact ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ModelArtifact ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:deploymentService ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SoftwareAgent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:deploymentHost ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:deploymentArtifact ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ModelArtifact ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:deploymentService ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:SoftwareAgent ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:deploymentHost ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ] .
 
 gmeow:ModelCard rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:describesModelArtifact ; owl:allValuesFrom gmeow:ModelArtifact ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:describesModelService ; owl:allValuesFrom gmeow:ModelDeployment ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:describesModelArtifact ; logic:allValuesFrom gmeow:ModelArtifact ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:describesModelService ; logic:allValuesFrom gmeow:ModelDeployment ] .
 
 gmeow:AgentSession rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:sessionSubjectStage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:sessionConfiguration ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:sessionSubjectStage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:sessionConfiguration ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -328,7 +327,7 @@ gmeow:AgentSession rdfs:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:deploymentArtifactFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deploymentArtifact is functional"@x-gmeow-english ;
@@ -343,7 +342,7 @@ gmeow:deploymentArtifactFunctionality
     skos:example "gmeow:deploymentArtifactFunctionality logic:characterizes gmeow:deploymentArtifact ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:deploymentHostFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deploymentHost is functional"@x-gmeow-english ;
@@ -358,7 +357,7 @@ gmeow:deploymentHostFunctionality
     skos:example "gmeow:deploymentHostFunctionality logic:characterizes gmeow:deploymentHost ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:deploymentServiceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deploymentService is functional"@x-gmeow-english ;
@@ -373,7 +372,7 @@ gmeow:deploymentServiceFunctionality
     skos:example "gmeow:deploymentServiceFunctionality logic:characterizes gmeow:deploymentService ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sessionConfigurationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "sessionConfiguration is functional"@x-gmeow-english ;
@@ -388,7 +387,7 @@ gmeow:sessionConfigurationFunctionality
     skos:example "gmeow:sessionConfigurationFunctionality logic:characterizes gmeow:sessionConfiguration ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sessionSubjectStageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "sessionSubjectStage is functional"@x-gmeow-english ;

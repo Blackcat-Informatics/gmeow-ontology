@@ -2,7 +2,6 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -10,7 +9,7 @@
 
 gmeow:CodecClass
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Codec Class"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -24,7 +23,7 @@ gmeow:CodecClass
 
 gmeow:GTSCompaction
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Compaction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -38,7 +37,7 @@ gmeow:GTSCompaction
 
 gmeow:GTSDocument
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Document"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -53,7 +52,7 @@ gmeow:GTSDocument
 
 gmeow:GTSProfile
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Profile"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -68,7 +67,7 @@ gmeow:GTSProfile
 
 gmeow:GTSSegment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Segment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -83,7 +82,7 @@ gmeow:GTSSegment
 
 gmeow:OpacityReason
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Opacity Reason"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -96,7 +95,7 @@ gmeow:OpacityReason
 
 gmeow:OpaqueFrame
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Opaque Frame"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -109,7 +108,7 @@ gmeow:OpaqueFrame
 
 gmeow:TransformCodec
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Transform Codec"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -140,7 +139,7 @@ gmeow:codecBase85
         gmeow:boxConfigBox .
 
 gmeow:codecClass
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TransformCodec ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "codec class"@x-gmeow-english ;
@@ -223,13 +222,13 @@ gmeow:codecZstd
         gmeow:boxConfigBox .
 
 gmeow:gtsHeadId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS head id"@x-gmeow-english ;
     rdfs:range xsd:string ;
     rdfs:subPropertyOf gmeow:versionFingerprint ;
-    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. It is also the key of a gmeow:GTSSegment (carried by the logic:KeyAssertion gmeow:gtsSegmentHeadKey): the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity). The datatype key is carried by a logic:KeyAssertion (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic (which on a datatype property would be OWL 2 Full)."@x-gmeow-english ;
+    skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. It is also the key of a gmeow:GTSSegment (carried by the logic:KeyAssertion gmeow:gtsSegmentHeadKey): the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity). The datatype key is carried by a logic:KeyAssertion (the logic: analogue of OWL hasKey, OWL 2 DL) rather than an inverse-functional characteristic (which on a datatype property would be OWL 2 Full)."@x-gmeow-english ;
     skos:example "ex:seg0 gmeow:gtsHeadId \"blake3:9f2c4e…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for byte-exact identity of the file or a blob (use gmeow:contentDigest) and avoid asserting more than one head per segment; the head is functional and commits transitively to the chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
@@ -238,7 +237,7 @@ gmeow:gtsHeadId
     gmeow:useWhen "Use to commit to a segment's entire history with a single chain head — the version-fingerprint identity used to cite a segment, build a document's composite identity, or keep a compaction source citable."@x-gmeow-english .
 
 gmeow:gtsProfile
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS profile"@x-gmeow-english ;
@@ -309,12 +308,12 @@ gmeow:gtsProfileOpaque
         gmeow:boxConfigBox .
 
 gmeow:gtsSegment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GTSDocument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS segment"@x-gmeow-english ;
     rdfs:range gmeow:GTSSegment ;
-    owl:inverseOf gmeow:gtsSegmentOf ;
+    logic:inverseOf gmeow:gtsSegmentOf ;
     skos:definition "A segment of this GTS document — the inverse of gmeow:gtsSegmentOf. Non-functional: a document holds one or more segments, ordered by gmeow:gtsSegmentIndex."@x-gmeow-english ;
     skos:example "ex:bundle gmeow:gtsSegment ex:seg0, ex:seg1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid relying on it for segment order (that is gmeow:gtsSegmentIndex) and avoid asserting it directly when minting a segment; prefer stating gmeow:gtsSegmentOf and reading this as its inverse."@x-gmeow-english ;
@@ -324,7 +323,7 @@ gmeow:gtsSegment
     gmeow:useWhen "Use in document-rooted projections and traversals — when enumerating a document's segments from the document side is the natural direction to state or query."@x-gmeow-english .
 
 gmeow:gtsSegmentIndex
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS segment index"@x-gmeow-english ;
@@ -338,7 +337,7 @@ gmeow:gtsSegmentIndex
     gmeow:useWhen "Use to fix a segment's place in its document's append-only file order — the index that, taken over the segment heads, reconstructs the document's composite identity."@x-gmeow-english .
 
 gmeow:gtsSegmentOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS segment of"@x-gmeow-english ;
@@ -367,7 +366,7 @@ gmeow:opacityMissingKey
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:opacityReason
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OpaqueFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opacity reason"@x-gmeow-english ;
@@ -388,7 +387,7 @@ gmeow:opacityUnknownCodec
         gmeow:boxConfigBox .
 
 gmeow:opaqueFrameIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OpaqueFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opaque frame in"@x-gmeow-english ;
@@ -402,7 +401,7 @@ gmeow:opaqueFrameIn
     gmeow:useWhen "Use to anchor an opaque frame to the single segment whose chain it occupies — so the undecodable region is located within transport structure rather than floating free."@x-gmeow-english .
 
 gmeow:sealedRecipient
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OpaqueFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "sealed recipient"@x-gmeow-english ;
@@ -415,7 +414,7 @@ gmeow:sealedRecipient
     gmeow:useWhen "Use on a sealed (encrypt-class) opaque frame to name the agents who hold a key and can decrypt it — making explicit that opacity is vantage-relative and the frame is transparent to them."@x-gmeow-english .
 
 gmeow:usesTransformCodec
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "uses transform codec"@x-gmeow-english ;
@@ -429,7 +428,7 @@ gmeow:usesTransformCodec
     gmeow:useWhen "Use to record which catalog codecs a segment's frames actually employ — so a reader can tell, before decoding, which libraries or keys it must hold to read the segment."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/gts>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Transport/packaging vocabulary so GMEOW can DESCRIBE and dogfood its own
 transport: a GTS file (docs/GTS-SPEC.md) as a first-class entity — its segments, profiles,
@@ -467,7 +466,7 @@ REUSE (no parallel mechanisms — GTS transport design).
 # restriction axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
 # derive_validation_shapes (Principle 17). This module is the single source of
 # truth: the slice ships NO hand-authored shapes.ttl (docs/MIGRATING-SHAPES-TO-
-# LOGIC.md). A restriction carrying both owl:*Cardinality and owl:allValuesFrom
+# LOGIC.md). A restriction carrying both OWL*Cardinality and OWL allValuesFrom
 # lowers to the paired sh:minCount/maxCount + sh:class / sh:datatype property
 # shape. The cross-node / disjunctive (sh:sparql) conditions have no OWL
 # antecedent and are authored as logic:Constraints below.
@@ -480,9 +479,9 @@ gmeow:OpaqueFrame logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:OpaqueFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/opaqueFrameIn" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:GTSSegment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:gtsHeadId ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gtsSegmentIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gtsProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSProfile ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:gtsHeadId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gtsSegmentIndex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gtsProfile ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:GTSProfile ] .
 
 # A chain head is written 'blake3:<64 lowercase hex>' — the lexical form of the
 # content-id the whole segment history commits to. A free-form head is
@@ -495,7 +494,7 @@ gmeow:GTSSegment rdfs:subClassOf
 # single record — declaratively to a sh:pattern component on the derived
 # gmeow:GTSSegment node shape, and procedurally to its sh:sparql twin.
 #
-# There is deliberately NO owl:withRestrictions datarange beside it. A datatype facet
+# There is deliberately NO OWL withRestrictions datarange beside it. A datatype facet
 # is the only OTHER thing the shape deriver reads for a pattern, but authoring one is
 # not free: a LIVE pattern facet is outside the fragment the native reasoner decides
 # (XSD's regular-expression dialect is not the host engine's, so refute::datatype
@@ -585,9 +584,9 @@ gmeow:GtsHeadIdCanonicalConstraint
     logic:message "A gmeow:gtsHeadId value must match '^blake3:[0-9a-f]{64}$' — the canonical blake3 content-id form." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsProfile> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
-<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/gtsProfile> ; logic:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; logic:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
 
 # =========================================================================== #
 # THE MEDIUM AXIS — a medium is a lawful (encode, decode) PAIR                 #
@@ -617,14 +616,14 @@ gmeow:GtsHeadIdCanonicalConstraint
 #
 # Every declarative obligation below is authored in the CANONICAL logic:
 # restriction vocabulary (logic:subClassOf / logic:Restriction / logic:onProperty
-# / logic:onClass / logic:allValuesFrom). The rdfs:/owl: spelling is the derived
+# / logic:onClass / logic:allValuesFrom). The rdfs:/OWL spelling is the derived
 # PROJECTION of these axioms, not a second source: authoring it by hand here
 # would be ungrounded structural residue against this slice's projection-vocabulary
 # ceiling. The slice ships NO shapes.ttl (docs/MIGRATING-SHAPES-TO-LOGIC.md).
 
 gmeow:CompressionDictionary
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Compression Dictionary"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -642,7 +641,7 @@ gmeow:CompressionDictionary
 
 gmeow:CompressionDictionaryRealization
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Compression Dictionary Realization"@x-gmeow-english ;
     logic:subClassOf gmeow:Manifestation ;
@@ -660,7 +659,7 @@ gmeow:CompressionDictionaryRealization
 
 gmeow:DictionaryCorpus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Dictionary Corpus"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -678,7 +677,7 @@ gmeow:DictionaryCorpus
 
 gmeow:CorpusTrainingSplit
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Corpus Training Split"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -696,7 +695,7 @@ gmeow:CorpusTrainingSplit
 
 gmeow:DictionaryStrategy
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Dictionary Strategy"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -714,7 +713,7 @@ gmeow:DictionaryStrategy
 
 gmeow:MediumDictionaryEffectMeasurement
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Dictionary Effect Measurement"@x-gmeow-english ;
     logic:subClassOf gmeow:Measurement ;
@@ -732,7 +731,7 @@ gmeow:MediumDictionaryEffectMeasurement
 
 gmeow:MediumMeasurementPopulation
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Measurement Population"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -750,7 +749,7 @@ gmeow:MediumMeasurementPopulation
 
 gmeow:DigestStratum
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Digest Stratum"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -768,7 +767,7 @@ gmeow:DigestStratum
 
 gmeow:Medium
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -786,7 +785,7 @@ gmeow:Medium
 
 gmeow:MediumEnvelope
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Envelope"@x-gmeow-english ;
     logic:subClassOf gmeow:AttestationArtifact ;
@@ -804,7 +803,7 @@ gmeow:MediumEnvelope
 
 gmeow:MediumSourceKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Source Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -822,7 +821,7 @@ gmeow:MediumSourceKind
 
 gmeow:GtsProducer
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Producer"@x-gmeow-english ;
     logic:subClassOf gmeow:SocialObject ;
@@ -840,7 +839,7 @@ gmeow:GtsProducer
 
 gmeow:PayloadSchema
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Payload Schema"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -858,7 +857,7 @@ gmeow:PayloadSchema
 
 gmeow:ZstdDictMedium
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Zstd Dictionary Medium"@x-gmeow-english ;
     logic:subClassOf gmeow:Medium ;
@@ -877,7 +876,7 @@ gmeow:ZstdDictMedium
 # --- Medium properties ------------------------------------------------------ #
 
 gmeow:corpusSelectsBlobRep
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "corpus selects blob rep"@x-gmeow-english ;
@@ -895,7 +894,7 @@ gmeow:corpusSelectsBlobRep
     gmeow:useWhen "Use when a dictionary's training material is a whole blob archive the carrier already folds."@x-gmeow-english .
 
 gmeow:corpusSelectsGraph
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "corpus selects graph"@x-gmeow-english ;
@@ -912,7 +911,7 @@ gmeow:corpusSelectsGraph
     gmeow:useWhen "Use when a dictionary's training material is RDF the bundle carries as a named graph."@x-gmeow-english .
 
 gmeow:corpusSelectsPathPrefix
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "corpus selects path prefix"@x-gmeow-english ;
@@ -930,7 +929,7 @@ gmeow:corpusSelectsPathPrefix
     gmeow:useWhen "Use when a dictionary's training material is a region of the authored source tree."@x-gmeow-english .
 
 gmeow:corpusSelectsStageProduct
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "corpus selects stage product"@x-gmeow-english ;
@@ -948,7 +947,7 @@ gmeow:corpusSelectsStageProduct
     gmeow:useWhen "Use when the training material is sink-folded and therefore has no mid-DAG archive rep to select."@x-gmeow-english .
 
 gmeow:dictionaryByteLength
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary byte length"@x-gmeow-english ;
@@ -966,7 +965,7 @@ gmeow:dictionaryByteLength
     gmeow:useWhen "Use to record how large a trained dictionary actually is."@x-gmeow-english .
 
 gmeow:dictionaryContentDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary content digest"@x-gmeow-english ;
@@ -984,7 +983,7 @@ gmeow:dictionaryContentDigest
     gmeow:useWhen "Use to pin exactly which trained dictionary bytes a primed decode requires."@x-gmeow-english .
 
 gmeow:dictionaryId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary id"@x-gmeow-english ;
@@ -1002,7 +1001,7 @@ gmeow:dictionaryId
     gmeow:useWhen "Use to name an authored dictionary in a form a human reads and a decoder resolves."@x-gmeow-english .
 
 gmeow:dictionaryStrategy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary strategy"@x-gmeow-english ;
     rdfs:range gmeow:DictionaryStrategy ;
@@ -1019,7 +1018,7 @@ gmeow:dictionaryStrategy
     gmeow:useWhen "Use to record how a dictionary is meant to be built, and separately how it actually was."@x-gmeow-english .
 
 gmeow:dictionaryTargetLength
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary target length"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -1036,7 +1035,7 @@ gmeow:dictionaryTargetLength
     gmeow:useWhen "Use to declare how large a dictionary should be trained, so the request is reviewable independently of the result."@x-gmeow-english .
 
 gmeow:dictionaryVersion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary version"@x-gmeow-english ;
     rdfs:range xsd:string ;
@@ -1053,7 +1052,7 @@ gmeow:dictionaryVersion
     gmeow:useWhen "Use to pin which generation of a dictionary id a frame or a realization is bound to."@x-gmeow-english .
 
 gmeow:envelopeDictionary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediumEnvelope ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "envelope dictionary"@x-gmeow-english ;
@@ -1070,7 +1069,7 @@ gmeow:envelopeDictionary
     gmeow:useWhen "Use to make a frame's priming dictionary queryable in the graph without decoding the frame."@x-gmeow-english .
 
 gmeow:envelopeDigestStratum
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediumEnvelope ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "envelope digest stratum"@x-gmeow-english ;
@@ -1087,7 +1086,7 @@ gmeow:envelopeDigestStratum
     gmeow:useWhen "Use whenever a digest-bearing record sits inside the region a whole-payload digest would cover."@x-gmeow-english .
 
 gmeow:envelopeMedium
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediumEnvelope ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "envelope medium"@x-gmeow-english ;
@@ -1104,7 +1103,7 @@ gmeow:envelopeMedium
     gmeow:useWhen "Use to state which lawful encode/decode pair a frame's bytes were produced by."@x-gmeow-english .
 
 gmeow:envelopePayloadFrame
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediumEnvelope ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "envelope payload frame"@x-gmeow-english ;
@@ -1121,7 +1120,7 @@ gmeow:envelopePayloadFrame
     gmeow:useWhen "Use to bind a medium envelope to the single frame whose payload it describes."@x-gmeow-english .
 
 gmeow:envelopeSchema
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediumEnvelope ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "envelope schema"@x-gmeow-english ;
@@ -1138,7 +1137,7 @@ gmeow:envelopeSchema
     gmeow:useWhen "Use to state, against the closed registry, what KIND of payload a medium-encoded frame carries."@x-gmeow-english .
 
 gmeow:mediumCodec
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Medium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "medium codec"@x-gmeow-english ;
@@ -1156,7 +1155,7 @@ gmeow:mediumCodec
     gmeow:useWhen "Use to name the algorithm a medium's encode/decode pair is realized by."@x-gmeow-english .
 
 gmeow:mediumComposedOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     logic:subPropertyOf gmeow:hasPart ;
     rdfs:domain gmeow:Medium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
@@ -1175,7 +1174,7 @@ gmeow:mediumComposedOf
     gmeow:useWhen "Use to model a stacked transform chain as media composed of media."@x-gmeow-english .
 
 gmeow:mediumCorrespondence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Medium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "medium correspondence"@x-gmeow-english ;
@@ -1192,7 +1191,7 @@ gmeow:mediumCorrespondence
     gmeow:useWhen "Use to attach a medium's round-trip claim to a judged, dischargeable crossing instead of asserting it as a flag."@x-gmeow-english .
 
 gmeow:mediumDictionary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "medium dictionary"@x-gmeow-english ;
@@ -1210,7 +1209,7 @@ gmeow:mediumDictionary
     gmeow:useWhen "Use to bound which dictionaries a zstd medium is allowed to prime with."@x-gmeow-english .
 
 gmeow:measuredCorpusDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measured corpus digest"@x-gmeow-english ;
@@ -1228,7 +1227,7 @@ gmeow:measuredCorpusDigest
     gmeow:useWhen "Use to pin a dictionary's shipped bytes and its committed evidence to the exact corpus resolution that produced them."@x-gmeow-english .
 
 gmeow:measuredCorpusSampleCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measured corpus sample count"@x-gmeow-english ;
@@ -1245,7 +1244,7 @@ gmeow:measuredCorpusSampleCount
     gmeow:useWhen "Use to record the size of the training set a shipped dictionary was actually built from."@x-gmeow-english .
 
 gmeow:measuredDictionaryStrategy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measured dictionary strategy"@x-gmeow-english ;
@@ -1262,7 +1261,7 @@ gmeow:measuredDictionaryStrategy
     gmeow:useWhen "Use to record which dictionary strategy a build executed, separately from the one it was asked for."@x-gmeow-english .
 
 gmeow:measuredDictionaryTargetLength
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measured dictionary target length"@x-gmeow-english ;
@@ -1279,7 +1278,7 @@ gmeow:measuredDictionaryTargetLength
     gmeow:useWhen "Use to record the dictionary size a build actually trained at, separately from the size it was asked for."@x-gmeow-english .
 
 gmeow:measurementBytesOnDisk
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement bytes on disk"@x-gmeow-english ;
@@ -1296,7 +1295,7 @@ gmeow:measurementBytesOnDisk
     gmeow:useWhen "Use to record the data half of a dictionary's two-part code."@x-gmeow-english .
 
 gmeow:measurementBytesOnDiskBaseline
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement bytes on disk baseline"@x-gmeow-english ;
@@ -1313,7 +1312,7 @@ gmeow:measurementBytesOnDiskBaseline
     gmeow:useWhen "Use to record the no-dictionary counterfactual a dictionary-effect reading is judged against."@x-gmeow-english .
 
 gmeow:measurementCorpusSampleCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement corpus sample count"@x-gmeow-english ;
@@ -1330,7 +1329,7 @@ gmeow:measurementCorpusSampleCount
     gmeow:useWhen "Use to record the size of the training set behind a dictionary-effect reading."@x-gmeow-english .
 
 gmeow:measurementDictionaryInBandBytes
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement dictionary in-band bytes"@x-gmeow-english ;
@@ -1347,7 +1346,7 @@ gmeow:measurementDictionaryInBandBytes
     gmeow:useWhen "Use to record the model half of a dictionary's two-part code — what a consumer pays for the dictionary itself."@x-gmeow-english .
 
 gmeow:measurementEvaluatedFrameCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement evaluated frame count"@x-gmeow-english ;
@@ -1364,7 +1363,7 @@ gmeow:measurementEvaluatedFrameCount
     gmeow:useWhen "Use to make the extent of a dictionary-effect reading's population explicit."@x-gmeow-english .
 
 gmeow:measurementPopulation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement population"@x-gmeow-english ;
@@ -1381,7 +1380,7 @@ gmeow:measurementPopulation
     gmeow:useWhen "Use to name which declared body of bytes a dictionary-effect reading priced."@x-gmeow-english .
 
 gmeow:measurementTwoPartCodeBytes
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measurement two-part code bytes"@x-gmeow-english ;
@@ -1398,7 +1397,7 @@ gmeow:measurementTwoPartCodeBytes
     gmeow:useWhen "Use to record the whole minimum-description-length code a shipped dictionary costs."@x-gmeow-english .
 
 gmeow:measuresDictionary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediumDictionaryEffectMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measures dictionary"@x-gmeow-english ;
@@ -1415,7 +1414,7 @@ gmeow:measuresDictionary
     gmeow:useWhen "Use to name which shipped dictionary a dictionary-effect reading is about."@x-gmeow-english .
 
 gmeow:producerCallSite
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:GtsProducer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "producer call site"@x-gmeow-english ;
@@ -1433,7 +1432,7 @@ gmeow:producerCallSite
     gmeow:useWhen "Use to bind a producer row to the production code it classifies, so the producer-to-medium map can be censused against the source rather than trusted."@x-gmeow-english .
 
 gmeow:producerMedium
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GtsProducer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "producer medium"@x-gmeow-english ;
@@ -1451,7 +1450,7 @@ gmeow:producerMedium
     gmeow:useWhen "Use to declare which medium a production authorship site writes through."@x-gmeow-english .
 
 gmeow:mediumSourceKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Medium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "medium source kind"@x-gmeow-english ;
@@ -1469,7 +1468,7 @@ gmeow:mediumSourceKind
     gmeow:useWhen "Use to declare a medium's dictionary-resolution rule as data."@x-gmeow-english .
 
 gmeow:mediumZstdLevel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ZstdDictMedium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "medium zstd level"@x-gmeow-english ;
@@ -1487,7 +1486,7 @@ gmeow:mediumZstdLevel
     gmeow:useWhen "Use to pin the compression level a zstd medium encodes at."@x-gmeow-english .
 
 gmeow:payloadSchemaId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema id"@x-gmeow-english ;
@@ -1505,7 +1504,7 @@ gmeow:payloadSchemaId
     gmeow:useWhen "Use to bind a registered schema individual to the wire rep string it stands for."@x-gmeow-english .
 
 gmeow:payloadSchemaDictionary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema dictionary"@x-gmeow-english ;
@@ -1523,7 +1522,7 @@ gmeow:payloadSchemaDictionary
     gmeow:useWhen "Use to declare, per registered payload rep, which shipped dictionary primes it — the authored selection that makes the rep-to-dictionary map total and reviewable without running the build."@x-gmeow-english .
 
 gmeow:payloadSchemaMedium
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema medium"@x-gmeow-english ;
@@ -1541,7 +1540,7 @@ gmeow:payloadSchemaMedium
     gmeow:useWhen "Use to declare, per registered payload rep, the lawful encode/decode pair its bytes are written through — the authored assignment the whole medium axis is keyed on."@x-gmeow-english .
 
 gmeow:realizesDictionary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "realizes dictionary"@x-gmeow-english ;
@@ -1559,7 +1558,7 @@ gmeow:realizesDictionary
     gmeow:useWhen "Use to bind trained dictionary bytes to the authored declaration they answer to."@x-gmeow-english .
 
 gmeow:requiresReaderCapability
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Medium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "requires reader capability"@x-gmeow-english ;
@@ -1577,7 +1576,7 @@ gmeow:requiresReaderCapability
     gmeow:useWhen "Use to declare, on the deliverable, exactly what a reader must be able to do to read it."@x-gmeow-english .
 
 gmeow:splitHeldOutOffset
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CorpusTrainingSplit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "split held-out offset"@x-gmeow-english ;
@@ -1595,7 +1594,7 @@ gmeow:splitHeldOutOffset
     gmeow:useWhen "Use to name which position of the declared stride is the held-out one."@x-gmeow-english .
 
 gmeow:splitHeldOutStride
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CorpusTrainingSplit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "split held-out stride"@x-gmeow-english ;
@@ -1613,7 +1612,7 @@ gmeow:splitHeldOutStride
     gmeow:useWhen "Use to declare, as data, what share of an archive-backed corpus is withheld from training."@x-gmeow-english .
 
 gmeow:strataDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediumEnvelope ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "strata digest"@x-gmeow-english ;
@@ -1631,7 +1630,7 @@ gmeow:strataDigest
     gmeow:useWhen "Use to commit to a sub-payload whose digest a whole-payload digest cannot stably express."@x-gmeow-english .
 
 gmeow:trainsOverCorpus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CompressionDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "trains over corpus"@x-gmeow-english ;
@@ -1649,7 +1648,7 @@ gmeow:trainsOverCorpus
     gmeow:useWhen "Use to declare which corpus a dictionary is trained from."@x-gmeow-english .
 
 gmeow:zstdDictionaryId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "zstd Dictionary_ID"@x-gmeow-english ;
@@ -2584,7 +2583,7 @@ gmeow:payloadSchemaYamlLdArchive
 
 gmeow:GtsConformanceFailure
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Conformance Failure"@x-gmeow-english ;
     skos:definition "The parent of the GTS transport well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each slice logic:Constraint points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces WELL-FORMEDNESS of the transport claims — that a declared dictionary resolves, that a payload rep is registered, that a digest matches — never the truth of the content the transport carries."@x-gmeow-english ;
@@ -2600,7 +2599,7 @@ gmeow:GtsConformanceFailure
 
 gmeow:GtsFrameProfileViolation
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS Frame Profile Violation"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2617,7 +2616,7 @@ gmeow:GtsFrameProfileViolation
 
 gmeow:MediumCorpusDrift
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Corpus Drift"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2634,7 +2633,7 @@ gmeow:MediumCorpusDrift
 
 gmeow:MediumDictionaryRegression
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Dictionary Regression"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2651,7 +2650,7 @@ gmeow:MediumDictionaryRegression
 
 gmeow:MediumDigestMismatch
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Digest Mismatch"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2668,7 +2667,7 @@ gmeow:MediumDigestMismatch
 
 gmeow:MediumOpaqueFrame
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Opaque Frame"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2685,7 +2684,7 @@ gmeow:MediumOpaqueFrame
 
 gmeow:MediumUndeclaredDictionary
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Undeclared Dictionary"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2702,7 +2701,7 @@ gmeow:MediumUndeclaredDictionary
 
 gmeow:MediumUnknownDictionary
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Unknown Dictionary"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2719,7 +2718,7 @@ gmeow:MediumUnknownDictionary
 
 gmeow:MediumUnknownSchema
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Unknown Schema"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
@@ -2867,14 +2866,14 @@ logic:PayloadSchemaDictionaryConstraint
 # Medium-axis declarative constraint axioms — authored ONCE in the CANONICAL   #
 # logic: restriction vocabulary and PROJECTED to                              #
 # generated/shapes/validation-shapes.ttl by derive_validation_shapes           #
-# (Principle 17). The rdfs:/owl: spelling is the derived projection, never a   #
-# hand-authored second source: an owl:Restriction written here would be        #
+# (Principle 17). The rdfs:/OWL spelling is the derived projection, never a   #
+# hand-authored second source: an OWL Restriction written here would be        #
 # ungrounded structural residue against this slice's projection-vocabulary     #
 # ceiling, and the slice ships NO shapes.ttl.                                  #
 #                                                                             #
-# Two forms are used deliberately. A restriction qualified on owl:Thing is the #
+# Two forms are used deliberately. A restriction qualified on OWL Thing is the #
 # VACUOUS-QUALIFIER form the deriver degrades to plain sh:minCount/sh:maxCount #
-# (and its owl:onDataRange twin degrades to sh:datatype + the same counts).    #
+# (and its OWL onDataRange twin degrades to sh:datatype + the same counts).    #
 # A restriction qualified on a NAMED class keeps its count inside              #
 # sh:qualifiedValueShape, and only earns a bare sh:class when a genuine        #
 # universal backs it — here a closed-world-opted-in rdfs:range, declared by the#
@@ -2952,29 +2951,29 @@ gmeow:payloadSchemaDictionaryRangeClosure
 # unconditional, because a payload primed with two dictionaries is incoherent
 # under every medium. The two registry-resolved fields are qualified on their
 # named class (backed by the closure entries above, so the derived shape carries
-# sh:class); the rest use the vacuous owl:Thing qualifier, which the deriver
+# sh:class); the rest use the vacuous OWL Thing qualifier, which the deriver
 # degrades to plain counts.
 gmeow:MediumEnvelope logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CompressionDictionary ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeSchema ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:PayloadSchema ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeSchema ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:PayloadSchema ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
 # A medium is exactly one codec, one resolution rule, and one judged crossing.
 gmeow:Medium logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:mediumCodec ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:mediumCodec ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:mediumSourceKind ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:mediumSourceKind ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumCodec ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumCodec ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumSourceKind ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mediumSourceKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:mediumCorrespondence ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:mediumCorrespondence ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Correspondence ] .
 
@@ -3002,16 +3001,16 @@ gmeow:CompressionDictionary logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryTargetLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryTargetLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:trainsOverCorpus ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:DictionaryCorpus ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:trainsOverCorpus ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DictionaryCorpus ] .
 
 # The GENERATED realization contract — where the measured fields ARE mandatory,
 # because the build can always supply them.
 gmeow:CompressionDictionaryRealization logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryByteLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
@@ -3020,8 +3019,8 @@ gmeow:CompressionDictionaryRealization logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:zstdDictionaryId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
@@ -3243,7 +3242,7 @@ logic:mdtDeclared a logic:Formula ; logic:relation gmeow:dictionaryVersion ;
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -3252,7 +3251,7 @@ logic:mdtDeclared a logic:Formula ; logic:relation gmeow:dictionaryVersion ;
 #   logic:KeyAssertion — logic:keyProperty's value uniquely identifies a logic:keyClass instance.
 
 gmeow:codecClassFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "codecClass is functional"@x-gmeow-english ;
@@ -3267,7 +3266,7 @@ gmeow:codecClassFunctionality
     skos:example "gmeow:codecClassFunctionality logic:characterizes gmeow:codecClass ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:gtsHeadIdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gtsHeadId is functional"@x-gmeow-english ;
@@ -3282,7 +3281,7 @@ gmeow:gtsHeadIdFunctionality
     skos:example "gmeow:gtsHeadIdFunctionality logic:characterizes gmeow:gtsHeadId ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:gtsProfileFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gtsProfile is functional"@x-gmeow-english ;
@@ -3297,7 +3296,7 @@ gmeow:gtsProfileFunctionality
     skos:example "gmeow:gtsProfileFunctionality logic:characterizes gmeow:gtsProfile ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:gtsSegmentIndexFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gtsSegmentIndex is functional"@x-gmeow-english ;
@@ -3312,7 +3311,7 @@ gmeow:gtsSegmentIndexFunctionality
     skos:example "gmeow:gtsSegmentIndexFunctionality logic:characterizes gmeow:gtsSegmentIndex ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:gtsSegmentOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "gtsSegmentOf is functional"@x-gmeow-english ;
@@ -3327,7 +3326,7 @@ gmeow:gtsSegmentOfFunctionality
     skos:example "gmeow:gtsSegmentOfFunctionality logic:characterizes gmeow:gtsSegmentOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:opacityReasonFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opacityReason is functional"@x-gmeow-english ;
@@ -3342,7 +3341,7 @@ gmeow:opacityReasonFunctionality
     skos:example "gmeow:opacityReasonFunctionality logic:characterizes gmeow:opacityReason ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:opaqueFrameInFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "opaqueFrameIn is functional"@x-gmeow-english ;
@@ -3357,11 +3356,11 @@ gmeow:opaqueFrameInFunctionality
     skos:example "gmeow:opaqueFrameInFunctionality logic:characterizes gmeow:opaqueFrameIn ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:gtsSegmentHeadKey
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:KeyAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "a GTS segment is keyed by its chain head"@x-gmeow-english ;
-    skos:definition "Asserts that a gmeow:GTSSegment is identified by its gmeow:gtsHeadId: the chain head is a BLAKE3 content-id committing transitively to the segment's entire frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction. The head therefore uniquely identifies its segment (content-addressing IS the identity), and the native DL consistency gate forces two segments asserted distinct yet sharing a head into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property gmeow:gtsHeadId would be OWL 2 Full."@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:GTSSegment is identified by its gmeow:gtsHeadId: the chain head is a BLAKE3 content-id committing transitively to the segment's entire frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction. The head therefore uniquely identifies its segment (content-addressing IS the identity), and the native DL consistency gate forces two segments asserted distinct yet sharing a head into OWL Nothing. Stated as a key (the logic: analogue of OWL hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property gmeow:gtsHeadId would be OWL 2 Full."@x-gmeow-english ;
     logic:keyClass gmeow:GTSSegment ;
     logic:keyProperty gmeow:gtsHeadId ;
     logic:formalizes gmeow:gtsHeadId ;

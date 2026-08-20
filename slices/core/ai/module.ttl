@@ -2,21 +2,20 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:Chunk
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunk"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:chunkOf ;
-            owl:someValuesFrom gmeow:InformationObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:chunkOf ;
+            logic:someValuesFrom gmeow:InformationObject ;
         ] ;
     skos:definition "A contiguous segment of a source information object, produced by a chunking step for retrieval — the unit a retrieval returns, a model reads, and an evidence span pins into. Located in its source by gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd and content-addressed via the EXISTING gmeow:contentDigest (sources slice), so 'which exact bytes did the model see?' is answerable after the fact."@x-gmeow-english ;
     skos:example "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
@@ -27,7 +26,7 @@ gmeow:Chunk
 
 gmeow:Contradiction
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Contradiction"@x-gmeow-english ;
     logic:mediates gmeow:contradictsClaim ,
@@ -35,9 +34,9 @@ gmeow:Contradiction
     logic:subClassOf logic:Relator ;
     rdfs:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contradictsClaim ;
-            owl:someValuesFrom owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contradictsClaim ;
+            logic:someValuesFrom logic:Thing ;
         ] ;
     skos:definition "A reified conflict between two or more claim nodes — surfaced, attributed (gmeow:detectedBy), kind-classified (gmeow:contradictionKind), and NEVER resolved by rank. Conflicting claims coexist accordingTo their standpoints (P9); a standpoint may mark one refuted via the EXISTING gmeow:claimModality, but no winner machinery exists anywhere in the graph. Detection is itself contestable: two detectors disagreeing are two Contradiction individuals."@x-gmeow-english ;
     skos:example "ex:conflict1 a gmeow:Contradiction ; gmeow:contradictsClaim ex:claimA, ex:claimB ; gmeow:detectedBy ex:nliJudge ; gmeow:contradictionKind gmeow:contradictionKindFactual ."@x-gmeow-english ;
@@ -52,7 +51,7 @@ gmeow:Contradiction
 
 gmeow:ContradictionKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Contradiction Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -65,7 +64,7 @@ gmeow:ContradictionKind
 
 gmeow:DistanceMetric
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Distance Metric"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -78,25 +77,25 @@ gmeow:DistanceMetric
 
 gmeow:Embedding
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Embedding"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:embeddingOf ;
-            owl:someValuesFrom gmeow:InformationObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:embeddingOf ;
+            logic:someValuesFrom gmeow:InformationObject ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:embeddingModel ;
-            owl:someValuesFrom gmeow:SoftwareAgent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:embeddingModel ;
+            logic:someValuesFrom gmeow:SoftwareAgent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:distanceMetric ;
-            owl:someValuesFrom gmeow:DistanceMetric ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:distanceMetric ;
+            logic:someValuesFrom gmeow:DistanceMetric ;
         ] ;
     skos:definition "A vector representation of an information object (usually a core gmeow:Chunk), produced by an embedding model — the genuine vocabulary gap in the semantic-web stack (GraphRAG provenance design): model, dimensionality, and metric have no agreed RDF representation, so the refusal is recorded in the alignment trailer rather than papered over. The vector payload stays OUTSIDE the graph (extensions/graphrag's gmeow:vectorRef, P12); the graph carries the provenance that makes it auditable. A CORE-tier primitive: extensions/graphrag's per-object rows and extensions/embedding-projection's pack-level aggregate (gmeow:aggregatesEmbedding) both build on this one Embedding, never a competing per-extension definition."@x-gmeow-english ;
     gmeow:useWhen "Use for one vector representation of one information object under one model."@x-gmeow-english ;
@@ -107,15 +106,15 @@ gmeow:Embedding
 
 gmeow:MemoryItem
     a logic:Role ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Item"@x-gmeow-english ;
     logic:subClassOf gmeow:Observation ;
     rdfs:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:memoryOf ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:memoryOf ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "An observation/claim in the role of an agent's remembered belief (gmeow:memoryOf the remembering agent; gmeow:memoryKind the cognitive register). A gufo:Role on the UNIVERSAL claim construct — any claim form can be remembered, and being remembered is contingent, never an essence. Belief revision is supersession with gmeow:displayable false (P10), never deletion: what an agent believed WHEN is a query, not an archaeology project. The substrate under the gmeow client's Memory and the MCP store/recall/revise triad (P14)."@x-gmeow-english ;
     skos:example "ex:m1 a gmeow:MemoryItem ; gmeow:memoryOf ex:lillith ; gmeow:memoryKind gmeow:memoryKindSemantic ."@x-gmeow-english ;
@@ -130,7 +129,7 @@ gmeow:MemoryItem
 
 gmeow:MemoryKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -143,7 +142,7 @@ gmeow:MemoryKind
 
 gmeow:ModelCard
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Card"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -156,7 +155,7 @@ gmeow:ModelCard
 
 gmeow:ModelInvocation
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Invocation"@x-gmeow-english ;
     logic:subClassOf gmeow:Activity ;
@@ -174,7 +173,7 @@ gmeow:ModelInvocation
 
 gmeow:Prompt
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -187,7 +186,7 @@ gmeow:Prompt
 
 gmeow:PromptRole
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Role"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -200,7 +199,7 @@ gmeow:PromptRole
 
 gmeow:PromptTemplate
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Template"@x-gmeow-english ;
     logic:subClassOf gmeow:Prompt ;
@@ -213,15 +212,15 @@ gmeow:PromptTemplate
 
 gmeow:RetrievalEvent
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Retrieval Event"@x-gmeow-english ;
     logic:subClassOf gmeow:Activity ;
     rdfs:subClassOf
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:againstIndex ;
-            owl:someValuesFrom gmeow:VectorIndex ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:againstIndex ;
+            logic:someValuesFrom gmeow:VectorIndex ;
         ] ;
     skos:definition "One retrieval against a vector index: the query, the index queried, and the chunks returned — the answer to 'why did the model see this passage?'. An agent-memory recall is a RetrievalEvent too (the core MemoryItem doctrine's read operation). Per-chunk relevance rides extensions/graphrag's gmeow:retrievalScore statement annotations on each gmeow:retrievedChunk triple. A CORE-tier primitive: any embedding consumer that runs retrieval (extensions/graphrag's corpus pipeline today) reuses this one activity rather than minting a competing one."@x-gmeow-english ;
     gmeow:useWhen "Use to record one retrieval against a vector index — the answer to why a model saw a passage."@x-gmeow-english ;
@@ -232,7 +231,7 @@ gmeow:RetrievalEvent
 
 gmeow:SupportPolarity
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Support Polarity"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -245,7 +244,7 @@ gmeow:SupportPolarity
 
 gmeow:VectorIndex
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Vector Index"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -257,7 +256,7 @@ gmeow:VectorIndex
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:againstIndex
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RetrievalEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "against index"@x-gmeow-english ;
@@ -270,7 +269,7 @@ gmeow:againstIndex
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:chunkOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Chunk ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunk of"@x-gmeow-english ;
@@ -284,7 +283,7 @@ gmeow:chunkOf
     gmeow:useWhen "Use to bind a gmeow:Chunk to the single source information object it was cut from — the parthood seam that makes 'where in the source?' answerable."@x-gmeow-english .
 
 gmeow:contradictionKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Contradiction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "contradiction kind"@x-gmeow-english ;
@@ -326,7 +325,7 @@ gmeow:contradictionKindTemporal
         gmeow:boxCBox .
 
 gmeow:contradictsClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Contradiction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "contradicts claim"@x-gmeow-english ;
@@ -339,7 +338,7 @@ gmeow:contradictsClaim
     gmeow:useWhen "Use to bind a gmeow:Contradiction to each claim node in conflict — at least two, since a contradiction needs both sides to be a conflict."@x-gmeow-english .
 
 gmeow:describesModel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "describes model"@x-gmeow-english ;
@@ -352,7 +351,7 @@ gmeow:describesModel
     gmeow:useWhen "Use to bind a gmeow:ModelCard to the single gmeow:SoftwareAgent it documents — the link from description to the model that a gmeow:ModelInvocation actually uses."@x-gmeow-english .
 
 gmeow:detectedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Contradiction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "detected by"@x-gmeow-english ;
@@ -365,7 +364,7 @@ gmeow:detectedBy
     gmeow:useWhen "Use to attribute a gmeow:Contradiction to the agent that surfaced it — a person, an NLI model, or an eval run's judge — because detection is itself contestable."@x-gmeow-english .
 
 gmeow:distanceMetric
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "distance metric"@x-gmeow-english ;
     rdfs:range gmeow:DistanceMetric ;
@@ -410,7 +409,7 @@ gmeow:distanceMetricEuclidean
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:embeddingDimensions
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Embedding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "embedding dimensions"@x-gmeow-english ;
@@ -423,7 +422,7 @@ gmeow:embeddingDimensions
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:embeddingModel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Embedding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "embedding model"@x-gmeow-english ;
@@ -436,7 +435,7 @@ gmeow:embeddingModel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:embeddingOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Embedding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "embedding of"@x-gmeow-english ;
@@ -449,7 +448,7 @@ gmeow:embeddingOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:filledFrom
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Prompt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "filled from"@x-gmeow-english ;
@@ -462,7 +461,7 @@ gmeow:filledFrom
     gmeow:useWhen "Use to link a concrete gmeow:Prompt to the single gmeow:PromptTemplate version it was filled from, so an output traces to the exact published template."@x-gmeow-english .
 
 gmeow:groundedIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "grounded in"@x-gmeow-english ;
     rdfs:range gmeow:EvidenceSpan ;
@@ -477,7 +476,7 @@ gmeow:groundedIn
     gmeow:useWhen "Use to link any claim node to a pinned gmeow:EvidenceSpan that supports or refutes it; faithfulness (AIS) is exactly the coverage of these grounding links over a model's claims."@x-gmeow-english .
 
 gmeow:hasPrompt
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelInvocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "has prompt"@x-gmeow-english ;
@@ -490,7 +489,7 @@ gmeow:hasPrompt
     gmeow:useWhen "Use to link a gmeow:ModelInvocation to each gmeow:Prompt presented in it — assert several, in their conversational roles, for a multi-turn chat invocation."@x-gmeow-english .
 
 gmeow:memoryKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MemoryItem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "memory kind"@x-gmeow-english ;
@@ -531,7 +530,7 @@ gmeow:memoryKindWorking
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:memoryOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MemoryItem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "memory of"@x-gmeow-english ;
@@ -558,7 +557,7 @@ gmeow:methodNliDerivation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:modelContextWindow
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "model context window"@x-gmeow-english ;
@@ -572,7 +571,7 @@ gmeow:modelContextWindow
     gmeow:useWhen "Use to record the declared context-window size in tokens — the model capability a gmeow:ModelCard advertises."@x-gmeow-english .
 
 gmeow:modelProvider
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "model provider"@x-gmeow-english ;
@@ -585,7 +584,7 @@ gmeow:modelProvider
     gmeow:useWhen "Use to record the providing organization as named on a gmeow:ModelCard — the convenience string facet for the card's declared provider."@x-gmeow-english .
 
 gmeow:modelTrainingCutoff
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "model training cutoff"@x-gmeow-english ;
@@ -598,7 +597,7 @@ gmeow:modelTrainingCutoff
     gmeow:useWhen "Use to record the training-data cutoff a gmeow:ModelCard declares — the staleness context against which every claim the model makes is read."@x-gmeow-english .
 
 gmeow:modelVersionTag
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelCard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "model version tag"@x-gmeow-english ;
@@ -632,7 +631,7 @@ gmeow:polaritySupports
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:promptRole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Prompt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "prompt role"@x-gmeow-english ;
@@ -673,7 +672,7 @@ gmeow:promptRoleUser
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:samplingMaxTokens
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInvocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "sampling max tokens"@x-gmeow-english ;
@@ -686,7 +685,7 @@ gmeow:samplingMaxTokens
     gmeow:useWhen "Use to record the output-token ceiling of a gmeow:ModelInvocation — provenance for whether an output may have been truncated."@x-gmeow-english .
 
 gmeow:samplingTemperature
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInvocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "sampling temperature"@x-gmeow-english ;
@@ -699,7 +698,7 @@ gmeow:samplingTemperature
     gmeow:useWhen "Use to record the temperature of a gmeow:ModelInvocation as part of its provenance — the same prompt at temperature 0 versus 1.2 is a different epistemic act."@x-gmeow-english .
 
 gmeow:samplingTopP
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInvocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "sampling top-p"@x-gmeow-english ;
@@ -712,7 +711,7 @@ gmeow:samplingTopP
     gmeow:useWhen "Use to record the nucleus-sampling (top-p) cutoff of a gmeow:ModelInvocation as part of its provenance."@x-gmeow-english .
 
 gmeow:spanEnd
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "span end"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -724,7 +723,7 @@ gmeow:spanEnd
     gmeow:useWhen "Use to pin the exclusive end offset of a span in unicode code points, completing the half-open range opened by gmeow:spanStart."@x-gmeow-english .
 
 gmeow:spanOfChunk
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EvidenceSpan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "span of chunk"@x-gmeow-english ;
@@ -737,7 +736,7 @@ gmeow:spanOfChunk
     gmeow:useWhen "Use to anchor an existing gmeow:EvidenceSpan into the retrieved gmeow:Chunk it cites — the seam that joins the evidence layer to the retrieval substrate so the exact bytes are recoverable."@x-gmeow-english .
 
 gmeow:spanStart
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "span start"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -749,7 +748,7 @@ gmeow:spanStart
     gmeow:useWhen "Use to pin the inclusive start offset of a span in unicode code points — a Chunk within its source or an EvidenceSpan within a chunk — when mechanical re-anchoring needs an integer, not prose."@x-gmeow-english .
 
 gmeow:supportPolarity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EvidenceSpan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "support polarity"@x-gmeow-english ;
@@ -762,7 +761,7 @@ gmeow:supportPolarity
     gmeow:useWhen "Use to record the NLI/AIS stance of a grounding span toward its claim — supports, refutes, or neutral — so faithfulness and contradiction audits read the verdict as data."@x-gmeow-english .
 
 gmeow:usedModel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelInvocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "used model"@x-gmeow-english ;
@@ -775,7 +774,7 @@ gmeow:usedModel
     gmeow:useWhen "Use to bind a gmeow:ModelInvocation to the single gmeow:SoftwareAgent it called — the model whose attribution and gmeow:ModelCard make the act auditable."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/ai>
-    a owl:Ontology ;
+    a logic:Ontology ;
     rdfs:comment "A GeneratedClaim is a QUERY, not a class: a StandpointClaim whose vantage is a SoftwareAgent and which gmeow:wasGeneratedBy a ModelInvocation — a direct triple on the claim individual; on the reified RDF 1.2 statement form the invocation link is gmeow:mappedFrom, keeping axiom annotations AnnotationProperty-clean for the DL downcast (P3). A hallucination is a claim node with no gmeow:groundedIn span — flagged (P10), never deleted. GraphRAG-specific pipeline observability (corpus, extracted entity/relationship, community, and index-wiring artifacts) lives in extensions/graphrag, consumer-named per P15; the generic vector/embedding/retrieval PRIMITIVES (gmeow:Embedding, gmeow:VectorIndex, gmeow:DistanceMetric, gmeow:RetrievalEvent) are core-tier here because any embedding consumer — not only GraphRAG — needs them (extensions/embedding-projection is the other current consumer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "GMEOW AI Claim Module"@x-gmeow-english ;
@@ -793,33 +792,33 @@ gmeow:usedModel
 # =========================================================================== #
 
 gmeow:Contradiction rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:contradictsClaim ; logic:minQualifiedCardinality 2 ; logic:onClass logic:Thing ] .
 
 # `gmeow:spanStart` / `gmeow:spanEnd` are DATA properties, so their qualified
-# cardinalities qualify over a DATA RANGE (`owl:onDataRange`), never over
-# `owl:onClass owl:Thing` — an individual-domain filler on a data property is
+# cardinalities qualify over a DATA RANGE (`OWL onDataRange`), never over
+# `OWL onClass OWL Thing` — an individual-domain filler on a data property is
 # malformed OWL 2 DL, and its closed-world projection is an INVERTED constraint
 # (`sh:nodeKind sh:BlankNodeOrIRI`) that rejects every correct integer offset.
 # The data range is the property's own declared `rdfs:range`.
 gmeow:Chunk rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
 
 gmeow:MemoryItem rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:memoryOf ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # Embedding/RetrievalEvent cardinality axioms (gmeow:EmbeddingProvenanceShape,
 # gmeow:RetrievalEventShape), migrated here from extensions/graphrag's
 # module.ttl alongside the classes they constrain (both promoted to this
 # core-tier slice as shared vector/embedding primitives).
 gmeow:Embedding rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:embeddingOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:embeddingModel ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:distanceMetric ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:RetrievalEvent rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:againstIndex ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -976,15 +975,15 @@ logic:gscPolarity a logic:Formula ; logic:relation gmeow:supportPolarity ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom xsd:nonNegativeInteger ] .
-<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanStart> ; owl:someValuesFrom xsd:nonNegativeInteger ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; logic:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; logic:someValuesFrom xsd:nonNegativeInteger ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/spanStart> ; logic:someValuesFrom xsd:nonNegativeInteger ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -992,7 +991,7 @@ logic:gscPolarity a logic:Formula ; logic:relation gmeow:supportPolarity ;
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:chunkOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunkOf is functional"@x-gmeow-english ;
@@ -1007,7 +1006,7 @@ gmeow:chunkOfFunctionality
     skos:example "gmeow:chunkOfFunctionality logic:characterizes gmeow:chunkOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:contradictionKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "contradictionKind is functional"@x-gmeow-english ;
@@ -1022,7 +1021,7 @@ gmeow:contradictionKindFunctionality
     skos:example "gmeow:contradictionKindFunctionality logic:characterizes gmeow:contradictionKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:describesModelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "describesModel is functional"@x-gmeow-english ;
@@ -1037,7 +1036,7 @@ gmeow:describesModelFunctionality
     skos:example "gmeow:describesModelFunctionality logic:characterizes gmeow:describesModel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:filledFromFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "filledFrom is functional"@x-gmeow-english ;
@@ -1052,7 +1051,7 @@ gmeow:filledFromFunctionality
     skos:example "gmeow:filledFromFunctionality logic:characterizes gmeow:filledFrom ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:memoryKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "memoryKind is functional"@x-gmeow-english ;
@@ -1067,7 +1066,7 @@ gmeow:memoryKindFunctionality
     skos:example "gmeow:memoryKindFunctionality logic:characterizes gmeow:memoryKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:promptRoleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "promptRole is functional"@x-gmeow-english ;
@@ -1082,7 +1081,7 @@ gmeow:promptRoleFunctionality
     skos:example "gmeow:promptRoleFunctionality logic:characterizes gmeow:promptRole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:spanOfChunkFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "spanOfChunk is functional"@x-gmeow-english ;
@@ -1097,7 +1096,7 @@ gmeow:spanOfChunkFunctionality
     skos:example "gmeow:spanOfChunkFunctionality logic:characterizes gmeow:spanOfChunk ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:supportPolarityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "supportPolarity is functional"@x-gmeow-english ;
@@ -1112,7 +1111,7 @@ gmeow:supportPolarityFunctionality
     skos:example "gmeow:supportPolarityFunctionality logic:characterizes gmeow:supportPolarity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:usedModelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "usedModel is functional"@x-gmeow-english ;
@@ -1127,7 +1126,7 @@ gmeow:usedModelFunctionality
     skos:example "gmeow:usedModelFunctionality logic:characterizes gmeow:usedModel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:againstIndexFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "againstIndex is functional"@x-gmeow-english ;
@@ -1142,7 +1141,7 @@ gmeow:againstIndexFunctionality
     skos:example "gmeow:againstIndexFunctionality logic:characterizes gmeow:againstIndex ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:distanceMetricFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "distanceMetric is functional"@x-gmeow-english ;
@@ -1157,7 +1156,7 @@ gmeow:distanceMetricFunctionality
     skos:example "gmeow:distanceMetricFunctionality logic:characterizes gmeow:distanceMetric ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:embeddingModelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "embeddingModel is functional"@x-gmeow-english ;
@@ -1172,7 +1171,7 @@ gmeow:embeddingModelFunctionality
     skos:example "gmeow:embeddingModelFunctionality logic:characterizes gmeow:embeddingModel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:embeddingOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "embeddingOf is functional"@x-gmeow-english ;

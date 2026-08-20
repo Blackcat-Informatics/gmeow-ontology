@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:LearningEvent
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "Learning Event"@x-gmeow-english ;
     rdfs:subClassOf gmeow:MentalProcess ;
@@ -27,7 +26,7 @@ gmeow:LearningEvent
 
 gmeow:LearningEventType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "Learning Event Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -40,21 +39,21 @@ gmeow:LearningEventType
 
 gmeow:Teaching
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "Teaching"@x-gmeow-english ;
     logic:mediates gmeow:teacher ,
         gmeow:learner ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:teacher ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:teacher ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:learner ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:learner ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified teaching relation — one teacher, one or more learners, and the subject taught, mediated as a gufo:Relator so the roles, period, confidence, and evidence of instruction are first-class (the gmeow:Participation / gmeow:KnowledgeProficiency relator idiom). The being-taught face of learning: a learner's gmeow:LearningEvent of variety gmeow:learningBeingTaught participates in a gmeow:Teaching, which carries who taught it (gmeow:teacher) and what was taught (gmeow:subjectTaught). The teacher must differ from the learner — a closed-world rule enforced by gmeow:TeachingShape (SHACL), not a DL axiom."@x-gmeow-english ;
     skos:example "ex:lesson1 a gmeow:Teaching ; gmeow:teacher ex:mentor ; gmeow:learner ex:lillith ; gmeow:subjectTaught ex:cycling ."@x-gmeow-english ;
@@ -68,7 +67,7 @@ gmeow:Teaching
     gmeow:useWhen "Use to reify a teaching relation when the roles, period, or evidence of instruction matter — an instructor and the learners they taught, the subject covered — the being-taught complement of a learner's gmeow:LearningEvent."@x-gmeow-english .
 
 gmeow:fromLevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LearningEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "from level"@x-gmeow-english ;
@@ -81,11 +80,11 @@ gmeow:fromLevel
     gmeow:useWhen "Use to record the level an agent held before a learning event — the start of the proficiency / knowledge trajectory the event traversed."@x-gmeow-english .
 
 gmeow:learnedFrom
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LearningEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "learned from"@x-gmeow-english ;
-    skos:definition "Relates a learning event to what the agent learned from — the provenance of acquired knowledge. The RANGE is left intentionally open: the source is typically a gmeow:CreativeWork (a document, a corpus), a teaching gmeow:Agent, or a body of evidence, but asserting a range (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. The retired gmeow:Source class is deliberately not the range; provenance bottoms out in gmeow:CreativeWork plus a source-role. NOT functional — a learning event may draw on several sources."@x-gmeow-english ;
+    skos:definition "Relates a learning event to what the agent learned from — the provenance of acquired knowledge. The RANGE is left intentionally open: the source is typically a gmeow:CreativeWork (a document, a corpus), a teaching gmeow:Agent, or a body of evidence, but asserting a range (or an OWL unionOf) would prematurely close the surface, so it stays open and is documented in prose. The retired gmeow:Source class is deliberately not the range; provenance bottoms out in gmeow:CreativeWork plus a source-role. NOT functional — a learning event may draw on several sources."@x-gmeow-english ;
     skos:example "ex:lesson gmeow:learnedFrom ex:textbook ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid expecting a fixed range (it is open by design — a gmeow:CreativeWork, an gmeow:Agent, or a corpus) and avoid reviving the retired gmeow:Source class as its object; point at a gmeow:CreativeWork plus a source-role instead."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -93,7 +92,7 @@ gmeow:learnedFrom
     gmeow:useWhen "Use to record the provenance of acquired knowledge — the document, corpus, teacher, or evidence a learning event drew on — so the belief-acquisition log can show from-whom and from-what an agent came to know something."@x-gmeow-english .
 
 gmeow:learner
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Teaching ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "learner"@x-gmeow-english ;
@@ -141,7 +140,7 @@ gmeow:learningTransfer
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:learningType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LearningEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "learning type"@x-gmeow-english ;
@@ -161,11 +160,11 @@ gmeow:learningUnlearning
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:produces
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LearningEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "produces"@x-gmeow-english ;
-    skos:definition "Relates a learning event to the knowledge state it raised or settled — its product. The RANGE is left intentionally open: the product is typically a cognition gmeow:CognitiveState or gmeow:KnowledgeProficiency, an expertise gmeow:SkillProficiency, or (once the concepts slice lands) a gmeow:Concept, but asserting a range (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional — one event may settle several states. The occurrent / endurant bridge: the event PRODUCES the enduring state, keeping the gUFO split clean."@x-gmeow-english ;
+    skos:definition "Relates a learning event to the knowledge state it raised or settled — its product. The RANGE is left intentionally open: the product is typically a cognition gmeow:CognitiveState or gmeow:KnowledgeProficiency, an expertise gmeow:SkillProficiency, or (once the concepts slice lands) a gmeow:Concept, but asserting a range (or an OWL unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional — one event may settle several states. The occurrent / endurant bridge: the event PRODUCES the enduring state, keeping the gUFO split clean."@x-gmeow-english ;
     skos:example "ex:lesson gmeow:produces ex:cycling ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid expecting a fixed range (cognition, expertise, and the forthcoming concepts targets are all admitted) and avoid using it for the level endpoints (those are gmeow:fromLevel / gmeow:toLevel); gmeow:produces names the resulting STATE, not the trajectory."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -173,11 +172,11 @@ gmeow:produces
     gmeow:useWhen "Use to link a gmeow:LearningEvent to the enduring knowledge state it raised — the cognition gmeow:KnowledgeProficiency, expertise gmeow:SkillProficiency, or gmeow:CognitiveState the event settled — so the state's acquisition event is queryable."@x-gmeow-english .
 
 gmeow:subjectTaught
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Teaching ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "subject taught"@x-gmeow-english ;
-    skos:definition "The content taught in a gmeow:Teaching relation — the topic, skill, or proposition instruction conveyed. The RANGE is left intentionally open: the subject is typically a concept (the gmeow:Concept the concepts slice will define), a gmeow:Skill (expertise), or a gmeow:Proposition, but asserting a range (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional — a lesson may cover several subjects."@x-gmeow-english ;
+    skos:definition "The content taught in a gmeow:Teaching relation — the topic, skill, or proposition instruction conveyed. The RANGE is left intentionally open: the subject is typically a concept (the gmeow:Concept the concepts slice will define), a gmeow:Skill (expertise), or a gmeow:Proposition, but asserting a range (or an OWL unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional — a lesson may cover several subjects."@x-gmeow-english ;
     skos:example "ex:lesson1 gmeow:subjectTaught ex:cycling ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid expecting a fixed range (a concept, a gmeow:Skill, or a gmeow:Proposition are all admitted, pending the concepts slice) and avoid collapsing a multi-topic lesson to one subject; it is non-functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -185,7 +184,7 @@ gmeow:subjectTaught
     gmeow:useWhen "Use to record what a gmeow:Teaching conveyed — the topic, skill, or proposition taught — so instruction can be queried by subject."@x-gmeow-english .
 
 gmeow:teacher
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Teaching ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "teacher"@x-gmeow-english ;
@@ -198,7 +197,7 @@ gmeow:teacher
     gmeow:useWhen "Use to bind a gmeow:Teaching to the single gmeow:Agent giving instruction — the mandatory, functional teacher player of the relator."@x-gmeow-english .
 
 gmeow:toLevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LearningEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "to level"@x-gmeow-english ;
@@ -210,7 +209,7 @@ gmeow:toLevel
     gmeow:useWhen "Use to record the level an agent reached after a learning event — the end of the proficiency / knowledge trajectory; equal to gmeow:fromLevel for a consolidation that stabilises rather than raises."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/learning>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The dynamic complement to the state-heavy mental layer: where the cognition slice models the endurant gmeow:KnowledgeProficiency and the expertise slice the endurant gmeow:SkillProficiency, learning models the OCCURRENT gmeow:LearningEvent that RAISES them. Memory-as-storage (the flagship store/recall) is not learning; learning is the event that grows what an agent knows.
 
@@ -233,15 +232,15 @@ DOCTRINE.
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both owl:*Cardinality and
-# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# (Principle 17). A restriction carrying both OWL*Cardinality and
+# OWL allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / value-range / disjunctive
 # (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
 gmeow:Teaching rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:subjectTaught ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:subjectTaught ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -297,7 +296,7 @@ logic:spsEq a logic:Formula ; logic:relation logic:termEqual ;
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-<https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/subjectTaught> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/subjectTaught> ; logic:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Teaching> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/teacher> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
 <https://blackcatinformatics.ca/gmeow/Teaching> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/learner> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Teaching> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/learner" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -307,7 +306,7 @@ logic:spsEq a logic:Formula ; logic:relation logic:termEqual ;
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -315,7 +314,7 @@ logic:spsEq a logic:Formula ; logic:relation logic:termEqual ;
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:teacherFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "teacher is functional"@x-gmeow-english ;

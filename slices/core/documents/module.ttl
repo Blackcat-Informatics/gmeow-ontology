@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Article
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Article"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -22,7 +21,7 @@ gmeow:Article
 
 gmeow:BookRelease
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Book Release"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -35,7 +34,7 @@ gmeow:BookRelease
 
 gmeow:Collection
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Collection"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -48,7 +47,7 @@ gmeow:Collection
 
 gmeow:ContentSegment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Content Segment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -61,7 +60,7 @@ gmeow:ContentSegment
 
 gmeow:ContentSegmentType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Content Segment Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -74,7 +73,7 @@ gmeow:ContentSegmentType
 
 gmeow:CreativeWork
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Creative Work"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -87,7 +86,7 @@ gmeow:CreativeWork
 
 gmeow:CreativeWorkTitle
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Creative Work Title"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Appellation ;
@@ -100,7 +99,7 @@ gmeow:CreativeWorkTitle
 
 gmeow:DataFeed
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Data Feed"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Collection ;
@@ -113,7 +112,7 @@ gmeow:DataFeed
 
 gmeow:Dataset
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Dataset"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -126,7 +125,7 @@ gmeow:Dataset
 
 gmeow:Document
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Document"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -139,7 +138,7 @@ gmeow:Document
 
 gmeow:FeedPosting
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Feed Posting"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -154,7 +153,7 @@ gmeow:FeedPosting
 
 gmeow:FeedPostingKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Feed Posting Kind"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -167,7 +166,7 @@ gmeow:FeedPostingKind
 
 gmeow:LiteraryWork
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Literary Work"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -180,7 +179,7 @@ gmeow:LiteraryWork
 
 gmeow:MediaObject
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Media Object"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -195,7 +194,7 @@ gmeow:MediaObject
 
 gmeow:Patent
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Patent"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -208,16 +207,16 @@ gmeow:Patent
 
 gmeow:ProfilePage
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Profile Page"@x-gmeow-english ;
     rdfs:subClassOf gmeow:WebPage ;
-    owl:equivalentClass [
-        a owl:Class ;
-        owl:intersectionOf ( gmeow:WebPage [
-            a owl:Restriction ;
-            owl:onProperty gmeow:pagePrincipalSubject ;
-            owl:someValuesFrom gmeow:Agent ;
+    logic:equivalentClass [
+        a logic:Class ;
+        logic:intersectionOf ( gmeow:WebPage [
+            a logic:Restriction ;
+            logic:onProperty gmeow:pagePrincipalSubject ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ) ;
     ] ;
     skos:definition "A web page whose principal subject is an agent — a person's or organization's profile/about page. A DEFINED class: any gmeow:WebPage whose gmeow:pagePrincipalSubject is a gmeow:Agent IS a ProfilePage (≡ gmeow:WebPage ⊓ ∃gmeow:pagePrincipalSubject.gmeow:Agent), so no manual typing is needed. Projects to schema:ProfilePage."@x-gmeow-english ;
@@ -230,8 +229,8 @@ gmeow:ProfilePage
 
 gmeow:ReadingOrder
     a logic:SubKind ,
-        owl:Class ;
-    rdfs:comment "Closed-world checks: the usage contract only. gmeow:ReadingOrder is a gmeow:Standpoint subclass and Standpoint declares no owl:Restriction requirements, so a ReadingOrder instance carries no structural closed-world checks; its single obligation is the wiring contract of its own definition — an ordering standpoint exists to be ordered by, so it must be the gmeow:accordingTo of at least one claim (gmeow:ReadingOrderAccordingToConstraint)."@x-gmeow-english ;
+        logic:Class ;
+    rdfs:comment "Closed-world checks: the usage contract only. gmeow:ReadingOrder is a gmeow:Standpoint subclass and Standpoint declares no OWL Restriction requirements, so a ReadingOrder instance carries no structural closed-world checks; its single obligation is the wiring contract of its own definition — an ordering standpoint exists to be ordered by, so it must be the gmeow:accordingTo of at least one claim (gmeow:ReadingOrderAccordingToConstraint)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Reading Order"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Standpoint ;
@@ -259,7 +258,7 @@ gmeow:ReadingOrderAccordingToConstraint
 
 gmeow:SerialInstallment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Serial Installment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -272,7 +271,7 @@ gmeow:SerialInstallment
 
 gmeow:SerialWork
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Serial Work"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -285,7 +284,7 @@ gmeow:SerialWork
 
 gmeow:Service
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Service"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -298,7 +297,7 @@ gmeow:Service
 
 gmeow:WebPage
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Web Page"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -311,7 +310,7 @@ gmeow:WebPage
 
 gmeow:WebSite
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Web Site"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -323,7 +322,7 @@ gmeow:WebSite
     gmeow:useWhen "Use for the published collection of web pages served under one identity — a domain, project site, or personal homepage that pages belong to."@x-gmeow-english .
 
 gmeow:abstract
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "abstract"@x-gmeow-english ;
@@ -336,7 +335,7 @@ gmeow:abstract
     gmeow:useWhen "Use for a prose summary of a creative work's content — a paper abstract or executive summary; non-functional, so localized abstracts coexist with language tags."@x-gmeow-english .
 
 gmeow:bibliographicCitation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "bibliographic citation"@x-gmeow-english ;
@@ -349,7 +348,7 @@ gmeow:bibliographicCitation
     gmeow:useWhen "Use for a preformatted bibliographic reference string for a creative work — a human-readable citation captured verbatim."@x-gmeow-english .
 
 gmeow:citeAs
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Dataset ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "cite as"@x-gmeow-english ;
@@ -362,7 +361,7 @@ gmeow:citeAs
     gmeow:useWhen "Use for a preformatted citation string for a dataset — the human-readable reference to include in bibliographies."@x-gmeow-english .
 
 gmeow:caption
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "caption"@x-gmeow-english ;
@@ -375,7 +374,7 @@ gmeow:caption
     gmeow:useWhen "Use for the short descriptive text displayed alongside an image, audio, or video; non-functional, so localized captions coexist."@x-gmeow-english .
 
 gmeow:captureDevice
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "capture device"@x-gmeow-english ;
@@ -388,7 +387,7 @@ gmeow:captureDevice
     gmeow:useWhen "Use to link a media object to the physical device that captured it — a camera, scanner, or screen-capture rig; non-functional, so a composite may name several devices."@x-gmeow-english .
 
 gmeow:captureTime
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "capture time"@x-gmeow-english ;
@@ -401,13 +400,13 @@ gmeow:captureTime
     gmeow:useWhen "Use for when an image or media was captured — the shutter/recording instant; non-functional, so competing EXIF-vs-metadata claims coexist with confidence."@x-gmeow-english .
 
 gmeow:colourspace
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "colourspace"@x-gmeow-english ;
     rdfs:range gmeow:ReferenceFrame ;
     rdfs:subPropertyOf gmeow:hasReferenceFrame ;
-    skos:definition "The colourspace reference frame in which this media object's pixel values are expressed — sRGB, Adobe RGB, CMYK, CIE XYZ, etc. A subproperty of gmeow:hasReferenceFrame (Principle 11). Multiple colourspace claims for the same image coexist as separate standpoint-indexed assertions (Principle 9), each attributable and confidence-weighted. Not declared FunctionalProperty in the logical core to avoid incorrect owl:sameAs inferences when merging standpoints; single-valued constraint is enforced by SHACL (sh:maxCount 1)."@x-gmeow-english ;
+    skos:definition "The colourspace reference frame in which this media object's pixel values are expressed — sRGB, Adobe RGB, CMYK, CIE XYZ, etc. A subproperty of gmeow:hasReferenceFrame (Principle 11). Multiple colourspace claims for the same image coexist as separate standpoint-indexed assertions (Principle 9), each attributable and confidence-weighted. Not declared FunctionalProperty in the logical core to avoid incorrect OWL sameAs inferences when merging standpoints; single-valued constraint is enforced by SHACL (sh:maxCount 1)."@x-gmeow-english ;
     skos:example "ex:photo gmeow:colourspace ex:sRGB ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid leaving pixel values frameless (a value asserted without its frame is ill-formed) and avoid forcing one colourspace by making it functional — competing standpoint-indexed claims coexist; SHACL enforces single-valued, not OWL (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -415,7 +414,7 @@ gmeow:colourspace
     gmeow:useWhen "Use to declare the colourspace reference frame in which a media object's pixel values are expressed — sRGB, Adobe RGB, CMYK; the frame that satisfies gmeow:MediaObject's gmeow:requiresFrame declaration (Principle 11)."@x-gmeow-english .
 
 gmeow:contentLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Work ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "content language"@x-gmeow-english ;
@@ -428,7 +427,7 @@ gmeow:contentLanguage
     gmeow:useWhen "Use to record the natural language a work's body is written in — the language of the content itself; non-functional, so a multilingual work names several."@x-gmeow-english .
 
 gmeow:dateAccepted
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "date accepted"@x-gmeow-english ;
@@ -441,7 +440,7 @@ gmeow:dateAccepted
     gmeow:useWhen "Use for the date a scholarly work was accepted by a journal, conference, or repository — the acceptance milestone in a review workflow; carried as DL-clean xsd:dateTime."@x-gmeow-english .
 
 gmeow:dateAvailable
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "date available"@x-gmeow-english ;
@@ -454,7 +453,7 @@ gmeow:dateAvailable
     gmeow:useWhen "Use for the date a creative work became or will become available — an embargo lift or scheduled release date; carried as DL-clean xsd:dateTime."@x-gmeow-english .
 
 gmeow:dateCreated
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "date created"@x-gmeow-english ;
@@ -467,7 +466,7 @@ gmeow:dateCreated
     gmeow:useWhen "Use for the date a creative work was made, as distinct from when it was published; carried as DL-clean xsd:dateTime."@x-gmeow-english .
 
 gmeow:dateModified
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "date modified"@x-gmeow-english ;
@@ -480,7 +479,7 @@ gmeow:dateModified
     gmeow:useWhen "Use for the date a creative work was last modified — the revision timestamp; carried as DL-clean xsd:dateTime."@x-gmeow-english .
 
 gmeow:datePublished
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "date published"@x-gmeow-english ;
@@ -493,7 +492,7 @@ gmeow:datePublished
     gmeow:useWhen "Use for the publication / issue date of a creative work — when it was released to the public; carried as DL-clean xsd:dateTime."@x-gmeow-english .
 
 gmeow:dateSubmitted
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "date submitted"@x-gmeow-english ;
@@ -506,12 +505,12 @@ gmeow:dateSubmitted
     gmeow:useWhen "Use for the date a work was submitted for review or publication — the submission milestone in a review workflow; carried as DL-clean xsd:dateTime."@x-gmeow-english .
 
 gmeow:depictedIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "depicted in"@x-gmeow-english ;
     rdfs:range gmeow:MediaObject ;
-    owl:inverseOf gmeow:depicts ;
+    logic:inverseOf gmeow:depicts ;
     skos:definition "Relates an entity to an image that depicts it. Inverse of gmeow:depicts. Non-functional: an entity may be depicted in many images."@x-gmeow-english ;
     skos:example "ex:lillith gmeow:depictedIn ex:photo ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when you have already stated gmeow:depicts (read this as its inverse) and avoid it for richer depiction metadata — that is a gmeow:DepictionUsage relator."@x-gmeow-english ;
@@ -520,7 +519,7 @@ gmeow:depictedIn
     gmeow:useWhen "Use from the entity's side to find or project the images that depict it — the inverse of gmeow:depicts; non-functional, an entity may appear in many images."@x-gmeow-english .
 
 gmeow:depicts
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "depicts"@x-gmeow-english ;
@@ -534,7 +533,7 @@ gmeow:depicts
     gmeow:useWhen "Use for the 80% case of an image depicting an entity — the flat shortcut subproperty of gmeow:isAbout; non-functional, an image may depict many entities."@x-gmeow-english .
 
 gmeow:extent
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "extent"@x-gmeow-english ;
@@ -547,7 +546,7 @@ gmeow:extent
     gmeow:useWhen "Use for a human-readable size or duration of a creative work — '635 pages', '47 minutes', '2.3 MB' — captured as a literal."@x-gmeow-english .
 
 gmeow:feedPostingKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FeedPosting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "posting kind"@x-gmeow-english ;
@@ -581,7 +580,7 @@ gmeow:feedPostingKindSocial
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hasSegment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "has segment"@x-gmeow-english ;
     rdfs:range gmeow:ContentSegment ;
@@ -594,7 +593,7 @@ gmeow:hasSegment
     gmeow:useWhen "Use to attach a structural gmeow:ContentSegment to its containing whole from the whole's side — a work, release, installment, or parent segment to its chapters/scenes; non-functional."@x-gmeow-english .
 
 gmeow:hasTitle
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "has title"@x-gmeow-english ;
@@ -608,7 +607,7 @@ gmeow:hasTitle
     gmeow:useWhen "Use to link a creative work to a structured gmeow:CreativeWorkTitle when title metadata (language, script, evidence, supersession) matters; non-functional, a work bears many co-equal titles."@x-gmeow-english .
 
 gmeow:identifier
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "identifier"@x-gmeow-english ;
@@ -621,7 +620,7 @@ gmeow:identifier
     gmeow:useWhen "Use for a formal external identifier of a creative work — a DOI, ISBN, patent number, or accession; non-functional, so a work may carry several identifier schemes."@x-gmeow-english .
 
 gmeow:imageOrientation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "image orientation"@x-gmeow-english ;
@@ -634,7 +633,7 @@ gmeow:imageOrientation
     gmeow:useWhen "Use for the clockwise EXIF rotation of an image from its normal orientation, in degrees (0/90/180/270); functional, one orientation per manifestation."@x-gmeow-english .
 
 gmeow:mediaType
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "media type"@x-gmeow-english ;
@@ -647,7 +646,7 @@ gmeow:mediaType
     gmeow:useWhen "Use to record the IANA media (MIME) type of any content carrier — a Manifestation, an email body part, a distribution file; functional, one media type per artifact."@x-gmeow-english .
 
 gmeow:pageOfSite
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WebPage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "page of site"@x-gmeow-english ;
@@ -661,7 +660,7 @@ gmeow:pageOfSite
     gmeow:useWhen "Use to record that a web page belongs to a web site — the page→site membership a breadcrumb trail walks; rides the universal gmeow:partOf spine."@x-gmeow-english .
 
 gmeow:pagePrincipalSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WebPage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "page main entity"@x-gmeow-english ;
@@ -675,7 +674,7 @@ gmeow:pagePrincipalSubject
     gmeow:useWhen "Use to name the one entity a web page is primarily about — the subject of a profile or about page; functional, a page has at most one principal subject."@x-gmeow-english .
 
 gmeow:pixelHeight
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "pixel height"@x-gmeow-english ;
@@ -688,7 +687,7 @@ gmeow:pixelHeight
     gmeow:useWhen "Use for the pixel height of a media object — an image or video frame; functional, one height per manifestation."@x-gmeow-english .
 
 gmeow:pixelWidth
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "pixel width"@x-gmeow-english ;
@@ -701,7 +700,7 @@ gmeow:pixelWidth
     gmeow:useWhen "Use for the pixel width of a media object — an image or video frame; functional, one width per manifestation."@x-gmeow-english .
 
 gmeow:quotedText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Work ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "quoted text"@x-gmeow-english ;
@@ -714,7 +713,7 @@ gmeow:quotedText
     gmeow:useWhen "Use to carry the verbatim inline text a work quotes when the source is a bare passage with no linkable IRI; non-functional, so several passages may appear."@x-gmeow-english .
 
 gmeow:quotesContent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Work ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "quotes content"@x-gmeow-english ;
@@ -727,7 +726,7 @@ gmeow:quotesContent
     gmeow:useWhen "Use to link a work to another resource it quotes — a quoted post, cited passage, or external page; non-functional, so a work may quote several sources."@x-gmeow-english .
 
 gmeow:segmentIndex
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "segment index"@x-gmeow-english ;
@@ -740,14 +739,14 @@ gmeow:segmentIndex
     gmeow:useWhen "Use to record the structural position of a content segment within its containing whole — the chapter or scene number; functional, 1-based by convention."@x-gmeow-english .
 
 gmeow:segmentOf
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "segment of"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
     rdfs:subPropertyOf gmeow:partOf ;
-    owl:inverseOf gmeow:hasSegment ;
+    logic:inverseOf gmeow:hasSegment ;
     skos:definition "A structural segment is part of a larger whole — a work, release, installment, or another segment. Transitive; inverse of gmeow:hasSegment."@x-gmeow-english ;
     skos:example "ex:scene3 gmeow:segmentOf ex:chapter1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for generic non-structural parthood (use gmeow:partOf) and avoid asserting both directions redundantly — assert gmeow:segmentOf and read gmeow:hasSegment as its inverse."@x-gmeow-english ;
@@ -756,7 +755,7 @@ gmeow:segmentOf
     gmeow:useWhen "Use from the part's side to say a gmeow:ContentSegment belongs to a larger whole — a scene in a chapter, a chapter in a work; transitive, so nested structure closes up the spine."@x-gmeow-english .
 
 gmeow:segmentType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ContentSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "segment type"@x-gmeow-english ;
@@ -811,7 +810,7 @@ gmeow:segmentTypeSection
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:sharesContent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FeedPosting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "shares content"@x-gmeow-english ;
@@ -824,7 +823,7 @@ gmeow:sharesContent
     gmeow:useWhen "Use for the repost / boost / share edge — a posting that forwards another posting, article, or media object wholesale; non-functional, so a posting may share several items."@x-gmeow-english .
 
 gmeow:tableOfContents
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "table of contents"@x-gmeow-english ;
@@ -837,7 +836,7 @@ gmeow:tableOfContents
     gmeow:useWhen "Use for a literal list of a work's subunits — a table-of-contents string captured as text from a source."@x-gmeow-english .
 
 gmeow:title
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "title"@x-gmeow-english ;
@@ -850,7 +849,7 @@ gmeow:title
     gmeow:useWhen "Use for the 80% case of a single plain title on a creative work — the flat literal shortcut when no language, script, or statement-level title metadata is needed."@x-gmeow-english .
 
 gmeow:version
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Dataset ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "version"@x-gmeow-english ;
@@ -863,7 +862,7 @@ gmeow:version
     gmeow:useWhen "Use for the version identifier of a published dataset — the release tag consumers cite."@x-gmeow-english .
 
 gmeow:transcript
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "transcript"@x-gmeow-english ;
@@ -876,7 +875,7 @@ gmeow:transcript
     gmeow:useWhen "Use to carry the verbatim text of a media object's spoken or audio content — a podcast or video transcript; non-functional, so multilingual transcripts coexist with language tags."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/documents>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Creative works and document metadata — articles, patents, datasets, media, web pages (the schema.org / BIBO / BIBFRAME superset layer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
@@ -892,19 +891,19 @@ gmeow:transcript
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContentSegment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/segmentOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # A MediaObject carries at most one colourspace per graph/source. The property is
-# DELIBERATELY not owl:FunctionalProperty (a global functional claim would drive
-# incorrect owl:sameAs merges across standpoints); the max-qualified idiom
-# (logic:onClass owl:Thing) is the in-fragment class-scoped form the native reasoner
+# DELIBERATELY not OWL FunctionalProperty (a global functional claim would drive
+# incorrect OWL sameAs merges across standpoints); the max-qualified idiom
+# (logic:onClass OWL Thing) is the in-fragment class-scoped form the native reasoner
 # decides, degrading to the unqualified sh:maxCount 1 the retired hand-authored
 # shape enforced.
 gmeow:MediaObject logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:colourspace ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:colourspace ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -912,7 +911,7 @@ gmeow:MediaObject logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:feedPostingKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "feedPostingKind is functional"@x-gmeow-english ;
@@ -927,7 +926,7 @@ gmeow:feedPostingKindFunctionality
     skos:example "gmeow:feedPostingKindFunctionality logic:characterizes gmeow:feedPostingKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:imageOrientationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "imageOrientation is functional"@x-gmeow-english ;
@@ -942,7 +941,7 @@ gmeow:imageOrientationFunctionality
     skos:example "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrientation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:mediaTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "mediaType is functional"@x-gmeow-english ;
@@ -957,7 +956,7 @@ gmeow:mediaTypeFunctionality
     skos:example "gmeow:mediaTypeFunctionality logic:characterizes gmeow:mediaType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pagePrincipalSubjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "pagePrincipalSubject is functional"@x-gmeow-english ;
@@ -972,7 +971,7 @@ gmeow:pagePrincipalSubjectFunctionality
     skos:example "gmeow:pagePrincipalSubjectFunctionality logic:characterizes gmeow:pagePrincipalSubject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pixelHeightFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "pixelHeight is functional"@x-gmeow-english ;
@@ -987,7 +986,7 @@ gmeow:pixelHeightFunctionality
     skos:example "gmeow:pixelHeightFunctionality logic:characterizes gmeow:pixelHeight ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pixelWidthFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "pixelWidth is functional"@x-gmeow-english ;
@@ -1002,7 +1001,7 @@ gmeow:pixelWidthFunctionality
     skos:example "gmeow:pixelWidthFunctionality logic:characterizes gmeow:pixelWidth ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:segmentIndexFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "segmentIndex is functional"@x-gmeow-english ;
@@ -1017,7 +1016,7 @@ gmeow:segmentIndexFunctionality
     skos:example "gmeow:segmentIndexFunctionality logic:characterizes gmeow:segmentIndex ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:segmentTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "segmentType is functional"@x-gmeow-english ;

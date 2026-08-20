@@ -2,27 +2,26 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Availability
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Availability"@x-gmeow-english ;
     rdfs:subClassOf logic:Situation ,
         gmeow:TimeScopedRelation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:availabilityAgent ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:availabilityAgent ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:availabilitySlot ;
-            owl:someValuesFrom gmeow:TimeInterval ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:availabilitySlot ;
+            logic:someValuesFrom gmeow:TimeInterval ;
         ] ;
     skos:definition "A time-scoped statement of an agent's availability over an interval — free, busy, tentative, or out-of-office. The free-busy spine of the calendar layer."@x-gmeow-english ;
     skos:example "ex:lillithBusy a gmeow:Availability ; gmeow:availabilityAgent ex:lillith ; gmeow:availabilitySlot ex:morningSlot ; gmeow:availabilityStatus gmeow:availabilityStatusBusy ."@x-gmeow-english ;
@@ -33,7 +32,7 @@ gmeow:Availability
 
 gmeow:AvailabilityStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Availability Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -46,7 +45,7 @@ gmeow:AvailabilityStatus
 
 gmeow:Calendar
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Calendar"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -62,7 +61,7 @@ gmeow:Calendar
 
 gmeow:EventInvitation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Event Invitation"@x-gmeow-english ;
     logic:mediates gmeow:invitationEvent ,
@@ -70,14 +69,14 @@ gmeow:EventInvitation
     rdfs:subClassOf logic:Relator ,
         gmeow:Agreement ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:invitationEvent ;
-            owl:someValuesFrom gmeow:Event ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:invitationEvent ;
+            logic:someValuesFrom gmeow:Event ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:invitationInvitee ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:invitationInvitee ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A social act inviting an agent to attend an event, reified as a relator. Models the invitation as an Agreement to attend, reusing gmeow:hasParty for the invitee and the invitation status for the response state. Standpoint-indexed: a disputed invitation status is several coexisting claims, none privileged (Principle 9)."@x-gmeow-english ;
     skos:example "ex:standupInvite a gmeow:EventInvitation ; gmeow:invitationEvent ex:standupEvent ; gmeow:invitationInvitee ex:lillith ; gmeow:invitationStatus gmeow:invitationStatusAccepted ."@x-gmeow-english ;
@@ -88,7 +87,7 @@ gmeow:EventInvitation
 
 gmeow:EventSchedule
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Event Schedule"@x-gmeow-english ;
     logic:mediates gmeow:scheduleOccurrence ,
@@ -96,9 +95,9 @@ gmeow:EventSchedule
         gmeow:scheduleTemplateEvent ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:scheduleTemplateEvent ;
-            owl:someValuesFrom gmeow:Event ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:scheduleTemplateEvent ;
+            logic:someValuesFrom gmeow:Event ;
         ] ;
     skos:definition "A recurrence rule anchored to a template event and a time zone, generating a series of concrete Event occurrences. A relator mediating the template event, the recurrence rule, and the generated occurrences. Distinct from any one occurrence; the schedule is the generator, not the generated."@x-gmeow-english ;
     skos:example "ex:standupSchedule a gmeow:EventSchedule ; gmeow:scheduleTemplateEvent ex:standupTemplate ; gmeow:scheduleTimeZone ex:torontoZone ; gmeow:scheduleOccurrence ex:standup0612 ."@x-gmeow-english ;
@@ -109,7 +108,7 @@ gmeow:EventSchedule
 
 gmeow:ExceptionType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Exception Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -122,7 +121,7 @@ gmeow:ExceptionType
 
 gmeow:InvitationStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Invitation Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -135,15 +134,15 @@ gmeow:InvitationStatus
 
 gmeow:Reminder
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Reminder"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:reminderTarget ;
-            owl:someValuesFrom gmeow:Event ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:reminderTarget ;
+            logic:someValuesFrom gmeow:Event ;
         ] ;
     skos:definition "A reminder associated with an event — a trigger (offset or absolute time) and an action (display, email, audio)."@x-gmeow-english ;
     skos:example "ex:standupAlarm a gmeow:Reminder ; gmeow:reminderTarget ex:standupEvent ; gmeow:reminderTrigger \"PT15M\"^^xsd:duration ; gmeow:reminderAction gmeow:reminderActionDisplay ."@x-gmeow-english ;
@@ -154,7 +153,7 @@ gmeow:Reminder
 
 gmeow:ReminderAction
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Reminder Action"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -167,7 +166,7 @@ gmeow:ReminderAction
 
 gmeow:RsvpStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "RSVP Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -180,21 +179,21 @@ gmeow:RsvpStatus
 
 gmeow:ScheduleException
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Schedule Exception"@x-gmeow-english ;
     logic:mediates gmeow:exceptionSchedule ,
         gmeow:exceptionOriginalDate ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:exceptionSchedule ;
-            owl:someValuesFrom gmeow:EventSchedule ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:exceptionSchedule ;
+            logic:someValuesFrom gmeow:EventSchedule ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:exceptionOriginalDate ;
-            owl:someValuesFrom xsd:dateTime ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:exceptionOriginalDate ;
+            logic:someValuesFrom xsd:dateTime ;
         ] ;
     skos:definition "An exception to a recurring event schedule — a cancellation or rescheduling of a specific generated occurrence. A relator mediating the schedule, the original date, and optionally a replacement event. Retained with displayable false rather than deleted (Principle 10)."@x-gmeow-english ;
     skos:example "ex:standupSkip a gmeow:ScheduleException ; gmeow:exceptionSchedule ex:standupSchedule ; gmeow:exceptionOriginalDate \"2026-06-19T09:00:00Z\"^^xsd:dateTime ; gmeow:exceptionType gmeow:exceptionTypeCancellation ."@x-gmeow-english ;
@@ -205,7 +204,7 @@ gmeow:ScheduleException
 
 gmeow:Task
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Task"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Event ;
@@ -218,7 +217,7 @@ gmeow:Task
 
 gmeow:TaskStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Task Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -231,7 +230,7 @@ gmeow:TaskStatus
 
 gmeow:TimeZone
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Time Zone"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -244,7 +243,7 @@ gmeow:TimeZone
     gmeow:useWhen "Use to name a civil offset by its IANA tzid for calendars, schedules, and events — the local-time anchor that decides how a UTC dateTime renders as wall-clock time."@x-gmeow-english .
 
 gmeow:availabilityAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Availability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "availability agent"@x-gmeow-english ;
@@ -257,7 +256,7 @@ gmeow:availabilityAgent
     gmeow:useWhen "Use to name the agent a free-busy statement is about — the subject whose availability the slot and status describe."@x-gmeow-english .
 
 gmeow:availabilitySlot
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Availability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "availability slot"@x-gmeow-english ;
@@ -270,7 +269,7 @@ gmeow:availabilitySlot
     gmeow:useWhen "Use to bound an availability statement to the gmeow:TimeInterval it covers — the free-busy slot whose start/end carry the dateTime endpoints."@x-gmeow-english .
 
 gmeow:availabilityStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Availability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "availability status"@x-gmeow-english ;
@@ -311,7 +310,7 @@ gmeow:availabilityStatusTentative
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:calendarMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Calendar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "calendar member"@x-gmeow-english ;
@@ -324,7 +323,7 @@ gmeow:calendarMember
     gmeow:useWhen "Use to place an event into a calendar collection — the membership edge a CalDAV-style aggregation reads to list a calendar's contents."@x-gmeow-english .
 
 gmeow:calendarTimeZone
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Calendar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "calendar time zone"@x-gmeow-english ;
@@ -337,7 +336,7 @@ gmeow:calendarTimeZone
     gmeow:useWhen "Use to set the fallback IANA time zone a calendar's members are reckoned in when an individual event states no zone of its own."@x-gmeow-english .
 
 gmeow:eventTimeZone
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "event time zone"@x-gmeow-english ;
@@ -350,7 +349,7 @@ gmeow:eventTimeZone
     gmeow:useWhen "Use to fix the civil offset an event's wall-clock placement is read in — overriding the calendar default when an occurrence sits in a different zone."@x-gmeow-english .
 
 gmeow:exceptionOriginalDate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception original date"@x-gmeow-english ;
@@ -363,7 +362,7 @@ gmeow:exceptionOriginalDate
     gmeow:useWhen "Use to identify WHICH generated occurrence an exception overrides, by the date/time the recurrence rule would have produced — the RFC 5545 RECURRENCE-ID anchor."@x-gmeow-english .
 
 gmeow:exceptionReplacementEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception replacement event"@x-gmeow-english ;
@@ -376,7 +375,7 @@ gmeow:exceptionReplacementEvent
     gmeow:useWhen "Use to name the moved-to gmeow:Event of a rescheduled occurrence — the new placement that stands in for the one at gmeow:exceptionOriginalDate."@x-gmeow-english .
 
 gmeow:exceptionSchedule
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception schedule"@x-gmeow-english ;
@@ -389,7 +388,7 @@ gmeow:exceptionSchedule
     gmeow:useWhen "Use to bind an exception to the one gmeow:EventSchedule whose series it overrides — the back-edge that lets a schedule enumerate its deviations."@x-gmeow-english .
 
 gmeow:exceptionType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScheduleException ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exception type"@x-gmeow-english ;
@@ -416,7 +415,7 @@ gmeow:exceptionTypeRescheduling
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:invitationEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventInvitation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "invitation event"@x-gmeow-english ;
@@ -429,7 +428,7 @@ gmeow:invitationEvent
     gmeow:useWhen "Use to name the one gmeow:Event a reified invitation concerns — the target the invitee is being asked to attend."@x-gmeow-english .
 
 gmeow:invitationInvitee
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventInvitation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "invitation invitee"@x-gmeow-english ;
@@ -442,7 +441,7 @@ gmeow:invitationInvitee
     gmeow:useWhen "Use to name an agent on the receiving end of an invitation — the invitee whose gmeow:rsvpStatus records their response."@x-gmeow-english .
 
 gmeow:invitationStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventInvitation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "invitation status"@x-gmeow-english ;
@@ -483,7 +482,7 @@ gmeow:invitationStatusTentative
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reminderAction
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Reminder ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminder action"@x-gmeow-english ;
@@ -517,7 +516,7 @@ gmeow:reminderActionEmail
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reminderTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Reminder ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminder target"@x-gmeow-english ;
@@ -530,13 +529,13 @@ gmeow:reminderTarget
     gmeow:useWhen "Use to bind a reminder to the one gmeow:Event it alerts about — the target whose start an offset trigger is measured from."@x-gmeow-english .
 
 gmeow:reminderTrigger
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Reminder ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminder trigger"@x-gmeow-english ;
     rdfs:range [
         a rdfs:Datatype ;
-        owl:unionOf ( xsd:duration xsd:dateTime ) ;
+        logic:unionOf ( xsd:duration xsd:dateTime ) ;
     ] ;
     skos:definition "The trigger for a reminder — either an xsd:duration offset before the target event (e.g. PT15M) or an absolute xsd:dateTime."@x-gmeow-english ;
     skos:example "ex:standupAlarm gmeow:reminderTrigger \"PT15M\"^^xsd:duration ."@x-gmeow-english ;
@@ -546,7 +545,7 @@ gmeow:reminderTrigger
     gmeow:useWhen "Use to set when a reminder fires — an xsd:duration offset before its target event (PT15M, P1D) for the common case, or an absolute xsd:dateTime for a fixed alert time."@x-gmeow-english .
 
 gmeow:rsvpStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventInvitation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "RSVP status"@x-gmeow-english ;
@@ -587,7 +586,7 @@ gmeow:rsvpStatusTentative
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:scheduleOccurrence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventSchedule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "schedule occurrence"@x-gmeow-english ;
@@ -600,7 +599,7 @@ gmeow:scheduleOccurrence
     gmeow:useWhen "Use to link a schedule to each concrete gmeow:Event it generated — the materialized instances a calendar view renders and Allen-relates."@x-gmeow-english .
 
 gmeow:scheduleRecurrenceRule
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventSchedule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "schedule recurrence rule"@x-gmeow-english ;
@@ -613,7 +612,7 @@ gmeow:scheduleRecurrenceRule
     gmeow:useWhen "Use to attach the recurrence pattern a schedule expands — the structured/RFC 5545 rule the occurrence engine iterates to produce the series."@x-gmeow-english .
 
 gmeow:scheduleTemplateEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventSchedule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "schedule template event"@x-gmeow-english ;
@@ -626,7 +625,7 @@ gmeow:scheduleTemplateEvent
     gmeow:useWhen "Use to name the single anchor event a schedule clones — the carrier of the recurring title, location, participants, and duration that every occurrence inherits."@x-gmeow-english .
 
 gmeow:scheduleTimeZone
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventSchedule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "schedule time zone"@x-gmeow-english ;
@@ -639,7 +638,7 @@ gmeow:scheduleTimeZone
     gmeow:useWhen "Use to fix the IANA zone a recurrence rule expands in — the offset that decides where each occurrence's local wall-clock time falls across DST boundaries."@x-gmeow-english .
 
 gmeow:taskDueDate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Task ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "task due date"@x-gmeow-english ;
@@ -652,7 +651,7 @@ gmeow:taskDueDate
     gmeow:useWhen "Use to stamp a task's deadline — the iCalendar VTODO DUE moment by which it should be completed."@x-gmeow-english .
 
 gmeow:taskPriority
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Task ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "task priority"@x-gmeow-english ;
@@ -665,7 +664,7 @@ gmeow:taskPriority
     gmeow:useWhen "Use to rank a task's urgency on the iCalendar PRIORITY scale (0 undefined, 1 highest, 9 lowest)."@x-gmeow-english .
 
 gmeow:taskRecurrenceUntilDone
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Task ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "task recurrence until done"@x-gmeow-english ;
@@ -678,7 +677,7 @@ gmeow:taskRecurrenceUntilDone
     gmeow:useWhen "Use to flag a recurring task that re-arms until completed rather than ending at a fixed count or date — the 'keep nagging until done' pattern."@x-gmeow-english .
 
 gmeow:taskStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Task ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "task status"@x-gmeow-english ;
@@ -719,7 +718,7 @@ gmeow:taskStatusNotStarted
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:timeZoneIanaId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TimeZone ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "time zone IANA id"@x-gmeow-english ;
@@ -732,7 +731,7 @@ gmeow:timeZoneIanaId
     gmeow:useWhen "Use to carry a gmeow:TimeZone's canonical IANA tzid string — the identifier libraries resolve to the full DST ruleset."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/calendar>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The calendar and scheduling slice: recurrence, availability, RSVP, reminders, tasks, and time zones on top of events. Builds on the events module (event/temporal design) and temporal module, reusing Event, Participation, EventSeries/RecurrenceRule, TimeInterval, and the four clocks. Aligns to iCalendar RFC 5545/5546/6047/4791/6638/7809, jCal RFC 7265, xCal RFC 6321, schema.org Schedule/EventSeries, OWL-Time, and Wikidata by reference.
 
@@ -814,24 +813,24 @@ logic:supEvDisp a logic:Formula ; logic:relation gmeow:displayable ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/TimeZone> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/timeZoneIanaId" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # --- Wave B1 shape-drain: exact-one/at-most-one max-count restorations ---
-# Reasoner-safe max-qualified (owl:onClass owl:Thing degrades to a plain sh:maxCount 1
+# Reasoner-safe max-qualified (OWL onClass OWL Thing degrades to a plain sh:maxCount 1
 # the derive projects) restoring the sh:maxCount the retired hand-authored calendar
 # well-formedness shapes carried; the sh:minCount + class ride the migrated
-# owl:allValuesFrom + logic:ClosedWorldClosure sibling axioms above.
+# OWL allValuesFrom + logic:ClosedWorldClosure sibling axioms above.
 gmeow:Availability logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:availabilityAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:availabilitySlot ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:availabilityStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:availabilityAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:availabilitySlot ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:availabilityStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:EventInvitation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:invitationEvent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:invitationStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:invitationEvent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:invitationStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:Task logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:taskStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:taskStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:Reminder logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:reminderTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:reminderAction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderAction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:TimeZone logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:timeZoneIanaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
@@ -868,7 +867,7 @@ gmeow:ReminderTriggerLiteralConstraint
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -876,7 +875,7 @@ gmeow:ReminderTriggerLiteralConstraint
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:availabilitySlotFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "availabilitySlot is functional"@x-gmeow-english ;
@@ -891,7 +890,7 @@ gmeow:availabilitySlotFunctionality
     skos:example "gmeow:availabilitySlotFunctionality logic:characterizes gmeow:availabilitySlot ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:calendarTimeZoneFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "calendarTimeZone is functional"@x-gmeow-english ;
@@ -906,7 +905,7 @@ gmeow:calendarTimeZoneFunctionality
     skos:example "gmeow:calendarTimeZoneFunctionality logic:characterizes gmeow:calendarTimeZone ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:eventTimeZoneFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "eventTimeZone is functional"@x-gmeow-english ;
@@ -921,7 +920,7 @@ gmeow:eventTimeZoneFunctionality
     skos:example "gmeow:eventTimeZoneFunctionality logic:characterizes gmeow:eventTimeZone ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exceptionOriginalDateFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exceptionOriginalDate is functional"@x-gmeow-english ;
@@ -936,7 +935,7 @@ gmeow:exceptionOriginalDateFunctionality
     skos:example "gmeow:exceptionOriginalDateFunctionality logic:characterizes gmeow:exceptionOriginalDate ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exceptionReplacementEventFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exceptionReplacementEvent is functional"@x-gmeow-english ;
@@ -951,7 +950,7 @@ gmeow:exceptionReplacementEventFunctionality
     skos:example "gmeow:exceptionReplacementEventFunctionality logic:characterizes gmeow:exceptionReplacementEvent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exceptionScheduleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exceptionSchedule is functional"@x-gmeow-english ;
@@ -966,7 +965,7 @@ gmeow:exceptionScheduleFunctionality
     skos:example "gmeow:exceptionScheduleFunctionality logic:characterizes gmeow:exceptionSchedule ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exceptionTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "exceptionType is functional"@x-gmeow-english ;
@@ -981,7 +980,7 @@ gmeow:exceptionTypeFunctionality
     skos:example "gmeow:exceptionTypeFunctionality logic:characterizes gmeow:exceptionType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:invitationEventFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "invitationEvent is functional"@x-gmeow-english ;
@@ -996,7 +995,7 @@ gmeow:invitationEventFunctionality
     skos:example "gmeow:invitationEventFunctionality logic:characterizes gmeow:invitationEvent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:reminderActionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminderAction is functional"@x-gmeow-english ;
@@ -1011,7 +1010,7 @@ gmeow:reminderActionFunctionality
     skos:example "gmeow:reminderActionFunctionality logic:characterizes gmeow:reminderAction ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:reminderTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "reminderTarget is functional"@x-gmeow-english ;
@@ -1026,7 +1025,7 @@ gmeow:reminderTargetFunctionality
     skos:example "gmeow:reminderTargetFunctionality logic:characterizes gmeow:reminderTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:scheduleTemplateEventFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "scheduleTemplateEvent is functional"@x-gmeow-english ;
@@ -1041,7 +1040,7 @@ gmeow:scheduleTemplateEventFunctionality
     skos:example "gmeow:scheduleTemplateEventFunctionality logic:characterizes gmeow:scheduleTemplateEvent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:scheduleTimeZoneFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "scheduleTimeZone is functional"@x-gmeow-english ;
@@ -1056,7 +1055,7 @@ gmeow:scheduleTimeZoneFunctionality
     skos:example "gmeow:scheduleTimeZoneFunctionality logic:characterizes gmeow:scheduleTimeZone ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:taskDueDateFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "taskDueDate is functional"@x-gmeow-english ;
@@ -1071,7 +1070,7 @@ gmeow:taskDueDateFunctionality
     skos:example "gmeow:taskDueDateFunctionality logic:characterizes gmeow:taskDueDate ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:taskPriorityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "taskPriority is functional"@x-gmeow-english ;
@@ -1086,7 +1085,7 @@ gmeow:taskPriorityFunctionality
     skos:example "gmeow:taskPriorityFunctionality logic:characterizes gmeow:taskPriority ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:taskRecurrenceUntilDoneFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "taskRecurrenceUntilDone is functional"@x-gmeow-english ;
@@ -1101,7 +1100,7 @@ gmeow:taskRecurrenceUntilDoneFunctionality
     skos:example "gmeow:taskRecurrenceUntilDoneFunctionality logic:characterizes gmeow:taskRecurrenceUntilDone ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:timeZoneIanaIdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "timeZoneIanaId is functional"@x-gmeow-english ;

@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Cascade
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Cascade"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -18,7 +17,7 @@ gmeow:Cascade
 
 gmeow:CausalLink
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Causal Link"@x-gmeow-english ;
     logic:mediates gmeow:linkAntecedent ,
@@ -30,7 +29,7 @@ gmeow:CausalLink
 
 gmeow:CausalModality
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Causal Modality"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -39,7 +38,7 @@ gmeow:CausalModality
 
 gmeow:Hazard
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Hazard"@x-gmeow-english ;
     rdfs:subClassOf logic:Disposition ,
@@ -49,28 +48,28 @@ gmeow:Hazard
 
 gmeow:Mitigation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Mitigation"@x-gmeow-english ;
     logic:mediates gmeow:mitigationMeasure ,
         gmeow:mitigationCounters ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mitigationMeasure ;
-            owl:someValuesFrom owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mitigationMeasure ;
+            logic:someValuesFrom logic:Thing ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:mitigationCounters ;
-            owl:someValuesFrom owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:mitigationCounters ;
+            logic:someValuesFrom logic:Thing ;
         ] ;
     skos:definition "A reified countermeasure binding: a measure — a gmeow:Norm that forbids the antecedent conduct, or a logic:Plan that interrupts the chain — set against a causal link or hazard it counters. The measure range stays OPEN because a countermeasure is genuinely heterogeneous: a norm, a plan, and an engineered design control are all measures, and no single class subsumes them without distorting one of the three. The D3FEND countermeasure and bowtie barrier map here at alignment time. Whether a mitigation WORKED is a vantage-indexed claim, never an entailment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MitigationStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Mitigation Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -79,7 +78,7 @@ gmeow:MitigationStatus
 
 gmeow:RiskFactor
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Risk Factor"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -88,7 +87,7 @@ gmeow:RiskFactor
 
 gmeow:SeverityLevel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Severity Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -96,7 +95,7 @@ gmeow:SeverityLevel
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:cascadeFirstLink
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Cascade ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "cascade first link"@x-gmeow-english ;
@@ -105,7 +104,7 @@ gmeow:cascadeFirstLink
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:cascadeSeverity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Cascade ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "cascade severity"@x-gmeow-english ;
@@ -114,7 +113,7 @@ gmeow:cascadeSeverity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:causalModality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "causal modality"@x-gmeow-english ;
@@ -151,7 +150,7 @@ gmeow:causallyPromotes
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hazardBearer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Hazard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "hazard bearer"@x-gmeow-english ;
@@ -160,7 +159,7 @@ gmeow:hazardBearer
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hazardSeverity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Hazard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "hazard severity"@x-gmeow-english ;
@@ -169,7 +168,7 @@ gmeow:hazardSeverity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkAntecedent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link antecedent"@x-gmeow-english ;
@@ -178,7 +177,7 @@ gmeow:linkAntecedent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkConsequent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link consequent"@x-gmeow-english ;
@@ -187,7 +186,7 @@ gmeow:linkConsequent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkMechanism
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link mechanism"@x-gmeow-english ;
@@ -195,7 +194,7 @@ gmeow:linkMechanism
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkNext
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link next"@x-gmeow-english ;
@@ -204,16 +203,16 @@ gmeow:linkNext
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:linkStrength
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CausalLink ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "link strength"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
-    skos:definition "A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional design review: strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing owl:sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention)."@x-gmeow-english ;
+    skos:definition "A solver-INPUT weight for this link, on whatever scale the consuming analysis declares. Never a solver output written back as assertion (Principle 12). NOT functional design review: strength estimates are source-variable claims — divergent estimates coexist through the statement layer rather than forcing OWL sameAs collisions; single-valuedness per base graph is the SHACL layer's job (the hasAuthorityLevel convention)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:manifestedAsType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Hazard ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "manifested as type"@x-gmeow-english ;
@@ -229,7 +228,7 @@ gmeow:mitigationActive
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:mitigationCounters
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Mitigation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "mitigation counters"@x-gmeow-english ;
@@ -238,7 +237,7 @@ gmeow:mitigationCounters
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mitigationMeasure
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Mitigation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "mitigation measure"@x-gmeow-english ;
@@ -260,7 +259,7 @@ gmeow:mitigationRetired
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:mitigationStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Mitigation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "mitigation status"@x-gmeow-english ;
@@ -269,8 +268,8 @@ gmeow:mitigationStatus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:moreSevereThan
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:SeverityLevel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "more severe than"@x-gmeow-english ;
@@ -310,7 +309,7 @@ gmeow:severitySevere
     gmeow:moreSevereThan gmeow:severityModerate .
 
 gmeow:typeCauses
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "type causes"@x-gmeow-english ;
@@ -320,7 +319,7 @@ gmeow:typeCauses
     gmeow:pairsWith gmeow:CausalLink .
 
 gmeow:typeEnables
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "type enables"@x-gmeow-english ;
@@ -329,7 +328,7 @@ gmeow:typeEnables
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:typeMitigates
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "type mitigates"@x-gmeow-english ;
@@ -338,7 +337,7 @@ gmeow:typeMitigates
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:typePrevents
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EventType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "type prevents"@x-gmeow-english ;
@@ -347,7 +346,7 @@ gmeow:typePrevents
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/risk>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Hazards, type-level causation, cascades, and mitigations — counterfactual causal structure without counterfactual machinery.
 
@@ -367,18 +366,18 @@ DOCTRINE.
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:Hazard rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:hazardBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:manifestedAsType ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:EventType ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hazardSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:hazardBearer ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:manifestedAsType ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:EventType ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hazardSeverity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Cascade rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:cascadeFirstLink ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CausalLink ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:cascadeSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:cascadeFirstLink ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CausalLink ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:cascadeSeverity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Mitigation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:mitigationMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:mitigationCounters ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:mitigationStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:mitigationMeasure ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mitigationCounters ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:mitigationStatus ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
@@ -510,15 +509,15 @@ logic:mictIsHazard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/2
 # --- Wave B1 shape-drain: causal-link cardinality restorations ---
 # gmeow:CausalLinkShape — exactly one antecedent EventType, one consequent EventType, at most
 # one decimal link strength, and exactly one causal modality. gmeow:causalModality is
-# owl:FunctionalProperty, but the functional maximum rides a gmeow:causalModality-keyed
+# OWL FunctionalProperty, but the functional maximum rides a gmeow:causalModality-keyed
 # subjects-of shape, not the CausalLink node shape — so the exactly-one obligation the shape
 # authored declaratively is restored here as an ordinary logic:maxQualifiedCardinality (min1 comes
 # from the migrated existence closure). gmeow:linkMechanism's per-language-tag uniqueness is
 # grounded declaratively by gmeow:CausalLinkMechanismUniqueLangConstraint below.
 gmeow:CausalLink logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:linkAntecedent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:linkConsequent ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:causalModality ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:linkAntecedent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:linkConsequent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:causalModality ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:linkStrength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 # gmeow:CausalLinkShape — gmeow:linkMechanism carries at most one value per language tag (the
@@ -539,7 +538,7 @@ gmeow:CausalLinkMechanismUniqueLangConstraint
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -548,7 +547,7 @@ gmeow:CausalLinkMechanismUniqueLangConstraint
 #   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
 
 gmeow:cascadeFirstLinkFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "cascadeFirstLink is functional"@x-gmeow-english ;
@@ -563,7 +562,7 @@ gmeow:cascadeFirstLinkFunctionality
     skos:example "gmeow:cascadeFirstLinkFunctionality logic:characterizes gmeow:cascadeFirstLink ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:causalModalityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "causalModality is functional"@x-gmeow-english ;
@@ -578,7 +577,7 @@ gmeow:causalModalityFunctionality
     skos:example "gmeow:causalModalityFunctionality logic:characterizes gmeow:causalModality ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hazardBearerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "hazardBearer is functional"@x-gmeow-english ;
@@ -593,7 +592,7 @@ gmeow:hazardBearerFunctionality
     skos:example "gmeow:hazardBearerFunctionality logic:characterizes gmeow:hazardBearer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:linkAntecedentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "linkAntecedent is functional"@x-gmeow-english ;
@@ -608,7 +607,7 @@ gmeow:linkAntecedentFunctionality
     skos:example "gmeow:linkAntecedentFunctionality logic:characterizes gmeow:linkAntecedent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:linkConsequentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "linkConsequent is functional"@x-gmeow-english ;
@@ -623,7 +622,7 @@ gmeow:linkConsequentFunctionality
     skos:example "gmeow:linkConsequentFunctionality logic:characterizes gmeow:linkConsequent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:linkNextAcyclicity
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "linkNext is acyclic"@x-gmeow-english ;
@@ -638,7 +637,7 @@ gmeow:linkNextAcyclicity
     skos:example "gmeow:linkNextAcyclicity logic:characterizes gmeow:linkNext ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:causalLinkDistinctness
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "a causal link's antecedent and consequent are distinct"@x-gmeow-english ;
