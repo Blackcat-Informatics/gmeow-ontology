@@ -18977,3 +18977,63 @@ msgstr "Invocation d'outil non annoncé"
 msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedToolInvocation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a tools/call names a tool the engine surface does not advertise. The action theory is the authority over that surface — one logic:ActionSchema per advertised tool, joined by logic:mcpToolName — so a call resolving to no schema is a call with no precondition to check, no effect to claim and no compensation to run. HARD FAIL rather than a best-effort dispatch: an engine that guessed which action was meant would execute an unlicensed one. Distinct from logic:UnloadedEngineSegment, where the tool IS advertised and the deployment has merely not loaded the segment serving it; 'does not exist' and 'not here yet' are different facts a caller must be able to tell apart mechanically."
 msgstr "L'échec levé lorsqu'un tools/call nomme un outil que la surface du moteur n'annonce pas. La théorie de l'action fait autorité sur cette surface — un logic:ActionSchema par outil annoncé, joints par logic:mcpToolName — si bien qu'un appel qui ne résout vers aucun schéma est un appel sans précondition à vérifier, sans effet à revendiquer et sans compensation à exécuter. ÉCHEC FRANC plutôt qu'une répartition au mieux : un moteur qui devinerait quelle action était visée en exécuterait une non autorisée. À distinguer de logic:UnloadedEngineSegment, où l'outil EST annoncé et où le déploiement n'a simplement pas chargé le segment qui le sert ; « n'existe pas » et « pas encore ici » sont des faits différents qu'un appelant doit pouvoir distinguer mécaniquement."
+
+msgctxt "https://blackcatinformatics.ca/logic/acdForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action capability declared constraint formula"
+msgstr "Formule de contrainte de capacité d'action déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/acdForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:ActionCapabilityDeclaredConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:ActionCapabilityDeclaredConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/adpForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action dispatch precondition constraint formula"
+msgstr "Formule de contrainte de précondition de répartition d'action"
+
+msgctxt "https://blackcatinformatics.ca/logic/adpForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:ActionDispatchPreconditionConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:ActionDispatchPreconditionConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/dteForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dev tool compensation declared constraint formula"
+msgstr "Formule de contrainte de compensation d'outil de développement déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/dteForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:DevToolCompensationDeclaredConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:DevToolCompensationDeclaredConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/mrdForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mcp resource declared constraint formula"
+msgstr "Formule de contrainte de ressource MCP déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/mrdForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:McpResourceDeclaredConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:McpResourceDeclaredConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/mtgForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "McpToolGoverned constraint formula"
+msgstr "Formule de contrainte d'outil MCP gouverné"
+
+msgctxt "https://blackcatinformatics.ca/logic/mtgForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:McpToolGovernedConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:McpToolGovernedConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an action schema is keyed by its MCP tool name"
+msgstr "un schéma d'action est clé par son nom d'outil MCP"
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a logic:ActionSchema is identified by its logic:mcpToolName: the wire name is the join a client's `tools/call` resolves through, so two schemas sharing it would leave the dispatcher without an answer to which precondition, effect and compensation govern the call. The name therefore uniquely identifies its schema, and the native DL consistency gate forces two schemas asserted distinct yet sharing a name into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property logic:mcpToolName would be OWL 2 Full."
+msgstr "Affirme qu'un logic:ActionSchema est identifié par son logic:mcpToolName : le nom sur le fil est la jointure par laquelle se résout le `tools/call` d'un client, si bien que deux schémas le partageant laisseraient le répartiteur sans réponse quant à la précondition, l'effet et la compensation qui gouvernent l'appel. Le nom identifie donc uniquement son schéma, et la barrière de cohérence DL native force vers owl:Nothing deux schémas affirmés distincts mais partageant un nom. Énoncé comme une clé (l'analogue logic: de owl:hasKey, OWL 2 DL) plutôt que comme une caractéristique inverse-fonctionnelle, laquelle, portant sur la propriété de type de données logic:mcpToolName, relèverait d'OWL 2 Full."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about logic:ActionSchema and nothing else. It is not a definition of logic:ActionSchema, not a shape, and not a second place to state the term's meaning."
+msgstr "Portée : cet enregistrement porte UNE obligation d'intégrité concernant logic:ActionSchema et rien d'autre. Ce n'est ni une définition de logic:ActionSchema, ni une forme, ni un second endroit où énoncer le sens du terme."
+
+msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unloaded Engine Segment"
+msgstr "Segment de moteur non chargé"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a dispatch names a tool the surface DOES advertise and DOES govern, but whose implementation lives in an engine segment this deployment has not loaded. It is a ROUTING signal, not a refusal: the payload names both the dispatch key and the segment providing it, so a host loads exactly that segment and re-dispatches the identical frame for an answer identical to the full engine's. That is what makes it a deployment tier rather than a reduced theory — the call becomes slower, never weaker."
+msgstr "L'échec levé lorsqu'une répartition nomme un outil que la surface annonce BIEN et gouverne BIEN, mais dont l'implémentation réside dans un segment de moteur que ce déploiement n'a pas chargé. C'est un signal de ROUTAGE, non un refus : la charge utile nomme à la fois la clé de répartition et le segment qui la fournit, si bien qu'un hôte charge exactement ce segment et re-répartit la trame identique pour obtenir une réponse identique à celle du moteur complet. C'est ce qui en fait un palier de déploiement plutôt qu'une théorie réduite — l'appel devient plus lent, jamais plus faible."

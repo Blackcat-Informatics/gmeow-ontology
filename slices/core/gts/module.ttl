@@ -1869,6 +1869,7 @@ gmeow:gtsProducerRuntimeStoreSegments
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS producer — the runtime store segment boundary"@x-gmeow-english ;
     skos:definition "The storage backend that opens a runtime store's segment when the store's tail does not already pin the medium the server resolved. A segment declares exactly ONE codec catalog, so a store whose tail predates the current medium needs a boundary before anything is appended into it; without one the appended record names a catalog that tail never declared and the store stops reconstructing. It authors a segment HEADER only — the records themselves are written by gmeow:gtsProducerRuntimeStores through the same gmeow:mediumProfileStoreL12."@x-gmeow-english ;
+    skos:example "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite \"crates/mcp/src/storage.rs\" ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."@x-gmeow-english ;
     gmeow:producerCallSite "crates/mcp/src/storage.rs" ;
     gmeow:producerMedium gmeow:mediumProfileStoreL12 ;
     gmeow:graphBoxRole gmeow:boxABox ,
@@ -2543,6 +2544,7 @@ gmeow:payloadSchemaExamplesArchive
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema — examples archive"@x-gmeow-english ;
     skos:definition "The slices' example Turtle sources, keyed by repo-relative path. The bytes travel with the bundle while the statements stay out of the object-level closure, on the same terms as the mapping and test-DSL sources."@x-gmeow-english ;
+    skos:example "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId \"examples-archive\" — the rep a consumer reads the slices' example Turtle out of."@x-gmeow-english ;
     gmeow:payloadSchemaId "examples-archive" ;
     gmeow:payloadSchemaMedium gmeow:mediumProfileDistL12 ;
     gmeow:payloadSchemaDictionary gmeow:dictGmeowCoreV1 ;
@@ -2727,6 +2729,7 @@ gmeow:GtsDocumentSegmentedConstraint
     rdfs:label "GTS document segmented constraint"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:GTSDocument carries at least one gmeow:gtsSegment. A document IS its ordered segment list — the composite identity is the heads taken in index order — so a document declaring no segment has no content to read and no identity to verify. A reader handed one cannot distinguish it from a file it failed to open, which is why the refusal happens here rather than being reported as an empty result."@x-gmeow-english ;
+    skos:example "ex:gts-dist-package-001 is segmented by ex:gts-dist-segment-core and ex:gts-dist-segment-music, asserted from the segment side through gmeow:gtsSegmentOf."@x-gmeow-english ;
     gmeow:enforcesFailureClass gmeow:BundleArtifactUnreadable ;
     logic:formalizes gmeow:GTSDocument ;
     logic:severity "Violation" ;
@@ -2786,6 +2789,7 @@ gmeow:GtsSegmentHeadedConstraint
     rdfs:label "GTS segment headed constraint"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:GTSSegment carries its gmeow:gtsHeadId. The head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so it is what makes the bytes CHECKABLE — a segment without one can be parsed into terms but never verified against the chain it claims to continue, and a reader has no way to tell a good read from a corrupted one."@x-gmeow-english ;
+    skos:example "ex:gts-dist-segment-core carries gmeow:gtsHeadId \"blake3:929d046b...\", the content-id committing to its whole frame history."@x-gmeow-english ;
     gmeow:enforcesFailureClass gmeow:BundleSourceUnparsable ;
     logic:formalizes gmeow:GTSSegment ;
     logic:severity "Violation" ;
@@ -2829,6 +2833,7 @@ gmeow:GtsSegmentProfiledConstraint
     rdfs:label "GTS segment profiled constraint"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:GTSSegment declares its gmeow:gtsProfile. The profile states what the segment is FOR, and a flat projection reads it to decide which of the segment's claims a lossy surface may carry — CSVW, SKOS, OBO Graphs and the rest each drop what they cannot encode. A segment with no declared profile leaves the projector guessing, and a projector that guesses publishes a smaller ontology under the same name rather than refusing."@x-gmeow-english ;
+    skos:example "ex:gts-dist-segment-core declares gmeow:gtsProfile gmeow:gtsProfileDist, which is what tells a flat projector the segment carries distribution content rather than a generic appendix."@x-gmeow-english ;
     gmeow:enforcesFailureClass gmeow:FlatExportRefused ;
     logic:formalizes gmeow:GTSSegment ;
     logic:severity "Violation" ;
@@ -2872,6 +2877,7 @@ gmeow:CompressionDictionaryIdentifiedConstraint
     rdfs:label "Compression dictionary identified constraint"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:CompressionDictionary declares the gmeow:dictionaryId it is pinned under. The id is the ONLY key a consumer has: a runtime store resolves its priming bytes by looking that string up in the shipped bundle's in-band header map, so a dictionary declared without one can be trained, shipped and still be unreachable — the store asks for a name the bundle never wrote down, and there is no weaker unprimed store to fall back to because the store's own header is what makes it decodable. This is the authoring-side cause of the consumer engine's refusal, caught where the dictionary is declared rather than where it is opened. Measured to hold over all six shipped dictionaries, so the record is a live gate."@x-gmeow-english ;
+    skos:example "gmeow:dictGmeowMemoryHotV1 declares gmeow:dictionaryId \"gmeow-memory-hot-v1\", which is the string a runtime store looks up in the shipped bundle's in-band header map to prime its decode."@x-gmeow-english ;
     gmeow:enforcesFailureClass gmeow:MediumUnpinnedStoreDictionary ;
     logic:formalizes gmeow:CompressionDictionary ;
     logic:severity "Violation" ;
@@ -2916,6 +2922,7 @@ gmeow:BundleArtifactUnreadable
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Bundle Artifact Unreadable"@x-gmeow-english ;
     skos:definition "The failure raised when a read-side consumer cannot READ a source artifact at all — a Turtle source handed to the native query substrate, or a materialized gmeow.gts. It is a byte-level refusal below any RDF judgment: nothing was parsed, so nothing can be said about what the artifact contains. HARD FAIL rather than an empty dataset, because an empty result is indistinguishable from an artifact that legitimately carries nothing."@x-gmeow-english ;
+    skos:example "A `gmeow query` run against a path that is not there, or a materialized gmeow.gts truncated mid-write: the reader raises gmeow:BundleArtifactUnreadable rather than answering over zero quads."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:BundleSourceUnparsable
@@ -2925,6 +2932,7 @@ gmeow:BundleSourceUnparsable
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Bundle Source Unparsable"@x-gmeow-english ;
     skos:definition "The failure raised on the READ side when bytes were obtained but are not the RDF the reader requires: a syntactically invalid Turtle source, a query evaluation failure, or a query whose result form is not the one the caller demands. Distinct from gmeow:BundleArtifactUnreadable, where the bytes never arrived: here they did and are wrong, so the reader refuses rather than returning a partial binding set that would read as a complete answer over less data."@x-gmeow-english ;
+    skos:example "A slice example with an unterminated triple: the bytes arrive, the Turtle parse fails, and the reader raises gmeow:BundleSourceUnparsable rather than binding the prefix of the file that did parse."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FlatExportRefused
@@ -2934,6 +2942,7 @@ gmeow:FlatExportRefused
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Flat Export Refused"@x-gmeow-english ;
     skos:definition "The failure raised when a flat-export projection — CSVW, SKOS, OBO Graphs, N-Quads, TriG — cannot carry a term the bundle holds, or is asked for a configuration it refuses. The projection is REFUSED rather than degraded: a flat surface that silently drops a term it cannot encode publishes a smaller ontology under the same name, and a consumer has no way to learn what is missing. Every declared loss belongs in the distribution catalog, where it is queryable, never in a projection that quietly omits."@x-gmeow-english ;
+    skos:example "A CSVW export asked to carry an RDF-star annotation it has no column for: the projection raises gmeow:FlatExportRefused, and the declared loss is recorded in the distribution catalog where a consumer can query it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MediumUnpinnedStoreDictionary

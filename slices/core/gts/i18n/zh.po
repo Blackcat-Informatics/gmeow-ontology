@@ -442,3 +442,39 @@ msgstr "GTS 段带剖面约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: every gmeow:GTSSegment declares its gmeow:gtsProfile. The profile states what the segment is FOR, and a flat projection reads it to decide which of the segment's claims a lossy surface may carry — CSVW, SKOS, OBO Graphs and the rest each drop what they cannot encode. A segment with no declared profile leaves the projector guessing, and a projector that guesses publishes a smaller ontology under the same name rather than refusing."
 msgstr "一条封闭世界完整性约束：每个 gmeow:GTSSegment 都声明其 gmeow:gtsProfile。剖面陈述该段「用于何事」，扁平投影据以决定有损表面可以承载该段的哪些主张——CSVW、SKOS、OBO Graphs 等等各自丢弃它们无法编码之物。未声明剖面的段会让投影器只能猜测，而猜测的投影器会以同一名称发布一个更小的本体，而不是予以拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A `gmeow query` run against a path that is not there, or a materialized gmeow.gts truncated mid-write: the reader raises gmeow:BundleArtifactUnreadable rather than answering over zero quads."
+msgstr "对并不存在的路径执行 `gmeow query`，或读取一个写入中途被截断的已物化 gmeow.gts：读取方引发 gmeow:BundleArtifactUnreadable，而不是基于零条四元组作答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A slice example with an unterminated triple: the bytes arrive, the Turtle parse fails, and the reader raises gmeow:BundleSourceUnparsable rather than binding the prefix of the file that did parse."
+msgstr "某个切片示例含有未终止的三元组：字节已抵达，Turtle 解析失败，读取方引发 gmeow:BundleSourceUnparsable，而不是去绑定该文件中确已解析成功的那一前缀部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FlatExportRefused|http://www.w3.org/2004/02/skos/core#example"
+msgid "A CSVW export asked to carry an RDF-star annotation it has no column for: the projection raises gmeow:FlatExportRefused, and the declared loss is recorded in the distribution catalog where a consumer can query it."
+msgstr "要求 CSVW 导出承载一条它并无对应列的 RDF-star 注解：该投影引发 gmeow:FlatExportRefused，且这项已声明的损失被记入分发目录，消费者可在其中查询。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryIdentifiedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:dictGmeowMemoryHotV1 declares gmeow:dictionaryId \"gmeow-memory-hot-v1\", which is the string a runtime store looks up in the shipped bundle's in-band header map to prime its decode."
+msgstr "gmeow:dictGmeowMemoryHotV1 声明 gmeow:dictionaryId「gmeow-memory-hot-v1」，运行期存储正是以该字符串在所交付捆绑包的带内头部映射中查找，用以预热其解码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsDocumentSegmentedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-package-001 is segmented by ex:gts-dist-segment-core and ex:gts-dist-segment-music, asserted from the segment side through gmeow:gtsSegmentOf."
+msgstr "ex:gts-dist-package-001 由 ex:gts-dist-segment-core 与 ex:gts-dist-segment-music 分段，且是从段一侧经由 gmeow:gtsSegmentOf 断言的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentHeadedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-segment-core carries gmeow:gtsHeadId \"blake3:929d046b...\", the content-id committing to its whole frame history."
+msgstr "ex:gts-dist-segment-core 承载 gmeow:gtsHeadId「blake3:929d046b…」，即承诺其整个帧历史的内容标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-segment-core declares gmeow:gtsProfile gmeow:gtsProfileDist, which is what tells a flat projector the segment carries distribution content rather than a generic appendix."
+msgstr "ex:gts-dist-segment-core 声明 gmeow:gtsProfile gmeow:gtsProfileDist，正是它告诉扁平投影器：该段承载的是分发内容，而非一份通用附录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaExamplesArchive|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId \"examples-archive\" — the rep a consumer reads the slices' example Turtle out of."
+msgstr "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId「examples-archive」——消费者据以读取各切片示例 Turtle 的那个 rep。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProducerRuntimeStoreSegments|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite \"crates/mcp/src/storage.rs\" ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."
+msgstr "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite「crates/mcp/src/storage.rs」；gmeow:producerMedium gmeow:mediumProfileStoreL12 。"

@@ -978,3 +978,39 @@ msgstr "Contrainte de segment GTS profilé"
 msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: every gmeow:GTSSegment declares its gmeow:gtsProfile. The profile states what the segment is FOR, and a flat projection reads it to decide which of the segment's claims a lossy surface may carry — CSVW, SKOS, OBO Graphs and the rest each drop what they cannot encode. A segment with no declared profile leaves the projector guessing, and a projector that guesses publishes a smaller ontology under the same name rather than refusing."
 msgstr "Une contrainte d'intégrité en monde clos : chaque gmeow:GTSSegment déclare son gmeow:gtsProfile. Le profil énonce à quoi SERT le segment, et une projection à plat le lit pour décider lesquelles des affirmations du segment une surface avec perte peut porter — CSVW, SKOS, OBO Graphs et les autres laissent chacune tomber ce qu'elles ne savent pas encoder. Un segment sans profil déclaré laisse le projecteur deviner, et un projecteur qui devine publie une ontologie plus petite sous le même nom au lieu de refuser."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A `gmeow query` run against a path that is not there, or a materialized gmeow.gts truncated mid-write: the reader raises gmeow:BundleArtifactUnreadable rather than answering over zero quads."
+msgstr "Une exécution de `gmeow query` sur un chemin absent, ou un gmeow.gts matérialisé tronqué en cours d'écriture : le lecteur lève gmeow:BundleArtifactUnreadable plutôt que de répondre sur zéro quad."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A slice example with an unterminated triple: the bytes arrive, the Turtle parse fails, and the reader raises gmeow:BundleSourceUnparsable rather than binding the prefix of the file that did parse."
+msgstr "Un exemple de tranche comportant un triplet non terminé : les octets arrivent, l'analyse Turtle échoue, et le lecteur lève gmeow:BundleSourceUnparsable plutôt que de lier le préfixe du fichier qui, lui, s'est analysé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FlatExportRefused|http://www.w3.org/2004/02/skos/core#example"
+msgid "A CSVW export asked to carry an RDF-star annotation it has no column for: the projection raises gmeow:FlatExportRefused, and the declared loss is recorded in the distribution catalog where a consumer can query it."
+msgstr "Un export CSVW à qui l'on demande de porter une annotation RDF-star pour laquelle il n'a aucune colonne : la projection lève gmeow:FlatExportRefused, et la perte déclarée est consignée dans le catalogue de distribution, où un consommateur peut l'interroger."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryIdentifiedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:dictGmeowMemoryHotV1 declares gmeow:dictionaryId \"gmeow-memory-hot-v1\", which is the string a runtime store looks up in the shipped bundle's in-band header map to prime its decode."
+msgstr "gmeow:dictGmeowMemoryHotV1 déclare gmeow:dictionaryId « gmeow-memory-hot-v1 », la chaîne qu'un magasin d'exécution cherche dans la carte d'en-tête en bande du paquet livré pour amorcer son décodage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsDocumentSegmentedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-package-001 is segmented by ex:gts-dist-segment-core and ex:gts-dist-segment-music, asserted from the segment side through gmeow:gtsSegmentOf."
+msgstr "ex:gts-dist-package-001 est segmenté par ex:gts-dist-segment-core et ex:gts-dist-segment-music, affirmé du côté segment via gmeow:gtsSegmentOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentHeadedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-segment-core carries gmeow:gtsHeadId \"blake3:929d046b...\", the content-id committing to its whole frame history."
+msgstr "ex:gts-dist-segment-core porte gmeow:gtsHeadId « blake3:929d046b... », l'identifiant de contenu qui s'engage sur toute son histoire de trames."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-segment-core declares gmeow:gtsProfile gmeow:gtsProfileDist, which is what tells a flat projector the segment carries distribution content rather than a generic appendix."
+msgstr "ex:gts-dist-segment-core déclare gmeow:gtsProfile gmeow:gtsProfileDist, ce qui indique à un projecteur à plat que le segment porte du contenu de distribution plutôt qu'une annexe générique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaExamplesArchive|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId \"examples-archive\" — the rep a consumer reads the slices' example Turtle out of."
+msgstr "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId « examples-archive » — le rep dont un consommateur lit le Turtle d'exemple des tranches."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProducerRuntimeStoreSegments|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite \"crates/mcp/src/storage.rs\" ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."
+msgstr "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite « crates/mcp/src/storage.rs » ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."

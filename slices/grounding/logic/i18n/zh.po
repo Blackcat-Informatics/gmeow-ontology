@@ -18977,3 +18977,63 @@ msgstr "调用未公布工具"
 msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedToolInvocation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a tools/call names a tool the engine surface does not advertise. The action theory is the authority over that surface — one logic:ActionSchema per advertised tool, joined by logic:mcpToolName — so a call resolving to no schema is a call with no precondition to check, no effect to claim and no compensation to run. HARD FAIL rather than a best-effort dispatch: an engine that guessed which action was meant would execute an unlicensed one. Distinct from logic:UnloadedEngineSegment, where the tool IS advertised and the deployment has merely not loaded the segment serving it; 'does not exist' and 'not here yet' are different facts a caller must be able to tell apart mechanically."
 msgstr "当 tools/call 指名引擎表面并未公布的工具时引发的失败。动作理论对该表面拥有权威——每个已公布工具对应一个 logic:ActionSchema，由 logic:mcpToolName 相连——因此解析不到任何模式的调用，是一次没有前置条件可查、没有效果可主张、也没有补偿可执行的调用。硬性失败而非尽力派发：会猜测意指哪个动作的引擎，将执行一个未获许可的动作。它有别于 logic:UnloadedEngineSegment——在后者中工具「确已」公布，只是部署尚未加载提供它的段；「不存在」与「尚未在此」是调用方必须能够机械区分的两个不同事实。"
+
+msgctxt "https://blackcatinformatics.ca/logic/acdForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action capability declared constraint formula"
+msgstr "已声明动作能力约束公式"
+
+msgctxt "https://blackcatinformatics.ca/logic/acdForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:ActionCapabilityDeclaredConstraint."
+msgstr "logic:ActionCapabilityDeclaredConstraint 的顶层「全称蕴涵存在」完整性公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/adpForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action dispatch precondition constraint formula"
+msgstr "动作派发前置条件约束公式"
+
+msgctxt "https://blackcatinformatics.ca/logic/adpForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:ActionDispatchPreconditionConstraint."
+msgstr "logic:ActionDispatchPreconditionConstraint 的顶层「全称蕴涵存在」完整性公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/dteForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dev tool compensation declared constraint formula"
+msgstr "已声明开发工具补偿约束公式"
+
+msgctxt "https://blackcatinformatics.ca/logic/dteForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:DevToolCompensationDeclaredConstraint."
+msgstr "logic:DevToolCompensationDeclaredConstraint 的顶层「全称蕴涵存在」完整性公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/mrdForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mcp resource declared constraint formula"
+msgstr "已声明 MCP 资源约束公式"
+
+msgctxt "https://blackcatinformatics.ca/logic/mrdForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:McpResourceDeclaredConstraint."
+msgstr "logic:McpResourceDeclaredConstraint 的顶层「全称蕴涵存在」完整性公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/mtgForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "McpToolGoverned constraint formula"
+msgstr "MCP 工具受治理约束公式"
+
+msgctxt "https://blackcatinformatics.ca/logic/mtgForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:McpToolGovernedConstraint."
+msgstr "logic:McpToolGovernedConstraint 的顶层「全称蕴涵存在」完整性公式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an action schema is keyed by its MCP tool name"
+msgstr "动作模式以其 MCP 工具名为键"
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a logic:ActionSchema is identified by its logic:mcpToolName: the wire name is the join a client's `tools/call` resolves through, so two schemas sharing it would leave the dispatcher without an answer to which precondition, effect and compensation govern the call. The name therefore uniquely identifies its schema, and the native DL consistency gate forces two schemas asserted distinct yet sharing a name into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property logic:mcpToolName would be OWL 2 Full."
+msgstr "断言 logic:ActionSchema 由其 logic:mcpToolName 标识：线上名称是客户端 `tools/call` 据以解析的连接键，因此两个模式共用它，将使派发器无从回答是哪条前置条件、哪个效果与哪条补偿在治理该调用。于是名称唯一地标识其模式，而原生 DL 一致性关卡会把「被断言为彼此不同却共用一个名称」的两个模式逼入 owl:Nothing。此处表述为「键」（logic: 中对应 owl:hasKey 的构造，属 OWL 2 DL），而非反函数性特征——后者作用于数据类型属性 logic:mcpToolName 之上便属于 OWL 2 Full。"
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about logic:ActionSchema and nothing else. It is not a definition of logic:ActionSchema, not a shape, and not a second place to state the term's meaning."
+msgstr "范围：本记录仅承载关于 logic:ActionSchema 的「一条」完整性义务，别无其他。它不是 logic:ActionSchema 的定义，不是形状，也不是复述该术语含义的第二处所在。"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unloaded Engine Segment"
+msgstr "引擎段未加载"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a dispatch names a tool the surface DOES advertise and DOES govern, but whose implementation lives in an engine segment this deployment has not loaded. It is a ROUTING signal, not a refusal: the payload names both the dispatch key and the segment providing it, so a host loads exactly that segment and re-dispatches the identical frame for an answer identical to the full engine's. That is what makes it a deployment tier rather than a reduced theory — the call becomes slower, never weaker."
+msgstr "当一次派发所指名的工具「确已」被表面公布、也「确已」受其治理，但其实现位于本次部署尚未加载的引擎段中时引发的失败。它是「路由」信号而非拒绝：载荷同时指明派发键与提供它的段，于是宿主恰好加载该段并重新派发完全相同的帧，得到与完整引擎完全相同的答案。正因如此，它是一个部署层级而非一套被削减的理论——调用只会变慢，绝不会变弱。"
