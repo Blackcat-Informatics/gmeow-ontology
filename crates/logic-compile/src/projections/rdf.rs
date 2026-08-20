@@ -622,6 +622,16 @@ pub fn project_owl_dl(
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl("ObjectProperty"));
                 continue;
             }
+            // A canonical `logic:` bare typing / header marker (`logic:Class`,
+            // `logic:ObjectProperty`, `logic:Ontology`, …) is projected exactly as its
+            // `owl:` spelling was: OMITTED from the grounding view. A bare `owl:Class` /
+            // `owl:Ontology` declaration never reached this projection (the frontend lifts
+            // only the structural edges + the gUFO sort, and each class earns its
+            // `owl:Class` from that sort), so the canonical marker is dropped in lockstep
+            // rather than leaking through as a `logic:`-namespaced type.
+            if crate::typing_vocab::is_logic_typing_marker(obj) {
+                continue;
+            }
             if !axiom.obj_is_literal {
                 g.add_iri(&axiom.subject, RDF_TYPE, obj);
             }
@@ -843,6 +853,12 @@ pub fn project_owl_el(
                     "logic:{local} on <{}> is not EL-safe; dropped",
                     axiom.subject
                 ));
+                continue;
+            }
+            // A canonical `logic:` bare typing / header marker is OMITTED from the OWL 2 EL
+            // grounding view exactly as its `owl:` spelling was (see the OWL-DL twin) — it is
+            // dropped in lockstep rather than leaking through as a `logic:`-namespaced type.
+            if crate::typing_vocab::is_logic_typing_marker(obj) {
                 continue;
             }
             if !axiom.obj_is_literal {

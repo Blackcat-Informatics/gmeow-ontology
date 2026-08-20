@@ -28,6 +28,114 @@ fn actual_drops(loss: &LossLedger, target: &str) -> Vec<String> {
 
 // ── Unit: helpers ────────────────────────────────────────────────────────────
 
+/// The full authoring-surface parity gate for the `owl:` → `logic:` typing/header retirement:
+/// the SAME ontology authored in the legacy `owl:` spelling and in the
+/// canonical `logic:` spelling must compile to a BYTE-IDENTICAL OWL projection (`owl_dl` +
+/// `owl_el`) and derive IDENTICAL validation shapes (SHACL Core + ShEx). This is what keeps
+/// `generated/owl/*.ttl` and `generated/shapes/*` unchanged when the authored surface flips.
+///
+/// The legacy `owl:` corpus is ingested through the `owl:`/gUFO adapter ([`crate::adapter`]) — the
+/// dedicated "normalize legacy `owl:*` source into the IR" path — and the canonical corpus through
+/// the `logic:` front-end ([`parse_logic_str`]); both then run the identical
+/// [`compile_program`] / [`crate::frontend::derive_validation_shapes`] pipeline. The fixture
+/// exercises every construct the flip touches: a class declaration, an object property, a datatype
+/// property, a named individual, a property characteristic, a class axiom (`disjointWith` +
+/// `oneOf` enumeration), a `subClassOf` restriction body, and the ontology header.
+#[test]
+fn logic_and_owl_authorings_compile_to_identical_owl_and_shapes() {
+    use crate::frontend::derive_validation_shapes;
+    use crate::projections::shapes::{
+        project_validation_shapes_shacl, project_validation_shapes_shex,
+    };
+    use purrdf::parse_dataset;
+
+    let base = "\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+";
+    // Legacy owl:/rdfs:/gUFO spelling (adapter surface). rdfs: is the legacy anchor for
+    // subClassOf/domain/range; owl: for the typing markers, characteristic, and class axioms.
+    let owl_body = "\
+g:onto a owl:Ontology ; owl:imports g:dep ; owl:versionInfo \"1\" .
+g:C a owl:Class ; rdfs:subClassOf g:Base ; owl:disjointWith g:Other .
+g:Base a owl:Class .
+g:Other a owl:Class .
+g:P a owl:ObjectProperty ; rdfs:domain g:C ; rdfs:range g:Base .
+g:D a owl:DatatypeProperty .
+g:T a owl:TransitiveProperty .
+g:i a owl:NamedIndividual .
+g:C rdfs:subClassOf [ a owl:Restriction ; owl:onProperty g:P ; owl:someValuesFrom g:Base ] .
+g:Season owl:equivalentClass [ a owl:Class ; owl:oneOf ( g:Spring g:Summer ) ] .
+";
+    // Canonical logic: spelling (front-end surface): a pure namespace swap, except the
+    // characteristic local is lower-camel (logic:transitiveProperty) per the canonical vocabulary.
+    let logic_body = "\
+g:onto a logic:Ontology ; logic:imports g:dep ; logic:versionInfo \"1\" .
+g:C a logic:Class ; logic:subClassOf g:Base ; logic:disjointWith g:Other .
+g:Base a logic:Class .
+g:Other a logic:Class .
+g:P a logic:ObjectProperty ; logic:domain g:C ; logic:range g:Base .
+g:D a logic:DatatypeProperty .
+g:T a logic:transitiveProperty .
+g:i a logic:NamedIndividual .
+g:C logic:subClassOf [ a logic:Restriction ; logic:onProperty g:P ; logic:someValuesFrom g:Base ] .
+g:Season logic:equivalentClass [ a logic:Class ; logic:oneOf ( g:Spring g:Summer ) ] .
+";
+    let owl_src = format!("{base}{owl_body}");
+    let logic_src = format!("{base}{logic_body}");
+
+    // ── OWL-DL / OWL-EL projection parity ─────────────────────────────────────────────
+    let (owl_prog, _) = crate::adapter::adapt_legacy_str(&owl_src, None).expect("adapt owl");
+    let (logic_prog, _) = parse_logic_str(&logic_src, None).expect("parse logic");
+    let owl_arts = compile_program(&owl_prog, &Default::default()).expect("compile owl");
+    let logic_arts = compile_program(&logic_prog, &Default::default()).expect("compile logic");
+    assert_eq!(
+        triple_set(&logic_arts.owl_dl),
+        triple_set(&owl_arts.owl_dl),
+        "canonical logic: authoring must project to the same OWL-DL as the legacy owl: authoring"
+    );
+    assert_eq!(
+        triple_set(&logic_arts.owl_el),
+        triple_set(&owl_arts.owl_el),
+        "canonical logic: authoring must project to the same OWL-EL as the legacy owl: authoring"
+    );
+    // The projection is non-trivial: the shared surface actually carries triples (class axioms,
+    // the characteristic, the restriction, the enumeration), so the equality is not vacuous.
+    assert!(
+        triple_set(&owl_arts.owl_dl).len() > 10,
+        "the fixture must exercise a non-trivial OWL surface"
+    );
+
+    // ── Derived validation-shape parity (SHACL Core + ShEx) ────────────────────────────
+    let owl_ds = parse_dataset(owl_src.as_bytes(), "text/turtle", None).expect("owl dataset");
+    let logic_ds = parse_dataset(logic_src.as_bytes(), "text/turtle", None).expect("logic dataset");
+    let owl_shapes = derive_validation_shapes(owl_ds.as_ref()).expect("derive owl shapes");
+    let logic_shapes = derive_validation_shapes(logic_ds.as_ref()).expect("derive logic shapes");
+    assert_eq!(
+        logic_shapes, owl_shapes,
+        "canonical logic: authoring must derive the same validation-shape IR as owl: authoring"
+    );
+    assert!(
+        !owl_shapes.is_empty(),
+        "the g:C restriction must derive at least one shape (non-vacuous parity)"
+    );
+    let owl_prog_shapes = owl_prog.clone().with_validation_shapes(owl_shapes);
+    let logic_prog_shapes = logic_prog.clone().with_validation_shapes(logic_shapes);
+    assert_eq!(
+        project_validation_shapes_shacl(&logic_prog_shapes),
+        project_validation_shapes_shacl(&owl_prog_shapes),
+        "the derived SHACL Core document must be byte-identical across authorings"
+    );
+    assert_eq!(
+        project_validation_shapes_shex(&logic_prog_shapes),
+        project_validation_shapes_shex(&owl_prog_shapes),
+        "the derived ShEx document must be byte-identical across authorings"
+    );
+}
+
 #[test]
 fn python_repr_matches_cpython() {
     assert_eq!(python_repr("0.9"), "'0.9'");
