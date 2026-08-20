@@ -7176,7 +7176,7 @@ fn optional_bool_checked(args: &Value, key: &str) -> gmeow_errors::Result<Option
 /// `gmeow://ontology/action-policy` reader in a browser is served [`action_policy_nquads`] —
 /// the projection of these bytes — and the Transaction-Logic executor reads the same
 /// function. One carrier can never drift; two can.
-/// `the_action_theory_has_exactly_one_carrier_on_the_wire` is the tripwire: it asserts the
+/// `the_action_theorys_two_carriers_agree_quad_for_quad` is the tripwire: it asserts the
 /// bundle carries ZERO policy quads and that the browser-facing resource serves this copy's
 /// projection. If slice examples ever start being folded, that test reds and must be replaced
 /// by a quad-set equality between the two copies — never relaxed.
@@ -10026,8 +10026,8 @@ mod tests {
             .collect()
     }
 
-    /// WHICH COPY THE BROWSER READS, pinned: the theory has exactly ONE carrier on the wire,
-    /// so there is no second copy that could drift.
+    /// WHICH COPY THE BROWSER READS, pinned: the theory has two carriers on the wire and they
+    /// are proved identical, so neither can drift away from the one the engine obeys.
     ///
     /// [`MCP_ACTION_POLICY_TTL`] is a compile-time `include_str!` of the slice file, and it is
     /// the ONLY carrier. A wasm console has no checkout to read and cannot `include_str!` one
@@ -10037,19 +10037,28 @@ mod tests {
     /// executor therefore read literally the same bytes, which is a stronger guarantee than
     /// two carriers proved equal.
     ///
-    /// `gmeow.gts` carries NO copy: the pipeline folds a slice's `module.ttl` into the
-    /// bundle's `graph/logic`, but a slice's `examples/*.ttl` is read only to derive
-    /// documentation and try-it inferences — its triples are never folded (there is no
-    /// examples archive in `gmeow_bundle_view::bundle_blobs`, and the doc model's RDF
-    /// projection carries `DocExample` as rendered TEXT, never as quads).
+    /// `gmeow.gts` NOW CARRIES A SECOND COPY, and this test is what makes that safe.
     ///
-    /// This test is the TRIPWIRE on that fact. If the pipeline ever starts folding slice
-    /// examples into the bundle, a second carrier appears, this assertion reds, and it must
-    /// be REPLACED by a quad-set equality between the two copies — not relaxed. A second copy
-    /// that nothing compares is exactly how a console comes to display a policy the engine
-    /// does not obey.
+    /// The pipeline's snapshot `v33` folds EVERY slice's `examples/*.ttl` into
+    /// `graph/examples` and `assemble_object_level_edb` admits that graph to the reasoned
+    /// closure, so the action theory — which lives in an examples file — reaches the bundle.
+    /// That is a deliberate, versioned decision on the producer side (maximal information
+    /// flow: a repo-free consumer can read the theory the engine obeys), not a leak.
+    ///
+    /// This test was the tripwire on the older "no second copy" fact, and its own instruction
+    /// for this moment was to be REPLACED by a quad-set equality between the two copies —
+    /// never relaxed. That is what it now is. Equality is the STRONGER property: absence only
+    /// proved there was nothing to drift, while equality proves the wire copy and the copy the
+    /// engine obeys say the same thing. A second copy that nothing compares is exactly how a
+    /// console comes to display a policy the engine does not obey; a second copy compared
+    /// quad-for-quad cannot.
+    ///
+    /// The ENGINE still reads exactly one carrier: [`action_policy_nquads`] projects
+    /// [`MCP_ACTION_POLICY_TTL`], and both the Transaction-Logic executor and the
+    /// browser-facing resource read that function. The bundle copy is what a consumer may
+    /// read INSTEAD of the crate; this test is what makes the two interchangeable.
     #[test]
-    fn the_action_theory_has_exactly_one_carrier_on_the_wire() {
+    fn the_action_theorys_two_carriers_agree_quad_for_quad() {
         let embedded_dataset =
             purrdf::parse_dataset(MCP_ACTION_POLICY_TTL.as_bytes(), "text/turtle", None)
                 .expect("the embedded authority parses");
@@ -10063,17 +10072,31 @@ mod tests {
         let bundle = purrdf::import_gts_events(&bytes).expect("the shipped snapshot reads");
         let bundled = policy_statements(bundle.dataset.as_ref());
         assert!(
-            bundled.is_empty(),
-            "gmeow.gts has grown a SECOND carrier of the action theory ({} quads). One \
-             carrier can never drift; two can. Replace this assertion with a quad-set \
-             equality against the embedded copy — do not relax it. Sample:\n  {}",
-            bundled.len(),
-            bundled
+            !bundled.is_empty(),
+            "gmeow.gts carries NO action-theory quads. The producer folds every slice's \
+             examples corpus into graph/examples, so the theory must be there — an empty set \
+             means the fold stopped and this equality has become vacuous rather than passing."
+        );
+        let only_embedded: Vec<&str> = embedded.difference(&bundled).map(String::as_str).collect();
+        let only_bundled: Vec<&str> = bundled.difference(&embedded).map(String::as_str).collect();
+        assert!(
+            only_embedded.is_empty() && only_bundled.is_empty(),
+            "the two carriers of the action theory have DRIFTED — the console would display a \
+             policy the engine does not obey.\n  embedded-only ({}): {}\n  bundled-only ({}): {}",
+            only_embedded.len(),
+            only_embedded
                 .iter()
                 .take(10)
-                .map(String::as_str)
+                .copied()
                 .collect::<Vec<_>>()
-                .join("\n  ")
+                .join("\n    "),
+            only_bundled.len(),
+            only_bundled
+                .iter()
+                .take(10)
+                .copied()
+                .collect::<Vec<_>>()
+                .join("\n    ")
         );
 
         // …and the bytes the resource serves ARE the projection of that one carrier, so
