@@ -5995,9 +5995,12 @@ mod tests {
             "crates/gmeow-dev-cli/src/feedback_bundle.rs",
             "crates/math/src/lib.rs",
             "crates/music/src/lib.rs",
-            "crates/pipeline/src/mcp.rs",
+            // The MCP engine is its own leaf crate now, and its runtime store opens its own
+            // segment, so the census must find BOTH of its authorship doors.
+            "crates/mcp/src/lib.rs",
+            "crates/mcp/src/storage.rs",
             "crates/pipeline/src/stages/carrier.rs",
-            "crates/pipeline/src/transcode.rs",
+            "crates/transcode/src/lib.rs",
         ] {
             assert!(
                 files.contains(known),
