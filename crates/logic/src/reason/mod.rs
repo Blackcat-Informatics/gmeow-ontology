@@ -1675,12 +1675,35 @@ pub(crate) fn run_reasoning_rules_budgeted(
 ///   still dark: `dl:type-propagation` and `cax-sco` reach a restriction node only
 ///   along a subsumption edge, so lowering the slots and not the anchor would read the
 ///   restriction and never apply it to an individual.
-static CALCULUS_VOCABULARY: [(&str, &str); 18] = {
+/// * the **typing + class-axiom vocabulary** the DL post-pass and the counting/case-split
+///   refuters read BY NAME off the raw dataset (`owl:Class`/`owl:ObjectProperty`/… type
+///   markers, the property-characteristic types, `owl:disjointWith`/`owl:inverseOf`/
+///   `owl:unionOf`/`owl:oneOf`/…, and the `owl:Thing`/`owl:Nothing` top/bottom the clash
+///   readers compare against). Once the `owl:` authoring spelling is retired, a slice
+///   authors these as `logic:`; without the row the normalized read never matches the
+///   hardcoded `owl:` constant and the axiom goes dark exactly as a bare `logic:Restriction`
+///   would. Every entry here is a slice-authorable construct the reasoner already reads —
+///   see the matching arms in `dl.rs` and `refute/counting.rs`.
+static CALCULUS_VOCABULARY: [(&str, &str); 49] = {
     macro_rules! owl {
         ($local:literal) => {
             (
                 concat!("https://blackcatinformatics.ca/logic/", $local),
                 concat!("http://www.w3.org/2002/07/owl#", $local),
+            )
+        };
+    }
+    // The property-characteristic markers are NOT a pure namespace swap: the canonical `logic:`
+    // spelling is lower-camel (`logic:transitiveProperty`), the `owl:` view upper-camel
+    // (`owl:TransitiveProperty`) — the exact map `adapter::OWL_CHARACTERISTIC_TO_LOGIC` and
+    // `rdf::owl_for_char` use. A slice authors `?P a logic:transitiveProperty` once `owl:` is
+    // retired as an authoring vocabulary, so the
+    // reasoner must lower THAT onto the upper-camel spelling the fixed RL characteristic rules match.
+    macro_rules! owl_char {
+        ($logic_local:literal, $owl_local:literal) => {
+            (
+                concat!("https://blackcatinformatics.ca/logic/", $logic_local),
+                concat!("http://www.w3.org/2002/07/owl#", $owl_local),
             )
         };
     }
@@ -1708,6 +1731,40 @@ static CALCULUS_VOCABULARY: [(&str, &str); 18] = {
         owl!("qualifiedCardinality"),
         owl!("minQualifiedCardinality"),
         owl!("maxQualifiedCardinality"),
+        // Typing markers (rdf:type objects the refuters read by name).
+        owl!("Class"),
+        owl!("ObjectProperty"),
+        owl!("DatatypeProperty"),
+        owl!("NamedIndividual"),
+        owl!("AnnotationProperty"),
+        owl!("Ontology"),
+        owl!("Thing"),
+        owl!("Nothing"),
+        // Property-characteristic types — canonical lower-camel `logic:` → upper-camel `owl:` view.
+        owl_char!("functionalProperty", "FunctionalProperty"),
+        owl_char!("inverseFunctionalProperty", "InverseFunctionalProperty"),
+        owl_char!("transitiveProperty", "TransitiveProperty"),
+        owl_char!("symmetricProperty", "SymmetricProperty"),
+        owl_char!("asymmetricProperty", "AsymmetricProperty"),
+        owl_char!("reflexiveProperty", "ReflexiveProperty"),
+        owl_char!("irreflexiveProperty", "IrreflexiveProperty"),
+        // Class + property axiom vocabulary.
+        owl!("disjointWith"),
+        owl!("inverseOf"),
+        owl!("unionOf"),
+        owl!("oneOf"),
+        owl!("intersectionOf"),
+        owl!("disjointUnionOf"),
+        owl!("sameAs"),
+        owl!("differentFrom"),
+        owl!("equivalentProperty"),
+        owl!("propertyChainAxiom"),
+        owl!("propertyDisjointWith"),
+        owl!("hasKey"),
+        owl!("members"),
+        owl!("hasSelf"),
+        owl!("AllDisjointClasses"),
+        owl!("AllDisjointProperties"),
     ]
 };
 
