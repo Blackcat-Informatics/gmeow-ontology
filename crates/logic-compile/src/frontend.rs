@@ -3189,7 +3189,7 @@ fn functional_carrier_ledger() -> std::collections::BTreeSet<String> {
 /// canonical `logic:` declaration/characteristic spellings (Principle 17) and their legacy `owl:`
 /// views are listed, so the check bites identically across the authoring-surface flip. (The
 /// canonical characteristic locals are lower-camel — `logic:transitiveProperty` — mirroring
-/// `owl_for_char` / the reasoner's `OWL_CHARACTERISTIC_TO_LOGIC`.)
+/// the OWL projection's `owl_for_char` map.)
 const PROPERTY_DECLARATION_TYPES: [&str; 21] = [
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
     "http://www.w3.org/2002/07/owl#ObjectProperty",
