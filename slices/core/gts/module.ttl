@@ -2728,13 +2728,29 @@ gmeow:gdsForall a logic:Formula ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:gdsImpl .
-gmeow:gdsImpl a logic:Formula ; logic:antecedent gmeow:gdsGuard ; logic:consequent gmeow:gdsCons .
-gmeow:gdsGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+gmeow:gdsImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented implication"@x-gmeow-english ;
+    skos:definition "The implication of the GTS document segmented constraint: every gmeow:GTSDocument (the antecedent gmeow:gdsGuard) satisfies the existential consequent gmeow:gdsCons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:antecedent gmeow:gdsGuard ; logic:consequent gmeow:gdsCons .
+gmeow:gdsGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented antecedent type guard"@x-gmeow-english ;
+    skos:definition "The antecedent of gmeow:gdsImpl: the guarded subject is a gmeow:GTSDocument. It selects what the constraint ranges over, so a subject outside this class discharges the implication vacuously rather than violating it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSDocument ] .
 gmeow:gdsCons a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented existential consequent"@x-gmeow-english ;
+    skos:definition "The consequent of gmeow:gdsImpl: there EXISTS a value v satisfying gmeow:gdsAtom. The quantifier is what makes the constraint a cardinality claim rather than a claim about one named value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists gmeow:gdsAtom .
-gmeow:gdsAtom a logic:Formula ; logic:relation gmeow:gtsSegment ;
+gmeow:gdsAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented relational atom"@x-gmeow-english ;
+    skos:definition "The atom under gmeow:gdsCons's existential: the guarded subject stands in gmeow:gtsSegment to the quantified value v."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation gmeow:gtsSegment ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 gmeow:GtsSegmentHeadedConstraint
@@ -2755,13 +2771,29 @@ gmeow:gshForall a logic:Formula ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:gshImpl .
-gmeow:gshImpl a logic:Formula ; logic:antecedent gmeow:gshGuard ; logic:consequent gmeow:gshCons .
-gmeow:gshGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+gmeow:gshImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment headed implication"@x-gmeow-english ;
+    skos:definition "The implication of the GTS segment headed constraint: every gmeow:GTSSegment (the antecedent gmeow:gshGuard) satisfies the existential consequent gmeow:gshCons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:antecedent gmeow:gshGuard ; logic:consequent gmeow:gshCons .
+gmeow:gshGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment headed antecedent type guard"@x-gmeow-english ;
+    skos:definition "The antecedent of gmeow:gshImpl: the guarded subject is a gmeow:GTSSegment. It selects what the constraint ranges over, so a subject outside this class discharges the implication vacuously rather than violating it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSSegment ] .
 gmeow:gshCons a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment headed existential consequent"@x-gmeow-english ;
+    skos:definition "The consequent of gmeow:gshImpl: there EXISTS a value v satisfying gmeow:gshAtom. The quantifier is what makes the constraint a cardinality claim rather than a claim about one named value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists gmeow:gshAtom .
-gmeow:gshAtom a logic:Formula ; logic:relation gmeow:gtsHeadId ;
+gmeow:gshAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment headed relational atom"@x-gmeow-english ;
+    skos:definition "The atom under gmeow:gshCons's existential: the guarded subject stands in gmeow:gtsHeadId to the quantified value v."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation gmeow:gtsHeadId ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 gmeow:GtsSegmentProfiledConstraint
@@ -2782,13 +2814,29 @@ gmeow:gspForall a logic:Formula ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:gspImpl .
-gmeow:gspImpl a logic:Formula ; logic:antecedent gmeow:gspGuard ; logic:consequent gmeow:gspCons .
-gmeow:gspGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+gmeow:gspImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment profiled implication"@x-gmeow-english ;
+    skos:definition "The implication of the GTS segment profiled constraint: every gmeow:GTSSegment (the antecedent gmeow:gspGuard) satisfies the existential consequent gmeow:gspCons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:antecedent gmeow:gspGuard ; logic:consequent gmeow:gspCons .
+gmeow:gspGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment profiled antecedent type guard"@x-gmeow-english ;
+    skos:definition "The antecedent of gmeow:gspImpl: the guarded subject is a gmeow:GTSSegment. It selects what the constraint ranges over, so a subject outside this class discharges the implication vacuously rather than violating it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSSegment ] .
 gmeow:gspCons a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment profiled existential consequent"@x-gmeow-english ;
+    skos:definition "The consequent of gmeow:gspImpl: there EXISTS a value v satisfying gmeow:gspAtom. The quantifier is what makes the constraint a cardinality claim rather than a claim about one named value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists gmeow:gspAtom .
-gmeow:gspAtom a logic:Formula ; logic:relation gmeow:gtsProfile ;
+gmeow:gspAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS segment profiled relational atom"@x-gmeow-english ;
+    skos:definition "The atom under gmeow:gspCons's existential: the guarded subject stands in gmeow:gtsProfile to the quantified value v."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation gmeow:gtsProfile ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 gmeow:CompressionDictionaryIdentifiedConstraint
@@ -2809,13 +2857,29 @@ gmeow:cdiForall a logic:Formula ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:cdiImpl .
-gmeow:cdiImpl a logic:Formula ; logic:antecedent gmeow:cdiGuard ; logic:consequent gmeow:cdiCons .
-gmeow:cdiGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+gmeow:cdiImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "compression-dictionary-identified implication"@x-gmeow-english ;
+    skos:definition "The implication of the compression-dictionary-identified constraint: every gmeow:CompressionDictionary (the antecedent gmeow:cdiGuard) satisfies the existential consequent gmeow:cdiCons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:antecedent gmeow:cdiGuard ; logic:consequent gmeow:cdiCons .
+gmeow:cdiGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "compression-dictionary-identified antecedent type guard"@x-gmeow-english ;
+    skos:definition "The antecedent of gmeow:cdiImpl: the guarded subject is a gmeow:CompressionDictionary. It selects what the constraint ranges over, so a subject outside this class discharges the implication vacuously rather than violating it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompressionDictionary ] .
 gmeow:cdiCons a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "compression-dictionary-identified existential consequent"@x-gmeow-english ;
+    skos:definition "The consequent of gmeow:cdiImpl: there EXISTS a value v satisfying gmeow:cdiAtom. The quantifier is what makes the constraint a cardinality claim rather than a claim about one named value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists gmeow:cdiAtom .
-gmeow:cdiAtom a logic:Formula ; logic:relation gmeow:dictionaryId ;
+gmeow:cdiAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "compression-dictionary-identified relational atom"@x-gmeow-english ;
+    skos:definition "The atom under gmeow:cdiCons's existential: the guarded subject stands in gmeow:dictionaryId to the quantified value v."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation gmeow:dictionaryId ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 gmeow:BundleArtifactUnreadable

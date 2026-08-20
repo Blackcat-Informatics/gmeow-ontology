@@ -472,13 +472,29 @@ gmeow:dfdForall a logic:Formula ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:dfdImpl .
-gmeow:dfdImpl a logic:Formula ; logic:antecedent gmeow:dfdGuard ; logic:consequent gmeow:dfdCons .
-gmeow:dfdGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+gmeow:dfdImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "distribution family declared implication"@x-gmeow-english ;
+    skos:definition "The implication of the distribution family declared constraint: every gmeow:DocumentationDistribution (the antecedent gmeow:dfdGuard) satisfies the existential consequent gmeow:dfdCons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:antecedent gmeow:dfdGuard ; logic:consequent gmeow:dfdCons .
+gmeow:dfdGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "distribution family declared antecedent type guard"@x-gmeow-english ;
+    skos:definition "The antecedent of gmeow:dfdImpl: the guarded subject is a gmeow:DocumentationDistribution. It selects what the constraint ranges over, so a subject outside this class discharges the implication vacuously rather than violating it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DocumentationDistribution ] .
 gmeow:dfdCons a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "distribution family declared existential consequent"@x-gmeow-english ;
+    skos:definition "The consequent of gmeow:dfdImpl: there EXISTS a value v satisfying gmeow:dfdAtom. The quantifier is what makes the constraint a cardinality claim rather than a claim about one named value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists gmeow:dfdAtom .
-gmeow:dfdAtom a logic:Formula ; logic:relation gmeow:distributionFamily ;
+gmeow:dfdAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "distribution family declared relational atom"@x-gmeow-english ;
+    skos:definition "The atom under gmeow:dfdCons's existential: the guarded subject stands in gmeow:distributionFamily to the quantified value v."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation gmeow:distributionFamily ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 gmeow:FormalConceptExtentConstraint
@@ -499,13 +515,29 @@ gmeow:fceForall a logic:Formula ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:fceImpl .
-gmeow:fceImpl a logic:Formula ; logic:antecedent gmeow:fceGuard ; logic:consequent gmeow:fceCons .
-gmeow:fceGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+gmeow:fceImpl a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "formal concept extent implication"@x-gmeow-english ;
+    skos:definition "The implication of the formal concept extent constraint: every gmeow:FormalConcept (the antecedent gmeow:fceGuard) satisfies the existential consequent gmeow:fceCons."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:antecedent gmeow:fceGuard ; logic:consequent gmeow:fceCons .
+gmeow:fceGuard a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "formal concept extent antecedent type guard"@x-gmeow-english ;
+    skos:definition "The antecedent of gmeow:fceImpl: the guarded subject is a gmeow:FormalConcept. It selects what the constraint ranges over, so a subject outside this class discharges the implication vacuously rather than violating it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FormalConcept ] .
 gmeow:fceCons a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "formal concept extent existential consequent"@x-gmeow-english ;
+    skos:definition "The consequent of gmeow:fceImpl: there EXISTS a value v satisfying gmeow:fceAtom. The quantifier is what makes the constraint a cardinality claim rather than a claim about one named value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
     logic:exists gmeow:fceAtom .
-gmeow:fceAtom a logic:Formula ; logic:relation gmeow:conceptExtent ;
+gmeow:fceAtom a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "formal concept extent relational atom"@x-gmeow-english ;
+    skos:definition "The atom under gmeow:fceCons's existential: the guarded subject stands in gmeow:conceptExtent to the quantified value v."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation gmeow:conceptExtent ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 gmeow:KernelConformanceFailure
@@ -516,11 +548,9 @@ gmeow:KernelConformanceFailure
     skos:definition "The parent of the kernel's well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each constraint points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces WELL-FORMEDNESS of the kernel's own published surfaces — the distribution catalog a consumer reads to learn which artifacts a release ships, and the derived formal-concept lattice over the surface/capability incidence — never the truth of the content those surfaces describe."@x-gmeow-english ;
     skos:example "gmeow:UntypedFormalConcept logic:subClassOf gmeow:KernelConformanceFailure ."@x-gmeow-english ;
     skos:scopeNote "Scope: this class roots the kernel surface well-formedness vocabulary and nothing else. It does not cover a content claim being false, a validation report record, or the gate that raises a failure — a constraint points at its failure class, and the class stays the name of the violation rather than the name of the check."@x-gmeow-english ;
-    gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid using it for a content claim being false, and avoid minting a failure subclass with no constraint that raises it — an unenforced failure class is documentation, not a gate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Subclass it for each kernel surface well-formedness violation, and point the constraint that detects the violation at the subclass through gmeow:enforcesFailureClass."@x-gmeow-english ;
-    gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use as the parent when naming a way one of the kernel's published surfaces can be malformed."@x-gmeow-english .
 
 gmeow:UnreadableDistributionCatalog
