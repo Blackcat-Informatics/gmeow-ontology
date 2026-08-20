@@ -673,6 +673,12 @@ pub(crate) fn self_description_source_files(
     // for what the scorer reads — sharing it keeps the cache key and the score set from
     // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
     files.extend(gmeow_slice_quality::scored_source_files(root));
+    // The substrate reconciliation A-Box (issue 1672) folds into graph/provenance from build
+    // INPUTS that are not authored ontology sources — the manifests, the lockfile, the
+    // shipped SUBSTRATE.txt stamps, and the prose mention — so they must be declared here
+    // or a stamp/pin change would leave a stale substrate A-Box in the bundle.
+    // substrate_input_paths is the single authority for exactly those reads.
+    files.extend(crate::stages::substrate_graph::substrate_input_paths(root));
     files.sort();
     files.dedup();
     Ok(files)

@@ -82,12 +82,17 @@ struct Component {
 }
 
 /// One per-site assertion of one dimension of one component (already normalized).
+/// `witness` distinguishes otherwise-identical claims from separate sources at the
+/// same site — the shipping engine for a shipped-artifact stamp — so each engine's
+/// stamp is a DISTINCT `gmeow:PinClaim` and cross-engine disagreement is caught by
+/// `gmeow:PinAgreementConstraint` rather than collapsing to one node.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Claim {
     component_slug: String,
     site: &'static str,
     dimension: &'static str,
     value: String,
+    witness: Option<String>,
 }
 
 /// A shipped engine statically embedding a component (the SBOM "contains" edge).
@@ -114,9 +119,35 @@ pub fn substrate_input_paths(root: &Path) -> Vec<PathBuf> {
 }
 
 /// Normalize a git rev to its canonical abbreviated form so an abbreviated manifest
-/// rev and the lockfile's full SHA for the SAME commit reconcile to one value.
-fn normalize_git_rev(rev: &str) -> String {
-    rev.chars().take(GIT_REV_ABBREV).collect()
+/// rev and the lockfile's full SHA for the SAME commit reconcile to one value. A rev
+/// shorter than [`GIT_REV_ABBREV`] is a HARD FAIL: truncating the full SHA to a
+/// longer width than the pin provides would make the same commit compare unequal
+/// (false drift), and silently shortening the comparison to the pin's width would
+/// weaken the check — the no-silent-degradation contract forbids both.
+fn normalize_git_rev(rev: &str) -> Result<String, gmeow_errors::Diag> {
+    if rev.len() < GIT_REV_ABBREV {
+        return Err(stage_err(&format!(
+            "substrate carrier: git rev {rev:?} is shorter than the {GIT_REV_ABBREV}-char \
+             reconciliation width — pin the substrate by at least {GIT_REV_ABBREV} hex chars"
+        )));
+    }
+    Ok(rev.chars().take(GIT_REV_ABBREV).collect())
+}
+
+/// Validate that `name` is a safe IRI local part before it becomes a substrate node
+/// IRI (a stamp could otherwise inject characters that malform the emitted IRI).
+fn checked_slug(name: &str) -> Result<String, gmeow_errors::Diag> {
+    if !name.is_empty()
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.'))
+    {
+        Ok(name.to_string())
+    } else {
+        Err(stage_err(&format!(
+            "substrate carrier: component name {name:?} is not a valid IRI local part"
+        )))
+    }
 }
 
 /// Extract purrdf's pinned git rev from a Cargo manifest line
@@ -127,14 +158,20 @@ fn parse_manifest_git_rev(manifest: &str) -> Option<String> {
         if !(trimmed.starts_with("purrdf ") || trimmed.starts_with("purrdf=")) {
             continue;
         }
-        let Some(idx) = trimmed.find("rev") else {
-            continue;
-        };
-        let after = &trimmed[idx..];
-        let Some(q1) = after.find('"') else { continue };
-        let rest = &after[q1 + 1..];
-        if let Some(q2) = rest.find('"') {
-            return Some(rest[..q2].to_string());
+        // Match the `rev` KEY of the inline table, not a "rev" substring inside the
+        // git URL: split the `{ … }` on its field separators and take the field whose
+        // trimmed head is exactly `rev` followed by `=`.
+        for field in trimmed.split(['{', '}', ',']) {
+            let field = field.trim();
+            let Some(rest) = field.strip_prefix("rev") else {
+                continue;
+            };
+            let rest = rest.trim_start().strip_prefix('=')?.trim_start();
+            if let Some(inner) = rest.strip_prefix('"')
+                && let Some(end) = inner.find('"')
+            {
+                return Some(inner[..end].to_string());
+            }
         }
     }
     None
@@ -170,17 +207,41 @@ fn parse_lock_purrdf(lock: &str) -> Option<(String, Option<String>)> {
 
 /// Parse a `SUBSTRATE.txt` stamp of the form
 /// `purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130` into `(name, version)`
-/// pairs, in file order.
-fn parse_substrate_stamp(stamp: &str) -> Vec<(String, String)> {
+/// pairs. Every non-blank line and every non-blank `;`-separated part is processed;
+/// a part that is not exactly `<name> <version>` is a HARD FAIL (no silent skipping
+/// of stamp data), and an empty stamp is rejected.
+fn parse_substrate_stamp(stamp: &str) -> Result<Vec<(String, String)>, gmeow_errors::Diag> {
     let mut out = Vec::new();
-    let line = stamp.lines().next().unwrap_or("").trim();
-    for part in line.split(';') {
-        let mut it = part.split_whitespace();
-        if let (Some(name), Some(version)) = (it.next(), it.next()) {
-            out.push((name.to_string(), version.to_string()));
+    for line in stamp.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        for part in line.split(';') {
+            let part = part.trim();
+            if part.is_empty() {
+                continue;
+            }
+            let mut it = part.split_whitespace();
+            match (it.next(), it.next(), it.next()) {
+                (Some(name), Some(version), None) => {
+                    out.push((name.to_string(), version.to_string()));
+                }
+                _ => {
+                    return Err(stage_err(&format!(
+                        "substrate carrier: malformed SUBSTRATE.txt stamp part {part:?} — \
+                         expected exactly '<name> <version>'"
+                    )));
+                }
+            }
         }
     }
-    out
+    if out.is_empty() {
+        return Err(stage_err(
+            "substrate carrier: SUBSTRATE.txt stamp has no '<name> <version>' entries",
+        ));
+    }
+    Ok(out)
 }
 
 /// Find purrdf's version as mentioned in documentation prose (`purrdf <version>`),
@@ -238,11 +299,10 @@ fn triple_lit(out: &mut String, s: &str, p: &str, lit: &str) {
     writeln!(out, "<{s}> <{p}> \"{}\" .", nq_escape(lit)).expect("write to String");
 }
 
-/// Emit the four canonical assertional-tier A-Box annotations for `subject_iri`
-/// (`rdfs:label` / `skos:definition`-free per assertional tier /
-/// `rdfs:isDefinedBy <graph/provenance>` / `gmeow:graphBoxRole gmeow:boxABox`),
-/// routed through the shared [`abox_annotations`] contract every generated
-/// individual satisfies identically.
+/// Emit the assertional-tier A-Box annotations for `subject_iri` through the shared
+/// [`abox_annotations`] contract — exactly the predicate/object set every generated
+/// individual carries, rooted at `graph/provenance`. The precise set is defined by
+/// that contract, not restated here.
 fn annotate(out: &mut String, subject_iri: &str, label: &str, definition: &str) {
     for (predicate, object) in abox_annotations(subject_iri, label, definition, GRAPH_PROVENANCE) {
         let object_text = match object {
@@ -300,12 +360,24 @@ fn project_substrate_graph(components: &[Component], claims: &[Claim], embeds: &
 
     // ── per-site pin claims ──────────────────────────────────────────────────────
     for claim in claims {
-        let claim_slug = format!(
-            "{}-{}-{}",
-            claim.component_slug,
-            site_local(claim.site),
-            dim_local(claim.dimension)
-        );
+        // The witness (e.g. the shipping engine) keeps otherwise-identical same-site
+        // claims DISTINCT, so cross-witness disagreement is caught by
+        // gmeow:PinAgreementConstraint instead of collapsing to one IRI.
+        let claim_slug = match &claim.witness {
+            Some(w) => format!(
+                "{}-{}-{}-{}",
+                claim.component_slug,
+                site_local(claim.site),
+                dim_local(claim.dimension),
+                w
+            ),
+            None => format!(
+                "{}-{}-{}",
+                claim.component_slug,
+                site_local(claim.site),
+                dim_local(claim.dimension)
+            ),
+        };
         let claim_iri = iri("claim", &claim_slug);
         let comp_iri = iri("component", &claim.component_slug);
         triple_iri(&mut out, &claim_iri, RDF_TYPE, &format!("{GMEOW}PinClaim"));
@@ -447,7 +519,8 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
         component_slug: purrdf.into(),
         site: SITE_WORKSPACE_MANIFEST,
         dimension: DIM_GIT_REV,
-        value: normalize_git_rev(&ws_rev),
+        value: normalize_git_rev(&ws_rev)?,
+        witness: None,
     });
     let fuzz_rev = parse_manifest_git_rev(&read("fuzz/Cargo.toml")?)
         .ok_or_else(|| stage_err("substrate carrier: no purrdf rev in fuzz/Cargo.toml"))?;
@@ -455,7 +528,8 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
         component_slug: purrdf.into(),
         site: SITE_FUZZ_MANIFEST,
         dimension: DIM_GIT_REV,
-        value: normalize_git_rev(&fuzz_rev),
+        value: normalize_git_rev(&fuzz_rev)?,
+        witness: None,
     });
 
     // #3 lockfile crate version + full git rev.
@@ -466,13 +540,15 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
         site: SITE_LOCKFILE,
         dimension: DIM_CRATE_VERSION,
         value: lock_version.clone(),
+        witness: None,
     });
     if let Some(full) = lock_full_rev {
         claims.push(Claim {
             component_slug: purrdf.into(),
             site: SITE_LOCKFILE,
             dimension: DIM_GIT_REV,
-            value: normalize_git_rev(&full),
+            value: normalize_git_rev(&full)?,
+            witness: None,
         });
     }
 
@@ -482,18 +558,21 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
         site: SITE_LINKED_CONSTANT,
         dimension: DIM_SHAPES_VERSION,
         value: purrdf::shapes::VERSION.to_string(),
+        witness: None,
     });
     claims.push(Claim {
         component_slug: purrdf.into(),
         site: SITE_LINKED_CONSTANT,
         dimension: DIM_WIRE_VERSION,
         value: purrdf::gts::wire::VERSION.to_string(),
+        witness: None,
     });
     claims.push(Claim {
         component_slug: purrdf.into(),
         site: SITE_LINKED_CONSTANT,
         dimension: DIM_ZSTD_LEVEL,
         value: purrdf::gts_compose::DIST_ZSTD_LEVEL.to_string(),
+        witness: None,
     });
 
     // #7 shipped artifacts: each engine's SUBSTRATE.txt stamp → per-engine claims +
@@ -507,18 +586,21 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
             name: format!("{engine}-engine"),
             expected_sites: Vec::new(),
         });
-        for (name, version) in parse_substrate_stamp(&stamp) {
-            let slug = name.clone();
-            embedded_names.insert(name.clone());
+        for (name, version) in parse_substrate_stamp(&stamp)? {
+            let slug = checked_slug(&name)?;
+            embedded_names.insert(slug.clone());
             embeds.push(Embed {
                 engine_slug: engine_slug.clone(),
                 embedded_slug: slug.clone(),
             });
+            // The shipping engine is the witness, so each engine's stamp is a distinct
+            // gmeow:PinClaim (drift BETWEEN engines is caught, not collapsed).
             claims.push(Claim {
                 component_slug: slug,
                 site: SITE_SHIPPED_ARTIFACT,
                 dimension: DIM_CRATE_VERSION,
                 value: version,
+                witness: Some((*engine).to_string()),
             });
         }
     }
@@ -530,6 +612,7 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
             site: SITE_PROSE,
             dimension: DIM_CRATE_VERSION,
             value: prose_version,
+            witness: None,
         });
     }
 
@@ -580,6 +663,16 @@ fn stage_err(msg: &str) -> gmeow_errors::Diag {
 mod tests {
     use super::*;
 
+    fn claim(comp: &str, site: &'static str, dim: &'static str, value: &str) -> Claim {
+        Claim {
+            component_slug: comp.into(),
+            site,
+            dimension: dim,
+            value: value.into(),
+            witness: None,
+        }
+    }
+
     fn sample() -> (Vec<Component>, Vec<Claim>, Vec<Embed>) {
         let components = vec![
             Component {
@@ -594,18 +687,8 @@ mod tests {
             },
         ];
         let claims = vec![
-            Claim {
-                component_slug: "purrdf".into(),
-                site: SITE_LOCKFILE,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.12.0".into(),
-            },
-            Claim {
-                component_slug: "purrdf".into(),
-                site: SITE_SHIPPED_ARTIFACT,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.12.0".into(),
-            },
+            claim("purrdf", SITE_LOCKFILE, DIM_CRATE_VERSION, "0.12.0"),
+            claim("purrdf", SITE_SHIPPED_ARTIFACT, DIM_CRATE_VERSION, "0.12.0"),
         ];
         let embeds = vec![Embed {
             engine_slug: "gmn-engine".into(),
@@ -671,18 +754,8 @@ mod tests {
     #[test]
     fn agreeing_sites_reconcile_disagreeing_do_not() {
         let agree = vec![
-            Claim {
-                component_slug: "p".into(),
-                site: SITE_LOCKFILE,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.12.0".into(),
-            },
-            Claim {
-                component_slug: "p".into(),
-                site: SITE_PROSE,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.12.0".into(),
-            },
+            claim("p", SITE_LOCKFILE, DIM_CRATE_VERSION, "0.12.0"),
+            claim("p", SITE_PROSE, DIM_CRATE_VERSION, "0.12.0"),
         ];
         assert_eq!(
             reconcile(&agree).len(),
@@ -690,18 +763,8 @@ mod tests {
             "agreeing sites reconcile to one value"
         );
         let disagree = vec![
-            Claim {
-                component_slug: "p".into(),
-                site: SITE_LOCKFILE,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.12.0".into(),
-            },
-            Claim {
-                component_slug: "p".into(),
-                site: SITE_PROSE,
-                dimension: DIM_CRATE_VERSION,
-                value: "0.13.0".into(),
-            },
+            claim("p", SITE_LOCKFILE, DIM_CRATE_VERSION, "0.12.0"),
+            claim("p", SITE_PROSE, DIM_CRATE_VERSION, "0.13.0"),
         ];
         assert!(
             reconcile(&disagree).is_empty(),
@@ -713,14 +776,21 @@ mod tests {
     fn abbreviated_and_full_git_rev_reconcile() {
         // Audit #7: the manifest's abbreviated rev and the lockfile's full SHA for the
         // same commit must reconcile to one value (no false drift on the first build).
-        let short = normalize_git_rev("a59d9f2d");
-        let full = normalize_git_rev("a59d9f2dd538594d1390775cb70f85f3be7673e7");
+        let short = normalize_git_rev("a59d9f2d").expect("8-char pin is valid");
+        let full =
+            normalize_git_rev("a59d9f2dd538594d1390775cb70f85f3be7673e7").expect("full SHA valid");
         assert_eq!(
             short, full,
             "same-commit revs of different width must normalize equal"
         );
-        let other = normalize_git_rev("b1234567deadbeef");
+        let other = normalize_git_rev("b1234567deadbeef").expect("valid rev");
         assert_ne!(short, other, "a genuinely different commit stays distinct");
+        // A pin shorter than the reconciliation width is a HARD FAIL, not silent
+        // truncation that would false-drift against the full SHA.
+        assert!(
+            normalize_git_rev("a59d9f2").is_err(),
+            "a 7-char pin must be rejected"
+        );
     }
 
     #[test]
@@ -730,6 +800,14 @@ mod tests {
                 .as_deref(),
             Some("a59d9f2d")
         );
+        // A "rev" substring inside the git URL must NOT be mistaken for the rev field.
+        assert_eq!(
+            parse_manifest_git_rev(
+                r#"purrdf = { git = "https://example.com/review/purrdf", rev = "abcd1234" }"#
+            )
+            .as_deref(),
+            Some("abcd1234")
+        );
         let (v, rev) = parse_lock_purrdf(
             "[[package]]\nname = \"purrdf\"\nversion = \"0.12.0\"\nsource = \"git+https://x?rev=a59d9f2d#a59d9f2dd538\"\n[[package]]\n",
         )
@@ -737,12 +815,59 @@ mod tests {
         assert_eq!(v, "0.12.0");
         assert_eq!(rev.as_deref(), Some("a59d9f2dd538"));
         let stamp =
-            parse_substrate_stamp("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130\n");
+            parse_substrate_stamp("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130\n")
+                .expect("well-formed stamp parses");
         assert_eq!(stamp[0], ("purrdf".into(), "0.12.0".into()));
         assert_eq!(stamp[2], ("binaryen".into(), "version_130".into()));
+        // A malformed stamp part (missing version, or extra token) is a hard fail.
+        assert!(
+            parse_substrate_stamp("purrdf 0.12.0; binaryen").is_err(),
+            "a part without a version must be rejected, not silently skipped"
+        );
+        assert!(
+            parse_substrate_stamp("purrdf 0.12.0 extra").is_err(),
+            "a part with an extra token must be rejected"
+        );
         assert_eq!(
             parse_prose_purrdf_version("projected by the Rust **purrdf 0.12.0 engine").as_deref(),
             Some("0.12.0")
+        );
+    }
+
+    #[test]
+    fn distinct_engines_with_different_versions_emit_distinct_claims() {
+        // H1: two engines stamping DIFFERENT purrdf versions must produce two distinct
+        // gmeow:PinClaim IRIs (via the engine witness), so PinAgreementConstraint sees
+        // both and reports drift — rather than collapsing to one claim node.
+        let claims = vec![
+            Claim {
+                component_slug: "purrdf".into(),
+                site: SITE_SHIPPED_ARTIFACT,
+                dimension: DIM_CRATE_VERSION,
+                value: "0.12.0".into(),
+                witness: Some("gmn".into()),
+            },
+            Claim {
+                component_slug: "purrdf".into(),
+                site: SITE_SHIPPED_ARTIFACT,
+                dimension: DIM_CRATE_VERSION,
+                value: "0.13.0".into(),
+                witness: Some("query".into()),
+            },
+        ];
+        let nt = project_substrate_graph(&[], &claims, &[]);
+        assert!(
+            nt.contains("substrate/claim/purrdf-ShippedArtifact-CrateVersion-gmn"),
+            "the gmn engine's stamp is a distinct claim IRI: {nt}"
+        );
+        assert!(
+            nt.contains("substrate/claim/purrdf-ShippedArtifact-CrateVersion-query"),
+            "the query engine's stamp is a distinct claim IRI: {nt}"
+        );
+        // Keyed by (component, dimension), the two differing values do NOT reconcile.
+        assert!(
+            reconcile(&claims).is_empty(),
+            "disagreeing engine stamps leave no ReconciledPin (drift)"
         );
     }
 

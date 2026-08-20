@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -41,7 +44,9 @@ gmeow:mapSpdxContains a gmeow:ProjectionMapping ;
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "engine" ] ) ]
                     "-contains-"
-                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "embedded" ] ) ] ) ] ) ] ] ;
+                    [ gmeow:exprOp gmeow:opReplace ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "embedded" ] ) ]
+                        "^.*[/#]" "" ) ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:embeds ] ;
     gmeow:hasBinding [
         gmeow:profile "spdx" ; gmeow:toPredicate spdx:relationship ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;

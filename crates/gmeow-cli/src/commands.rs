@@ -723,11 +723,43 @@ pub fn substrate(
 ) -> i32 {
     use std::collections::{BTreeMap, BTreeSet};
 
+    // Reject unsupported output formats up front — only `human` and `json` are
+    // produced. Anything else (e.g. `jsonl`, `sarif`) is a HARD FAIL, never a
+    // silent fall-back to human text: once a format is selected it is mandatory
+    // (no silent capability degradation).
+    if format != "human" && format != "json" {
+        return fail(
+            reporter,
+            "gmeow-cli.substrate.format",
+            format!("unsupported --format '{format}': expected 'human' or 'json'"),
+        );
+    }
+
     let bytes = match gts_bytes(reporter, gts) {
         Ok(b) => b,
         Err(code) => return code,
     };
-    let dataset = match purrdf::gts::flattened_dataset_from_bytes(&bytes) {
+    // The GTS fold carries SUPPRESSION overlays (GTS-SPEC §11 value-union +
+    // suppression semantics). `flattened_dataset_from_bytes` copies base quads
+    // verbatim and preserves the suppression list as an UNAPPLIED overlay
+    // (`gts_to_ser` never reads `Graph::suppressions`), so a suppressed
+    // historical claim would still surface in `owned_quads()`. Fold the
+    // segments, project to the EFFECTIVE (post-suppression) view via
+    // `effective_projection` — which drops every `term`- and `quad`-kind
+    // suppressed base quad — and only THEN flatten to a dataset, so suppressed
+    // claims are never reported as active.
+    let graph = match purrdf::gts::read_all_segments(&bytes) {
+        Ok(g) => g,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.substrate.fold",
+                format!("cannot fold snapshot: {e}"),
+            );
+        }
+    };
+    let effective = purrdf::gts_certify::effective_projection(&graph);
+    let dataset = match purrdf::gts::flattened_dataset_from_gts_graph(&effective) {
         Ok(d) => d,
         Err(e) => {
             return fail(
@@ -823,46 +855,68 @@ pub fn substrate(
         dimension_filter.is_none_or(|f| dim_label(dim_iri) == f || local(dim_iri) == f)
     };
 
+    // Drift is a per-(component, dimension) finding: more than one distinct
+    // value across the claim sites. Compute and REPORT it up front — before the
+    // JSON branch returns — so the finding reaches BOTH output paths through the
+    // reporter, i.e. a structured/NDJSON consumer sees the drift as a diagnostic
+    // even on `--format json`. Drift is a reported finding, not a process
+    // failure: the exit code stays 0 (issue 1672).
+    let mut any_drift = false;
+    for ((comp, dim), values) in &groups {
+        if !component_matches(comp) || !dimension_matches(dim) {
+            continue;
+        }
+        if values.len() > 1 {
+            any_drift = true;
+            let joined = values.iter().cloned().collect::<Vec<_>>().join(", ");
+            emit_error(
+                reporter,
+                "gmeow-cli.substrate.drift",
+                format!(
+                    "substrate drift: {} / {}: {joined}",
+                    comp_name(comp),
+                    dim_label(dim)
+                ),
+            );
+        }
+    }
+
     if format == "json" {
-        let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
-        let mut parts: Vec<String> = Vec::new();
+        let mut component_docs: Vec<serde_json::Value> = Vec::new();
         for c in &components {
             if !component_matches(c) {
                 continue;
             }
-            let embedded: Vec<String> = embeds
+            let embedded: Vec<serde_json::Value> = embeds
                 .iter()
                 .filter(|(e, _)| e == c)
-                .map(|(_, x)| format!("\"{}\"", esc(&comp_name(x))))
+                .map(|(_, x)| serde_json::Value::String(comp_name(x)))
                 .collect();
-            parts.push(format!(
-                "{{\"name\":\"{}\",\"version\":{},\"embeds\":[{}]}}",
-                esc(&comp_name(c)),
-                version_of
-                    .get(c)
-                    .map(|v| format!("\"{}\"", esc(v)))
-                    .unwrap_or_else(|| "null".to_string()),
-                embedded.join(",")
-            ));
+            component_docs.push(serde_json::json!({
+                "name": comp_name(c),
+                "version": version_of.get(c),
+                "embeds": embedded,
+            }));
         }
-        let mut agree: Vec<String> = Vec::new();
+        let mut reconciliation_docs: Vec<serde_json::Value> = Vec::new();
         for ((comp, dim), values) in &groups {
             if !component_matches(comp) || !dimension_matches(dim) {
                 continue;
             }
-            let vals: Vec<String> = values.iter().map(|v| format!("\"{}\"", esc(v))).collect();
-            agree.push(format!(
-                "{{\"component\":\"{}\",\"dimension\":\"{}\",\"agree\":{},\"values\":[{}]}}",
-                esc(&comp_name(comp)),
-                esc(&dim_label(dim)),
-                values.len() == 1,
-                vals.join(",")
-            ));
+            reconciliation_docs.push(serde_json::json!({
+                "component": comp_name(comp),
+                "dimension": dim_label(dim),
+                "agree": values.len() == 1,
+                "values": values.iter().collect::<Vec<_>>(),
+            }));
         }
+        let doc = serde_json::json!({
+            "components": component_docs,
+            "reconciliation": reconciliation_docs,
+        });
         println!(
-            "{{\"components\":[{}],\"reconciliation\":[{}]}}",
-            parts.join(","),
-            agree.join(",")
+            "{}",
+            serde_json::to_string(&doc).unwrap_or_else(|_| doc.to_string())
         );
         return 0;
     }
@@ -884,7 +938,6 @@ pub fn substrate(
     }
 
     println!("\nagreement across claim sites:");
-    let mut any_drift = false;
     for ((comp, dim), values) in &groups {
         if !component_matches(comp) || !dimension_matches(dim) {
             continue;
@@ -897,7 +950,6 @@ pub fn substrate(
                 values.iter().next().unwrap()
             );
         } else {
-            any_drift = true;
             let joined = values.iter().cloned().collect::<Vec<_>>().join(", ");
             println!(
                 "  {} / {}: DRIFT — {joined}",

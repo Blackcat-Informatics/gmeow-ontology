@@ -17,6 +17,13 @@ use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
 const MODULE: &str = "slices/core/attestation/module.ttl";
 
+/// The derived procedural-constraint shape IRIs the projector mints for the two
+/// authored substrate constraints (the `{ConstraintLocalName}ProceduralConstraintShape`
+/// convention). Findings are pinned to these so the tests assert the substrate
+/// constraints fire — not merely that *some* shape flagged the node.
+const AGREE_SHAPE: &str = "PinAgreementConstraintProceduralConstraintShape";
+const COVER_SHAPE: &str = "PinCoverageConstraintProceduralConstraintShape";
+
 fn root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -27,8 +34,9 @@ fn root() -> PathBuf {
 
 /// Parse the attestation module, assert no MALFORMED_CONSTRAINT, project ALL its
 /// procedural constraints to one document, validate over `fixture_rel`, and return
-/// the flagged focus-node IRIs.
-fn flagged(fixture_rel: &str) -> Vec<String> {
+/// each finding's `(focus-node IRI, source-shape IRI)` so tests can pin BOTH the
+/// flagged node and the exact derived shape that flagged it.
+fn flagged(fixture_rel: &str) -> Vec<(String, String)> {
     let r = root();
     let src = std::fs::read_to_string(r.join(MODULE)).expect("read attestation module");
     let (program, diags) = parse_logic_str(&src, None).expect("attestation module parses");
@@ -49,7 +57,7 @@ fn flagged(fixture_rel: &str) -> Vec<String> {
     report
         .results
         .iter()
-        .map(|res| res.focus_node.to_string())
+        .map(|res| (res.focus_node.to_string(), res.source_shape.to_string()))
         .collect()
 }
 
@@ -59,8 +67,9 @@ fn pin_agreement_flags_the_disagreeing_claim() {
     // projected gmeow:PinAgreementConstraint must flag a disagreeing pin claim.
     let f = flagged("slices/core/attestation/tests/counter-examples/pin-disagreement.ttl");
     assert!(
-        f.iter().any(|x| x.contains("claim")),
-        "PinAgreementConstraint must flag a disagreeing pin claim; flagged: {f:?}"
+        f.iter()
+            .any(|(focus, shape)| shape.contains(AGREE_SHAPE) && focus.contains("claim")),
+        "PinAgreementConstraint ({AGREE_SHAPE}) must flag a disagreeing pin claim; flagged: {f:?}"
     );
 }
 
@@ -70,18 +79,25 @@ fn pin_coverage_flags_the_component_missing_a_site() {
     // gmeow:PinCoverageConstraint must flag the component.
     let f = flagged("slices/core/attestation/tests/counter-examples/pin-missing-site.ttl");
     assert!(
-        f.iter().any(|x| x.contains("purrdfComp")),
-        "PinCoverageConstraint must flag the component missing an expected site; flagged: {f:?}"
+        f.iter()
+            .any(|(focus, shape)| shape.contains(COVER_SHAPE) && focus.contains("purrdfComp")),
+        "PinCoverageConstraint ({COVER_SHAPE}) must flag the component missing a site; flagged: {f:?}"
     );
 }
 
 #[test]
 fn reconciliation_is_silent_when_sites_agree_and_coverage_holds() {
-    // Agreeing claims with every expected site witnessed: neither constraint fires.
+    // Agreeing claims with every expected site witnessed: neither substrate constraint
+    // fires. Restricted to the two substrate shapes so an unrelated slice constraint
+    // flagging the fixture would not mask a substrate regression.
     let f =
         flagged("slices/core/attestation/tests/conformance-fixtures/pin-reconciliation-holds.ttl");
+    let substrate: Vec<_> = f
+        .iter()
+        .filter(|(_, shape)| shape.contains(AGREE_SHAPE) || shape.contains(COVER_SHAPE))
+        .collect();
     assert!(
-        f.is_empty(),
-        "no reconciliation finding may fire on the conforming fixture; flagged: {f:?}"
+        substrate.is_empty(),
+        "no substrate reconciliation finding may fire on the conforming fixture; got: {substrate:?}"
     );
 }

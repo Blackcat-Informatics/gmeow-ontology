@@ -28,6 +28,7 @@ ex:ecPinDisagreement a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:expectedSourceShape gmeow:PinAgreementConstraintProceduralConstraintShape ;
+    gmeow:expectedSoleFinding true ;
     gmeow:conformanceRationale "The lockfile claim asserts crate version 0.12.0 and the shipped-artifact claim asserts 0.13.0 for the same component and dimension, so gmeow:PinAgreementConstraint's projected sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent from gmeow:PinAgreementConstraintProceduralConstraintShape — substrate drift caught as a finding, not a bash exit code." .
 
 # --- Violating: an expected claim site has no claim → coverage finding ----------
