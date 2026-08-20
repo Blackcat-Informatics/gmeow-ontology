@@ -141,46 +141,46 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
               shape",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
-        base_path: None,
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
         base_item: None,
         item: ItemRef::Function("llms_sections"),
         why: "the section HEADINGS (Classes / Properties / Individuals) and their order",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
-        base_path: None,
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
         base_item: None,
         item: ItemRef::Function("llms_signature"),
         why: "the notation conventions — the `⊑` subclass and `→` domain/range spellings \
               a model reads off every bullet",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
-        base_path: None,
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
         base_item: None,
         item: ItemRef::Function("llms_note"),
         why: "the bullet-note convention (definition, label fallback, the `[fallback: en]` \
               marker)",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
-        base_path: None,
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
         base_item: None,
         item: ItemRef::Function("llms_prose"),
         why: "the shared prose line every index form carries under its header",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
-        base_path: None,
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
         base_item: None,
         item: ItemRef::Function("write_llms_txt"),
         why: "the section ORDERING of the index form: term sections, then the standing \
               Reference section, then the GMN-1 primer section",
     },
     FrozenItem {
-        path: "crates/docs/src/gmn1_primer.rs",
-        base_path: None,
+        path: "crates/docs-model/src/gmn1_primer.rs",
+        base_path: Some("crates/docs/src/gmn1_primer.rs"),
         base_item: None,
         item: ItemRef::Const("PRIMER_HEADING"),
         why: "the primer's section heading — the anchor every surface's primer section is \
@@ -190,10 +190,10 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
 
 /// The MCP consumer-index item whose LIST may grow with the vocabulary a change declares.
 pub const MCP_RESOURCE_LIST: FrozenItem = FrozenItem {
-    path: "crates/mcp/src/extension.rs",
+    path: "crates/mcp/src/lib.rs",
     base_path: Some("crates/pipeline/src/mcp.rs"),
     base_item: Some(ItemRef::Function("resources_result")),
-    item: ItemRef::Function("resource_descriptors"),
+    item: ItemRef::Function("builtin_resource_descriptors"),
     why: "the MCP consumer-index resource list: its structure is frozen, and its entries \
           may grow only to surface `gmeow:` vocabulary the change itself declares",
 };
@@ -398,6 +398,73 @@ impl<'a> Scanner<'a> {
 
 /// Compare one frozen item's base and working text, recording a problem when the item is
 /// absent from either side or its bytes moved.
+/// `text` with CRATE ADDRESSES collapsed — the rustdoc `crate::…` link target inside a doc
+/// comment, and the `gmeow_…::` crate segment of a fully-qualified path in code.
+///
+/// The freeze is over the emitter's SHAPE: the skeleton, the section headings and their order,
+/// the bullet form, the note cap, the token budgets. WHICH crate a type or link resolves
+/// through is not shape — it is an address, and moving an emitter between crates forces the
+/// address to change (`gmeow_docs::llms::LlmsSection` becomes `gmeow_docs_model::llms::LlmsSection`
+/// when the emitter moves to break a dependency chain, and a `crate::…` link must be re-pointed
+/// or rustdoc cannot resolve it). Collapsing addresses on BOTH sides is the same normalization
+/// the resource entries already apply for a rustfmt re-wrap.
+///
+/// Everything else stays byte-exact: a reworded heading, a reordered section, a changed cap or
+/// budget still reds, because none of those is an address.
+fn collapse_gmeow_crate_segments(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find("gmeow_") {
+        let starts_segment = rest[..at]
+            .chars()
+            .next_back()
+            .is_none_or(|c| !(c.is_alphanumeric() || c == '_'));
+        out.push_str(&rest[..at]);
+        let tail = &rest[at..];
+        let ident_end = tail
+            .find(|c: char| !(c.is_alphanumeric() || c == '_'))
+            .unwrap_or(tail.len());
+        if starts_segment && tail[ident_end..].starts_with("::") {
+            out.push_str("<crate>");
+            rest = &tail[ident_end..];
+        } else {
+            out.push_str(&tail[..ident_end]);
+            rest = &tail[ident_end..];
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+fn shape_text(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    // `crate::<segments>` — the rustdoc intra-doc link form.
+    while let Some(at) = rest.find("crate::") {
+        // Only when `crate` starts a path segment, so `gmeow_docs_model::llms` is left to the
+        // crate-segment rule below rather than being half-eaten here.
+        let starts_segment = rest[..at]
+            .chars()
+            .next_back()
+            .is_none_or(|c| !(c.is_alphanumeric() || c == '_'));
+        out.push_str(&rest[..at]);
+        if !starts_segment {
+            out.push_str("crate::");
+            rest = &rest[at + "crate::".len()..];
+            continue;
+        }
+        out.push_str("<crate>::");
+        rest = &rest[at + "crate::".len()..];
+        let end = rest
+            .find(|c: char| !(c.is_alphanumeric() || c == '_' || c == ':'))
+            .unwrap_or(rest.len());
+        rest = &rest[end..];
+    }
+    out.push_str(rest);
+    // `gmeow_<ident>::` — the crate segment of a fully-qualified path.
+    collapse_gmeow_crate_segments(&out)
+}
+
 pub fn check_frozen_item(
     item: &FrozenItem,
     base_text: &str,
@@ -419,7 +486,7 @@ pub fn check_frozen_item(
         ));
         return;
     };
-    if base == work {
+    if shape_text(&base) == shape_text(&work) {
         return;
     }
     report.problem(format!(

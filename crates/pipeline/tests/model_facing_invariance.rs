@@ -542,22 +542,28 @@ fn mcp_bodies(root: &Path, base: &str) -> (String, String) {
     )
 }
 
-/// The anchor every resource-list red fixture splices in front of.
-const RESOURCE_ANCHOR: &str = r#"            resource(
-                "gmeow://ontology/okf-index","#;
+/// The entry every resource-list red fixture splices in front of, found by its URI rather
+/// than by a pinned indentation: the list has already moved once from a method body to a free
+/// function, and a fixture that dies on whitespace is a fixture that stops grading the rule.
+const RESOURCE_ANCHOR_URI: &str = r#""gmeow://ontology/okf-index","#;
 
 /// `work_body` with one extra `resource(...)` entry named `slug`, spliced at the anchor.
 fn with_extra_resource(work_body: &str, slug: &str) -> String {
-    assert!(
-        work_body.contains(RESOURCE_ANCHOR),
-        "the red fixtures' anchor moved; the live list is:\n{work_body}"
-    );
+    let uri_at = work_body.find(RESOURCE_ANCHOR_URI).unwrap_or_else(|| {
+        panic!("the red fixtures' anchor URI is gone; the live list is:\n{work_body}")
+    });
+    // Back up to the `resource(` that opens the anchored entry, and reuse ITS indentation so
+    // the splice reads exactly like the entries around it.
+    let open_at = work_body[..uri_at]
+        .rfind("resource(")
+        .expect("the anchor URI sits inside a resource(...) entry");
+    let line_at = work_body[..open_at].rfind('\n').map_or(0, |nl| nl + 1);
+    let indent = &work_body[line_at..open_at];
     let extra = format!(
-        "            resource(\n                \"gmeow://ontology/{slug}\",\n                \
-         \"{slug}\",\n                \"A red fixture.\",\n                \
-         \"application/json\",\n            ),\n{RESOURCE_ANCHOR}"
+        "{indent}resource(\n{indent}    \"gmeow://ontology/{slug}\",\n{indent}    \"{slug}\",\n\
+         {indent}    \"A red fixture.\",\n{indent}    \"application/json\",\n{indent}),\n"
     );
-    let grown = work_body.replacen(RESOURCE_ANCHOR, &extra, 1);
+    let grown = format!("{}{extra}{}", &work_body[..line_at], &work_body[line_at..]);
     assert_ne!(
         grown, work_body,
         "the red fixture must actually perturb the list"
