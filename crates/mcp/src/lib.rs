@@ -15834,9 +15834,13 @@ mod tests {
             hit["gloss"].as_str().is_some_and(|g| g.contains("arg1")),
             "the controlled-NL gloss is the prefix verbalizer rendering: {hit}"
         );
+        // A GMN surface carries the record-initial sigil of the scope it reads in, because the
+        // SAME glyph denotes different operators under different scopes (see `gmn_verbalize`);
+        // the sigil is part of the surface, not decoration around it.
         assert_eq!(
-            hit["gmn_surface"], "¬ arg1",
-            "the GMN operator surface arranges the glyph in prefix position: {hit}"
+            hit["gmn_surface"], "@ℒ ¬ arg1",
+            "the GMN operator surface scopes the record and arranges the glyph in prefix \
+             position: {hit}"
         );
 
         // An unknown glyph returns the honest typed miss, never a fabricated answer.
