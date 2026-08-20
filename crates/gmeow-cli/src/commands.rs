@@ -707,6 +707,211 @@ pub fn verify_release_bundle(
     }
 }
 
+// ── substrate ────────────────────────────────────────────────────────────────
+
+/// `gmeow substrate` — answer, from the embedded bundle with no repo, what engine
+/// produced this bundle, what it embeds, and whether the substrate claim sites
+/// agree. Reads the reconciliation A-Box (gmeow:SubstrateComponent / gmeow:PinClaim
+/// / gmeow:ReconciledPin / gmeow:embeds) the carrier folds into graph/provenance.
+/// Generic over the reconciliation kernel: `--component` / `--dimension` filter.
+pub fn substrate(
+    reporter: &dyn Reporter,
+    gts: Option<&Path>,
+    component_filter: Option<&str>,
+    dimension_filter: Option<&str>,
+    format: &str,
+) -> i32 {
+    use std::collections::{BTreeMap, BTreeSet};
+
+    let bytes = match gts_bytes(reporter, gts) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    let dataset = match purrdf::gts::flattened_dataset_from_bytes(&bytes) {
+        Ok(d) => d,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.substrate.fold",
+                format!("cannot fold snapshot: {e}"),
+            );
+        }
+    };
+
+    let ns = crate::NAMESPACE;
+    let c_substrate = format!("{ns}SubstrateComponent");
+    let p_name = format!("{ns}componentName");
+    let p_version = format!("{ns}componentVersion");
+    let p_embeds = format!("{ns}embeds");
+    let p_claimed_comp = format!("{ns}claimedComponent");
+    let p_claim_dim = format!("{ns}claimDimension");
+    let p_claimed_val = format!("{ns}claimedValue");
+
+    let mut components: BTreeSet<String> = BTreeSet::new();
+    let mut name_of: BTreeMap<String, String> = BTreeMap::new();
+    let mut version_of: BTreeMap<String, String> = BTreeMap::new();
+    let mut embeds: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut claim_comp: BTreeMap<String, String> = BTreeMap::new();
+    let mut claim_dim: BTreeMap<String, String> = BTreeMap::new();
+    let mut claim_val: BTreeMap<String, String> = BTreeMap::new();
+
+    for quad in dataset.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let subj = subject.as_str().to_string();
+        match quad.predicate.as_str() {
+            RDF_TYPE_IRI => {
+                if let RdfTerm::Iri(o) = &quad.object
+                    && o.as_str() == c_substrate
+                {
+                    components.insert(subj);
+                }
+            }
+            p if p == p_name => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    name_of.insert(subj, l.lexical_form.clone());
+                }
+            }
+            p if p == p_version => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    version_of.insert(subj, l.lexical_form.clone());
+                }
+            }
+            p if p == p_embeds => {
+                if let RdfTerm::Iri(o) = &quad.object {
+                    embeds.insert((subj, o.as_str().to_string()));
+                }
+            }
+            p if p == p_claimed_comp => {
+                if let RdfTerm::Iri(o) = &quad.object {
+                    claim_comp.insert(subj, o.as_str().to_string());
+                }
+            }
+            p if p == p_claim_dim => {
+                if let RdfTerm::Iri(o) = &quad.object {
+                    claim_dim.insert(subj, o.as_str().to_string());
+                }
+            }
+            p if p == p_claimed_val => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    claim_val.insert(subj, l.lexical_form.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Agreement is keyed per (component, dimension): the set of distinct asserted
+    // values. One value ⇒ the sites agree; more ⇒ drift.
+    let mut groups: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    for (claim, comp) in &claim_comp {
+        if let (Some(dim), Some(val)) = (claim_dim.get(claim), claim_val.get(claim)) {
+            groups
+                .entry((comp.clone(), dim.clone()))
+                .or_default()
+                .insert(val.clone());
+        }
+    }
+
+    let local = |iri: &str| iri.rsplit(['/', '#']).next().unwrap_or(iri).to_string();
+    let dim_label = |iri: &str| local(iri).trim_start_matches("dimension").to_string();
+    let comp_name = |iri: &str| name_of.get(iri).cloned().unwrap_or_else(|| local(iri));
+    let component_matches =
+        |iri: &str| component_filter.is_none_or(|f| comp_name(iri) == f || local(iri) == f);
+    let dimension_matches = |dim_iri: &str| {
+        dimension_filter.is_none_or(|f| dim_label(dim_iri) == f || local(dim_iri) == f)
+    };
+
+    if format == "json" {
+        let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+        let mut parts: Vec<String> = Vec::new();
+        for c in &components {
+            if !component_matches(c) {
+                continue;
+            }
+            let embedded: Vec<String> = embeds
+                .iter()
+                .filter(|(e, _)| e == c)
+                .map(|(_, x)| format!("\"{}\"", esc(&comp_name(x))))
+                .collect();
+            parts.push(format!(
+                "{{\"name\":\"{}\",\"version\":{},\"embeds\":[{}]}}",
+                esc(&comp_name(c)),
+                version_of
+                    .get(c)
+                    .map(|v| format!("\"{}\"", esc(v)))
+                    .unwrap_or_else(|| "null".to_string()),
+                embedded.join(",")
+            ));
+        }
+        let mut agree: Vec<String> = Vec::new();
+        for ((comp, dim), values) in &groups {
+            if !component_matches(comp) || !dimension_matches(dim) {
+                continue;
+            }
+            let vals: Vec<String> = values.iter().map(|v| format!("\"{}\"", esc(v))).collect();
+            agree.push(format!(
+                "{{\"component\":\"{}\",\"dimension\":\"{}\",\"agree\":{},\"values\":[{}]}}",
+                esc(&comp_name(comp)),
+                esc(&dim_label(dim)),
+                values.len() == 1,
+                vals.join(",")
+            ));
+        }
+        println!(
+            "{{\"components\":[{}],\"reconciliation\":[{}]}}",
+            parts.join(","),
+            agree.join(",")
+        );
+        return 0;
+    }
+
+    println!("substrate components (from the embedded bundle):");
+    for c in &components {
+        if !component_matches(c) {
+            continue;
+        }
+        let version = version_of
+            .get(c)
+            .map(String::as_str)
+            .unwrap_or("(unreconciled)");
+        println!("  {} {version}", comp_name(c));
+        for (_, embedded) in embeds.iter().filter(|(e, _)| e == c) {
+            let ev = version_of.get(embedded).map(String::as_str).unwrap_or("");
+            println!("    embeds {} {ev}", comp_name(embedded));
+        }
+    }
+
+    println!("\nagreement across claim sites:");
+    let mut any_drift = false;
+    for ((comp, dim), values) in &groups {
+        if !component_matches(comp) || !dimension_matches(dim) {
+            continue;
+        }
+        if values.len() == 1 {
+            println!(
+                "  {} / {}: AGREE ({})",
+                comp_name(comp),
+                dim_label(dim),
+                values.iter().next().unwrap()
+            );
+        } else {
+            any_drift = true;
+            let joined = values.iter().cloned().collect::<Vec<_>>().join(", ");
+            println!(
+                "  {} / {}: DRIFT — {joined}",
+                comp_name(comp),
+                dim_label(dim)
+            );
+        }
+    }
+    if any_drift {
+        println!("\nsubstrate drift detected: the claim sites above disagree.");
+    }
+    0
+}
+
 // ── describe ─────────────────────────────────────────────────────────────────
 
 /// `gmeow describe` — render one term card from a GTS snapshot.
