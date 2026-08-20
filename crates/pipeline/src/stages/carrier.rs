@@ -143,6 +143,19 @@ pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow
 /// needs no reconstruction rep and stays OUT of the reasoned object-level EDB
 /// (`gts_compose` folds only the default graph).
 pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
+/// The substrate SBOM projection (issue 1672, F1): the reconciliation A-Box
+/// (`graph/provenance`) projected through the compiled `spdx.rq` into pure SPDX —
+/// one `spdx:Package` per engine/library, `spdx:versionInfo` from the reconciled pin,
+/// and an `spdx:relationship … contains` per `gmeow:embeds` edge. `stage-mappings`
+/// emits it (it already compiles `spdx.rq`), and the presenter folds it here so it
+/// flattens into the shipped bundle's base graph — `gmeow project --profile spdx` then
+/// returns the substrate packages. Single-producer and bundle-internal like
+/// `graph/norm-claims`: no committed `generated/` byte artifact, so it needs no
+/// reconstruction rep and stays OUT of the reasoned object-level EDB (`gts_compose`
+/// folds only the default graph, and the pure-SPDX projection is a consumer view, not
+/// an object-level axiom source).
+pub(crate) const GRAPH_SUBSTRATE_SBOM: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/substrate-sbom";
 /// The by-reference blob `representation` under which a diagnostics producer
 /// (`stage-validate` / `stage-compile-logic` / `stage-reason`) carries its FORWARD-projected
 /// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
@@ -1012,6 +1025,12 @@ fn assemble_carrier(
         // ComplianceAssessment claim graph (D4), read off stage-validate's attached
         // graph the same way graph/diagnostics is (a pure keyed fold).
         producer_graph(upstream, "stage-validate", GRAPH_NORM_CLAIMS)?,
+        // graph/substrate-sbom — the substrate reconciliation A-Box projected through the
+        // compiled `spdx.rq` (issue 1672, F1), read off stage-mappings' attached graph (a
+        // pure keyed fold, PIPELINE_SPINE §4). It flattens into the bundle base graph so
+        // `gmeow project --profile spdx` returns the substrate packages; bundle-internal,
+        // so it stays OUT of the reasoned EDB (`gts_compose` folds only the default graph).
+        producer_graph(upstream, "stage-mappings", GRAPH_SUBSTRATE_SBOM)?,
         projection_ledger,
         lang_translation_corpus,
         lang_form_corpus,

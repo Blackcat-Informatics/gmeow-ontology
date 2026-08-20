@@ -210,6 +210,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus",
             "https://blackcatinformatics.ca/gmeow/graph/projection-ledger",
+            "https://blackcatinformatics.ca/gmeow/graph/substrate-sbom",
         ],
         &[],
     );

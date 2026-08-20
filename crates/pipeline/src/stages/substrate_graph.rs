@@ -652,6 +652,24 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
     Ok(project_substrate_graph(&components, &claims, &embeds))
 }
 
+/// Project the reconciled substrate A-Box into an SPDX SBOM through the compiled
+/// `spdx.rq` CONSTRUCT — the SAME projection authority every consumer view runs
+/// through ([`crate::projections::project_graph`]), never a hand-authored second
+/// emitter (projection purity). `spdx_rq` is the compiled query text threaded in from
+/// the consumed stage-mappings product (`generated/queries/spdx.rq`), and the source is
+/// [`build_substrate_projection`]'s reconciliation A-Box — all build INPUTS, so this
+/// fold is non-self-referential like the A-Box it projects. Returns the SBOM as
+/// N-Triples: one `spdx:Package` per engine/library, `spdx:name` + `spdx:versionInfo`
+/// from the reconciled pin, and an `spdx:relationship … contains` per `gmeow:embeds`
+/// edge. Deterministic: `project_graph` freeze-sorts its output.
+pub fn build_substrate_sbom_projection(
+    root: &Path,
+    spdx_rq: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let abox = build_substrate_projection(root)?;
+    crate::projections::project_graph(&abox, spdx_rq, &crate::projections::TagMap::default())
+}
+
 fn stage_err(msg: &str) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "stage-substrate".to_string(),
@@ -901,6 +919,58 @@ mod tests {
         assert!(
             nt.contains(&format!("{GMEOW}embeds")),
             "≥1 embeds edge (SBOM contains)"
+        );
+    }
+
+    #[test]
+    fn spdx_sbom_projection_carries_a_package_per_engine_and_contains_edges() {
+        // F1 (issue 1672): the substrate reconciliation A-Box, projected through the
+        // COMPILED `spdx.rq` (the same projection authority a consumer view runs), yields
+        // a first-class SBOM — one `spdx:Package` per shipped engine and embedded library,
+        // `spdx:versionInfo` from the reconciled pin, and an SPDX `contains` relationship
+        // for every `gmeow:embeds` edge. This is the production producer folded into
+        // gmeow.gts so `gmeow project --profile spdx` returns substrate packages.
+        let root = crate_repo_root();
+        let spdx_rq = std::fs::read_to_string(root.join("generated/queries/spdx.rq"))
+            .expect("committed generated/queries/spdx.rq");
+        let sbom = build_substrate_sbom_projection(&root, &spdx_rq).expect("spdx SBOM projects");
+
+        // Every embedded library reconciles a crate version, so each carries an
+        // spdx:versionInfo — purrdf (0.12.0) plus the toolchain libraries.
+        for name in ["purrdf", "binaryen", "wasm-bindgen"] {
+            let comp = iri("component", name);
+            assert!(
+                sbom.contains(&format!(
+                    "<{comp}> <{RDF_TYPE}> <http://spdx.org/rdf/terms#Package> ."
+                )),
+                "{name} must project as an spdx:Package: {sbom}"
+            );
+            assert!(
+                sbom.contains(&format!("<{comp}> <http://spdx.org/rdf/terms#versionInfo>")),
+                "{name} must carry an spdx:versionInfo from its reconciled pin: {sbom}"
+            );
+        }
+        // Each of the four shipped engines is an spdx:Package that CONTAINS its embeds.
+        for engine in SHIPPED_ENGINES {
+            let engine_iri = iri("component", &format!("{engine}-engine"));
+            assert!(
+                sbom.contains(&format!(
+                    "<{engine_iri}> <{RDF_TYPE}> <http://spdx.org/rdf/terms#Package> ."
+                )),
+                "the {engine} engine must project as an spdx:Package: {sbom}"
+            );
+            assert!(
+                sbom.contains(&format!(
+                    "<{engine_iri}> <http://spdx.org/rdf/terms#relationship>"
+                )),
+                "the {engine} engine must carry an spdx:relationship (contains): {sbom}"
+            );
+        }
+        // Directional & lossy: the internal gmeow substrate vocabulary never leaks into
+        // the pure-SPDX projection.
+        assert!(
+            !sbom.contains(&format!("{GMEOW}claimedValue")),
+            "internal gmeow substrate predicate leaked into the SBOM: {sbom}"
         );
     }
 

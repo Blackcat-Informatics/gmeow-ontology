@@ -1278,11 +1278,14 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v12: attach the substrate SBOM (issue 1672, F1) — the reconciliation A-Box
+        // projected through the compiled spdx.rq into graph/substrate-sbom. Bump busts the
+        // stage cache so the new named graph is emitted on cached inputs.
         // v11: added the shape-grounding certificate ledger
         // (generated/logic/shape-grounding-ledger.ttl) — every logic:formalizes record's
         // preservation judgment re-derived per regenerate over the fresh constraint
         // surfaces. Bump busts the stage cache so the ledger is emitted on cached inputs.
-        "mappings.v11-shape-grounding-ledger"
+        "mappings.v12-substrate-sbom"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -1323,6 +1326,12 @@ impl Stage for MappingsStage {
                     .join(format!("{name}.ttl")),
             );
         }
+        // The substrate SBOM projection (issue 1672, F1) reads the substrate
+        // reconciliation A-Box's build INPUTS directly (manifests, lockfile, shipped
+        // SUBSTRATE.txt stamps, prose), none of which any upstream product reflects — so
+        // each must bust this stage's cache on edit, else a substrate pin change would
+        // serve a stale SBOM.
+        files.extend(crate::stages::substrate_graph::substrate_input_paths(root));
         files.sort();
         files.dedup();
         Ok(files)
@@ -1489,6 +1498,34 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS,
         )?;
+        // graph/substrate-sbom — the substrate reconciliation A-Box (issue 1672, F1)
+        // projected through THIS run's compiled `spdx.rq` into pure SPDX (one spdx:Package
+        // per engine/library + `contains` relationships). It rides its own bundle-internal
+        // named graph so the presenter reads it via `producer_graph`; it flattens into the
+        // shipped bundle's base graph so `gmeow project --profile spdx` returns the substrate
+        // packages. Like the other corpus graphs it stays OUT of the reasoned EDB
+        // (`gts_compose` folds only the default graph). `spdx.rq` is THIS run's compiled
+        // artifact (never a stale disk read); the source A-Box reads only build INPUTS
+        // (`substrate_input_paths`), so the fold is non-self-referential.
+        let spdx_rq_path = format!("{QUERIES_DIR}/spdx.rq");
+        let spdx_rq = artifacts.get(&spdx_rq_path).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("mappings run omitted the compiled {spdx_rq_path}"),
+            })
+        })?;
+        let spdx_rq = std::str::from_utf8(spdx_rq).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("compiled {spdx_rq_path} is not valid UTF-8: {e}"),
+            })
+        })?;
+        let substrate_sbom_graph = crate::stages::carrier::parse_into_graph(
+            crate::stages::substrate_graph::build_substrate_sbom_projection(input.root, spdx_rq)?
+                .as_bytes(),
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_SUBSTRATE_SBOM,
+        )?;
         let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&[
             rdf_dataset.as_ref(),
             ledger_graph.as_ref(),
@@ -1500,6 +1537,7 @@ impl Stage for MappingsStage {
             lang_docs_rendering_graph.as_ref(),
             lang_glossary_graph.as_ref(),
             correspondence_laws_graph.as_ref(),
+            substrate_sbom_graph.as_ref(),
         ]));
         Ok(StageOutput::new(StageProduct::from_artifacts_over(
             self.id(),
