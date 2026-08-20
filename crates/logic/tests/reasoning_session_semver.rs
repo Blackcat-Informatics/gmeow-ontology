@@ -408,8 +408,13 @@ use session_common::*;
 /// currently-`owl:`-authored input is untouched (`calculus_term` is identity on an `owl:` IRI),
 /// so the whole shipped corpus and the W3C divergence corpus are unchanged. The fixed edge-only
 /// input carries no typing axiom, so its reasoning verdict is unchanged.
+/// Re-blessed once more when the four fragment-completeness/boundary description strings in
+/// `reason/refute.rs` were aligned from their `owl:`-prefixed spelling to the `OWL X` prose spelling
+/// the slice `logic:fragmentCompletenessBound`/`logic:expressivenessBoundary` mirrors now carry (the
+/// authored surface reached literal zero `owl:` tokens). `native_contract_hash()` `include_str!`s
+/// `reason/refute.rs`, so its byte content moves the descriptor; no reasoning verdict changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "a886625f3ba6506aba02354324b46e2fd4a7fffe5fb09a10be868bab3770ae5c";
+    "91209aba78ac64dc895e91a5994c5e3c8b8bc0c06aabf8681acc47331470d8b1";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -609,7 +614,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `owl:TransitiveProperty` the RL characteristic rules match, per
 /// `adapter::OWL_CHARACTERISTIC_TO_LOGIC`.)
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "53530be4bbd104cdc1ce336877b5741fd25b911c097c15aae281b4fb169aa7ab";
+    "e39b89a1b305ae39dab829e00f294961abf810d414406892457751407e34d3dc";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

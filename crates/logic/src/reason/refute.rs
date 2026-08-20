@@ -630,7 +630,7 @@ pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
         DecidedFragment {
             id: "nominal-enumeration-counting",
             pattern: RefutationPattern::NominalClash,
-            bound: "An individual typed into two or more pairwise-disjoint owl:oneOf enumerations; \
+            bound: "An individual typed into two or more pairwise-disjoint OWL oneOf enumerations; \
                     complete because nominal membership is a finite closed-set intersection whose \
                     emptiness is decided by counting, with no anonymous-individual generation.",
         },
@@ -645,7 +645,7 @@ pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
         DecidedFragment {
             id: "inverse-functional-identity-collapse",
             pattern: RefutationPattern::ArithmeticEqualityCollapse,
-            bound: "An inverse-functional or functional property forcing two owl:differentFrom (or \
+            bound: "An inverse-functional or functional property forcing two OWL differentFrom (or \
                     distinct-nominal) individuals to be identified; complete because the identity \
                     collapse is a decidable equality / inequality arithmetic over a finite set of \
                     named individuals.",
@@ -660,7 +660,7 @@ pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
         DecidedFragment {
             id: "has-self-membership",
             pattern: RefutationPattern::CountingPigeonhole,
-            bound: "An owl:hasSelf (exists p.Self) restriction in a refutation position where a \
+            bound: "An OWL hasSelf (exists p.Self) restriction in a refutation position where a \
                     self-edge x p x forces membership disjoint with a held class; complete because \
                     self-membership is a single reflexive-edge count with no unbounded quantifier \
                     alternation.",
@@ -694,7 +694,7 @@ pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
         },
         FragmentBoundaryRecord {
             id: "entangled-existential-cardinality",
-            reason: "A configuration entangling an existential owl:someValuesFrom filler with a \
+            reason: "A configuration entangling an existential OWL someValuesFrom filler with a \
                      number or qualified-cardinality bound on the same property couples witness \
                      generation with counting; the family sub-deciders certify each in isolation \
                      only, so the entangled full-DL case lies outside the certified fragment.",
