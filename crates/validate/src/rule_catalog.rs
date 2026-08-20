@@ -310,6 +310,11 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Enforcement::Governance,
     ),
     (
+        codes::AUTHORING_RETIRED_OWL_PREFIX,
+        Severity::Error,
+        Enforcement::Governance,
+    ),
+    (
         codes::SLICE_DISCIPLINE_DUPLICATE_IRI,
         Severity::Error,
         Enforcement::Governance,
@@ -666,8 +671,12 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
         "Mint the term inside one of the registered term namespaces (gmeow:/logic:/lang:/math:), or — if the slice genuinely needs a new minting namespace — register it in gmeow_ns::TERM_NAMESPACES so purrdf's ownership analyzer can see terms minted there.",
     ),
     (
+        codes::AUTHORING_RETIRED_OWL_PREFIX,
+        "Author the term in logic: (the canonical authoring vocabulary) and let the pipeline derive/project the owl:/RDFS surface; remove the hand-authored owl: prefix token from the slice module.ttl. A full IRI (…/2002/07/owl#…) is the legitimate correspondence-law target and is not affected.",
+    ),
+    (
         codes::AUTHORING_FAMILY,
-        "Fix the ontology-surface authoring defect the finding names (shape ownership, profile/catalog closure, module IRI, graft isolation, term declaration, minting namespace, language tag, or seam-registry drift).",
+        "Fix the ontology-surface authoring defect the finding names (shape ownership, profile/catalog closure, module IRI, graft isolation, term declaration, minting namespace, language tag, retired owl: authoring prefix, or seam-registry drift).",
     ),
     (
         codes::SLICE_DISCIPLINE_DUPLICATE_IRI,

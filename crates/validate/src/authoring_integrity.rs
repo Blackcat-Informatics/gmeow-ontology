@@ -71,6 +71,13 @@ static GMEOW_BARE_TERM: LazyLock<Regex> =
 /// Fenced ```turtle ... ``` code block.
 static TURTLE_FENCE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?s)```turtle\n(.*?)\n```").expect("valid static regex"));
+/// A retired `owl:` authoring prefix token — a prefixed name (`owl:Foo`) or an
+/// `@prefix owl:` declaration — at a name/prefix boundary. The leading
+/// `(?:^|[^0-9A-Za-z_-])` excludes a longer prefix (`powl:` / `owlish`), and a
+/// full IRI's `owl#` form never matches because `owl` is not followed by a colon
+/// there. Matched per source LINE, so `^` anchors each line's start.
+static RETIRED_OWL_PREFIX_TOKEN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?:^|[^0-9A-Za-z_-])owl:").expect("valid static regex"));
 
 // ── shared helpers ───────────────────────────────────────────────────────────
 
@@ -231,6 +238,7 @@ pub fn authoring_integrity_findings(
     findings.extend(slice_source_untagged_findings(project_root)?);
     findings.extend(nonslice_authored_untagged_findings(project_root)?);
     findings.extend(seam_registry_drift_findings(project_root, slices_dir)?);
+    findings.extend(retired_authoring_prefix_findings(slices_dir)?);
     Ok(findings)
 }
 
@@ -1444,6 +1452,61 @@ fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
     findings
 }
 
+// ── R10: retired owl: authoring prefix (source-text lint) ────────────────────
+
+/// R10: every slice `module.ttl` is scanned as SOURCE TEXT for a reintroduced
+/// retired `owl:` authoring prefix. `logic:` is the canonical authoring
+/// vocabulary; the OWL/RDFS surface is a GENERATED projection the pipeline
+/// derives, so a hand-authored `owl:` token in a slice module is a forbidden
+/// second source of truth. Discovered by MANIFEST (a `module.ttl` is scanned only
+/// when present), mirroring the R3c/R9 slice-source lints.
+pub fn retired_authoring_prefix_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
+    let mut findings = Vec::new();
+    for manifest in all_manifests(slices_dir)? {
+        let Some(dir) = manifest.parent() else {
+            continue;
+        };
+        let module = dir.join("module.ttl");
+        if module.is_file() {
+            let text = std::fs::read_to_string(&module).map_err(|e| io_err(&module, &e))?;
+            findings.extend(detect_retired_authoring_prefixes(
+                &text,
+                &rel(&module, slices_dir),
+            ));
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    Ok(findings)
+}
+
+/// The pure retired-`owl:`-prefix logic over a module's SOURCE TEXT. Flags a
+/// prefixed name (`owl:Foo`) or an `@prefix owl:` declaration at a name/prefix
+/// boundary, reporting the file and 1-based line. Deliberately does NOT flag a
+/// full IRI (`<…/2002/07/owl#…>` carries no `owl:` token — it is the legitimate
+/// correspondence-law target form), a longer prefix (`powl:` / `owlish`), or
+/// reworded prose (`OWL X`, no colon).
+fn detect_retired_authoring_prefixes(text: &str, source_label: &str) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    for (idx, line) in text.lines().enumerate() {
+        if RETIRED_OWL_PREFIX_TOKEN.is_match(line) {
+            let line_no = idx + 1;
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_RETIRED_OWL_PREFIX,
+                format!(
+                    "{source_label}:{line_no} reintroduces a retired owl: authoring prefix — \
+                     logic: is the canonical authoring vocabulary and the owl:/RDFS surface is a \
+                     GENERATED projection. Author the term in logic: and let the pipeline \
+                     derive/project the owl: form (a hand-authored owl: token is a forbidden \
+                     second source of truth)"
+                ),
+                None,
+            ));
+        }
+    }
+    findings
+}
+
 // ── R7: grounding seam-registry drift ────────────────────────────────────────
 //
 // The generated seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
@@ -2172,6 +2235,50 @@ mod tests {
             )
             .unwrap()
             .is_empty()
+        );
+    }
+
+    // ── R10: retired owl: authoring prefix (source-text lint) ────────────────
+
+    #[test]
+    fn retired_authoring_prefix_fires_on_reintroduced_owl_prefix() {
+        // A slice module.ttl source with BOTH an `@prefix owl:` declaration and a
+        // prefixed-name `owl:Class` use — each must fire the source lint.
+        let text = "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+                    ex:Thing a owl:Class .\n";
+        let findings = detect_retired_authoring_prefixes(text, "slices/core/x/module.ttl");
+        assert!(
+            !findings.is_empty(),
+            "a reintroduced owl: prefix must fire: {findings:?}"
+        );
+        assert!(
+            findings
+                .iter()
+                .all(|f| f.code == codes::AUTHORING_RETIRED_OWL_PREFIX),
+            "every finding uses the retired-owl-prefix code: {findings:?}"
+        );
+        assert!(
+            findings.iter().all(|f| f.severity == Severity::Error),
+            "the source lint is an Error: {findings:?}"
+        );
+        assert!(
+            findings.iter().any(|f| f.message.contains("logic:")),
+            "the message names logic: as the canonical authoring vocabulary"
+        );
+    }
+
+    #[test]
+    fn retired_authoring_prefix_clean_on_logic_authoring_and_full_iri_target() {
+        // Canonical logic: authoring plus a full-IRI owl# correspondence target —
+        // no owl: prefix token, so NO finding. `powl:` (longer prefix) and `OWL`
+        // (reworded prose, no colon) must not be false positives either.
+        let text = "@prefix logic: <https://blackcatinformatics.ca/gmeow/logic/> .\n\
+                    ex:Thing a logic:Class .\n\
+                    ex:law logic:correspondsTo <http://www.w3.org/2002/07/owl#Class> .\n\
+                    ex:x a powl:Widget .  # OWL is a generated projection, not authored\n";
+        assert!(
+            detect_retired_authoring_prefixes(text, "slices/core/x/module.ttl").is_empty(),
+            "clean logic: authoring with a full-IRI owl# target must not fire"
         );
     }
 
