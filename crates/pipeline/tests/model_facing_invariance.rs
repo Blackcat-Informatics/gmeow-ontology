@@ -41,8 +41,8 @@ use gmeow_pipeline::gmn_dialect::{
 mod llms_shape;
 
 use llms_shape::{
-    FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_LIST, SurfaceMatch, check_frozen_item,
-    check_resource_list, declared_surfaces, extract_item,
+    FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_CONTRIBUTORS, MCP_RESOURCE_LIST, SurfaceMatch,
+    check_frozen_item, check_resource_list, declared_surfaces, extract_item,
 };
 
 /// Run one check over a fresh report and return it — every leg below asserts on the
@@ -463,12 +463,9 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
     // The MCP consumer index: STRUCTURE frozen, list allowed to grow only by the delta the
     // ONTOLOGY licenses — one resource per `gmeow:` surface this change declares and the
     // merge base did not.
-    let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path))
-        .expect("the MCP module is readable");
     let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.base_lookup_path())
         .expect("the MCP module predates this change");
-    let work_body =
-        extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch");
+    let work_body = mcp_work_body(&root);
     let base_body = extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
         .expect("resources_result at the base");
     let surfaces = declared_surfaces(&root, &base);
@@ -532,14 +529,59 @@ fn leg4_red_fixture_reordering_a_section_header_reds() {
 
 /// The live MCP resource-list bodies at the base and on this branch.
 fn mcp_bodies(root: &Path, base: &str) -> (String, String) {
-    let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path)).expect("readable");
     let base_mcp =
         base_text(root, base, MCP_RESOURCE_LIST.base_lookup_path()).expect("present at the base");
-    (
-        extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
-            .expect("resources_result at the base"),
-        extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch"),
-    )
+    let base_body = extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
+        .expect("resources_result at the base");
+    (base_body, mcp_work_body(root))
+}
+
+/// Every contributing site's text, concatenated: the advertised surface is assembled from
+/// several of them now, and reading one would grade a fragment as if it were the whole.
+fn mcp_work_body(root: &Path) -> String {
+    let mut uri_consts: BTreeMap<String, String> = BTreeMap::new();
+    let mut bodies: Vec<String> = Vec::new();
+    for (path, item) in MCP_RESOURCE_CONTRIBUTORS {
+        let text = std::fs::read_to_string(root.join(path))
+            .unwrap_or_else(|e| panic!("{path}: unreadable on this branch: {e}"));
+        uri_consts.extend(str_consts(&text));
+        bodies.push(
+            extract_item(&text, *item)
+                .unwrap_or_else(|| panic!("{path}: {} is absent on this branch", item.label())),
+        );
+    }
+    // A URI the base spelled inline is now named by a `const`, because two hosts register the
+    // same descriptor and the surface has to be single-sourced. Resolving the name back to its
+    // value is what lets the entry comparison see ONE surface rather than a rename.
+    let mut body = bodies.join("\n");
+    for (name, value) in &uri_consts {
+        body = body.replace(name, &format!("\"{value}\""));
+    }
+    body
+}
+
+/// Every `const NAME: &str = "value";` in `text`, longest name first so a substitution never
+/// eats a prefix of a longer name.
+fn str_consts(text: &str) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = Vec::new();
+    for line in text.lines() {
+        let line = line.trim();
+        let Some(rest) = line
+            .strip_prefix("pub const ")
+            .or(line.strip_prefix("const "))
+        else {
+            continue;
+        };
+        let Some((name, rest)) = rest.split_once(": &str = ") else {
+            continue;
+        };
+        let value = rest.trim_end_matches(';').trim().trim_matches('"');
+        if !value.is_empty() {
+            out.push((name.trim().to_string(), value.to_string()));
+        }
+    }
+    out.sort_by_key(|a| std::cmp::Reverse(a.0.len()));
+    out
 }
 
 /// The entry every resource-list red fixture splices in front of, found by its URI rather

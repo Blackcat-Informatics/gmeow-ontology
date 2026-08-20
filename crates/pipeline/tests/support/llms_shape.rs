@@ -188,6 +188,27 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     },
 ];
 
+/// Every source item that CONTRIBUTES entries to the MCP consumer index.
+///
+/// One function held the whole list while the engine lived inside `gmeow-pipeline`. The engine
+/// is now a leaf, and a resource whose handler needs a reader the leaf declines to link rides
+/// an `Extension` registered by a host that owns it — so the advertised surface is assembled
+/// from several sites and the freeze has to read all of them or it grades a fragment.
+pub const MCP_RESOURCE_CONTRIBUTORS: &[(&str, ItemRef)] = &[
+    (
+        "crates/mcp/src/lib.rs",
+        ItemRef::Function("builtin_resource_descriptors"),
+    ),
+    (
+        "crates/mcp/src/lib.rs",
+        ItemRef::Function("medium_resource_descriptor"),
+    ),
+    (
+        "crates/mcp-dev/src/lib.rs",
+        ItemRef::Function("dev_extension"),
+    ),
+];
+
 /// The MCP consumer-index item whose LIST may grow with the vocabulary a change declares.
 pub const MCP_RESOURCE_LIST: FrozenItem = FrozenItem {
     path: "crates/mcp/src/lib.rs",
@@ -611,13 +632,26 @@ pub fn check_resource_list(
     surfaces: &DeclaredSurfaces,
     report: &mut ModelFacingReport,
 ) {
-    let base_skeleton = resource_skeleton(base_body);
+    // The structure clause guards ONE thing: that an entry is not smuggled behind control
+    // flow, advertised in the source but withheld at runtime. It used to say so by pinning
+    // the skeleton to the merge base's — which worked while ONE function held the whole list.
+    // The base's own skeleton carried `if self.mode.includes_dev_tools()`, and that
+    // conditional is exactly what the extension split replaced: which host composes which
+    // extension is now explicit, first-class and reviewable, where a runtime `if` was not.
+    // Pinning to the base would therefore demand the conditional back. The clause instead
+    // grades the thing it was always protecting — every site DECLARES its entries
+    // unconditionally — which the base itself would not have passed, and that is the point.
     let work_skeleton = resource_skeleton(work_body);
-    if base_skeleton != work_skeleton {
+    let hidden: Vec<&str> = ["if ", "match ", "while ", "for ", ".filter(", ".retain("]
+        .into_iter()
+        .filter(|needle| work_skeleton.contains(needle))
+        .collect();
+    if !hidden.is_empty() {
         report.problem(format!(
-            "the MCP consumer-index resource-list STRUCTURE moved (the control flow around \
-             the entries, not the entries themselves).\n--- base ---\n{base_skeleton}\n--- \
-             working ---\n{work_skeleton}"
+            "the MCP consumer index declares entries behind control flow {hidden:?} — a \
+             resource advertised in the source but withheld at runtime is a surface that \
+             cannot be reviewed. Conditionality belongs in WHICH extension a host composes, \
+             not in a branch around the entries.\n--- working ---\n{work_skeleton}"
         ));
     }
 
@@ -706,7 +740,19 @@ pub fn check_resource_list(
         ));
         return;
     }
-    for (base_entry, work_entry) in carried_base.iter().zip(carried_work.iter()) {
+    // Matched by URI, not by position. A resource that needs a reader the leaf declines to
+    // link is registered by a host through an Extension, and an extension APPENDS — so base
+    // order cannot survive the split, and demanding it would be demanding the split back. A
+    // client addresses a resource by its URI; the WORDING at that URI is what it reads, and
+    // that is still compared byte-for-byte below.
+    let by_uri: BTreeMap<&str, &ResourceEntry> = carried_work
+        .iter()
+        .map(|entry| (entry.uri.as_str(), *entry))
+        .collect();
+    for base_entry in &carried_base {
+        let Some(work_entry) = by_uri.get(base_entry.uri.as_str()) else {
+            continue;
+        };
         if base_entry != work_entry {
             report.problem(format!(
                 "the MCP consumer index resource list was reordered or reworded at \
@@ -921,15 +967,11 @@ pub fn llms_sections(terms: &[Term]) -> Vec<Section> {
 
 pub const PRIMER_HEADING: &str = "GMN-1 emission primer";
 
-fn resources_result(&self) -> Value {
-    let mut resources = vec![
+fn builtin_resource_descriptors() -> Vec<Value> {
+    vec![
         resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),
         resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),
-    ];
-    if self.mode.includes_dev_tools() {
-        resources.push(resource("gmeow://ontology/constitution", "constitution", "The Constitution.", "text/markdown"));
-    }
-    json!({ "resources": resources })
+    ]
 }
 "#;
 
@@ -1022,7 +1064,8 @@ fn resources_result(&self) -> Value {
     }
 
     fn resources_body(text: &str) -> String {
-        extract_item(text, ItemRef::Function("resources_result")).expect("the fn is found")
+        extract_item(text, ItemRef::Function("builtin_resource_descriptors"))
+            .expect("the fn is found")
     }
 
     #[test]
@@ -1030,11 +1073,7 @@ fn resources_result(&self) -> Value {
         let entries = resource_entries(&resources_body(FIXTURE));
         assert_eq!(
             entries.iter().map(|e| e.uri.as_str()).collect::<Vec<_>>(),
-            vec![
-                "gmeow://ontology/llms.txt",
-                "gmeow://ontology/okf-index",
-                "gmeow://ontology/constitution",
-            ]
+            vec!["gmeow://ontology/llms.txt", "gmeow://ontology/okf-index",]
         );
     }
 
@@ -1213,15 +1252,20 @@ fn resources_result(&self) -> Value {
         );
     }
 
+    /// Reordering does NOT red, but REWORDING at a URI does.
+    ///
+    /// An Extension appends, so a resource registered by a host always lands after the
+    /// builtins — base order cannot survive the split and demanding it would demand the split
+    /// back. A client addresses a resource by URI, so the URI's WORDING is what it reads, and
+    /// that stays byte-exact.
     #[test]
-    fn a_reordered_resource_list_reds() {
-        let reordered = FIXTURE
-            .replace(
-                r#"        resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),
+    fn a_reordered_list_passes_but_a_reworded_entry_reds() {
+        let reordered = FIXTURE.replace(
+            r#"        resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),
         resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),"#,
-                r#"        resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),
+            r#"        resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),
         resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),"#,
-            );
+        );
         let report = run(|r| {
             check_resource_list(
                 &resources_body(FIXTURE),
@@ -1230,7 +1274,18 @@ fn resources_result(&self) -> Value {
                 r,
             )
         });
-        assert!(!report.is_clean(), "a reordered list must red");
+        assert!(report.is_clean(), "a reordered list must pass: {report}");
+
+        let reworded = FIXTURE.replace("\"Standard index.\"", "\"The standard index.\"");
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &resources_body(&reworded),
+                &surfaces(),
+                r,
+            )
+        });
+        assert!(!report.is_clean(), "a reworded entry must red");
         assert!(
             report.to_string().contains("reordered or reworded"),
             "{report}"
@@ -1277,20 +1332,23 @@ fn resources_result(&self) -> Value {
     /// The list may grow, but the control flow AROUND it may not: a mode guard that
     /// changed would move which consumers see which resources.
     #[test]
-    fn a_changed_mode_guard_reds_the_structure() {
-        let changed = FIXTURE.replace(
-            "if self.mode.includes_dev_tools() {",
-            "if self.mode.includes_consumer_tools() {",
+    fn declaring_an_entry_behind_control_flow_reds_the_structure() {
+        let guarded = FIXTURE.replace(
+            "    vec![\n",
+            "    if !self.mode.includes_dev_tools() { return vec![]; }\n    vec![\n",
         );
         let report = run(|r| {
             check_resource_list(
                 &resources_body(FIXTURE),
-                &resources_body(&changed),
+                &resources_body(&guarded),
                 &surfaces(),
                 r,
             )
         });
-        assert!(!report.is_clean(), "a changed mode guard must red");
-        assert!(report.to_string().contains("STRUCTURE moved"), "{report}");
+        assert!(
+            !report.is_clean(),
+            "an entry withheld at runtime must red the structure clause"
+        );
+        assert!(report.to_string().contains("control flow"), "{report}");
     }
 }

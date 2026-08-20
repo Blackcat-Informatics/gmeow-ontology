@@ -2760,9 +2760,25 @@ gmeow:gdsCons a logic:Formula ;
 gmeow:gdsAtom a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS document segmented relational atom"@x-gmeow-english ;
-    skos:definition "The atom under gmeow:gdsCons's existential: the guarded subject stands in gmeow:gtsSegment to the quantified value v."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox ; logic:relation gmeow:gtsSegment ;
+    skos:definition "The disjunction under gmeow:gdsCons's existential: the document and the quantified segment are linked, in WHICHEVER direction the link is asserted. gmeow:gtsSegment and gmeow:gtsSegmentOf are owl:inverseOf, so the two operands say the same thing about the reasoned graph; naming only one of them would make the constraint an assertion about authoring style rather than about content, and would red an example that models the pair from the segment side."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:or gmeow:gdsAtomForward , gmeow:gdsAtomInverse .
+
+gmeow:gdsAtomForward a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented atom — document to segment"@x-gmeow-english ;
+    skos:definition "The document names the segment: the guarded subject stands in gmeow:gtsSegment to the quantified value v."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:gtsSegment ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:gdsAtomInverse a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    rdfs:label "GTS document segmented atom — segment to document"@x-gmeow-english ;
+    skos:definition "The segment names the document: the quantified value v stands in gmeow:gtsSegmentOf to the guarded subject, which is the same claim as its inverse operand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:relation gmeow:gtsSegmentOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 
 gmeow:GtsSegmentHeadedConstraint
     a logic:Constraint ;
