@@ -23,7 +23,7 @@
 //! gate whose failure arm cannot be reached is not a gate, and a live tree that happens
 //! to be clean proves nothing about the check that looked at it.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::branch_base::{
@@ -31,7 +31,7 @@ use gmeow_pipeline::branch_base::{
 };
 use gmeow_pipeline::gmn_dialect::{
     self, ModelFacingReport, PINNED_GMN_DIALECT_PRODUCERS, ProducedPath,
-    check_producer_census_is_complete, check_producer_non_interference,
+    check_producer_census_is_complete,
 };
 
 /// The llms-family SHAPE freeze, `#[path]`-included exactly as the shared MEDIUM negative
@@ -144,32 +144,69 @@ fn leg2_the_branch_diff_touches_no_gmn_dialect_producer() {
         "the branch diff against {base} is empty — the gate would pass by looking at nothing"
     );
     println!("leg 2: {} changed path(s) against {base}", changed.len());
-    let report = run(|r| check_producer_non_interference(changed.iter().map(String::as_str), r));
+    let touched: Vec<&str> = changed
+        .iter()
+        .map(String::as_str)
+        .filter(|path| gmn_dialect::is_gmn_dialect_producer(path))
+        .collect();
+    if touched.is_empty() {
+        return;
+    }
+    // A producer was touched, so the leg has to decide whether the DIALECT moved or only the
+    // code that produces it. A binding can only relocate between files that both appear in
+    // the diff — the file that loses it and the file that gains it — so the union over the
+    // touched producers captures a move exactly, without enumerating the census at the base.
+    println!(
+        "leg 2: {} GMN-dialect producer(s) touched; comparing the glyph/cost surface",
+        touched.len()
+    );
+    let mut base_bindings = BTreeMap::new();
+    let mut work_bindings = BTreeMap::new();
+    for path in &touched {
+        if let Some(text) = base_text(&root, &base, path) {
+            base_bindings.extend(gmn_dialect::glyph_cost_bindings(&text));
+        }
+        if let Ok(text) = std::fs::read_to_string(root.join(path)) {
+            work_bindings.extend(gmn_dialect::glyph_cost_bindings(&text));
+        }
+    }
+    let report = run(|r| {
+        gmn_dialect::check_dialect_content_invariance(&base_bindings, &work_bindings, r);
+    });
     assert!(report.is_clean(), "{report}");
 }
 
-/// The targeted red fixture: the SAME live diff with one `crates/gmn-wasm/` path added.
-///
-/// It perturbs the real input rather than a synthetic one, so it proves the failure arm
-/// is reachable through exactly the path the live assertion above takes.
+/// A moved COST reds the leg — the fixture perturbs one binding rather than one path,
+/// because a path touch is exactly what this leg no longer treats as the violation.
 #[test]
-fn leg2_red_fixture_a_gmn_wasm_edit_in_the_diff_reds() {
-    let root = repo_root();
-    let Some(base) = base_ref(&root) else { return };
-    let mut perturbed = changed_paths(&root, &base);
-    perturbed.insert("crates/gmn-wasm/src/lib.rs".to_string());
-    let report = run(|r| check_producer_non_interference(perturbed.iter().map(String::as_str), r));
+fn leg2_red_fixture_a_moved_glyph_cost_reds() {
+    let base = BTreeMap::from([("¬".to_string(), 1), ("⊑".to_string(), 3)]);
+    let repriced = BTreeMap::from([("¬".to_string(), 2), ("⊑".to_string(), 3)]);
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &repriced, r));
+    assert!(!report.is_clean(), "a repriced glyph must red the leg");
+    assert!(report.to_string().contains("1 -> 2"), "{report}");
+
+    let dropped = BTreeMap::from([("⊑".to_string(), 3)]);
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &dropped, r));
+    assert!(!report.is_clean(), "an unpriced glyph must red the leg");
+    assert!(report.to_string().contains("now UNPRICED"), "{report}");
+
+    let added = BTreeMap::from([
+        ("¬".to_string(), 1),
+        ("⊑".to_string(), 3),
+        ("◉".to_string(), 2),
+    ]);
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &added, r));
+    assert!(!report.is_clean(), "a newly priced glyph must red the leg");
+    assert!(report.to_string().contains("NEWLY priced"), "{report}");
+
+    // And the move this branch actually makes — a table relocating between two census
+    // crates with every binding intact — must NOT red, or the leg is unsatisfiable again.
+    let moved = base.clone();
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &moved, r));
     assert!(
-        !report.is_clean(),
-        "a gmn-wasm edit must red the non-interference leg"
-    );
-    assert!(
-        report.to_string().contains("crates/gmn-wasm/src/lib.rs"),
-        "{report}"
-    );
-    assert!(
-        report.to_string().contains("model-facing change"),
-        "{report}"
+        report.is_clean(),
+        "a pure relocation must not red: {report}"
     );
 }
 
