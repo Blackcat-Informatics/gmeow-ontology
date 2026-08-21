@@ -5266,7 +5266,7 @@ impl McpServer {
     /// package from nowhere, and saying so in the type system is what keeps that true.
     #[cfg(feature = "reasoning")]
     fn claim_store(&self) -> gmeow_errors::Result<Arc<dyn ClaimStore>> {
-        storage().claim_store(&self.store_medium()?)
+        storage().claim_store(self.view.gts_bytes())
     }
 
     /// The medium a runtime claim store is PRIMED with: the [`MEMORY_HOT_DICTIONARY`] bytes the
@@ -16532,13 +16532,9 @@ mod browser_storage_tests {
     fn the_browser_backend_shares_one_store_across_calls() {
         let backend = InMemoryStorage::new();
         // The browser backend keeps claims as live values, not as GTS segments, so no codec
-        // catalog applies to it — it is the one store a medium says nothing about.
-        let medium = crate::StoreMedium {
-            dictionary: crate::MEMORY_HOT_DICTIONARY.to_string(),
-            bytes: Vec::new(),
-        };
+        // catalog applies to it — it is the one store a snapshot says nothing about.
         backend
-            .claim_store(&medium)
+            .claim_store(&[])
             .expect("the browser backend always has a claim store")
             .store_claim(
                 "persisted across calls",
@@ -16551,7 +16547,7 @@ mod browser_storage_tests {
             .expect("stores");
 
         let seen = backend
-            .claim_store(&medium)
+            .claim_store(&[])
             .expect("the browser backend always has a claim store")
             .claims()
             .expect("reads");

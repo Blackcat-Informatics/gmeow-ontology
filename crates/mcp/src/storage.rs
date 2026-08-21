@@ -59,7 +59,6 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
-use gmeow_gts_profile::StoreMedium;
 use purrdf::gts::examples::agent_memory::{
     Claim, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions, ToolCallRecord,
 };
@@ -233,7 +232,7 @@ pub trait Storage: Send + Sync {
     ///
     /// A backend that cannot resolve or open its package (natively: neither `HOME` nor
     /// `USERPROFILE` set with `GMEOW_MEMORY_PATH` empty).
-    fn claim_store(&self, medium: &StoreMedium) -> Result<Arc<dyn ClaimStore>>;
+    fn claim_store(&self, snapshot: &[u8]) -> Result<Arc<dyn ClaimStore>>;
 
     /// The append-only conjecture library.
     ///
@@ -848,7 +847,13 @@ mod native {
             "1970-01-01T00:00:00Z".to_owned()
         }
 
-        fn claim_store(&self, medium: &StoreMedium) -> Result<Arc<dyn ClaimStore>> {
+        fn claim_store(&self, snapshot: &[u8]) -> Result<Arc<dyn ClaimStore>> {
+            // Resolved HERE rather than by the caller: a backend that primes nothing must not
+            // pay for a dictionary lookup it will ignore, and a deployment whose snapshot pins
+            // no store dictionary must still be able to dispatch every tool that never touches
+            // a primed store.
+            let medium = crate::store_medium(snapshot, crate::MEMORY_HOT_DICTIONARY)?;
+            let medium = &medium;
             let path = resolve_path("GMEOW_MEMORY_PATH", "memory.gts")?;
             ensure_parent(&path)?;
             // A segment declares ONE codec catalog, so a store whose tail predates this medium
@@ -1082,7 +1087,7 @@ impl Storage for InMemoryStorage {
         self.claims.tick()
     }
 
-    fn claim_store(&self, _medium: &StoreMedium) -> Result<Arc<dyn ClaimStore>> {
+    fn claim_store(&self, _snapshot: &[u8]) -> Result<Arc<dyn ClaimStore>> {
         Ok(Arc::clone(&self.claims) as Arc<dyn ClaimStore>)
     }
 
