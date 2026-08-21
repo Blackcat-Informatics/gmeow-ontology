@@ -16038,6 +16038,11 @@ pub fn store_medium(
     })
 }
 
+/// NATIVE ONLY: compaction rewrites a store IN PLACE through an atomic replace, and both
+/// halves of that — the append-only segment library and the temp file the replace swaps
+/// through — are filesystem doors this crate deliberately does not carry into the browser
+/// image. A wasm consumer holds its store as live values, so there is nothing to compact.
+#[cfg(all(not(target_arch = "wasm32"), feature = "reasoning"))]
 /// lane.
 ///
 /// A long-lived pack accumulates one segment boundary per medium change and one frame
