@@ -17,6 +17,7 @@
 
 import wasmInit, {
   deferred_segment as deferredSegmentJson,
+  deferred_segment_for as deferredSegmentForJson,
   deferred_tools as deferredToolsJson,
   init,
   mcp,
@@ -68,6 +69,14 @@ export function deferredTools() {
 
 export function deferredSegment() {
   return deferredSegmentJson();
+}
+
+/**
+ * The segment that serves `tool` — the field a host routes a deferral on. More than one tier
+ * sits below core, so a single name cannot answer for all of them.
+ */
+export function deferredSegmentFor(tool) {
+  return deferredSegmentForJson(tool);
 }
 
 // The stable diagnostic code the engine raises for a tool whose segment is not resident.

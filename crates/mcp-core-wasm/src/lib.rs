@@ -119,6 +119,18 @@ pub fn deferred_segment() -> String {
     gmeow_mcp::REASONING_SEGMENT.to_string()
 }
 
+/// The segment that serves `tool`, as it appears in the `mcp.segment-not-loaded` signal.
+///
+/// There is more than one tier below core now: the whole-bundle CHASE is its own, because a
+/// 32-bit host cannot finish it for any input. A host routing a deferral must key off the
+/// tool it asked for, not off a single name — [`deferred_segment`] answers for the reasoning
+/// tier alone and cannot speak for the chase.
+#[wasm_bindgen]
+#[must_use]
+pub fn deferred_segment_for(tool: &str) -> String {
+    gmeow_mcp::SegmentSet::segment_of(tool).to_string()
+}
+
 /// Whether a snapshot has been loaded and the engine is ready to take frames.
 ///
 /// `false` before the first successful [`init`] (and after an [`init`] that failed —

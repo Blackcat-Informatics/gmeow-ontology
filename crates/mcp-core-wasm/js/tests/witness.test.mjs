@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 import {
   SEGMENT_NOT_LOADED,
   deferredSegment,
+  deferredSegmentFor,
   deferredTools,
   init,
   initTiered,
@@ -40,6 +41,7 @@ const CORE_REQUEST =
   "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>> .\\n\"," +
   '"from":"nt","to":"turtle"}}}';
 
+const DEFERRED_TOOL = "coherence_certificate";
 const DEFERRED_REQUEST =
   '{"jsonrpc":"2.0","id":2,"method":"tools/call",' +
   '"params":{"name":"coherence_certificate","arguments":{}}}';
@@ -95,7 +97,7 @@ test("wasm deferral signal is byte-identical to the native witness attestation",
   const deferral = segmentDeferral(frame);
   assert.notEqual(deferral, null, "the frame is recognised as a deferral, structurally");
   assert.equal(deferral.tool, "coherence_certificate");
-  assert.equal(deferral.segment, deferredSegment());
+  assert.equal(deferral.segment, deferredSegmentFor(deferral.tool));
   assert.deepEqual(deferral.segmentTools, deferredTools());
   assert.equal(JSON.parse(JSON.parse(frame).result.content[0].text).code, SEGMENT_NOT_LOADED);
 });
@@ -120,7 +122,7 @@ test("tieredMcp demand-loads the reasoning segment and replays the identical fra
     onSegmentLoad: (event) => loads.push(event.phase),
   });
 
-  assert.deepEqual(loads, ["loading", deferredSegment(), "loaded"], "the segment load is visible");
+  assert.deepEqual(loads, ["loading", deferredSegmentFor(DEFERRED_TOOL), "loaded"], "the segment load is visible");
   assert.equal(segmentDeferral(answer), null, "the re-dispatched frame produced a real answer");
   const result = JSON.parse(answer).result;
   assert.equal(result.isError, false, `the replay answered for real: ${answer}`);

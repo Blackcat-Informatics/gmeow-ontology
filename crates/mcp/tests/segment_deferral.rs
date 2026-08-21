@@ -30,7 +30,7 @@
 
 use std::path::PathBuf;
 
-use gmeow_mcp::{McpServer, REASONING_SEGMENT, REASONING_SEGMENT_TOOLS, SegmentSet};
+use gmeow_mcp::{CHASE_SEGMENT_TOOLS, McpServer, REASONING_SEGMENT_TOOLS, SegmentSet};
 use serde_json::Value;
 
 /// A `tools/call` frame for one of the reasoning-segment tools.
@@ -160,7 +160,8 @@ fn a_segment_tool_against_a_core_deployment_returns_the_typed_routing_signal() {
         "the signal names the tool the caller asked for: {frame}"
     );
     assert_eq!(
-        payload["segment"], REASONING_SEGMENT,
+        payload["segment"],
+        SegmentSet::segment_of(payload["tool"].as_str().expect("the signal names its tool")),
         "the signal names the segment that SERVES that tool, so the host knows what to \
          load rather than guessing: {frame}"
     );
@@ -171,8 +172,14 @@ fn a_segment_tool_against_a_core_deployment_returns_the_typed_routing_signal() {
         .map(|v| v.as_str().expect("segment tool names are strings"))
         .collect();
     assert_eq!(
-        advertised, REASONING_SEGMENT_TOOLS,
-        "the signal's segment inventory is the engine's own declaration, not a copy: {frame}"
+        advertised,
+        SegmentSet::tools_of(
+            payload["segment"]
+                .as_str()
+                .expect("the signal names its segment")
+        ),
+        "the signal's segment inventory is the engine's own declaration for the segment it \
+         NAMED, not a copy and not another tier's list: {frame}"
     );
     assert_eq!(
         payload["ok"],
@@ -202,7 +209,8 @@ fn reason_graph_defers_from_core_and_replays_losslessly_against_the_full_engine(
         "the signal names the tool asked for: {deferred}"
     );
     assert_eq!(
-        payload["segment"], REASONING_SEGMENT,
+        payload["segment"],
+        SegmentSet::segment_of(payload["tool"].as_str().expect("the signal names its tool")),
         "reason_graph is served by the reasoning segment: {deferred}"
     );
 
@@ -336,8 +344,10 @@ fn a_core_deployment_advertises_the_whole_surface_and_the_whole_theory() {
     for tool in &advertised {
         assert_eq!(
             SegmentSet::core().serves(tool),
-            !REASONING_SEGMENT_TOOLS.contains(&tool.as_str()),
-            "`{tool}`: SegmentSet::core().serves() must agree with the segment inventory"
+            !REASONING_SEGMENT_TOOLS.contains(&tool.as_str())
+                && !CHASE_SEGMENT_TOOLS.contains(&tool.as_str()),
+            "`{tool}`: SegmentSet::core().serves() must agree with the segment inventory — \
+             core serves what NEITHER non-core tier claims"
         );
     }
 

@@ -255,6 +255,26 @@ pub const REASONING_SEGMENT: &str = "reasoning";
 /// other [`CORE_SEGMENT_TOOL_COUNT`] back to core, exactly as core defers those forward.
 /// Without this identifier the reasoning image would have had to be a superset — which is
 /// what made the old "heavy segment" duplicate the whole core image on disk.
+/// The CHASE segment: the whole-bundle materialization tools.
+///
+/// A tier of its own because it is bounded by the host's ADDRESS SPACE rather than by any
+/// budget the caller sets. Folding the governed bundle takes ~3.2 GiB and chasing it needs
+/// some 5.4 GiB beyond that — measured, not estimated — against wasm32's hard 4 GiB ceiling,
+/// and a supplied graph does not help because it is chased in UNION with the bundle. So a
+/// 32-bit host cannot finish these calls for ANY input, and saying so through the deferral
+/// signal is the difference between a tier a caller routes around and a trap they can only
+/// report: an allocation failure aborts, and an abort reaches the browser as
+/// `RuntimeError: unreachable`, with no message at all.
+pub const CHASE_SEGMENT: &str = "chase";
+
+/// The tools the [`CHASE_SEGMENT`] serves — every one that materializes the bundle's closure.
+pub const CHASE_SEGMENT_TOOLS: &[&str] = &[
+    "verify_graph",
+    "reason_graph",
+    "explain_quad",
+    "coherence_certificate",
+];
+
 pub const CORE_SEGMENT: &str = "core";
 
 /// The tools the [`REASONING_SEGMENT`] serves, in advertised order.
@@ -310,10 +330,9 @@ pub const CORE_SEGMENT: &str = "core";
 /// it and [`builtin_tool_handlers`] is proved total against it, so a tool cannot be
 /// deferred without appearing here and cannot appear here without being deferred.
 pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
-    "verify_graph",
-    "reason_graph",
-    "explain_quad",
-    "coherence_certificate",
+    // The whole-bundle chase tools are NOT here: they are their own tier
+    // ([`CHASE_SEGMENT_TOOLS`]), because a 32-bit host cannot finish them for any input. The
+    // two lists partition the non-core surface, so `tools_of` can answer for either.
     "store_claim",
     "conjecture_test",
     "store_conjecture",
@@ -383,7 +402,18 @@ pub const REASONING_SEGMENT_TOOL_COUNT: usize = REASONING_SEGMENT_TOOLS.len();
 /// How many tools the always-resident core image serves: the surface minus the reasoning
 /// segment. The two segments PARTITION the surface, so this is a subtraction and not a
 /// second list.
-pub const CORE_SEGMENT_TOOL_COUNT: usize = TOOL_COUNT - REASONING_SEGMENT_TOOL_COUNT;
+pub const CORE_SEGMENT_TOOL_COUNT: usize =
+    TOOL_COUNT - REASONING_SEGMENT_TOOL_COUNT - CHASE_SEGMENT_TOOL_COUNT;
+
+/// How many tools the [`CHASE_SEGMENT`] serves.
+pub const CHASE_SEGMENT_TOOL_COUNT: usize = CHASE_SEGMENT_TOOLS.len();
+
+/// How many tools the core image DEFERS — across both non-core tiers.
+///
+/// The quantity a core deployment's prose is about: what it advertises but does not answer
+/// here. It says nothing about which tier answers, which is why the two tier counts are
+/// separate constants rather than this one split at the point of use.
+pub const DEFERRED_TOOL_COUNT: usize = REASONING_SEGMENT_TOOL_COUNT + CHASE_SEGMENT_TOOL_COUNT;
 
 /// Which engine segments a deployment serves IN-PROCESS.
 ///
@@ -424,6 +454,9 @@ pub struct SegmentSet {
     /// Can only ever be `true` on a build with the `reasoning` feature — the constructors
     /// below are the only way to set it, and each folds in `cfg!(feature = "reasoning")`.
     pub reasoning: bool,
+    /// Whether the whole-bundle chase runs HERE. False on a host whose address space cannot
+    /// hold it; the tools stay advertised and governed, and defer.
+    pub chase: bool,
 }
 
 impl SegmentSet {
@@ -435,6 +468,8 @@ impl SegmentSet {
         Self {
             core: cfg!(feature = "core"),
             reasoning: cfg!(feature = "reasoning"),
+            // A 32-bit host cannot finish the chase for any input, so it does not claim to.
+            chase: cfg!(feature = "reasoning") && !cfg!(target_arch = "wasm32"),
         }
     }
 
@@ -448,6 +483,7 @@ impl SegmentSet {
         Self {
             core: cfg!(feature = "core"),
             reasoning: false,
+            chase: false,
         }
     }
 
@@ -462,6 +498,7 @@ impl SegmentSet {
         Self {
             core: false,
             reasoning: cfg!(feature = "reasoning"),
+            chase: cfg!(feature = "reasoning") && !cfg!(target_arch = "wasm32"),
         }
     }
 
@@ -470,7 +507,9 @@ impl SegmentSet {
     /// answers for all [`TOOL_COUNT`] without a fallthrough.
     #[must_use]
     pub fn serves(self, tool: &str) -> bool {
-        if REASONING_SEGMENT_TOOLS.contains(&tool) {
+        if CHASE_SEGMENT_TOOLS.contains(&tool) {
+            self.chase
+        } else if REASONING_SEGMENT_TOOLS.contains(&tool) {
             self.reasoning
         } else {
             self.core
@@ -479,8 +518,22 @@ impl SegmentSet {
 
     /// The segment that serves `tool` — the wire identifier a host fetches an image by.
     #[must_use]
+    /// The tools a NAMED segment serves — the inverse of [`SegmentSet::segment_of`].
+    ///
+    /// Total over the partition: every tool belongs to exactly one segment, so a name that is
+    /// not a segment answers with nothing rather than with a guess.
+    pub fn tools_of(segment: &str) -> &'static [&'static str] {
+        match segment {
+            CHASE_SEGMENT => CHASE_SEGMENT_TOOLS,
+            REASONING_SEGMENT => REASONING_SEGMENT_TOOLS,
+            _ => &[],
+        }
+    }
+
     pub fn segment_of(tool: &str) -> &'static str {
-        if REASONING_SEGMENT_TOOLS.contains(&tool) {
+        if CHASE_SEGMENT_TOOLS.contains(&tool) {
+            CHASE_SEGMENT
+        } else if REASONING_SEGMENT_TOOLS.contains(&tool) {
             REASONING_SEGMENT
         } else {
             CORE_SEGMENT
@@ -3325,9 +3378,9 @@ macro_rules! reasoning_tool {
     ($segments:expr, $name:literal, $method:ident) => {{
         let name: &'static str = $name;
         debug_assert!(
-            REASONING_SEGMENT_TOOLS.contains(&name),
-            "`{name}` is bound as a reasoning-segment tool but is absent from \
-             REASONING_SEGMENT_TOOLS, so `SegmentSet::serves` would route it as core"
+            REASONING_SEGMENT_TOOLS.contains(&name) || CHASE_SEGMENT_TOOLS.contains(&name),
+            "`{name}` is bound below core but is absent from BOTH non-core segment lists, so \
+             `SegmentSet::serves` would route it as core"
         );
         #[cfg(feature = "reasoning")]
         // ONE routing predicate, shared with every host that asks the same question
@@ -3343,7 +3396,7 @@ macro_rules! reasoning_tool {
             (
                 name,
                 Box::new(move |_: &McpServer, _: &Value| {
-                    Err(segment_not_loaded(name, REASONING_SEGMENT))
+                    Err(segment_not_loaded(name, SegmentSet::segment_of(name)))
                 }) as ToolHandler,
             )
         };
@@ -3353,7 +3406,7 @@ macro_rules! reasoning_tool {
             (
                 name,
                 Box::new(move |_: &McpServer, _: &Value| {
-                    Err(segment_not_loaded(name, REASONING_SEGMENT))
+                    Err(segment_not_loaded(name, SegmentSet::segment_of(name)))
                 }) as ToolHandler,
             )
         };
@@ -3638,7 +3691,10 @@ impl McpServer {
                         "code": crate::error::SegmentNotLoaded::CODE,
                         "tool": deferred.tool,
                         "segment": deferred.segment,
-                        "segment_tools": REASONING_SEGMENT_TOOLS,
+                        // The tools of the segment NAMED, not every tool this image defers:
+                        // a host loads one module and needs to know what that module answers
+                        // for. Two tiers sit below core, so the two lists differ.
+                        "segment_tools": SegmentSet::tools_of(&deferred.segment),
                     })
                     .to_string(),
                     true,
@@ -8844,6 +8900,8 @@ mod tests {
             READ_TOOL_COUNT,
             WRITE_TOOL_COUNT,
             REASONING_SEGMENT_TOOL_COUNT,
+            CHASE_SEGMENT_TOOL_COUNT,
+            DEFERRED_TOOL_COUNT,
             CORE_SEGMENT_TOOL_COUNT,
         ];
         let here = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

@@ -517,89 +517,52 @@ function firstDerivedAxiom(judgmentNQuads) {
   );
 }
 
-test("a_proof_carrying_answer_records_the_premises_the_engine_cited", async () => {
-  // The strongest form the annotation takes: the antecedents are the premise QUADS the
-  // engine's own faithfulness-checked proof skeleton names, not a reference to the run.
-  //
-  // The target is derived from the engine, in two steps and by construction: the governed
-  // bundle chase reports what it derived, and the first of those is explained. `max_steps`
-  // is held to the smallest run that derives anything, because the assertion is about the
-  // SHAPE of a proof-carrying answer and a larger chase would only cost time.
-  const verdict = await callTool("verify_graph", { data: "", format: "turtle", max_steps: 2 });
-  const target = firstDerivedAxiom(verdict.judgment_nquads);
-  assert.ok(target !== null, "the governed bundle chase must derive an axiom to explain");
-
-  const args = {
-    subject: target.subject.value,
-    predicate: target.predicate.value,
-    object_value: target.object.value,
-    object_kind: "iri",
-    graph: target.world.value,
-    max_steps: 2,
-  };
-  const session = new ConsoleSession({ id: "t4k", now: (i) => `2026-01-01T00:00:0${i}Z` });
-  const answer = await callTool("explain_quad", args);
-  assert.equal(answer.ok, true, `explain_quad refused its own derived quad: ${answer.error}`);
-  assert.equal(answer.faithful, true, "the engine re-checked every citation");
-  const call = session.record({
-    tool: "explain_quad",
-    schema: "https://example.org/gmeow/console/schema/explain_quad",
-    args,
-    result: answer,
-    ...derivationsFrom(answer),
-  });
-
-  // Every derived statement is a NON-asserted step of the skeleton, and its antecedents are
-  // the steps that skeleton says it rests on — read back against the engine's own array.
-  const bySkeleton = new Map(answer.step_skeleton.map((step) => [step.derivation_id, step]));
-  assert.ok(call.derived.length > 0, "a proof tree with a derived step must record one");
-  for (const statement of call.derived) {
-    for (const antecedent of statement.antecedents) {
-      assert.ok(antecedent.statement !== undefined, "a proof antecedent is a PREMISE STATEMENT");
-      assert.ok(
-        answer.step_skeleton.some(
-          (step) => step.subject_iri === antecedent.statement.subject.iri &&
-            step.predicate_iri === antecedent.statement.predicate.iri,
-        ),
-        "…and every premise is a step the engine returned, never one composed here",
-      );
-    }
-  }
-  const explained = answer.step_skeleton.filter(
-    (step) => Array.isArray(step.source_step_ids) && step.source_step_ids.length > 0,
-  );
-  assert.equal(call.derived.length, explained.length, "one record per step that cites a premise");
-  assert.ok(bySkeleton.size >= 2, "a proof of a derived quad carries the step it rests on");
-
-  // The emitted RDF: the conclusion AND each premise are quoted triples, and the
-  // `gmeow:wasDerivedFrom` edge runs between those two statement nodes — so a reader
-  // recovers the premise itself rather than a name for it.
-  const quads = parseNQuads(session.trajectoryNQuads());
-  const reifiers = new Map(
-    quads.filter((q) => q.predicate === REIFIES).map((q) => [q.subject.value, q.object]),
-  );
-  assert.ok(reifiers.size >= 2, "both the conclusion and its premise are reified");
-  for (const term of reifiers.values()) {
-    assert.equal(term.kind, "triple", "every reifier annotates an RDF-1.2 triple term");
-  }
-  const cited = quads.filter((q) => q.predicate === WAS_DERIVED_FROM);
-  assert.ok(cited.length > 0, "the conclusion names its premise");
-  for (const edge of cited) {
+// The whole-bundle CHASE is a deployment tier this engine does not serve, and the console's
+// job is to surface that as a routable answer rather than a crash.
+//
+// Measured, not assumed: folding the governed bundle takes ~3.2 GiB and chasing it needs some
+// 5.4 GiB beyond that, against wasm32's hard 4 GiB ceiling — and a supplied graph does not
+// help, because it is chased in UNION with the bundle. So no input makes `verify_graph`,
+// `reason_graph`, `explain_quad` or `coherence_certificate` finish in a browser.
+//
+// What the console must NOT do is discover that by allocating until it dies: an allocation
+// failure aborts, and an abort reaches JavaScript as a bare `RuntimeError: unreachable` — no
+// message, no tool name, nothing a host could route on. The engine therefore refuses up front
+// with the same typed deferral signal every other unserved tool returns, naming the `chase`
+// segment that DOES serve it. Deferral is not a reduced surface: the tool stays advertised and
+// governed, and a native host answers the identical frame.
+//
+// The proof-carrying answer itself is the ENGINE's property, and it is asserted where the
+// engine can actually run — `gmeow-mcp`'s own `explain_quad` lane on native.
+test("a_chase_tool_defers_with_a_routable_signal_rather_than_trapping", async () => {
+  for (const [tool, args] of [
+    ["verify_graph", { data: "", format: "turtle", max_steps: 2 }],
+    ["reason_graph", { data: "", format: "turtle", max_steps: 2 }],
+    ["explain_quad", {
+      subject: "https://example.org/a",
+      predicate: "https://example.org/p",
+      object_value: "https://example.org/b",
+      object_kind: "iri",
+      max_steps: 2,
+    }],
+    ["coherence_certificate", {}],
+  ]) {
+    const answer = await callTool(tool, args);
+    assert.equal(answer.ok, false, `${tool} must refuse rather than answer here`);
+    assert.equal(
+      answer.code,
+      "mcp.segment-not-loaded",
+      `${tool} must refuse with the typed deferral signal, not an untyped error: ${answer.error}`,
+    );
     assert.ok(
-      reifiers.has(edge.object.value),
-      `the antecedent ${edge.object.value} is not a reified statement in the trajectory`,
+      answer.error.includes("`chase`"),
+      `${tool} must name the segment that serves it, so a host can route: ${answer.error}`,
+    );
+    assert.ok(
+      answer.error.includes(tool),
+      `${tool} must name the tool the caller asked for: ${answer.error}`,
     );
   }
-  // A premise is reified but NOT asserted: a triple term does not assert, and the session
-  // records that the engine cited the premise rather than claiming it independently.
-  const premise = reifiers.get(cited[0].object.value).value;
-  assert.ok(
-    !quads.some(
-      (q) => q.subject.value === premise[0].value && q.predicate === premise[1].value && q.graph === null &&
-        q.object.kind === premise[2].kind && q.object.value === premise[2].value,
-    ),
-    "a cited premise is reified, never asserted into the session's own graph",
-  );
 });
 
 test("session_records_the_shape_the_native_auditor_discovers", () => {
