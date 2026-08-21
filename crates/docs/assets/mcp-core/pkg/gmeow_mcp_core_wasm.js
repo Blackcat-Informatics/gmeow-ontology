@@ -26,6 +26,61 @@ export function deferred_segment() {
 }
 
 /**
+ * The segment that serves `tool`, as it appears in the `mcp.segment-not-loaded` signal.
+ *
+ * There is more than one tier below core now: the whole-bundle CHASE is its own, because a
+ * 32-bit host cannot finish it for any input. A host routing a deferral must key off the
+ * tool it asked for, not off a single name — [`deferred_segment`] answers for the reasoning
+ * tier alone and cannot speak for the chase.
+ * @param {string} tool
+ * @returns {string}
+ */
+export function deferred_segment_for(tool) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(tool, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.deferred_segment_for(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred2_0 = r0;
+        deferred2_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
+ * The tools a NAMED segment serves — what a host gets by loading that one module.
+ *
+ * Narrower than [`deferred_tools`], which is everything this image defers across every tier.
+ * @param {string} segment
+ * @returns {string}
+ */
+export function deferred_segment_tools(segment) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(segment, wasm.__wbindgen_export2, wasm.__wbindgen_export3);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.deferred_segment_tools(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        deferred2_0 = r0;
+        deferred2_1 = r1;
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_export(deferred2_0, deferred2_1, 1);
+    }
+}
+
+/**
  * The tool names this image DEFERS, as a JSON array of strings.
  *
  * The host reads this ONCE, at load, so it can decide to pre-fetch the reasoning segment

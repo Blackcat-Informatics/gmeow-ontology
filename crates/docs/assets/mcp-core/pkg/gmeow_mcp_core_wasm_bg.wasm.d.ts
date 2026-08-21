@@ -2,6 +2,8 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const deferred_segment: (a: number) => void;
+export const deferred_segment_for: (a: number, b: number, c: number) => void;
+export const deferred_segment_tools: (a: number, b: number, c: number) => void;
 export const deferred_tools: (a: number) => void;
 export const init: (a: number, b: number, c: number) => void;
 export const mcp: (a: number, b: number, c: number) => void;

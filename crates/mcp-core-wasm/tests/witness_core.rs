@@ -19,7 +19,10 @@
 //!   encode). It is byte-for-byte the frame `crates/mcp-wasm`'s witness pins, which is the
 //!   point: a core tool must answer IDENTICALLY in both tiers, so the same attestation
 //!   bytes are expected from the lean image and the full one.
-//! * [`DEFERRED_REQUEST`] is a real `coherence_certificate` call — a reasoning-segment tool
+//! * [`DEFERRED_REQUEST`] is a real `recall` call — a reasoning-segment tool the core image
+//!   defers and the reasoning image ANSWERS, which is what makes the re-dispatch half of the
+//!   witness a round trip rather than a second refusal. (The whole-bundle chase is its own
+//!   tier and no wasm image serves it, so it could not close that loop.)
 //!   against an image that does not link the reasoner. Pinning its response is what makes
 //!   the deferral signal a contract rather than an implementation detail: the host's
 //!   demand-loader parses exactly these bytes.
@@ -46,7 +49,7 @@ const CORE_REQUEST: &str = concat!(
 /// A reasoning-segment frame: input-free, so both halves provably send the same bytes.
 const DEFERRED_REQUEST: &str = concat!(
     r#"{"jsonrpc":"2.0","id":2,"method":"tools/call","#,
-    r#""params":{"name":"coherence_certificate","arguments":{}}}"#,
+    r#""params":{"name":"recall","arguments":{"query":"anything"}}}"#,
 );
 
 fn repo_root() -> PathBuf {
@@ -177,12 +180,14 @@ fn the_lean_core_defers_a_segment_frame_and_matches_the_witness_attestation() {
         "the lean image must route, not refuse: {out}"
     );
     assert_eq!(
-        payload["tool"], "coherence_certificate",
+        payload["tool"], "recall",
         "the signal names the tool asked for: {out}"
     );
     assert_eq!(
         payload["segment"],
-        gmeow_mcp::REASONING_SEGMENT,
+        gmeow_mcp::SegmentSet::segment_of(
+            payload["tool"].as_str().expect("the signal names its tool")
+        ),
         "the signal names the segment to load: {out}"
     );
 

@@ -268,12 +268,7 @@ pub const REASONING_SEGMENT: &str = "reasoning";
 pub const CHASE_SEGMENT: &str = "chase";
 
 /// The tools the [`CHASE_SEGMENT`] serves — every one that materializes the bundle's closure.
-pub const CHASE_SEGMENT_TOOLS: &[&str] = &[
-    "verify_graph",
-    "reason_graph",
-    "explain_quad",
-    "coherence_certificate",
-];
+pub const CHASE_SEGMENT_TOOLS: &[&str] = &["verify_graph"];
 
 pub const CORE_SEGMENT: &str = "core";
 
@@ -330,9 +325,12 @@ pub const CORE_SEGMENT: &str = "core";
 /// it and [`builtin_tool_handlers`] is proved total against it, so a tool cannot be
 /// deferred without appearing here and cannot appear here without being deferred.
 pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
-    // The whole-bundle chase tools are NOT here: they are their own tier
-    // ([`CHASE_SEGMENT_TOOLS`]), because a 32-bit host cannot finish them for any input. The
-    // two lists partition the non-core surface, so `tools_of` can answer for either.
+    // `verify_graph` is NOT here: it is its own tier ([`CHASE_SEGMENT_TOOLS`]), because a
+    // 32-bit host cannot finish it for any input. The two lists partition the non-core
+    // surface, so `tools_of` can answer for either.
+    "reason_graph",
+    "explain_quad",
+    "coherence_certificate",
     "store_claim",
     "conjecture_test",
     "store_conjecture",

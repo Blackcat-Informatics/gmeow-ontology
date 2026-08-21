@@ -21,6 +21,7 @@ import {
   SEGMENT_NOT_LOADED,
   deferredSegment,
   deferredSegmentFor,
+  deferredSegmentTools,
   deferredTools,
   init,
   initTiered,
@@ -41,10 +42,10 @@ const CORE_REQUEST =
   "<<( <http://example.org/s> <http://example.org/p> <http://example.org/o> )>> .\\n\"," +
   '"from":"nt","to":"turtle"}}}';
 
-const DEFERRED_TOOL = "coherence_certificate";
+const DEFERRED_TOOL = "recall";
 const DEFERRED_REQUEST =
   '{"jsonrpc":"2.0","id":2,"method":"tools/call",' +
-  '"params":{"name":"coherence_certificate","arguments":{}}}';
+  '"params":{"name":"recall","arguments":{"query":"anything"}}}';
 
 const TOOLS_LIST = '{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}';
 
@@ -96,9 +97,15 @@ test("wasm deferral signal is byte-identical to the native witness attestation",
 
   const deferral = segmentDeferral(frame);
   assert.notEqual(deferral, null, "the frame is recognised as a deferral, structurally");
-  assert.equal(deferral.tool, "coherence_certificate");
+  assert.equal(deferral.tool, DEFERRED_TOOL);
   assert.equal(deferral.segment, deferredSegmentFor(deferral.tool));
-  assert.deepEqual(deferral.segmentTools, deferredTools());
+  // The signal carries the tools of the segment it NAMED — one tier — while `deferredTools()`
+  // is everything this image defers across both. The first is what a host loading that module
+  // gets; the second is what the image cannot answer at all.
+  assert.deepEqual(deferral.segmentTools, deferredSegmentTools(deferral.segment));
+  for (const tool of deferral.segmentTools) {
+    assert.ok(deferredTools().includes(tool), `${tool} is deferred by this image`);
+  }
   assert.equal(JSON.parse(JSON.parse(frame).result.content[0].text).code, SEGMENT_NOT_LOADED);
 });
 

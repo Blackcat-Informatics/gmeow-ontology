@@ -522,8 +522,9 @@ function firstDerivedAxiom(judgmentNQuads) {
 //
 // Measured, not assumed: folding the governed bundle takes ~3.2 GiB and chasing it needs some
 // 5.4 GiB beyond that, against wasm32's hard 4 GiB ceiling — and a supplied graph does not
-// help, because it is chased in UNION with the bundle. So no input makes `verify_graph`,
-// `reason_graph`, `explain_quad` or `coherence_certificate` finish in a browser.
+// help, because it is chased in UNION with the bundle. So no input makes `verify_graph`
+// finish in a browser. Its reasoning-tier siblings DO finish here and stay where they were:
+// the tier is drawn around what was measured, not around what looked similar.
 //
 // What the console must NOT do is discover that by allocating until it dies: an allocation
 // failure aborts, and an abort reaches JavaScript as a bare `RuntimeError: unreachable` — no
@@ -537,31 +538,28 @@ function firstDerivedAxiom(judgmentNQuads) {
 test("a_chase_tool_defers_with_a_routable_signal_rather_than_trapping", async () => {
   for (const [tool, args] of [
     ["verify_graph", { data: "", format: "turtle", max_steps: 2 }],
-    ["reason_graph", { data: "", format: "turtle", max_steps: 2 }],
-    ["explain_quad", {
-      subject: "https://example.org/a",
-      predicate: "https://example.org/p",
-      object_value: "https://example.org/b",
-      object_kind: "iri",
-      max_steps: 2,
-    }],
-    ["coherence_certificate", {}],
   ]) {
-    const answer = await callTool(tool, args);
-    assert.equal(answer.ok, false, `${tool} must refuse rather than answer here`);
+    const thrown = await callTool(tool, args).then(
+      () => null,
+      (error) => error,
+    );
+    assert.ok(thrown !== null, `${tool} must refuse rather than answer here`);
+    assert.ok(
+      thrown.deferral,
+      `${tool} must refuse with the ROUTING signal, not an untyped error: ${thrown.message}`,
+    );
+    assert.equal(thrown.deferral.tool, tool, "the signal names the tool the caller asked for");
     assert.equal(
-      answer.code,
-      "mcp.segment-not-loaded",
-      `${tool} must refuse with the typed deferral signal, not an untyped error: ${answer.error}`,
+      thrown.deferral.segment,
+      "chase",
+      "the signal names the segment that serves it, so a host can route",
     );
-    assert.ok(
-      answer.error.includes("`chase`"),
-      `${tool} must name the segment that serves it, so a host can route: ${answer.error}`,
+    assert.deepEqual(
+      thrown.deferral.segmentTools,
+      [tool],
+      "the signal carries the tools of the segment it named",
     );
-    assert.ok(
-      answer.error.includes(tool),
-      `${tool} must name the tool the caller asked for: ${answer.error}`,
-    );
+
   }
 });
 

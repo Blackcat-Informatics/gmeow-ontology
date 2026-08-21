@@ -28,7 +28,12 @@
 // offers is read back out of the shipped ontology at run time.
 
 import { blake3Hex } from "./blake3.mjs";
-import { initTiered, ready as mcpReady, tieredMcp } from "./mcp-core/index.mjs";
+import {
+  SEGMENT_NOT_LOADED,
+  initTiered,
+  ready as mcpReady,
+  tieredMcp,
+} from "./mcp-core/index.mjs";
 
 // ── Host configuration ──────────────────────────────────────────────────────
 // Two seams, both with a browser default: where the sibling engine assets live, and
@@ -186,8 +191,20 @@ export function ensureMcp() {
   return _mcpReady;
 }
 
-/** The `loadSegment` callback: fetch and boot a demand-loaded segment by wire name. */
+/**
+ * The `loadSegment` callback: fetch and boot a demand-loaded segment by wire name.
+ *
+ * The `chase` tier has no browser module ON PURPOSE. Folding the governed bundle takes ~3.2 GiB
+ * and chasing it needs some 5.4 GiB beyond that, against wasm32's hard 4 GiB ceiling — measured,
+ * and true for every input, because a supplied graph is chased in UNION with the bundle. So
+ * there is nothing to fetch, and pretending otherwise would trade a routable answer for a
+ * download that ends in an allocation abort. The deferral is returned to the caller instead:
+ * the tool stays advertised and governed, and a native host answers the identical frame.
+ */
 async function loadSegment(segment) {
+  if (segment === "chase") {
+    return null;
+  }
   if (segment !== "reasoning") {
     throw new Error(`unknown engine segment \`${segment}\` — nothing to load`);
   }
@@ -265,7 +282,20 @@ export async function callTool(name, args, onSegmentLoad) {
   if (parsed.result?.isError === true) {
     // A failing envelope's own message, whichever shape it carried it in: the `error`
     // field of a JSON payload, or the text itself when the engine reported in prose.
-    throw new Error(payload.error ?? payload.text ?? `${name} failed`);
+    const failure = new Error(payload.error ?? payload.text ?? `${name} failed`);
+    // A DEFERRAL is a routing instruction wearing an error envelope: the tool is advertised
+    // and governed, and a host with the right tier answers the identical frame. Carrying its
+    // fields on the thrown error lets a caller route on them instead of parsing prose — a
+    // browser cannot serve the whole-bundle chase at all, and "go elsewhere" is a different
+    // fact from "this failed".
+    if (payload.code === SEGMENT_NOT_LOADED) {
+      failure.deferral = {
+        tool: payload.tool,
+        segment: payload.segment,
+        segmentTools: payload.segment_tools,
+      };
+    }
+    throw failure;
   }
   return payload;
 }

@@ -98,7 +98,13 @@ pub fn version() -> String {
 /// second copy in JS would be the exact drift this crate must not introduce.
 #[wasm_bindgen]
 pub fn deferred_tools() -> String {
-    let names: Vec<&str> = gmeow_mcp::REASONING_SEGMENT_TOOLS.to_vec();
+    // BOTH non-core tiers: this image defers the reasoning tools and the whole-bundle chase
+    // alike, and a host asking "what can't you answer?" needs the union, not one tier.
+    let names: Vec<&str> = gmeow_mcp::REASONING_SEGMENT_TOOLS
+        .iter()
+        .chain(gmeow_mcp::CHASE_SEGMENT_TOOLS.iter())
+        .copied()
+        .collect();
     // A fixed-shape array of plain identifiers; formatting it directly keeps this shim
     // free of a JSON dependency it would otherwise need for one literal.
     let body = names
@@ -129,6 +135,20 @@ pub fn deferred_segment() -> String {
 #[must_use]
 pub fn deferred_segment_for(tool: &str) -> String {
     gmeow_mcp::SegmentSet::segment_of(tool).to_string()
+}
+
+/// The tools a NAMED segment serves — what a host gets by loading that one module.
+///
+/// Narrower than [`deferred_tools`], which is everything this image defers across every tier.
+#[wasm_bindgen]
+#[must_use]
+pub fn deferred_segment_tools(segment: &str) -> String {
+    let body = gmeow_mcp::SegmentSet::tools_of(segment)
+        .iter()
+        .map(|name| format!("\"{name}\""))
+        .collect::<Vec<_>>()
+        .join(",");
+    format!("[{body}]")
 }
 
 /// Whether a snapshot has been loaded and the engine is ready to take frames.

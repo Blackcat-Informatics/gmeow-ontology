@@ -34,8 +34,22 @@ export interface TieredOptions {
 /** The stable diagnostic code the engine raises for a tool whose segment is not resident. */
 export const SEGMENT_NOT_LOADED: "mcp.segment-not-loaded";
 
-/** The segment identifier that serves this image's deferred tools. */
+/** The segment identifier that serves this image's REASONING-tier deferred tools. */
 export function deferredSegment(): string;
+
+/**
+ * The segment that serves `tool` — the field a host routes a deferral on.
+ *
+ * More than one tier sits below core: the whole-bundle chase is its own, because a 32-bit host
+ * cannot finish it for any input. A single name cannot answer for both, so route on the tool.
+ */
+export function deferredSegmentFor(tool: string): string;
+
+/**
+ * The tools a NAMED segment serves — what a host gets by loading that one module. Narrower
+ * than `deferredTools()`, which is everything this image defers across every tier.
+ */
+export function deferredSegmentTools(segment: string): string[];
 
 /** The tool names this image defers, read from the engine's own constants. */
 export function deferredTools(): string[];

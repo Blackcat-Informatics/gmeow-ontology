@@ -11,6 +11,23 @@
 export function deferred_segment(): string;
 
 /**
+ * The segment that serves `tool`, as it appears in the `mcp.segment-not-loaded` signal.
+ *
+ * There is more than one tier below core now: the whole-bundle CHASE is its own, because a
+ * 32-bit host cannot finish it for any input. A host routing a deferral must key off the
+ * tool it asked for, not off a single name — [`deferred_segment`] answers for the reasoning
+ * tier alone and cannot speak for the chase.
+ */
+export function deferred_segment_for(tool: string): string;
+
+/**
+ * The tools a NAMED segment serves — what a host gets by loading that one module.
+ *
+ * Narrower than [`deferred_tools`], which is everything this image defers across every tier.
+ */
+export function deferred_segment_tools(segment: string): string;
+
+/**
  * The tool names this image DEFERS, as a JSON array of strings.
  *
  * The host reads this ONCE, at load, so it can decide to pre-fetch the reasoning segment
@@ -92,6 +109,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly deferred_segment: (a: number) => void;
+    readonly deferred_segment_for: (a: number, b: number, c: number) => void;
+    readonly deferred_segment_tools: (a: number, b: number, c: number) => void;
     readonly deferred_tools: (a: number) => void;
     readonly init: (a: number, b: number, c: number) => void;
     readonly mcp: (a: number, b: number, c: number) => void;

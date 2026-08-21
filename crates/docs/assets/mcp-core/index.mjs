@@ -17,6 +17,8 @@
 
 import wasmInit, {
   deferred_segment as deferredSegmentJson,
+  deferred_segment_for as deferredSegmentForJson,
+  deferred_segment_tools as deferredSegmentToolsJson,
   deferred_tools as deferredToolsJson,
   init,
   mcp,
@@ -68,6 +70,22 @@ export function deferredTools() {
 
 export function deferredSegment() {
   return deferredSegmentJson();
+}
+
+/**
+ * The segment that serves `tool` — the field a host routes a deferral on. More than one tier
+ * sits below core, so a single name cannot answer for all of them.
+ */
+export function deferredSegmentFor(tool) {
+  return deferredSegmentForJson(tool);
+}
+
+/**
+ * The tools a NAMED segment serves — what a host gets by loading that one module. Narrower
+ * than `deferredTools()`, which is everything this image defers across every tier.
+ */
+export function deferredSegmentTools(segment) {
+  return JSON.parse(deferredSegmentToolsJson(segment));
 }
 
 // The stable diagnostic code the engine raises for a tool whose segment is not resident.
@@ -200,6 +218,13 @@ export async function tieredMcp(requestFrame, { loadSegment, onSegmentLoad } = {
     onSegmentLoad?.({ phase: "loading", ...deferral });
     const loading = (async () => {
       const module = await loadSegment(deferral.segment);
+      // A host may answer that a tier has no module HERE — the whole-bundle chase is one, on
+      // any 32-bit host. That is not an error: the deferral it came from is already the
+      // routable answer, naming the segment a wider host must serve. Returning it unchanged
+      // keeps the tool advertised and governed rather than turning a tier into a crash.
+      if (module === null || module === undefined) {
+        return null;
+      }
       await module.ready();
       // The snapshot CAPTURED at entry, never the module-global: this segment must be
       // installed over the bundle its frame was dispatched against.
@@ -210,6 +235,10 @@ export async function tieredMcp(requestFrame, { loadSegment, onSegmentLoad } = {
     _segments.set(deferral.segment, loading);
     try {
       segment = await loading;
+      if (segment === null) {
+        _segments.delete(deferral.segment);
+        return first;
+      }
     } catch (error) {
       // Only evict what is still ours: a re-init already cleared the map, and deleting
       // blind could drop a load the NEW session started under the same key.
