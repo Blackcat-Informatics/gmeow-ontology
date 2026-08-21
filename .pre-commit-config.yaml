@@ -34,6 +34,11 @@ repos:
             crates/docs/assets/gmn/.*|
             crates/docs/assets/mcp/.*|
             crates/docs/assets/mcp-core/.*|
+            # The native<->wasm parity WITNESSES are byte-exact attestations: a
+            # formatting hook that appends a newline to one makes the comparison
+            # fail on the newline it just added, which is a gate reding on the tool
+            # that was supposed to leave it alone.
+            crates/[a-z-]+/tests/WITNESS\.[a-z0-9.-]+|
             .*\.(tsv|svg|conllu)
           )$
       - id: end-of-file-fixer
