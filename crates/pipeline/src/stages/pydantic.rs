@@ -94,10 +94,10 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
 /// `crate::stages::term_manifest`/`crate::stages::carrier`/`crate::stages::metadata`
 /// each independently read `owl:versionInfo` off.
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
-const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
 
 /// Load the authored ontology header (`ontology/gmeow.ttl`) and return its
-/// `owl:versionInfo` literal verbatim — the SINGLE source of the `gmeow-ontology`
+/// version annotation (`logic:versionInfo`, or its `owl:versionInfo` OWL view)
+/// literal verbatim — the SINGLE source of the `gmeow-ontology`
 /// wheel version, stamped into the generated `gmeow_models/__about__.py`
 /// (`pyproject.toml`'s `[tool.hatch.version]` reads `__version__` from there). A
 /// hard requirement: never defaulted, and hard-fails when the value is missing or
@@ -116,7 +116,10 @@ fn ontology_version_info(root: &Path) -> Result<String, gmeow_errors::Diag> {
         let purrdf::model::RdfTerm::Iri(subject) = &quad.subject else {
             continue;
         };
-        if subject != ONTOLOGY_IRI || quad.predicate != OWL_VERSION_INFO {
+        // The authored header spells the version annotation in the canonical
+        // `logic:versionInfo`; its generated OWL view uses `owl:versionInfo`.
+        // Recognize both so a re-authored header is never read as version-less.
+        if subject != ONTOLOGY_IRI || !gmeow_ns::VERSION_INFO.contains(&quad.predicate.as_str()) {
             continue;
         }
         let purrdf::model::RdfTerm::Literal(literal) = &quad.object else {
@@ -125,14 +128,14 @@ fn ontology_version_info(root: &Path) -> Result<String, gmeow_errors::Diag> {
         let version = literal.lexical_form.clone();
         if !is_pep440_public_version(&version) {
             return Err(err(format!(
-                "ontology {ONTOLOGY_IRI} owl:versionInfo {version:?} is not a PEP 440 public \
+                "ontology {ONTOLOGY_IRI} versionInfo {version:?} is not a PEP 440 public \
                  version identifier — refusing to stamp a malformed wheel version"
             )));
         }
         return Ok(version);
     }
     Err(err(format!(
-        "authored ontology {ONTOLOGY_IRI} has no owl:versionInfo — cannot derive the wheel version"
+        "authored ontology {ONTOLOGY_IRI} has no versionInfo (logic:/owl:) — cannot derive the wheel version"
     )))
 }
 

@@ -178,6 +178,36 @@ pub const LOGIC_RESTRICTION: &str = "https://blackcatinformatics.ca/logic/Restri
 /// `owl:Restriction` — the generated OWL projection of [`LOGIC_RESTRICTION`].
 pub const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
 
+// ── Canonical header / annotation predicates ─────────────────────────────────
+//
+// The ontology-header and per-term lifecycle predicates. Each pairs the canonical
+// `logic:` spelling authored in a slice `module.ttl` header with its generated W3C
+// OWL projection, exactly as the typing markers above. A reader that scans the
+// AUTHORED / canonical store (a slice header, the compiled `gmeow.gts` canonical
+// graph) sees the `logic:` spelling; the generated OWL view uses the `owl:` one.
+// Recognizing both is a canonical-plus-projection read, never a compat shim.
+
+/// `logic:versionInfo` — the canonical version-annotation predicate.
+pub const LOGIC_VERSION_INFO: &str = "https://blackcatinformatics.ca/logic/versionInfo";
+/// `owl:versionInfo` — the generated OWL projection of [`LOGIC_VERSION_INFO`].
+pub const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
+/// Both spellings of the version-annotation predicate, canonical first.
+pub const VERSION_INFO: [&str; 2] = [LOGIC_VERSION_INFO, OWL_VERSION_INFO];
+
+/// `logic:imports` — the canonical ontology-import predicate.
+pub const LOGIC_IMPORTS: &str = "https://blackcatinformatics.ca/logic/imports";
+/// `owl:imports` — the generated OWL projection of [`LOGIC_IMPORTS`].
+pub const OWL_IMPORTS: &str = "http://www.w3.org/2002/07/owl#imports";
+/// Both spellings of the ontology-import predicate, canonical first.
+pub const IMPORTS: [&str; 2] = [LOGIC_IMPORTS, OWL_IMPORTS];
+
+/// `logic:deprecated` — the canonical term-deprecation predicate.
+pub const LOGIC_DEPRECATED: &str = "https://blackcatinformatics.ca/logic/deprecated";
+/// `owl:deprecated` — the generated OWL projection of [`LOGIC_DEPRECATED`].
+pub const OWL_DEPRECATED: &str = "http://www.w3.org/2002/07/owl#deprecated";
+/// Both spellings of the term-deprecation predicate, canonical first.
+pub const DEPRECATED: [&str; 2] = [LOGIC_DEPRECATED, OWL_DEPRECATED];
+
 /// The `owl:` view spelling of a canonical `logic:` `rdf:type` marker — a typing marker OR a
 /// property-characteristic type — or `None` when `iri` is neither.
 ///

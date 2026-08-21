@@ -22,7 +22,7 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use gmeow_math::Rational;
 use gmeow_math::dimension::DimVector;
 
-use crate::model::{owl, rdf, rdfs, skos};
+use crate::model::{logic, owl, rdf, rdfs, skos};
 
 /// Strongly-typed configuration for the three lints — no untyped dict bag,
 /// every field is explicit and typed.
@@ -435,7 +435,10 @@ fn ds_rdf_types(ds: &RdfDataset, subject_iri: &str) -> HashSet<String> {
     };
     for q in ds.quads_for_pattern(Some(s_id), Some(type_id), None, GraphMatch::Any) {
         if let TermRef::Iri(iri) = ds.resolve(q.o) {
-            out.insert(iri.to_owned());
+            // A term is typed in the canonical `logic:` spelling; lower each typing
+            // marker to its `owl:` view so `term_kind` (keyed on the `owl:`
+            // constants) classifies both spellings identically.
+            out.insert(gmeow_ns::to_owl_view(iri).to_owned());
         }
     }
     out
@@ -449,6 +452,10 @@ pub fn collect_typed_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> BTreeMa
     let Some(type_id) = ds_iri_id(ds, rdf::TYPE) else {
         return terms;
     };
+    // Discover typed subjects under BOTH the canonical `logic:` typing markers and
+    // their generated `owl:` views (a slice authors `logic:Class`, not `owl:Class`,
+    // after the surface flip); `term_kind`/`ds_rdf_types` then lower each to a single
+    // kind. A subject missed here would fall through to the `individual` default.
     let typed_queries = [
         owl::ONTOLOGY,
         owl::CLASS,
@@ -456,6 +463,11 @@ pub fn collect_typed_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> BTreeMa
         owl::DATATYPE_PROPERTY,
         owl::ANNOTATION_PROPERTY,
         rdfs::DATATYPE,
+        gmeow_ns::LOGIC_ONTOLOGY,
+        gmeow_ns::LOGIC_CLASS,
+        gmeow_ns::LOGIC_OBJECT_PROPERTY,
+        gmeow_ns::LOGIC_DATATYPE_PROPERTY,
+        gmeow_ns::LOGIC_ANNOTATION_PROPERTY,
     ];
     for rdf_type in typed_queries {
         let Some(t_id) = ds_iri_id(ds, rdf_type) else {
@@ -1292,7 +1304,6 @@ fn check_surface_leak_in_content_key(ds: &RdfDataset, report: &mut LintReport) {
 /// `lang:renderedContent` (a), is `owl:sameAs` its own `lang:renderedContent` (b),
 /// or whose `lang:renderingForm` equals its `lang:renderedContent` (c).
 fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
-    const OWL_SAMEAS: &str = "http://www.w3.org/2002/07/owl#sameAs";
     let rendered_content = lang_iri("renderedContent");
     let rendering_form = lang_iri("renderingForm");
     for subj in ds_subjects_of_type(ds, &lang_iri("Rendering")) {
@@ -1308,8 +1319,10 @@ fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
                 ),
             );
         }
-        // (b) rendering is owl:sameAs its own renderedContent.
-        let same_as = ds_object_iris(ds, &subj, OWL_SAMEAS);
+        // (b) rendering is sameAs its own renderedContent. A slice authors the
+        // canonical `logic:sameAs`; its generated OWL view is `owl:sameAs`.
+        let mut same_as = ds_object_iris(ds, &subj, logic::SAME_AS);
+        same_as.extend(ds_object_iris(ds, &subj, owl::SAME_AS));
         for c in content.intersection(&same_as) {
             report.push_error(
                 codes::LANG_RENDERING_AS_IDENTITY_SAMEAS,

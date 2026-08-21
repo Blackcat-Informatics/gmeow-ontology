@@ -24,7 +24,7 @@ use std::sync::Arc;
 use gmeow_errors::Diag;
 use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
-use crate::model::owl;
+use crate::model::{logic, owl};
 
 /// Validate a native [`RdfDataset`] against parsed SHACL
 /// [`purrdf::shapes::shapes::Shapes`] over the native
@@ -370,25 +370,30 @@ pub fn sameas_violations(
 ) -> Vec<(String, String)> {
     use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
-    let Some(sameas_id) = dataset.term_id_by_value(&TermValue::iri(owl::SAME_AS)) else {
-        return Vec::new();
-    };
+    // The Principle-5 ban scans identity in the canonical `logic:sameAs` spelling and
+    // its generated `owl:sameAs` view — a slice authors `logic:sameAs` after the flip,
+    // and an external-pointing identity in EITHER spelling is a violation.
     let mut out: Vec<(String, String)> = Vec::new();
-    for quad in dataset.quads_for_pattern(None, Some(sameas_id), None, GraphMatch::Any) {
-        let TermRef::Iri(obj) = dataset.resolve(quad.o) else {
-            continue;
-        };
-        if obj.starts_with(namespace) {
-            continue;
+    for sameas_id in [logic::SAME_AS, owl::SAME_AS]
+        .into_iter()
+        .filter_map(|p| dataset.term_id_by_value(&TermValue::iri(p)))
+    {
+        for quad in dataset.quads_for_pattern(None, Some(sameas_id), None, GraphMatch::Any) {
+            let TermRef::Iri(obj) = dataset.resolve(quad.o) else {
+                continue;
+            };
+            if obj.starts_with(namespace) {
+                continue;
+            }
+            let subject_text = subject_display(dataset.resolve(quad.s));
+            if allowlist
+                .iter()
+                .any(|(s, o)| s == &subject_text && o == obj)
+            {
+                continue;
+            }
+            out.push((subject_text, obj.to_owned()));
         }
-        let subject_text = subject_display(dataset.resolve(quad.s));
-        if allowlist
-            .iter()
-            .any(|(s, o)| s == &subject_text && o == obj)
-        {
-            continue;
-        }
-        out.push((subject_text, obj.to_owned()));
     }
     out
 }

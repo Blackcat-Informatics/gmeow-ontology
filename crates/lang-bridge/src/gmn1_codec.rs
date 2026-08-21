@@ -164,6 +164,10 @@ const PRED_VERSION_MEMBER: &str = "https://blackcatinformatics.ca/gmeow/versionM
 const PRED_VERSION_ROLE: &str = "https://blackcatinformatics.ca/gmeow/versionRole";
 const ROLE_LATEST_IRI: &str = "https://blackcatinformatics.ca/gmeow/roleLatest";
 const PRED_OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
+/// The canonical `logic:versionInfo` spelling of the version-info annotation — what a slice
+/// authors after the `owl:`→`logic:` surface flip (`owl:versionInfo` is its generated projection).
+/// The dialect-lineage reader accepts both spellings, canonical first.
+const PRED_LOGIC_VERSION_INFO: &str = "https://blackcatinformatics.ca/logic/versionInfo";
 const PRED_GMN_ACCEPT_WINDOW: &str = "https://blackcatinformatics.ca/gmeow/gmnAcceptWindow";
 
 // ── GMN-0: the canonical quad-set normal form ───────────────────────────────────────
@@ -1252,7 +1256,7 @@ pub fn resolve_dialect_acceptance(
                     mem_role.insert(subject.clone(), role.clone());
                 }
             }
-            PRED_OWL_VERSION_INFO => {
+            PRED_OWL_VERSION_INFO | PRED_LOGIC_VERSION_INFO => {
                 if let RdfTerm::Literal(info) = &quad.object {
                     version_infos
                         .entry(subject.clone())

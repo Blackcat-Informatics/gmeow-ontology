@@ -230,7 +230,11 @@ impl GmnMigration {
                 }
             }
             match pred {
-                PRED_OWL_VERSION_INFO => {
+                // A version entity spells its version in the canonical
+                // `logic:versionInfo`; its generated OWL view uses
+                // `owl:versionInfo`. Read both so a re-authored migration leg is
+                // never seen as missing its version.
+                PRED_OWL_VERSION_INFO | gmeow_ns::LOGIC_VERSION_INFO => {
                     if let RdfTerm::Literal(l) = &quad.object {
                         version_infos
                             .entry(subject.clone())

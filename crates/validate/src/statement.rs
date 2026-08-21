@@ -114,6 +114,9 @@ fn is_gmeow_vocab_term(iri: &str) -> bool {
 /// `rdf:type` values that count as "a declared property" (a port of
 /// `statement_lint._PROPERTY_TYPES`).
 fn is_property_type(iri: &str) -> bool {
+    // A property is typed in the canonical `logic:` spelling; lower it to its `owl:`
+    // view so the test bites for both spellings after the surface flip.
+    let iri = gmeow_ns::to_owl_view(iri);
     iri == owl::OBJECT_PROPERTY
         || iri == owl::DATATYPE_PROPERTY
         || iri == owl::ANNOTATION_PROPERTY

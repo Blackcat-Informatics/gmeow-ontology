@@ -49,8 +49,10 @@ fn is_tbox(ds: &RdfDataset, subject: TermId) -> bool {
     ds.quads_for_pattern(Some(subject), Some(type_p), None, GraphMatch::Any)
         .any(|q| match ds.resolve(q.o) {
             TermRef::Iri(t) => {
-                t == "http://www.w3.org/2002/07/owl#Class"
-                    || (t.starts_with(OWL_NS) && t.ends_with("Property"))
+                // A term is typed in the canonical `logic:` spelling; lower it to
+                // its `owl:` view so the TBox test sees both spellings.
+                let t = gmeow_ns::to_owl_view(t);
+                t == gmeow_ns::OWL_CLASS || (t.starts_with(OWL_NS) && t.ends_with("Property"))
             }
             _ => false,
         })

@@ -639,8 +639,13 @@ fn sorted_curies(iris: Vec<String>) -> Vec<String> {
 }
 
 /// The canonical vocabulary category for a term's `rdf:type` set.
+///
+/// The bundle carries each term's type in the canonical `logic:` spelling (a term
+/// is `logic:Class`, not `owl:Class`, after the `logic:`→`owl:` surface flip);
+/// `gmeow_ns::to_owl_view` lowers each authored type to its OWL view so the
+/// category test below (keyed on the `owl:` constants) sees both spellings.
 fn category_for(types: &[String]) -> String {
-    let has = |iri: &str| types.iter().any(|t| t == iri);
+    let has = |iri: &str| types.iter().any(|t| gmeow_ns::to_owl_view(t) == iri);
     if has(OWL_CLASS) {
         "Class".to_owned()
     } else if has(OWL_OBJECT_PROPERTY) || has(OWL_DATATYPE_PROPERTY) || has(OWL_ANNOTATION_PROPERTY)

@@ -158,7 +158,8 @@ const GMEOW_PAIRS_WITH: &str = "https://blackcatinformatics.ca/gmeow/pairsWith";
 const GMEOW_GRAPH_BOX_ROLE: &str = "https://blackcatinformatics.ca/gmeow/graphBoxRole";
 
 // ── Per-term lifecycle surface ───────────────────────────────────────────────────
-const OWL_DEPRECATED: &str = "http://www.w3.org/2002/07/owl#deprecated";
+// Deprecation is read through `gmeow_ns::DEPRECATED` (both the canonical
+// `logic:deprecated` and its `owl:deprecated` OWL view).
 const GMEOW_TERM_STABILITY: &str = "https://blackcatinformatics.ca/gmeow/termStability";
 const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
 const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
@@ -3321,8 +3322,11 @@ fn resolve_stability(store: &Store, iri: &str, tier: Option<&SliceTier>) -> DocT
             _ => {}
         }
     }
-    if literals(store, iri, OWL_DEPRECATED)
+    // The store spells deprecation in the canonical `logic:deprecated`; its
+    // generated OWL view uses `owl:deprecated`. Read both spellings.
+    if gmeow_ns::DEPRECATED
         .iter()
+        .flat_map(|&pred| literals(store, iri, pred))
         .any(|v| v == "true")
     {
         return DocTermStability::Deprecated;
@@ -4607,8 +4611,14 @@ fn subjects_with_predicate(store: &Store, predicate: &str) -> Vec<String> {
 }
 
 /// Map an `rdf:type` object IRI to a documented term category.
+///
+/// The authored/bundle store types a term in the canonical `logic:` spelling
+/// (`logic:Class`, not `owl:Class`, after the `logic:`→`owl:` surface flip);
+/// `gmeow_ns::to_owl_view` lowers a typing marker to its OWL view so the arms
+/// keyed on the `owl:` constants match both spellings. A non-marker IRI (e.g.
+/// `logic:PathShape`, `gmeow:PipelineStage`) passes through unchanged.
 fn category_for_type(type_iri: &str) -> Option<DocTermCategory> {
-    match type_iri {
+    match gmeow_ns::to_owl_view(type_iri) {
         OWL_CLASS | RDFS_CLASS => Some(DocTermCategory::Class),
         OWL_OBJECT_PROPERTY | OWL_DATATYPE_PROPERTY | OWL_ANNOTATION_PROPERTY | RDF_PROPERTY => {
             Some(DocTermCategory::Property)
