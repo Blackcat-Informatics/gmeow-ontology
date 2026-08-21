@@ -71,6 +71,35 @@ use std::cell::RefCell;
 use gmeow_mcp::{McpServer, SegmentSet};
 use wasm_bindgen::prelude::*;
 
+/// Route a Rust panic's MESSAGE to the host before the trap reaches it.
+///
+/// Without this a panic in the engine reaches JavaScript as a bare
+/// `RuntimeError: unreachable` — no message, no location, indistinguishable from any other
+/// trap. That is not a failure a caller can act on, and it is not one a maintainer can
+/// diagnose: the browser lane spent several runs unable to say WHICH refusal it had hit.
+/// Installed once, on first engine construction.
+fn install_panic_reporter() {
+    use std::sync::Once;
+    static ONCE: Once = Once::new();
+    ONCE.call_once(|| {
+        let previous = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            error(&format!("gmeow-mcp-wasm panic: {info}"));
+            previous(info);
+        }));
+    });
+}
+
+#[wasm_bindgen]
+extern "C" {
+    /// The host's own `console.error`. Bound by NAMESPACE rather than through an inline
+    /// snippet: a snippet is a separate file wasm-bindgen emits beside the module, and the
+    /// vendored asset carries a pinned file list — a diagnostic that only works when an extra
+    /// file happens to be copied is a diagnostic that fails exactly when it is needed.
+    #[wasm_bindgen(js_namespace = console)]
+    fn error(text: &str);
+}
+
 thread_local! {
     /// The loaded engine, owned by the module for the lifetime of the wasm instance.
     ///
@@ -128,6 +157,7 @@ pub fn ready() -> bool {
 /// language is unresolvable, or if the builtin surface does not assemble.
 #[wasm_bindgen]
 pub fn init(snapshot: &[u8]) -> Result<(), JsError> {
+    install_panic_reporter();
     ENGINE.with_borrow_mut(|slot| *slot = None);
     let server = McpServer::from_snapshot_segmented(snapshot, SegmentSet::reasoning_only())
         .map_err(|e| JsError::new(e.message()))?;
