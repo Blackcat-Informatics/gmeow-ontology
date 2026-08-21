@@ -178,6 +178,63 @@ pub const LOGIC_RESTRICTION: &str = "https://blackcatinformatics.ca/logic/Restri
 /// `owl:Restriction` — the generated OWL projection of [`LOGIC_RESTRICTION`].
 pub const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
 
+/// The `owl:` view spelling of a canonical `logic:` `rdf:type` marker — a typing marker OR a
+/// property-characteristic type — or `None` when `iri` is neither.
+///
+/// This is the read-side counterpart of the constant pairs above: a consumer that classifies a
+/// term's kind by scanning its AUTHORED `rdf:type` sees the canonical `logic:` spelling after the
+/// `owl:`→`logic:` surface flip, but every such classifier (EDOAL entity-kind, correspondence
+/// soundness, the mapping transform, slice peerage, …) matches against the `owl:` constants the
+/// generated view uses. Without lowering the authored type first the term's kind reads as
+/// indeterminate — a hard fail in the mapping lowering, a silent inert check elsewhere.
+///
+/// The property characteristics are NOT a pure namespace swap: the canonical spelling is lower-camel
+/// (`logic:transitiveProperty`) and the `owl:` view upper-camel (`owl:TransitiveProperty`).
+#[must_use]
+pub fn owl_view_of_type_marker(iri: &str) -> Option<&'static str> {
+    Some(match iri {
+        LOGIC_CLASS => OWL_CLASS,
+        LOGIC_OBJECT_PROPERTY => OWL_OBJECT_PROPERTY,
+        LOGIC_DATATYPE_PROPERTY => OWL_DATATYPE_PROPERTY,
+        LOGIC_ANNOTATION_PROPERTY => OWL_ANNOTATION_PROPERTY,
+        LOGIC_NAMED_INDIVIDUAL => OWL_NAMED_INDIVIDUAL,
+        LOGIC_ONTOLOGY => OWL_ONTOLOGY,
+        LOGIC_THING => OWL_THING,
+        LOGIC_NOTHING => OWL_NOTHING,
+        LOGIC_RESTRICTION => OWL_RESTRICTION,
+        "https://blackcatinformatics.ca/logic/transitiveProperty" => {
+            "http://www.w3.org/2002/07/owl#TransitiveProperty"
+        }
+        "https://blackcatinformatics.ca/logic/symmetricProperty" => {
+            "http://www.w3.org/2002/07/owl#SymmetricProperty"
+        }
+        "https://blackcatinformatics.ca/logic/functionalProperty" => {
+            "http://www.w3.org/2002/07/owl#FunctionalProperty"
+        }
+        "https://blackcatinformatics.ca/logic/inverseFunctionalProperty" => {
+            "http://www.w3.org/2002/07/owl#InverseFunctionalProperty"
+        }
+        "https://blackcatinformatics.ca/logic/reflexiveProperty" => {
+            "http://www.w3.org/2002/07/owl#ReflexiveProperty"
+        }
+        "https://blackcatinformatics.ca/logic/asymmetricProperty" => {
+            "http://www.w3.org/2002/07/owl#AsymmetricProperty"
+        }
+        "https://blackcatinformatics.ca/logic/irreflexiveProperty" => {
+            "http://www.w3.org/2002/07/owl#IrreflexiveProperty"
+        }
+        _ => return None,
+    })
+}
+
+/// [`owl_view_of_type_marker`] as a total function: the `owl:` view spelling of a canonical
+/// `logic:` `rdf:type` marker, or `iri` returned unchanged (an already-`owl:` term, a domain
+/// class, or a gUFO sort passes through).
+#[must_use]
+pub fn to_owl_view(iri: &str) -> &str {
+    owl_view_of_type_marker(iri).unwrap_or(iri)
+}
+
 /// **The** definition of "this triple asserts a subsumption edge": every predicate
 /// a reader must scan to see the whole authored taxonomy, in a fixed order —
 /// canonical class, projected class, canonical property, projected property.

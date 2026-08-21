@@ -410,7 +410,15 @@ fn valid_kind(kind: &str) -> gmeow_errors::Result<&'static str> {
 /// `class`. `None` when the term carries none of those (or an ambiguous mix) — the caller
 /// then requires an explicit override or hard-fails.
 fn gmeow_entity_kind(onto: &DslView, iri: &str) -> Option<&'static str> {
-    let types = onto.object_iris(iri, RDF_TYPE);
+    // The authored `rdf:type` is the canonical `logic:` spelling after the owl:→logic: surface flip;
+    // normalize each onto the `owl:` view the checks below match (`logic:Class`→`owl:Class`,
+    // `logic:transitiveProperty`→`owl:TransitiveProperty`, …) so the entity kind is DERIVED, never
+    // indeterminate. An already-`owl:` term or a domain type passes through unchanged.
+    let types: Vec<String> = onto
+        .object_iris(iri, RDF_TYPE)
+        .iter()
+        .map(|t| crate::typing_vocab::to_owl_view(t))
+        .collect();
     // A term typed ONLY with an OWL 2 object-property subtype (Symmetric/Transitive/
     // InverseFunctional/Reflexive/Asymmetric/Irreflexive), without a co-asserted
     // `owl:ObjectProperty`, is still an object property by OWL 2 semantics.

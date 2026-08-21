@@ -65,6 +65,19 @@ pub(crate) fn is_logic_typing_marker(iri: &str) -> bool {
     owl_typing_projection(iri).is_some()
 }
 
+/// Normalize one authored `rdf:type` object onto the `owl:` view spelling the correspondence
+/// lowerings (EDOAL entity-kind, correspondence-soundness direction check) classify against: a
+/// canonical `logic:` typing marker or property-characteristic type becomes its `owl:` view; every
+/// other IRI (an `owl:`/`rdfs:` term already, a domain class, a gUFO sort) passes through unchanged.
+/// The reader consults the AUTHORED type, which is `logic:` after the surface flip, so without this
+/// a term's EDOAL entity kind reads as indeterminate and the mapping lowering hard-fails.
+///
+/// The one lowering map lives in [`gmeow_ns::to_owl_view`] so every crate (pipeline mapping
+/// transform, slice peerage, …) shares it; this is the `logic-compile` `String`-returning shim.
+pub(crate) fn to_owl_view(iri: &str) -> String {
+    gmeow_ns::to_owl_view(iri).to_owned()
+}
+
 /// Both spellings of a typing marker named by its shared LOCAL name: the canonical
 /// `logic:` IRI first, then the legacy `owl:` IRI. The frontend readers scan for BOTH
 /// so an `owl:`-authored and a `logic:`-authored corpus derive identical shapes /
