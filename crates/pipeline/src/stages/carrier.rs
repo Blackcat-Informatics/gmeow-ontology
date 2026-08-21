@@ -143,6 +143,19 @@ pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow
 /// needs no reconstruction rep and stays OUT of the reasoned object-level EDB
 /// (`gts_compose` folds only the default graph).
 pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
+/// The substrate SBOM projection (issue 1672, F1): the reconciliation A-Box
+/// (`graph/provenance`) projected through the compiled `spdx.rq` into pure SPDX —
+/// one `spdx:Package` per engine/library, `spdx:versionInfo` from the reconciled pin,
+/// and an `spdx:relationship … contains` per `gmeow:embeds` edge. `stage-mappings`
+/// emits it (it already compiles `spdx.rq`), and the presenter folds it here so it
+/// flattens into the shipped bundle's base graph — `gmeow project --profile spdx` then
+/// returns the substrate packages. Single-producer and bundle-internal like
+/// `graph/norm-claims`: no committed `generated/` byte artifact, so it needs no
+/// reconstruction rep and stays OUT of the reasoned object-level EDB (`gts_compose`
+/// folds only the default graph, and the pure-SPDX projection is a consumer view, not
+/// an object-level axiom source).
+pub(crate) const GRAPH_SUBSTRATE_SBOM: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/substrate-sbom";
 /// The by-reference blob `representation` under which a diagnostics producer
 /// (`stage-validate` / `stage-compile-logic` / `stage-reason`) carries its FORWARD-projected
 /// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
@@ -673,6 +686,12 @@ pub(crate) fn self_description_source_files(
     // for what the scorer reads — sharing it keeps the cache key and the score set from
     // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
     files.extend(gmeow_slice_quality::scored_source_files(root));
+    // The substrate reconciliation A-Box (issue 1672) folds into graph/provenance from build
+    // INPUTS that are not authored ontology sources — the manifests, the lockfile, the
+    // shipped SUBSTRATE.txt stamps, and the prose mention — so they must be declared here
+    // or a stamp/pin change would leave a stale substrate A-Box in the bundle.
+    // substrate_input_paths is the single authority for exactly those reads.
+    files.extend(crate::stages::substrate_graph::substrate_input_paths(root));
     files.sort();
     files.dedup();
     Ok(files)
@@ -750,6 +769,15 @@ pub(crate) fn build_self_description_dataset_with_quality(
         run_verify_attestation(&edb)?
     };
     let provenance_nt = build_provenance_projection(root)?;
+    // graph/provenance also carries the substrate reconciliation A-Box (issue 1672): one
+    // gmeow:SubstrateComponent per external engine/library, a gmeow:PinClaim per (site,
+    // component, dimension) read from build INPUTS (manifests, lockfile, linked
+    // constants, shipped SUBSTRATE.txt stamps, prose), a gmeow:ReconciledPin per
+    // (component, dimension) whose sites agree, and gmeow:embeds edges. Rides the
+    // existing graph/provenance (the dogfooded build-provenance graph) rather than
+    // minting a new named graph; the authored PinAgreement/PinCoverage constraints
+    // reason over it so drift surfaces as a gmeow:Finding.
+    let substrate_nt = crate::stages::substrate_graph::build_substrate_projection(root)?;
     // graph/quality-assessment — every slice scored against the ontology-resident rubric,
     // projected as `gmeow:QualityAssessment` observations. A per-slice sweep over the
     // authored slices (the natural sibling of the slice-analysis graph), built ONCE here
@@ -774,6 +802,13 @@ pub(crate) fn build_self_description_dataset_with_quality(
         parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
         parse_into_graph(
             provenance_nt.as_bytes(),
+            "application/n-triples",
+            crate::stages::provenance_graph::GRAPH_PROVENANCE,
+        )?,
+        // The substrate reconciliation A-Box (issue 1672) folds into the SAME
+        // graph/provenance named graph — no new graph is minted.
+        parse_into_graph(
+            substrate_nt.as_bytes(),
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
         )?,
@@ -990,6 +1025,12 @@ fn assemble_carrier(
         // ComplianceAssessment claim graph (D4), read off stage-validate's attached
         // graph the same way graph/diagnostics is (a pure keyed fold).
         producer_graph(upstream, "stage-validate", GRAPH_NORM_CLAIMS)?,
+        // graph/substrate-sbom — the substrate reconciliation A-Box projected through the
+        // compiled `spdx.rq` (issue 1672, F1), read off stage-mappings' attached graph (a
+        // pure keyed fold, PIPELINE_SPINE §4). It flattens into the bundle base graph so
+        // `gmeow project --profile spdx` returns the substrate packages; bundle-internal,
+        // so it stays OUT of the reasoned EDB (`gts_compose` folds only the default graph).
+        producer_graph(upstream, "stage-mappings", GRAPH_SUBSTRATE_SBOM)?,
         projection_ledger,
         lang_translation_corpus,
         lang_form_corpus,

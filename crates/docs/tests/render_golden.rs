@@ -934,10 +934,32 @@ fn render_site_is_byte_stable() {
     let model = common::cached_model();
     let a = render_site(&model);
     let b = common::cached_site();
-    assert_eq!(
-        a, b,
-        "a fresh render_site must be byte-identical to the cached once-per-run render"
+    // Byte-stability is asserted PER FILE, never as one whole-`Site`
+    // `assert_eq!`. A Debug-diffing compare (this file's `pretty_assertions`
+    // `assert_eq!`) over two multi-hundred-MB `Site`s would, on ANY drift,
+    // build `diff`'s O(lines_a·lines_b) LCS table over their `{:#?}` dumps —
+    // a >50-petabyte allocation that aborts the process (SIGABRT) instead of
+    // reporting the drift. Compare the file set, then each file's bytes, so a
+    // drift names the first offending path with bounded output.
+    let a_keys: Vec<&String> = a.files.keys().collect();
+    let b_keys: Vec<&String> = b.files.keys().collect();
+    assert!(
+        a_keys == b_keys,
+        "render_site file set drifted from the cached once-per-run render \
+         (fresh: {} files, cached: {} files)",
+        a_keys.len(),
+        b_keys.len()
     );
+    for (path, bytes) in &a.files {
+        let cached = &b.files[path];
+        assert!(
+            bytes == cached,
+            "render_site drift in {path}: a fresh render differs from the cached \
+             once-per-run render ({} vs {} bytes)",
+            bytes.len(),
+            cached.len()
+        );
+    }
     // The CSS asset and the landing pages are always present.
     assert!(a.files.contains_key("assets/gmeow.css"));
     assert!(a.files.contains_key("index.md"));
