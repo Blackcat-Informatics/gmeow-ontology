@@ -1404,12 +1404,11 @@ impl ClaimStore for InMemoryClaimStore {
     }
 
     fn store_bytes(&self) -> Result<Vec<u8>> {
-        Ok(self
-            .state
-            .lock()
-            .expect("in-memory claim store lock")
-            .audit
-            .clone())
+        // EMPTY, deliberately: this backend holds claims as live values and keeps its audit
+        // records in a plain buffer, so it has no GTS store for a segment to continue. Handing
+        // that buffer back would invite a reader to parse a non-store as one — which in the
+        // browser image is a panic, not an error.
+        Ok(Vec::new())
     }
 
     fn append_audit_segment(&self, segment: &[u8]) -> Result<()> {
