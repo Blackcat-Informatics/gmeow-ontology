@@ -1159,7 +1159,7 @@ gmeow:transactionHashFunctionality
 
 gmeow:Component
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Component"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -1174,7 +1174,7 @@ gmeow:Component
 
 gmeow:SubstrateComponent
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Substrate Component"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Component ;
@@ -1189,7 +1189,7 @@ gmeow:SubstrateComponent
 
 gmeow:PinClaim
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Pin Claim"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -1204,7 +1204,7 @@ gmeow:PinClaim
 
 gmeow:ReconciledPin
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Reconciled Pin"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -1220,7 +1220,7 @@ gmeow:ReconciledPin
 # --- Kernel properties -------------------------------------------------------
 
 gmeow:componentName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "component name"@x-gmeow-english ;
@@ -1234,7 +1234,7 @@ gmeow:componentName
     gmeow:useWhen "Use to name a build component canonically so claims and the SBOM refer to the same subject."@x-gmeow-english .
 
 gmeow:componentVersion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "component version"@x-gmeow-english ;
@@ -1248,7 +1248,7 @@ gmeow:componentVersion
     gmeow:useWhen "Use to carry a component's single reconciled crate version, the headline the CLI and SBOM report."@x-gmeow-english .
 
 gmeow:embeds
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "embeds"@x-gmeow-english ;
@@ -1262,7 +1262,7 @@ gmeow:embeds
     gmeow:useWhen "Use to record what a shipped engine artifact statically embeds, so the SBOM can list the bundle's embedded components verifiably."@x-gmeow-english .
 
 gmeow:claimedComponent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimed component"@x-gmeow-english ;
@@ -1276,7 +1276,7 @@ gmeow:claimedComponent
     gmeow:useWhen "Use to say which component a per-site claim is asserting a version of."@x-gmeow-english .
 
 gmeow:claimSite
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claim site"@x-gmeow-english ;
@@ -1290,7 +1290,7 @@ gmeow:claimSite
     gmeow:useWhen "Use to record which of the mutually-unaware representations a claim came from."@x-gmeow-english .
 
 gmeow:claimDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claim dimension"@x-gmeow-english ;
@@ -1304,7 +1304,7 @@ gmeow:claimDimension
     gmeow:useWhen "Use to record which versioned dimension a claim asserts, so reconciliation partitions strictly by dimension."@x-gmeow-english .
 
 gmeow:claimedValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimed value"@x-gmeow-english ;
@@ -1318,7 +1318,7 @@ gmeow:claimedValue
     gmeow:useWhen "Use to carry the version string a claim site asserts, normalized so like dimensions compare like."@x-gmeow-english .
 
 gmeow:expectedClaimSite
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "expected claim site"@x-gmeow-english ;
@@ -1332,7 +1332,7 @@ gmeow:expectedClaimSite
     gmeow:useWhen "Use to declare which sites must assert a component, so a silently missing site is caught as drift's completeness half."@x-gmeow-english .
 
 gmeow:reconciledComponent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ReconciledPin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciled component"@x-gmeow-english ;
@@ -1346,7 +1346,7 @@ gmeow:reconciledComponent
     gmeow:useWhen "Use to say which component a consensus value is for."@x-gmeow-english .
 
 gmeow:reconciledDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ReconciledPin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciled dimension"@x-gmeow-english ;
@@ -1360,7 +1360,7 @@ gmeow:reconciledDimension
     gmeow:useWhen "Use to say which dimension a consensus value reconciles."@x-gmeow-english .
 
 gmeow:reconciledValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ReconciledPin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciled value"@x-gmeow-english ;
@@ -1376,7 +1376,7 @@ gmeow:reconciledValue
 # --- Functional-property characteristic assertions (reasoner-safe at-most-one) -
 
 gmeow:componentNameFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "componentName is functional"@x-gmeow-english ;
@@ -1392,7 +1392,7 @@ gmeow:componentNameFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:componentVersionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "componentVersion is functional"@x-gmeow-english ;
@@ -1408,7 +1408,7 @@ gmeow:componentVersionFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimedComponentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimedComponent is functional"@x-gmeow-english ;
@@ -1424,7 +1424,7 @@ gmeow:claimedComponentFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimSiteFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimSite is functional"@x-gmeow-english ;
@@ -1440,7 +1440,7 @@ gmeow:claimSiteFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimDimensionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimDimension is functional"@x-gmeow-english ;
@@ -1456,7 +1456,7 @@ gmeow:claimDimensionFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimedValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimedValue is functional"@x-gmeow-english ;
@@ -1472,7 +1472,7 @@ gmeow:claimedValueFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reconciledComponentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciledComponent is functional"@x-gmeow-english ;
@@ -1488,7 +1488,7 @@ gmeow:reconciledComponentFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reconciledDimensionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciledDimension is functional"@x-gmeow-english ;
@@ -1504,7 +1504,7 @@ gmeow:reconciledDimensionFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reconciledValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciledValue is functional"@x-gmeow-english ;
@@ -1523,7 +1523,7 @@ gmeow:reconciledValueFunctionality
 
 gmeow:ClaimSite
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Claim Site"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -1580,7 +1580,7 @@ gmeow:claimSiteProse
 
 gmeow:ClaimDimension
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Claim Dimension"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
