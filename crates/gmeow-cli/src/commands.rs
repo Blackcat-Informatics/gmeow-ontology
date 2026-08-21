@@ -786,6 +786,12 @@ pub fn describe(
 
 // ── conjecture ─────────────────────────────────────────────────────────────────
 
+/// The hot store medium, resolved from the embedded bundle exactly as the MCP engine resolves
+/// it — the CLI and the tool run one implementation, so they prime one way.
+fn hot_store_medium() -> gmeow_errors::Result<gmeow_mcp::StoreMedium> {
+    gmeow_mcp::store_medium(BUNDLE_GTS, gmeow_mcp::MEMORY_HOT_DICTIONARY)
+}
+
 /// `gmeow conjecture test` — test a candidate `logic:` formula against a KB in an
 /// isolated, standpoint-scoped scenario world, print the engine verdict, and —
 /// unless `--dry-run` — APPEND it to the append-only conjecture library. Delegates
@@ -823,15 +829,28 @@ pub fn conjecture_test(
         }
     };
 
-    let out = match gmeow_mcp::run_conjecture_test(&gmeow_mcp::ConjectureRunInput {
-        formula_ttl: &formula_ttl,
-        kb_ttl: &kb_ttl,
-        standpoint,
-        math_conjecture,
-        dry_run,
-        max_steps,
-        max_answers,
-    }) {
+    let medium = match hot_store_medium() {
+        Ok(medium) => medium,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.conjecture.failed",
+                format!("the bundle pins no runtime-store dictionary: {e}"),
+            );
+        }
+    };
+    let out = match gmeow_mcp::run_conjecture_test(
+        &gmeow_mcp::ConjectureRunInput {
+            formula_ttl: &formula_ttl,
+            kb_ttl: &kb_ttl,
+            standpoint,
+            math_conjecture,
+            dry_run,
+            max_steps,
+            max_answers,
+        },
+        &medium,
+    ) {
         Ok(out) => out,
         Err(e) => {
             return fail(
@@ -919,17 +938,30 @@ pub fn candidate_submit(
         }
     };
 
-    let out = match gmeow_mcp::run_submit_candidate(&gmeow_mcp::CandidateSubmitInput {
-        formula_ttl: &formula_ttl,
-        kb_ttl: &kb_ttl,
-        standpoint,
-        math_conjecture,
-        for_slice,
-        for_packet,
-        dry_run,
-        max_steps,
-        max_answers,
-    }) {
+    let medium = match hot_store_medium() {
+        Ok(medium) => medium,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.failed",
+                format!("the bundle pins no runtime-store dictionary: {e}"),
+            );
+        }
+    };
+    let out = match gmeow_mcp::run_submit_candidate(
+        &gmeow_mcp::CandidateSubmitInput {
+            formula_ttl: &formula_ttl,
+            kb_ttl: &kb_ttl,
+            standpoint,
+            math_conjecture,
+            for_slice,
+            for_packet,
+            dry_run,
+            max_steps,
+            max_answers,
+        },
+        &medium,
+    ) {
         Ok(out) => out,
         Err(e) => {
             return fail(
@@ -976,8 +1008,22 @@ pub fn candidate_withdraw(
     reason: Option<&str>,
     dry_run: bool,
 ) -> i32 {
-    let body = match gmeow_mcp::run_withdraw_candidate(candidate_id, reason.unwrap_or(""), dry_run)
-    {
+    let medium = match hot_store_medium() {
+        Ok(medium) => medium,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.failed",
+                format!("the bundle pins no runtime-store dictionary: {e}"),
+            );
+        }
+    };
+    let body = match gmeow_mcp::run_withdraw_candidate(
+        candidate_id,
+        reason.unwrap_or(""),
+        dry_run,
+        &medium,
+    ) {
         Ok(body) => body,
         Err(e) => {
             return fail(

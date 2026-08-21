@@ -4859,15 +4859,18 @@ impl McpServer {
         // The parse → test → project → TR-gate → persist path is the SHARED persisting core
         // (also behind the CLI `gmeow conjecture test`); the tool is a thin wrapper rendering
         // its outcome as the JSON response.
-        let out = run_conjecture_test(&ConjectureRunInput {
-            formula_ttl: formula_src,
-            kb_ttl: kb_src,
-            standpoint,
-            math_conjecture,
-            dry_run,
-            max_steps: budget.max_steps,
-            max_answers: budget.max_answers,
-        })?;
+        let out = run_conjecture_test(
+            &ConjectureRunInput {
+                formula_ttl: formula_src,
+                kb_ttl: kb_src,
+                standpoint,
+                math_conjecture,
+                dry_run,
+                max_steps: budget.max_steps,
+                max_answers: budget.max_answers,
+            },
+            &self.store_medium()?,
+        )?;
 
         // The five-field verdict summary + witness, rendered for every response path.
         let witness_json = out.witness.as_ref().map(|w| {
@@ -5017,12 +5020,20 @@ impl McpServer {
             // segment can never leave the withdrawal applied without its audit record, or vice
             // versa. The library is still append-only overall: no PRIOR segment's bytes are
             // touched, only new bytes are added.
-            let withdrawal_segment = build_nt_segment(&nt_body)?;
+            let medium = self.store_medium()?;
+            let existing = library_ref.read_bytes()?;
+            let withdrawal_segment = build_nt_segment(&existing, &medium, &nt_body)?;
+            // The audit continues the BODY, so it is authored against the bytes the body
+            // leaves behind — not against the pre-commit library, which the body already moved past.
+            let mut body_image = existing.clone();
+            body_image.extend_from_slice(&withdrawal_segment);
             let call_id = format!(
                 "urn:gmeow:conjecture-call:{}",
                 sha256_hex(format!("withdraw\u{1}{conjecture_id}\u{1}{reason}").as_bytes())
             );
             let audit_segment = build_audit_segment(
+                &body_image,
+                &medium,
                 &call_id,
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
@@ -5126,17 +5137,20 @@ impl McpServer {
         let max_answers = optional_limit(args, "max_answers")?;
         let budget = governed_budget(max_steps, max_answers);
 
-        let out = run_submit_candidate(&CandidateSubmitInput {
-            formula_ttl: formula_src,
-            kb_ttl: kb_src,
-            standpoint,
-            math_conjecture,
-            for_slice,
-            for_packet,
-            dry_run,
-            max_steps: budget.max_steps,
-            max_answers: budget.max_answers,
-        })?;
+        let out = run_submit_candidate(
+            &CandidateSubmitInput {
+                formula_ttl: formula_src,
+                kb_ttl: kb_src,
+                standpoint,
+                math_conjecture,
+                for_slice,
+                for_packet,
+                dry_run,
+                max_steps: budget.max_steps,
+                max_answers: budget.max_answers,
+            },
+            &self.store_medium()?,
+        )?;
 
         let witness_json = out.witness.as_ref().map(|w| {
             json!({
@@ -5208,7 +5222,7 @@ impl McpServer {
         let candidate_id = required_str(args, "candidate_id")?;
         let reason = optional_str(args, "reason").unwrap_or("");
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
-        run_withdraw_candidate(candidate_id, reason, dry_run)
+        run_withdraw_candidate(candidate_id, reason, dry_run, &self.store_medium()?)
     }
 
     #[cfg(feature = "reasoning")]
@@ -5553,6 +5567,7 @@ pub fn run_conjecture_test_pure(
 #[cfg(feature = "reasoning")]
 pub fn run_conjecture_test(
     input: &ConjectureRunInput,
+    medium: &StoreMedium,
 ) -> gmeow_errors::Result<ConjectureRunOutput> {
     let ConjectureRunInput {
         formula_ttl,
@@ -5618,12 +5633,19 @@ pub fn run_conjecture_test(
     //     atomic file replace under ONE held lock, so a failure building or committing either
     //     segment can never leave the library holding the verdict without its audit record.
     let library = conjecture_library()?;
-    let verdict_segment = build_nt_segment(&out.verdict_nt)?;
+    let existing = library.read_bytes()?;
+    let verdict_segment = build_nt_segment(&existing, medium, &out.verdict_nt)?;
+    // The audit continues the BODY, so it is authored against the bytes the body
+    // leaves behind — not against the pre-commit library, which the body already moved past.
+    let mut body_image = existing.clone();
+    body_image.extend_from_slice(&verdict_segment);
     let call_id = format!(
         "urn:gmeow:conjecture-call:{}",
         sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
     );
     let audit_segment = build_audit_segment(
+        &body_image,
+        medium,
         &call_id,
         MCP_PERSIST_CONJECTURE_SCHEMA,
         &obtains,
@@ -5749,6 +5771,7 @@ fn candidate_provenance_nt(
 #[cfg(feature = "reasoning")]
 pub fn run_submit_candidate(
     input: &CandidateSubmitInput,
+    medium: &StoreMedium,
 ) -> gmeow_errors::Result<CandidateSubmitOutput> {
     let CandidateSubmitInput {
         formula_ttl,
@@ -5829,12 +5852,19 @@ pub fn run_submit_candidate(
         out.verdict_nt.trim_end(),
         candidate_provenance_nt(&out.node_iri, for_slice, for_packet)
     );
-    let verdict_segment = build_nt_segment(&body)?;
+    let existing = library.read_bytes()?;
+    let verdict_segment = build_nt_segment(&existing, medium, &body)?;
+    // The audit continues the BODY, so it is authored against the bytes the body
+    // leaves behind — not against the pre-commit library, which the body already moved past.
+    let mut body_image = existing.clone();
+    body_image.extend_from_slice(&verdict_segment);
     let call_id = format!(
         "urn:gmeow:candidate-call:{}",
         sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
     );
     let audit_segment = build_audit_segment(
+        &body_image,
+        medium,
         &call_id,
         MCP_SUBMIT_CANDIDATE_SCHEMA,
         obtains,
@@ -5864,6 +5894,7 @@ pub fn run_withdraw_candidate(
     candidate_id: &str,
     reason: &str,
     dry_run: bool,
+    medium: &StoreMedium,
 ) -> gmeow_errors::Result<String> {
     let library_handle = candidate_library()?;
     let library_ref = library_handle.as_ref();
@@ -5913,12 +5944,19 @@ pub fn run_withdraw_candidate(
             TxReceipt::CommittedSuccess { .. } => {}
         }
 
-        let withdrawal_segment = build_nt_segment(&nt_body)?;
+        let existing = library_ref.read_bytes()?;
+        let withdrawal_segment = build_nt_segment(&existing, medium, &nt_body)?;
+        // The audit continues the BODY, so it is authored against the bytes the body
+        // leaves behind — not against the pre-commit library, which the body already moved past.
+        let mut body_image = existing.clone();
+        body_image.extend_from_slice(&withdrawal_segment);
         let call_id = format!(
             "urn:gmeow:candidate-call:{}",
             sha256_hex(format!("withdraw\u{1}{candidate_id}\u{1}{reason}").as_bytes())
         );
         let audit_segment = build_audit_segment(
+            &body_image,
+            medium,
             &call_id,
             MCP_WITHDRAW_CANDIDATE_SCHEMA,
             &[MCP_CANDIDATE_IN_LIBRARY],
@@ -7542,6 +7580,34 @@ fn store_tail_medium(existing: &[u8]) -> gmeow_errors::Result<Option<StoreMedium
         .map(|(dictionary, bytes)| StoreMedium { dictionary, bytes }))
 }
 
+/// A writer that appends into `existing` under `medium`, opening a freshly-headed segment when
+/// the tail does not already declare that medium's dictionary.
+///
+/// The append-only LIBRARIES are runtime stores in exactly the sense the claim store is: the
+/// same `gmeow:gtsProducerRuntimeStores` production site covers agent memory, the conjecture
+/// library and the candidate library, and all three are primed from the bundle's
+/// `gmeow-memory-hot-v1`. A library written through an unprimed writer declares no dictionary
+/// at all, so a consumer priming a decode from the bundle finds a store whose header promises
+/// nothing.
+#[cfg(feature = "reasoning")]
+fn library_writer(
+    existing: &[u8],
+    medium: &StoreMedium,
+) -> gmeow_errors::Result<(gmeow_gts_profile::GmeowGtsWriter, Vec<u8>)> {
+    // `store_writer`'s appending branch emits ONLY the new frames — the segment header is not
+    // repeated — so when the tail does not yet pin this medium the caller has to emit the
+    // header itself, ahead of those frames. Returning it here keeps that pairing in one place.
+    if existing.is_empty() || gmeow_gts_profile::store_tail_pins(existing, &medium.dictionary)? {
+        let writer = gmeow_gts_profile::store_writer("ai-package", existing, medium)?;
+        return Ok((writer, Vec::new()));
+    }
+    let header = gmeow_gts_profile::open_store_segment("ai-package", medium)?;
+    let mut base = existing.to_vec();
+    base.extend_from_slice(&header);
+    let writer = gmeow_gts_profile::store_writer("ai-package", &base, medium)?;
+    Ok((writer, header))
+}
+
 /// Build one trajectory-audit segment as a CONTINUATION of `existing` — the claim-store variant of
 /// [`build_audit_segment`], which authors a standalone segment for the append-only libraries.
 ///
@@ -7573,16 +7639,20 @@ fn build_store_audit_segment(
 /// the second can fail after the first has already landed.
 #[cfg(feature = "reasoning")]
 fn build_audit_segment(
+    existing: &[u8],
+    medium: &StoreMedium,
     call_id: &str,
     schema_iri: &str,
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<Vec<u8>> {
     let (terms, quads) = audit_terms_and_quads(call_id, schema_iri, obtains, at_time);
-    let mut writer = GtsWriter::new("ai-package");
+    let (mut writer, header) = library_writer(existing, medium)?;
     writer.add_terms(&terms)?;
     writer.add_quads(&quads)?;
-    Ok(writer.into_bytes())
+    let mut out = header;
+    out.extend_from_slice(&writer.into_bytes());
+    Ok(out)
 }
 
 /// The terms and quads of ONE trajectory-audit context — the carrier-independent half, shared by
@@ -7744,7 +7814,11 @@ fn intern_nt_term(
 /// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
 /// together as one atomic file replace — see [`append_library_segments`].
 #[cfg(feature = "reasoning")]
-fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
+fn build_nt_segment(
+    existing: &[u8],
+    medium: &StoreMedium,
+    nt_body: &str,
+) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
@@ -7788,10 +7862,13 @@ fn build_nt_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
         quads.push((s, p, o, None));
     }
 
-    let mut writer = GtsWriter::new("ai-package");
+    let (mut writer, header) = library_writer(existing, medium)?;
+
     writer.add_terms(&terms)?;
     writer.add_quads(&quads)?;
-    Ok(writer.into_bytes())
+    let mut out = header;
+    out.extend_from_slice(&writer.into_bytes());
+    Ok(out)
 }
 
 /// Hold the library's exclusive lock for the duration of `f`, serializing every
@@ -7832,6 +7909,10 @@ fn append_library_segments(
     library: &dyn SegmentLibrary,
     segments: &[Vec<u8>],
 ) -> gmeow_errors::Result<()> {
+    // Each segment is the FRAMES to append (plus its own header when it opens a segment), so
+    // the commit concatenates them onto the library in order. They must have been authored in
+    // that same order — each against the bytes the previous one produced — or the second one's
+    // `prev` points past the first and the chain reads back broken.
     let mut bytes = library.read_bytes()?;
     for segment in segments {
         bytes.extend_from_slice(segment);
@@ -8443,7 +8524,7 @@ mod tests {
     /// and commit them together via [`append_library_segments`] directly (one atomic replace
     /// covering both), rather than through this single-segment helper.
     fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
-        let segment = build_nt_segment(nt_body)?;
+        let segment = build_nt_segment(&[], &probe_medium(), nt_body)?;
         let library = library_at(path);
         with_library_lock(library.as_ref(), || {
             append_library_segments(library.as_ref(), &[segment])
@@ -8473,10 +8554,11 @@ mod tests {
     /// the delegation of N-Triples parsing to purrdf against the prior hand-rolled lexer.
     #[test]
     fn build_nt_segment_bytes_are_stable() {
-        let bytes = build_nt_segment(BYTE_PARITY_NT_BODY).expect("representative body must parse");
+        let bytes = build_nt_segment(&[], &probe_medium(), BYTE_PARITY_NT_BODY)
+            .expect("representative body must parse");
         assert_eq!(
             sha256_hex(&bytes),
-            "6417ead627845b8aaab5190bfba8423228ab4b0d4a402912410743145192d639",
+            "d06031ffe9b88c36a7376e5f93fc77785be484c1c8cc1a0ba93c1b2642895ced",
             "build_nt_segment output digest changed; segment bytes are append-only content-addressed",
         );
     }
@@ -8517,6 +8599,13 @@ mod tests {
         fn drop(&mut self) {
             env::set_current_dir(&self.0).expect("restore current dir");
         }
+    }
+
+    /// The hot store medium, resolved from the test snapshot exactly as the runtime resolves
+    /// it — so a segment a test authors is primed the way a shipped one is.
+    pub(crate) fn probe_medium() -> StoreMedium {
+        store_medium(&snapshot(), MEMORY_HOT_DICTIONARY)
+            .expect("the test snapshot pins the hot store dictionary")
     }
 
     fn snapshot() -> Vec<u8> {
@@ -13533,10 +13622,16 @@ mod tests {
         fs::set_permissions(&dir, fs::Permissions::from_mode(0o555)).expect("chmod read-only");
 
         let outcome = (|| -> gmeow_errors::Result<()> {
-            let lib_segment = build_nt_segment(&format!(
-                "<{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureWithdrawn> .\n"
-            ))?;
+            let lib_segment = build_nt_segment(
+                &[],
+                &probe_medium(),
+                &format!(
+                    "<{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureWithdrawn> .\n"
+                ),
+            )?;
             let audit_segment = build_audit_segment(
+                &[],
+                &probe_medium(),
                 "urn:gmeow:conjecture-call:simulated-failure",
                 MCP_WITHDRAW_CONJECTURE_SCHEMA,
                 &[MCP_CONJECTURE_IN_LIBRARY],
@@ -13735,15 +13830,18 @@ mod tests {
         let (_env, _cg) = ConjEnvGuard::set();
         let (_dir, _path) = temp_conjecture();
 
-        let out = run_conjecture_test(&ConjectureRunInput {
-            formula_ttl: &reified_ground_atom_candidate("B"),
-            kb_ttl: &ground_atom_entailing_kb("B"),
-            standpoint: "http://ex/standpoint/alice",
-            math_conjecture: None,
-            dry_run: true,
-            max_steps: None,
-            max_answers: None,
-        })
+        let out = run_conjecture_test(
+            &ConjectureRunInput {
+                formula_ttl: &reified_ground_atom_candidate("B"),
+                kb_ttl: &ground_atom_entailing_kb("B"),
+                standpoint: "http://ex/standpoint/alice",
+                math_conjecture: None,
+                dry_run: true,
+                max_steps: None,
+                max_answers: None,
+            },
+            &probe_medium(),
+        )
         .expect("a reified ground-atom conjecture must evaluate, not panic");
         assert_eq!(out.lifecycle, "corroborated");
         assert_eq!(out.information, "supported");
@@ -16393,7 +16491,8 @@ mod browser_storage_tests {
              <{node}> <{logic_ns}conjectureLifecycleState> <{logic_ns}ConjectureOpen> .\n\
              <{node}> <{for_slice}> <urn:gmeow:slice:demo> .\n"
         );
-        let segment = build_nt_segment(&body).expect("the candidate body parses");
+        let segment = build_nt_segment(&[], &crate::tests::probe_medium(), &body)
+            .expect("the candidate body parses");
         with_library_lock(&library, || append_library_segments(&library, &[segment]))
             .expect("the browser library commits under its own lock");
 
