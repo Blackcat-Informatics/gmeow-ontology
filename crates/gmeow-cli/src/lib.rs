@@ -160,6 +160,22 @@ pub enum Commands {
         #[arg(long = "public-key")]
         public_key: Option<PathBuf>,
     },
+    /// Report the substrate reconciliation from the embedded bundle (no repo): what
+    /// engine produced this bundle, what it embeds, and whether the claim sites agree.
+    Substrate {
+        /// Read from this `.gts` package instead of the embedded bundle.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
+        /// Only report this component (by canonical name, e.g. `purrdf`).
+        #[arg(long = "component")]
+        component: Option<String>,
+        /// Only report this claim dimension (e.g. `CrateVersion`, `GitRev`).
+        #[arg(long = "dimension")]
+        dimension: Option<String>,
+        /// Output serialization: `human` (default) or `json`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
     /// Describe a GMEOW term as useful prose from a GTS snapshot.
     Describe {
         /// A GMEOW term across any grounding namespace: a registered CURIE
@@ -1344,6 +1360,18 @@ pub fn run() -> i32 {
         Commands::VerifyReleaseBundle { bundle, public_key } => {
             commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
         }
+        Commands::Substrate {
+            gts,
+            component,
+            dimension,
+            format,
+        } => commands::substrate(
+            reporter,
+            gts.as_deref(),
+            component.as_deref(),
+            dimension.as_deref(),
+            &format,
+        ),
         Commands::Describe { term, gts, format } => commands::describe(
             reporter,
             &term,

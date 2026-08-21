@@ -98,13 +98,17 @@ https://blackcatinformatics.ca/gmeow/citingEntity
 https://blackcatinformatics.ca/gmeow/claimAssertoricForce
 https://blackcatinformatics.ca/gmeow/claimCredence
 https://blackcatinformatics.ca/gmeow/claimCredenceLevel
+https://blackcatinformatics.ca/gmeow/claimDimension
 https://blackcatinformatics.ca/gmeow/claimModalForce
 https://blackcatinformatics.ca/gmeow/claimModality
 https://blackcatinformatics.ca/gmeow/claimOfBelief
 https://blackcatinformatics.ca/gmeow/claimPolarity
 https://blackcatinformatics.ca/gmeow/claimResult
+https://blackcatinformatics.ca/gmeow/claimSite
 https://blackcatinformatics.ca/gmeow/claimSupportStatus
 https://blackcatinformatics.ca/gmeow/claimTruthDirectedness
+https://blackcatinformatics.ca/gmeow/claimedComponent
+https://blackcatinformatics.ca/gmeow/claimedValue
 https://blackcatinformatics.ca/gmeow/closesAt
 https://blackcatinformatics.ca/gmeow/coarsenTo
 https://blackcatinformatics.ca/gmeow/codecClass
@@ -118,6 +122,8 @@ https://blackcatinformatics.ca/gmeow/committedAgent
 https://blackcatinformatics.ca/gmeow/comparesLeftTarget
 https://blackcatinformatics.ca/gmeow/comparesRightTarget
 https://blackcatinformatics.ca/gmeow/complianceVerdict
+https://blackcatinformatics.ca/gmeow/componentName
+https://blackcatinformatics.ca/gmeow/componentVersion
 https://blackcatinformatics.ca/gmeow/computationOverCompilation
 https://blackcatinformatics.ca/gmeow/conceptHoldsFor
 https://blackcatinformatics.ca/gmeow/conclusion
@@ -505,6 +511,9 @@ https://blackcatinformatics.ca/gmeow/readingOf
 https://blackcatinformatics.ca/gmeow/realizationMode
 https://blackcatinformatics.ca/gmeow/receiptKind
 https://blackcatinformatics.ca/gmeow/receiptOfExecution
+https://blackcatinformatics.ca/gmeow/reconciledComponent
+https://blackcatinformatics.ca/gmeow/reconciledDimension
+https://blackcatinformatics.ca/gmeow/reconciledValue
 https://blackcatinformatics.ca/gmeow/recurrenceRuleText
 https://blackcatinformatics.ca/gmeow/referenceAuthority
 https://blackcatinformatics.ca/gmeow/referenceJurisdiction

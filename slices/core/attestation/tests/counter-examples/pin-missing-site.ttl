@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:PinCoverageConstraint (the completeness half of
+# drift): a component expects a claim at the prose site, but NO pin claim asserts it
+# there. Without the coverage law the absence would silently, vacuously "agree"; the
+# projected procedural constraint MUST flag the component for the missing expected
+# site (a gmeow:Finding). The one present claim carries no disagreement, so ONLY the
+# coverage constraint fires. Lives under tests/ so the global make validate gate
+# never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/tests/> .
+
+ex:purrdfComp a gmeow:SubstrateComponent , gmeow:Component ;
+    gmeow:componentName "purrdf" ;
+    gmeow:expectedClaimSite gmeow:claimSiteLockfile , gmeow:claimSiteProse .
+
+ex:claimLockfile a gmeow:PinClaim ;
+    gmeow:claimedComponent ex:purrdfComp ;
+    gmeow:claimSite gmeow:claimSiteLockfile ;
+    gmeow:claimDimension gmeow:dimensionCrateVersion ;
+    gmeow:claimedValue "0.12.0" .

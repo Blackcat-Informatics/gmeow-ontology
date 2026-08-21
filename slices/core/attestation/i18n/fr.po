@@ -292,3 +292,163 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/transactionHashFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:transactionHash and nothing else. It is not a definition of gmeow:transactionHash (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:transactionHash, et rien d'autre. Ce n'est pas une définition de gmeow:transactionHash (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Component|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Component"
+msgstr "Composant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Component|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An external engine, library, or toolchain a build depends on or statically embeds — the reconciliation subject whose version is asserted at several mutually-unaware claim sites (a manifest pin, a lockfile, a compiled-in constant, a shipped artifact stamp, prose). The generic kernel class; gmeow:SubstrateComponent is its seeded first specialization. Unlike a gmeow:PinClaim it is not an assertion about a version, and distinct from a gmeow:ReconciledPin it is never the reconciled consensus value — the component is the thing versioned, not a statement about it."
+msgstr "Un moteur, une bibliothèque ou une chaîne d'outils externe dont une compilation dépend ou qu'elle incorpore statiquement — le sujet de réconciliation dont la version est affirmée à plusieurs sites de revendication mutuellement ignorants (une épingle de manifeste, un fichier de verrouillage, une constante compilée, une estampille d'artefact expédié, de la prose). La classe générique du noyau ; gmeow:SubstrateComponent en est la première spécialisation ensemencée. Contrairement à un gmeow:PinClaim, ce n'est pas une affirmation au sujet d'une version, et à la différence d'un gmeow:ReconciledPin, ce n'est jamais la valeur de consensus réconciliée — le composant est la chose versionnée, non un énoncé à son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubstrateComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Substrate Component"
+msgstr "Composant du substrat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SubstrateComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A gmeow:Component that is part of the GMEOW substrate — the RDF/GTS engine the bundle is built against and the toolchain that produced the shipped artifacts (purrdf, and the wasm-bindgen / binaryen toolchain the committed .wasm engines are compiled with). The seeded first instance of the reconciliation kernel; carries no substrate-specific logic or derived SHACL of its own. Unlike a plain gmeow:Component it is never an arbitrary build dependency — only the engine or toolchain the shipped bundle is built against or embeds qualifies, not a library the artifact neither carries nor was produced by."
+msgstr "Un gmeow:Component qui fait partie du substrat GMEOW — le moteur RDF/GTS contre lequel le paquet est compilé et la chaîne d'outils qui a produit les artefacts expédiés (purrdf, ainsi que la chaîne d'outils wasm-bindgen / binaryen avec laquelle les moteurs .wasm committés sont compilés). La première instance ensemencée du noyau de réconciliation ; ne porte aucune logique propre au substrat ni SHACL dérivée qui lui soit propre. Contrairement à un gmeow:Component ordinaire, ce n'est jamais une dépendance de compilation arbitraire — seul le moteur ou la chaîne d'outils contre lequel le paquet expédié est compilé ou qu'il incorpore est admissible, non une bibliothèque que l'artefact ne porte pas et par laquelle il n'a pas été produit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PinClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Pin Claim"
+msgstr "Revendication d'épingle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PinClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One assertion, made at exactly one claim site, of one versioned dimension of one component — e.g. 'the workspace manifest pins purrdf's git rev to a59d9f2d' or 'the lockfile resolves purrdf's crate version to 0.12.0'. The reified per-site claim the agreement law reconciles; several PinClaims about the same (component, dimension) that disagree are drift. Unlike a gmeow:ReconciledPin it is a single-site assertion rather than the agreed consensus, and it is not the component itself."
+msgstr "Une affirmation, faite à exactement un site de revendication, d'une dimension versionnée d'un composant — p. ex. « le manifeste de l'espace de travail épingle la révision git de purrdf à a59d9f2d » ou « le fichier de verrouillage résout la version de crate de purrdf à 0.12.0 ». La revendication par site réifiée que la loi d'accord réconcilie ; plusieurs PinClaim au sujet du même couple (composant, dimension) qui divergent constituent une dérive. Contrairement à un gmeow:ReconciledPin, c'est une affirmation à site unique plutôt que le consensus convenu, et ce n'est pas le composant lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReconciledPin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reconciled Pin"
+msgstr "Épingle réconciliée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReconciledPin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consensus record minted for one (component, dimension) when every present claim site agrees — the single reconciled value, carried once so a consumer (or the SPDX SBOM projection) reads 'what produced this bundle' as an O(1) node rather than re-folding the claims. Absent when the sites disagree (drift) — its absence is itself a signal."
+msgstr "L'enregistrement de consensus créé pour un couple (composant, dimension) lorsque tous les sites de revendication présents s'accordent — la valeur réconciliée unique, portée une seule fois afin qu'un consommateur (ou la projection SBOM SPDX) lise « ce qui a produit ce paquet » comme un nœud en O(1) plutôt qu'en repliant les revendications. Absente lorsque les sites divergent (dérive) — son absence est elle-même un signal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimSite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Claim Site"
+msgstr "Site de revendication"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimSite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The place a pin claim is asserted — a value vocabulary (individuals, never subclasses). The six mutually-unaware representations of a substrate pin: workspace manifest, fuzz manifest, lockfile, linked constant, shipped artifact, and prose."
+msgstr "Le lieu où une revendication d'épingle est affirmée — un vocabulaire de valeurs (des individus, jamais des sous-classes). Les six représentations mutuellement ignorantes d'une épingle de substrat : manifeste de l'espace de travail, manifeste de fuzz, fichier de verrouillage, constante liée, artefact expédié et prose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Claim Dimension"
+msgstr "Dimension de revendication"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClaimDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The versioned dimension a pin claim asserts — a value vocabulary (individuals, never subclasses). Different dimensions assert different-kind values, so agreement is keyed per (component, dimension): crate version, git rev, shapes version, wire version, and zstd level."
+msgstr "La dimension versionnée qu'une revendication d'épingle affirme — un vocabulaire de valeurs (des individus, jamais des sous-classes). Des dimensions différentes affirment des valeurs de nature différente, de sorte que l'accord est indexé par couple (composant, dimension) : version de crate, révision git, version des shapes, version de wire et niveau zstd."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "component name"
+msgstr "nom de composant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical name of a build component (e.g. \"purrdf\", \"wasm-bindgen\", \"binaryen\"). Functional: a component has exactly one canonical name. It names the component, not its version (gmeow:componentVersion), and unlike a per-site gmeow:claimedValue it is never a claimed string subject to reconciliation."
+msgstr "Le nom canonique d'un composant de compilation (p. ex. \"purrdf\", \"wasm-bindgen\", \"binaryen\"). Fonctionnelle : un composant possède exactement un nom canonique. Elle nomme le composant, non sa version (gmeow:componentVersion), et contrairement à un gmeow:claimedValue par site, ce n'est jamais une chaîne revendiquée soumise à réconciliation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "component version"
+msgstr "version de composant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/componentVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reconciled crate/semantic version of a component (e.g. \"0.12.0\"), carried on the component once reconciliation of its crate-version dimension succeeds. Functional: one reconciled version per component. Unlike a single site's gmeow:claimedValue it is the agreed consensus, not a pre-reconciliation assertion, and never a non-crate dimension (git rev, zstd level ride gmeow:ReconciledPin per dimension instead)."
+msgstr "La version de crate/sémantique réconciliée d'un composant (p. ex. \"0.12.0\"), portée sur le composant une fois que la réconciliation de sa dimension version-de-crate réussit. Fonctionnelle : une version réconciliée par composant. Contrairement au gmeow:claimedValue d'un site unique, c'est le consensus convenu, non une affirmation préalable à la réconciliation, et jamais une dimension autre que la crate (la révision git, le niveau zstd chevauchent plutôt un gmeow:ReconciledPin par dimension)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "embeds"
+msgstr "incorpore"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Records that one component (a shipped engine artifact) statically embeds another (a library/substrate it was linked against) — e.g. a committed .wasm engine embeds purrdf. The SBOM 'contains' relationship: the SPDX projection maps it to spdx:relationship / spdx:relationshipType_contains. Non-functional: one artifact may embed several components. Unlike a plain per-site claim it records static containment in the shipped bytes, not a build-time dependency that is never carried in the artifact."
+msgstr "Enregistre qu'un composant (un artefact de moteur expédié) en incorpore statiquement un autre (une bibliothèque/un substrat contre lequel il a été lié) — p. ex. un moteur .wasm committé incorpore purrdf. La relation « contient » du SBOM : la projection SPDX la fait correspondre à spdx:relationship / spdx:relationshipType_contains. Non fonctionnelle : un artefact peut incorporer plusieurs composants. Contrairement à une simple revendication par site, elle enregistre un confinement statique dans les octets expédiés, non une dépendance à la compilation qui n'est jamais portée dans l'artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimed component"
+msgstr "composant revendiqué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The component a pin claim is about. Functional: one claim asserts about exactly one component. Unlike gmeow:reconciledComponent it is the subject of a single-site claim, never the reconciled consensus record's component."
+msgstr "Le composant sur lequel porte une revendication d'épingle. Fonctionnelle : une revendication affirme au sujet d'exactement un composant. Contrairement à gmeow:reconciledComponent, c'est le sujet d'une revendication à site unique, jamais le composant de l'enregistrement de consensus réconcilié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claim site"
+msgstr "site de revendication"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimSite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "WHERE a pin claim is asserted — one of the six gmeow:ClaimSite individuals (workspace manifest, fuzz manifest, lockfile, linked constant, shipped artifact, prose). Functional: one claim comes from exactly one site. It records WHERE a claim was read, not WHICH fact it asserts (gmeow:claimDimension), and unlike gmeow:expectedClaimSite it names a site a claim actually came from rather than one that merely ought to assert."
+msgstr "OÙ une revendication d'épingle est affirmée — l'un des six individus gmeow:ClaimSite (manifeste de l'espace de travail, manifeste de fuzz, fichier de verrouillage, constante liée, artefact expédié, prose). Fonctionnelle : une revendication provient d'exactement un site. Elle enregistre OÙ une revendication a été lue, non QUEL fait elle affirme (gmeow:claimDimension), et contrairement à gmeow:expectedClaimSite, elle nomme un site dont une revendication provient réellement plutôt qu'un site qui devrait simplement affirmer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claim dimension"
+msgstr "dimension de revendication"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "WHICH versioned fact a pin claim asserts — one of the gmeow:ClaimDimension individuals (crate version, git rev, shapes version, wire version, zstd level). Agreement is keyed per (component, dimension), since the sites assert different-kind values. Functional: one claim asserts exactly one dimension. It records WHICH versioned fact, not WHERE it was asserted (gmeow:claimSite); the agreement law never compares a crate version against a git rev."
+msgstr "QUEL fait versionné une revendication d'épingle affirme — l'un des individus gmeow:ClaimDimension (version de crate, révision git, version des shapes, version de wire, niveau zstd). L'accord est indexé par couple (composant, dimension), puisque les sites affirment des valeurs de nature différente. Fonctionnelle : une revendication affirme exactement une dimension. Elle enregistre QUEL fait versionné, non OÙ il a été affirmé (gmeow:claimSite) ; la loi d'accord ne compare jamais une version de crate à une révision git."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "claimed value"
+msgstr "valeur revendiquée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/claimedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The value a pin claim asserts, as a string, already NORMALIZED at carrier emission (in particular git-rev claims are canonicalized so an abbreviated manifest rev and a full lockfile SHA compare equal). Functional: one claim carries one value. Unlike gmeow:reconciledValue it is one site's raw normalized assertion, not the agreed consensus, which reconciliation may or may not confirm."
+msgstr "La valeur qu'une revendication d'épingle affirme, sous forme de chaîne, déjà NORMALISÉE à l'émission par le porteur (en particulier les revendications de révision git sont canonicalisées de sorte qu'une révision abrégée de manifeste et un SHA complet de fichier de verrouillage se comparent comme égaux). Fonctionnelle : une revendication porte une valeur. Contrairement à gmeow:reconciledValue, c'est l'affirmation brute normalisée d'un site, non le consensus convenu, que la réconciliation peut confirmer ou non."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedClaimSite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected claim site"
+msgstr "site de revendication attendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedClaimSite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A claim site that MUST assert this component — the expected-coverage declaration the coverage law reads. An absent expected site yields zero claims and would silently, vacuously 'agree'; declaring it expected turns the absence into a coverage finding. Non-functional: a component expects several sites. Unlike gmeow:claimSite it names a site that OUGHT to assert the component rather than one a present claim actually came from; a declared expected site that is never witnessed becomes a coverage finding."
+msgstr "Un site de revendication qui DOIT affirmer ce composant — la déclaration de couverture attendue que lit la loi de couverture. Un site attendu absent produit zéro revendication et « s'accorderait » silencieusement, de manière vide ; le déclarer attendu transforme l'absence en un constat de couverture. Non fonctionnelle : un composant attend plusieurs sites. Contrairement à gmeow:claimSite, elle nomme un site qui DEVRAIT affirmer le composant plutôt qu'un site dont une revendication présente provient réellement ; un site attendu déclaré qui n'est jamais observé devient un constat de couverture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciled component"
+msgstr "composant réconcilié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The component a reconciled consensus record is about. Functional: one gmeow:ReconciledPin is about exactly one component. Unlike gmeow:claimedComponent it is the subject of the agreed consensus, not a single-site claim."
+msgstr "Le composant sur lequel porte un enregistrement de consensus réconcilié. Fonctionnelle : un gmeow:ReconciledPin porte sur exactement un composant. Contrairement à gmeow:claimedComponent, c'est le sujet du consensus convenu, non une revendication à site unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciled dimension"
+msgstr "dimension réconciliée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The dimension a reconciled consensus record is about. Functional: one gmeow:ReconciledPin reconciles exactly one dimension. Unlike gmeow:claimDimension it is the dimension of the agreed consensus, not of a single-site claim."
+msgstr "La dimension sur laquelle porte un enregistrement de consensus réconcilié. Fonctionnelle : un gmeow:ReconciledPin réconcilie exactement une dimension. Contrairement à gmeow:claimDimension, c'est la dimension du consensus convenu, non celle d'une revendication à site unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reconciled value"
+msgstr "valeur réconciliée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reconciledValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single agreed value carried by a consensus record once a (component, dimension)'s present sites all agree. Functional: one reconciled value per gmeow:ReconciledPin. Unlike gmeow:claimedValue it is the agreed consensus, emitted only when the sites do not disagree, never a single site's raw assertion."
+msgstr "La valeur unique convenue portée par un enregistrement de consensus une fois que les sites présents d'un couple (composant, dimension) s'accordent tous. Fonctionnelle : une valeur réconciliée par gmeow:ReconciledPin. Contrairement à gmeow:claimedValue, c'est le consensus convenu, émis uniquement lorsque les sites ne divergent pas, jamais l'affirmation brute d'un site unique."
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationComponentSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:Component rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. Component(x) → InformationObject(x) — every build component is an information object, an identity carried by the graph, not a material artifact."
+msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:Component rdfs:subClassOf gmeow:InformationObject est la projection : ∀x. Component(x) → InformationObject(x) — tout composant de compilation est un objet d'information, une identité portée par le graphe, non un artefact matériel."
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationSubstrateComponentSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:SubstrateComponent rdfs:subClassOf gmeow:Component taxonomy edge projects from: ∀x. SubstrateComponent(x) → Component(x) — every substrate component is a build component, specialized to the bundle's own engine and toolchain."
+msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:SubstrateComponent rdfs:subClassOf gmeow:Component est la projection : ∀x. SubstrateComponent(x) → Component(x) — tout composant de substrat est un composant de compilation, spécialisé au moteur et à la chaîne d'outils propres au paquet."
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationPinClaimSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:PinClaim rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. PinClaim(x) → InformationObject(x) — every reified per-site claim is an information object, a statement the graph carries."
+msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:PinClaim rdfs:subClassOf gmeow:InformationObject est la projection : ∀x. PinClaim(x) → InformationObject(x) — toute revendication par site réifiée est un objet d'information, un énoncé que le graphe porte."
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationReconciledPinSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:ReconciledPin rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. ReconciledPin(x) → InformationObject(x) — every reconciled consensus record is an information object, the agreed value carried once."
+msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:ReconciledPin rdfs:subClassOf gmeow:InformationObject est la projection : ∀x. ReconciledPin(x) → InformationObject(x) — tout enregistrement de consensus réconcilié est un objet d'information, la valeur convenue portée une seule fois."
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationClaimSiteSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:ClaimSite rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimSite(x) → QualityValue(x) — every claim site is an enumerated quality value, a member of the value vocabulary naming where a claim was read."
+msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:ClaimSite rdfs:subClassOf logic:QualityValue est la projection : ∀x. ClaimSite(x) → QualityValue(x) — tout site de revendication est une valeur de qualité énumérée, un membre du vocabulaire de valeurs nommant où une revendication a été lue."
+
+msgctxt "https://blackcatinformatics.ca/logic/attestationClaimDimensionSubsumption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The subsumption axiom the gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimDimension(x) → QualityValue(x) — every claim dimension is an enumerated quality value, a member of the value vocabulary naming which versioned fact a claim asserts."
+msgstr "L'axiome de subsomption dont l'arête de taxonomie gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue est la projection : ∀x. ClaimDimension(x) → QualityValue(x) — toute dimension de revendication est une valeur de qualité énumérée, un membre du vocabulaire de valeurs nommant quel fait versionné une revendication affirme."
