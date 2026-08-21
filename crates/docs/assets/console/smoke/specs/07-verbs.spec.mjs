@@ -62,9 +62,13 @@ test("the reasoner derives the entailed triple through the demand-loaded segment
   expect(closure.closure_nquads.trim().split("\n")).toContain(SUBSUMPTION_ENTAILMENT);
 
   // `verify_graph` is the second reasoning-segment verb: it must answer over the same input.
-  const verified = await app.call("verify_graph", { data: SUBSUMPTION, format: "turtle" });
-  expect(typeof verified.coherent, "the verifier reports coherence").toBe("boolean");
-  expect(typeof verified.completeness, "…and how complete its evaluation was").toBe("string");
+  // `verify_graph` is a tier of its own: it chases the governed bundle in UNION with whatever
+  // it is given, which takes ~3.2 GiB to fold plus some 5.4 GiB to chase — measured, against
+  // wasm32's hard 4 GiB ceiling. No input fits, so the browser routes instead of answering,
+  // and the derivation above is what this deployment genuinely does.
+  const attempt = await app.attempt("verify_graph", { data: SUBSUMPTION, format: "turtle" });
+  expect(attempt.ok, "verify_graph cannot be answered by a 32-bit host").toBe(false);
+  expect(attempt.error, "…and it says which tier does serve it").toContain("`chase` engine segment");
 });
 
 test("a conjecture returns its lifecycle verdict and its contradiction witness", async ({ app }) => {

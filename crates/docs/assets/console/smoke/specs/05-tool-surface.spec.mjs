@@ -43,14 +43,28 @@ test("every read tool dispatches through the assembled worker and answers", asyn
   }, policy.nquads);
 
   const context = { call: (tool, args) => app.call(tool, args) };
+  // A tool served by a tier this deployment does not carry answers with a ROUTING signal, not
+  // with a value, and that is the correct outcome rather than a refusal to explain. The
+  // whole-bundle chase is such a tier on any 32-bit host: folding the governed bundle takes
+  // ~3.2 GiB and chasing it needs some 5.4 GiB beyond that, against wasm32's hard 4 GiB
+  // ceiling. Expecting a value there would be asserting a capability no browser has.
+  const DEFERRED_HERE = ["verify_graph"];
   const refused = [];
   const answered = [];
+  const deferred = [];
   for (const name of panes) {
     const args = await TOOL_INPUTS[name](context);
     const outcome = await app.attempt(name, args);
     if (outcome.ok) answered.push({ name, value: outcome.value });
-    else refused.push({ name, error: outcome.error });
+    else if (DEFERRED_HERE.includes(name) && /`chase` engine segment/.test(outcome.error)) {
+      deferred.push({ name, error: outcome.error });
+    } else refused.push({ name, error: outcome.error });
   }
+
+  expect(
+    deferred.map((entry) => entry.name).sort(),
+    "every tier this deployment does not carry must say so through the routing signal",
+  ).toEqual([...DEFERRED_HERE].sort());
 
   expect(
     refused,
@@ -60,7 +74,9 @@ test("every read tool dispatches through the assembled worker and answers", asyn
       2,
     )}`,
   ).toEqual([]);
-  expect(answered.length).toBe(panes.length);
+  // Every pane is accounted for: answered HERE, or answered by a routing signal naming the
+  // tier that serves it. Nothing is silently dropped.
+  expect(answered.length + deferred.length).toBe(panes.length);
 
   // Non-vacuity: every answer is a structured payload, and the engine reported an
   // affirmative verdict for all but the ones whose verdict is itself the answer.
