@@ -18,11 +18,26 @@
 //!   numeric RANGE (`min`/`maxInclusive`/`Exclusive`, IEEE-float-discrete aware) and
 //!   string LENGTH (`length`/`minLength`/`maxLength`): whether the constrained
 //!   literal set is EMPTY (an empty datatype an individual must inhabit is
-//!   inconsistent), and whether a required literal satisfies the facets.
+//!   inconsistent), and whether a required literal satisfies the facets. The numeric
+//!   RANGE emptiness/cardinality decision over the IEEE float/double grids and the
+//!   integer strata is DELEGATED to purrdf's exact interval algebra
+//!   ([`purrdf::xsd::range`]), gated on [`purrdf::xsd::range::is_exactly_decided`]: purrdf
+//!   is the value-space range decider (Task 4b). Facet ranges over
+//!   `owl:rational`/`owl:real` endpoints — purrdf's named `Undecided` residue — and
+//!   value-space MEMBERSHIP over the full exact-ℚ tower stay the NATIVE residue decision
+//!   (purrdf's `XsdValue` does not model those endpoints, so purrdf is not
+//!   at-least-as-capable there; dropping the native decision would flip a decided W3C
+//!   case to incomplete). The purrdf delegation returns a proof ONLY where purrdf is
+//!   exactly-decided and native already DECIDED; it withholds (`Tri::Unknown`) exactly
+//!   where the native path withheld, so it never widens coverage. The slice-grounded
+//!   [`FINITE_NAMED_CARDINALITY`] table remains the sole cardinality authority for a
+//!   NAMED finite datatype (Task 4c).
 //! * **`owl:oneOf` datatype enumerations** — distinct-value counting across the
 //!   whole rational tower (`xsd:decimal`/`xsd:integer`/`owl:rational` share one
 //!   value space, so `"0.5"^^xsd:decimal` and `"1/2"^^owl:rational` are ONE value)
-//!   through the exact-ℚ [`gmeow_math::Rational`] core.
+//!   through the exact-ℚ [`purrdf::xsd::rational::Rational`] value-space identity — its
+//!   structural reduced `Eq` is the authority for whether two lexical forms denote one
+//!   value (Task 4a).
 //! * **`owl:datatypeComplementOf`** value-space membership where decidable.
 //!
 //! Everything the subsolver cannot prove complete returns
@@ -35,7 +50,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_math::Rational;
+use purrdf::xsd::range::{self, Cardinality, DataRange, Facet, Satisfiability};
+use purrdf::xsd::rational::Rational;
+use purrdf::xsd::{XsdDatatype, XsdValue};
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
 
 use super::{
@@ -73,6 +90,7 @@ const OWL_INVERSE_FUNCTIONAL_PROPERTY: &str =
 
 const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const XSD_FLOAT: &str = "http://www.w3.org/2001/XMLSchema#float";
 const XSD_DOUBLE: &str = "http://www.w3.org/2001/XMLSchema#double";
@@ -320,9 +338,10 @@ pub(crate) fn all_oneof_are_literal_enumerations(edb: &RdfDataset) -> bool {
 
 /// An exact xsd/owl literal VALUE, canonicalized so that value-equal literals from
 /// different lexical spaces compare equal. The whole `xsd:decimal`/`xsd:integer`/
-/// `owl:rational` tower shares one value space (`gmeow_math::Rational`); IEEE
-/// `xsd:float`/`xsd:double` are their own (bit-distinct) value spaces; strings and
-/// booleans are theirs.
+/// `owl:rational` tower shares one value space, carried as
+/// [`purrdf::xsd::rational::Rational`] whose reduced `Eq` is the value-space identity
+/// authority (Task 4a); IEEE `xsd:float`/`xsd:double` are their own (bit-distinct) value
+/// spaces; strings and booleans are theirs.
 #[derive(Clone, Debug)]
 enum Value {
     Rat(Rational),
@@ -338,7 +357,10 @@ impl Value {
     /// equal (`Some` on both).
     fn key(&self) -> Option<String> {
         match self {
-            Self::Rat(q) => Some(format!("Q:{}", q.ratio_string())),
+            // purrdf's `Rational` is reduced with a positive denominator, so `num/den`
+            // is a canonical, injective value-space key: `"0.5"^^xsd:decimal` and
+            // `"1/2"^^owl:rational` reduce to the same `1/2` (Task 4a).
+            Self::Rat(q) => Some(format!("Q:{}/{}", q.numerator(), q.denominator())),
             Self::Str(s) => Some(format!("S:{s}")),
             Self::Bool(b) => Some(format!("B:{b}")),
             Self::F32(_) | Self::F64(_) => None,
@@ -395,7 +417,10 @@ enum Dt {
     /// facets.
     Facet {
         base: Box<Dt>,
-        facets: Facets,
+        // Boxed: `Facets` carries the purrdf `XsdValue` of every numeric bound (a large
+        // value-space enum), so an unboxed `Facets` would make this the dominant `Dt`
+        // variant.
+        facets: Box<Facets>,
     },
     /// `owl:datatypeComplementOf D` over the (infinite) literal universe.
     Complement(Box<Dt>),
@@ -403,13 +428,27 @@ enum Dt {
     Enumeration(Vec<Value>),
 }
 
+/// A numeric facet bound.
+///
+/// Carries the exact native [`Value`] — used by value-space MEMBERSHIP over the full
+/// exact-ℚ tower and the dense/rational-endpoint residue, which purrdf's [`XsdValue`]
+/// does not model — alongside the purrdf [`XsdValue`] parsed from the SAME literal when
+/// the bound lies in a purrdf-modelled value space (`None` for an `owl:rational`/
+/// `owl:real` endpoint). The purrdf value drives the delegated range-emptiness/
+/// cardinality decision ([`Facets::purrdf_range`]).
+#[derive(Clone, Debug)]
+struct Bound {
+    value: Value,
+    xsd: Option<XsdValue>,
+}
+
 /// The facet bundle carried by an `owl:withRestrictions` datatype.
 #[derive(Clone, Debug, Default)]
 struct Facets {
-    min_inclusive: Option<Value>,
-    max_inclusive: Option<Value>,
-    min_exclusive: Option<Value>,
-    max_exclusive: Option<Value>,
+    min_inclusive: Option<Bound>,
+    max_inclusive: Option<Bound>,
+    min_exclusive: Option<Bound>,
+    max_exclusive: Option<Bound>,
     length: Option<usize>,
     min_length: Option<usize>,
     max_length: Option<usize>,
@@ -529,10 +568,10 @@ impl Facets {
     fn satisfied(&self, value: &Value) -> Tri {
         // Numeric range facets.
         for (bound, strict, is_min) in [
-            (self.min_inclusive.as_ref(), false, true),
-            (self.min_exclusive.as_ref(), true, true),
-            (self.max_inclusive.as_ref(), false, false),
-            (self.max_exclusive.as_ref(), true, false),
+            (self.min_inclusive.as_ref().map(|b| &b.value), false, true),
+            (self.min_exclusive.as_ref().map(|b| &b.value), true, true),
+            (self.max_inclusive.as_ref().map(|b| &b.value), false, false),
+            (self.max_exclusive.as_ref().map(|b| &b.value), true, false),
         ] {
             let Some(bound) = bound else { continue };
             match numeric_cmp(value, bound) {
@@ -594,11 +633,12 @@ impl Facets {
             }
             return Tri::No;
         }
-        // Numeric-range facet emptiness, base-dispatched.
+        // Numeric-range facet emptiness, base-dispatched. The IEEE float/double grids and
+        // the integer strata are DELEGATED to purrdf's exact interval algebra; a facet
+        // range over `owl:rational`/`owl:real` endpoints (purrdf's named `Undecided`
+        // residue) stays the native dense decision.
         match base {
-            Dt::Float => self.float_range_empty::<f32>(),
-            Dt::Double => self.float_range_empty::<f64>(),
-            Dt::IntRange { lo, hi } => self.int_range_empty(*lo, *hi),
+            Dt::Float | Dt::Double | Dt::IntRange { .. } => self.purrdf_range_empty(base),
             Dt::DenseRational => self.dense_range_empty(),
             _ => Tri::Unknown,
         }
@@ -608,115 +648,130 @@ impl Facets {
         if self.emptiness(base) == Tri::Yes {
             return Card::Finite(0);
         }
-        // A non-empty facet-restricted INTEGER range has an exact, arithmetic
-        // count; other non-empty facet spaces are only known non-empty (Unknown
-        // exact count), which suffices for a `required == 1` obligation.
-        if let Dt::IntRange { lo, hi } = base {
-            let elo = self.effective_int_lo(*lo);
-            let ehi = self.effective_int_hi(*hi);
-            if let (Some(lo), Some(hi)) = (elo, ehi) {
-                return if hi < lo {
-                    Card::Finite(0)
-                } else {
-                    Card::Finite((hi - lo + 1) as u128)
-                };
-            }
-            return Card::Infinite;
+        // A non-empty facet-restricted INTEGER range has an exact count, DELEGATED to
+        // purrdf's interval algebra; other non-empty facet spaces are only known
+        // non-empty (Unknown exact count), which suffices for a `required == 1`
+        // obligation.
+        match base {
+            Dt::IntRange { .. } => self.purrdf_range_cardinality(base),
+            _ => Card::Unknown,
         }
-        Card::Unknown
     }
 
-    fn float_range_empty<F: FloatLike>(&self) -> Tri {
-        // The smallest value satisfying the lower bound, then test it against the
-        // upper bound. Because the IEEE grid is discrete and monotone, if the
-        // least lower-satisfying value fails the upper bound the whole set is empty.
-        let lo = match (self.min_inclusive.as_ref(), self.min_exclusive.as_ref()) {
-            (Some(v), None) => match F::from_value(v) {
-                Some(f) => Some((f, false)),
-                None => return Tri::Unknown,
-            },
-            (None, Some(v)) => match F::from_value(v) {
-                Some(f) => Some((f, true)),
-                None => return Tri::Unknown,
-            },
-            (None, None) => None,
-            (Some(_), Some(_)) => return Tri::Unknown,
+    /// Build the purrdf [`DataRange`] for this numeric facet set over `base`, or `None`
+    /// when the NATIVE path deliberately WITHHELD on this shape — a non-integer bound on
+    /// an integer space, a wrong-width / both-sided bound on an IEEE space, or an
+    /// `owl:rational`/`owl:real` endpoint purrdf's [`XsdValue`] does not model. Returning
+    /// `None` exactly where the native decision withheld is what keeps the delegation
+    /// from ever WIDENING coverage; the caller maps it to `Tri::Unknown` / `Card::Unknown`
+    /// (the native withhold), never a decision.
+    fn purrdf_range(&self, base: &Dt) -> Option<DataRange> {
+        match base {
+            Dt::IntRange { lo, hi } => {
+                // A numeric facet that is not an EXACT integer needs reasoning the native
+                // integer path never did (it withheld); preserve that.
+                for b in [
+                    &self.min_inclusive,
+                    &self.max_inclusive,
+                    &self.min_exclusive,
+                    &self.max_exclusive,
+                ] {
+                    if let Some(b) = b
+                        && int_value(&b.value).is_none()
+                    {
+                        return None;
+                    }
+                }
+                let mut facets = Vec::new();
+                if let Some(lo) = lo {
+                    facets.push(Facet::MinInclusive(int_xsd(*lo)?));
+                }
+                if let Some(hi) = hi {
+                    facets.push(Facet::MaxInclusive(int_xsd(*hi)?));
+                }
+                // The native integer bound resolution took the INCLUSIVE facet over the
+                // exclusive one on each side (an ontology carrying both was degenerate);
+                // mirror that precedence exactly so the delegation matches the native
+                // decision (purrdf would otherwise intersect BOTH).
+                if let Some(b) = self.min_inclusive.as_ref() {
+                    facets.push(Facet::MinInclusive(int_xsd(int_value(&b.value)?)?));
+                } else if let Some(b) = self.min_exclusive.as_ref() {
+                    facets.push(Facet::MinExclusive(int_xsd(int_value(&b.value)?)?));
+                }
+                if let Some(b) = self.max_inclusive.as_ref() {
+                    facets.push(Facet::MaxInclusive(int_xsd(int_value(&b.value)?)?));
+                } else if let Some(b) = self.max_exclusive.as_ref() {
+                    facets.push(Facet::MaxExclusive(int_xsd(int_value(&b.value)?)?));
+                }
+                Some(DataRange::Restriction {
+                    base: XsdDatatype::Integer,
+                    facets,
+                })
+            }
+            Dt::Float | Dt::Double => {
+                let want = if matches!(base, Dt::Float) {
+                    XsdDatatype::Float
+                } else {
+                    XsdDatatype::Double
+                };
+                // The native IEEE path withheld when BOTH bounds on one side were present.
+                if self.min_inclusive.is_some() && self.min_exclusive.is_some() {
+                    return None;
+                }
+                if self.max_inclusive.is_some() && self.max_exclusive.is_some() {
+                    return None;
+                }
+                let mut facets = Vec::new();
+                if let Some(b) = self.min_inclusive.as_ref() {
+                    facets.push(Facet::MinInclusive(float_bound(b, want)?));
+                }
+                if let Some(b) = self.min_exclusive.as_ref() {
+                    facets.push(Facet::MinExclusive(float_bound(b, want)?));
+                }
+                if let Some(b) = self.max_inclusive.as_ref() {
+                    facets.push(Facet::MaxInclusive(float_bound(b, want)?));
+                }
+                if let Some(b) = self.max_exclusive.as_ref() {
+                    facets.push(Facet::MaxExclusive(float_bound(b, want)?));
+                }
+                Some(DataRange::Restriction { base: want, facets })
+            }
+            _ => None,
+        }
+    }
+
+    /// Value-space RANGE emptiness DELEGATED to purrdf's exact interval algebra. Returns
+    /// purrdf's PROOF only when purrdf is [`range::is_exactly_decided`]; otherwise — and
+    /// wherever [`Facets::purrdf_range`] declined (the native withhold shapes) — withholds
+    /// with `Tri::Unknown`, so the delegation never widens coverage.
+    fn purrdf_range_empty(&self, base: &Dt) -> Tri {
+        let Some(range) = self.purrdf_range(base) else {
+            return Tri::Unknown;
         };
-        let hi = match (self.max_inclusive.as_ref(), self.max_exclusive.as_ref()) {
-            (Some(v), None) => match F::from_value(v) {
-                Some(f) => Some((f, false)),
-                None => return Tri::Unknown,
-            },
-            (None, Some(v)) => match F::from_value(v) {
-                Some(f) => Some((f, true)),
-                None => return Tri::Unknown,
-            },
-            (None, None) => None,
-            (Some(_), Some(_)) => return Tri::Unknown,
-        };
-        let (Some((lo, lo_excl)), Some((hi, hi_excl))) = (lo, hi) else {
-            // A half-bounded IEEE range is non-empty (the grid is dense enough).
-            return Tri::No;
-        };
-        if lo.is_nan() || hi.is_nan() {
+        if !range::is_exactly_decided(&range) {
             return Tri::Unknown;
         }
-        let least = if lo_excl { F::next_up(lo) } else { lo };
-        let fits_upper = if hi_excl { least.lt(hi) } else { least.le(hi) };
-        if fits_upper { Tri::No } else { Tri::Yes }
-    }
-
-    fn effective_int_lo(&self, base_lo: Option<i128>) -> Option<i128> {
-        let facet_lo = self.min_inclusive.as_ref().and_then(int_value).or_else(|| {
-            self.min_exclusive
-                .as_ref()
-                .and_then(int_value)
-                .map(|v| v + 1)
-        });
-        match (base_lo, facet_lo) {
-            (Some(a), Some(b)) => Some(a.max(b)),
-            (Some(a), None) => Some(a),
-            (None, Some(b)) => Some(b),
-            (None, None) => None,
+        match range::satisfiability(&range) {
+            Satisfiability::Empty => Tri::Yes,
+            Satisfiability::Inhabited => Tri::No,
+            Satisfiability::Undecided => Tri::Unknown,
         }
     }
 
-    fn effective_int_hi(&self, base_hi: Option<i128>) -> Option<i128> {
-        let facet_hi = self.max_inclusive.as_ref().and_then(int_value).or_else(|| {
-            self.max_exclusive
-                .as_ref()
-                .and_then(int_value)
-                .map(|v| v - 1)
-        });
-        match (base_hi, facet_hi) {
-            (Some(a), Some(b)) => Some(a.min(b)),
-            (Some(a), None) => Some(a),
-            (None, Some(b)) => Some(b),
-            (None, None) => None,
+    /// Value-space RANGE cardinality DELEGATED to purrdf, gated the same way as
+    /// [`Facets::purrdf_range_empty`]. `AtLeast`/`Undecided` (a lower bound, not an exact
+    /// count) map to `Card::Unknown` — a counting obligation withholds rather than guesses.
+    fn purrdf_range_cardinality(&self, base: &Dt) -> Card {
+        let Some(range) = self.purrdf_range(base) else {
+            return Card::Unknown;
+        };
+        if !range::is_exactly_decided(&range) {
+            return Card::Unknown;
         }
-    }
-
-    fn int_range_empty(&self, base_lo: Option<i128>, base_hi: Option<i128>) -> Tri {
-        // A facet bound that is not an integer would need real reasoning we do not
-        // do here; if any numeric facet is present but non-integer, withhold.
-        for facet in [
-            &self.min_inclusive,
-            &self.max_inclusive,
-            &self.min_exclusive,
-            &self.max_exclusive,
-        ] {
-            if let Some(v) = facet
-                && int_value(v).is_none()
-            {
-                return Tri::Unknown;
-            }
-        }
-        match (
-            self.effective_int_lo(base_lo),
-            self.effective_int_hi(base_hi),
-        ) {
-            (Some(lo), Some(hi)) if lo > hi => Tri::Yes,
-            _ => Tri::No,
+        match range::cardinality(&range) {
+            Cardinality::Exactly(n) => Card::Finite(u128::from(n)),
+            Cardinality::Unbounded => Card::Infinite,
+            Cardinality::AtLeast(_) | Cardinality::Undecided => Card::Unknown,
         }
     }
 
@@ -724,13 +779,13 @@ impl Facets {
         let lo = self
             .min_inclusive
             .as_ref()
-            .map(|v| (v, false))
-            .or_else(|| self.min_exclusive.as_ref().map(|v| (v, true)));
+            .map(|b| (&b.value, false))
+            .or_else(|| self.min_exclusive.as_ref().map(|b| (&b.value, true)));
         let hi = self
             .max_inclusive
             .as_ref()
-            .map(|v| (v, false))
-            .or_else(|| self.max_exclusive.as_ref().map(|v| (v, true)));
+            .map(|b| (&b.value, false))
+            .or_else(|| self.max_exclusive.as_ref().map(|b| (&b.value, true)));
         let (Some((lo, lo_excl)), Some((hi, hi_excl))) = (lo, hi) else {
             return Tri::No;
         };
@@ -743,57 +798,6 @@ impl Facets {
             // strictly between, so the range is non-empty for any inclusion mix.
             Some(std::cmp::Ordering::Less) => Tri::No,
         }
-    }
-}
-
-/// Abstraction over `f32`/`f64` for the discrete-grid emptiness test.
-trait FloatLike: Copy {
-    fn from_value(v: &Value) -> Option<Self>;
-    fn is_nan(self) -> bool;
-    fn next_up(self) -> Self;
-    fn lt(self, other: Self) -> bool;
-    fn le(self, other: Self) -> bool;
-}
-
-impl FloatLike for f32 {
-    fn from_value(v: &Value) -> Option<Self> {
-        match v {
-            Value::F32(f) => Some(*f),
-            _ => None,
-        }
-    }
-    fn is_nan(self) -> bool {
-        f32::is_nan(self)
-    }
-    fn next_up(self) -> Self {
-        f32::next_up(self)
-    }
-    fn lt(self, other: Self) -> bool {
-        self < other
-    }
-    fn le(self, other: Self) -> bool {
-        self <= other
-    }
-}
-
-impl FloatLike for f64 {
-    fn from_value(v: &Value) -> Option<Self> {
-        match v {
-            Value::F64(f) => Some(*f),
-            _ => None,
-        }
-    }
-    fn is_nan(self) -> bool {
-        f64::is_nan(self)
-    }
-    fn next_up(self) -> Self {
-        f64::next_up(self)
-    }
-    fn lt(self, other: Self) -> bool {
-        self < other
-    }
-    fn le(self, other: Self) -> bool {
-        self <= other
     }
 }
 
@@ -823,6 +827,22 @@ fn int_value(v: &Value) -> Option<i128> {
         Value::Rat(q) if q.denominator() == 1 => Some(q.numerator()),
         _ => None,
     }
+}
+
+/// An `i128` as a purrdf `xsd:integer` [`XsdValue`] for a purrdf facet bound. Total for
+/// every `i128` (`i128::MIN` included) — the lexical round-trip of a decimal integer is
+/// exact, so this introduces no float-style parse fragility.
+fn int_xsd(n: i128) -> Option<XsdValue> {
+    purrdf::xsd::parse(&n.to_string(), XsdDatatype::Integer).ok()
+}
+
+/// The purrdf [`XsdValue`] of a numeric facet bound when it lies in the wanted IEEE value
+/// space (`xsd:float` / `xsd:double`), or `None` when the bound is an `owl:rational`
+/// endpoint (no purrdf value) or comes from another space — exactly the shapes on which
+/// the native IEEE range path withheld rather than coerce a cross-space bound.
+fn float_bound(b: &Bound, want: XsdDatatype) -> Option<XsdValue> {
+    let x = b.xsd.clone()?;
+    (x.datatype() == want).then_some(x)
 }
 
 // ── EDB scan ────────────────────────────────────────────────────────────────────
@@ -1063,7 +1083,7 @@ impl Model {
             let facets = self.parse_facets(list_head)?;
             return Ok(Dt::Facet {
                 base: Box::new(base),
-                facets,
+                facets: Box::new(facets),
             });
         }
         if let Some(list_head) = self.one_of.get(node) {
@@ -1500,11 +1520,20 @@ fn parse_len_facet(lit: &RdfLiteral) -> Result<usize, gmeow_errors::Diag> {
         .map_err(|_| reason_err(format!("non-integer length facet {:?}", lit.lexical_form)))
 }
 
-/// Parse a numeric facet literal into an exact [`Value`] (float/double stay IEEE).
-fn parse_num_facet(lit: &RdfLiteral) -> Result<Value, gmeow_errors::Diag> {
-    parse_value(lit)
+/// Parse a numeric facet literal into a [`Bound`]: the exact native [`Value`]
+/// (float/double stay IEEE) plus the purrdf [`XsdValue`] parsed from the SAME literal
+/// when the bound lies in a purrdf-modelled value space (`None` for an
+/// `owl:rational`/`owl:real` endpoint), which drives the delegated range decision.
+fn parse_num_facet(lit: &RdfLiteral) -> Result<Bound, gmeow_errors::Diag> {
+    let value = parse_value(lit)
         .filter(|v| matches!(v, Value::Rat(_) | Value::F32(_) | Value::F64(_)))
-        .ok_or_else(|| reason_err(format!("non-numeric facet literal {:?}", lit.lexical_form)))
+        .ok_or_else(|| reason_err(format!("non-numeric facet literal {:?}", lit.lexical_form)))?;
+    let xsd = lit.datatype.as_deref().and_then(|dt| {
+        purrdf::xsd::parse_by_iri(&lit.lexical_form, dt)
+            .ok()
+            .flatten()
+    });
+    Ok(Bound { value, xsd })
 }
 
 /// Parse a literal into its exact xsd/owl value, or `None` when it is not a
@@ -1525,11 +1554,37 @@ fn parse_value(lit: &RdfLiteral) -> Option<Value> {
         },
         Some(XSD_FLOAT) => lexical.parse::<f32>().ok().map(Value::F32),
         Some(XSD_DOUBLE) => lexical.parse::<f64>().ok().map(Value::F64),
-        Some(OWL_RATIONAL) => parse_rational(lexical).map(Value::Rat),
-        Some(dt) if dt == OWL_REAL => parse_rational(lexical).map(Value::Rat),
-        Some(dt) if is_rational_tower(dt) => Rational::parse_decimal(lexical).ok().map(Value::Rat),
+        Some(OWL_RATIONAL) | Some(OWL_REAL) => parse_rational_value(lexical),
+        Some(dt) if is_rational_tower(dt) => parse_rational_value(lexical),
         Some(_) => None,
     }
+}
+
+/// Parse an `xsd:decimal`/`xsd:integer`/`owl:rational`/`owl:real` lexical form into the
+/// exact value-space rational whose reduced identity is DECIDED by
+/// [`purrdf::xsd::rational::Rational`] — its structural reduced `Eq` is what makes
+/// `"0.5"^^xsd:decimal` and `"1/2"^^owl:rational` ONE value (Task 4a). purrdf owns the
+/// identity: a ratio lexical goes through [`Rational::parse`], a decimal/integer lexical
+/// through purrdf's own `xsd:decimal` value space (`parse_by_iri` + [`Rational::from_xsd`]).
+/// The exact-`i128` lexical fallback covers a decimal PAST purrdf's `XsdValue` scale-≤18
+/// domain so no value the native path decided is lost — a completeness regression this
+/// task forbids; the reduced components are handed back through [`Rational::new`], so the
+/// stored identity is still purrdf's.
+fn parse_rational_value(lexical: &str) -> Option<Value> {
+    let lexical = lexical.trim();
+    let rat = if lexical.contains('/') {
+        Rational::parse(lexical).ok()
+    } else {
+        purrdf::xsd::parse_by_iri(lexical, XSD_DECIMAL)
+            .ok()
+            .flatten()
+            .and_then(|v| Rational::from_xsd(&v))
+    }
+    .or_else(|| {
+        let g = parse_rational(lexical)?;
+        Rational::new(g.numerator(), g.denominator()).ok()
+    })?;
+    Some(Value::Rat(rat))
 }
 
 /// Resolve a NAMED datatype IRI into a value space.
@@ -1624,6 +1679,12 @@ mod tests {
         }
     }
 
+    /// A numeric facet [`Bound`] parsed from a lexical + datatype exactly as the EDB scan
+    /// builds it — the native [`Value`] AND the purrdf [`XsdValue`] the delegation reads.
+    fn fbound(lexical: &str, datatype: &str) -> Bound {
+        parse_num_facet(&lit(lexical, datatype)).expect("numeric facet bound")
+    }
+
     #[test]
     fn decimal_and_rational_share_one_value() {
         // "0.5"^^xsd:decimal and "1/2"^^owl:rational denote ONE value.
@@ -1656,23 +1717,23 @@ mod tests {
     fn float_discrete_range_is_empty() {
         // (0.0, MIN_POSITIVE_SUBNORMAL) exclusive over the xsd:float grid is empty.
         let facets = Facets {
-            min_exclusive: Some(Value::F32(0.0)),
-            max_exclusive: Some(Value::F32("1.401298464324817e-45".parse().unwrap())),
+            min_exclusive: Some(fbound("0.0", XSD_FLOAT)),
+            max_exclusive: Some(fbound("1.401298464324817e-45", XSD_FLOAT)),
             ..Facets::default()
         };
         let dt = Dt::Facet {
             base: Box::new(Dt::Float),
-            facets,
+            facets: Box::new(facets),
         };
         assert_eq!(dt.emptiness(), Tri::Yes);
         // A wider range is non-empty.
         let wide = Dt::Facet {
             base: Box::new(Dt::Float),
-            facets: Facets {
-                min_exclusive: Some(Value::F32(0.0)),
-                max_exclusive: Some(Value::F32(1.0)),
+            facets: Box::new(Facets {
+                min_exclusive: Some(fbound("0.0", XSD_FLOAT)),
+                max_exclusive: Some(fbound("1.0", XSD_FLOAT)),
                 ..Facets::default()
-            },
+            }),
         };
         assert_eq!(wide.emptiness(), Tri::No);
     }
@@ -1689,20 +1750,20 @@ mod tests {
     fn length_facet_emptiness() {
         let empty = Dt::Facet {
             base: Box::new(Dt::Str),
-            facets: Facets {
+            facets: Box::new(Facets {
                 min_length: Some(5),
                 max_length: Some(3),
                 ..Facets::default()
-            },
+            }),
         };
         assert_eq!(empty.emptiness(), Tri::Yes);
         let ok = Dt::Facet {
             base: Box::new(Dt::Str),
-            facets: Facets {
+            facets: Box::new(Facets {
                 min_length: Some(2),
                 max_length: Some(5),
                 ..Facets::default()
-            },
+            }),
         };
         assert_eq!(ok.emptiness(), Tri::No);
     }
@@ -1711,10 +1772,10 @@ mod tests {
     fn pattern_facet_withholds() {
         let dt = Dt::Facet {
             base: Box::new(Dt::Str),
-            facets: Facets {
+            facets: Box::new(Facets {
                 has_pattern: true,
                 ..Facets::default()
-            },
+            }),
         };
         assert_eq!(dt.emptiness(), Tri::Unknown);
     }
