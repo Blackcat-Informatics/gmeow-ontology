@@ -13,7 +13,7 @@ keywords = ["rdf", "logic", "compiler", "wasm", "owl"]
 
 [lib]
 # rlib-only. The wasm32 build is a `cargo build --target wasm32-unknown-unknown`
-# of this same rlib (a downstream bindings crate, like crates/rdf-wasm, assembles
+# of this same rlib (a downstream bindings crate, like purrdf's wasm bindings, assembles
 # any shipped wasm bundle); there is no standalone cdylib here.
 crate-type = ["rlib"]
 path = "src/lib.rs"
@@ -29,7 +29,7 @@ purrdf.workspace = true
 # SPARQL property-path algebra: the projection target for logic:PathShape.
 # A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.
 # roxmltree: the read-only XML DOM parser for the XCL dialect reader. A pure-Rust,
-# wasm-clean leaf (already in the workspace as gmeow-rdf's native RDF/XML parser), so
+# wasm-clean leaf (already in the workspace as purrdf's native RDF/XML parser), so
 # it keeps this crate oxigraph-free and wasm-buildable. The XCL reader parses through
 # it rather than a hand-rolled scanner so the meta carrier decodes losslessly (the
 # Exact round-trip guarantee); the writer emits XML directly (roxmltree is parse-only).

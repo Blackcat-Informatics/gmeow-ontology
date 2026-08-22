@@ -26,7 +26,7 @@ purrdf.workspace = true
 # `XsdValue::canonical_lexical`, replacing the transient-oxigraph-`Store` literal
 # normalizer (carrier-purity). DIRECT + NON-optional: the snapshot carrier
 # path is always on, so this must not be feature-gated.
-# The native SPARQL engine: the single required impl of the gmeow-rdf-core
+# The native SPARQL engine: the single required impl of the purrdf
 # `SparqlEngine` seam. The result-shape / research-object export leaves run their
 # introspection SELECTs and CONSTRUCT over the native `RdfDataset` carrier through
 # this engine, replacing the transient oxigraph `Store` + `SparqlEvaluator`. DIRECT
@@ -42,7 +42,7 @@ purrdf.workspace = true
 # the three archive-boundary surfaces that legitimately read/write the gts package:
 # `release.rs` (sign + verify a release `gmeow.gts`), `py.rs::fold_release_bundle_native`
 # (Ed25519 release signing), and `mcp.rs` (the McpView memory server, a separate
-# system consuming the bundled snapshot). Same pin as gmeow-rdf links. Do NOT
+# system consuming the bundled snapshot). Same pin as purrdf links. Do NOT
 # reintroduce it into an export leaf — the carrier is the single internal transport.
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.

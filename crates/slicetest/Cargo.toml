@@ -19,9 +19,9 @@ path = "src/lib.rs"
 # string. Non-optional — a hard dependency of the harness's error contract.
 gmeow-errors = { path = "../errors" }
 # OXIGRAPH-FREE native SPARQL substrate: parse slice Turtle through the
-# canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen `RdfDataset`
-# (`gmeow-rdf-core`), then run the competency/structural/RDFS-closure SPARQL through
-# the native `NativeSparqlEngine` (`gmeow-sparql-eval`) — no oxigraph Store anywhere.
+# canonical native codec (`purrdf::parse_dataset`) into a frozen `RdfDataset`
+# (`purrdf`), then run the competency/structural/RDFS-closure SPARQL through
+# the native `NativeSparqlEngine` (`purrdf::sparql`) — no oxigraph Store anywhere.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
 # The SHACL Finding bridge (finding_from_shacl -> shacl.<LocalName>) for the

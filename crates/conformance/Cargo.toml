@@ -49,8 +49,8 @@ gmeow-errors = { path = "../errors" }
 # never a bare stderr write. Acyclic: cli-core depends only on gmeow-errors.
 gmeow-cli-core = { path = "../cli-core" }
 # Native RDF text codecs + native flat RDFC-1.0: the comparator parses
-# serialized RDF via `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the
-# gmeow-gts codecs), canonicalizes via `gmeow_rdf::canonical_flat_nquads`, and buckets
+# serialized RDF via `purrdf::parse_dataset` (oxigraph-free text ingress through the
+# gmeow-gts codecs), canonicalizes via `purrdf::canonical_flat_nquads`, and buckets
 # named graphs via `RdfDataset::project_named_graph` + `serialize_dataset` — all on the
 # native, oxigraph-free path (no `oxigraph` feature). `gmeow-logic` already
 # depends on this crate, so no new layering edge is created.
@@ -76,7 +76,7 @@ tempfile = "3"
 # File-driven test harness: one nextest case per discovered profile.json (i.e. per
 # case directory), run in parallel. Mirrors crates/slicetest.
 datatest-stable = "0.3"
-# NOTE: `gmeow-rdf` is now a regular dependency (above) — the RDF comparator uses its
+# NOTE: `purrdf` is now a regular dependency (above) — the RDF comparator uses its
 # native canonicalizer, and the native-DL gold lane parses curated OWL/gUFO
 # fixtures into the frozen `RdfDataset` IR via the same dependency.
 

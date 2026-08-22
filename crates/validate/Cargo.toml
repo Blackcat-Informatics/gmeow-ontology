@@ -37,7 +37,7 @@ gmeow-errors = { path = "../errors" }
 # the bytes it authors actually pass the audit.
 gmeow-gts-profile = { path = "../gts-profile" }
 # GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
-# CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's
+# CONTAINER symbols only (no codec feature) — the same wasm-clean surface purrdf's
 # `gts` feature builds; pure-Rust structured-zstd, no C/duckdb/zstd-sys linkage.
 # CBOR reader for the bundle blob metadata: `Graph::blob_meta` values are
 # `ciborium::value::Value`, read to resolve a blob by its `rep` label.
@@ -73,7 +73,7 @@ rayon = "1"
 ureq = "3"
 # Native slice catalog + S6a semantic Merkle cache: the whole-ontology merged-SHACL
 # source key is the path-independent, comment-insensitive product key over the slice
-# composition. gmeow-slice depends only on gmeow-rdf, keeping the crate DAG acyclic.
+# composition. gmeow-slice depends only on purrdf, keeping the crate DAG acyclic.
 # Dependency-free license-token policy classifier (RUST-FIRST single source of truth):
 # the `license_policy_for` pyfunction surfaces it to the Python `LinkPolicy` shim.
 gmeow-license = { path = "../license" }
