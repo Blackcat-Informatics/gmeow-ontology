@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-bundle-view"
+description = "GMEOW's read side of a materialized gmeow.gts bundle: blob access, the fold view + flat-export renderers, the graph/diagnostics reader, and the native query substrate — without the build executor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["gmeow", "gts", "bundle", "rdf", "wasm"]
+
+[lib]
+# rlib-only, and a LEAF with respect to gmeow-pipeline: the whole point of the
+# crate is that a bundle READER (the consumer `gmeow` CLI, `gmeow-dev`, the MCP
+# tool surface) never inherits the build executor — its scheduler, cache, release
+# signer, reasoner and network client. `cargo check --target
+# wasm32-unknown-unknown` must stay green here, so nothing in this dependency set
+# may pull in rayon, process spawning, or an embedded-asset crate.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The RDF 1.2 kernel: every view here is a projection of a `purrdf::RdfDataset`,
+# the gts reader/fold view recovers one from snapshot bytes, and the flat-export
+# tiers delegate to purrdf's native SKOS / OBO-Graphs / CSVW / N-Quads / TriG
+# projections rather than hand-rolling a writer.
+purrdf.workspace = true
+# The registered term namespaces (`GMEOW_NS` / `LOGIC_NS`): the blob reader and the
+# diagnostics reader build predicate IRIs from the ONE declaration site.
+gmeow-ns = { path = "../ns" }
+# The diagnostic substrate: every read-side defect is a typed `DiagKind` raised as
+# a `Diag`, and `diagnostics_reader` rehydrates `gmeow_errors::Finding` values
+# (with their Grade / Standpoint / gate verdict lattice) out of the RDF projection.
+gmeow-errors = { path = "../errors" }
+# The documentation MODEL only — never `gmeow-docs`, whose renderer embeds ~13.6 MB
+# of vendored wasm. `export` renders every term card and every `llms.txt` block
+# through the shared `card` / `llms` / `gmn1_primer` surfaces, so the MCP card is
+# the genuine twin of the docs-site card rather than a second renderer.
+gmeow-docs-model = { path = "../docs-model" }
+# The language-tag authority: the internal `x-gmeow-*` carrier tags are remapped to
+# public BCP-47 at the projection boundary, and public-text selection/fallback is
+# decided by `gmeow_validate::language_tags` rather than re-derived here.
+gmeow-validate = { path = "../validate" }
+# The canonical prefix registry (`ingest::PREFIX_REGISTRY` / `ns_to_prefix` /
+# `registry_iri`): the CURIE compaction and the grounding-namespace set resolve
+# from it, and `lpg_prefixes`'s coherence test pins the local table against it.
+gmeow-logic-compile = { path = "../logic-compile" }
+# JSON is a first-class egress format on this side: the `transform:denied` blob and
+# the folded JSON Schema are JSON payloads, and the consumer/MCP envelopes
+# (`lookup`, `doc_card`, `okf_index`) plus the statements/terms JSONL tiers are
+# emitted through it.
+serde_json.workspace = true
+# The blob store's content addressing: `integrity_report` recomputes each blob's
+# `blake3:<hex>` digest and compares it against the stored key, so a silently
+# corrupted blob is caught on read.
+blake3.workspace = true
+# The snapshot's per-blob `pub` metadata maps are CBOR `Value`s; recovering a blob's
+# declared rep + media type means reading them with the same codec the gts composer
+# wrote them with.
+ciborium.workspace = true
+# Subscriber-controlled sink for the lossy-projection notices the export tiers
+# raise (a term an encoding cannot carry). Never product data and never a gate —
+# the events surface only when the host CLI has installed a subscriber.
+tracing.workspace = true

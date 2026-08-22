@@ -1,0 +1,46 @@
+{
+  "name": "@blackcatinformatics/gmeow-gmn-wasm",
+  "version": "0.2.0",
+  "description": "The shipped GMEOW GMN-0<->GMN-1 codec (transcode plus the glyph legend, over the embedded codebook) compiled to wasm32 for client-side use in browsers, editors, and LLM clients.",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "author": "Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology"
+  },
+  "keywords": [
+    "rdf",
+    "rdf-1.2",
+    "gmn",
+    "codec",
+    "wasm",
+    "knowledge-graph"
+  ],
+  "main": "./index.mjs",
+  "module": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs"
+    }
+  },
+  "files": [
+    "index.mjs",
+    "index.d.ts",
+    "pkg/gmeow_gmn_wasm.js",
+    "pkg/gmeow_gmn_wasm.d.ts",
+    "pkg/gmeow_gmn_wasm_bg.wasm",
+    "pkg/gmeow_gmn_wasm_bg.wasm.d.ts"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

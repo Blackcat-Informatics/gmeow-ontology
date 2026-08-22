@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-transcode"
+description = "GMEOW universal RDF-1.2 transcode hub: parse any source codec into the frozen RdfDataset IR, serialize to any target codec, and record realized loss on every lossy edge"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["rdf", "transcode", "codec", "loss", "wasm"]
+
+[lib]
+# rlib-only, and deliberately a LEAF: this crate is depended on by both
+# gmeow-pipeline (whose stages::yaml_ld Stage impl still calls the moved
+# functions) and gmeow-mcp (whose `convert` tool is the browser-reachable
+# serialize surface). A dependency in the other direction would close a cycle
+# that `make crate-check` rejects, so nothing here may reach back into the
+# pipeline: the former `crate::stages::yaml_ld::{parse_jsonld_star,
+# serialize_graph, serialize_graph_yaml}` calls now go straight to
+# `purrdf::native_codecs::jsonld`, which is what those wrappers already were.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The wasm-clean RDF kernel: the frozen RdfDataset IR this hub spokes through,
+# the native codecs (including the JSON-LD / YAML-LD pair the pipeline wrappers
+# used to front), and the static pair-loss contracts every transcode edge is
+# checked against. purrdf is the ONLY permitted RDF crate.
+purrdf.workspace = true
+# The ONE mandated GMEOW GTS authorship door. `gmeow convert --to gts` emits authored
+# GMEOW GTS, so it must go through the profile rather than `purrdf::gts_write::to_gts`,
+# which authors frames via `Writer::deterministic` with no transform chain and therefore
+# shipped identity-framed bytes. A LEAF (purrdf + errors + ciborium), so this crate stays
+# one too.
+gmeow-gts-profile = { path = "../gts-profile" }
+# The pure, wasm-able logic compiler: supplies the projection back-ends
+# (OWL-DL/EL, Datalog, N3, gUFO, canonical-RDF12) that the projection-family
+# codecs serialize through, plus the LossLedger those projections populate.
+gmeow-logic-compile = { path = "../logic-compile" }
+# The diagnostics substrate. This crate mints its own codec diag kinds
+# (UnknownCodec / NonInvertibleSource / UndecodableInput / CodecError) rather
+# than borrowing the pipeline's, which is what lets it stand as a leaf.
+gmeow-errors = { path = "../errors" }
+# serde_json: the transcode/loss matrices (`transcode_matrix_json`,
+# `transcode_loss_matrix_json`, `realized_loss_json`) are emitted as JSON — the
+# shape the `gmeow convert --loss-report` CLI and the MCP `convert` tool both read.
+serde_json.workspace = true
+# serde derive: RealizedLoss and the matrix rows are Serialize so the loss ledger
+# round-trips through the JSON surfaces above without a hand-written encoder.
+serde.workspace = true

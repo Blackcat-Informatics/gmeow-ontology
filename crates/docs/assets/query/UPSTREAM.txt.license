@@ -1,0 +1,7 @@
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+SPDX-License-Identifier: AGPL-3.0-only
+
+The `<package>@<version>` of the purrdf npm release these vendored bytes are. Written
+by `make maint-refresh-purrdf-asset` (which always takes the NEWEST release satisfying
+the Makefile's PURRDF_NPM_MIN) and digest-pinned by DIGESTS.blake3, so it cannot claim
+a version the blob beside it is not. Do not hand-edit. See PROVENANCE.md.

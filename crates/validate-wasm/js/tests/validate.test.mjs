@@ -34,8 +34,13 @@ function errorFindings(json) {
   return (report.findings ?? []).filter((f) => f.severity === "error");
 }
 
-test("version() returns the crate semver", () => {
-  assert.match(version(), /^\d+\.\d+\.\d+/);
+// The published manifest, read from the shipped bytes — never a literal restated here.
+const packageJson = JSON.parse(
+  await readFile(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"),
+);
+
+test("version() equals the published package version", () => {
+  assert.equal(version(), packageJson.version);
 });
 
 test("a conforming instance validates clean against the real bundle", () => {

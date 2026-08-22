@@ -7,6 +7,7 @@
 //! a perfect 1.0 — none of its rationales name a test artifact. This is the
 //! executable form of the "a test is not a rationale" acceptance criterion.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::axes;
@@ -32,14 +33,23 @@ fn slice_graph() -> std::sync::Arc<purrdf::RdfDataset> {
     gmeow_slice_quality::dataset_from_paths(&refs).expect("slice graph parses")
 }
 
+/// The slice's own files as the scorer now consumes them: an in-memory map keyed by
+/// slice-relative path, read once off the real slice directory.
+fn slice_files() -> BTreeMap<String, Vec<u8>> {
+    gmeow_slice_quality::report::slice_files_from_dir(&slice_dir()).expect("slice files read")
+}
+
 #[test]
 fn provenance_honesty_is_perfect_on_its_own_exemplar() {
     let ds = slice_graph();
+    let files = slice_files();
     let ctx = ScoreContext::new(
         "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric".to_owned(),
-        slice_dir(),
+        &files,
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: slice_dir(),
+        },
     );
     let prov = axes::resolve("provenance_honesty").unwrap()(&ctx);
     assert_eq!(
@@ -57,11 +67,14 @@ fn provenance_honesty_is_perfect_on_its_own_exemplar() {
 #[test]
 fn group_a_axes_produce_real_scores() {
     let ds = slice_graph();
+    let files = slice_files();
     let ctx = ScoreContext::new(
         "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric".to_owned(),
-        slice_dir(),
+        &files,
         &ds,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: slice_dir(),
+        },
     );
     assert!(!ctx.terms.is_empty(), "the slice has authored terms");
 

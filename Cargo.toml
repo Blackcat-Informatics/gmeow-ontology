@@ -100,6 +100,37 @@ members = [
     "crates/ns",
     # DAG-driven single-pass build executor: typed stages over an
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
+    # The universal RDF-1.2 transcode hub. A LEAF (purrdf + logic-compile +
+    # errors): both gmeow-pipeline and the MCP `convert` tool spoke through it,
+    # so it must depend on neither.
+    # The documentation MODEL, split from gmeow-docs so consumers can use it WITHOUT
+    # the renderer: gmeow-docs `include_bytes!`s ~19 MB of wasm engines, and
+    # gmeow-slice-quality (which the browser MCP engine links) must not inherit those
+    # bytes. That is a hard constraint, not a tidiness preference.
+    "crates/docs-model",
+    # The universal RDF-1.2 transcode hub. A LEAF (purrdf + logic-compile +
+    # errors): both gmeow-pipeline and the MCP `convert` tool spoke through it,
+    # so it must depend on neither.
+    "crates/transcode",
+    # The READ side of a materialized gmeow.gts, split from gmeow-pipeline so a
+    # bundle reader (the consumer CLI, gmeow-dev, the MCP tool surface) never
+    # inherits the build executor. A LEAF, and wasm-clean.
+    "crates/bundle-view",
+    # The documentation-catalog READERS over the meta-level distribution-catalog named
+    # graph: the per-format distribution matrix and the formal-concept lattice derived
+    # over the surface x capability incidence. A LEAF over gmeow-bundle-view, and
+    # wasm-clean, so `gmeow docs matrix` and the MCP `distribution_matrix` tool read the
+    # SAME catalog without either side inheriting the build executor.
+    "crates/docs-catalog",
+    # The consumer-mode MCP engine: the bundle-only tool/resource surface and the
+    # stdio JSON-RPC loop, split from gmeow-pipeline so the shippable `gmeow mcp`
+    # never inherits the build executor. A LEAF over gmeow-bundle-view.
+    "crates/mcp",
+    # The four repo-reading MCP dev tools (validate / sync / reason / constitution),
+    # registered into gmeow-mcp through its extension seam. This is the ONLY MCP
+    # crate that depends on gmeow-pipeline, which is exactly what keeps gmeow-mcp a
+    # leaf: the cycle would otherwise run mcp → pipeline → mcp.
+    "crates/mcp-dev",
     "crates/pipeline",
 
 
@@ -121,6 +152,16 @@ members = [
     # wasm32 bindings for the native logic reasoner (browser entailment panel).
     "crates/reason-wasm",
     "crates/gmn-wasm",
+    # wasm32 bindings for the consumer MCP engine: the whole 35-tool / 5-resource
+    # JSON-RPC surface driven a frame at a time over a caller-supplied gmeow.gts
+    # snapshot (never an embedded one — a bundle is caller data, not a build constant).
+    "crates/mcp-wasm",
+    # wasm32 bindings for the LEAN CORE of that same engine: the identical 35-tool /
+    # 5-resource surface with the reasoning segment demand-loaded on first use instead of
+    # carried in the first-load image. A deployment tier, not a reduced theory — the
+    # deferred tools stay advertised and answer with the typed mcp.segment-not-loaded
+    # routing signal the host re-dispatches against crates/mcp-wasm.
+    "crates/mcp-core-wasm",
     # wasm32 bindings for the RDF 1.2 / SPARQL engine behind the offline documentation
     # query playground and bundle explorer. Built HERE from the workspace purrdf pin,
     # replacing a prebuilt blob vendored from the sibling repository that carried no
@@ -148,17 +189,67 @@ resolver = "2"
 # analyzer's term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term).
 purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "a59d9f2d" }
 
-# EXACT, and declared ONCE. The wasm-bindgen CLI that generates the JS bindings refuses to
-# run against a library version it does not match byte for byte, and one CLI is on PATH for
-# the whole build — so two wasm crates pinned differently cannot both be built by
-# `make wasm-parity`. Declaring it per-crate made that agreement a coincidence four
-# manifests had to keep; declaring it here makes disagreement unrepresentable. The CI step
-# that installs `wasm-bindgen-cli` must name this same version.
-wasm-bindgen = "=0.2.125"
-# Declared once: thirteen crates hash bytes with blake3, and the docs site verifies the
-# fetched bundle against a manifest content address the renderer minted — the minting and
-# verifying sides must agree on the algorithm version, so the version has one home.
+# `wasm-bindgen` and `blake3` are declared ONCE each in the third-party block below,
+# where this branch's normalization sweep put them — not here. A second declaration in
+# the same table is a TOML duplicate key, and both sides independently reached for one.
+
+# --- Third-party dependencies: ONE declaration site each -----------------------
+# Every member crate inherits these with `<dep>.workspace = true` and never
+# re-states a version. A member may still narrow or widen its own use of a
+# dependency (`features = [...]`, `optional = true`) at its own call site — what it
+# may not do is own a second copy of the VERSION, which is how two crates that must
+# agree silently stop agreeing. The per-dependency rationale (why a crate needs it,
+# what it is allowed to reach) stays in the member manifest beside the use.
+#
+# The BLAKE3 content digest: the project's canonical fingerprint for vendored-asset
+# anti-rot manifests, blob content addressing, and `blake3:<hex>` grounding values.
 blake3 = "1"
+# CBOR value codec: the gts snapshot's per-blob metadata maps and segment payloads
+# are read and written with it, so every reader and writer must share one codec.
+ciborium = "0.2"
+# Snapshot goldens. The version is fixed here; a crate that asserts JSON snapshots
+# adds `features = ["json"]` at its own site, since not every consumer needs it.
+insta = { version = "1.48" }
+# JSON Schema validation of shipped JSON projections. `default-features = false` is
+# part of the shared fact, not a per-crate choice: the default feature set pulls a
+# network-fetching resolver that no gate is permitted to depend on.
+jsonschema = { version = "0.46", default-features = false }
+# Pure-Rust template engine for the static site: no build scripts, deterministic
+# rendering.
+minijinja = "2"
+# Colored line-diffs on assert_eq! failure. Drop-in and identical on pass.
+pretty_assertions = "1"
+# Markdown → HTML for the rendered page bodies. `default-features = false` drops the
+# bundled CLI/ancillary surface; `html` is the only renderer any consumer calls, and
+# both consumers must produce byte-identical HTML, so the feature set is shared.
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+# Regular expressions for the text-shaped lints and renderers.
+regex = "1"
+# Derive-based (de)serialization. `derive` is in the shared fact because every
+# consumer here uses `#[derive(Serialize/Deserialize)]` rather than hand impls.
+serde = { version = "1", features = ["derive"] }
+# JSON is a first-class egress format across the workspace: tool envelopes, JSON-RPC
+# frames, the JSON card/schema projections and the JSONL export tiers.
+serde_json = "1"
+# SHA-1 — legacy-interop digests only (git object names and the like), never a
+# content-integrity or security digest; blake3/sha2 above cover those.
+sha1 = "0.10"
+# SHA-256 content addressing for append-only segment commits and claim fingerprints.
+sha2 = "0.10"
+# Atomic, self-cleaning temp files: write a sibling temp file, fsync, rename over
+# the target, so a crash mid-write can never leave a torn artifact.
+tempfile = "3"
+# Subscriber-controlled diagnostic events. Never product data and never a gate — the
+# events surface only when the host CLI has installed a subscriber.
+tracing = "0.1"
+# EXACT pin, and the single reason this table is load-bearing for the shipped
+# browser artifacts: the `wasm-bindgen` CLI that generates the JS bindings refuses
+# to run unless it matches the library version byte-for-byte. Five crates compile to
+# wasm32 against one CLI install, so the pin has to be ONE fact — a per-crate copy
+# that drifted would produce an engine whose vendored bytes no longer match the
+# glue that loads them. `make *-wasm-pkg` and the CI Node lane install the
+# `wasm-bindgen-cli` matching THIS version.
+wasm-bindgen = "=0.2.125"
 
 [workspace.package]
 version = "0.2.0"

@@ -29,6 +29,15 @@ CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
 GTS_OUT ?= dist/gmeow.gts
+# Where `make console-assemble` writes the standalone <gmeow-console> tree. A SCRATCH
+# base by design: `gmeow-dev console-assemble` REFUSES an --out equal to or inside
+# `ontology-docs/` or `dist/gmeow-docs/`, because those have exactly one writer —
+# `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` — which reconciles them as
+# whole trees.
+CONSOLE_OUT ?= dist/console-smoke
+# The vendored purrdf npm engine is RETIRED: the browser query engine is built in this
+# repository as `crates/query-wasm` from the workspace `purrdf` pin, so there is no
+# published tarball to bound and no lower bound to keep. See crates/docs/assets/query/.
 PERF_DIR ?= dist/perf
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
@@ -151,10 +160,14 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test query-wasm-pkg query-wasm-pkg-test \
+	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
+	console-test console console-smoke console-assemble npm-publish-dry npm-consumable \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
 	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
+	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
+	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
@@ -180,7 +193,7 @@ install: ## Bootstrap a clean clone source-first: build ONLY the producer, mater
 fmt: ## Rewrite Rust formatting with cargo fmt.
 	cargo fmt
 
-lint-issue-refs: ## Reject issue/PR number references in Rust comments and Markdown docs.
+lint-issue-refs: ## Reject issue/PR number references in Rust comments, Markdown docs, and TOML config.
 	./scripts/lint-issue-refs.sh
 
 lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).
@@ -562,7 +575,7 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
 
 
-wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) build for wasm32.
+wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + reasoner + GMN codec + MCP engine) build for wasm32.
 	@# gmeow's own wasm-first crates MUST compile to wasm32 with a reasoning-runtime-free
 	@# dep tree. The RDF/wasm query engine is gmeow's own `gmeow-query-wasm`, built from
 	@# the workspace purrdf pin, so every engine this repo ships is proven here. The
@@ -626,6 +639,30 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator) buil
 			fi; \
 		done; \
 		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec + the wasm query engine build for wasm32 (dep trees are native-runtime-free)"; \
+		echo "== MCP engine proof: gmeow-mcp-wasm (the demand-loaded REASONING segment) builds for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-mcp-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "== purity gate: no native-only crate may appear in the MCP engine wasm dep tree (gmeow-logic + rayon ARE allowed — the engine reasons serially on wasm) =="; \
+		: "tempfile is the NATIVE half of the mcp storage seam (atomic library appends). It does not cross-compile to wasm32, so it is cfg(not(target_arch = \"wasm32\"))-gated in crates/mcp; forbidding it here proves that gate holds and the browser backend is the one in play."; \
+		: "gmeow-transcode / gmeow-docs-catalog are the two dependencies ONLY the core segment reaches, and tiktoken-rs is the ~1.7 MB cl100k vocabulary lang-bridge's glyph-cost feature carries. All three forbidden here is what makes this image a genuine DELTA rather than a superset of the core image — the exact regression that made the old heavy segment duplicate every core byte on disk."; \
+		for forbidden in gmeow-transcode gmeow-docs-catalog tiktoken-rs oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer tempfile; do \
+			if $(WASM_CARGO) tree -p gmeow-mcp-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+				echo "FAIL: gmeow-mcp-wasm leaked $$forbidden into its wasm dependency tree:"; \
+				$(WASM_CARGO) tree -p gmeow-mcp-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "== lean-core proof: gmeow-mcp-core-wasm (the SAME 38-tool surface, reasoning segment demand-loaded) builds for wasm32 =="; \
+		$(WASM_CARGO) build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-mcp-core-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
+		echo "== segment gate: the reasoning segment must be ABSENT from the lean core's wasm dep tree =="; \
+		: "This is the whole claim of the crate, so it is a dep-tree assertion rather than a comment. gmeow-logic (the DL reasoner) and gmeow-slice-quality (the rubric kernel over it) are what the first-load image exists to NOT carry; if either reappears the byte win is gone and the tiering is theatre. tiktoken-rs is forbidden on BOTH sides: no image may carry the cl100k vocabulary. The native-only forbidden set is checked too, exactly as for the reasoning segment."; \
+		for forbidden in gmeow-logic gmeow-slice-quality tiktoken-rs oxigraph oxrocksdb tokio pyo3 ureq duckdb ring nemo scryer tempfile; do \
+			if $(WASM_CARGO) tree -p gmeow-mcp-core-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -qE "(^| )$$forbidden v[0-9]"; then \
+				echo "FAIL: gmeow-mcp-core-wasm leaked $$forbidden into its wasm dependency tree:"; \
+				$(WASM_CARGO) tree -p gmeow-mcp-core-wasm -e no-dev --target wasm32-unknown-unknown 2>/dev/null | grep -E "(^| )$$forbidden v[0-9]"; \
+				exit 1; \
+			fi; \
+		done; \
+		echo "OK: gmeow-logic-compile + the wasm Tier-1 validator + the wasm reasoner + the wasm GMN codec + the wasm MCP reasoning segment + its lean core build for wasm32 (dep trees are native-runtime-free; the two segments are DISJOINT and neither carries the cl100k vocabulary)"; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target absent in CI — gmeow's wasm-clean criterion cannot be verified; CI must install it"; exit 1; \
 	else \
@@ -714,22 +751,210 @@ maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resol
 	@echo "OK: purrdf bumped to $(VERSION) and all four wasm engines re-vendored against it."
 	@echo "    Next: one \`make check\` to re-materialize generated/ and gate."
 
-wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the four Node lanes that RUN the shipped wasm and assert byte-identity to native.
-	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the four `*-pkg-test`
-	@# lanes RUN the shipped wasm (validate/reason/gmn/query) and assert byte-identity to the
-	@# native engine — the "every gmeow surface proven native≡wasm" contract.
+mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
+	$(WASM_CARGO) build -p gmeow-mcp-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_mcp_wasm.wasm \
+		--out-dir crates/mcp-wasm/js/pkg --target web
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	@# `--enable-nontrapping-float-to-int` is REQUIRED here and absent from the three
+	@# sibling lanes because this image genuinely uses that instruction family: the MCP
+	@# engine links the transcode hub + the numeric-literal canonicalization paths, whose
+	@# codegen emits `i64.trunc_sat_f64_{s,u}`. binaryen validates the input against
+	@# exactly the feature set named on the command line, so without the flag wasm-opt
+	@# HARD-FAILS ("all used features should be allowed") — the flag DECLARES what rustc
+	@# emitted, it does not relax a check.
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
+	@echo "OK: wasm-opt -Oz applied"
+	@echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
+maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reasoning segment into crates/docs/assets/mcp/ and re-pin its BLAKE3 manifest (only after the Node native<->wasm parity lane passes).
+	@# The re-pin drives the SHARED vendored-wasm-asset harness through the `MCP_ASSET`
+	@# descriptor (`gmeow_docs::vendored_asset`). The vendored set is a TREE, not a flat
+	@# list: `index.mjs` imports `./pkg/<mod>.js`, so the wasm-bindgen output keeps its
+	@# `pkg/` subpath and the emitted site layout is the package layout.
+	@# WITNESS.mcp.json rides along because the attestation must describe THESE bytes —
+	@# `attestation_status` refuses a witness whose digests no longer match the shipped blob.
+	mkdir -p crates/docs/assets/mcp/pkg
+	cp crates/mcp-wasm/js/index.mjs                        crates/docs/assets/mcp/index.mjs
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.js            crates/docs/assets/mcp/pkg/gmeow_mcp_wasm.js
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm       crates/docs/assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm.d.ts          crates/docs/assets/mcp/pkg/gmeow_mcp_wasm.d.ts
+	cp crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm.d.ts  crates/docs/assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm.d.ts
+	cp crates/mcp-wasm/tests/WITNESS.mcp.json              crates/docs/assets/mcp/WITNESS.mcp.json
+	@# The re-pin is RUN ALONE, then the whole binary re-runs as the verification. Blessing
+	@# inside the full parallel run raced: `both_segments_carry_a_present_and_current_native_wasm_attestation`
+	@# reads DIGESTS.blake3 while `vendored_mcp_reasoning_segment_passes_the_anti_rot_gate`
+	@# is rewriting it, so a refresh that genuinely moved bytes failed on a stale read and
+	@# then passed on a re-run — a gate that has to be run twice is not a gate.
+	GMEOW_MCP_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_reasoning_segment_passes_the_anti_rot_gate
+	cargo test -p gmeow-docs --test mcp_asset
+	@echo "OK: re-vendored gmeow-mcp-wasm into crates/docs/assets/mcp/ (DIGESTS.blake3 re-pinned)"
+maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-core-wasm first-load segment into crates/docs/assets/mcp-core/ and re-pin its BLAKE3 manifest (only after the Node parity + demand-load lane passes).
+	@# The twin of maint-refresh-mcp-asset, through the `MCP_CORE_ASSET` descriptor. Its
+	@# prerequisite lane is the STRONGER one: mcp-core-wasm-pkg-test builds BOTH segments and
+	@# exercises the real demand loader across them, so these bytes are only re-pinned after
+	@# the tiering has been proven end to end.
+	mkdir -p crates/docs/assets/mcp-core/pkg
+	cp crates/mcp-core-wasm/js/index.mjs                             crates/docs/assets/mcp-core/index.mjs
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm.js            crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm.js
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm       crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm.d.ts          crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm.d.ts
+	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts  crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts
+	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json         crates/docs/assets/mcp-core/WITNESS.core-deferral.json
+	@# Blessed alone then verified in full, for the reason spelled out on maint-refresh-mcp-asset.
+	GMEOW_MCP_CORE_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_core_segment_passes_the_anti_rot_gate
+	cargo test -p gmeow-docs --test mcp_asset
+	@echo "OK: re-vendored gmeow-mcp-core-wasm into crates/docs/assets/mcp-core/ (DIGESTS.blake3 re-pinned)"
+mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
+	cd crates/mcp-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-mcp-wasm Node native↔wasm parity witness lane passed"
+mcp-core-wasm-pkg: ## Build the gmeow-mcp-core-wasm npm/ESM package (the LEAN first-load engine: release wasm + wasm-bindgen web bindings).
+	$(WASM_CARGO) build -p gmeow-mcp-core-wasm --target wasm32-unknown-unknown --release
+	PATH="$$HOME/.cargo/bin:$$PATH" wasm-bindgen \
+		$(CARGO_TARGET_DIR)/wasm32-unknown-unknown/release/gmeow_mcp_core_wasm.wasm \
+		--out-dir crates/mcp-core-wasm/js/pkg --target web
+	@command -v wasm-opt >/dev/null 2>&1 || { echo "ERROR: wasm-opt (binaryen) not found — it is a REQUIRED wasm build dependency; install binaryen"; exit 1; }
+	@# The SAME feature declaration the full MCP image needs, and for the same reason: the
+	@# core engine still links the transcode hub + the numeric-literal canonicalization
+	@# paths, whose codegen emits `i64.trunc_sat_f64_{s,u}`. binaryen validates the input
+	@# against exactly the feature set named on the command line, so without the flag
+	@# wasm-opt HARD-FAILS — the flag DECLARES what rustc emitted, it does not relax a check.
+	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm
+	@echo "OK: wasm-opt -Oz applied"
+	@echo "OK: gmeow-mcp-core-wasm npm package built (crates/mcp-core-wasm/js/, pkg/ generated)"
+mcp-core-wasm-pkg-test: mcp-core-wasm-pkg mcp-wasm-pkg ## Build the lean core npm package and run its Node parity + demand-load lane.
+	@# Depends on BOTH packages: the lane does not merely assert the deferral signal, it
+	@# executes the demand loader against the REAL reasoning segment (`gmeow-mcp-wasm`) and
+	@# asserts the replayed frame's answer is byte-identical to sending it to the full
+	@# engine directly. A stubbed segment would prove nothing about re-dispatch.
+	cd crates/mcp-core-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-mcp-core-wasm Node parity + demand-load lane passed"
+console-test: ## Run the standalone console's DOM-free acceptance lane against the shipped wasm engine.
+	@# The named acceptance assertions. They drive the SHIPPED `crates/docs/assets/mcp-core/`
+	@# image over the SHIPPED `generated/dist/gmeow.gts` — no browser, no mocks. It HARD-FAILS
+	@# everywhere, CI and local alike: a locally-green `make check` that skipped this lane is
+	@# how a broken console shipped, so "node is not installed" is a missing dependency to
+	@# install, never permission to leave the console's derived surface unverified.
+	@# `crates/docs/assets/tests/` rides the same lane: it proves the shipped client-side
+	@# BLAKE3 (`assets/blake3.mjs`) against the published reference vectors AND against the
+	@# Rust `blake3` crate's own output (the committed `DIGESTS.blake3` manifests). Every
+	@# integrity check the browser performs is that function, so a JS/Rust disagreement
+	@# would silently turn asset verification into asset rejection.
+	@command -v node >/dev/null 2>&1 || { \
+		echo "FAIL: node is not installed — the console acceptance lane cannot run and is not skippable."; \
+		echo "      Install Node (>=18) and re-run \`make console-test\`."; exit 1; }
+	( cd crates/docs/assets && node --test tests/*.test.mjs )
+	( cd crates/docs/assets/console && node --test tests/*.test.mjs )
+	@echo "OK: the standalone console's DOM-free acceptance lane passed"
+console: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) — the tree `console-smoke` drives.
+	@# `write_site` RECONCILES: it writes what the producer emits and removes everything
+	@# under $(CONSOLE_OUT) that the producer did not emit, so assembling over a previous
+	@# tree yields exactly this build. That is the one mechanism — there is no `rm -rf`
+	@# here doing the same job a second time, which also means every run of this target
+	@# exercises the reconciliation the deployed artifact depends on. (Before it existed,
+	@# the dev-only `smoke/` scaffolding went on being served out of a stale tree long after
+	@# it had been removed from the producer's shell file set.)
+	@#
+	@# The producer prunes only inside the tree it was asked to write, so the pre-flight
+	@# below is what keeps a mistyped CONSOLE_OUT from being reconciled: an existing
+	@# directory that is not a previously assembled console tree is refused outright.
+	@set -e; \
+	if [ -z "$(CONSOLE_OUT)" ]; then \
+		echo "FAIL: CONSOLE_OUT is empty — \`make console\` assembles into it and has no default to fall back on."; \
+		echo "      Re-run with CONSOLE_OUT=<dir> (the pinned default is dist/console-smoke)."; exit 1; \
+	fi; \
+	if [ -e "$(CONSOLE_OUT)" ] && [ ! -f "$(CONSOLE_OUT)/console/index.html" ]; then \
+		echo "FAIL: CONSOLE_OUT=$(CONSOLE_OUT) exists but is not a previously assembled console tree"; \
+		echo "      (no console/index.html). Refusing to reconcile it. Choose a scratch --out."; exit 1; \
+	fi
+	@# `gmeow-dev console-assemble` REFUSES an --out inside ontology-docs/ or
+	@# dist/gmeow-docs/ (one writer: `make check-sync SYNC_MODE=update
+	@# SYNC_OUTPUTS=docs`), which is why
+	@# CONSOLE_OUT defaults to a scratch base.
+	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
+console-smoke: console ## Drive the ASSEMBLED console in a real browser: the deployed leg, the published tarball, and the byte ceiling.
+	@# The browser surface IS the deliverable, and this is the only lane that executes it.
+	@# It serves $(CONSOLE_OUT) over plain static HTTP with NO COOP/COEP — exactly what
+	@# GitHub Pages provides — and drives /console/ in headless Chromium: the derived pane
+	@# set, every read tool through the assembled worker, RDF-1.2 through every target, the
+	@# single-threaded contract, the measured page load and pre-cache ceiling, and the REAL `npm pack`
+	@# tarball installed into a scratch project and booted the way the shipped README says.
+	@#
+	@# It HARD-FAILS EVERYWHERE. There is deliberately no local skip and no CI-only branch:
+	@# a locally-green gate that quietly skipped the browser is precisely how a published
+	@# console that could not boot at all went undetected. A missing dependency is a missing
+	@# dependency — the two commands that install it are named below, verbatim.
+	@command -v node >/dev/null 2>&1 || { \
+		echo "FAIL: node is not installed — the console browser smoke lane cannot run and is not skippable."; \
+		echo "      Install Node (>=18), then:"; \
+		echo "        npm ci --prefix crates/docs/assets/console/smoke"; \
+		echo "        npx playwright install --with-deps chromium"; exit 1; }
+	@test -d crates/docs/assets/console/smoke/node_modules/@playwright/test || { \
+		echo "FAIL: the pinned Playwright runner is not installed. Run:"; \
+		echo "        npm ci --prefix crates/docs/assets/console/smoke"; exit 1; }
+	@( cd crates/docs/assets/console/smoke && node --input-type=module -e \
+		'import { chromium } from "@playwright/test"; import { accessSync, constants } from "node:fs"; accessSync(chromium.executablePath(), constants.X_OK);' \
+		) >/dev/null 2>&1 || { \
+		echo "FAIL: the pinned Chromium build Playwright drives is not installed. Run:"; \
+		echo "        npx playwright install --with-deps chromium"; exit 1; }
+	@# Through the lane's own `smoke` script, so the runner invocation is spelled once — in
+	@# the manifest that pins the runner.
+	( cd crates/docs/assets/console/smoke && CONSOLE_OUT="$(CONSOLE_OUT)" npm run --silent smoke )
+	@echo "OK: the standalone console's browser smoke lane passed against $(CONSOLE_OUT)"
+npm-publish-dry: ## Network-safe `npm publish --dry-run` over every package this repo publishes.
+	@# The package set is DISCOVERED from the shipped bytes (`scripts/npm-package-dirs.mjs`
+	@# lists every non-private, non-Marketplace package.json), never restated here — the
+	@# names authority is the manifests themselves.
+	@#
+	@# `--dry-run` is what makes this network-safe AND on-gate-able: npm resolves the
+	@# tarball locally, prints the exact `files` set it would upload, and performs NO
+	@# registry request and NO authentication. It is the same code path a real publish
+	@# takes right up to the upload, so a manifest that would fail to pack fails HERE.
+	@#
+	@# The wasm engine packages declare their `pkg/…` bindings in `files`; those are the
+	@# `*-wasm-pkg` build output, so run this after `make wasm-parity` (or any `*-pkg`
+	@# lane) if you want the tarball listing to include them.
+	@set -e; \
+	node scripts/npm-package-dirs.mjs | while read -r dir; do \
+		echo "== npm publish --dry-run $$dir =="; \
+		( cd "$$dir" && npm publish --dry-run --access public ); \
+	done
+	@echo "OK: every published package packs cleanly (dry run; no registry contact)"
+npm-consumable: ## Prove every published package is CONSUMABLE: pack -> install the tarball into a temp project -> run the witness against the INSTALLED package.
+	@# Not a re-run of the in-tree lanes: the driver `npm pack`s the real tarball from the
+	@# real `files` set, `npm install`s it into a throwaway project so the package resolves
+	@# BY NAME through node_modules, and then instantiates the wasm out of the INSTALLED
+	@# bytes to perform a real operation — several of them against the SAME committed
+	@# attestations the parity lanes assert byte-identity to. A published package with no
+	@# witness is a hard failure, never a skip.
+	@#
+	@# Requires the wasm engine packages to have been built (`make wasm-parity` or the
+	@# individual `*-wasm-pkg` lanes): a tarball missing its `pkg/` bindings cannot be
+	@# imported, which is exactly the consumability failure this lane exists to catch.
+	node scripts/npm-consumability.mjs
+console-assemble: console ## Assemble the standalone <gmeow-console> tree for local preview (the `console` target, under its long name).
+wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32 build purity + the six Node lanes that RUN the shipped wasm and assert byte-identity to native.
+	@# `wasm` proves the crates BUILD for wasm32 + dep purity; the six `*-pkg-test`
+	@# lanes RUN the shipped wasm — the site's four (validate/reason/gmn/query) and the
+	@# console's two (mcp/mcp-core) — and assert
+	@# byte-identity to the native engine — the "every gmeow surface proven native≡wasm"
+	@# contract. The mcp-core lane additionally proves the TIERED contract end to end: the
+	@# deferral signal is byte-pinned, and the demand loader re-dispatches the identical
+	@# frame to the real reasoning segment for an answer identical to the full engine's.
 	@# The vendored digest that gates the shipped bytes is exactly the one a parity run
 	@# blessed (the `maint-refresh-*-asset` targets depend on `*-pkg-test`, so
 	@# re-vendoring cannot re-pin bytes that never passed parity).
 	@#
-	@# HEAVY, not per-commit: this release-builds the four engine crates for wasm32, runs
-	@# wasm-bindgen + wasm-opt over each, and then four Node suites. Its cost is set by
+	@# HEAVY, not per-commit: this release-builds SIX engine crates for wasm32 (the
+	@# four the site dispatches to, plus the console's two MCP segments), runs
+	@# wasm-bindgen + wasm-opt over each, and then six Node suites. Its cost is set by
 	@# that breadth, not by the edit under test — and locally it SKIPs outright whenever
 	@# the wasm32 target or node is absent, so on a developer's gate it was frequently a
 	@# no-op occupying the critical path. In CI it hard-fails: the parity criterion is
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
-		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test query-wasm-pkg-test; \
+		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test query-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
+		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target or node absent in CI — the native≡wasm parity witnesses cannot run; CI must install both"; exit 1; \
 	else \

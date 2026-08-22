@@ -43,6 +43,12 @@ gmeow-affect-ingest = { path = "../affect-ingest" }
 # crate (the wheel-only razor holds).
 gmeow-math-lift = { path = "../math-lift" }
 gmeow-pipeline = { path = "../pipeline" }
+# The CONSUMER MCP engine: `gmeow mcp`'s server, and the shared conjecture /
+# candidate / authoring-brief cores the corresponding `gmeow` subcommands run
+# through so the CLI and the MCP tool are one implementation. A leaf over
+# gmeow-bundle-view — the repo-reading dev tools live in `gmeow-mcp-dev`, which this
+# binary deliberately does NOT link.
+gmeow-mcp = { path = "../mcp" }
 # The GMN-1 codec + digest/witness/pack layer. A pure-Rust runtime rlib the wheel
 # ships (in the tree transitively via gmeow-pipeline): its `gmn1_write`/`gmn1_read`,
 # `codebook_digest`/`content_digest`/`pack_root`, and per-claim/idempotence witnesses
@@ -73,24 +79,30 @@ gmeow-docs = { path = "../docs" }
 purrdf.workspace = true
 # TOCTOU/symlink-safe staging of the embedded bundle to a temp path for the
 # external `gts` passthrough (atomic create + remove-on-drop).
-tempfile = "3"
+tempfile.workspace = true
 # (De)serialize the GoEmotions capture envelope for `gmeow affect ingest-goemotions`
 # / `recover-goemotions`.
-serde_json = "1"
+serde_json.workspace = true
 
 [dev-dependencies]
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
-serde_json = "1"
+serde_json.workspace = true
 # The shared MEDIUM negative controls (crates/pipeline/tests/support/medium_tamper.rs)
 # rewrite a real emitted bundle's CBOR items and re-derive its prev/id hash chain, so the
 # breach fixtures stay valid GTS files that are wrong about exactly ONE medium claim.
 ciborium = "0.2"
-# The whole-DAG run the medium CLI suite drives: the emitted bundle and its temp cache
-# both live under a temp directory that is removed with the test.
-tempfile = "3"
+# The whole-DAG run the medium CLI suite drives needs a temp dir too; `tempfile` is
+# already declared once below for the console session-replay lane, so it is not
+# redeclared here — a second key in this table is a TOML duplicate.
 # Mints an ephemeral Ed25519 signing key for the bundle_smoke.rs positive/negative
 # real-crypto verify test, in-process — never a production dependency, `purrdf`
 # (already a normal dependency above) is what `gmeow verify` actually uses.
 ed25519-dalek = "2"
+# RAII temp directories for the console session-replay lane's scratch trees. Every
+# scratch path is removed on drop — including on panic and early return — so a gate run
+# never leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path under
+# `std::env::temp_dir()` is banned by the repo-static guard (`check_no_unmanaged_temp_dir`
+# in crates/validate/src/repo_static.rs).
+tempfile.workspace = true

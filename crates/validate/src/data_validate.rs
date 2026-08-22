@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Repo-free Tier-1 conformance of an external RDF data file against the bundled
@@ -229,9 +229,10 @@ impl Tier1Shapes {
         // SUPPRESSED and re-projected below as a Note + deonticRecommendation advisory
         // (the exact split the pipeline `ValidateStage` and the dev `validate_all` gate
         // apply, so the consumer `gmeow validate <file>` / MCP `validate_local` output
-        // carries the same advice, not a raw `shacl.* Info` finding). Native-only: the
-        // advisory bridge is a native module; the wasm surface keeps the raw report.
-        #[cfg(not(target_arch = "wasm32"))]
+        // carries the same advice, not a raw `shacl.* Info` finding). Applied on every
+        // target: the advisory bridge is wasm-clean, so the browser-run `validate_local`
+        // splits the report exactly as the native CLI does — there is no target on which
+        // the raw `shacl.* Info` findings survive.
         let (shacl_report, advisories) = crate::advisory::split_advisory_results(
             shacl_report,
             &self.shapes_dataset,
@@ -264,7 +265,6 @@ impl Tier1Shapes {
         // `ValidateStage` and `validate_all` perform, so all three validate surfaces emit
         // identical advice from a data match. `findings("validate")` reads the whole
         // batch, so the ledger is fully attached before the flat findings are drained.
-        #[cfg(not(target_arch = "wasm32"))]
         {
             use gmeow_errors::{DiagLedger, StageId};
             let mut advisory_ledger = DiagLedger::new();
@@ -458,7 +458,6 @@ pub fn run(
 ///
 /// A resident consumer (the MCP server) decodes these once per bundle and calls
 /// [`run_with`] per payload; the one-shot [`run`] decodes them per invocation.
-#[cfg(not(target_arch = "wasm32"))]
 pub struct BundleParts<'a> {
     /// The raw `gmeow.gts` bytes (the Tier-2 deep pass reads the bundle's blobs
     /// and axioms directly from them).
@@ -482,7 +481,16 @@ pub struct BundleParts<'a> {
 ///
 /// Returns `Err` if the data graph fails to parse. A Tier-2 (`deep`) failure is
 /// NOT an error — it is folded as an advisory note (see [`run`]).
-#[cfg(not(target_arch = "wasm32"))]
+///
+/// # The `deep` leg on a target with no reasoner
+///
+/// The Tier-2 semantic pass IS the native DL engine (`gmeow-logic`), which the Tier-1
+/// wasm validator image must never carry. On `wasm32` a `deep: true` request is
+/// therefore a NAMED HARD ERROR rather than a silently-shallow pass: a caller that
+/// asked for the semantic tier and got only Tier-1 back, with no way to tell, would be
+/// exactly the silent capability degradation the report contract forbids. `deep: false`
+/// — the whole Tier-1 + advisory + abductive + enrichment composition — runs
+/// identically on both targets.
 pub fn run_with(
     bundle: BundleParts<'_>,
     data_bytes: &[u8],
@@ -497,6 +505,7 @@ pub fn run_with(
 
     // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
     if deep {
+        #[cfg(not(target_arch = "wasm32"))]
         run_deep_pass(
             bundle.gts_bytes,
             data_bytes,
@@ -504,6 +513,13 @@ pub fn run_with(
             origin,
             &mut report,
         );
+        #[cfg(target_arch = "wasm32")]
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: "the Tier-2 semantic pass (`deep`) requires the native DL reasoning \
+                     engine, which this target does not carry; re-run with `deep` unset for \
+                     the full Tier-1 + advisory + abductive + enrichment pass"
+                .to_owned(),
+        }));
     }
 
     // The single proof-carrying enrichment pass: rule identity (catalog help URIs)
@@ -716,7 +732,6 @@ fn deep_consistency_findings(
 /// Tier-2 reasoner (the world structure must survive, so this does NOT flatten the
 /// way [`data_store`] does for SHACL). Handles every supported format, routing
 /// JSON-LD through the gmeow-gts codec exactly as [`data_store`] does.
-#[cfg(not(target_arch = "wasm32"))]
 fn data_dataset(data_bytes: &[u8], data_format: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
     if is_json_ld(data_format) {
         // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
@@ -884,7 +899,6 @@ fn inject_subclass_shortcuts(
 /// schemas and refute sortals WITHOUT running any reasoner over the user's data — the
 /// honest ASSERTED-ONLY consumer surface (validate_all.rs:869). Each side is pushed
 /// under a fresh blank scope; the frozen result is only READ by the producer.
-#[cfg(not(target_arch = "wasm32"))]
 fn union_for_abductive(
     ontology: &RdfDataset,
     data: &RdfDataset,

@@ -2224,6 +2224,31 @@ logic:actionResource
     skos:definition "Relates a logic:ActionSchema to what the action consumes or requires — the seam to the resource-competing goal conflict (logic:competesForResource), where two goals draw on a resource an action schema declares and the supply is insufficient for both. Domain logic:ActionSchema (stated in prose). One of the eight action-theory facets. DISTINCT from logic:resourcePolicy, which is a ReasoningContract→ResourcePolicy engine-budget property — a different concept that must not be conflated with an action's consumable resource."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- The MCP tool-surface correspondence (declared domain/range) --------------
+# Not a ninth action-theory facet: it says nothing about what the action DOES.
+# It names the external wire identity the schema governs, and it is the one
+# property in this neighbourhood whose domain and range are ASSERTED rather than
+# stated in prose, because a gate resolves them mechanically against the shipped
+# bundle. They are asserted with logic:domain / logic:range — the canonical
+# signature spelling — because the compiled logic: program that becomes the
+# bundle's graph/logic lifts logic:-namespaced predicates, so an rdfs:-spelled
+# signature would be dropped at ingestion and would never ship. The generated OWL
+# projections lower these back to rdfs:domain / rdfs:range.
+
+logic:mcpToolName
+    a owl:DatatypeProperty ;
+    logic:domain logic:ActionSchema ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "MCP tool name"@x-gmeow-english ;
+    skos:definition "The EXACT wire name of the MCP (Model Context Protocol) tool a logic:ActionSchema governs — the string a client puts in `tools/call`, such as 'store_conjecture'. A schema's local name is an ONTOLOGY name chosen for what the action IS (an append to the conjecture library is named for the appending, not for the tool that triggers it), so it deliberately need not equal the tool's wire name; this property carries the wire name as an ASSERTED fact, which is what lets a surface↔theory correspondence be checked rather than guessed by mangling local names. Declared on logic:ActionSchema, not on logic:McpActionSchema, because the correspondence must cover the READ tools too: a read is a plain logic:ActionSchema (a compensation obligation would be vacuous on it) and is still an advertised tool. The intended discipline on a governed surface is BIJECTION — every advertised tool names exactly one schema and every schema names exactly one advertised tool — which is what makes an action theory TOTAL over its tool surface rather than a sample of it. Domain logic:ActionSchema; range xsd:string."@x-gmeow-english ;
+    skos:example "ex:persistConjecture a logic:McpActionSchema ; logic:mcpToolName \"store_conjecture\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: an identity STRING on the wire, carrying no semantics of its own — it says WHICH tool a schema governs and nothing about what that tool does, which is what the eight action-theory facets are for; it is not a ninth facet. It is not a label either: nothing may translate, prettify, or case-fold the value, because it is compared byte-for-byte against the name the server advertises, and a friendlier spelling silently empties the correspondence. And it is ASSERTED, never derived: a schema's local name is an ONTOLOGY name chosen for the action — ex:withdrawConjecture is the tool refute_conjecture — so no transformation of a local name substitutes for this fact, and any gate built on name mangling would either reject the honest pairs or accept anything."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on anything outside the declared logic:domain of logic:ActionSchema, and avoid the two shapes that break the bijection — a second wire name on one schema, or two schemas claiming one name — since either leaves the engine's gate ambiguous while still passing a naive set comparison. Never omit it on a schema in the hope that its local name can be mangled back into the wire name: that guess is exactly what this property replaces."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert exactly one literal per schema, copied VERBATIM from the name the server advertises in tools/call, and let the schema keep the ontology local name that says what the action IS. Assert it on the READ schemas too — a read is a plain logic:ActionSchema because a compensation obligation would be vacuous on it, but it is still an advertised tool, and a missing row there is what turns a total action theory back into a sample."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an advertised MCP tool surface must be CHECKED against the action theory that governs it rather than assumed to match: this literal is the join the bijection gate resolves in both directions, so a tool with no schema (the engine offers an action its theory does not describe) and a schema with no tool (the theory describes an action the engine cannot perform) each fail by name instead of passing unnoticed."@x-gmeow-english .
+
 # --- Action-theory facet evaluation seams (stated in prose) -------------------
 # The representation-level properties the native teleology evaluator reads to
 # evaluate the effect, observation, and actionResource facets. Each is a pure
@@ -19067,6 +19092,23 @@ logic:GoalEvaluation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:goalEvaluationStatus ; logic:allValuesFrom logic:GoalEvaluationStatus ] ,
     [ a logic:Restriction ; logic:onProperty logic:evaluatesGoal ; logic:allValuesFrom gmeow:Goal ] .
 
+logic:mcpToolNameKey
+    a owl:NamedIndividual ,
+        logic:KeyAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an action schema is keyed by its MCP tool name"@x-gmeow-english ;
+    skos:definition "Asserts that a logic:ActionSchema is identified by its logic:mcpToolName: the wire name is the join a client's `tools/call` resolves through, so two schemas sharing it would leave the dispatcher without an answer to which precondition, effect and compensation govern the call. The name therefore uniquely identifies its schema, and the native DL consistency gate forces two schemas asserted distinct yet sharing a name into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property logic:mcpToolName would be OWL 2 Full."@x-gmeow-english ;
+    logic:keyClass logic:ActionSchema ;
+    logic:keyProperty logic:mcpToolName ;
+    logic:formalizes logic:mcpToolName ;
+    gmeow:enforcesFailureClass logic:DuplicateToolRegistration ;
+    gmeow:useWhen "Use when the native coherence gate must enforce this record's integrity condition over logic:ActionSchema; the record is the canonical carrier the gate joins."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when logic:ActionSchema no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read the record's own logic: fields together: they name logic:ActionSchema and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:ActionSchema and nothing else. It is not a definition of logic:ActionSchema, not a shape, and not a second place to state the term's meaning."@x-gmeow-english ;
+    skos:example "logic:mcpToolNameKey logic:characterizes logic:ActionSchema ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 logic:ActionSchema logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:precondition ; logic:allValuesFrom owl:Thing ] ,
     [ a logic:Restriction ; logic:onProperty logic:capability ; logic:allValuesFrom owl:Thing ] .
@@ -19294,6 +19336,194 @@ logic:LogicConformanceFailure
     rdfs:label "Logic Conformance Failure"@x-gmeow-english ;
     skos:definition "The root of the logic grounding layer's typed conformance-failure lattice: every well-formedness violation the logic: slice detects is an instance of one of its subclasses, so a failure is a first-class queryable object rather than an out-of-band error string. Its five bedrock subclasses cover the flagship acceptance scenarios — an incomplete EL/RL/DL closure, a violated correspondence section obligation, an unentrenched counterfactual, an unwitnessed refutation, and an uncertified chase — plus logic:UnwiredFlagshipScenario for an acceptance scenario that does not bind all its realizing/enforcing artifacts and logic:EnactmentIntegrityViolation for an enactment record that breaks one of the enactment kernel's authored integrity laws."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DuplicateToolRegistration
+    a owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Duplicate Tool Registration"@x-gmeow-english ;
+    skos:definition "The failure raised when two distinct logic:ActionSchema individuals claim the SAME logic:mcpToolName. The wire name is the join between a client's `tools/call` and the action governing it, so two schemas sharing one name make that join ambiguous: which precondition must hold, which effect is claimed, and which compensation applies all become unanswerable, and an engine would have to pick one silently. HARD FAIL: the name identifies the schema, so two schemas agreeing on it are either the same action written twice or a collision, and both are defects rather than a choice the dispatcher may resolve."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnadvertisedToolInvocation
+    a logic:Category ,
+        owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unadvertised Tool Invocation"@x-gmeow-english ;
+    skos:definition "The failure raised when a tools/call names a tool the engine surface does not advertise. The action theory is the authority over that surface — one logic:ActionSchema per advertised tool, joined by logic:mcpToolName — so a call resolving to no schema is a call with no precondition to check, no effect to claim and no compensation to run. HARD FAIL rather than a best-effort dispatch: an engine that guessed which action was meant would execute an unlicensed one. Distinct from logic:UnloadedEngineSegment, where the tool IS advertised and the deployment has merely not loaded the segment serving it; 'does not exist' and 'not here yet' are different facts a caller must be able to tell apart mechanically."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnadvertisedResourceRead
+    a logic:Category ,
+        owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unadvertised Resource Read"@x-gmeow-english ;
+    skos:definition "The failure raised when a resources/read names a URI the engine does not advertise. The resource half of the surface is declared exactly as the tool half is and served from the descriptors the index publishes, so a read of an unlisted URI has no declared media type and no handler. HARD FAIL rather than an empty body: an empty result is indistinguishable from a resource that exists and is empty, which is the ambiguity the refusal removes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnloadedEngineSegment
+    a logic:Category ,
+        owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unloaded Engine Segment"@x-gmeow-english ;
+    skos:definition "The failure raised when a dispatch names a tool the surface DOES advertise and DOES govern, but whose implementation lives in an engine segment this deployment has not loaded. It is a ROUTING signal, not a refusal: the payload names both the dispatch key and the segment providing it, so a host loads exactly that segment and re-dispatches the identical frame for an answer identical to the full engine's. That is what makes it a deployment tier rather than a reduced theory — the call becomes slower, never weaker."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:BrokenToolRegistration
+    a logic:Category ,
+        owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Broken Tool Registration"@x-gmeow-english ;
+    skos:definition "The failure raised when the engine's own registry is not a bijection: a descriptor carrying no name (tool) or no URI and media type (resource), or a descriptor list and handler list that disagree at some index. Every case means advertised-but-not-dispatchable, or dispatchable-but-not-advertised, and the totality contract forbids both — a surface that advertises what it cannot serve lies to every client that reads the index, and one that serves what it does not advertise is unreachable by contract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DevToolSurfaceFailure
+    a logic:Category ,
+        owl:Class ;
+    logic:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dev Tool Surface Failure"@x-gmeow-english ;
+    skos:definition "The failure raised by a repo-reading developer tool of the MCP surface — the native reasoner refusing the bundle's carrier graph, or the checked-out Constitution failing to read. These tools are the ONLY ones that reach outside the bundle, so their failures are about the working tree rather than the shipped artifact, and they are typed separately for exactly that reason: a consumer running the shipped engine can never raise one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:McpToolGovernedConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "McpToolGoverned constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:capability a dispatcher routes on. The action theory is the authority over the advertised surface only if every governed action can be PLACED — a schema carrying no capability is advertised and unroutable, so a call reaching it has nothing to dispatch against. This is the graph-side counterpart of the engine's unknown-tool refusal, one step earlier. The obligation is measured to hold over every authored logic:McpActionSchema, so the constraint is a live gate rather than a claim about data nobody checked."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:UnadvertisedToolInvocation ;
+    logic:formalizes logic:McpActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:McpActionSchema must declare the logic:capability a dispatcher routes on; a schema the surface advertises but cannot place is advertised-but-not-dispatchable, which the totality contract forbids (logic:UnadvertisedToolInvocation)." ;
+    logic:integrity logic:mtgForall .
+logic:mtgForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "McpToolGoverned constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:McpToolGovernedConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mtgImpl .
+logic:mtgImpl a logic:Formula ; logic:antecedent logic:mtgGuard ; logic:consequent logic:mtgCons .
+logic:mtgGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:McpActionSchema ] .
+logic:mtgCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:mtgAtom .
+logic:mtgAtom a logic:Formula ; logic:relation logic:capability ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+logic:McpResourceDeclaredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mcp resource declared constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema states the logic:precondition its dispatch must satisfy. The resource half of the surface is declared and served from the same descriptors as the tool half, so a schema carrying no precondition is one the engine can list and cannot decide to serve — and a read that reaches it has nothing to check before answering. Measured to hold over every authored schema, so the record is a live gate rather than an assertion about unchecked data."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:UnadvertisedResourceRead ;
+    logic:formalizes logic:McpActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:McpActionSchema must state a logic:precondition; a schema the surface lists with nothing to check cannot decide whether to serve a read (logic:UnadvertisedResourceRead)." ;
+    logic:integrity logic:mrdForall .
+logic:mrdForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Mcp resource declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:McpResourceDeclaredConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mrdImpl .
+logic:mrdImpl a logic:Formula ; logic:antecedent logic:mrdGuard ; logic:consequent logic:mrdCons .
+logic:mrdGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:McpActionSchema ] .
+logic:mrdCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:mrdAtom .
+logic:mrdAtom a logic:Formula ; logic:relation logic:precondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+logic:ActionDispatchPreconditionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action dispatch precondition constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:ActionSchema states the logic:precondition its action requires. A deployment may carry fewer SEGMENTS than the theory governs, but it may never carry fewer OBLIGATIONS: the deferral signal re-dispatches an identical frame to the segment that serves it, and the answer must be identical to the full engine's, which is only true if the precondition travelled with the action rather than with the image. A schema without one has nothing to re-check on arrival."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:UnloadedEngineSegment ;
+    logic:formalizes logic:ActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:ActionSchema must state a logic:precondition; an action whose obligation does not travel with it cannot be re-dispatched to another segment for an identical answer (logic:UnloadedEngineSegment)." ;
+    logic:integrity logic:adpForall .
+logic:adpForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action dispatch precondition constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:ActionDispatchPreconditionConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:adpImpl .
+logic:adpImpl a logic:Formula ; logic:antecedent logic:adpGuard ; logic:consequent logic:adpCons .
+logic:adpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ActionSchema ] .
+logic:adpCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:adpAtom .
+logic:adpAtom a logic:Formula ; logic:relation logic:precondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+logic:ActionCapabilityDeclaredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action capability declared constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:ActionSchema declares the logic:capability it exercises. The registry is a bijection between what the surface advertises and what it can dispatch, and the capability is the routing key that makes an advertised action reachable — a schema declaring none is advertised-but-not-dispatchable, which is exactly half of what a broken registration is. The converse half, dispatchable-but-not-advertised, is unreachable by contract and is the same defect read from the other side."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:BrokenToolRegistration ;
+    logic:formalizes logic:ActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:ActionSchema must declare the logic:capability it exercises; an action with no routing key is advertised and undispatchable (logic:BrokenToolRegistration)." ;
+    logic:integrity logic:acdForall .
+logic:acdForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Action capability declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:ActionCapabilityDeclaredConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:acdImpl .
+logic:acdImpl a logic:Formula ; logic:antecedent logic:acdGuard ; logic:consequent logic:acdCons .
+logic:acdGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ActionSchema ] .
+logic:acdCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:acdAtom .
+logic:acdAtom a logic:Formula ; logic:relation logic:capability ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+logic:DevToolCompensationDeclaredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dev tool compensation declared constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:compensation that undoes its action. The repo-reading developer tools are the only ones that reach outside the bundle and the only ones that write to a working tree, so an action carrying no compensation is one a caller cannot back out of — a failed multi-step run leaves the tree in a state nothing in the theory says how to restore. Declaring the undo is what makes the write recoverable rather than merely recorded."@x-gmeow-english ;
+    gmeow:enforcesFailureClass logic:DevToolSurfaceFailure ;
+    logic:formalizes logic:McpActionSchema ;
+    logic:severity "Violation" ;
+    logic:message "Every logic:McpActionSchema must declare its logic:compensation; a repo-reading tool whose write cannot be undone is unrecoverable, not merely unaudited (logic:DevToolSurfaceFailure)." ;
+    logic:integrity logic:dteForall .
+logic:dteForall a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Dev tool compensation declared constraint formula"@x-gmeow-english ;
+    skos:definition "The top-level forall-implies-exists integrity formula of logic:DevToolCompensationDeclaredConstraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dteImpl .
+logic:dteImpl a logic:Formula ; logic:antecedent logic:dteGuard ; logic:consequent logic:dteCons .
+logic:dteGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:McpActionSchema ] .
+logic:dteCons a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:dteAtom .
+logic:dteAtom a logic:Formula ; logic:relation logic:compensation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 
 logic:IncompleteClosure
     a owl:Class ;

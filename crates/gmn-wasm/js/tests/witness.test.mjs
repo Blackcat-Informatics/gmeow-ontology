@@ -20,13 +20,18 @@ const INPUT =
   "gmeow:gate1 gmeow:locatedIn gmeow:yardNorth .\n" +
   'gmeow:gate1 gmeow:statusLabel "open" .\n';
 
-test("version() returns the crate semver", () => {
-  assert.match(version(), /^\d+\.\d+\.\d+/);
+// The published manifest, read from the shipped bytes — never a literal restated here.
+const packageJson = JSON.parse(
+  await readFile(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"),
+);
+
+test("version() equals the published package version", () => {
+  assert.equal(version(), packageJson.version);
 });
 
 test("wasm GMN-1 transcode is byte-identical to the native witness attestation", async () => {
   const attestation = await readFile(
-    fileURLToPath(new URL("../../../docs/assets/gmn/WITNESS.gmn1.txt", import.meta.url)),
+    fileURLToPath(new URL("../../tests/WITNESS.gmn1.txt", import.meta.url)),
     "utf8",
   );
   const gmn1 = to_gmn1(INPUT, "turtle");

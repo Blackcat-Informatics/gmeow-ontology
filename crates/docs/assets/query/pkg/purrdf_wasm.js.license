@@ -1,0 +1,7 @@
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+SPDX-License-Identifier: MIT OR Apache-2.0
+
+Published verbatim in the `@blackcatinformatics/purrdf` npm package (wasm-bindgen
+--target web glue over the sibling purrdf RDF-1.2 kernel, which is MIT OR Apache-2.0
+and is NOT part of this AGPL repository). Vendored, not authored here; do not
+hand-edit. Refresh with `make maint-refresh-purrdf-asset`. See PROVENANCE.md.

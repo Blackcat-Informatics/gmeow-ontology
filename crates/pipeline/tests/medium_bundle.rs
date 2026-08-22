@@ -1187,10 +1187,10 @@ fn no_rep_is_primed_by_a_retired_dictionary(
 ///
 /// # No exceptions: both runtime dictionaries prime with the SHIPPED bytes
 ///
-/// The hot lane always did — [`gmeow_pipeline::mcp::store_medium`] reads the bundle's
+/// The hot lane always did — [`gmeow_mcp::store_medium`] reads the bundle's
 /// in-band `"dct"` entry and hands it to the writer. The compaction lane now does too:
-/// [`gmeow_pipeline::mcp::compact_store`] takes the resolved
-/// [`gmeow_pipeline::mcp::StoreMedium`] and passes
+/// [`gmeow_mcp::compact_store`] takes the resolved
+/// [`gmeow_mcp::StoreMedium`] and passes
 /// `purrdf::gts::compact::DictStrategy::Pinned`, which uses those bytes verbatim — no
 /// training, no corpus derivation, no truncation. So `gmeow-memory-compact-v1` names
 /// exactly ONE byte sequence everywhere it appears: the bundle header, the projected
@@ -1432,9 +1432,7 @@ fn the_split_out_archive_members_are_carried_by_exactly_one_rep(bundle: &[u8]) {
 /// different claims and only the second one makes the shipped copy load-bearing.
 /// [`every_declared_dictionary_primes_an_emitted_frame`] is where they are compared.
 fn runtime_stores_are_primed_from(bundle: &[u8]) -> RuntimePriming {
-    use gmeow_pipeline::mcp::{
-        MEMORY_COMPACT_DICTIONARY, MEMORY_HOT_DICTIONARY, McpMode, McpServer,
-    };
+    use gmeow_mcp::{MEMORY_COMPACT_DICTIONARY, MEMORY_HOT_DICTIONARY, McpServer};
 
     let home = tempfile::tempdir().expect("tempdir");
     let memory_path = home.path().join("memory.gts");
@@ -1470,8 +1468,8 @@ fn runtime_stores_are_primed_from(bundle: &[u8]) -> RuntimePriming {
         "the pre-existing segment must genuinely be dictionary-less, or (f) is vacuous"
     );
 
-    let server = McpServer::from_snapshot(bundle, None, McpMode::Consumer)
-        .expect("the freshly emitted bundle serves an MCP session");
+    let server =
+        McpServer::from_snapshot(bundle).expect("the freshly emitted bundle serves an MCP session");
 
     // (e) a claim through the PRODUCTION `Memory::store` path.
     let stored = server
@@ -1567,11 +1565,11 @@ fn runtime_stores_are_primed_from(bundle: &[u8]) -> RuntimePriming {
     // The compaction medium is resolved out of the SHIPPED bundle exactly as the hot
     // one is, and its bytes are what the repack pins — the id → bytes function this
     // gate then checks is single-valued.
-    let compact_medium = gmeow_pipeline::mcp::store_medium(bundle, MEMORY_COMPACT_DICTIONARY)
-        .unwrap_or_else(|err| {
+    let compact_medium =
+        gmeow_mcp::store_medium(bundle, MEMORY_COMPACT_DICTIONARY).unwrap_or_else(|err| {
             panic!("the emitted bundle must pin {MEMORY_COMPACT_DICTIONARY} in band: {err}")
         });
-    gmeow_pipeline::mcp::compact_store(&pack_path, "1970-01-01T00:00:00Z", &compact_medium, signer)
+    gmeow_mcp::compact_store(&pack_path, "1970-01-01T00:00:00Z", &compact_medium, signer)
         .expect("the compaction lane repacks the baseline pack");
     let compacted = std::fs::read(&pack_path).expect("read the compacted pack");
     let pinned =

@@ -23,7 +23,6 @@ Third-party components
   - gUFO (imports/gufo.ttl) — Copyright the gUFO authors (NEMO / Federal
     University of Espírito Santo), MIT License. The original copyright and
     permission notice are preserved within that file.
-
 External correctness corpora (conformance/logic/cases/external/)
   These are reasoning correctness test corpora — NOT part of the published CC BY 4.0
   GMEOW vocabulary. Each corpus carries a corpus.json declaring its SPDX license; only

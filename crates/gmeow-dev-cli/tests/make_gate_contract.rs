@@ -72,12 +72,21 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
 ///   - `check-lint`: the `lint` job runs `cargo clippy --all-targets -- -D
 ///     warnings` directly and `make lint` (the standalone, non-scoped
 ///     target) covers the rest of the pre-commit hygiene suite.
+///   - `console`: it is the declared Make PREREQUISITE of `console-smoke`,
+///     which ci.yml does run — so `make console-smoke` assembles the tree
+///     before it drives it, and a receipt naming `console` names something CI
+///     genuinely ran. A separate `run: make console` step would assemble the
+///     same tree a second time for no additional coverage, since the browser
+///     lane cannot run at all without it.
 ///
 /// This list must stay CLOSED and TIGHT: `every_check_dag_target_is_exercised_by_ci`
 /// asserts every entry here is both a real CHECK_DAG target and genuinely
 /// absent from ci.yml's `make <target>` steps, so a stale exemption (e.g. one
 /// left behind after ci.yml grows a real `make check-lint` step) fails loudly
-/// instead of silently rotting.
+/// instead of silently rotting. The `console` entry carries one further
+/// assertion of its own below: the Makefile prerequisite the exemption rests on
+/// must still be declared, so dropping that edge fails here rather than
+/// silently leaving the console assembled by nothing.
 const CI_JOB_COVERED: &[&str] = &[
     "rust-build",
     "nextest",
@@ -85,6 +94,7 @@ const CI_JOB_COVERED: &[&str] = &[
     "clippy",
     "carrier-purity",
     "check-lint",
+    "console",
 ];
 
 /// The tasks lifted off `make check` onto the CI-only `make heavy` lane. Moving a
@@ -145,6 +155,25 @@ fn every_check_dag_target_is_exercised_by_ci() {
              directly; remove the stale exemption now that real coverage exists"
         );
     }
+
+    // `console` is exempt because `console-smoke` DECLARES it as a prerequisite. That is
+    // the whole of its coverage, so it is read out of the Makefile rather than trusted:
+    // drop the edge and the browser lane would drive whatever tree happened to be lying
+    // around, while a receipt still claimed `console` ran.
+    let make_source = makefile();
+    let smoke_header = target_header(&make_source, "console-smoke");
+    let prerequisites = smoke_header
+        .split_once(':')
+        .map(|(_, rest)| rest.split('#').next().unwrap_or_default())
+        .unwrap_or_default()
+        .split_whitespace()
+        .collect::<BTreeSet<_>>();
+    assert!(
+        prerequisites.contains("console"),
+        "`console` is exempt from a direct ci.yml step only because `console-smoke` \
+         declares it as a prerequisite, and that edge is gone: `{smoke_header}`. Restore it, \
+         or give `console` a real `run: make console` step in ci.yml."
+    );
 }
 
 fn target_header_index(source: &str, target: &str) -> usize {
@@ -192,6 +221,9 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "wikidata",
         "coverage",
         "reason-verify",
+        "console-test",
+        "console",
+        "console-smoke",
         "lint-alignment",
         "doc-lint",
         "slice-quality-gate",

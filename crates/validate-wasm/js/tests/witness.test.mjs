@@ -6,7 +6,7 @@
 // Runs the REAL compiled gmeow-validate-wasm `validate()` over the SAME
 // (counter-example, bundle) inputs the native half uses, and asserts the findings
 // JSON is BYTE-IDENTICAL to the committed attestation the native Rust test blessed
-// (crates/docs/assets/validate/WITNESS.validate.json). Native == attestation (the
+// (crates/validate-wasm/tests/WITNESS.validate.json). Native == attestation (the
 // Rust test) AND wasm == attestation (this test) ⇒ native ≡ wasm: the in-browser
 // validate button runs exactly the on-gate Tier-1 validator, proven, not asserted.
 
@@ -30,7 +30,7 @@ test("wasm Tier-1 validation is byte-identical to the native witness attestation
   );
   const turtle = await readFile(fileURLToPath(new URL(COUNTER_EXAMPLE, root)), "utf8");
   const attestation = await readFile(
-    fileURLToPath(new URL("crates/docs/assets/validate/WITNESS.validate.json", root)),
+    fileURLToPath(new URL("crates/validate-wasm/tests/WITNESS.validate.json", root)),
     "utf8",
   );
 

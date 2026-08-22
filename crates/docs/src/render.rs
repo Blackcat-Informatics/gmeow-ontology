@@ -93,6 +93,26 @@ const DOCS_JS_PATH: &str = "assets/gmeow-docs.js";
 /// playground is present.
 const DOCS_JS: &str = include_str!("../assets/gmeow-docs.js");
 
+/// The site-relative path of the shared MCP transport — the engine boot, the JSON-RPC
+/// frame shape and the reasoning-segment demand loading, in one place.
+///
+/// The standalone console's engine worker imports it. The documentation site does NOT:
+/// the site dispatches per capability to the four in-repo wasm engines, and this is the
+/// console's protocol seam, emitted here because both surfaces pack from one asset set.
+pub(crate) const MCP_TRANSPORT_PATH: &str = "assets/mcp-transport.mjs";
+
+/// The embedded shared MCP transport, emitted to [`MCP_TRANSPORT_PATH`].
+const MCP_TRANSPORT: &str = include_str!("../assets/mcp-transport.mjs");
+
+/// The site-relative path of the client-side BLAKE3 the transport verifies every
+/// integrity-pinned asset with. The browser has no BLAKE3 primitive and `crypto.subtle`
+/// offers none, so the project's own content-address function is reimplemented rather
+/// than a weaker check substituted.
+pub(crate) const BLAKE3_PATH: &str = "assets/blake3.mjs";
+
+/// The embedded client-side BLAKE3, emitted to [`BLAKE3_PATH`].
+const BLAKE3_MODULE: &str = include_str!("../assets/blake3.mjs");
+
 /// The wasm engines emitted under `assets/<name>/` when the playground is present: the
 /// offline SPARQL/bundle-explorer runtime, the repo-free Tier-1 validator, the
 /// structured-DL reasoner and the GMN codec. Every one is built in this repository; one
@@ -516,6 +536,10 @@ pub fn render_site_lang_exec_with_diagrams(
     // emitted only in the English tree (see the gate above).
     files.extend(interactive_asset_files(exec));
 
+    // The standalone console tree: its shell, service worker and offline manifest.
+    // ADDITIVE — it emits under its own prefix and replaces nothing the site emitted.
+    files.extend(crate::console::console_files(exec));
+
     // The offline SPARQL playground page. Term/slice export runs through this same
     // engine + asset via `DESCRIBE`, so no static export files are needed.
     if exec.has_playground() {
@@ -727,12 +751,22 @@ fn bundle_manifest_json(exec: &ExecutableDocsData) -> String {
 /// same map under the book `src/` tree, so both surfaces carry byte-identical engines —
 /// the ones the native↔wasm witness lanes prove. Empty when the render is neither
 /// playground- nor bundle-backed.
-pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
+pub fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<String, Vec<u8>> {
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     if !exec.has_playground() && !exec.has_bundle() && !exec.has_conjectures() {
         return files;
     }
     files.insert(DOCS_JS_PATH.to_string(), DOCS_JS.as_bytes().to_vec());
+    // The console's protocol seam and the client-side content-address function. Emitted
+    // with the interactive set rather than from `console_files`, because `console_files`
+    // folds THIS map in and derives the service worker's shell from the result — an asset
+    // the console fetches but the shell never lists is the offline hole that derivation
+    // exists to close.
+    files.insert(
+        MCP_TRANSPORT_PATH.to_string(),
+        MCP_TRANSPORT.as_bytes().to_vec(),
+    );
+    files.insert(BLAKE3_PATH.to_string(), BLAKE3_MODULE.as_bytes().to_vec());
     for asset in VENDORED_WASM_ASSETS {
         asset.emit_into(&mut files);
     }
@@ -760,6 +794,35 @@ pub(crate) fn interactive_asset_files(exec: &ExecutableDocsData) -> BTreeMap<Str
         files.insert(CONJECTURES_PATH.to_string(), exec.conjectures_ttl.clone());
     }
     files
+}
+
+/// The DOM hooks the documentation controller binds to.
+///
+/// This is the single inventory of "a page carries an interactive control", read by the
+/// script-injection gate and by the console producer. It mirrors the elements
+/// `assets/gmeow-docs.js` binds a handler to; a widget that added a hook without adding
+/// it here would render a control with no controller, which is exactly the defect the
+/// derived gate exists to prevent.
+///
+/// The mirror is itself gated: `controller_hooks_match_the_shipped_controller_selectors`
+/// scrapes the shipped controller module for every element it looks up
+/// (`getElementById` / `querySelectorAll`) AND registers a listener on, and asserts
+/// set-EQUALITY with this list in both directions. A hook added to the controller and not
+/// to this list — or removed from the controller and left here — fails that test, so this
+/// list cannot drift out of agreement with the module it mirrors.
+pub(crate) const CONTROLLER_HOOKS: &[&str] = &[
+    "gmeow-run-validation",
+    "id=\"gmeow-explorer-form\"",
+    "id=\"gmeow-reason-form\"",
+    "id=\"gmeow-conjecture-form\"",
+    "id=\"gmeow-gmn-form\"",
+    "id=\"gmeow-sparql\"",
+];
+
+/// Whether a rendered body carries any control the documentation controller drives.
+#[must_use]
+pub fn body_carries_interactive_control(body: &str) -> bool {
+    CONTROLLER_HOOKS.iter().any(|hook| body.contains(hook))
 }
 
 /// The full, deterministically ordered page set for the model.
@@ -889,6 +952,11 @@ pub(crate) fn to_markdown_exec_with_map(
         Page::Slice(slug) => {
             let mut md = md_slice(model, slug, page_map);
             append_slice_executable_sections(&mut md, model, slug, exec);
+            md
+        }
+        Page::Landing => {
+            let mut md = to_markdown_base(model, page, page_map);
+            append_landing_interactive_nav(&mut md, model, exec);
             md
         }
         Page::SparqlPlayground => md_playground(model, exec),
@@ -1336,6 +1404,65 @@ fn url_query_encode(s: &str) -> String {
         }
     }
     out
+}
+
+/// Link the interactive surfaces from the landing page, for the ones this render carries.
+///
+/// The explorer and the conjecture playground were RENDERED and unreachable: only the SPARQL
+/// playground was ever linked, and only from slice and term pages. A page nothing navigates to
+/// is a page nobody opens, and the shipped site is the deliverable — so the nav is derived from
+/// the same `exec` predicates that decide whether the page is emitted at all, rather than from a
+/// hand-kept list that can fall out of step with what was built.
+fn append_landing_interactive_nav(out: &mut String, model: &DocsModel, exec: &ExecutableDocsData) {
+    let surfaces: Vec<(String, &str, &str)> = [(
+        Page::SparqlPlayground.dir(),
+        "SPARQL playground",
+        "query the shipped bundle in your browser, offline.",
+    )]
+    .into_iter()
+    .filter(|_| exec.has_playground())
+    .chain(
+        [(
+            Page::BundleExplorer.dir(),
+            "Bundle explorer",
+            "read any term's full description straight out of `gmeow.gts`.",
+        )]
+        .into_iter()
+        .filter(|_| exec.has_bundle()),
+    )
+    .chain(
+        [(
+            Page::ConjecturePlayground.dir(),
+            "Conjecture playground",
+            "put a conjecture to the reasoner and read the verdict.",
+        )]
+        .into_iter()
+        .filter(|_| exec.has_conjectures()),
+    )
+    .chain(
+        [(
+            crate::console::CONSOLE_PREFIX
+                .trim_end_matches('/')
+                .to_string(),
+            "Standalone console",
+            "the same engine in its own shell, installable and offline-first.",
+        )]
+        .into_iter()
+        .filter(|_| exec.has_bundle()),
+    )
+    .collect();
+    if surfaces.is_empty() {
+        return;
+    }
+    let from = Page::Landing.dir();
+    heading(out, 2, model.ui("body_interactive"));
+    for (dir, title, blurb) in surfaces {
+        push_line(
+            out,
+            &format!("- [{title}]({}index.md) — {blurb}", rel(&from, &dir)),
+        );
+    }
+    blank(out);
 }
 
 fn md_landing(model: &DocsModel) -> String {
@@ -6505,7 +6632,15 @@ pub(crate) fn to_html_lang_exec_with_map(
     // The playground page loads the controller module (query execution + result
     // transcoding). Empty for every other page and every model-only render, so the
     // shell's `body_scripts` slot is byte-neutral there.
-    let body_scripts = if (matches!(page, Page::SparqlPlayground) && exec.has_playground())
+    // ANY page whose body carries a control the controller drives loads it — not a
+    // hand-listed three. Term pages render `.gmeow-run-validation` controls, so the
+    // enumeration shipped a validation button on every term page with nothing bound to
+    // it, while the mdbook shell's boot shim imported the controller globally and wired
+    // the identical markup. Two shells, same controls, different behaviour. Derived from
+    // CONTROLLER_HOOKS, whose agreement with the shipped module is itself gated, so a new
+    // widget cannot render a dead control by forgetting to extend a list here.
+    let body_scripts = if body_carries_interactive_control(&body_html)
+        || (matches!(page, Page::SparqlPlayground) && exec.has_playground())
         || (matches!(page, Page::BundleExplorer) && exec.has_bundle())
         || (matches!(page, Page::ConjecturePlayground) && exec.has_conjectures())
     {
@@ -8104,6 +8239,82 @@ fn local_name_vec(iris: &[String]) -> Vec<String> {
 mod tests {
     use super::*;
     use crate::model::DocTermStability;
+
+    /// `CONTROLLER_HOOKS` equals the hooks the SHIPPED controller module actually binds.
+    ///
+    /// Scrapes `assets/gmeow-docs.js` for every element it looks up
+    /// (`getElementById` / `querySelectorAll`) AND registers a listener on, then asserts
+    /// set-EQUALITY in both directions — so a looked-up-but-never-bound element and a
+    /// bound-but-never-declared hook are both failures. Without it the const is prose.
+    #[test]
+    fn controller_hooks_match_the_shipped_controller_selectors() {
+        /// The identifier a `document.…` lookup is bound to, given the text preceding
+        /// the lookup: `const form = ` (assignment) or `for (const btn of ` (iteration).
+        fn binding_target(head: &str) -> Option<&str> {
+            let head = head.trim_end();
+            let head = head
+                .strip_suffix('=')
+                .or_else(|| head.strip_suffix(" of"))?
+                .trim_end();
+            let start = head
+                .rfind(|c: char| !(c.is_alphanumeric() || c == '_' || c == '$'))
+                .map_or(0, |i| i + 1);
+            let ident = &head[start..];
+            (!ident.is_empty() && ident != "const" && ident != "let" && ident != "var")
+                .then_some(ident)
+        }
+
+        /// The quoted argument that a `…("` prefix opens, if the line carries one.
+        fn quoted_after<'a>(line: &'a str, opener: &str) -> Option<(usize, &'a str)> {
+            let pos = line.find(opener)?;
+            let rest = &line[pos + opener.len()..];
+            let end = rest.find('"')?;
+            Some((pos, &rest[..end]))
+        }
+
+        let mut looked_up: std::collections::BTreeMap<&str, String> =
+            std::collections::BTreeMap::new();
+        for line in DOCS_JS.lines() {
+            if let Some((pos, id)) = quoted_after(line, "document.getElementById(\"")
+                && let Some(var) = binding_target(&line[..pos])
+            {
+                looked_up.insert(var, format!("id=\"{id}\""));
+            }
+            if let Some((pos, class)) = quoted_after(line, "document.querySelectorAll(\".")
+                && let Some(var) = binding_target(&line[..pos])
+            {
+                looked_up.insert(var, class.to_string());
+            }
+        }
+
+        let mut scraped: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        for line in DOCS_JS.lines() {
+            let Some(pos) = line.find(".addEventListener(") else {
+                continue;
+            };
+            let head = &line[..pos];
+            let start = head
+                .rfind(|c: char| !(c.is_alphanumeric() || c == '_' || c == '$'))
+                .map_or(0, |i| i + 1);
+            if let Some(hook) = looked_up.get(&head[start..]) {
+                scraped.insert(hook.clone());
+            }
+        }
+
+        // A scraper that matched nothing would make the equality below vacuous the day
+        // someone empties the const, so the floor is asserted explicitly.
+        assert!(
+            scraped.len() >= 5,
+            "the controller-selector scrape found almost nothing ({scraped:?}) — the \
+             module's binding shape changed and this gate stopped seeing it"
+        );
+        let declared: std::collections::BTreeSet<String> =
+            CONTROLLER_HOOKS.iter().map(|h| (*h).to_string()).collect();
+        assert_eq!(
+            scraped, declared,
+            "CONTROLLER_HOOKS must equal the hooks assets/gmeow-docs.js binds to"
+        );
+    }
 
     #[test]
     fn rel_computes_relative_dir_paths() {

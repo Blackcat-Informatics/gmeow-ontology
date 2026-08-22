@@ -33,14 +33,22 @@ pub mod gmn1_codec;
 pub mod gmn1_digest;
 pub mod gmn1_witness;
 pub mod gmn_consume;
+// The glyph legend (inventory joined to pinned token cost). Deliberately NOT gated on
+// `glyph-cost`: a wasm shim that selects the tokenizer OUT must still serve a complete
+// legend, which is the whole reason the costs are pinned. Only its anti-rot assertion —
+// which measures the real BPE cost — is feature-gated.
+pub mod gmn_legend;
 pub mod gmn_metrics;
 pub mod gmn_migrate;
 pub mod gmn_verbalize;
 // The glyph-cost analytics module depends on `tiktoken-rs` (a ~1.7 MB embedded BPE
-// vocabulary), which is excluded from the wasm32 target — it feeds cost analytics, never
-// the wasm-clean GMN-1 validator path (`gmn1_read`). Gated in lockstep with its sole
-// dependency so the wasm build links without the vocabulary.
-#[cfg(not(target_arch = "wasm32"))]
+// vocabulary). Gated on the `glyph-cost` FEATURE (on by default) in lockstep with its sole
+// dependency, not on the target: the primitive cross-compiles to wasm32 fine, so a
+// consumer that genuinely measures glyph cost (`gmeow-slice-quality`) keeps it on EVERY
+// target, and only the two GMN wasm shims that never call it — which read the pinned
+// `GLYPH_TOKEN_COSTS` legend or nothing at all — select it out to keep the vocabulary out
+// of their image.
+#[cfg(feature = "glyph-cost")]
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -69,6 +77,14 @@ pub use gmn_consume::{
     CLASS_RING_LATTICE_MALFORMED, CLASS_RING_LEAK, ConsumeProjection, GmnConsumeError, RingLattice,
     consume_project,
 };
+pub use gmn_legend::{
+    GLYPH_TOKEN_COSTS, GMN_SYMBOL_AUDIT_TOKEN_COSTS, glyph_legend_json, pinned_glyph_token_cost,
+    pinned_symbol_audit_token_cost,
+};
+#[cfg(feature = "glyph-cost")]
+pub use gmn_legend::{
+    assert_pinned_audit_costs_match_the_real_bpe, assert_pinned_costs_match_the_real_bpe,
+};
 pub use gmn_metrics::{TokenMetrics, compute_token_metrics};
 pub use gmn_migrate::{
     GlyphRewrite, GmnMigrateError, GmnMigration, GmnRecordSet, MigratedOperator, MigratedRecordSet,
@@ -76,7 +92,7 @@ pub use gmn_migrate::{
     header_schema_major, reemit_migrated_document, resolved_schema_version, source_operator_table,
     tag_schema_version,
 };
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(feature = "glyph-cost")]
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use gmn_verbalize::{
     GmnOperatorForm, VerbalizeError, VerbalizedPair, build_verbalization_pairs, parse_nl,
