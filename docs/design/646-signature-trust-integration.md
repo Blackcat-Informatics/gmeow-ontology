@@ -8,7 +8,7 @@
 | Item | Choice |
 |------|--------|
 | Integration option | **Option B** — separate `gmeow_gts::verify` phase after parsing |
-| GTS bundle parsing | Keep `gmeow_rdf::gts::read_all_segments` unchanged |
+| GTS bundle parsing | Keep `purrdf::gts::read_all_segments` unchanged |
 | Signature verification | `gmeow_gts::verify::verify_file_with_options` |
 | Trust policy | `gmeow_gts::policy::TrustPolicy` built from policy TOML |
 | Key resolution | `--trusted-key` optional; omitted → embedded `gts:transportKey` |
@@ -19,14 +19,14 @@
 
 The approved plan considered two integration options:
 
-- **Option A**: Modify the parse path so `gmeow_rdf::gts::read_all_segments` accepts a key resolver and verifies signatures during the initial fold.
+- **Option A**: Modify the parse path so `purrdf::gts::read_all_segments` accepts a key resolver and verifies signatures during the initial fold.
 - **Option B**: Keep the existing parse path unchanged and add a separate verification phase after the GTS bytes have been folded into a `gmeow_gts::model::Graph`.
 
 **Rationale for choosing Option B:**
 
 1. The installed `gmeow-gts` 0.9.2 API does **not** expose signature verification through `gmeow_gts::reader::read` or `read_with_options`. The reader records signature frames but leaves them as `"unverified"` unless an optional *content* key is supplied for decrypting `COSE_Encrypt0` payloads. Cryptographic signature verification is exposed as a separate high-level API in `gmeow_gts::verify`.
 2. Using the existing `verify_file_with_options` helper matches the issue intent (“call `gmeow_gts::reader::read` with signature verification enabled”) with the API that actually exists, without hand-rolling COSE/OpenPGP logic inside `gmeow-validate`.
-3. Keeping `gmeow-rdf` and `gmeow-validate`'s store construction untouched minimizes risk to existing Turtle/GTS validation phases and preserves the content-addressed cache keys derived from `segment_heads`.
+3. Keeping `purrdf` and `gmeow-validate`'s store construction untouched minimizes risk to existing Turtle/GTS validation phases and preserves the content-addressed cache keys derived from `segment_heads`.
 4. The performance cost is acceptable for a validation gate: the bundle is read once for folding and again inside `verify_file_with_options`, which is a small, deterministic replay of a CBOR sequence.
 
 ## Confirmed `gmeow-gts` API Surface

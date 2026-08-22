@@ -202,7 +202,7 @@ pub fn export_views(
 ///
 /// Confirms and exposes the native authority behind `normalize.canonicalize`:
 /// `purrdf::turtle_normalize::canonical_turtle` (the oxigraph-free replacement for
-/// rdflib `longturtle`, serialized over the gmeow-rdf IR). `extra_prefixes` supplies
+/// rdflib `longturtle`, serialized over the purrdf IR). `extra_prefixes` supplies
 /// the project's standard prefix bindings (only those a file uses are emitted).
 ///
 /// # Errors
