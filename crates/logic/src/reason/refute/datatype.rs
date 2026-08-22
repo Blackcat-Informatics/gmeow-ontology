@@ -1702,6 +1702,29 @@ mod tests {
     }
 
     #[test]
+    fn whitespace_padded_numeric_facet_keeps_the_purrdf_view_populated() {
+        // A numeric facet's native value and its delegated purrdf xsd view must be
+        // parsed from the SAME trimmed lexical. `parse_value` trims, so a padded
+        // lexical still yields the native value; the purrdf view is populated ONLY
+        // because `parse_num_facet` trims before `parse_by_iri`. Without that trim
+        // the padded xsd parse fails and `Bound.xsd` is None — this asserts it is not.
+        const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+        let padded = fbound("  5  ", XSD_INTEGER);
+        let clean = fbound("5", XSD_INTEGER);
+        // Native value agrees between padded and clean (parse_value trims both).
+        assert_eq!(padded.value.key(), clean.value.key());
+        // Load-bearing: the purrdf xsd view survives the padding via the trimmed lexical.
+        assert!(
+            padded.xsd.is_some(),
+            "padded numeric facet must still populate the purrdf xsd view via the trimmed lexical"
+        );
+        assert!(
+            clean.xsd.is_some(),
+            "clean numeric facet populates the purrdf xsd view"
+        );
+    }
+
+    #[test]
     fn positive_integer_complement_membership() {
         let pos = named_datatype("http://www.w3.org/2001/XMLSchema#positiveInteger").unwrap();
         let complement = Dt::Complement(Box::new(pos));
