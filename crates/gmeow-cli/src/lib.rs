@@ -336,6 +336,25 @@ pub enum Commands {
         /// The conclusion RDF graph `C`.
         conclusion: PathBuf,
     },
+    /// Decide whether an ontology has a model (OWL 2 Direct-Semantics consistency),
+    /// natively over the purrdf DL reasoner. Prints the three-valued verdict
+    /// (`true` / `false` / `unknown`), the completeness of the run, its measured
+    /// cost, and every construct boundary the reverse mapping could not turn into a
+    /// DL clause. Syntax is inferred from the file's extension (`.ttl`, `.nt`,
+    /// `.nq`, `.rdf`/`.owl`/`.xml`, `.trig`).
+    Consistency {
+        /// The ontology RDF graph to test for a model.
+        ontology: PathBuf,
+    },
+    /// Certify an ontology against the OWL 2 profiles (EL, QL, RL, DL, Full),
+    /// natively over the purrdf profile checker. Prints every profile the ontology
+    /// is provably in and every structural violation blocking the others. A clean
+    /// certification proves membership; a violation proves only that the cheap
+    /// syntactic check failed. Syntax is inferred from the file's extension.
+    Profile {
+        /// The ontology RDF graph to certify.
+        ontology: PathBuf,
+    },
     /// Native `logic:` reasoning-engine tools, driven directly over authored
     /// `logic:` cells (no repository or pipeline run required).
     Logic {
@@ -1492,6 +1511,8 @@ pub fn run() -> i32 {
             premise,
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
+        Commands::Consistency { ontology } => commands::consistency(reporter, &ontology),
+        Commands::Profile { ontology } => commands::profile(reporter, &ontology),
         Commands::Logic { command } => match command {
             LogicCommands::Frontier {
                 input,

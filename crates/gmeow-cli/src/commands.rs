@@ -2396,6 +2396,65 @@ pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i3
     0
 }
 
+/// `gmeow consistency` — decide whether an ontology has a model (OWL 2
+/// Direct-Semantics consistency), natively over the purrdf DL reasoner
+/// ([`gmeow_logic::reasoner_services::DlReasoner`]). Prints a stable, greppable
+/// three-valued verdict (`true` / `false` / `unknown`) together with the run's
+/// completeness, measured cost, and every construct boundary — none of it flattened
+/// away. A malformed / unparsable input is a hard fail (exit 1); an `unknown`
+/// verdict is a successful, honestly-reported answer (exit 0).
+pub fn consistency(reporter: &dyn Reporter, ontology: &Path) -> i32 {
+    let dataset = match parse_rdf_file(reporter, ontology) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.consistency.reason",
+                format!(
+                    "cannot open the DL reasoner over {}: {e}",
+                    ontology.display()
+                ),
+            );
+        }
+    };
+    let certified = reasoner.consistency();
+    println!("verdict {}", certified.answer);
+    println!("completeness {}", certified.completeness);
+    println!("decisions {}", certified.decisions);
+    println!("steps {}", certified.steps);
+    println!("budget {}", certified.budget);
+    for boundary in &certified.boundaries {
+        println!("boundary {boundary}");
+    }
+    0
+}
+
+/// `gmeow profile` — certify an ontology against the OWL 2 profiles (EL, QL, RL, DL,
+/// Full), natively over the purrdf profile checker
+/// ([`gmeow_logic::reasoner_services::certify_profiles`]). Prints every profile the
+/// ontology is provably in (`certified <PROFILE>`) and every structural violation
+/// blocking the others (`violation <PROFILE>: <reason>`). A clean certification
+/// proves membership; a violation proves only that the cheap syntactic check failed.
+/// A malformed / unparsable input is a hard fail (exit 1).
+pub fn profile(reporter: &dyn Reporter, ontology: &Path) -> i32 {
+    let dataset = match parse_rdf_file(reporter, ontology) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let certificate = gmeow_logic::reasoner_services::certify_profiles(dataset.as_ref());
+    for certified_profile in certificate.certified() {
+        println!("certified {}", certified_profile.as_str());
+    }
+    for violation in certificate.violations() {
+        println!("violation {violation}");
+    }
+    0
+}
+
 // ── logic fragments (the shipped decidability-surface query) ──────────────────
 
 /// The `logic:` grounding namespace the decidability manifest is authored in.
