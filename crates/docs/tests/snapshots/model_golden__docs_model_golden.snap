@@ -6,10 +6,10 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "17",
   "slice_count": 85,
-  "term_count": 7153,
-  "dependency_edge_count": 1399,
+  "term_count": 7154,
+  "dependency_edge_count": 1398,
   "term_count_by_category": {
-    "Class": 1980,
+    "Class": 1981,
     "Datatype": 1,
     "Individual": 1749,
     "Property": 3423
@@ -461,7 +461,7 @@ expression: summary
     ]
   },
   "shape_count": 55,
-  "competency_count": 355,
+  "competency_count": 356,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AltPathShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AltPath",
