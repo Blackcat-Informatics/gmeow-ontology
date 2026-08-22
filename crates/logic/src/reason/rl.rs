@@ -458,12 +458,9 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
         };
         let graph_value = quad.g.map(|g| closure.term_value(g));
         let world = world_string_of(graph_value.as_ref());
-        let is_edb = edb_rows.contains(&(
-            subject.clone(),
-            predicate.clone(),
-            object.clone(),
-            world.clone(),
-        ));
+        let key = (subject, predicate, object, world);
+        let is_edb = edb_rows.contains(&key);
+        let (subject, predicate, object, world) = key;
         triples.push(RlTriple {
             subject,
             predicate,

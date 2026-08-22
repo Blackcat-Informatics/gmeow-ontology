@@ -392,12 +392,9 @@ use session_common::*;
 /// stays an honest gap, and the W3C divergence corpus is unchanged
 /// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
 /// class expression, so its reasoning verdict is unchanged.
-/// Re-blessed for the OWL 2 RL cutover: the RL lane is now purrdf's `entail` chase, so
-/// `reason/rl_rules.rs` is deleted and dropped from `native_contract_hash`'s component list
-/// (and `reason/mod.rs`, itself a folded component, is edited to match). The native contract
-/// hash is one of the seven folded engine-descriptor axes and moves with it; the reasoning
-/// verdict of the fixed input (native EL/DL, which the cutover does not touch) is unchanged.
-/// Re-blessed for the purrdf substrate-identity fold: `native_contract_hash()` now folds a
+/// Re-blessed for the purrdf substrate-identity fold — which subsumes the earlier RL cutover
+/// that first moved the RL lane onto purrdf's `entail` chase and dropped `reason/rl_rules.rs`
+/// from `native_contract_hash`'s component list. `native_contract_hash()` now folds a
 /// deterministic `purrdf`-PROVIDED engine identity (`purrdf::datalog::cache::CALCULUS_VERSION`
 /// plus the OWL 2 RL and datatype-entailment `calculus_program` `contract_hash`es) alongside
 /// the native component source, so a purrdf pin bump that changes the moved lanes (the RL
@@ -407,7 +404,7 @@ use session_common::*;
 /// capability changed and the fixed edge-only input's reasoning verdict is unchanged — only
 /// the identity moved to reflect the shared purrdf substrate.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "e5ac1ac524658b5bbfacbe64719254835b6f0099fcabb6332e9b69dad6ad5bc0";
+    "3b5a32c3948c4266af5ef321eac1bc660844c217074933f35b8991ba41944032";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -596,18 +593,15 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// and `reason/dl.rs`, so this fixed-input session identity moves with it. The fixed
 /// edge-only input authors no class expression in either spelling, so its reasoning verdict
 /// is unchanged.
-/// Re-blessed for the OWL 2 RL cutover for the same reason as the engine-descriptor golden
-/// above: the native contract hash is one of the seven folded session-identity axes and moves
-/// with the deleted `reason/rl_rules.rs` component and the edited `reason/mod.rs`, while the
-/// fixed edge-only input's reasoning verdict (native EL/DL) is unchanged.
-/// Re-blessed for the purrdf substrate-identity fold for the same reason as the
-/// engine-descriptor golden above: the native contract hash is one of the seven folded
-/// session-identity axes and moves with the folded `purrdf`-provided engine identity (the
-/// datalog `CALCULUS_VERSION` plus the OWL 2 RL and datatype-entailment calculus
+/// Re-blessed for the purrdf substrate-identity fold — which subsumes the earlier RL cutover
+/// that dropped the `reason/rl_rules.rs` component and edited `reason/mod.rs` — for the same
+/// reason as the engine-descriptor golden above: the native contract hash is one of the seven
+/// folded session-identity axes and moves with the folded `purrdf`-provided engine identity
+/// (the datalog `CALCULUS_VERSION` plus the OWL 2 RL and datatype-entailment calculus
 /// `contract_hash`es), while the fixed edge-only input's reasoning verdict (native EL/DL) is
 /// unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "dcca58849996599631f0de1bea5c9d837ac96062438b5256fc3857e1640e15f7";
+    "9a67be2bf9734d2914b128144b0e4fae18a5b2b7ab14beb61edb474d6d1e5bd4";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

@@ -2331,6 +2331,7 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
 /// degraded empty graph).
 fn parse_rdf_file(
     reporter: &dyn Reporter,
+    prefix: &str,
     path: &Path,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
     let bytes = read_bytes(reporter, path)?;
@@ -2339,7 +2340,7 @@ fn parse_rdf_file(
         None => {
             return Err(fail(
                 reporter,
-                "gmeow-cli.entails.unknown-syntax",
+                &format!("{prefix}.unknown-syntax"),
                 format!(
                     "cannot infer RDF syntax for {} (no extension); expected one of \
                      .ttl/.nt/.nq/.rdf/.owl/.xml/.trig",
@@ -2354,7 +2355,7 @@ fn parse_rdf_file(
     purrdf::parse_dataset(&bytes, &media, base.as_deref()).map_err(|e| {
         fail(
             reporter,
-            "gmeow-cli.entails.parse",
+            &format!("{prefix}.parse"),
             format!("cannot parse {} as {media}: {e}", path.display()),
         )
     })
@@ -2367,11 +2368,11 @@ fn parse_rdf_file(
 /// `gap-detail` for a gap). A malformed / unparsable input is a hard fail (exit 1);
 /// an honest capability gap is a successful, decided answer (exit 0).
 pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i32 {
-    let premise_ds = match parse_rdf_file(reporter, premise) {
+    let premise_ds = match parse_rdf_file(reporter, "gmeow-cli.entails", premise) {
         Ok(ds) => ds,
         Err(code) => return code,
     };
-    let conclusion_ds = match parse_rdf_file(reporter, conclusion) {
+    let conclusion_ds = match parse_rdf_file(reporter, "gmeow-cli.entails", conclusion) {
         Ok(ds) => ds,
         Err(code) => return code,
     };
@@ -2404,7 +2405,7 @@ pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i3
 /// away. A malformed / unparsable input is a hard fail (exit 1); an `unknown`
 /// verdict is a successful, honestly-reported answer (exit 0).
 pub fn consistency(reporter: &dyn Reporter, ontology: &Path) -> i32 {
-    let dataset = match parse_rdf_file(reporter, ontology) {
+    let dataset = match parse_rdf_file(reporter, "gmeow-cli.consistency", ontology) {
         Ok(ds) => ds,
         Err(code) => return code,
     };
@@ -2441,7 +2442,7 @@ pub fn consistency(reporter: &dyn Reporter, ontology: &Path) -> i32 {
 /// proves membership; a violation proves only that the cheap syntactic check failed.
 /// A malformed / unparsable input is a hard fail (exit 1).
 pub fn profile(reporter: &dyn Reporter, ontology: &Path) -> i32 {
-    let dataset = match parse_rdf_file(reporter, ontology) {
+    let dataset = match parse_rdf_file(reporter, "gmeow-cli.profile", ontology) {
         Ok(ds) => ds,
         Err(code) => return code,
     };
@@ -2521,7 +2522,7 @@ fn fragments_graph_source(
                     )
                 })
             } else {
-                parse_rdf_file(reporter, path)
+                parse_rdf_file(reporter, "gmeow-cli.logic-fragments", path)
             }
         }
     }
@@ -2986,7 +2987,7 @@ fn session_load_world_dataset(
     path: &Path,
     world: &str,
 ) -> Result<RdfDataset, i32> {
-    let parsed = parse_rdf_file(reporter, path)?;
+    let parsed = parse_rdf_file(reporter, "gmeow-cli.logic-session", path)?;
     let graph = RdfTerm::iri(world.to_owned());
     let mut builder = RdfDatasetBuilder::new();
     for quad in parsed.owned_quads() {
@@ -5990,10 +5991,10 @@ mod entails_tests {
 
         // The underlying verdicts are correct on the real datasets (parsed exactly as
         // the CLI does).
-        let prem = parse_rdf_file(r, &premise).expect("premise parses");
-        let pos = parse_rdf_file(r, &concl_pos).expect("pos parses");
-        let neg = parse_rdf_file(r, &concl_neg).expect("neg parses");
-        let gap = parse_rdf_file(r, &concl_gap).expect("gap parses");
+        let prem = parse_rdf_file(r, "gmeow-cli.entails", &premise).expect("premise parses");
+        let pos = parse_rdf_file(r, "gmeow-cli.entails", &concl_pos).expect("pos parses");
+        let neg = parse_rdf_file(r, "gmeow-cli.entails", &concl_neg).expect("neg parses");
+        let gap = parse_rdf_file(r, "gmeow-cli.entails", &concl_gap).expect("gap parses");
         use gmeow_logic::entail::{EntailmentVerdict, GapShape, dl_entails};
         assert_eq!(
             dl_entails(prem.as_ref(), pos.as_ref()).unwrap(),

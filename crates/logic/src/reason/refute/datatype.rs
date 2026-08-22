@@ -1529,7 +1529,7 @@ fn parse_num_facet(lit: &RdfLiteral) -> Result<Bound, gmeow_errors::Diag> {
         .filter(|v| matches!(v, Value::Rat(_) | Value::F32(_) | Value::F64(_)))
         .ok_or_else(|| reason_err(format!("non-numeric facet literal {:?}", lit.lexical_form)))?;
     let xsd = lit.datatype.as_deref().and_then(|dt| {
-        purrdf::xsd::parse_by_iri(&lit.lexical_form, dt)
+        purrdf::xsd::parse_by_iri(lit.lexical_form.trim(), dt)
             .ok()
             .flatten()
     });
