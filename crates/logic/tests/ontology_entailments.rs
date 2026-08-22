@@ -75,31 +75,29 @@ pub fn module(slice: &str) -> String {
     format!("slices/{slice}/module.ttl")
 }
 
-/// Merge the given Turtle files (repo-relative) plus the IRI-only `abox` into one dataset.
-/// HARD-FAIL (panic) if a file is missing or unparsable — no skip, no optional fallback
-/// (NO-OPTIONALITY): a missing reasoning corpus file is a build error, not a silently-skipped
-/// test.
-///
-/// Each file is merged through [`RdfDatasetBuilder::push_dataset`], which allocates a FRESH
-/// blank-node scope per source. This standardizes blank nodes apart: two independently-parsed
-/// module files that both minted `_:b0` (or a `_:…` RDF-list cell) never collide into one node.
-/// Naively flattening each file's `owned_quads()` and re-interning by bare label — as this
-/// harness once did — conflated them, producing malformed RDF collections (one list cell with
-/// two `rdf:first`) that purrdf's OWL 2 RL chase rejects; blank nodes are file-scoped by the
-/// RDF data model, so keeping them apart is the correct merge.
-fn merged_dataset(rel_paths: &[String], abox: &[RdfQuad]) -> std::sync::Arc<purrdf::RdfDataset> {
+/// Parse the given Turtle files (repo-relative paths) into default-world quads. HARD-FAIL
+/// (panic) if a file is missing or unparsable — no skip, no optional fallback (NO-OPTIONALITY):
+/// a missing reasoning corpus file is a build error, not a silently-skipped test.
+fn turtle_quads(rel_paths: &[String]) -> Vec<RdfQuad> {
     let root = repo_root();
-    let mut builder = RdfDatasetBuilder::new();
+    let mut quads = Vec::new();
     for rel in rel_paths {
         let path = root.join(rel);
         let bytes = std::fs::read(&path)
             .unwrap_or_else(|e| panic!("missing ontology source {}: {e}", path.display()));
+        // Parse through the canonical native codec directly into the frozen IR;
+        // its `RdfQuad`s feed the scoped closure builder below.
         let dataset = parse_dataset(&bytes, "text/turtle", None)
             .unwrap_or_else(|e| panic!("Turtle parse failed for {}: {e}", path.display()));
-        builder.push_dataset(&dataset);
+        quads.extend(dataset.owned_quads());
     }
-    for quad in abox {
-        builder.push_owned_quad(quad);
+    quads
+}
+
+fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset> {
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in quads {
+        builder.push_owned_quad(&quad);
     }
     builder.freeze().expect("valid scoped test dataset")
 }
@@ -115,7 +113,9 @@ fn merged_dataset(rel_paths: &[String], abox: &[RdfQuad]) -> std::sync::Arc<purr
 pub fn scoped_closure(slices: &[&str], abox: &[RdfQuad]) -> RlClosure {
     let mut paths: Vec<String> = slices.iter().map(|s| module(s)).collect();
     paths.sort();
-    let dataset = merged_dataset(&paths, abox);
+    let mut quads = turtle_quads(&paths);
+    quads.extend_from_slice(abox);
+    let dataset = dataset_from_quads(quads);
     rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }
 
@@ -123,7 +123,9 @@ pub fn scoped_closure(slices: &[&str], abox: &[RdfQuad]) -> RlClosure {
 /// few tests that parse a non-`module.ttl` source (mapping/equivalence files, examples).
 pub fn scoped_closure_files(rel_paths: &[&str], abox: &[RdfQuad]) -> RlClosure {
     let paths: Vec<String> = rel_paths.iter().map(|s| (*s).to_owned()).collect();
-    let dataset = merged_dataset(&paths, abox);
+    let mut quads = turtle_quads(&paths);
+    quads.extend_from_slice(abox);
+    let dataset = dataset_from_quads(quads);
     rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }
 

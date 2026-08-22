@@ -392,13 +392,8 @@ use session_common::*;
 /// stays an honest gap, and the W3C divergence corpus is unchanged
 /// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
 /// class expression, so its reasoning verdict is unchanged.
-/// Re-blessed for the OWL 2 RL cutover: the RL lane is now purrdf's `entail` chase, so
-/// `reason/rl_rules.rs` is deleted and dropped from `native_contract_hash`'s component list
-/// (and `reason/mod.rs`, itself a folded component, is edited to match). The native contract
-/// hash is one of the seven folded engine-descriptor axes and moves with it; the reasoning
-/// verdict of the fixed input (native EL/DL, which the cutover does not touch) is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "0ce99bf84529d711275de1920949ecc9e12b2d6dd17df73540c06de829818754";
+    "545d0b2fc49854794d518a7ffeffeb1d41e4c9c946ce95e9957f0e81545ea962";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -587,12 +582,8 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// and `reason/dl.rs`, so this fixed-input session identity moves with it. The fixed
 /// edge-only input authors no class expression in either spelling, so its reasoning verdict
 /// is unchanged.
-/// Re-blessed for the OWL 2 RL cutover for the same reason as the engine-descriptor golden
-/// above: the native contract hash is one of the seven folded session-identity axes and moves
-/// with the deleted `reason/rl_rules.rs` component and the edited `reason/mod.rs`, while the
-/// fixed edge-only input's reasoning verdict (native EL/DL) is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "dd60585dac558d64d8033bae1e1bb4c5bf2275275b409d8c08495fcf4e3cc818";
+    "6c419ca04cd8d6bafbb6c6353845a3bad9615eee52d4b28baec06ed21a20b3c7";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
