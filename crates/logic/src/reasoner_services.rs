@@ -27,6 +27,31 @@
 //! service but [`DlReasoner::consistency`] returns for it. The dataset type is
 //! purrdf's own [`RdfDataset`], which is already the reasoning core's carrier — no
 //! conversion sits between the caller and the service.
+//!
+//! # Evaluation ceilings are external, and exhaustion is never a fabricated answer
+//!
+//! Every service here runs under a purrdf ceiling this repository cannot raise: the
+//! datalog engine's `pub const` budgets (`MAX_JOIN_STEPS`, `MAX_STORED_FACTS`,
+//! `MAX_TERM_ARENA_BYTES`) for the chase-backed surfaces ([`certain_answers`],
+//! [`materialize_combined`]), and the size-derived per-decision hypertableau step cap
+//! for the tableau surfaces on [`DlReasoner`]. Raising any of them is an
+//! upstream-purrdf change, never an in-repo tune. What this module guarantees is that
+//! exhaustion is HONEST, taking exactly one of two shapes and never a third:
+//!
+//! * a service that answers through a [`Certified`](purrdf::entail::Certified) value
+//!   carries the exhaustion in its certificate — an exhausted hypertableau run reports
+//!   [`DlCompleteness::BudgetExhausted`], its [`CertifiedAnswer::is_decided`] and
+//!   [`CertifiedAnswer::is_exact`] both read `false`, and a boolean service returns
+//!   [`Verdict::Unknown`] rather than guessing `True`/`False`; and
+//! * a service that returns a bare [`Result`] maps every [`EntailError`] — including
+//!   the budget refusals — onto a hard [`Diag`](gmeow_errors::Diag) through
+//!   [`map_entail_err`], so an exhausted chase becomes a refusal, never a partial
+//!   answer passed off as complete.
+//!
+//! Neither shape truncates silently. The per-decision step cap is the one ceiling that
+//! CAN be narrowed in-repo — only downward, through [`DlReasoner::with_step_cap`] —
+//! which exists so the exhaustion path is reachable and testable rather than a branch
+//! nothing exercises.
 
 use gmeow_errors::Result;
 use purrdf::entail::{
@@ -423,6 +448,46 @@ mod tests {
             error.to_string().contains("purrdf entail service refused"),
             "unexpected diagnostic text: {error}"
         );
+    }
+
+    #[test]
+    fn a_narrowed_step_cap_reports_unknown_rather_than_a_fabricated_verdict() {
+        let dataset = consistent_dataset();
+
+        // Under the size-derived ceiling the same ontology is DECIDED exactly: this is
+        // the control that makes the exhausted arm below falsifiable — the ontology is
+        // trivially consistent, so a non-conclusion can only come from the ceiling, not
+        // from the input being genuinely undecidable.
+        let decided = DlReasoner::new(&dataset)
+            .expect("reverse-map the consistent ontology")
+            .consistency();
+        assert_eq!(decided.answer, Verdict::True);
+        assert!(decided.is_exact());
+        assert_eq!(decided.completeness, DlCompleteness::Decided);
+
+        // Now narrow the per-decision step cap to one round — the one ceiling this
+        // repository can move, and only downward. One round decides nothing, so the
+        // hypertableau search must exhaust.
+        let starved =
+            DlReasoner::with_step_cap(&dataset, 1).expect("reverse-map under a narrowed step cap");
+        assert_eq!(starved.step_cap(), 1, "the cap was narrowed to one round");
+
+        let answer = starved.consistency();
+
+        // The honest contract: exhaustion is a NON-CONCLUSION, never a fabricated
+        // verdict and never a panic. A boolean service reports `Unknown`, the
+        // certificate reports `BudgetExhausted`, and both completeness predicates read
+        // `false` — the answer is not presented as if it were decided or exact.
+        assert_eq!(
+            answer.answer,
+            Verdict::Unknown,
+            "an exhausted search is Unknown, never True/False as if decided"
+        );
+        assert_ne!(answer.answer, Verdict::True);
+        assert_ne!(answer.answer, Verdict::False);
+        assert_eq!(answer.completeness, DlCompleteness::BudgetExhausted);
+        assert!(!answer.is_decided());
+        assert!(!answer.is_exact());
     }
 
     #[test]

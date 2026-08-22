@@ -11,6 +11,19 @@
 //! ever fired a sound 32-rule subset; the cutover keeps the public shape and widens
 //! the entailments to the whole profile.
 //!
+//! # Evaluation ceilings are external and honestly hard-failed
+//!
+//! purrdf's chase runs under fixed evaluation ceilings (`MAX_JOIN_STEPS`,
+//! `MAX_STORED_FACTS`, `MAX_TERM_ARENA_BYTES` in the datalog engine) that are
+//! upstream `pub const`s — not tunable from this repository. The in-repo obligation
+//! is therefore honesty, not raising them: whenever [`purrdf::entail::materialize`]
+//! (or [`purrdf::entail::explain_conclusion`]) exhausts a ceiling, the refusal
+//! (`MatchBudget`, `Evaluate(EvalError::BudgetExhausted)`, `Chase(ChaseError::BudgetExhausted)`)
+//! is propagated verbatim as a hard [`gmeow_errors`] error through `?`, never
+//! swallowed and never presented as a complete-looking partial closure. Raising a
+//! ceiling to make a hard instance answerable is an upstream-purrdf change; the honest
+//! in-repo response to exhaustion is to fail, not to truncate silently.
+//!
 //! # The RDF 1.2 world ⇔ graph mapping (the encode/decode boundary)
 //!
 //! Every reasoning fact is world-scoped. The world of a triple is the RDF 1.2
