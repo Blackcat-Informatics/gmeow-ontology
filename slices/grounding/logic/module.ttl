@@ -19682,9 +19682,9 @@ logic:gpcTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
     ?this a ?t .
     FILTER(?t IN (
-        logic:ObjectProperty,
-        logic:DatatypeProperty,
-        logic:AnnotationProperty
+        <https://blackcatinformatics.ca/logic/ObjectProperty>,
+        <https://blackcatinformatics.ca/logic/DatatypeProperty>,
+        <https://blackcatinformatics.ca/logic/AnnotationProperty>
     ))
     FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
 }""" ] .
