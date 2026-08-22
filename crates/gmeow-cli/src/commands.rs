@@ -707,6 +707,263 @@ pub fn verify_release_bundle(
     }
 }
 
+// ── substrate ────────────────────────────────────────────────────────────────
+
+/// `gmeow substrate` — answer, from the embedded bundle with no repo, what engine
+/// produced this bundle, what it embeds, and whether the substrate claim sites
+/// agree. Reads the reconciliation A-Box (gmeow:SubstrateComponent / gmeow:PinClaim
+/// / gmeow:ReconciledPin / gmeow:embeds) the carrier folds into graph/provenance.
+/// Generic over the reconciliation kernel: `--component` / `--dimension` filter.
+pub fn substrate(
+    reporter: &dyn Reporter,
+    gts: Option<&Path>,
+    component_filter: Option<&str>,
+    dimension_filter: Option<&str>,
+    format: &str,
+) -> i32 {
+    use std::collections::{BTreeMap, BTreeSet};
+
+    // Reject unsupported output formats up front — only `human` and `json` are
+    // produced. Anything else (e.g. `jsonl`, `sarif`) is a HARD FAIL, never a
+    // silent fall-back to human text: once a format is selected it is mandatory
+    // (no silent capability degradation).
+    if format != "human" && format != "json" {
+        return fail(
+            reporter,
+            "gmeow-cli.substrate.format",
+            format!("unsupported --format '{format}': expected 'human' or 'json'"),
+        );
+    }
+
+    let bytes = match gts_bytes(reporter, gts) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    // The GTS fold carries SUPPRESSION overlays (GTS-SPEC §11 value-union +
+    // suppression semantics). `flattened_dataset_from_bytes` copies base quads
+    // verbatim and preserves the suppression list as an UNAPPLIED overlay
+    // (`gts_to_ser` never reads `Graph::suppressions`), so a suppressed
+    // historical claim would still surface in `owned_quads()`. Fold the
+    // segments, project to the EFFECTIVE (post-suppression) view via
+    // `effective_projection` — which drops every `term`- and `quad`-kind
+    // suppressed base quad — and only THEN flatten to a dataset, so suppressed
+    // claims are never reported as active.
+    let graph = match purrdf::gts::read_all_segments(&bytes) {
+        Ok(g) => g,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.substrate.fold",
+                format!("cannot fold snapshot: {e}"),
+            );
+        }
+    };
+    let effective = purrdf::gts_certify::effective_projection(&graph);
+    let dataset = match purrdf::gts::flattened_dataset_from_gts_graph(&effective) {
+        Ok(d) => d,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.substrate.fold",
+                format!("cannot fold snapshot: {e}"),
+            );
+        }
+    };
+
+    let ns = crate::NAMESPACE;
+    let c_substrate = format!("{ns}SubstrateComponent");
+    let p_name = format!("{ns}componentName");
+    let p_version = format!("{ns}componentVersion");
+    let p_embeds = format!("{ns}embeds");
+    let p_claimed_comp = format!("{ns}claimedComponent");
+    let p_claim_dim = format!("{ns}claimDimension");
+    let p_claimed_val = format!("{ns}claimedValue");
+
+    let mut components: BTreeSet<String> = BTreeSet::new();
+    let mut name_of: BTreeMap<String, String> = BTreeMap::new();
+    let mut version_of: BTreeMap<String, String> = BTreeMap::new();
+    let mut embeds: BTreeSet<(String, String)> = BTreeSet::new();
+    let mut claim_comp: BTreeMap<String, String> = BTreeMap::new();
+    let mut claim_dim: BTreeMap<String, String> = BTreeMap::new();
+    let mut claim_val: BTreeMap<String, String> = BTreeMap::new();
+
+    for quad in dataset.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let subj = subject.as_str().to_string();
+        match quad.predicate.as_str() {
+            RDF_TYPE_IRI => {
+                if let RdfTerm::Iri(o) = &quad.object
+                    && o.as_str() == c_substrate
+                {
+                    components.insert(subj);
+                }
+            }
+            p if p == p_name => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    name_of.insert(subj, l.lexical_form.clone());
+                }
+            }
+            p if p == p_version => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    version_of.insert(subj, l.lexical_form.clone());
+                }
+            }
+            p if p == p_embeds => {
+                if let RdfTerm::Iri(o) = &quad.object {
+                    embeds.insert((subj, o.as_str().to_string()));
+                }
+            }
+            p if p == p_claimed_comp => {
+                if let RdfTerm::Iri(o) = &quad.object {
+                    claim_comp.insert(subj, o.as_str().to_string());
+                }
+            }
+            p if p == p_claim_dim => {
+                if let RdfTerm::Iri(o) = &quad.object {
+                    claim_dim.insert(subj, o.as_str().to_string());
+                }
+            }
+            p if p == p_claimed_val => {
+                if let RdfTerm::Literal(l) = &quad.object {
+                    claim_val.insert(subj, l.lexical_form.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Agreement is keyed per (component, dimension): the set of distinct asserted
+    // values. One value ⇒ the sites agree; more ⇒ drift.
+    let mut groups: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    for (claim, comp) in &claim_comp {
+        if let (Some(dim), Some(val)) = (claim_dim.get(claim), claim_val.get(claim)) {
+            groups
+                .entry((comp.clone(), dim.clone()))
+                .or_default()
+                .insert(val.clone());
+        }
+    }
+
+    let local = |iri: &str| iri.rsplit(['/', '#']).next().unwrap_or(iri).to_string();
+    let dim_label = |iri: &str| local(iri).trim_start_matches("dimension").to_string();
+    let comp_name = |iri: &str| name_of.get(iri).cloned().unwrap_or_else(|| local(iri));
+    let component_matches =
+        |iri: &str| component_filter.is_none_or(|f| comp_name(iri) == f || local(iri) == f);
+    let dimension_matches = |dim_iri: &str| {
+        dimension_filter.is_none_or(|f| dim_label(dim_iri) == f || local(dim_iri) == f)
+    };
+
+    // Drift is a per-(component, dimension) finding: more than one distinct
+    // value across the claim sites. Compute and REPORT it up front — before the
+    // JSON branch returns — so the finding reaches BOTH output paths through the
+    // reporter, i.e. a structured/NDJSON consumer sees the drift as a diagnostic
+    // even on `--format json`. Drift is a reported finding, not a process
+    // failure: the exit code stays 0 (issue 1672).
+    let mut any_drift = false;
+    for ((comp, dim), values) in &groups {
+        if !component_matches(comp) || !dimension_matches(dim) {
+            continue;
+        }
+        if values.len() > 1 {
+            any_drift = true;
+            let joined = values.iter().cloned().collect::<Vec<_>>().join(", ");
+            emit_error(
+                reporter,
+                "gmeow-cli.substrate.drift",
+                format!(
+                    "substrate drift: {} / {}: {joined}",
+                    comp_name(comp),
+                    dim_label(dim)
+                ),
+            );
+        }
+    }
+
+    if format == "json" {
+        let mut component_docs: Vec<serde_json::Value> = Vec::new();
+        for c in &components {
+            if !component_matches(c) {
+                continue;
+            }
+            let embedded: Vec<serde_json::Value> = embeds
+                .iter()
+                .filter(|(e, _)| e == c)
+                .map(|(_, x)| serde_json::Value::String(comp_name(x)))
+                .collect();
+            component_docs.push(serde_json::json!({
+                "name": comp_name(c),
+                "version": version_of.get(c),
+                "embeds": embedded,
+            }));
+        }
+        let mut reconciliation_docs: Vec<serde_json::Value> = Vec::new();
+        for ((comp, dim), values) in &groups {
+            if !component_matches(comp) || !dimension_matches(dim) {
+                continue;
+            }
+            reconciliation_docs.push(serde_json::json!({
+                "component": comp_name(comp),
+                "dimension": dim_label(dim),
+                "agree": values.len() == 1,
+                "values": values.iter().collect::<Vec<_>>(),
+            }));
+        }
+        let doc = serde_json::json!({
+            "components": component_docs,
+            "reconciliation": reconciliation_docs,
+        });
+        println!(
+            "{}",
+            serde_json::to_string(&doc).unwrap_or_else(|_| doc.to_string())
+        );
+        return 0;
+    }
+
+    println!("substrate components (from the embedded bundle):");
+    for c in &components {
+        if !component_matches(c) {
+            continue;
+        }
+        let version = version_of
+            .get(c)
+            .map(String::as_str)
+            .unwrap_or("(unreconciled)");
+        println!("  {} {version}", comp_name(c));
+        for (_, embedded) in embeds.iter().filter(|(e, _)| e == c) {
+            let ev = version_of.get(embedded).map(String::as_str).unwrap_or("");
+            println!("    embeds {} {ev}", comp_name(embedded));
+        }
+    }
+
+    println!("\nagreement across claim sites:");
+    for ((comp, dim), values) in &groups {
+        if !component_matches(comp) || !dimension_matches(dim) {
+            continue;
+        }
+        if values.len() == 1 {
+            println!(
+                "  {} / {}: AGREE ({})",
+                comp_name(comp),
+                dim_label(dim),
+                values.iter().next().unwrap()
+            );
+        } else {
+            let joined = values.iter().cloned().collect::<Vec<_>>().join(", ");
+            println!(
+                "  {} / {}: DRIFT — {joined}",
+                comp_name(comp),
+                dim_label(dim)
+            );
+        }
+    }
+    if any_drift {
+        println!("\nsubstrate drift detected: the claim sites above disagree.");
+    }
+    0
+}
+
 // ── describe ─────────────────────────────────────────────────────────────────
 
 /// `gmeow describe` — render one term card from a GTS snapshot.

@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for the reconciliation kernel. A component whose two
+# expected claim sites (lockfile, shipped artifact) both assert the SAME crate
+# version — so gmeow:PinAgreementConstraint holds (no drift) AND
+# gmeow:PinCoverageConstraint holds (every expected site is witnessed). Validating
+# this fixture against the projected procedural constraints must flag NOTHING.
+# Lives under tests/ so the global make validate gate never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/tests/> .
+
+ex:purrdfComp a gmeow:SubstrateComponent , gmeow:Component ;
+    gmeow:componentName "purrdf" ;
+    gmeow:expectedClaimSite gmeow:claimSiteLockfile , gmeow:claimSiteShippedArtifact .
+
+ex:claimLockfile a gmeow:PinClaim ;
+    gmeow:claimedComponent ex:purrdfComp ;
+    gmeow:claimSite gmeow:claimSiteLockfile ;
+    gmeow:claimDimension gmeow:dimensionCrateVersion ;
+    gmeow:claimedValue "0.12.0" .
+
+ex:claimShipped a gmeow:PinClaim ;
+    gmeow:claimedComponent ex:purrdfComp ;
+    gmeow:claimSite gmeow:claimSiteShippedArtifact ;
+    gmeow:claimDimension gmeow:dimensionCrateVersion ;
+    gmeow:claimedValue "0.12.0" .

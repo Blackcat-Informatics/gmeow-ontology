@@ -181,6 +181,13 @@ pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::D
         })
     })?;
     members.extend(on_disk_members(root, shape_files));
+    // The substrate A-Box (issue 1672, F2) is folded into the validated corpus from these
+    // build INPUTS, so the on-disk recompute must fold them too — otherwise a consumer's
+    // digest would never match the recorded `shaclInputDigest`.
+    members.extend(on_disk_members(
+        root,
+        crate::stages::substrate_graph::substrate_input_paths(root),
+    ));
     shacl_input_digest(members)
 }
 
@@ -321,6 +328,68 @@ pub fn validate_source_graph(
     Ok((diagnostics_report(&retained, &failure_classes), advisories))
 }
 
+/// The IRI namespace every substrate reconciliation node (component / claim /
+/// reconciled pin) is minted under — the aboutness key that isolates the substrate
+/// A-Box from the rest of `graph/provenance`.
+const SUBSTRATE_IRI_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/substrate/";
+
+/// Extract the substrate reconciliation A-Box (issue 1672) from the consumed
+/// `stage-source-load` product's `graph/provenance` named graph, as default-graph
+/// N-Triples.
+///
+/// The A-Box was folded into `graph/provenance` at source-load time
+/// ([`crate::stages::substrate_graph::build_substrate_projection`], read from build
+/// INPUTS only — non-self-referential), so reading it off the carrier here is a pure
+/// keyed fold, NOT a second disk derivation (PIPELINE_SPINE §4). Every substrate node
+/// IRI lies under [`SUBSTRATE_IRI_PREFIX`], so the subject filter admits ONLY the A-Box
+/// and never the rest of `graph/provenance` — the build-provenance corpus that shares
+/// the graph must not enter the SHACL target set (it is not validated today, and folding
+/// it would risk minting findings on the normal corpus). An empty provenance graph (a
+/// mock-repo fixture with no substrate) yields the empty string — a no-op fold.
+fn substrate_abox_from_source_load(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<String, gmeow_errors::Diag> {
+    let product = upstream.get("stage-source-load").ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-validate".to_owned(),
+            message: "missing stage-source-load product for the substrate A-Box".to_owned(),
+        })
+    })?;
+    let provenance = product
+        .bundle()
+        .dataset()
+        .project_named_graph(crate::stages::provenance_graph::GRAPH_PROVENANCE);
+    let substrate: Vec<purrdf::RdfQuad> = purrdf::flat_rdf_quads_from_dataset(&provenance)
+        .into_iter()
+        .filter(|q| {
+            matches!(&q.subject, purrdf::RdfTerm::Iri(s) if s.starts_with(SUBSTRATE_IRI_PREFIX))
+        })
+        .collect();
+    if substrate.is_empty() {
+        return Ok(String::new());
+    }
+    let dataset = purrdf::flat_dataset_from_quads(&substrate).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("substrate A-Box dataset build: {e}"),
+        })
+    })?;
+    let bytes = purrdf::serialize_dataset(
+        dataset.as_ref(),
+        "application/n-triples",
+        purrdf::SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("substrate A-Box serialize: {e}"),
+        })
+    })?;
+    String::from_utf8(bytes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("substrate A-Box N-Triples not UTF-8: {e}"),
+        })
+    })
+}
+
 /// The `stage-validate` pipeline stage.
 pub struct ValidateStage {
     consumes: Vec<String>,
@@ -431,7 +500,11 @@ impl Stage for ValidateStage {
         // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        "validate.v6-advice-harvest"
+        // v7: fold the substrate reconciliation A-Box (issue 1672, F2) into the validated
+        // corpus so the derived PinAgreement/PinCoverage constraints target it on the
+        // production path; the substrate build inputs join the recorded shaclInputDigest.
+        // The bump busts the stage cache so the wider corpus is validated on cached inputs.
+        "validate.v7-substrate-abox"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union only — the GENERATED members are
@@ -468,7 +541,27 @@ impl Stage for ValidateStage {
             self.id(),
             input.upstream,
         )?;
-        let (mut report, advisories) = validate_source_graph(input.root, source_graph, &fresh)?;
+        // Fold the substrate reconciliation A-Box (issue 1672, F2) into the validated
+        // corpus so the derived PinAgreement / PinCoverage constraints have target data on
+        // the PRODUCTION validate path (the authored default graph carries none). The A-Box
+        // rides `graph/provenance` in the consumed source-load product; N-Triples are
+        // default-graph N-Quads, so a byte concat is a valid N-Quads corpus. Substrate drift
+        // then surfaces as a gmeow:Finding through the existing diagnostics fold, not a bash
+        // exit code. The real A-Box conforms (all sites agree), so this mints no finding on
+        // the normal build; only a disagreeing A-Box fires the constraint.
+        let substrate_nt = substrate_abox_from_source_load(input.upstream)?;
+        let combined = if substrate_nt.is_empty() {
+            std::borrow::Cow::Borrowed(source_graph)
+        } else {
+            let mut combined = Vec::with_capacity(source_graph.len() + substrate_nt.len() + 1);
+            combined.extend_from_slice(source_graph);
+            if !combined.is_empty() && !combined.ends_with(b"\n") {
+                combined.push(b'\n');
+            }
+            combined.extend_from_slice(substrate_nt.as_bytes());
+            std::borrow::Cow::Owned(combined)
+        };
+        let (mut report, advisories) = validate_source_graph(input.root, &combined, &fresh)?;
         // Record EXACTLY what this pass validated: the authored source corpus, read
         // from disk, plus the effective shape union — authored members from disk and
         // generated members from THIS run's product bytes (never `generated/shapes` off
@@ -485,6 +578,19 @@ impl Stage for ValidateStage {
             members.extend(crate::stages::shape_union_fresh::effective_union_members(
                 input.root, &fresh,
             )?);
+            // The validated corpus now also carries the substrate A-Box (issue 1672, F2),
+            // derived from these build INPUTS, so they join the recorded digest — a
+            // freshness consumer re-deriving over the same disk files (via
+            // [`on_disk_shacl_input_digest`]) computes the identical digest. Gated on the
+            // A-Box actually being folded: a mock-repo fixture with no substrate carries no
+            // A-Box, so the corpus validated no substrate bytes and the digest must not
+            // claim (and try to read) substrate inputs that do not exist.
+            if !substrate_nt.is_empty() {
+                members.extend(on_disk_members(
+                    input.root,
+                    crate::stages::substrate_graph::substrate_input_paths(input.root),
+                ));
+            }
             report.metadata.insert(
                 SHACL_INPUT_DIGEST_KEY.to_owned(),
                 json!(shacl_input_digest(members)?),

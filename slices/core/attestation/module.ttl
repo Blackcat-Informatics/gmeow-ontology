@@ -1144,3 +1144,644 @@ gmeow:transactionHashFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:transactionHash and nothing else. It is not a definition of gmeow:transactionHash (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:transactionHashFunctionality logic:characterizes gmeow:transactionHash ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# =============================================================================
+# Multi-sited invariant reconciliation kernel
+# -----------------------------------------------------------------------------
+# A component-agnostic kernel: N claim SITES each assert a versioned fact (a
+# DIMENSION) about a build COMPONENT; agreement = the site-local claims glue into
+# one global value; drift = the gluing obstruction. The purrdf substrate (and the
+# toolchain it is built with) is the seeded FIRST instance — future multi-sited
+# build invariants (compression level, wire versions) reuse this kernel with new
+# gmeow:ClaimSite / gmeow:ClaimDimension individuals and carrier rows, adding ZERO
+# new logic and ZERO new derived SHACL. The reconciled A-Box is emitted by the
+# substrate carrier stage into graph/provenance; the classes/laws live here.
+# =============================================================================
+
+gmeow:Component
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Component"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    logic:formalizes logic:attestationComponentSubsumption ;
+    skos:definition "An external engine, library, or toolchain a build depends on or statically embeds — the reconciliation subject whose version is asserted at several mutually-unaware claim sites (a manifest pin, a lockfile, a compiled-in constant, a shipped artifact stamp, prose). The generic kernel class; gmeow:SubstrateComponent is its seeded first specialization. Unlike a gmeow:PinClaim it is not an assertion about a version, and distinct from a gmeow:ReconciledPin it is never the reconciled consensus value — the component is the thing versioned, not a statement about it."@x-gmeow-english ;
+    skos:example "ex:purrdf a gmeow:SubstrateComponent ; gmeow:componentName \"purrdf\" ; gmeow:componentVersion \"0.12.0\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a single claim ABOUT a component's version at one site (that is gmeow:PinClaim) and for the reconciled consensus value (gmeow:ReconciledPin); the component is the thing being versioned, not an assertion about it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:Component per external engine/library, carry its canonical gmeow:componentName and (once reconciled) gmeow:componentVersion, record which sites MUST assert it via gmeow:expectedClaimSite, and record what a shipped artifact embeds via gmeow:embeds."@x-gmeow-english ;
+    gmeow:useWhen "Use to model an external build dependency whose identity must be reconciled across the several places that assert its version — the reconciliation subject of the pin-claim kernel."@x-gmeow-english .
+
+gmeow:SubstrateComponent
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Substrate Component"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Component ;
+    logic:formalizes logic:attestationSubstrateComponentSubsumption ;
+    skos:definition "A gmeow:Component that is part of the GMEOW substrate — the RDF/GTS engine the bundle is built against and the toolchain that produced the shipped artifacts (purrdf, and the wasm-bindgen / binaryen toolchain the committed .wasm engines are compiled with). The seeded first instance of the reconciliation kernel; carries no substrate-specific logic or derived SHACL of its own. Unlike a plain gmeow:Component it is never an arbitrary build dependency — only the engine or toolchain the shipped bundle is built against or embeds qualifies, not a library the artifact neither carries nor was produced by."@x-gmeow-english ;
+    skos:example "ex:purrdf a gmeow:SubstrateComponent ; gmeow:componentName \"purrdf\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a build dependency that is neither embedded in nor the producer of the shipped bundle (a plain gmeow:Component); substrate is specifically the engine/toolchain identity the bundle carries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Type the substrate engines and their build toolchain as gmeow:SubstrateComponent; the substrate carrier stage emits one per distinct component read from the manifest, lockfile, linked constants, and the shipped SUBSTRATE.txt stamps."@x-gmeow-english ;
+    gmeow:useWhen "Use to type the specific components that ARE the bundle's substrate — what produced it and what it embeds — as distinct from an arbitrary build dependency."@x-gmeow-english .
+
+gmeow:PinClaim
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Pin Claim"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    logic:formalizes logic:attestationPinClaimSubsumption ;
+    skos:definition "One assertion, made at exactly one claim site, of one versioned dimension of one component — e.g. 'the workspace manifest pins purrdf's git rev to a59d9f2d' or 'the lockfile resolves purrdf's crate version to 0.12.0'. The reified per-site claim the agreement law reconciles; several PinClaims about the same (component, dimension) that disagree are drift. Unlike a gmeow:ReconciledPin it is a single-site assertion rather than the agreed consensus, and it is not the component itself."@x-gmeow-english ;
+    skos:example "ex:claim1 a gmeow:PinClaim ; gmeow:claimedComponent ex:purrdf ; gmeow:claimSite gmeow:claimSiteLockfile ; gmeow:claimDimension gmeow:dimensionCrateVersion ; gmeow:claimedValue \"0.12.0\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the component itself (gmeow:Component) or the reconciled agreed value (gmeow:ReconciledPin); a pin claim is a single-site assertion, one of several the reconciliation folds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Emit one gmeow:PinClaim per (site, component, dimension) triple the carrier reads; bind gmeow:claimedComponent, gmeow:claimSite, gmeow:claimDimension, and the normalized gmeow:claimedValue. The agreement constraint compares any two with the same component+dimension."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a specific claim site asserts a specific versioned value for a component, so the reconciliation law can detect disagreement across sites."@x-gmeow-english .
+
+gmeow:ReconciledPin
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Reconciled Pin"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    logic:formalizes logic:attestationReconciledPinSubsumption ;
+    skos:definition "The consensus record minted for one (component, dimension) when every present claim site agrees — the single reconciled value, carried once so a consumer (or the SPDX SBOM projection) reads 'what produced this bundle' as an O(1) node rather than re-folding the claims. Absent when the sites disagree (drift) — its absence is itself a signal."@x-gmeow-english ;
+    skos:example "ex:recon1 a gmeow:ReconciledPin ; gmeow:reconciledComponent ex:purrdf ; gmeow:reconciledDimension gmeow:dimensionCrateVersion ; gmeow:reconciledValue \"0.12.0\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a gmeow:ReconciledPin when the claim sites disagree — a consensus value must not be fabricated over drift; emit it only when the present sites for the (component, dimension) all carry one value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Emit one gmeow:ReconciledPin per (component, dimension) whose present claim sites agree; bind gmeow:reconciledComponent, gmeow:reconciledDimension, and the single gmeow:reconciledValue. Leave it unminted when the sites disagree."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the single agreed value for a component's dimension once reconciliation succeeds, so consumers and the SBOM projection read the consensus directly."@x-gmeow-english .
+
+# --- Kernel properties -------------------------------------------------------
+
+gmeow:componentName
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Component ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "component name"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The canonical name of a build component (e.g. \"purrdf\", \"wasm-bindgen\", \"binaryen\"). Functional: a component has exactly one canonical name. It names the component, not its version (gmeow:componentVersion), and unlike a per-site gmeow:claimedValue it is never a claimed string subject to reconciliation."@x-gmeow-english ;
+    skos:example "ex:purrdf gmeow:componentName \"purrdf\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the version value (gmeow:componentVersion) or a per-site claimed string (gmeow:claimedValue); the name identifies the component, not its version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set one canonical name literal on each gmeow:Component; the SPDX projection maps it to spdx:name."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a build component canonically so claims and the SBOM refer to the same subject."@x-gmeow-english .
+
+gmeow:componentVersion
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Component ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "component version"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The reconciled crate/semantic version of a component (e.g. \"0.12.0\"), carried on the component once reconciliation of its crate-version dimension succeeds. Functional: one reconciled version per component. Unlike a single site's gmeow:claimedValue it is the agreed consensus, not a pre-reconciliation assertion, and never a non-crate dimension (git rev, zstd level ride gmeow:ReconciledPin per dimension instead)."@x-gmeow-english ;
+    skos:example "ex:purrdf gmeow:componentVersion \"0.12.0\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a single site's asserted value before reconciliation (gmeow:claimedValue) or for a non-version dimension (git rev, zstd level — those ride gmeow:ReconciledPin per dimension); this is the headline reconciled crate version."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set the reconciled crate version on the component after the crate-version claim sites agree; the SPDX projection maps it to spdx:versionInfo."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a component's single reconciled crate version, the headline the CLI and SBOM report."@x-gmeow-english .
+
+gmeow:embeds
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Component ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "embeds"@x-gmeow-english ;
+    rdfs:range gmeow:Component ;
+    skos:definition "Records that one component (a shipped engine artifact) statically embeds another (a library/substrate it was linked against) — e.g. a committed .wasm engine embeds purrdf. The SBOM 'contains' relationship: the SPDX projection maps it to spdx:relationship / spdx:relationshipType_contains. Non-functional: one artifact may embed several components. Unlike a plain per-site claim it records static containment in the shipped bytes, not a build-time dependency that is never carried in the artifact."@x-gmeow-english ;
+    skos:example "ex:validateEngine gmeow:embeds ex:purrdf ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a build-time dependency that is NOT statically carried in the shipped bytes (that is a plain claim, not embedding) and for the reconciliation subject relation; embedding is the shipped-artifact containment the SBOM records."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Emit one gmeow:embeds edge per (shipped engine, embedded component) pair the carrier reads from the SUBSTRATE.txt stamps; the SPDX projection lowers it to an spdx contains relationship."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what a shipped engine artifact statically embeds, so the SBOM can list the bundle's embedded components verifiably."@x-gmeow-english .
+
+gmeow:claimedComponent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PinClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claimed component"@x-gmeow-english ;
+    rdfs:range gmeow:Component ;
+    skos:definition "The component a pin claim is about. Functional: one claim asserts about exactly one component. Unlike gmeow:reconciledComponent it is the subject of a single-site claim, never the reconciled consensus record's component."@x-gmeow-english ;
+    skos:example "ex:claim1 gmeow:claimedComponent ex:purrdf ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the reconciled component of a consensus record (gmeow:reconciledComponent); this is the subject of a single-site claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Bind each gmeow:PinClaim to the gmeow:Component it asserts about; the agreement law joins two claims on equal gmeow:claimedComponent."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which component a per-site claim is asserting a version of."@x-gmeow-english .
+
+gmeow:claimSite
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PinClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claim site"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimSite ;
+    skos:definition "WHERE a pin claim is asserted — one of the six gmeow:ClaimSite individuals (workspace manifest, fuzz manifest, lockfile, linked constant, shipped artifact, prose). Functional: one claim comes from exactly one site. It records WHERE a claim was read, not WHICH fact it asserts (gmeow:claimDimension), and unlike gmeow:expectedClaimSite it names a site a claim actually came from rather than one that merely ought to assert."@x-gmeow-english ;
+    skos:example "ex:claim1 gmeow:claimSite gmeow:claimSiteLockfile ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the versioned dimension asserted (gmeow:claimDimension); the site is WHERE, the dimension is WHICH fact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Bind each gmeow:PinClaim to the gmeow:ClaimSite individual naming where it was read; the coverage law checks that every expected site is present."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which of the mutually-unaware representations a claim came from."@x-gmeow-english .
+
+gmeow:claimDimension
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:PinClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claim dimension"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimDimension ;
+    skos:definition "WHICH versioned fact a pin claim asserts — one of the gmeow:ClaimDimension individuals (crate version, git rev, shapes version, wire version, zstd level). Agreement is keyed per (component, dimension), since the sites assert different-kind values. Functional: one claim asserts exactly one dimension. It records WHICH versioned fact, not WHERE it was asserted (gmeow:claimSite); the agreement law never compares a crate version against a git rev."@x-gmeow-english ;
+    skos:example "ex:claim1 gmeow:claimDimension gmeow:dimensionCrateVersion ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the site of the claim (gmeow:claimSite); the dimension is WHICH kind of version, the site is WHERE it was asserted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Bind each gmeow:PinClaim to the gmeow:ClaimDimension it asserts; the agreement law only compares claims sharing a dimension, never a crate version against a git rev."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which versioned dimension a claim asserts, so reconciliation partitions strictly by dimension."@x-gmeow-english .
+
+gmeow:claimedValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:PinClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claimed value"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The value a pin claim asserts, as a string, already NORMALIZED at carrier emission (in particular git-rev claims are canonicalized so an abbreviated manifest rev and a full lockfile SHA compare equal). Functional: one claim carries one value. Unlike gmeow:reconciledValue it is one site's raw normalized assertion, not the agreed consensus, which reconciliation may or may not confirm."@x-gmeow-english ;
+    skos:example "ex:claim1 gmeow:claimedValue \"0.12.0\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the reconciled consensus value (gmeow:reconciledValue); this is one site's raw (normalized) assertion, which reconciliation may or may not agree with."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set the normalized asserted value on each gmeow:PinClaim; the agreement law flags two claims of the same component+dimension whose gmeow:claimedValue is distinct."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the version string a claim site asserts, normalized so like dimensions compare like."@x-gmeow-english .
+
+gmeow:expectedClaimSite
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Component ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "expected claim site"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimSite ;
+    skos:definition "A claim site that MUST assert this component — the expected-coverage declaration the coverage law reads. An absent expected site yields zero claims and would silently, vacuously 'agree'; declaring it expected turns the absence into a coverage finding. Non-functional: a component expects several sites. Unlike gmeow:claimSite it names a site that OUGHT to assert the component rather than one a present claim actually came from; a declared expected site that is never witnessed becomes a coverage finding."@x-gmeow-english ;
+    skos:example "ex:purrdf gmeow:expectedClaimSite gmeow:claimSiteLockfile ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the site a present claim actually came from (gmeow:claimSite); this declares the sites that OUGHT to assert the component, driving the missing-site coverage finding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Emit one gmeow:expectedClaimSite per site that must assert the component; the coverage constraint flags any expected site with no matching gmeow:PinClaim."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare which sites must assert a component, so a silently missing site is caught as drift's completeness half."@x-gmeow-english .
+
+gmeow:reconciledComponent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReconciledPin ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "reconciled component"@x-gmeow-english ;
+    rdfs:range gmeow:Component ;
+    skos:definition "The component a reconciled consensus record is about. Functional: one gmeow:ReconciledPin is about exactly one component. Unlike gmeow:claimedComponent it is the subject of the agreed consensus, not a single-site claim."@x-gmeow-english ;
+    skos:example "ex:recon1 gmeow:reconciledComponent ex:purrdf ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a per-site claim's subject (gmeow:claimedComponent); this is the subject of the agreed consensus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Bind each gmeow:ReconciledPin to the component whose sites agreed."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which component a consensus value is for."@x-gmeow-english .
+
+gmeow:reconciledDimension
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ReconciledPin ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "reconciled dimension"@x-gmeow-english ;
+    rdfs:range gmeow:ClaimDimension ;
+    skos:definition "The dimension a reconciled consensus record is about. Functional: one gmeow:ReconciledPin reconciles exactly one dimension. Unlike gmeow:claimDimension it is the dimension of the agreed consensus, not of a single-site claim."@x-gmeow-english ;
+    skos:example "ex:recon1 gmeow:reconciledDimension gmeow:dimensionCrateVersion ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a per-site claim's dimension (gmeow:claimDimension); this is the dimension of the agreed consensus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Bind each gmeow:ReconciledPin to the dimension whose sites agreed."@x-gmeow-english ;
+    gmeow:useWhen "Use to say which dimension a consensus value reconciles."@x-gmeow-english .
+
+gmeow:reconciledValue
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ReconciledPin ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "reconciled value"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The single agreed value carried by a consensus record once a (component, dimension)'s present sites all agree. Functional: one reconciled value per gmeow:ReconciledPin. Unlike gmeow:claimedValue it is the agreed consensus, emitted only when the sites do not disagree, never a single site's raw assertion."@x-gmeow-english ;
+    skos:example "ex:recon1 gmeow:reconciledValue \"0.12.0\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a single site's asserted value (gmeow:claimedValue); this is the agreed consensus, emitted only when the sites do not disagree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set the single agreed value on each gmeow:ReconciledPin; the CLI reads it directly and the crate-version consensus projects to spdx:versionInfo."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the reconciled value a consumer reads as the component's agreed version for a dimension."@x-gmeow-english .
+
+# --- Functional-property characteristic assertions (reasoner-safe at-most-one) -
+
+gmeow:componentNameFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "componentName is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:componentName is functional: a build component has exactly one canonical name."@x-gmeow-english ;
+    logic:characterizes gmeow:componentName ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:componentName ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:componentName names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:componentName, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:componentName and nothing else. It is not a definition of gmeow:componentName (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:componentNameFunctionality logic:characterizes gmeow:componentName ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:componentVersionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "componentVersion is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:componentVersion is functional: a component carries exactly one reconciled crate version (the 'one component, one version' functionality axiom the issue names)."@x-gmeow-english ;
+    logic:characterizes gmeow:componentVersion ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:componentVersion ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:componentVersion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:componentVersion, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:componentVersion and nothing else. It is not a definition of gmeow:componentVersion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:componentVersionFunctionality logic:characterizes gmeow:componentVersion ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimedComponentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claimedComponent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimedComponent is functional: a pin claim is about exactly one component."@x-gmeow-english ;
+    logic:characterizes gmeow:claimedComponent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimedComponent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimedComponent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimedComponent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimedComponent and nothing else. It is not a definition of gmeow:claimedComponent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:claimedComponentFunctionality logic:characterizes gmeow:claimedComponent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimSiteFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claimSite is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimSite is functional: a pin claim comes from exactly one claim site."@x-gmeow-english ;
+    logic:characterizes gmeow:claimSite ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimSite ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimSite names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimSite, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimSite and nothing else. It is not a definition of gmeow:claimSite (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:claimSiteFunctionality logic:characterizes gmeow:claimSite ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimDimensionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claimDimension is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimDimension is functional: a pin claim asserts exactly one versioned dimension."@x-gmeow-english ;
+    logic:characterizes gmeow:claimDimension ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimDimension ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimDimension names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimDimension, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimDimension and nothing else. It is not a definition of gmeow:claimDimension (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:claimDimensionFunctionality logic:characterizes gmeow:claimDimension ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimedValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "claimedValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:claimedValue is functional: a pin claim carries exactly one asserted value."@x-gmeow-english ;
+    logic:characterizes gmeow:claimedValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:claimedValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:claimedValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:claimedValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:claimedValue and nothing else. It is not a definition of gmeow:claimedValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:claimedValueFunctionality logic:characterizes gmeow:claimedValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:reconciledComponentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "reconciledComponent is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reconciledComponent is functional: a reconciled consensus record is about exactly one component."@x-gmeow-english ;
+    logic:characterizes gmeow:reconciledComponent ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reconciledComponent ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:reconciledComponent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reconciledComponent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:reconciledComponent and nothing else. It is not a definition of gmeow:reconciledComponent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:reconciledComponentFunctionality logic:characterizes gmeow:reconciledComponent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:reconciledDimensionFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "reconciledDimension is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reconciledDimension is functional: a reconciled consensus record reconciles exactly one dimension."@x-gmeow-english ;
+    logic:characterizes gmeow:reconciledDimension ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reconciledDimension ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:reconciledDimension names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reconciledDimension, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:reconciledDimension and nothing else. It is not a definition of gmeow:reconciledDimension (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:reconciledDimensionFunctionality logic:characterizes gmeow:reconciledDimension ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:reconciledValueFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "reconciledValue is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:reconciledValue is functional: a reconciled consensus record carries exactly one agreed value."@x-gmeow-english ;
+    logic:characterizes gmeow:reconciledValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:reconciledValue ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:reconciledValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:reconciledValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:reconciledValue and nothing else. It is not a definition of gmeow:reconciledValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:reconciledValueFunctionality logic:characterizes gmeow:reconciledValue ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Value vocabularies: claim sites and dimensions --------------------------
+
+gmeow:ClaimSite
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Claim Site"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    logic:formalizes logic:attestationClaimSiteSubsumption ;
+    skos:definition "The place a pin claim is asserted — a value vocabulary (individuals, never subclasses). The six mutually-unaware representations of a substrate pin: workspace manifest, fuzz manifest, lockfile, linked constant, shipped artifact, and prose."@x-gmeow-english ;
+    skos:example "ex:claim1 gmeow:claimSite gmeow:claimSiteLockfile ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-site subclasses (sites are individuals) and avoid using it for the versioned dimension (gmeow:ClaimDimension); the site is WHERE, the dimension is WHICH fact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded gmeow:ClaimSite individual via gmeow:claimSite; mint a new individual (not a subclass) if a new representation appears."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:claimSite — the open set of individuals naming where a component's version is asserted."@x-gmeow-english .
+
+gmeow:claimSiteWorkspaceManifest
+    a gmeow:ClaimSite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "workspace manifest claim site"@x-gmeow-english ;
+    skos:definition "The root Cargo.toml [workspace.dependencies] pin of the substrate — the git rev the workspace builds against."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimSiteFuzzManifest
+    a gmeow:ClaimSite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "fuzz manifest claim site"@x-gmeow-english ;
+    skos:definition "The fuzz/Cargo.toml duplicate pin of the substrate — a second manifest that must agree with the workspace pin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimSiteLockfile
+    a gmeow:ClaimSite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "lockfile claim site"@x-gmeow-english ;
+    skos:definition "The Cargo.lock resolved entry for the substrate — the concrete crate version and full source rev the manifest pin resolves to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimSiteLinkedConstant
+    a gmeow:ClaimSite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "linked constant claim site"@x-gmeow-english ;
+    skos:definition "A compiled-in constant the substrate exposes and the workspace links (purrdf::shapes::VERSION, purrdf::gts::wire::VERSION, purrdf::gts_compose::DIST_ZSTD_LEVEL) — the version baked into the running binary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimSiteShippedArtifact
+    a gmeow:ClaimSite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "shipped artifact claim site"@x-gmeow-english ;
+    skos:definition "A committed .wasm engine's SUBSTRATE.txt stamp — the substrate the shipped artifact was statically built against and embeds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:claimSiteProse
+    a gmeow:ClaimSite ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "prose claim site"@x-gmeow-english ;
+    skos:definition "A version mentioned in documentation prose (docs/, Makefile, AGENTS.md) — a hand-maintained mention that should be a projection of the reconciled graph fact, not a source of drift."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ClaimDimension
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Claim Dimension"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    logic:formalizes logic:attestationClaimDimensionSubsumption ;
+    skos:definition "The versioned dimension a pin claim asserts — a value vocabulary (individuals, never subclasses). Different dimensions assert different-kind values, so agreement is keyed per (component, dimension): crate version, git rev, shapes version, wire version, and zstd level."@x-gmeow-english ;
+    skos:example "ex:claim1 gmeow:claimDimension gmeow:dimensionCrateVersion ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-dimension subclasses (dimensions are individuals) and avoid using it for the site of the claim (gmeow:ClaimSite); the dimension is WHICH fact, the site is WHERE."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded gmeow:ClaimDimension individual via gmeow:claimDimension; the agreement law compares only claims sharing a dimension."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary behind gmeow:claimDimension — the open set of individuals naming which versioned fact a claim asserts."@x-gmeow-english .
+
+gmeow:dimensionCrateVersion
+    a gmeow:ClaimDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "crate version dimension"@x-gmeow-english ;
+    skos:definition "The substrate's semantic crate version (e.g. 0.12.0) — asserted by the lockfile, the shipped-artifact stamps, and prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionGitRev
+    a gmeow:ClaimDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "git rev dimension"@x-gmeow-english ;
+    skos:definition "The substrate's pinned git revision — asserted by the workspace manifest and fuzz manifest (abbreviated) and the lockfile (full SHA). Git-rev claim values are NORMALIZED to a canonical form at carrier emission before comparison, so an abbreviated manifest rev and a full lockfile SHA for the same commit compare equal (no false drift)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionShapesVersion
+    a gmeow:ClaimDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "shapes version dimension"@x-gmeow-english ;
+    skos:definition "The substrate's SHACL-shapes schema version (purrdf::shapes::VERSION) compiled into the validation cache salt — asserted by the linked-constant site."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionWireVersion
+    a gmeow:ClaimDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "wire version dimension"@x-gmeow-english ;
+    skos:definition "The substrate's GTS wire-format version (purrdf::gts::wire::VERSION) in the same cache salt — asserted by the linked-constant site."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimensionZstdLevel
+    a gmeow:ClaimDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "zstd level dimension"@x-gmeow-english ;
+    skos:definition "The substrate's mandated distribution zstd compression level (purrdf::gts_compose::DIST_ZSTD_LEVEL, pinned to 12 by a compile-time assertion) — asserted by the linked-constant site."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# --- Subsumption grounding (logic: axioms the kernel taxonomy projects from) ----
+# Each kernel TBox class above declares an rdfs:subClassOf edge; that RDFS taxonomy
+# triple is a lossy projection of the canonical logic: axiom authored here
+# (Principle 17). Each class carries a logic:formalizes back-reference to its
+# subsumption Formula, so the derived rdfs: edge is grounded rather than a second
+# source of truth. A class subsumption C ⊑ D is the universally-quantified
+# implication ∀x. C(x) → D(x), realized as a logic:Formula AST (logic:forall over a
+# logic:antecedent/logic:consequent implication whose atoms are rdf:type
+# class-membership relations), mirroring slices/core/guides/module.ttl.
+
+logic:attestationComponentSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "Component ⊑ InformationObject"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:Component rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. Component(x) → InformationObject(x) — every build component is an information object, an identity carried by the graph, not a material artifact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:attestationComponentImpl .
+logic:attestationComponentImpl a logic:Formula ;
+    logic:antecedent logic:attestationComponentSub ; logic:consequent logic:attestationComponentSuper .
+logic:attestationComponentSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Component ] .
+logic:attestationComponentSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
+
+logic:attestationSubstrateComponentSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "SubstrateComponent ⊑ Component"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:SubstrateComponent rdfs:subClassOf gmeow:Component taxonomy edge projects from: ∀x. SubstrateComponent(x) → Component(x) — every substrate component is a build component, specialized to the bundle's own engine and toolchain."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:attestationSubstrateComponentImpl .
+logic:attestationSubstrateComponentImpl a logic:Formula ;
+    logic:antecedent logic:attestationSubstrateComponentSub ; logic:consequent logic:attestationSubstrateComponentSuper .
+logic:attestationSubstrateComponentSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SubstrateComponent ] .
+logic:attestationSubstrateComponentSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Component ] .
+
+logic:attestationPinClaimSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "PinClaim ⊑ InformationObject"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:PinClaim rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. PinClaim(x) → InformationObject(x) — every reified per-site claim is an information object, a statement the graph carries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:attestationPinClaimImpl .
+logic:attestationPinClaimImpl a logic:Formula ;
+    logic:antecedent logic:attestationPinClaimSub ; logic:consequent logic:attestationPinClaimSuper .
+logic:attestationPinClaimSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PinClaim ] .
+logic:attestationPinClaimSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
+
+logic:attestationReconciledPinSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "ReconciledPin ⊑ InformationObject"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:ReconciledPin rdfs:subClassOf gmeow:InformationObject taxonomy edge projects from: ∀x. ReconciledPin(x) → InformationObject(x) — every reconciled consensus record is an information object, the agreed value carried once."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:attestationReconciledPinImpl .
+logic:attestationReconciledPinImpl a logic:Formula ;
+    logic:antecedent logic:attestationReconciledPinSub ; logic:consequent logic:attestationReconciledPinSuper .
+logic:attestationReconciledPinSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReconciledPin ] .
+logic:attestationReconciledPinSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] .
+
+logic:attestationClaimSiteSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "ClaimSite ⊑ QualityValue"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:ClaimSite rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimSite(x) → QualityValue(x) — every claim site is an enumerated quality value, a member of the value vocabulary naming where a claim was read."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:attestationClaimSiteImpl .
+logic:attestationClaimSiteImpl a logic:Formula ;
+    logic:antecedent logic:attestationClaimSiteSub ; logic:consequent logic:attestationClaimSiteSuper .
+logic:attestationClaimSiteSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClaimSite ] .
+logic:attestationClaimSiteSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:QualityValue ] .
+
+logic:attestationClaimDimensionSubsumption a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "ClaimDimension ⊑ QualityValue"@x-gmeow-english ;
+    skos:definition "The subsumption axiom the gmeow:ClaimDimension rdfs:subClassOf logic:QualityValue taxonomy edge projects from: ∀x. ClaimDimension(x) → QualityValue(x) — every claim dimension is an enumerated quality value, a member of the value vocabulary naming which versioned fact a claim asserts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:forall logic:attestationClaimDimensionImpl .
+logic:attestationClaimDimensionImpl a logic:Formula ;
+    logic:antecedent logic:attestationClaimDimensionSub ; logic:consequent logic:attestationClaimDimensionSuper .
+logic:attestationClaimDimensionSub a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ClaimDimension ] .
+logic:attestationClaimDimensionSuper a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termIri logic:QualityValue ] .
+
+# --- Reconciliation laws (procedural logic:Constraints; pipeline derives SHACL) -
+
+gmeow:PinAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "pin agreement constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint over the reconciliation kernel: any two gmeow:PinClaim about the same component and the same dimension MUST carry the same gmeow:claimedValue. A violation is substrate drift — two mutually-unaware sites disagreeing on a component's version. The pipeline derives its sh:SPARQLConstraint (gmeow:PinAgreementConstraintProceduralConstraintShape); a violation is a gmeow:Finding, not a bash exit code."@x-gmeow-english ;
+    logic:formalizes gmeow:PinAgreementConstraintProceduralConstraintShape ;
+    logic:message "Substrate claim sites disagree on a component/dimension: two pin claims about the same component and dimension carry different values (drift)." ;
+    logic:integrity logic:pinAgrForall .
+logic:pinAgrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termVariable "c2" ] , [ logic:termIndex 2 ; logic:termVariable "comp" ] , [ logic:termIndex 3 ; logic:termVariable "dim" ] , [ logic:termIndex 4 ; logic:termVariable "v1" ] , [ logic:termIndex 5 ; logic:termVariable "v2" ] ;
+    logic:forall logic:pinAgrImpl .
+logic:pinAgrImpl a logic:Formula ; logic:antecedent logic:pinAgrGuard ; logic:consequent logic:pinAgrEq .
+logic:pinAgrGuard a logic:Formula ;
+    logic:and logic:pinAgrC1Type , logic:pinAgrC2Type , logic:pinAgrC1Comp , logic:pinAgrC2Comp , logic:pinAgrC1Dim , logic:pinAgrC2Dim , logic:pinAgrC1Val , logic:pinAgrC2Val .
+logic:pinAgrC1Type a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PinClaim ] .
+logic:pinAgrC2Type a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PinClaim ] .
+logic:pinAgrC1Comp a logic:Formula ; logic:relation gmeow:claimedComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termVariable "comp" ] .
+logic:pinAgrC2Comp a logic:Formula ; logic:relation gmeow:claimedComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termVariable "comp" ] .
+logic:pinAgrC1Dim a logic:Formula ; logic:relation gmeow:claimDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termVariable "dim" ] .
+logic:pinAgrC2Dim a logic:Formula ; logic:relation gmeow:claimDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termVariable "dim" ] .
+logic:pinAgrC1Val a logic:Formula ; logic:relation gmeow:claimedValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c1" ] , [ logic:termIndex 1 ; logic:termVariable "v1" ] .
+logic:pinAgrC2Val a logic:Formula ; logic:relation gmeow:claimedValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c2" ] , [ logic:termIndex 1 ; logic:termVariable "v2" ] .
+logic:pinAgrEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v1" ] , [ logic:termIndex 1 ; logic:termVariable "v2" ] .
+
+gmeow:PinCoverageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "pin coverage constraint"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:expectedClaimSite of a component MUST be witnessed by some gmeow:PinClaim at that site for that component. Guards against silent, vacuous agreement — an absent expected site yields zero claims and would otherwise pass unnoticed. The pipeline derives its sh:SPARQLConstraint; a missing expected site is a gmeow:Finding (the completeness half of drift)."@x-gmeow-english ;
+    logic:formalizes gmeow:PinCoverageConstraintProceduralConstraintShape ;
+    logic:message "A substrate component's expected claim site is missing: an expected claim site has no pin claim asserting the component there (coverage gap)." ;
+    logic:integrity logic:pinCovForall .
+logic:pinCovForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "comp" ] , [ logic:termIndex 1 ; logic:termVariable "site" ] ;
+    logic:forall logic:pinCovImpl .
+logic:pinCovImpl a logic:Formula ; logic:antecedent logic:pinCovGuard ; logic:consequent logic:pinCovExists .
+logic:pinCovGuard a logic:Formula ; logic:and logic:pinCovType , logic:pinCovExpected .
+logic:pinCovType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "comp" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Component ] .
+logic:pinCovExpected a logic:Formula ; logic:relation gmeow:expectedClaimSite ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "comp" ] , [ logic:termIndex 1 ; logic:termVariable "site" ] .
+logic:pinCovExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] ;
+    logic:exists logic:pinCovBody .
+logic:pinCovBody a logic:Formula ; logic:and logic:pinCovClaimComp , logic:pinCovClaimSite .
+logic:pinCovClaimComp a logic:Formula ; logic:relation gmeow:claimedComponent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "comp" ] .
+logic:pinCovClaimSite a logic:Formula ; logic:relation gmeow:claimSite ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "site" ] .

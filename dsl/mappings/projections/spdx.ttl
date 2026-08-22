@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix spdx:  <http://spdx.org/rdf/terms#> .
+
+# Projection mappings: GMEOW substrate reconciliation -> SPDX SBOM. Each
+# gmeow:SubstrateComponent becomes an spdx:Package (name from gmeow:componentName,
+# versionInfo from the reconciled gmeow:componentVersion), and each gmeow:embeds
+# edge becomes an SPDX "contains" relationship, so gmeow.gts ships a verifiable
+# SBOM of the engines it embeds. A loose directional downcast generating SPARQL
+# CONSTRUCT queries and EDOAL cells (Principle 5), compiled to
+# projections/spdx.edoal.ttl + queries/projections/spdx.rq by gmeow compile-mappings.
+# spdx: is already used as a projection target by the DCAT checksum idiom.
+
+gmeow:mapSpdxPackage a gmeow:ProjectionMapping ;
+    rdfs:label "SubstrateComponent -> spdx:Package"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "comp" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "comp" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:SubstrateComponent ]
+            [ gmeow:subjectVar "comp" ; gmeow:predicate gmeow:componentName ; gmeow:objectVar "name" ; gmeow:optional true ]
+            [ gmeow:subjectVar "comp" ; gmeow:predicate gmeow:componentVersion ; gmeow:objectVar "version" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:SubstrateComponent ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "spdx" ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:edoalTarget spdx:Package ; gmeow:edoalTargetKind "class" ;
+        gmeow:lossyDrop "the per-site pin claims, claim dimensions, and reconciliation provenance collapse to a single package with name + versionInfo; a component whose sites disagree still projects (its versionInfo is simply absent until reconciled)" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "comp" ; gmeow:tPred rdf:type ; gmeow:tObjValue spdx:Package ]
+            [ gmeow:tSubj "comp" ; gmeow:tPred spdx:name ; gmeow:tObj "name" ]
+            [ gmeow:tSubj "comp" ; gmeow:tPred spdx:versionInfo ; gmeow:tObj "version" ] ) ] .
+
+gmeow:mapSpdxContains a gmeow:ProjectionMapping ;
+    rdfs:label "embeds -> spdx:relationship (contains)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "engine" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "engine" ; gmeow:predicate gmeow:embeds ; gmeow:objectVar "embedded" ] ) ;
+        gmeow:mint [ gmeow:bindVar "rel" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "engine" ] ) ]
+                    "-contains-"
+                    [ gmeow:exprOp gmeow:opReplace ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "embedded" ] ) ]
+                        "^.*[/#]" "" ) ] ) ] ) ] ] ;
+        gmeow:edoalSource gmeow:embeds ] ;
+    gmeow:hasBinding [
+        gmeow:profile "spdx" ; gmeow:toPredicate spdx:relationship ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:lossyDrop "the embedding is projected as a bare SPDX contains relationship; the build-time vs run-time linkage distinction and the shipped-artifact stamp provenance are dropped" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "engine" ; gmeow:tPred spdx:relationship ; gmeow:tObj "rel" ]
+            [ gmeow:tSubj "rel" ; gmeow:tPred rdf:type ; gmeow:tObjValue spdx:Relationship ]
+            [ gmeow:tSubj "rel" ; gmeow:tPred spdx:relationshipType ; gmeow:tObjValue spdx:relationshipType_contains ]
+            [ gmeow:tSubj "rel" ; gmeow:tPred spdx:relatedSpdxElement ; gmeow:tObj "embedded" ] ) ] .
