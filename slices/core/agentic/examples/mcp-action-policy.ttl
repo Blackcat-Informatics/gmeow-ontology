@@ -64,6 +64,14 @@
 # property's presence, not on a capability class — no new vocabulary is minted).
 # --------------------------------------------------------------------------- #
 
+# The policy this file IS — one action theory over the engine's whole advertised tool surface.
+# Typing it makes the example a worked instance of gmeow:ActionPolicy rather than a loose bag
+# of schemas that happens to look like one.
+ex:mcpActionPolicy
+    a gmeow:ActionPolicy ;
+    rdfs:label "the GMEOW MCP action policy"@x-gmeow-english ;
+    rdfs:comment "The action theory governing the engine's advertised tool surface: one schema per tool, tied by logic:mcpToolName, each carrying the preconditions that must obtain, the effects that follow, and — for a write — the compensation that undoes it."@x-gmeow-english .
+
 ex:memoryWriteCapability
     rdfs:label "memory-write capability"@x-gmeow-english ;
     rdfs:comment "What the agent must be able to do to mutate memory (store/suppress a claim)."@x-gmeow-english .
