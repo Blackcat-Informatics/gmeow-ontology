@@ -23,7 +23,6 @@ pub mod math_gate;
 pub mod perf_ledger;
 pub(crate) mod refute;
 pub mod rl;
-pub(crate) mod rl_rules;
 
 pub use dl::{DlGap, DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
 pub use el::{ElClosure, InferredAxiom, el_closure};
@@ -109,11 +108,15 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
 }
 
-/// The content-addressed identity of the native EL/DL/RL reasoning contract —
+/// The content-addressed identity of the native EL/DL reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
 ///
+/// The RL lane no longer participates: it is purrdf's OWL 2 RL chase
+/// ([`rl::rl_closure`]), not the native rule table, so `rl.rs` defines no native
+/// contract and is not folded here.
+///
 /// The hash covers ALL source that defines the reasoning contract:
-/// * the fixed typed EL/DL/RL rule sets whose change alters which axioms the
+/// * the fixed typed EL/DL rule sets whose change alters which axioms the
 ///   native chase derives;
 /// * the full source of `dl.rs`, which owns the post-pass functions
 ///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
@@ -135,7 +138,6 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 /// contract than the engine it is about to trust it against.
 const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/el.rs", include_str!("el.rs")),
-    ("reason/rl_rules.rs", include_str!("rl_rules.rs")),
     ("reason/dl.rs", include_str!("dl.rs")),
     ("reason/refute.rs", include_str!("refute.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
@@ -1755,8 +1757,9 @@ pub(crate) fn calculus_term(iri: &str) -> &str {
 ///
 /// # Why the lowering lives at the EDB boundary
 ///
-/// The EL/DL/RL calculi ([`el::structured_el_rules`], [`dl::structured_dl_rules`],
-/// [`rl_rules`]) are FIXED and largely W3C-specified: every subsumption rule
+/// The native EL/DL calculi ([`el::structured_el_rules`], [`dl::structured_dl_rules`])
+/// and the RL lane's OWL 2 RL chase ([`rl::rl_closure`]) are FIXED and largely
+/// W3C-specified: every subsumption rule
 /// (`el:subClassOf-transitive`, `el:type-propagation`, `cax-sco`, `scm-sco`,
 /// `scm-spo`, `prp-spo1`, …) matches the `rdfs:subClassOf` / `rdfs:subPropertyOf`
 /// spelling *by specification*, and is not GMEOW's to re-author. But GMEOW's
@@ -2292,7 +2295,6 @@ mod tests {
             names,
             vec![
                 "reason/el.rs",
-                "reason/rl_rules.rs",
                 "reason/dl.rs",
                 "reason/refute.rs",
                 "reason/mod.rs",
