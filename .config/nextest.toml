@@ -87,6 +87,14 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 # it makes is about the SHIPPED artifact, and a component test cannot make any of them.
 # A whole-DAG execution is minutes, so it gets the runaway backstop the sibling
 # whole-pipeline proofs use rather than the 60s default that fits focused unit tests.
+# The console session REPLAY lane: it re-runs a recorded browser session against the native
+# engine and compares the answers byte for byte, which means booting the engine over the
+# shipped bundle once per case. That is engine-scale work wearing a CLI test's clothes, and the
+# 60s unit-test default is a budget for neither.
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & binary(console_session_replay)'
+slow-timeout = { period = "600s", "terminate-after" = 2, "grace-period" = "30s" }
+
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(medium_bundle)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
