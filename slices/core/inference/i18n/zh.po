@@ -106,8 +106,8 @@ msgid "competesWith is irreflexive"
 msgstr "competesWith 具有非自反性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/competesWithIrreflexivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:competesWith is irreflexive: a rival standpoint claim never competes with itself, as its skos:definition states. gmeow:competesWith is symmetric (owl:SymmetricProperty) but irreflexive; irreflexivity is enforced here on the canonical carrier — kept out of OWL to hold the reasoned profile within OWL 2 DL (the deception discipline) — and the native coherence gate raises a violation for a claim asserted to compete with itself; the generated SHACL constraint surface is its projection."
-msgstr "在规范载体上断言 gmeow:competesWith 是非自反的:一个竞争性立场主张绝不与自身竞争,正如其 skos:definition 所述。gmeow:competesWith 是对称的(owl:SymmetricProperty)但非自反;非自反性在此于规范载体上强制执行——将其排除在 OWL 之外以把推理剖面维持在 OWL 2 DL 之内(欺骗纪律)——且原生一致性门对一个被断言为与自身竞争的主张抛出违规;生成的 SHACL 约束表面是其投影。"
+msgid "Asserts on the canonical carrier that gmeow:competesWith is irreflexive: a rival standpoint claim never competes with itself, as its skos:definition states. gmeow:competesWith is symmetric (OWL SymmetricProperty) but irreflexive; irreflexivity is enforced here on the canonical carrier — kept out of OWL to hold the reasoned profile within OWL 2 DL (the deception discipline) — and the native coherence gate raises a violation for a claim asserted to compete with itself; the generated SHACL constraint surface is its projection."
+msgstr "在规范载体上断言 gmeow:competesWith 是非自反的:一个竞争性立场主张绝不与自身竞争,正如其 skos:definition 所述。gmeow:competesWith 是对称的(OWL SymmetricProperty)但非自反;非自反性在此于规范载体上强制执行——将其排除在 OWL 之外以把推理剖面维持在 OWL 2 DL 之内(欺骗纪律)——且原生一致性门对一个被断言为与自身竞争的主张抛出违规;生成的 SHACL 约束表面是其投影。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conclusionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "conclusion is functional"

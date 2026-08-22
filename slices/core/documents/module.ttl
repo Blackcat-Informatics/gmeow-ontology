@@ -886,7 +886,7 @@ gmeow:transcript
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/ContentSegment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentIndex> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
-<https://blackcatinformatics.ca/gmeow/ContentSegment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentOf> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ContentSegment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentOf> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/ContentSegment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentType> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ContentSegmentType> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/ContentSegment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/segmentOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 

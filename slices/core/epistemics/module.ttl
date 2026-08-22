@@ -937,7 +937,7 @@ gmeow:DoxasticStateCredenceRangeConstraint
     logic:minInclusiveBound 0.0 ;
     logic:maxInclusiveBound 1.0 .
 
-<https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+<https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 
 # =========================================================================== #
 # Advisory justifier-type constraint — projection of

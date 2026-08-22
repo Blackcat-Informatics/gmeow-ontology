@@ -71,6 +71,12 @@ pub mod logic {
 
     /// `logic:sameAs` — canonical view of [`super::owl::SAME_AS`].
     pub const SAME_AS: &str = "https://blackcatinformatics.ca/logic/sameAs";
+    /// `logic:AllDisjointClasses` — canonical view of
+    /// [`super::owl::ALL_DISJOINT_CLASSES`].
+    pub const ALL_DISJOINT_CLASSES: &str =
+        "https://blackcatinformatics.ca/logic/AllDisjointClasses";
+    /// `logic:members` — canonical view of [`super::owl::MEMBERS`].
+    pub const MEMBERS: &str = "https://blackcatinformatics.ca/logic/members";
 }
 
 /// SKOS namespace constants (`http://www.w3.org/2004/02/skos/core#`).

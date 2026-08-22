@@ -38,7 +38,7 @@ use std::collections::{BTreeSet, HashSet, VecDeque};
 use gmeow_errors::model::{Finding, Location, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
-use crate::model::{owl, rdf, rdfs};
+use crate::model::{logic, owl, rdf, rdfs};
 
 /// Resolve an IRI value to its dataset-local [`TermId`], if interned.
 #[inline]
@@ -657,23 +657,36 @@ fn is_functional(ds: &RdfDataset, prop: &str) -> bool {
 /// `_all_disjoint_member_sets`). Walks the `owl:members` RDF Collection by hand.
 fn all_disjoint_member_sets(ds: &RdfDataset) -> Vec<HashSet<String>> {
     let mut sets: Vec<HashSet<String>> = Vec::new();
-    let (Some(type_id), Some(adc_id), Some(members_id)) = (
-        iri_id(ds, rdf::TYPE),
-        iri_id(ds, owl::ALL_DISJOINT_CLASSES),
-        iri_id(ds, owl::MEMBERS),
-    ) else {
+    let Some(type_id) = iri_id(ds, rdf::TYPE) else {
         return sets;
     };
-    for q in ds.quads_for_pattern(None, Some(type_id), Some(adc_id), GraphMatch::Any) {
-        let node = q.s;
-        for members_q in ds.quads_for_pattern(Some(node), Some(members_id), None, GraphMatch::Any) {
-            // The collection head is a named or blank node; a literal/triple head is
-            // skipped (matching the legacy `NamedNode | BlankNode` guard).
-            if matches!(
-                ds.resolve(members_q.o),
-                TermRef::Iri(_) | TermRef::Blank { .. }
-            ) {
-                sets.push(collection_members(ds, members_q.o));
+    // A slice authors the axiom in the canonical `logic:` spelling
+    // (`logic:AllDisjointClasses` + `logic:members`); accept the `owl:` spelling
+    // too so an owl:-authored or mixed corpus still walks.
+    let adc_ids: Vec<TermId> = [logic::ALL_DISJOINT_CLASSES, owl::ALL_DISJOINT_CLASSES]
+        .iter()
+        .filter_map(|iri| iri_id(ds, iri))
+        .collect();
+    let members_ids: Vec<TermId> = [logic::MEMBERS, owl::MEMBERS]
+        .iter()
+        .filter_map(|iri| iri_id(ds, iri))
+        .collect();
+    for adc_id in &adc_ids {
+        for q in ds.quads_for_pattern(None, Some(type_id), Some(*adc_id), GraphMatch::Any) {
+            let node = q.s;
+            for members_id in &members_ids {
+                for members_q in
+                    ds.quads_for_pattern(Some(node), Some(*members_id), None, GraphMatch::Any)
+                {
+                    // The collection head is a named or blank node; a literal/triple
+                    // head is skipped (matching the legacy `NamedNode | BlankNode` guard).
+                    if matches!(
+                        ds.resolve(members_q.o),
+                        TermRef::Iri(_) | TermRef::Blank { .. }
+                    ) {
+                        sets.push(collection_members(ds, members_q.o));
+                    }
+                }
             }
         }
     }

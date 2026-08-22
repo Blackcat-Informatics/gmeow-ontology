@@ -133,8 +133,8 @@ gmeow:EntityExistence rdfs:subClassOf
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/existenceEntity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/existenceEntity> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 
 # =========================================================================== #
 # Migrated procedural constraints (#1194): the closed-world EntityExistence      #

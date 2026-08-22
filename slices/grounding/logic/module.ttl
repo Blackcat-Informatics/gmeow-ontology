@@ -19650,7 +19650,7 @@ logic:gccImpl a logic:Formula ; logic:antecedent logic:gccTarget ; logic:consequ
 logic:gccTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
-    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Class .
     FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
 }""" ] .
 logic:gccAnd a logic:Formula ; logic:and logic:gccLabel , logic:gccDef , logic:gccDefBy , logic:gccRole .
@@ -19682,9 +19682,9 @@ logic:gpcTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
     ?this a ?t .
     FILTER(?t IN (
-        <http://www.w3.org/2002/07/owl#ObjectProperty>,
-        <http://www.w3.org/2002/07/owl#DatatypeProperty>,
-        <http://www.w3.org/2002/07/owl#AnnotationProperty>
+        logic:ObjectProperty,
+        logic:DatatypeProperty,
+        logic:AnnotationProperty
     ))
     FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
 }""" ] .
@@ -19790,7 +19790,7 @@ logic:gocImpl a logic:Formula ; logic:antecedent logic:gocTarget ; logic:consequ
 logic:gocTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
         [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
-    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Ontology .
     FILTER(
         STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/")
         || STR(?this) = "https://blackcatinformatics.ca/gmeow"

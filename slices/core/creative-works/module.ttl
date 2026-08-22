@@ -1556,9 +1556,9 @@ gmeow:ManifestationEmbodiesRequiredConstraint
     logic:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionRole> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributor> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionRole> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionTarget> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributor> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Item> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/exemplifies> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Manifestation> ] .
 <https://blackcatinformatics.ca/gmeow/Manifestation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/embodies> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Expression> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Contribution> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/contributionRole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .

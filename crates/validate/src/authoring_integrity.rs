@@ -536,6 +536,7 @@ fn detect_peerage_discipline(
 // ── R2: imports / profile / catalog closure + module-IRI ─────────────────────
 
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
+const LOGIC_ONTOLOGY: &str = "https://blackcatinformatics.ca/logic/Ontology";
 const OWL_IMPORTS: &str = "http://www.w3.org/2002/07/owl#imports";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 use gmeow_ns::GMEOW_NS;
@@ -628,10 +629,17 @@ fn slice_module_files(slices_dir: &Path) -> Result<Vec<PathBuf>> {
 /// The `owl:Ontology` subject IRI of a module (the first, matching the retired
 /// Python which took `[0]`); `None` when the module declares no ontology.
 fn module_ontology_iri(ds: &Dataset, path: &Path) -> Result<Option<String>> {
+    // A slice `module.ttl` authors its header as `<> a logic:Ontology` after the
+    // flip; accept the `owl:` spelling too so the check bites for both authorings.
     let mut subjects = ds
-        .subjects_of_type(OWL_ONTOLOGY)
+        .subjects_of_type(LOGIC_ONTOLOGY)
         .map_err(|e| parse_err(path, &e.to_string()))?;
+    subjects.extend(
+        ds.subjects_of_type(OWL_ONTOLOGY)
+            .map_err(|e| parse_err(path, &e.to_string()))?,
+    );
     subjects.sort();
+    subjects.dedup();
     Ok(subjects.into_iter().next())
 }
 

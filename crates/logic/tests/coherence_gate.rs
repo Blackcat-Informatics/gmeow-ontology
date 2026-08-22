@@ -67,6 +67,12 @@ const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveP
 const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
 const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
 const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+// The CANONICAL `logic:` characteristic markers the bundle now carries for transitivity and
+// symmetry: the authoring vocabulary was retired to `logic:`, so `?P a logic:transitiveProperty`
+// (not the `owl:` spelling) is the marker present in the shipped bundle; `owl:` is a
+// generated-view-only projection.
+const LOGIC_TRANSITIVE_PROPERTY: &str = "https://blackcatinformatics.ca/logic/transitiveProperty";
+const LOGIC_SYMMETRIC_PROPERTY: &str = "https://blackcatinformatics.ca/logic/symmetricProperty";
 const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
 const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
 const LOGIC_IRREFLEXIVITY_VIOLATION: &str =
@@ -438,9 +444,9 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
     let facts = project_characteristic_facts(bundle.dataset.as_ref());
     let projection: String = facts.iter().cloned().collect();
 
-    // Bind to production: every DL-projectable H4 target carries BOTH its OWL marker and
-    // its canonical logic: record in the shipped bundle. Drop either carrier of any of
-    // them and this test goes red — closing the dual-carrier silent-drift hole.
+    // Bind to production: every DL-projectable H4 target carries BOTH its canonical logic:
+    // marker and its canonical logic: record in the shipped bundle. Drop either carrier of
+    // any of them and this test goes red — closing the dual-carrier silent-drift hole.
     let marker_fact =
         |prop: &str, marker: &str| format!("<{prop}> <{RDF_TYPE}> <{marker}> <{CHAR_WORLD}> .\n");
     let characterizes_fact = |rec: &str, prop: &str| {
@@ -449,47 +455,50 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
     let sort_fact = |rec: &str, sort_local: &str| {
         format!("<{rec}> <{LOGIC_CHARACTERISTIC_SORT}> <{LOGIC_NS}{sort_local}> <{CHAR_WORLD}> .\n")
     };
-    // (property, OWL marker, logic: record local name, characteristic-sort local name).
-    // Only the DUAL-authored characteristics live here: transitivity and symmetry keep both
-    // their OWL marker and their logic: record in the shipped bundle. Functionality was
-    // deprecated at source (issue 1579) to a logic:-ONLY carrier — owl:FunctionalProperty is
-    // now a generated-view-only projection, absent from the bundle — so gmeow:versionOf /
-    // gmeow:editionOf are asserted below via the same logic:-only treatment as
-    // counterGoal irreflexivity, not through this dual-carrier loop.
+    // (property, canonical logic: marker, logic: record local name, characteristic-sort local
+    // name). These characteristics are DUAL-carried in the bundle — the property's canonical
+    // `?P a logic:{sort}` marker AND its logic: record — but the OWL characteristic view is now
+    // generated-view-only (a projection) for transitivity and symmetry too: the authoring
+    // vocabulary was retired to logic:, so `owl:TransitiveProperty` / `owl:SymmetricProperty` are
+    // ABSENT from the bundle, exactly as functionality was moved to a logic:-only carrier + an
+    // owl:-view-only projection by issue 1579. This loop therefore binds the logic: marker, not
+    // the owl: one. gmeow:versionOf / gmeow:editionOf go further (carrier-record only, no direct
+    // marker) and are asserted below via the same logic:-only treatment as counterGoal
+    // irreflexivity, not through this dual-carrier loop.
     let production: [(&str, &str, &str, &str); 6] = [
         (
             GMEOW_SUB_EVENT_OF,
-            OWL_TRANSITIVE_PROPERTY,
+            LOGIC_TRANSITIVE_PROPERTY,
             "subEventOfTransitivity",
             "transitiveProperty",
         ),
         (
             GMEOW_COARSER_THAN,
-            OWL_TRANSITIVE_PROPERTY,
+            LOGIC_TRANSITIVE_PROPERTY,
             "coarserThanTransitivity",
             "transitiveProperty",
         ),
         (
             GMEOW_SHARPENS,
-            OWL_TRANSITIVE_PROPERTY,
+            LOGIC_TRANSITIVE_PROPERTY,
             "sharpensTransitivity",
             "transitiveProperty",
         ),
         (
             GMEOW_PART_OF,
-            OWL_TRANSITIVE_PROPERTY,
+            LOGIC_TRANSITIVE_PROPERTY,
             "partOfTransitivity",
             "transitiveProperty",
         ),
         (
             GMEOW_COUNTER_GOAL,
-            OWL_SYMMETRIC_PROPERTY,
+            LOGIC_SYMMETRIC_PROPERTY,
             "counterGoalSymmetry",
             "symmetricProperty",
         ),
         (
             GMEOW_COUNTERPART_OF,
-            OWL_SYMMETRIC_PROPERTY,
+            LOGIC_SYMMETRIC_PROPERTY,
             "counterpartOfSymmetry",
             "symmetricProperty",
         ),
@@ -498,7 +507,8 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
         let rec = format!("{GMEOW_NS}{rec_local}");
         assert!(
             facts.contains(&marker_fact(prop, marker)),
-            "the committed gmeow.gts must declare {prop} with OWL characteristic {marker}"
+            "the committed gmeow.gts must declare {prop} with canonical logic: characteristic \
+             {marker} (the owl: spelling is generated-view-only)"
         );
         assert!(
             facts.contains(&characterizes_fact(&rec, prop)),

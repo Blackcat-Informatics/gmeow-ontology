@@ -183,7 +183,7 @@ logic:povuDescLink a logic:Formula ; logic:relation logic:linkVia ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "subj" ] , [ logic:termIndex 1 ; logic:termVariable "descriptor" ] , [ logic:termIndex 2 ; logic:termVariable "this" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Profile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileAppliesTo> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Class> ] .
+<https://blackcatinformatics.ca/gmeow/Profile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileAppliesTo> ; logic:allValuesFrom logic:Class ] .
 
 # Required descriptive spine of a Profile (self-description is the point of the
 # meta-pattern): at least one label, a definition, and one descriptor property.

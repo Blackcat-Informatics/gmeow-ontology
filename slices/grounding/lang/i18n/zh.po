@@ -554,8 +554,8 @@ msgid "glossary slice"
 msgstr "术语表切片"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|skos:definition"
-msgid "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's owl:Ontology IRI."
-msgstr "一个 gmeow:Glossary 所汇集术语归属的切片。函数性：每个术语表恰好对应一个切片。定义域 gmeow:Glossary，值域为该切片的 owl:Ontology IRI。"
+msgid "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's OWL Ontology IRI."
+msgstr "一个 gmeow:Glossary 所汇集术语归属的切片。函数性：每个术语表恰好对应一个切片。定义域 gmeow:Glossary，值域为该切片的 OWL Ontology IRI。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|rdfs:label"
 msgid "glossary language"
@@ -936,8 +936,8 @@ msgid "Asserts on the canonical carrier that gmeow:glossarySense is functional: 
 msgstr "在规范载体上断言 gmeow:glossarySense 是函数性的：每条条目恰好携带一个 lang:Sense——即其 OntoLex 弗雷格三角的中间顶点，独立于目标语言，由（术语、源骨架）对唯一铸造一次——若存在第二个义项，就会撕裂该条目单一的表意方式。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:glossarySlice is functional: a glossary gathers the terminology of exactly one slice, the single owl:Ontology whose i18n/*.po catalog it projects, so an unscoped or dual-scoped glossary would belong to no coherent catalog. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:glossarySlice 是函数性的：一个术语表恰好汇集一个切片的术语，即其所投影 i18n/*.po 目录所属的唯一 owl:Ontology，因此一个未限定范围或双重范围的术语表将不属于任何连贯的目录。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+msgid "Asserts on the canonical carrier that gmeow:glossarySlice is functional: a glossary gathers the terminology of exactly one slice, the single OWL Ontology whose i18n/*.po catalog it projects, so an unscoped or dual-scoped glossary would belong to no coherent catalog. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:glossarySlice 是函数性的：一个术语表恰好汇集一个切片的术语，即其所投影 i18n/*.po 目录所属的唯一 OWL Ontology，因此一个未限定范围或双重范围的术语表将不属于任何连贯的目录。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:glossarySource is functional: each entry renders exactly one English source literal — the single @x-gmeow-english value the catalog msgid carries — from which the projection mints the entry's one concept. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
@@ -1914,8 +1914,8 @@ msgid "denotation of GMN class equivalence"
 msgstr "GMN 类等价的指称"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEquivalent|skos:definition"
-msgid "The executable scoped meaning assignment from the GMN ≡ form to canonical logic:equivalentClass. Its grounding correspondence lowers the relation to owl:equivalentClass without reversing semantic ownership."
-msgstr "从 GMN ≡ 形式到规范 logic:equivalentClass 的可执行受限含义赋值。其接地对应将该关系下降为 owl:equivalentClass，而不颠倒语义所有权。"
+msgid "The executable scoped meaning assignment from the GMN ≡ form to canonical logic:equivalentClass. Its grounding correspondence lowers the relation to OWL equivalentClass without reversing semantic ownership."
+msgstr "从 GMN ≡ 形式到规范 logic:equivalentClass 的可执行受限含义赋值。其接地对应将该关系下降为 OWL equivalentClass，而不颠倒语义所有权。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicImplies|rdfs:label"
 msgid "denotation of GMN implication"

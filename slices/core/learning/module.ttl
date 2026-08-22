@@ -244,7 +244,7 @@ gmeow:Teaching rdfs:subClassOf
 
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Teaching> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/teacher> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Teaching> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/teacher> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/Agent> ] .
 
 # A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ — a
 # self-teaching relation is ill-formed (a cross-node inequality constraint).
@@ -296,7 +296,7 @@ logic:spsEq a logic:Formula ; logic:relation logic:termEqual ;
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-<https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/subjectTaught> ; logic:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/subjectTaught> ; logic:someValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Teaching> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/teacher> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
 <https://blackcatinformatics.ca/gmeow/Teaching> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/learner> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Teaching> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/learner" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
