@@ -31,7 +31,7 @@ The approved plan considered two integration options:
 
 ## Confirmed `gmeow-gts` API Surface
 
-The crate version used by the workspace is declared in `crates/validate/Cargo.toml` and `crates/rdf/Cargo.toml`. The following symbols are confirmed in the installed registry source:
+The crate version used by the workspace is declared in `crates/validate/Cargo.toml` and the `purrdf` pin in the root `Cargo.toml`. The following symbols are confirmed in the installed registry source:
 
 - `gmeow_gts::reader::read(data, allow_segments, expected_head) -> Graph`
 - `gmeow_gts::reader::read_with_options(data, ReadOptions) -> Graph`

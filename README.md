@@ -329,7 +329,7 @@ queries/                  Authored SPARQL: competency/, verify/, qc/, codecs/
 imports/                  Vendored gUFO + validation-only axiom snapshots
 catalog-v001.xml          Offline IRI→file resolution for ROBOT/Protégé
 crates/                   The Rust core: logic/ + logic-compile/ (the native logic:
-                          engine + typed IR), rdf/ + rdf-core/ (RDF 1.2 kernel),
+                          engine + typed IR; the RDF 1.2 kernel is the external purrdf package),
                           pipeline/ (the in-memory carrier spine → one gmeow.gts
                           terminal), shacl/, validate/, docs/, conformance/, …
 crates/gmeow-cli/         The native Rust `gmeow` consumer CLI; gmeow-dev-cli/ is
@@ -492,7 +492,7 @@ GMEOW is **RDF 1.2 / RDF\*-first** ([Principles 2–3](./CONSTITUTION.md)): stat
 metadata — provenance, confidence, temporal scope — is **authored once** as native RDF 1.2 /
 RDF\* content in `dsl/statements/`, the canonical source. From it `gmeow-dev sync --mode update --outputs generated`
 generates two verified artifacts: the **RDF 1.2 / RDF\* serialization** (the lead form, written
-natively by the `gmeow-rdf` Rust codec — no Java, no Docker) and the **OWL 2 axiom-annotation
+natively by the `purrdf` Rust codec — no Java, no Docker) and the **OWL 2 axiom-annotation
 form** (`owl:Axiom` + `owl:annotatedSource/Property/Target`) — the *generated,
 reasoning-lossless downcast* that the OWL 2 DL reasoners GMEOW gates on actually consume. The
 OWL form is the **downgrade for legacy tooling** — the same lossy-compatibility-as-projection
