@@ -90,10 +90,12 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(medium_bundle)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
-# Reserves the machine, like every other whole-DAG lane here. A timeout is a statement about
-# how long the WORK takes; sharing the box with 8500 other tests turns it into a statement
-# about how loaded the box was, and a test that reds on load is broken rather than flaky.
-threads-required = "num-cpus"
+# Reserves a SHARE of the box, not all of it. A timeout is a statement about how long the WORK
+# takes, and a whole-DAG lane competing with 8500 other tests spends its budget being starved.
+# Taking `num-cpus` fixes that and breaks the opposite end: the binary-invoking CLI tests then
+# blow their own 60s budgets waiting. Half the machine is enough for the DAG to make progress
+# and leaves the rest of the run schedulable.
+threads-required = 8
 
 # The MEDIUM IDENTITY GATE emits the real carrier TWICE from one in-memory DAG run —
 # once under the authored `gmeow:mediumProfileDistL12` assignment and once under the
@@ -104,9 +106,9 @@ threads-required = "num-cpus"
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(medium_identity_gate)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
-# Same reservation, same reason: it costs a whole-DAG execution plus a second emission, and
-# it timed out on-gate at 1800s only because it was competing with the rest of the run.
-threads-required = "num-cpus"
+# Same reservation, same reason: it costs a whole-DAG execution plus a second emission, and it
+# timed out on-gate at 1800s only because it was competing with the rest of the run.
+threads-required = 8
 
 # The two CONSUMER-SURFACE medium suites. `crates/gmeow-cli/build.rs` embeds
 # `generated/dist/gmeow.gts`, which is a git-ignored LOCAL product, so a suite that read
