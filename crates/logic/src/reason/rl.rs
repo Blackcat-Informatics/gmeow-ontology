@@ -1,78 +1,52 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native OWL 2 RL/RDF deductive closure.
+//! OWL 2 RL/RDF deductive closure, computed by purrdf's `entail` chase.
 //!
-//! This is the Docker/Java-free **primary** entailment authority and the single
-//! reasoning authority on-gate — there is no external OWL-RL oracle running beside
-//! it.
+//! This is the Docker/Java-free entailment authority for the RL lane. The closure
+//! is purrdf's OWL 2 RL materialization ([`purrdf::entail::materialize`] with
+//! [`purrdf::entail::Materialization::OwlRl`]) — the full 78-rule calculus of
+//! OWL 2 Profiles §4.3 Tables 4–9 — surfaced through the [`RlClosure`]/[`RlTriple`]
+//! contract this module's consumers depend on. The retired native rule table only
+//! ever fired a sound 32-rule subset; the cutover keeps the public shape and widens
+//! the entailments to the whole profile.
 //!
-//! # Why a predicate-as-DATA encoding (not the [`crate::reason::el`] one)
+//! # The RDF 1.2 world ⇔ graph mapping (the encode/decode boundary)
 //!
-//! The EL/DL lane encodes every quad as the ternary `<predicate>(s, o, "world")`
-//! form, where the RDF predicate becomes the relation *symbol*. That
-//! encoding is structurally incapable of expressing OWL 2 RL meta-rules that
-//! quantify over the property position (`prp-dom`, `prp-rng`, `prp-trp`,
-//! `prp-inv`, `prp-spo1`, `prp-spo2`, `prp-symp`, `prp-fp`, `prp-eqp`) — a
-//! relation symbol can never be a variable. `el.rs` names exactly this as its
-//! honest gap ("they require a predicate-as-data reformulation").
+//! Every reasoning fact is world-scoped. The world of a triple is the RDF 1.2
+//! quad's fourth position — its named graph. This module folds that axis at exactly
+//! two points, and the two are inverses:
 //!
-//! This module IS that reformulation: every quad is encoded as the **4-ary
-//! generic-triple relation** `triple(?s, ?p, ?o, ?w)` with the predicate carried
-//! as a *data* term in the second position, so the RL meta-rules can bind `?p`
-//! to a variable and quantify over it. The world `?w` threads through unchanged,
-//! so the closure is computed RDF-1.2-first (world-scoped, per-graph), never
-//! flattened to a world-less RDF-1.0 representation.
+//! * **encode** ([`lower_edb_for_rl`]): the input EDB is lowered into the dataset the
+//!   chase closes. A named IRI graph becomes its own world; a default or blank-node
+//!   graph folds to the [`DEFAULT_WORLD`] named graph, so an un-named graph still
+//!   closes in one world. Because everything is emitted into a NAMED graph, the
+//!   default graph the chase closes is empty, so each world closes against itself
+//!   alone and two worlds never mix — the same per-world independence the native
+//!   encoder gave with its explicit `?w` thread.
+//! * **decode** ([`rl_closure`]): each closure quad's graph slot is read back to the
+//!   world string — a named IRI graph to its IRI, anything else to [`DEFAULT_WORLD`].
 //!
-//! The chase machinery is the shared native forward evaluator
-//! — the same one [`crate::reason::el`]/[`crate::reason::dl`] and
-//! `gmeow_logic.materialize` drive. Only the encoding and the (fixed,
-//! ontology-independent) RL rule set differ; the 4-ary `triple` facts here are
-//! the live exercise of the typed bridge's n-ary capability.
+//! # `is_edb` and rule attribution
 //!
-//! # Rule families implemented
+//! purrdf's OWL 2 RL closure carries the asserted quads (the seed is copied into the
+//! result) alongside every derived one. A closure quad present in the lowered EDB is
+//! `is_edb` (asserted); the rest are derived. `is_edb` is decided eagerly and cheaply
+//! (set membership against the lowered EDB).
 //!
-//! Driven by the constructs the 8 conversion suites exercise (verified by the
-//! native RL conversion tests and their retained goldens) — a sound subset of
-//! OWL 2 RL/RDF:
-//!
-//! * **cax-sco** — class subsumption: `x a C1`, `C1 ⊑ C2` ⟹ `x a C2`.
-//! * **scm-sco** — subclass transitivity: `C1 ⊑ C2`, `C2 ⊑ C3` ⟹ `C1 ⊑ C3`.
-//! * **scm-eqc1/2 / cax-eqc1/2** — class equivalence ⟺ mutual subsumption.
-//! * **scm-spo** — sub-property transitivity.
-//! * **prp-spo1** — sub-property: `x P1 y`, `P1 ⊑ P2` ⟹ `x P2 y`.
-//! * **prp-eqp1/2** — property equivalence ⟺ mutual sub-property.
-//! * **prp-dom** — domain: `x P y`, `P rdfs:domain C` ⟹ `x a C`.
-//! * **prp-rng** — range: `x P y`, `P rdfs:range C` ⟹ `y a C`.
-//! * **prp-trp** — transitive property: `x P y`, `y P z` ⟹ `x P z`.
-//! * **prp-symp** — symmetric property: `x P y` ⟹ `y P x`.
-//! * **prp-inv1/2** — inverse properties: `x P1 y` ⟺ `y P2 x`.
-//! * **prp-spo2** — length-2 property chains
-//!   (`P owl:propertyChainAxiom ( P1 P2 )`): `x P1 y`, `y P2 z` ⟹ `x P z`.
-//! * **scm-dom1/dom2 / scm-rng1/rng2** — domain/range propagate up the class
-//!   hierarchy and down the sub-property hierarchy.
-//! * **cls-svf1** — `owl:someValuesFrom` restriction membership.
-//! * **cls-avf / cls-hv / cls-oneOf / cls-union** — the bundle's finite DL
-//!   class-expression surface that has positive entailment consequences:
-//!   universal restrictions, value restrictions, nominals, unions, and
-//!   disjoint-union member subsumption.
-//! * **cls-int1** — length-2 `owl:intersectionOf` membership; together with
-//!   cls-svf1 + scm-eqc1 this recognizes the `owl:equivalentClass` defined
-//!   classes (e.g. `PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place`).
-//! * **eq-sym / eq-trans / eq-rep-{s,p,o}** — `owl:sameAs` is an equivalence
-//!   relation and substitutes in every position.
-//!
-//! `prp-fp` (functional-property `sameAs` derivation) and the disjointness
-//! clash rules (`cax-dw`, `prp-irp`, …) are intentionally NOT materialised as
-//! *positive* entailments here: they either derive only `owl:sameAs` edges the
-//! suites never assert, or they detect inconsistency (the [`crate::reason::dl`]
-//! lane's job). The native conformance corpus confirms this subset on every
-//! fixture the suites use.
+//! The firing rule of a derived triple is attributed by re-explaining the conclusion
+//! over the retained lowered EDB ([`RlClosure::rule_name`] → [`rule_name_for_conclusion`]).
+//! This is computed ON DEMAND, not eagerly, because purrdf exposes no BULK per-triple
+//! provenance: [`purrdf::entail::materialize`]'s report gives only aggregate
+//! `rules_fired()` counts, and [`purrdf::entail::explain_conclusion`] re-runs the whole
+//! closure fixpoint for each conclusion. Attributing every derived triple eagerly is
+//! therefore `O(derived × closure)` — measured at ~27s for a two-module scoped closure
+//! whose materialization alone is ~0.1s — so a caller pays that cost only for the
+//! triples it actually asks about. OWL 2 RL has no existential heads, so every derived
+//! conclusion has a checkable derivation and the attribution never refuses.
 
-use std::collections::HashMap;
-
-use crate::facts::{SKOLEM_PREFIX, TypedFactSet, skolem_iri};
-use purrdf::{RdfDataset, RdfTerm, TermValue};
+use crate::facts::{SKOLEM_PREFIX, skolem_iri};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -80,34 +54,29 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
 }
 
-/// IRI scheme prefix for an interned-literal surrogate (see [`encode_generic_edb`]).
-const LIT_SURROGATE_PREFIX: &str = "urn:gmeow-rl-lit:";
+/// The `xsd:string` datatype IRI — the datatype a plain literal carries once purrdf
+/// has expanded it, and the one an N-Triples object form leaves implicit.
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
-/// The relation name of the 4-ary generic-triple encoding: every closure fact
-/// is `triple(subject, predicate-as-data, object, world)`.
-const TRIPLE_RELATION: &str = "triple";
-
-/// The relation name of the RDF-list membership helper `structured_rl_rules()` declares
-/// (`list_member(?l, ?x, ?w)`) — internal bookkeeping for the finite
-/// class-expression rules, never a closure fact.
-const LIST_MEMBER_RELATION: &str = "list_member";
-
-/// The sentinel world IRI a default-graph (un-named) triple is encoded under.
+/// The sentinel world IRI a default-graph (un-named) triple is closed under.
 ///
-/// The 8 conversion suites build an rdflib default graph (no named graph), so
-/// the closure runs in a single world. Derived triples carry this IRI, which the
-/// Python helper drops when folding the closure back into the default graph.
+/// A default or blank-node graph carries no world of its own, so its triples fold to
+/// this single named world; a named IRI graph keeps its own IRI. The value is the
+/// same one the retired native encoder used, so a downstream consumer folding the
+/// closure back into an un-named graph still recognizes it.
 pub const DEFAULT_WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/rl-default";
 
-// The fixed OWL 2 RL/RDF calculus is authored as typed rules in `rl_rules.rs`.
-
-/// One triple in the RL closure, decoded from a generic-triple chase row.
+/// One triple in the RL closure, decoded from a closure quad.
 ///
-/// `subject`/`predicate` are bare IRI strings; `object` is the N-Triples object
-/// form (`<iri>`, or a quoted literal `"v"` / `"v"@lang` / `"v"^^<dt>` resolved
-/// back from its surrogate); `world` is the named-graph IRI.
+/// `subject`/`predicate` are bare IRI strings (a blank-node subject is rendered as
+/// its skolem IRI); `object` is the N-Triples object form (`<iri>`, a skolem
+/// `<iri>` for a blank node, or a quoted literal `"v"` / `"v"@lang` / `"v"^^<dt>`);
+/// `world` is the named-graph IRI (or [`DEFAULT_WORLD`]).
 /// `is_edb` distinguishes asserted facts (`true`) from rule-derived ones.
-/// `rule_name` is the firing rule's `#[name(...)]` (`None` for EDB).
+///
+/// The firing rule of a derived triple is NOT stored here — it is attributed on
+/// demand by [`RlClosure::rule_name`]; see the module docs for why eager attribution
+/// is `O(derived × closure)` under purrdf's public API.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RlTriple {
     pub subject: String,
@@ -115,27 +84,42 @@ pub struct RlTriple {
     pub object: String,
     pub world: String,
     pub is_edb: bool,
-    pub rule_name: Option<String>,
 }
 
 /// The result of an OWL 2 RL closure run: every asserted + derived triple.
-#[derive(Debug, Clone, PartialEq, Eq)]
+///
+/// Also retains the lowered EDB and the materialized closure so [`Self::rule_name`]
+/// can attribute a derived triple's firing rule on demand. Those two carriers are
+/// reasoner state, not closure content, so [`PartialEq`]/[`Eq`] compare only
+/// [`Self::triples`]: two closures with equal triples are equal.
+#[derive(Debug, Clone)]
 pub struct RlClosure {
     pub triples: Vec<RlTriple>,
+    /// The lowered EDB the closure was reasoned from, for on-demand attribution.
+    /// `None` for a hand-constructed closure (e.g. a render fixture).
+    edb: Option<std::sync::Arc<RdfDataset>>,
+    /// The materialized closure, for recovering a derived triple's typed terms during
+    /// attribution. `None` for a hand-constructed closure.
+    closure: Option<std::sync::Arc<RdfDataset>>,
 }
+
+impl PartialEq for RlClosure {
+    fn eq(&self, other: &Self) -> bool {
+        self.triples == other.triples
+    }
+}
+
+impl Eq for RlClosure {}
 
 impl RlClosure {
     /// Render the full closure as a deterministic N-Triples document.
     ///
-    /// This is the native replacement for the per-row term rendering the Python
-    /// helper (`gmeow_tools.native_rl`) used to do — moved into Rust so the
-    /// reasoning path crosses the FFI boundary exactly once. A
-    /// skolemized blank-node IRI (`{SKOLEM_PREFIX}…`) is mapped back to an
+    /// A skolemized blank-node IRI (`{SKOLEM_PREFIX}…`) is mapped back to an
     /// N-Triples blank-node label so a source blank node round-trips as a blank
-    /// node; every other subject/predicate is a NamedNode and the object is
-    /// already in N-Triples object form (`<iri>` or a quoted literal). The world
-    /// axis is dropped (default-graph N-Triples); lines are de-duplicated and
-    /// sorted for a byte-stable result.
+    /// node; every other subject/predicate is a NamedNode and the object is already
+    /// in N-Triples object form (`<iri>` or a quoted literal). The world axis is
+    /// dropped (default-graph N-Triples); lines are de-duplicated and sorted for a
+    /// byte-stable result.
     #[must_use]
     pub fn to_ntriples(&self) -> String {
         let mut lines: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
@@ -152,6 +136,68 @@ impl RlClosure {
         }
         out
     }
+
+    /// The OWL 2 RL specification rule name credited with deriving `triple`, or `None`
+    /// for an asserted (EDB) triple.
+    ///
+    /// Computed ON DEMAND via purrdf's [`purrdf::entail::explain_conclusion`] over the
+    /// retained lowered EDB — see the module docs for why eager attribution is
+    /// impractical under purrdf's public API. Deterministic: the specification-table-first
+    /// rule the derivation cites (the single head rule is not exposed on purrdf's public
+    /// `ChaseProof` surface).
+    ///
+    /// # Errors
+    ///
+    /// A [`Reason`](crate::error::Reason) diagnostic if this closure carries no reasoner
+    /// input (a hand-constructed closure), if `triple` is not a member of it, or if purrdf
+    /// refuses to explain a derived triple (impossible for OWL 2 RL, which has no
+    /// existential heads).
+    pub fn rule_name(&self, triple: &RlTriple) -> gmeow_errors::Result<Option<String>> {
+        if triple.is_edb {
+            return Ok(None);
+        }
+        let (Some(edb), Some(closure)) = (self.edb.as_ref(), self.closure.as_ref()) else {
+            return Err(reason_err(format!(
+                "RL closure carries no reasoner input, so the firing rule of derived triple \
+                 {} {} {} cannot be attributed",
+                triple.subject, triple.predicate, triple.object
+            )));
+        };
+        // Recover the conclusion's typed terms from the materialized closure: a blank
+        // node's original identity is not recoverable from its rendered skolem string, so
+        // attribution re-explains over the typed terms the closure still holds.
+        for quad in closure.quads() {
+            let subj_value = closure.term_value(quad.s);
+            let pred_value = closure.term_value(quad.p);
+            let obj_value = closure.term_value(quad.o);
+            let (Some(subject), Some(predicate), Some(object)) = (
+                render_subject_value(&subj_value),
+                pred_value.as_iri().map(str::to_owned),
+                render_object_value(&obj_value),
+            ) else {
+                continue;
+            };
+            let graph_value = quad.g.map(|g| closure.term_value(g));
+            let world = world_string_of(graph_value.as_ref());
+            if subject == triple.subject
+                && predicate == triple.predicate
+                && object == triple.object
+                && world == triple.world
+            {
+                return rule_name_for_conclusion(
+                    edb.as_ref(),
+                    graph_value.as_ref(),
+                    &subj_value,
+                    &pred_value,
+                    &obj_value,
+                );
+            }
+        }
+        Err(reason_err(format!(
+            "derived triple {} {} {} (world {}) is not a member of this RL closure",
+            triple.subject, triple.predicate, triple.object, triple.world
+        )))
+    }
 }
 
 /// Render an engine subject/predicate IRI (bare) as an N-Triples term: a skolem
@@ -166,7 +212,7 @@ fn render_nt_resource(value: &str) -> String {
 
 /// Render an engine object term (already N-Triples display form) for re-parse. An
 /// IRI object that is a skolem IRI is rewritten to a blank-node label; literals
-/// (the engine emits valid N-Triples literals) pass through verbatim.
+/// (already valid N-Triples literals) pass through verbatim.
 fn render_nt_object(obj_nt: &str) -> String {
     if let Some(inner) = obj_nt.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
         if let Some(tail) = inner.strip_prefix(SKOLEM_PREFIX) {
@@ -194,223 +240,230 @@ fn skolem_label(tail: &str) -> String {
     label
 }
 
-/// Render a literal as its N-Triples object form (`"v"`, `"v"@lang`,
-/// `"v"^^<dt>`) — the form rdflib parses back losslessly.
-fn literal_nt(lit: &purrdf::RdfLiteral) -> String {
+/// Render a literal's parts as its N-Triples object form (`"v"`, `"v"@lang`,
+/// `"v"^^<dt>`) — the form a downstream N-Triples parser reads back losslessly.
+fn literal_nt(lexical_form: &str, datatype: &str, language: Option<&str>) -> String {
     // N-Triples requires escaping `\`, `"`, newline, CR, and tab in the value.
-    let escaped = lit
-        .lexical_form
+    let escaped = lexical_form
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('\n', "\\n")
         .replace('\r', "\\r")
         .replace('\t', "\\t");
-    if let Some(lang) = &lit.language {
+    if let Some(lang) = language {
         format!("\"{escaped}\"@{lang}")
-    } else if let Some(dt) = &lit.datatype {
-        if dt == "http://www.w3.org/2001/XMLSchema#string" {
-            format!("\"{escaped}\"")
-        } else {
-            format!("\"{escaped}\"^^<{dt}>")
-        }
-    } else {
+    } else if datatype == XSD_STRING {
         format!("\"{escaped}\"")
+    } else {
+        format!("\"{escaped}\"^^<{datatype}>")
     }
 }
 
-/// The interning state threaded through one [`rl_closure`] run.
-///
-/// OWL 2 RL rules never inspect a *literal value* (they match on IRIs in the
-/// property / class positions), so a literal object is mapped to an opaque
-/// surrogate IRI before the chase and mapped back afterwards. This is sound —
-/// the closure is identical to one over the literals themselves — and keeps the
-/// native rule core resource-only while round-tripping literal identity.
-#[derive(Default)]
-struct Interner {
-    /// `surrogate IRI` → original literal N-Triples object form.
-    by_surrogate: HashMap<String, String>,
-    /// Literal N-Triples object form → surrogate IRI (dedup so equal literals
-    /// intern to one surrogate).
-    by_nt: HashMap<String, String>,
-}
-
-impl Interner {
-    /// Intern a literal, returning its stable surrogate IRI.
-    fn intern_literal(&mut self, lit: &purrdf::RdfLiteral) -> String {
-        let nt = literal_nt(lit);
-        if let Some(s) = self.by_nt.get(&nt) {
-            return s.clone();
-        }
-        let surrogate = format!("{LIT_SURROGATE_PREFIX}{}", self.by_nt.len());
-        self.by_nt.insert(nt.clone(), surrogate.clone());
-        self.by_surrogate.insert(surrogate.clone(), nt);
-        surrogate
-    }
-
-    /// Resolve a decoded object IRI back to its N-Triples object form. A
-    /// surrogate IRI maps to the original literal; any other IRI is itself.
-    fn resolve_object(&self, iri: &str) -> String {
-        match self.by_surrogate.get(iri) {
-            Some(nt) => nt.clone(),
-            None => format!("<{iri}>"),
-        }
-    }
-}
-
-/// Coerce a subject/object IRI-or-bnode term to a typed resource term; a
-/// literal is interned to its surrogate IRI; a triple term is unsupported.
-fn resource_term(term: &RdfTerm, interner: &mut Interner) -> Option<TermValue> {
+/// Render a closure subject term to the bare-string form [`RlTriple::subject`] holds:
+/// an IRI verbatim, a blank node as its skolem IRI (so [`RlClosure::to_ntriples`]
+/// re-derives a blank-node label). A literal or triple-term subject has no
+/// standard-RDF form and drops the row — a literal can never be a triple subject and
+/// a triple term is unsupported in this lane, exactly the rows the native authority
+/// dropped.
+fn render_subject_value(term: &TermValue) -> Option<String> {
     match term {
-        RdfTerm::Iri(iri) => Some(TermValue::iri(iri)),
-        RdfTerm::BlankNode(id) => Some(TermValue::Iri(skolem_iri(id))),
-        RdfTerm::Literal(lit) => Some(TermValue::Iri(interner.intern_literal(lit))),
-        RdfTerm::Triple(_) => None,
+        TermValue::Iri(iri) => Some(iri.clone()),
+        TermValue::Blank { label, .. } => Some(skolem_iri(label)),
+        TermValue::Literal { .. } | TermValue::Triple { .. } => None,
     }
 }
 
-/// Encode an [`RdfDataset`] into a typed generic-triple `triple(?s,?p,?o,?w)`
-/// EDB — the live proof of the typed bridge's n-ary capability.
-///
-/// Every quad becomes a 4-ary `triple` fact with the predicate as DATA (so RL's
-/// property-quantifying rules can bind it): the predicate IRI travels in the
-/// second ARGUMENT position as an IRI term, while the relation NAME is the
-/// constant `triple`. IRIs/bnodes go through verbatim (bnodes skolemized);
-/// literal objects are interned to opaque surrogate IRIs via `interner` (RL
-/// rules never inspect a literal value — see [`Interner`]). The named graph is
-/// the world, interned as a plain string literal; a default-graph (or
-/// blank-node-graph) triple is encoded under [`DEFAULT_WORLD`] so an un-named
-/// rdflib graph still closes in a single world (RDF-1.2-first; the world axis
-/// is never flattened away). A triple-term subject/object is skipped —
-/// unsupported in this RL encoding and absent from the suites' RL fixtures.
-///
-/// # The canonical subsumption edge is materialized into its RDFS projection
-///
-/// A canonical `logic:subClassOf` / `logic:subPropertyOf` quad is encoded a second
-/// time under the `rdfs:` spelling the fixed RL rule set matches, via the shared
-/// [`super::edb_predicate_spellings`] — the SAME EDB-boundary lowering
-/// [`super::build_edb_facts`] applies to the EL/DL path. See that helper for why
-/// the lowering belongs at the EDB boundary rather than in the fixed rules.
-fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> TypedFactSet {
-    let mut facts = TypedFactSet::new();
-    for quad in store.owned_quads() {
-        let Some(subj) = resource_term(&quad.subject, interner) else {
-            continue;
-        };
-        let Some(obj) = resource_term(&quad.object, interner) else {
-            continue;
-        };
+/// Render a closure object term to the N-Triples object form [`RlTriple::object`]
+/// holds: `<iri>` for an IRI, `<skolem>` for a blank node (so
+/// [`RlClosure::to_ntriples`] re-derives a blank-node label), the quoted literal form
+/// for a literal. A triple-term object is unsupported and drops the row.
+fn render_object_value(term: &TermValue) -> Option<String> {
+    match term {
+        TermValue::Iri(iri) => Some(format!("<{iri}>")),
+        TermValue::Blank { label, .. } => Some(format!("<{}>", skolem_iri(label))),
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            ..
+        } => Some(literal_nt(lexical_form, datatype, language.as_deref())),
+        TermValue::Triple { .. } => None,
+    }
+}
 
+/// The world an RDF 1.2 quad's fourth-position graph slot denotes: a named IRI graph
+/// is its own world; a default or blank-node graph folds to [`DEFAULT_WORLD`], the
+/// single world an un-named graph closes in — the decode inverse of
+/// [`lower_edb_for_rl`]'s encode fold.
+fn world_string_of(graph: Option<&TermValue>) -> String {
+    match graph {
+        Some(TermValue::Iri(iri)) => iri.clone(),
+        _ => DEFAULT_WORLD.to_owned(),
+    }
+}
+
+/// Lower the input EDB into the [`RdfDataset`] the OWL 2 RL chase closes.
+///
+/// Two boundary transforms, both matching the retired native encoder:
+///
+/// * **canonical → W3C spelling.** Every quad is emitted under each spelling
+///   [`super::edb_predicate_spellings`] yields, so a canonical `logic:subClassOf` /
+///   `logic:subPropertyOf` (or restriction slot) also appears under the `rdfs:`/`owl:`
+///   spelling the fixed RL rules match. The authored canonical edge is kept too, so
+///   the projection ADDS the W3C view rather than replacing the authored one, and both
+///   are asserted.
+/// * **world ⇔ graph** (see the module docs): a named IRI graph is its own world; a
+///   default or blank-node graph folds to the [`DEFAULT_WORLD`] named graph.
+///
+/// A triple-term subject or object is skipped: it has no place in this lane's encoding
+/// and never appears in an RL fixture. `Ok(None)` means the lowered EDB is empty (no
+/// quad survived), for which the closure is empty and no chase is run.
+///
+/// # Errors
+///
+/// A [`Reason`](crate::error::Reason) diagnostic if the lowered dataset cannot be
+/// frozen.
+fn lower_edb_for_rl(edb: &RdfDataset) -> gmeow_errors::Result<Option<std::sync::Arc<RdfDataset>>> {
+    let mut builder = RdfDatasetBuilder::new();
+    let mut pushed = false;
+    for quad in edb.owned_quads() {
+        if matches!(quad.subject, RdfTerm::Triple(_)) || matches!(quad.object, RdfTerm::Triple(_)) {
+            continue;
+        }
         let world = match &quad.graph_name {
             Some(RdfTerm::Iri(iri)) => iri.clone(),
             _ => DEFAULT_WORLD.to_owned(),
         };
-
-        let s = facts.intern(&subj);
-        let o = facts.intern(&obj);
-        let w = facts.intern(&TermValue::simple_literal(&world));
         for predicate in super::edb_predicate_spellings(&quad.predicate) {
-            let p = facts.intern(&TermValue::iri(predicate));
-            facts.push_fact(TRIPLE_RELATION, vec![s, p, o, w]);
+            let lowered = RdfQuad::new(quad.subject.clone(), predicate, quad.object.clone())
+                .in_graph(RdfTerm::iri(world.clone()));
+            builder.push_owned_quad(&lowered);
+            pushed = true;
         }
     }
-    facts
-}
-
-/// The bare IRI string of a typed generic-triple argument.
-///
-/// Every subject/predicate/object position of the `triple/4` encoding carries
-/// an IRI term (literals were interned to surrogate IRIs before the chase), so
-/// any other shape is a hard error.
-fn rl_iri(term: &TermValue, position: &str) -> gmeow_errors::Result<String> {
-    match term {
-        TermValue::Iri(iri) => Ok(iri.clone()),
-        other => Err(reason_err(format!(
-            "RL closure row {position} must be an IRI term \
-             (literals are interned to surrogate IRIs), got {other:?}"
-        ))),
+    if !pushed {
+        return Ok(None);
     }
+    builder
+        .freeze()
+        .map(Some)
+        .map_err(|e| reason_err(format!("freeze lowered RL EDB: {e}")))
 }
 
-/// Compute the native OWL 2 RL/RDF deductive closure of `edb`.
+/// The OWL 2 RL specification rule name to credit a DERIVED closure triple to.
 ///
-/// Loads `edb` into the typed generic-triple encoding, runs the native structured
-/// generic evaluator once over `structured_rl_rules()`, and coerces every
-/// `triple/4` typed row back into an [`RlTriple`] (asserted + derived). The
-/// closure is world-scoped: derived triples carry the world IRI of the facts
-/// they were derived from.
+/// purrdf's [`purrdf::entail::explain_conclusion`] rebuilds the conclusion's
+/// derivation over the same lowered EDB, and [`ChaseProof::rules`] returns every rule
+/// that derivation cites, in specification-table order, deduplicated. The single head
+/// rule is not exposed on the public `ChaseProof` surface, so the deterministic
+/// representative used here is the specification-table-first cited rule. A conclusion
+/// citing no rule is asserted rather than derived and carries no name.
+///
+/// [`ChaseProof::rules`]: purrdf::entail::ChaseProof::rules
 ///
 /// # Errors
 ///
-/// Returns an error if the chase fails to validate, evaluate, or decode, or if a
-/// materialized row is not one of the two relations `structured_rl_rules()`
-/// declares (`triple/4`, `list_member/3`).
+/// A [`Reason`](crate::error::Reason) diagnostic if purrdf refuses to explain a triple
+/// the closure derived — for OWL 2 RL (no existential heads) that never happens, so a
+/// refusal is a real defect surfaced rather than a wrong or absent attribution.
+fn rule_name_for_conclusion(
+    lowered: &RdfDataset,
+    graph: Option<&TermValue>,
+    subject: &TermValue,
+    predicate: &TermValue,
+    object: &TermValue,
+) -> gmeow_errors::Result<Option<String>> {
+    let proof = purrdf::entail::explain_conclusion(
+        lowered,
+        purrdf::entail::Regime::OwlRl,
+        graph,
+        subject,
+        predicate,
+        object,
+    )
+    .map_err(|e| {
+        reason_err(format!(
+            "OWL 2 RL rule attribution refused for a derived triple \
+             ({subject:?} {predicate:?} {object:?}): {e}"
+        ))
+    })?;
+    Ok(proof.rules().first().map(|rule| rule.as_str().to_owned()))
+}
+
+/// Compute the OWL 2 RL/RDF deductive closure of `edb`.
+///
+/// Lowers `edb` into the chase dataset ([`lower_edb_for_rl`]), runs purrdf's OWL 2 RL
+/// materialization once, and decodes every closure quad back into an [`RlTriple`]
+/// (asserted + derived). The closure is world-scoped: a derived triple carries the
+/// world of the graph that produced it.
+///
+/// # Errors
+///
+/// Returns an error if purrdf's materialization refuses (an evaluation ceiling, an
+/// inconsistency witness, or a build failure) or if the rule attribution of a derived
+/// triple refuses.
 pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
-    let mut interner = Interner::default();
-    let edb_facts = encode_generic_edb(edb, &mut interner);
-    if edb_facts.is_empty() {
-        return Ok(RlClosure { triples: vec![] });
+    let Some(lowered) = lower_edb_for_rl(edb)? else {
+        return Ok(RlClosure {
+            triples: vec![],
+            edb: None,
+            closure: None,
+        });
+    };
+
+    let (closure, _report) =
+        purrdf::entail::materialize(lowered.as_ref(), purrdf::entail::Materialization::OwlRl)
+            .map_err(|e| reason_err(format!("OWL 2 RL materialization refused: {e}")))?;
+
+    // The asserted rows of the lowered EDB, keyed by the same rendered surfaces the
+    // closure decode produces, so a closure row present in the EDB reads `is_edb`.
+    let mut edb_rows: std::collections::HashSet<(String, String, String, String)> =
+        std::collections::HashSet::new();
+    for quad in lowered.quads() {
+        let (Some(subject), Some(predicate), Some(object)) = (
+            render_subject_value(&lowered.term_value(quad.s)),
+            lowered.term_value(quad.p).as_iri().map(str::to_owned),
+            render_object_value(&lowered.term_value(quad.o)),
+        ) else {
+            continue;
+        };
+        let world = world_string_of(quad.g.map(|g| lowered.term_value(g)).as_ref());
+        edb_rows.insert((subject, predicate, object, world));
     }
-    let rules = super::rl_rules::structured_rl_rules();
-    let chase = crate::physical::materialize_generic(&edb_facts, &rules)?;
 
     let mut triples: Vec<RlTriple> = Vec::new();
-    for (row, prov) in &chase.rows {
-        // The RL rule text is repo-owned and declares exactly TWO relations:
-        // the 4-ary generic-triple closure relation and the ternary RDF-list
-        // membership helper. The helper is internal bookkeeping — explicitly
-        // not a closure fact — and any OTHER row shape indicates a rule-text
-        // bug: hard-error, never skip silently (same doctrine as
-        // ordinary materialization; its non-quad bucket exists for caller-supplied
-        // structured programs, which these are not).
-        match (row.predicate.as_str(), row.args.len()) {
-            (TRIPLE_RELATION, 4) => {}
-            (LIST_MEMBER_RELATION, 3) => continue,
-            (pred, arity) => {
-                return Err(reason_err(format!(
-                    "RL chase produced an unexpected row {pred:?} (arity {arity}): \
-                     the fixed RL rule text declares only triple/4 and \
-                     list_member/3, so this is a rule-text bug"
-                )));
-            }
-        }
-        let subject = rl_iri(&row.args[0], "subject")?;
-        // A literal surrogate in the SUBJECT position is a derived literal-typing
-        // entailment (e.g. `prp-rng` typing an interned literal object) with no
-        // standard-RDF form — a literal can never be a triple subject. The native
-        // authority drops the non-standard D-entailment row (sound: no supported RL
-        // rule depends on a literal's type, and the suites never assert one).
-        if subject.starts_with(LIT_SURROGATE_PREFIX) {
+    for quad in closure.quads() {
+        let subj_value = closure.term_value(quad.s);
+        let pred_value = closure.term_value(quad.p);
+        let obj_value = closure.term_value(quad.o);
+        let (Some(subject), Some(predicate), Some(object)) = (
+            render_subject_value(&subj_value),
+            pred_value.as_iri().map(str::to_owned),
+            render_object_value(&obj_value),
+        ) else {
             continue;
-        }
-        let predicate = rl_iri(&row.args[1], "predicate")?;
-        // The object is always an IRI in the chase (literals were interned to
-        // surrogate IRIs); resolve a surrogate back to its original literal.
-        let object = interner.resolve_object(&rl_iri(&row.args[2], "object")?);
-        // The world is the 4th argument: a plain string literal.
-        let world = match &row.args[3] {
-            TermValue::Literal {
-                lexical_form,
-                datatype,
-                language: None,
-                ..
-            } if datatype == "http://www.w3.org/2001/XMLSchema#string" => lexical_form.clone(),
-            other => {
-                return Err(reason_err(format!(
-                    "RL closure row world must be a plain string literal, got {other:?}"
-                )));
-            }
         };
-
+        let graph_value = quad.g.map(|g| closure.term_value(g));
+        let world = world_string_of(graph_value.as_ref());
+        let is_edb = edb_rows.contains(&(
+            subject.clone(),
+            predicate.clone(),
+            object.clone(),
+            world.clone(),
+        ));
         triples.push(RlTriple {
             subject,
             predicate,
             object,
             world,
-            is_edb: prov.is_edb,
-            rule_name: prov.rule_name.clone(),
+            is_edb,
         });
     }
-    Ok(RlClosure { triples })
+    Ok(RlClosure {
+        triples,
+        edb: Some(lowered),
+        closure: Some(closure),
+    })
 }
 
 #[cfg(test)]
@@ -617,9 +670,9 @@ mod tests {
         );
     }
 
-    // ── rule-local coverage for the five RL clause families (feedback) ──
-    // Each test exercises exactly one clause family with the minimal axioms that
-    // make it fire, in the same shape as the cls-svf/cls-int test above.
+    // ── rule-local coverage for the RL class-expression clause families ──
+    // Each test exercises one clause family with the minimal axioms that make it
+    // fire, in the same shape as the cls-svf/cls-int test above.
 
     const ONPROP: &str = "http://www.w3.org/2002/07/owl#onProperty";
     const ALL_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#allValuesFrom";
@@ -673,13 +726,13 @@ mod tests {
             quad(l1, REST, NIL),
         ]);
         let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
-        assert!(has(&c, X, TYPE, C), "x a C via cls-oneOf");
-        assert!(has(&c, Y, TYPE, C), "y a C via cls-oneOf");
+        assert!(has(&c, X, TYPE, C), "x a C via cls-oo");
+        assert!(has(&c, Y, TYPE, C), "y a C via cls-oo");
     }
 
     #[test]
     fn cls_union_member_subclasses_each_member_to_the_union() {
-        // C unionOf ( A B ) ⇒ A ⊑ C, B ⊑ C.
+        // C unionOf ( A B ) ⇒ A ⊑ C, B ⊑ C (OWL 2 RL scm-uni).
         let l0 = "http://gmeow.example/l0";
         let l1 = "http://gmeow.example/l1";
         let store = dataset(vec![
@@ -690,13 +743,19 @@ mod tests {
             quad(l1, REST, NIL),
         ]);
         let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
-        assert!(has(&c, A, SUBCLASS, C), "A ⊑ C via cls-union-member");
-        assert!(has(&c, B, SUBCLASS, C), "B ⊑ C via cls-union-member");
+        assert!(has(&c, A, SUBCLASS, C), "A ⊑ C via scm-uni");
+        assert!(has(&c, B, SUBCLASS, C), "B ⊑ C via scm-uni");
     }
 
     #[test]
-    fn cls_disjoint_union_member_subclasses_each_member_to_the_union() {
-        // C disjointUnionOf ( A B ) ⇒ A ⊑ C, B ⊑ C.
+    fn disjoint_union_is_not_an_owl_2_rl_subclass_entailment() {
+        // C disjointUnionOf ( A B ) is a DL construct: `C ≡ A ⊔ B` with A, B pairwise
+        // disjoint. OWL 2 RL's scm/cls rule tables have NO clause over
+        // owl:disjointUnionOf (purrdf reads it only in the Direct-Semantics lane), so
+        // the member-subclass edge the retired native custom rule derived is NOT an RL
+        // entailment. This asserts that boundary — and that unionOf's scm-uni does not
+        // spuriously fire on disjointUnionOf — so a regression that re-added the custom
+        // rule, or mis-routed disjointUnionOf into scm-uni, would flip it.
         let l0 = "http://gmeow.example/l0";
         let l1 = "http://gmeow.example/l1";
         let store = dataset(vec![
@@ -708,20 +767,20 @@ mod tests {
         ]);
         let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(
-            has(&c, A, SUBCLASS, C),
-            "A ⊑ C via cls-disjointUnion-member"
+            !has(&c, A, SUBCLASS, C),
+            "A ⊑ C is not an OWL 2 RL entailment of owl:disjointUnionOf"
         );
         assert!(
-            has(&c, B, SUBCLASS, C),
-            "B ⊑ C via cls-disjointUnion-member"
+            !has(&c, B, SUBCLASS, C),
+            "B ⊑ C is not an OWL 2 RL entailment of owl:disjointUnionOf"
         );
     }
 
     #[test]
-    fn literal_objects_round_trip_through_interning() {
+    fn literal_objects_round_trip_through_the_closure() {
         // A hyphenated language tag (`@x-gmeow-english`), an escaped quote, and a
-        // typed integer all retain exact identity through interning. prp-spo1 must
-        // carry the literal object through the closure unchanged.
+        // typed integer all retain exact identity through the closure. prp-spo1 must
+        // carry the literal object through unchanged.
         let subprop = SUBPROP;
         let p1 = P1;
         let p2 = P2;
@@ -747,7 +806,7 @@ mod tests {
         let store = dataset(vec![quad(p1, subprop, p2), lit_quad, int_quad]);
         let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
 
-        // The interned language literal propagates up the sub-property hierarchy.
+        // The language literal propagates up the sub-property hierarchy unchanged.
         let derived = c
             .triples
             .iter()
@@ -774,25 +833,37 @@ mod tests {
             .expect("x a B must be derived");
         assert!(!derived.is_edb, "derived triple must not be is_edb");
         assert_eq!(derived.world, W, "derived triple carries its world");
+        let rule_name = c
+            .rule_name(derived)
+            .expect("attribution should succeed for a derived triple");
         assert_eq!(
-            derived.rule_name.as_deref(),
-            Some("rl:cax-sco"),
+            rule_name.as_deref(),
+            Some("cax-sco"),
             "derived triple cites the firing rule"
+        );
+        // An asserted (EDB) triple carries no firing rule.
+        let asserted = c
+            .triples
+            .iter()
+            .find(|t| t.is_edb)
+            .expect("the closure keeps the asserted triples");
+        assert_eq!(
+            c.rule_name(asserted).expect("attribution should succeed"),
+            None,
+            "an asserted triple has no firing rule"
         );
     }
 
     #[test]
     fn to_ntriples_renders_blank_literal_dedups_and_sorts() {
-        // The native render that replaced the Python `gmeow_tools.native_rl` row
-        // formatter: skolem IRI → blank-node label, literal pass-through,
-        // de-dup, and byte-stable sort.
+        // The render: skolem IRI → blank-node label, literal pass-through, de-dup, and
+        // byte-stable sort.
         let lit = |s: &str, p: &str, o: &str| RlTriple {
             subject: s.to_owned(),
             predicate: p.to_owned(),
             object: o.to_owned(),
             world: W.to_owned(),
             is_edb: false,
-            rule_name: None,
         };
         let closure = RlClosure {
             triples: vec![
@@ -803,6 +874,8 @@ mod tests {
                 // Exact duplicate of the first row — must collapse to one line.
                 lit(B, TYPE, &format!("<{C}>")),
             ],
+            edb: None,
+            closure: None,
         };
         let nt = closure.to_ntriples();
         let lines: Vec<&str> = nt.lines().collect();

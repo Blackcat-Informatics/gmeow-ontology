@@ -114,7 +114,7 @@ const LOGIC_MODULE_SOURCE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slic
 const ENACTMENT_GATE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/enactment-gate";
 
 /// The plan-cache contract-hash namespace for the compiled violation rules — distinct from
-/// [`crate::reason::native_contract_hash`]'s DL/EL/RL contract and from the math gate's, so
+/// [`crate::reason::native_contract_hash`]'s DL/EL contract and from the math gate's, so
 /// none of the three collide in the shared process-wide plan cache.
 const ENACTMENT_GATE_CONTRACT: &str =
     "https://blackcatinformatics.ca/gmeow/reason/enactment-gate/v1";
