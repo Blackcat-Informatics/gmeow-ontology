@@ -7,7 +7,7 @@
 
 gmeow:ActionPolicy
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "Action Policy"@x-gmeow-english ;
     skos:definition "The action theory governing an agent's whole tool surface: one action schema per advertised tool, each carrying the preconditions that must obtain before the tool may run, the effects that obtain after it does, and — for a write — the compensation that undoes it. It is what makes a tool surface REASONED-ABOUT rather than merely listed: a caller can decide whether an action is admissible without invoking it, and an executed turn can be audited against the theory it claimed to follow."@x-gmeow-english ;
@@ -59,7 +59,7 @@ gmeow:calledByInvocation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:derivedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "derived by"@x-gmeow-english ;
     rdfs:range gmeow:ToolCall ;
@@ -72,7 +72,7 @@ gmeow:derivedBy
     gmeow:useWhen "Use when an assertion an agent emits must remain traceable to the specific tool call that yielded it, so a later reader can audit the answer rather than trusting it."@x-gmeow-english .
 
 gmeow:sessionStoreSegment
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ToolCall ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "session store segment"@x-gmeow-english ;
@@ -193,7 +193,7 @@ gmeow:calledByInvocationFunctionality
     skos:example "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByInvocation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sessionStoreSegmentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "sessionStoreSegment is functional"@x-gmeow-english ;

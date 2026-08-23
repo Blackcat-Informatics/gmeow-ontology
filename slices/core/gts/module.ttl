@@ -2762,7 +2762,7 @@ gmeow:gdsCons a logic:Formula ;
 gmeow:gdsAtom a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS document segmented relational atom"@x-gmeow-english ;
-    skos:definition "The disjunction under gmeow:gdsCons's existential: the document and the quantified segment are linked, in WHICHEVER direction the link is asserted. gmeow:gtsSegment and gmeow:gtsSegmentOf are owl:inverseOf, so the two operands say the same thing about the reasoned graph; naming only one of them would make the constraint an assertion about authoring style rather than about content, and would red an example that models the pair from the segment side."@x-gmeow-english ;
+    skos:definition "The disjunction under gmeow:gdsCons's existential: the document and the quantified segment are linked, in WHICHEVER direction the link is asserted. gmeow:gtsSegment and gmeow:gtsSegmentOf are OWL inverseOf, so the two operands say the same thing about the reasoned graph; naming only one of them would make the constraint an assertion about authoring style rather than about content, and would red an example that models the pair from the segment side."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:or gmeow:gdsAtomForward , gmeow:gdsAtomInverse .
 
@@ -2916,7 +2916,7 @@ gmeow:cdiAtom a logic:Formula ;
 
 gmeow:BundleArtifactUnreadable
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Bundle Artifact Unreadable"@x-gmeow-english ;
@@ -2926,7 +2926,7 @@ gmeow:BundleArtifactUnreadable
 
 gmeow:BundleSourceUnparsable
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Bundle Source Unparsable"@x-gmeow-english ;
@@ -2936,7 +2936,7 @@ gmeow:BundleSourceUnparsable
 
 gmeow:FlatExportRefused
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:GtsConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Flat Export Refused"@x-gmeow-english ;
@@ -2946,7 +2946,7 @@ gmeow:FlatExportRefused
 
 gmeow:MediumUnpinnedStoreDictionary
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "Medium Unpinned Store Dictionary"@x-gmeow-english ;
     logic:subClassOf gmeow:GtsConformanceFailure ;

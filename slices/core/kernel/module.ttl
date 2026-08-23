@@ -75,7 +75,7 @@ gmeow:DisclosurePolicy
 
 gmeow:DistributionFamily
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Distribution Family"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -103,7 +103,7 @@ gmeow:DocumentationConcern
 
 gmeow:DocumentationDistribution
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Documentation Distribution"@x-gmeow-english ;
     logic:subClassOf gmeow:LossBearingProfile ;
@@ -131,7 +131,7 @@ gmeow:Entity
 
 gmeow:FormalConcept
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Formal Concept"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -173,7 +173,7 @@ gmeow:InformationObject
 
 gmeow:LossBearingProfile
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Loss Bearing Profile"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -266,7 +266,7 @@ gmeow:levelScale
 
 gmeow:ProjectionCapability
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Projection Capability"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -308,7 +308,7 @@ gmeow:SensitivityLevel
 
 gmeow:SiteSubAsset
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Site Sub Asset"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -541,7 +541,7 @@ gmeow:fceAtom a logic:Formula ;
 
 gmeow:KernelConformanceFailure
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Kernel Conformance Failure"@x-gmeow-english ;
     skos:definition "The parent of the kernel's well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each constraint points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces WELL-FORMEDNESS of the kernel's own published surfaces — the distribution catalog a consumer reads to learn which artifacts a release ships, and the derived formal-concept lattice over the surface/capability incidence — never the truth of the content those surfaces describe."@x-gmeow-english ;
@@ -554,7 +554,7 @@ gmeow:KernelConformanceFailure
 
 gmeow:UnreadableDistributionCatalog
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:KernelConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Unreadable Distribution Catalog"@x-gmeow-english ;
@@ -563,7 +563,7 @@ gmeow:UnreadableDistributionCatalog
 
 gmeow:UntypedFormalConcept
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:KernelConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "Untyped Formal Concept"@x-gmeow-english ;
@@ -571,7 +571,7 @@ gmeow:UntypedFormalConcept
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:conceptExtent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FormalConcept ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "concept extent"@x-gmeow-english ;
@@ -586,7 +586,7 @@ gmeow:conceptExtent
     gmeow:useWhen "Use to publish the object side of a derived formal concept — which surfaces share the capabilities the concept names."@x-gmeow-english .
 
 gmeow:conceptIntent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FormalConcept ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "concept intent"@x-gmeow-english ;
@@ -817,7 +817,7 @@ gmeow:determinacyVague
         gmeow:boxCBox .
 
 gmeow:distributionFamily
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "distribution family"@x-gmeow-english ;
     rdfs:range gmeow:DistributionFamily ;
@@ -963,7 +963,7 @@ gmeow:hasSensitivity
     gmeow:useWhen "Use to classify how sensitive a value, entity, or claim is, so the projection layer can decide whether to coarsen or withhold it for a given consumer."@x-gmeow-english .
 
 gmeow:hasSubAsset
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DocumentationDistribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "has sub-asset"@x-gmeow-english ;

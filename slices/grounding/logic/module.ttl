@@ -2235,7 +2235,7 @@ logic:actionResource
 # projections lower these back to rdfs:domain / rdfs:range.
 
 logic:mcpToolName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     logic:domain logic:ActionSchema ;
     logic:range xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -19092,11 +19092,11 @@ logic:GoalEvaluation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:evaluatesGoal ; logic:allValuesFrom gmeow:Goal ] .
 
 logic:mcpToolNameKey
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:KeyAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "an action schema is keyed by its MCP tool name"@x-gmeow-english ;
-    skos:definition "Asserts that a logic:ActionSchema is identified by its logic:mcpToolName: the wire name is the join a client's `tools/call` resolves through, so two schemas sharing it would leave the dispatcher without an answer to which precondition, effect and compensation govern the call. The name therefore uniquely identifies its schema, and the native DL consistency gate forces two schemas asserted distinct yet sharing a name into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property logic:mcpToolName would be OWL 2 Full."@x-gmeow-english ;
+    skos:definition "Asserts that a logic:ActionSchema is identified by its logic:mcpToolName: the wire name is the join a client's `tools/call` resolves through, so two schemas sharing it would leave the dispatcher without an answer to which precondition, effect and compensation govern the call. The name therefore uniquely identifies its schema, and the native DL consistency gate forces two schemas asserted distinct yet sharing a name into OWL Nothing. Stated as a key (the logic: analogue of OWL hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property logic:mcpToolName would be OWL 2 Full."@x-gmeow-english ;
     logic:keyClass logic:ActionSchema ;
     logic:keyProperty logic:mcpToolName ;
     logic:formalizes logic:mcpToolName ;
@@ -19337,7 +19337,7 @@ logic:LogicConformanceFailure
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:DuplicateToolRegistration
-    a owl:Class ;
+    a logic:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Duplicate Tool Registration"@x-gmeow-english ;
@@ -19346,7 +19346,7 @@ logic:DuplicateToolRegistration
 
 logic:UnadvertisedToolInvocation
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unadvertised Tool Invocation"@x-gmeow-english ;
@@ -19355,7 +19355,7 @@ logic:UnadvertisedToolInvocation
 
 logic:UnadvertisedResourceRead
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unadvertised Resource Read"@x-gmeow-english ;
@@ -19364,7 +19364,7 @@ logic:UnadvertisedResourceRead
 
 logic:UnloadedEngineSegment
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Unloaded Engine Segment"@x-gmeow-english ;
@@ -19373,7 +19373,7 @@ logic:UnloadedEngineSegment
 
 logic:BrokenToolRegistration
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Broken Tool Registration"@x-gmeow-english ;
@@ -19382,7 +19382,7 @@ logic:BrokenToolRegistration
 
 logic:DevToolSurfaceFailure
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Dev Tool Surface Failure"@x-gmeow-english ;
