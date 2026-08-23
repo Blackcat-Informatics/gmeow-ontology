@@ -428,8 +428,15 @@ use session_common::*;
 /// `native_contract_hash()` `include_str!`s `reason/mod.rs`, so adding the accessor moves the
 /// descriptor by byte content alone; the `CALCULUS_VOCABULARY` data, every calculus lowering, and
 /// all reasoning verdicts are unchanged.
+/// Re-blessed once more when `CALCULUS_VOCABULARY` gained the two property domain/range anchors
+/// (`logic:domain`→`rdfs:domain`, `logic:range`→`rdfs:range`), so a slice-authored canonical
+/// `logic:domain`/`logic:range` reasoning axiom lowers onto the fixed `rdfs:` spelling the DL/RL
+/// domain-range rules match — previously it passed through unnormalized and went dark. The table
+/// grows 49→51 rows and `native_contract_hash()` `include_str!`s `reason/mod.rs`, so the descriptor
+/// moves; every currently-`rdfs:`-authored domain/range input is untouched (`calculus_term` is
+/// identity on an `rdfs:` IRI), so the shipped corpus's reasoning verdicts are unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "489f3aaccaf1556ea70e6c3b6ffbb05d5b4504388f6ea78a8f987250585e0a0d";
+    "3151c0c72828ebde43c070e493b3bd87dd8cb24846f2b9bb5bea90047553e71f";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -636,8 +643,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// engine-descriptor golden above): the native contract hash is one of the seven folded identity
 /// axes and it `include_str!`s `reason/mod.rs`, so this fixed-input session identity moves with the
 /// added accessor even though the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the two property domain/range calculus anchors (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded identity
+/// axes and it `include_str!`s `reason/mod.rs`, so this fixed-input session identity moves with the
+/// 49→51-row table even though the fixed edge-only input carries no domain/range axiom and its
+/// reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "c3e3208cb9bde8c0a7f0984133890c95a74a232ae6e54079048e4a8692a29b21";
+    "a014db827eebe3e2e2b4350816837ee508833801def333eb5c6d1fac7de630d1";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

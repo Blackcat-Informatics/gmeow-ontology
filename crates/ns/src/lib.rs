@@ -131,6 +131,22 @@ pub const SUB_CLASS_OF: [&str; 2] = [LOGIC_SUB_CLASS_OF, RDFS_SUB_CLASS_OF];
 /// Both spellings of the PROPERTY-subsumption edge, canonical first.
 pub const SUB_PROPERTY_OF: [&str; 2] = [LOGIC_SUB_PROPERTY_OF, RDFS_SUB_PROPERTY_OF];
 
+// ── Property domain/range edges ─────────────────────────────────────────────
+
+/// `logic:domain` — **the** canonical property-domain edge (declared in the
+/// `logic:` slice; the reasoner lowers it to [`RDFS_DOMAIN`], exactly as
+/// [`LOGIC_SUB_CLASS_OF`] lowers to [`RDFS_SUB_CLASS_OF`]).
+pub const LOGIC_DOMAIN: &str = "https://blackcatinformatics.ca/logic/domain";
+
+/// `logic:range` — **the** canonical property-range edge.
+pub const LOGIC_RANGE: &str = "https://blackcatinformatics.ca/logic/range";
+
+/// `rdfs:domain` — the RDFS projection of [`LOGIC_DOMAIN`].
+pub const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+
+/// `rdfs:range` — the RDFS projection of [`LOGIC_RANGE`].
+pub const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+
 // ── Canonical construct typing markers ──────────────────────────────────────
 //
 // The rdf:type objects a reader recognizes a term's kind by. Each pairs the

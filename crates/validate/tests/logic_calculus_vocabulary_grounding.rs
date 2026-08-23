@@ -100,11 +100,11 @@ fn calculus_vocabulary_is_backed_by_shipped_grounding_laws() {
     );
 
     let expected = expected_calculus_pairs();
-    // Non-vacuity: the mirrored table must be the full 49-row calculus vocabulary.
+    // Non-vacuity: the mirrored table must be the full 51-row calculus vocabulary.
     assert_eq!(
         expected.len(),
-        49,
-        "expected calculus vocabulary must have 49 rows, matching CALCULUS_VOCABULARY"
+        51,
+        "expected calculus vocabulary must have 51 rows, matching CALCULUS_VOCABULARY"
     );
 
     let missing: Vec<&(String, String)> = expected.difference(&shipped).collect();

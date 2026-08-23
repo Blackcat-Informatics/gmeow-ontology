@@ -1705,7 +1705,7 @@ pub(crate) fn run_reasoning_rules_budgeted(
 ///   hardcoded `owl:` constant and the axiom goes dark exactly as a bare `logic:Restriction`
 ///   would. Every entry here is a slice-authorable construct the reasoner already reads —
 ///   see the matching arms in `dl.rs` and `refute/counting.rs`.
-static CALCULUS_VOCABULARY: [(&str, &str); 49] = {
+static CALCULUS_VOCABULARY: [(&str, &str); 51] = {
     macro_rules! owl {
         ($local:literal) => {
             (
@@ -1735,6 +1735,11 @@ static CALCULUS_VOCABULARY: [(&str, &str); 49] = {
             gmeow_ns::LOGIC_SUB_PROPERTY_OF,
             gmeow_ns::RDFS_SUB_PROPERTY_OF,
         ),
+        // Property domain/range — canonical `logic:` lowered to the fixed `rdfs:` calculus
+        // spelling the DL/RL domain-range rules match (a slice authors `?P logic:domain C`
+        // / `?P logic:range C`, e.g. the `logic:` grounding slice's own reasoning axioms).
+        (gmeow_ns::LOGIC_DOMAIN, gmeow_ns::RDFS_DOMAIN),
+        (gmeow_ns::LOGIC_RANGE, gmeow_ns::RDFS_RANGE),
         owl!("equivalentClass"),
         // Class-expression body.
         owl!("Restriction"),
@@ -1793,7 +1798,7 @@ static CALCULUS_VOCABULARY: [(&str, &str); 49] = {
 /// W3C OWL/RDFS IRI)` pair the EDB boundary normalizes (Principle 17). Exposed so the
 /// grounding-law cross-check (`crates/validate`) can pin the shipped
 /// `logic:GroundingCorrespondence` corpus against THIS table directly, rather than a
-/// hand-retyped 49-row mirror that can silently drift from it.
+/// hand-retyped 51-row mirror that can silently drift from it.
 pub fn calculus_vocabulary() -> &'static [(&'static str, &'static str)] {
     &CALCULUS_VOCABULARY
 }

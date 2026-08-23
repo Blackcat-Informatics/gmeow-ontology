@@ -20701,6 +20701,32 @@ logic:corrSubPropertyOfGrounding
     gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
     skos:definition "Grounding correspondence: the canonical logic:subPropertyOf edge is projected to the W3C RDFS subPropertyOf edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation; the relation-subsumption edge is preserved exactly and invertibly."@x-gmeow-english .
 
+logic:corrDomainGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:domain to W3C RDFS domain grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:domain ;
+    logic:targetEndpoint <http://www.w3.org/2000/01/rdf-schema#domain> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:domain edge is projected to the W3C RDFS domain edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. The property-domain axiom is preserved exactly and invertibly; the reasoner lowers logic:domain onto rdfs:domain at the EDB boundary so the fixed DL/RL domain rules fire."@x-gmeow-english .
+
+logic:corrRangeGrounding
+    a logic:GroundingCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "logic:range to W3C RDFS range grounding"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:sourceEndpoint logic:range ;
+    logic:targetEndpoint <http://www.w3.org/2000/01/rdf-schema#range> ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:preservationKind logic:ExactPreservation ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    skos:definition "Grounding correspondence: the canonical logic:range edge is projected to the W3C RDFS range edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. The property-range axiom is preserved exactly and invertibly; the reasoner lowers logic:range onto rdfs:range at the EDB boundary so the fixed DL/RL range rules fire."@x-gmeow-english .
+
 logic:corrEquivalentClassGrounding
     a logic:GroundingCorrespondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

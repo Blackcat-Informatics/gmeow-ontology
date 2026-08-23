@@ -23,7 +23,9 @@ use std::collections::BTreeSet;
 ///   * the class-subsumption anchor that attaches the body;
 ///   * a property-characteristic TYPE marker in object position (`a *:TransitiveProperty`), the
 ///     RL-path normalization;
-///   * a class-axiom predicate (`disjointWith`).
+///   * a class-axiom predicate (`disjointWith`);
+///   * the property domain/range anchors (`*:domain`/`*:range`), whose RL `prp-dom`/`prp-rng`
+///     rules must fire on the canonical `logic:` spelling once it lowers to `rdfs:`.
 const PREFIXES_OWL: &str = "\
 @prefix ex: <http://ex/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -39,6 +41,9 @@ ex:a ex:p ex:b .
 ex:b ex:p ex:c .
 ex:E owl:disjointWith ex:F .
 ex:D rdfs:subClassOf [ rdf:type owl:Restriction ; owl:onProperty ex:q ; owl:hasValue ex:v ] .
+ex:r rdfs:domain ex:G .
+ex:r rdfs:range ex:H .
+ex:m ex:r ex:n .
 ";
 
 const PREFIXES_LOGIC: &str = "\
@@ -55,6 +60,9 @@ ex:a ex:p ex:b .
 ex:b ex:p ex:c .
 ex:E logic:disjointWith ex:F .
 ex:D logic:subClassOf [ rdf:type logic:Restriction ; logic:onProperty ex:q ; logic:hasValue ex:v ] .
+ex:r logic:domain ex:G .
+ex:r logic:range ex:H .
+ex:m ex:r ex:n .
 ";
 
 fn term_key(t: &RdfTerm) -> String {
@@ -125,6 +133,19 @@ fn logic_authored_body_is_not_dark() {
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned(),
         "http://ex/D".to_owned(),
     );
+    //   * RL `prp-dom`: `ex:m ex:r ex:n`, `ex:r logic:domain ex:G` ⟹ `ex:m a ex:G` (needs
+    //     `logic:domain` to lower onto `rdfs:domain`):
+    let domain_entail = (
+        "http://ex/m".to_owned(),
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned(),
+        "http://ex/G".to_owned(),
+    );
+    //   * RL `prp-rng`: `ex:m ex:r ex:n`, `ex:r logic:range ex:H` ⟹ `ex:n a ex:H`:
+    let range_entail = (
+        "http://ex/n".to_owned(),
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_owned(),
+        "http://ex/H".to_owned(),
+    );
 
     assert!(
         logic.contains(&transitive),
@@ -137,5 +158,13 @@ fn logic_authored_body_is_not_dark() {
     assert!(
         logic.contains(&type_prop),
         "type propagation through logic:subClassOf missing; got {logic:?}"
+    );
+    assert!(
+        logic.contains(&domain_entail),
+        "prp-dom did not fire — logic:domain went dark (no lowering to rdfs:domain); got {logic:?}"
+    );
+    assert!(
+        logic.contains(&range_entail),
+        "prp-rng did not fire — logic:range went dark (no lowering to rdfs:range); got {logic:?}"
     );
 }
