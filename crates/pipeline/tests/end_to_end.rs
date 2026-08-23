@@ -356,7 +356,7 @@ fn executor_runs_the_spine_end_to_end() {
     );
     let has_answer_atom = gd_quads.iter().any(|q| {
         matches!(&q.object, purrdf::RdfTerm::Literal(l)
-            if l.lexical_form == "add(s(s(zero)),s(zero),s(s(s(zero))))")
+            if l.lexical_form == "add(s(s(zero)), s(zero), s(s(s(zero))))")
     });
     assert!(
         has_answer_atom,
@@ -376,7 +376,7 @@ fn executor_runs_the_spine_end_to_end() {
     // (a) a structured cons-list membership answer;
     let has_structured_answer = gd_quads.iter().any(|q| {
         matches!(&q.object, purrdf::RdfTerm::Literal(l)
-            if l.lexical_form == "member(a,cons(a,cons(b,cons(c,nil))))")
+            if l.lexical_form == "member(a, cons(a, cons(b, cons(c, nil))))")
     });
     assert!(
         has_structured_answer,

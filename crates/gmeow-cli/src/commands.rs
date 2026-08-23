@@ -2410,12 +2410,21 @@ pub fn entails(reporter: &dyn Reporter, premise: &Path, conclusion: &Path) -> i3
 /// completeness, measured cost, and every construct boundary — none of it flattened
 /// away. A malformed / unparsable input is a hard fail (exit 1); an `unknown`
 /// verdict is a successful, honestly-reported answer (exit 0).
-pub fn consistency(reporter: &dyn Reporter, ontology: &Path) -> i32 {
+pub fn consistency(reporter: &dyn Reporter, ontology: &Path, step_cap: Option<u64>) -> i32 {
     let dataset = match parse_rdf_file(reporter, "gmeow-cli.consistency", ontology) {
         Ok(ds) => ds,
         Err(code) => return code,
     };
-    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()) {
+    // A `--step-cap` narrows the per-decision tableau budget (clamped down only), so the honest
+    // budget-exhausted `unknown` verdict is deterministically reachable; without it the reasoner
+    // runs under its full size-derived ceiling.
+    let opened = match step_cap {
+        Some(cap) => {
+            gmeow_logic::reasoner_services::DlReasoner::with_step_cap(dataset.as_ref(), cap)
+        }
+        None => gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()),
+    };
+    let reasoner = match opened {
         Ok(r) => r,
         Err(e) => {
             return fail(
@@ -2458,6 +2467,187 @@ pub fn profile(reporter: &dyn Reporter, ontology: &Path) -> i32 {
     }
     for violation in certificate.violations() {
         println!("violation {violation}");
+    }
+    0
+}
+
+/// Render a reasoner-side [`TermValue`] to its IRI text for the greppable
+/// classify / realize / module surfaces. The DL classification, realization and
+/// module signatures range over NAMED classes and individuals, so every term IS an
+/// IRI; a non-IRI term — which the reasoner never places here — falls back to its
+/// debug form rather than being silently dropped.
+fn render_term(term: &TermValue) -> String {
+    term.as_iri()
+        .map_or_else(|| format!("{term:?}"), str::to_owned)
+}
+
+/// `gmeow classify` — print the subsumption hierarchy over an ontology's named
+/// classes, natively over the purrdf DL reasoner
+/// ([`gmeow_logic::reasoner_services::DlReasoner::classify`]). Emits the transitively
+/// closed subsumptions (`subsumption C D`), the transitive reduction (`direct C D`),
+/// the equivalences (`equivalence C D`), the classes forced empty (`unsatisfiable C`),
+/// and the run's completeness + measured cost. An ontology with no model has no
+/// meaningful hierarchy, so classification hard-fails (exit 1) rather than emitting an
+/// empty answer; a malformed / unparsable input is a hard fail too.
+pub fn classify(reporter: &dyn Reporter, ontology: &Path) -> i32 {
+    let dataset = match parse_rdf_file(reporter, "gmeow-cli.classify", ontology) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.classify.reason",
+                format!(
+                    "cannot open the DL reasoner over {}: {e}",
+                    ontology.display()
+                ),
+            );
+        }
+    };
+    let certified = match reasoner.classify() {
+        Ok(c) => c,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.classify.no-model",
+                format!("cannot classify {}: {e}", ontology.display()),
+            );
+        }
+    };
+    let hierarchy = &certified.answer;
+    for (sub, sup) in hierarchy.subsumptions() {
+        println!("subsumption {} {}", render_term(sub), render_term(sup));
+    }
+    for (sub, sup) in hierarchy.direct_subsumptions() {
+        println!("direct {} {}", render_term(sub), render_term(sup));
+    }
+    for (left, right) in hierarchy.equivalences() {
+        println!("equivalence {} {}", render_term(left), render_term(right));
+    }
+    for class in hierarchy.unsatisfiable() {
+        println!("unsatisfiable {}", render_term(class));
+    }
+    println!("completeness {}", certified.completeness);
+    println!("decisions {}", certified.decisions);
+    println!("steps {}", certified.steps);
+    println!("budget {}", certified.budget);
+    for boundary in &certified.boundaries {
+        println!("boundary {boundary}");
+    }
+    0
+}
+
+/// `gmeow realize` — print the entailed types of an ontology's named individuals,
+/// natively over the purrdf DL reasoner
+/// ([`gmeow_logic::reasoner_services::DlReasoner::realize`]). Emits every established
+/// type (`type a C`), the most-specific ones (`direct-type a C`), and the run's
+/// completeness + measured cost. An ontology with no model has no meaningful
+/// realization, so it hard-fails (exit 1) rather than emitting an empty answer; a
+/// malformed / unparsable input is a hard fail too.
+pub fn realize(reporter: &dyn Reporter, ontology: &Path) -> i32 {
+    let dataset = match parse_rdf_file(reporter, "gmeow-cli.realize", ontology) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let reasoner = match gmeow_logic::reasoner_services::DlReasoner::new(dataset.as_ref()) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.realize.reason",
+                format!(
+                    "cannot open the DL reasoner over {}: {e}",
+                    ontology.display()
+                ),
+            );
+        }
+    };
+    let certified = match reasoner.realize() {
+        Ok(c) => c,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.realize.no-model",
+                format!("cannot realize {}: {e}", ontology.display()),
+            );
+        }
+    };
+    let realization = &certified.answer;
+    for (individual, class) in realization.types() {
+        println!("type {} {}", render_term(individual), render_term(class));
+    }
+    for (individual, class) in realization.direct_types() {
+        println!(
+            "direct-type {} {}",
+            render_term(individual),
+            render_term(class)
+        );
+    }
+    println!("completeness {}", certified.completeness);
+    println!("decisions {}", certified.decisions);
+    println!("steps {}", certified.steps);
+    println!("budget {}", certified.budget);
+    for boundary in &certified.boundaries {
+        println!("boundary {boundary}");
+    }
+    0
+}
+
+/// `gmeow module` — extract the syntactic-locality module of an ontology for a seed
+/// signature, natively over the purrdf module extractor
+/// ([`gmeow_logic::reasoner_services::extract_module`]). Emits the notion used
+/// (`method BOT|TOP|STAR`), the kept-axiom count (`axioms N`), the module's triple
+/// count (`triples N`), the signature the fixpoint closed to (`signature IRI`), and
+/// every triple kept conservatively rather than by exact locality
+/// (`conservative-keep S P`). An unknown `--method` or a malformed / unparsable input
+/// is a hard fail (never a silent fallback to a default notion).
+pub fn module(reporter: &dyn Reporter, ontology: &Path, seed: &[String], method: &str) -> i32 {
+    let dataset = match parse_rdf_file(reporter, "gmeow-cli.module", ontology) {
+        Ok(ds) => ds,
+        Err(code) => return code,
+    };
+    let method = match method {
+        "bot" | "BOT" => purrdf::entail::ModuleMethod::Bot,
+        "top" | "TOP" => purrdf::entail::ModuleMethod::Top,
+        "star" | "STAR" => purrdf::entail::ModuleMethod::Star,
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.module.method",
+                format!("unknown module method `{other}` (expected `bot`, `top`, or `star`)"),
+            );
+        }
+    };
+    let signature: Vec<TermValue> = seed.iter().map(TermValue::iri).collect();
+    let extraction = match gmeow_logic::reasoner_services::extract_module(
+        dataset.as_ref(),
+        &signature,
+        method,
+    ) {
+        Ok(m) => m,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.module.failed",
+                format!("module extraction failed for {}: {e}", ontology.display()),
+            );
+        }
+    };
+    println!("method {}", extraction.method());
+    println!("axioms {}", extraction.axioms());
+    println!("triples {}", extraction.module().quad_count());
+    for term in extraction.signature() {
+        println!("signature {}", render_term(term));
+    }
+    for keep in extraction.conservative_keeps() {
+        println!(
+            "conservative-keep {} {}",
+            render_term(keep.subject()),
+            render_term(keep.predicate())
+        );
     }
     0
 }

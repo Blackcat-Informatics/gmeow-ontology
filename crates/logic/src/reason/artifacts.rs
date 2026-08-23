@@ -54,6 +54,10 @@ pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#ty
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 /// `rdfs:comment`.
 pub(crate) const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+/// `xsd:boolean` — the datatype of the ledger's `gmeow:consistent` object.
+const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+/// `xsd:integer` — the datatype of the numeric count objects (entailment/gap/budget).
+const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
 /// `gmeow:` term IRI helper.
 pub(crate) fn gmeow(local: &str) -> String {
@@ -223,8 +227,8 @@ pub fn build_inferred_closure_ttl(
     out.push_str("\n# --- derived (inferred) closure ---\n");
     for axiom in derived_sorted(result) {
         let triple = axiom_triple(axiom);
-        let rule = format!("<{}>", derived_rule_iri(axiom)?);
-        let world = format!("<{}>", bare_iri(&axiom.world));
+        let rule = RdfTerm::iri(derived_rule_iri(axiom)?);
+        let world = RdfTerm::iri(bare_iri(&axiom.world).to_owned());
         out.push_str(&emit_quad(&RdfQuad::new(
             triple.subject.clone(),
             triple.predicate.clone(),
@@ -236,7 +240,7 @@ pub fn build_inferred_closure_ttl(
             &[
                 (PROV_WAS_DERIVED_BY.to_owned(), rule.clone()),
                 (gmeow("viaRule"), rule),
-                (gmeow("inferenceKind"), format!("<{}>", gmeow("Deduction"))),
+                (gmeow("inferenceKind"), RdfTerm::iri(gmeow("Deduction"))),
                 (gmeow("inWorld"), world),
             ],
         ));
@@ -254,10 +258,7 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)]) -> String {
     if alpha_edges.is_empty() {
         return String::new();
     }
-    let rule = format!(
-        "<{}>",
-        rule_iri(RULE_IRI_BASE, MATH_EXPRESSION_IDENTITY_RULE)
-    );
+    let rule = RdfTerm::iri(rule_iri(RULE_IRI_BASE, MATH_EXPRESSION_IDENTITY_RULE));
     let mut out = String::from("\n# --- derived math: expression alpha-equivalence identity ---\n");
     let mut typed: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
     for (expression, alpha_class) in alpha_edges {
@@ -277,7 +278,7 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)]) -> String {
             &[
                 (PROV_WAS_DERIVED_BY.to_owned(), rule.clone()),
                 (gmeow("viaRule"), rule.clone()),
-                (gmeow("inferenceKind"), format!("<{}>", gmeow("Deduction"))),
+                (gmeow("inferenceKind"), RdfTerm::iri(gmeow("Deduction"))),
             ],
         ));
         typed.insert(alpha_class.as_str());
@@ -418,22 +419,20 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
     out.push_str(&emit_resource(
         &gmeow("dl-el-crosscheck"),
         &[
-            (
-                RDF_TYPE.to_owned(),
-                format!("<{}>", gmeow("CrosscheckLedger")),
-            ),
+            (RDF_TYPE.to_owned(), RdfTerm::iri(gmeow("CrosscheckLedger"))),
             (
                 gmeow("consistent"),
-                if result.is_consistent() {
-                    "true".to_owned()
-                } else {
-                    "false".to_owned()
-                },
+                RdfTerm::literal(RdfLiteral::typed(
+                    if result.is_consistent() { "true" } else { "false" },
+                    XSD_BOOLEAN,
+                )),
             ),
             (
                 gmeow("coverageNote"),
-                "\"native DL⊇EL gap-zero coverage (native results only, no external oracle); a DlGap is a native coverage defect and fails\"@en"
-                    .to_owned(),
+                RdfTerm::literal(RdfLiteral::language_tagged(
+                    "native DL⊇EL gap-zero coverage (native results only, no external oracle); a DlGap is a native coverage defect and fails",
+                    "en",
+                )),
             ),
         ],
     ));
@@ -446,21 +445,24 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
 
     out.push_str("\n# --- native-only subsumption entailments ---\n");
     for (index, axiom) in subsumptions.iter().enumerate() {
-        let subsumes = emit_term(&RdfTerm::triple(RdfTriple::new(
+        let subsumes = RdfTerm::triple(RdfTriple::new(
             iri_term(&axiom.subject),
             RDFS_SUBCLASS_OF,
             iri_term(&axiom.object),
-        )));
+        ));
         out.push_str(&emit_resource(
             &gmeow(&format!("ledger-entry-{index}")),
             &[
-                (RDF_TYPE.to_owned(), format!("<{}>", gmeow("LedgerEntry"))),
-                (gmeow("entryKind"), format!("<{}>", gmeow("NativeOnly"))),
+                (RDF_TYPE.to_owned(), RdfTerm::iri(gmeow("LedgerEntry"))),
+                (gmeow("entryKind"), RdfTerm::iri(gmeow("NativeOnly"))),
                 (gmeow("subsumes"), subsumes),
-                (gmeow("inWorld"), format!("<{}>", bare_iri(&axiom.world))),
+                (
+                    gmeow("inWorld"),
+                    RdfTerm::iri(bare_iri(&axiom.world).to_owned()),
+                ),
                 (
                     RDFS_COMMENT.to_owned(),
-                    format!("\"{}\"@en", escape_literal(CROSSCHECK_NOTE)),
+                    RdfTerm::literal(RdfLiteral::language_tagged(CROSSCHECK_NOTE, "en")),
                 ),
             ],
         ));
@@ -472,14 +474,14 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
         out.push_str(&emit_resource(
             &gmeow(&format!("dl-gap-{index}")),
             &[
-                (RDF_TYPE.to_owned(), format!("<{}>", gmeow("DlGap"))),
+                (RDF_TYPE.to_owned(), RdfTerm::iri(gmeow("DlGap"))),
                 (
                     gmeow("gapCode"),
-                    format!("\"{}\"@en", escape_literal(&gap.code)),
+                    RdfTerm::literal(RdfLiteral::language_tagged(gap.code.as_str(), "en")),
                 ),
                 (
                     RDFS_COMMENT.to_owned(),
-                    format!("\"{}\"@en", escape_literal(&gap.message)),
+                    RdfTerm::literal(RdfLiteral::language_tagged(gap.message.as_str(), "en")),
                 ),
             ],
         ));
@@ -490,8 +492,17 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
     out.push_str(&emit_resource(
         &gmeow("dl-el-crosscheck"),
         &[
-            (gmeow("entailmentCount"), subsumptions.len().to_string()),
-            (gmeow("gapCount"), gaps.len().to_string()),
+            (
+                gmeow("entailmentCount"),
+                RdfTerm::literal(RdfLiteral::typed(
+                    subsumptions.len().to_string(),
+                    XSD_INTEGER,
+                )),
+            ),
+            (
+                gmeow("gapCount"),
+                RdfTerm::literal(RdfLiteral::typed(gaps.len().to_string(), XSD_INTEGER)),
+            ),
         ],
     ));
 
@@ -535,50 +546,49 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     out.push_str("\n# --- reasoning result + proof certificate ---\n");
 
     let subject = gmeow("reasoning-result");
-    let mut props: Vec<(String, String)> = vec![
-        (
-            RDF_TYPE.to_owned(),
-            format!("<{}>", logic("ReasoningResult")),
-        ),
-        (logic("resultInput"), format!("<{}>", result.input.iri())),
+    let mut props: Vec<(String, RdfTerm)> = vec![
+        (RDF_TYPE.to_owned(), RdfTerm::iri(logic("ReasoningResult"))),
+        (logic("resultInput"), RdfTerm::iri(result.input.iri())),
         (
             logic("resultEvaluation"),
-            format!("<{}>", result.evaluation.iri()),
+            RdfTerm::iri(result.evaluation.iri()),
         ),
         (
             logic("resultCompleteness"),
-            format!("<{}>", result.completeness.iri()),
+            RdfTerm::iri(result.completeness.iri()),
         ),
         (
             logic("resultInformation"),
-            format!("<{}>", result.information.iri()),
+            RdfTerm::iri(result.information.iri()),
         ),
         (
             logic("contractHash"),
-            format!("\"{}\"", escape_literal(&result.provenance.contract_hash)),
+            RdfTerm::literal(RdfLiteral::simple(result.provenance.contract_hash.as_str())),
         ),
         (
             logic("engine"),
-            format!(
-                "\"{} {}\"",
-                escape_literal(&result.provenance.engine.name),
-                escape_literal(&result.provenance.engine.version)
-            ),
+            RdfTerm::literal(RdfLiteral::simple(format!(
+                "{} {}",
+                result.provenance.engine.name, result.provenance.engine.version
+            ))),
         ),
         (
             logic("consumedBudget"),
-            result.provenance.consumed_budget.consumed.to_string(),
+            RdfTerm::literal(RdfLiteral::typed(
+                result.provenance.consumed_budget.consumed.to_string(),
+                XSD_INTEGER,
+            )),
         ),
     ];
 
     // The preservation polarity set + unsupported constructs (both sorted).
     for kind in &result.preservation.polarities {
-        props.push((logic("resultPreservation"), format!("<{}>", kind.iri())));
+        props.push((logic("resultPreservation"), RdfTerm::iri(kind.iri())));
     }
     for construct in &result.preservation.unsupported_constructs {
         props.push((
             logic("unsupportedConstruct"),
-            format!("\"{}\"", escape_literal(construct)),
+            RdfTerm::literal(RdfLiteral::simple(construct.as_str())),
         ));
     }
 
@@ -586,25 +596,25 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     if !result.provenance.query.is_empty() {
         props.push((
             logic("query"),
-            format!("\"{}\"", escape_literal(&result.provenance.query)),
+            RdfTerm::literal(RdfLiteral::simple(result.provenance.query.as_str())),
         ));
     }
     if !result.provenance.conclusion.is_empty() {
         props.push((
             logic("conclusion"),
-            format!("\"{}\"", escape_literal(&result.provenance.conclusion)),
+            RdfTerm::literal(RdfLiteral::simple(result.provenance.conclusion.as_str())),
         ));
     }
     if let Some(proof) = &result.provenance.proof {
         props.push((
             logic("resultProof"),
-            format!("<{}>", bare_iri(&proof.derivation_id)),
+            RdfTerm::iri(bare_iri(&proof.derivation_id).to_owned()),
         ));
     }
     if let Some(counterproof) = &result.provenance.counterproof {
         props.push((
             logic("resultCounterproof"),
-            format!("<{}>", bare_iri(&counterproof.derivation_id)),
+            RdfTerm::iri(bare_iri(&counterproof.derivation_id).to_owned()),
         ));
     }
 
@@ -612,7 +622,7 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     for witness in &result.provenance.contradiction_witnesses {
         props.push((
             logic("contradictionWitness"),
-            format!("<{}>", bare_iri(&witness.individual)),
+            RdfTerm::iri(bare_iri(&witness.individual).to_owned()),
         ));
     }
 
@@ -620,7 +630,7 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     for assumption in &result.provenance.assumptions {
         props.push((
             logic("resultAssumption"),
-            format!("\"{}\"", assumption.wire()),
+            RdfTerm::literal(RdfLiteral::simple(assumption.wire())),
         ));
     }
 
@@ -628,24 +638,12 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     if !result.provenance.context.world.is_empty() {
         props.push((
             gmeow("inWorld"),
-            format!("<{}>", bare_iri(&result.provenance.context.world)),
+            RdfTerm::iri(bare_iri(&result.provenance.context.world).to_owned()),
         ));
     }
 
     out.push_str(&emit_resource(&subject, &props));
     out
-}
-
-/// Escape a string for embedding in a double-quoted Turtle literal (mirrors the
-/// gmeow-rdf emitter's literal escaping; inlined here for ledger string literals
-/// that are not full [`purrdf::RdfLiteral`] terms).
-pub(crate) fn escape_literal(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
-        .replace('\r', "\\r")
-        .replace('\t', "\\t")
 }
 
 // ── asserted (told) graph for --merge ────────────────────────────────────────────
@@ -721,7 +719,7 @@ mod tests {
             RdfTerm::iri("http://example.org/B")
         );
         // A typed literal stays a literal — emitting it as an IRI would produce
-        // invalid Turtle in the proof skeleton (CodeRabbit review).
+        // invalid Turtle in the proof skeleton.
         assert_eq!(
             emit_term(&premise_object(
                 "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"
@@ -920,13 +918,13 @@ mod tests {
             prov(),
         );
         let ttl = build_dl_el_ledger_ttl(&result);
-        assert!(ttl.contains("gmeow/consistent> false"));
+        assert!(ttl.contains(&format!("gmeow/consistent> \"false\"^^<{XSD_BOOLEAN}>")));
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/CrosscheckLedger>"));
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/LedgerEntry>"));
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/DlGap>"));
         assert!(ttl.contains("reason.dl-gap.complementOf"));
-        assert!(ttl.contains("gmeow/entailmentCount> 1"));
-        assert!(ttl.contains("gmeow/gapCount> 1"));
+        assert!(ttl.contains(&format!("gmeow/entailmentCount> \"1\"^^<{XSD_INTEGER}>")));
+        assert!(ttl.contains(&format!("gmeow/gapCount> \"1\"^^<{XSD_INTEGER}>")));
     }
 
     #[test]

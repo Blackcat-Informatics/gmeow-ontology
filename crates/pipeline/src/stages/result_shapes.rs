@@ -131,10 +131,33 @@ fn collect_competency(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), gmeow_er
     Ok(())
 }
 
+/// The skolemization authority under which anonymous competency `ExpectedRow`s (and any other
+/// blank node in a competency spec) are minted to stable genid IRIs before SHACL validation.
+/// The skolemized dataset is validation-only and NEVER egresses, so this authority names no
+/// shipped surface — it only has to be a well-formed base for the RFC 8615 `/.well-known/genid/`
+/// space PurRDF mints under.
+const COMPETENCY_SKOLEM_AUTHORITY: &str = "https://blackcatinformatics.ca";
+
 /// Load every competency spec into one native dataset (each parsed through the
 /// canonical native codec and unioned so per-file blanks stay disjoint).
+///
+/// The dataset is **skolemized** before it is returned: PurRDF's SHACL-SPARQL pre-binding
+/// (SHACL spec §5.2.1) cannot correlate a BLANK-NODE focus node that appears only inside the
+/// `FILTER NOT EXISTS` of a result-column presence check, so an `ExpectedRow` authored
+/// anonymously (`[ … ]`) would spuriously fail its own shape. Replacing every blank node with a
+/// stable genid IRI (RDF 1.2 first-class blank-node recourse) makes each `ExpectedRow` a focus
+/// node the pre-binding can carry. This is structure-preserving (only blank-node labels change)
+/// and validation-only; `render_result_shapes` reads only NAMED shape/column nodes, so its
+/// byte-deterministic output is unaffected.
 fn load_competency_store(root: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    native_query::dataset_from_files(&competency_files(root)?)
+    let dataset = native_query::dataset_from_files(&competency_files(root)?)?;
+    let skolemized =
+        purrdf::skolemize(dataset.as_ref(), COMPETENCY_SKOLEM_AUTHORITY).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("result-shapes: skolemizing the competency store failed: {e:?}"),
+            })
+        })?;
+    Ok(Arc::new(skolemized))
 }
 
 /// The lexical string of `cells[i]` (a literal's lexical form or an IRI's text).

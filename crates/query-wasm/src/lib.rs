@@ -151,6 +151,9 @@ impl Dataset {
                     &solutions,
                     SparqlResultsFormat::Json,
                     &ResultProvenance::default(),
+                    // No provenance namespace: the in-browser results surface carries the plain
+                    // SPARQL Results JSON, not the annotated provenance vocabulary.
+                    None,
                 )
                 .map_err(|e| JsError::new(&e.to_string()))?;
                 String::from_utf8(outcome.bytes)

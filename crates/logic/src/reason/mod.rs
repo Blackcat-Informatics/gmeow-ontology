@@ -139,7 +139,13 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 /// * the canonical-program lowering, selected-view materializer, and native
 ///   non-monotone evaluators exposed as the forward runtime materialization surface;
 /// * the source of this file (`mod.rs`), which owns the production reasoning
-///   orchestration and typed-result fold.
+///   orchestration and typed-result fold;
+/// * the source of `reasoner_services.rs`, the public OWL 2 Direct-Semantics DL
+///   service façade (consistency, classification, realization, instance retrieval,
+///   axiom entailment, profile certification, module extraction) — a change to how
+///   it wraps `purrdf::entail`'s services (the `CertifiedAnswer`/`DlCompleteness`
+///   contract or the verdict a caller receives) changes reasoning behaviour a
+///   consumer trusts, even when no native rule byte and no purrdf pin moved.
 ///
 /// A change to any of these files will produce a different hash, invalidating
 /// cached results produced under the old contract. Public so a consumer holding a
@@ -165,6 +171,19 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ),
     ("physical/chase.rs", include_str!("../physical/chase.rs")),
     ("physical/store.rs", include_str!("../physical/store.rs")),
+    // The public OWL 2 Direct-Semantics DL service façade (consistency, class
+    // satisfiability, classification, realization, instance retrieval, axiom
+    // entailment, profile certification, module extraction) over `purrdf::entail`.
+    // A change to HOW this façade wraps purrdf's services — the `CertifiedAnswer` /
+    // `DlCompleteness` contract, the construct-boundary handling, which verdict a
+    // caller receives — changes the reasoning behaviour a consumer trusts, even when
+    // no rule byte and no purrdf pin moved. Its source therefore folds into the engine
+    // identity alongside the backward/forward core (the purrdf-owned rule surface it
+    // delegates to is folded separately by `purrdf_substrate_identity`).
+    (
+        "reasoner_services.rs",
+        include_str!("../reasoner_services.rs"),
+    ),
 ];
 
 /// The framed concatenation of every native source component, BEFORE the purrdf
@@ -2412,9 +2431,46 @@ mod tests {
                 "physical/seminaive.rs",
                 "physical/chase.rs",
                 "physical/store.rs",
+                "reasoner_services.rs",
             ]
         );
         assert_eq!(native_contract_hash().len(), 40, "SHA-1 hex contract id");
+    }
+
+    /// Regression for the DL-service-facade contract: the public OWL 2
+    /// Direct-Semantics service surface (`reasoner_services.rs`) MUST fold into the
+    /// engine descriptor, so a change to how the façade decides consistency /
+    /// classification / profile certification moves `native_contract_hash` — a
+    /// consumer holding a DL-service verdict can then refuse one minted under a
+    /// different façade contract. Framed by NAME AND BYTE LENGTH, so an edit to the
+    /// façade's actual source moves the framed base and therefore the final hash.
+    #[test]
+    fn native_contract_hash_folds_the_dl_service_facade() {
+        let facade = NATIVE_CONTRACT_COMPONENTS
+            .iter()
+            .find(|(name, _)| *name == "reasoner_services.rs")
+            .expect("the DL service facade must be a folded contract component");
+        assert!(
+            !facade.1.is_empty(),
+            "the folded reasoner_services.rs source must be non-empty"
+        );
+        // Its verbatim source reaches the framed base the final hash is computed over,
+        // so any behavioural edit to the façade changes the descriptor.
+        let framed = framed_native_component_source();
+        assert!(
+            framed.contains(facade.1),
+            "reasoner_services.rs source must reach the framed contract base"
+        );
+        // And the length-prefixed framing header for the façade is present, so the
+        // fold cannot be aliased away by a same-length neighbour.
+        assert!(
+            framed.contains(&format!(
+                "{}:reasoner_services.rs:{}:",
+                "reasoner_services.rs".len(),
+                facade.1.len()
+            )),
+            "the DL service facade must be framed by name and byte length"
+        );
     }
 
     #[test]

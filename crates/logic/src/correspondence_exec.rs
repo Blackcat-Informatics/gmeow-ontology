@@ -795,7 +795,9 @@ const BRANCH_SEED_BASE: &str = "http://seed.example/v";
 /// `Filter`/`Extend` (`BIND`)/`Graph`/solution-modifier wrappers contribute no atoms of their
 /// own and are unwrapped down to their inner pattern; `Minus` likewise keeps only its required
 /// (left) side. Constructs with no positive triple-pattern content (`Path`, `Service`,
-/// `Values`) yield no branches — deterministically dropped, never guessed at.
+/// `Values`, and a configured `PropertyFunction` call — a computed relation, not asserted
+/// triples the seed corpus could recover) yield no branches — deterministically dropped,
+/// never guessed at.
 fn dnf_branches(pattern: &GraphPattern) -> Vec<Vec<SparqlTriplePattern>> {
     match pattern {
         GraphPattern::Bgp { patterns } => vec![patterns.clone()],
@@ -836,9 +838,10 @@ fn dnf_branches(pattern: &GraphPattern) -> Vec<Vec<SparqlTriplePattern>> {
         | GraphPattern::Reduced { inner }
         | GraphPattern::Slice { inner, .. }
         | GraphPattern::Group { inner, .. } => dnf_branches(inner),
-        GraphPattern::Path { .. } | GraphPattern::Service { .. } | GraphPattern::Values { .. } => {
-            Vec::new()
-        }
+        GraphPattern::Path { .. }
+        | GraphPattern::Service { .. }
+        | GraphPattern::Values { .. }
+        | GraphPattern::PropertyFunction(_) => Vec::new(),
     }
 }
 

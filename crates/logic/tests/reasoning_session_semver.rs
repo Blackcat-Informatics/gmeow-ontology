@@ -412,8 +412,15 @@ use session_common::*;
 /// engine-descriptor axes, so this descriptor moves. No native rule, decider, or profile
 /// capability changed and the fixed edge-only input's reasoning verdict is unchanged — only
 /// the identity moved to reflect the shared purrdf substrate.
+/// Re-blessed once more for folding the public DL service façade (`reasoner_services.rs`) into
+/// `native_contract_hash`'s component list: the OWL 2 Direct-Semantics service surface
+/// (consistency, classification, realization, profile certification, module extraction) is now
+/// part of the engine identity, so a change to how the façade wraps `purrdf::entail`'s services
+/// moves the descriptor — a consumer holding a DL-service verdict can refuse one minted under a
+/// different façade contract. This is a deliberate contract widening; no rule or decider
+/// capability changed.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "06287a3c62dd8b788ccde5f7d9e08fd2e73db919f2d8f0ddeea99fb2790edbd6";
+    "840d28b8fe42fefce367b56ca8c2b8a6966eb0cabbcd438cde21089949b0e2b2";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -613,8 +620,13 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// (the datalog `CALCULUS_VERSION` plus the OWL 2 RL and datatype-entailment calculus
 /// `contract_hash`es), while the fixed edge-only input's reasoning verdict (native EL/DL) is
 /// unchanged.
+/// Re-blessed once more for folding the public DL service façade (`reasoner_services.rs`) into
+/// `native_contract_hash`'s component list (see the engine-descriptor golden above): the native
+/// contract hash is one of the seven folded session-identity axes, so this fixed-input session
+/// identity moves with it. The fixed edge-only input exercises no DL service, so its reasoning
+/// verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "81a6ede561e62ca4be9dd3b52a5506c63d94989d97f5c60bf8584055b1bb189e";
+    "c568478ceacf84076ad005222ae9ca517a6762789b4880e5ba2e4ba90a894bb1";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
