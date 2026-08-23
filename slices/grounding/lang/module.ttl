@@ -10513,11 +10513,11 @@ gmeow:gmnCodebookCurrent gmeow:references
 # =========================================================================== #
 # Declarative constraint axioms (grounding slices) — the closed-world presence /
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic: restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl (Principle 17). A restriction that
 # carries OWL allValuesFrom OWL Thing projects to sh:nodeKind sh:BlankNodeOrIRI
 # (the "a present value is a resource, not a literal" obligation). The
-# cross-node / value-set / targetSubjectsOf conditions have no OWL antecedent
+# cross-node / value-set / targetSubjectsOf conditions have no OWL/DL antecedent
 # and remain the procedural sh:sparql constraint fragment.
 # =========================================================================== #
 

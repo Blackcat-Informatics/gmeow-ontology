@@ -10666,13 +10666,13 @@ math:multiparameterInvariantBoundary
 # =========================================================================== #
 # Declarative constraint axioms (grounding slices) — the closed-world cardinality/
 # class/datatype/value obligations that the hand-authored shapes.ttl NodeShapes
-# state are authored here once as OWL restriction axioms and PROJECTED to
+# state are authored here once as logic: restriction axioms and PROJECTED to
 # generated/shapes/validation-shapes.ttl by derive_validation_shapes (Principle
-# 17). A restriction carrying both OWL*Cardinality and OWL allValuesFrom lowers
+# 17). A restriction carrying both a logic: qualified-cardinality bound and logic:allValuesFrom lowers
 # to the paired sh:minCount/maxCount + sh:class/sh:datatype/sh:nodeKind property
 # shape. OWL allValuesFrom OWL Thing projects to sh:nodeKind sh:BlankNodeOrIRI
 # (the "a present value is a resource, not a literal" obligation). Genuinely
-# cross-node / value-negation / numeric-range conditions have no OWL antecedent
+# cross-node / value-negation / numeric-range conditions have no OWL/DL antecedent
 # and stay as the procedural sh:sparql constraint fragment.
 # =========================================================================== #
 

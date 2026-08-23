@@ -466,9 +466,9 @@ REUSE (no parallel mechanisms — GTS transport design).
 # restriction axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
 # derive_validation_shapes (Principle 17). This module is the single source of
 # truth: the slice ships NO hand-authored shapes.ttl (docs/MIGRATING-SHAPES-TO-
-# LOGIC.md). A restriction carrying both OWL*Cardinality and OWL allValuesFrom
+# LOGIC.md). A restriction carrying both a logic: qualified-cardinality bound and logic:allValuesFrom
 # lowers to the paired sh:minCount/maxCount + sh:class / sh:datatype property
-# shape. The cross-node / disjunctive (sh:sparql) conditions have no OWL
+# shape. The cross-node / disjunctive (sh:sparql) conditions have no OWL/DL
 # antecedent and are authored as logic:Constraints below.
 # =========================================================================== #
 

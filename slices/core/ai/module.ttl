@@ -785,10 +785,10 @@ gmeow:usedModel
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic: restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
 # (Principle 17). Cross-node / value-keyed (sh:sparql, SPARQLTarget) conditions
-# have no OWL antecedent and remain the procedural fragment .
+# have no OWL/DL antecedent and remain the procedural fragment .
 # =========================================================================== #
 
 gmeow:Contradiction rdfs:subClassOf

@@ -875,12 +875,12 @@ gmeow:transferredView
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic: restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both OWL*Cardinality and
-# OWL allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# (Principle 17). A restriction carrying both a logic: qualified-cardinality bound and
+# logic:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / disjunctive-range / value-keyed
-# (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL antecedent and remain
+# (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL/DL antecedent and remain
 # the procedural fragment .
 # =========================================================================== #
 

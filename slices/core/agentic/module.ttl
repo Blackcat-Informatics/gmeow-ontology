@@ -134,7 +134,7 @@ DOCTRINE.
 # =========================================================================== #
 # Declarative constraint axioms — the closed-
 # world cardinality / class / literal obligations the hand-authored
-# gmeow:ToolCallShape states, authored here once as OWL restriction axioms and
+# gmeow:ToolCallShape states, authored here once as logic: restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes
 # (Principle 17). OWL maxQualifiedCardinality (onClass OWL Thing) -> sh:maxCount;
 # OWL maxQualifiedCardinality 1 (onClass OWL Thing) -> sh:minCount 1 + sh:maxCount 1;
