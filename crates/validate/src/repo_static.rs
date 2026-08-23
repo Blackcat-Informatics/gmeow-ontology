@@ -4185,6 +4185,22 @@ mod tests {
         assert!(duplicate_errors[0].contains("found 2"));
     }
 
+    #[test]
+    fn real_checkout_without_deficiency_ledger_fails_closed() {
+        let temp = tempfile::tempdir().unwrap();
+        write_minimal_repo(temp.path());
+        fs::create_dir_all(temp.path().join(".git")).unwrap();
+
+        let report = check_repo_static(temp.path());
+        assert!(
+            report.errors.iter().any(|error| {
+                error.contains(".deficiencies") && error.contains("missing or unreadable")
+            }),
+            "{:?}",
+            report.errors
+        );
+    }
+
     /// Build a minimal tree carrying just the wasm-bindgen pin surface the parity guard
     /// reads: the workspace pin, one `*-wasm` member, and the CI CLI install line.
     fn write_wasm_bindgen_tree(root: &Path, workspace_pin: &str, member: &str, cli: &str) {
