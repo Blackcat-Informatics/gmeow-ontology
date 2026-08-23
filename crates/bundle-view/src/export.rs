@@ -1122,13 +1122,16 @@ pub fn fold_meta(view: &FoldView) -> Result<(String, String), gmeow_errors::Diag
     let title = view
         .value(onto, "http://purl.org/dc/terms/title", DEFAULT_SCOPE)
         .map(|t| view.lex(t).to_string());
+    // The header's version rides the canonical logic:versionInfo or its generated
+    // owl:versionInfo view; accept either and name the field namespace-neutrally.
     let version = view
-        .value(onto, &format!("{OWL}versionInfo"), DEFAULT_SCOPE)
+        .value(onto, &format!("{LOGIC_NS}versionInfo"), DEFAULT_SCOPE)
+        .or_else(|| view.value(onto, &format!("{OWL}versionInfo"), DEFAULT_SCOPE))
         .map(|t| view.lex(t).to_string());
     match (title, version) {
         (Some(t), Some(v)) => Ok((t, v)),
         _ => Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: "ontology header lacks dcterms:title / owl:versionInfo".into(),
+            message: "ontology header lacks dcterms:title / versionInfo".into(),
         })),
     }
 }

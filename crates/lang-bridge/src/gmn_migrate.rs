@@ -285,16 +285,10 @@ impl GmnMigration {
 
         let from_entity = exactly_one(&migrates_from, correspondence, "gmeow:gmnMigratesFrom")?;
         let to_entity = exactly_one(&migrates_to, correspondence, "gmeow:gmnMigratesTo")?;
-        let from_version = exactly_one_owned(
-            version_infos.get(&from_entity),
-            &from_entity,
-            "logic:versionInfo",
-        )?;
-        let to_version = exactly_one_owned(
-            version_infos.get(&to_entity),
-            &to_entity,
-            "logic:versionInfo",
-        )?;
+        let from_version =
+            exactly_one_owned(version_infos.get(&from_entity), &from_entity, "versionInfo")?;
+        let to_version =
+            exactly_one_owned(version_infos.get(&to_entity), &to_entity, "versionInfo")?;
         let preservation_iri =
             exactly_one(&preservation_iris, correspondence, "logic:preservationKind")?;
         let preservation = preservation_iri
