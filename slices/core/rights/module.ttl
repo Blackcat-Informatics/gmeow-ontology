@@ -2068,7 +2068,7 @@ gmeow:Trademark logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:trademarkMark ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:trademarkHolder ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 gmeow:RightsStatement logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:statementAbout ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:Permission logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:ruleAction ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
@@ -2129,7 +2129,7 @@ logic:tmDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
 
 # =========================================================================== #
-# Procedural constraints (#1194): the consent-metadata invariant, projected to  #
+# Procedural constraints: the consent-metadata invariant, projected to         #
 # sh:SPARQLConstraint keyed onto the gmeow:RightsStatement source-term. A        #
 # consent-governing RightsStatement (one with a permission whose gmeow:ruleAction #
 # is gmeow:actionProcessPersonalData) must name EXACTLY ONE gmeow:hasDataSubject  #
@@ -2203,7 +2203,7 @@ logic:cdcHas a logic:Formula ; logic:relation gmeow:hasDataController ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
 
 # =========================================================================== #
-# Procedural constraint (#1194): a permission's regulated action must be a      #
+# Procedural constraint: a permission's regulated action must be a             #
 # gmeow:RightsAction, projected to a sh:SPARQLConstraint keyed onto the         #
 # gmeow:Permission source-term. Every gmeow:ruleAction value of a               #
 # gmeow:Permission is a gmeow:RightsAction — the closed-world value-type check   #
@@ -2239,7 +2239,7 @@ logic:pakKind a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RightsAction ] .
 
 # =========================================================================== #
-# Relational-dependence cardinality (issue #1194): a gmeow:Copyright relator   #
+# Relational-dependence cardinality: a gmeow:Copyright relator                 #
 # mediates at least one holder. Migrated from the hand-authored                #
 # gmeow:CopyrightShape gmeow:copyrightHolder min-count property constraint to a #
 # compact logic: disjunctive-requiredness record, projected to a               #
@@ -2258,7 +2258,7 @@ gmeow:CopyrightHolderRequiredConstraint
     logic:message "A Copyright must have at least one holder (gmeow:copyrightHolder)." .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world rights relator        #
+# Migrated procedural constraints: the closed-world rights relator             #
 # well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17). The rule    #
 # action shape targets Permission/Prohibition/Duty directly (raw-graph SHACL does #
 # no subclass inference), so one record per concrete rule kind.                   #
@@ -2330,7 +2330,7 @@ gmeow:TrademarkMarkConstraint
     logic:formalizes gmeow:Trademark ;
     logic:message "A Trademark must be about exactly one mark (gmeow:trademarkMark)." .
 
-# Migrated (#1194): a privacy notice should declare its issuer — projection of
+# Migrated: a privacy notice should declare its issuer — projection of
 # gmeow:PrivacyNoticeShape from shapes/gmeow-shapes.ttl (Principle 17, Warning).
 gmeow:PrivacyNoticeAttributionConstraint
     a logic:DisjunctiveRequirednessConstraint ;

@@ -423,8 +423,8 @@ use session_common::*;
 /// authored surface reached literal zero `owl:` tokens). `native_contract_hash()` `include_str!`s
 /// `reason/refute.rs`, so its byte content moves the descriptor; no reasoning verdict changes.
 /// Re-blessed once more when the reasoner's fixed calculus-vocabulary table was exposed through
-/// a public `reason::calculus_vocabulary()` accessor (#1682 review remediation r3818278202), so
-/// the grounding cross-check reads the engine's own table instead of a hand-copied 49-row mirror.
+/// a public `reason::calculus_vocabulary()` accessor, so the grounding cross-check reads the
+/// engine's own table instead of a hand-copied 49-row mirror.
 /// `native_contract_hash()` `include_str!`s `reason/mod.rs`, so adding the accessor moves the
 /// descriptor by byte content alone; the `CALCULUS_VOCABULARY` data, every calculus lowering, and
 /// all reasoning verdicts are unchanged.
