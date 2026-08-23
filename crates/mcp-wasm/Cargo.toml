@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-mcp-wasm"
+description = "wasm32 bindings for the DEMAND-LOADED reasoning segment of the GMEOW consumer MCP engine: the DL reasoner and the rubric kernel over it, as a genuine delta over the always-resident core image"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["gmeow", "mcp", "agent", "wasm", "knowledge-graph"]
+
+[lib]
+# cdylib for the wasm-bindgen build (the shipped npm/ESM artifact); rlib so the thin
+# binding logic still compiles + unit-tests on the native workspace gate
+# (`cargo nextest` / clippy --all-targets) — the rlib half is what the native≡wasm
+# witness (`tests/witness_mcp.rs`) calls, so the attestation is produced by the very
+# functions the browser exports rather than by a re-implementation of them.
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The consumer MCP engine: the whole tool/resource surface plus the JSON-RPC frame
+# handler (`McpServer::handle_message`). It is an rlib LEAF with respect to
+# `gmeow-pipeline` and carries no filesystem/process coupling on wasm32 (its storage
+# seam resolves to the in-memory browser backend and `run_stdio` is
+# `cfg(not(target_arch = "wasm32"))`), which is what lets the identical engine link
+# into a browser image. This crate calls only `from_snapshot_segmented` + `handle_message`.
+#
+# `default-features = false, features = ["reasoning"]` is what makes this image a genuine
+# DELTA rather than a superset of the core image. It selects OUT the `core` segment, and
+# with it `gmeow-transcode` and `gmeow-docs-catalog` (which nothing else in `gmeow-mcp`
+# reaches) leave the dependency tree outright, while the 23 core tool bodies are
+# not compiled and therefore not reachable from any wasm-bindgen export — so the linker
+# strips the card renderer, the GMN-1 codec readers, the SHACL validator entry and the
+# advisory catalog with them. The tool surface is NOT reduced: all 38 stay advertised and
+# the core ones answer with `mcp.segment-not-loaded` naming the `core` segment.
+# (The counts are gated against `gmeow_mcp`'s own constants by
+# `the_shipped_prose_states_the_derived_tool_counts`; a TOML comment cannot read them.)
+gmeow-mcp = { path = "../mcp", default-features = false, features = ["reasoning"] }
+# EXACTLY pinned ONCE, in `[workspace.dependencies]`: the `wasm-bindgen` CLI that
+# generates the JS bindings refuses to run unless it matches the library version
+# byte-for-byte, and this image's glue must stay loadable by the same CLI install the
+# core image's does. `make mcp-wasm-pkg` and the CI Node lane install the
+# `wasm-bindgen-cli` matching the workspace version.
+wasm-bindgen.workspace = true
+
+[dev-dependencies]
+# The native witness parses the JSON-RPC response frame back to assert the envelope
+# shape (`result.content[0].text`, `isError`) before pinning the attestation, so a
+# malformed frame fails as a frame defect rather than as a byte diff.
+serde_json.workspace = true

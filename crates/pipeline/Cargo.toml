@@ -35,7 +35,7 @@ purrdf.workspace = true
 # absolute-IRI in term position). The `yaml_ld` export leaf's JSON-LD-star inverse
 # validates `@id`/`@type`/predicate/graph IRIs through this, preserving the old
 # `oxigraph::model::NamedNode::new` Ok/Err discrimination.
-# The gts ARCHIVE BOUNDARY only: GTS is exit-only — never an internal
+# The gts ARCHIVE BOUNDARY only (carrier purity): GTS is exit-only — never an internal
 # pipeline transport. Every internal export leaf (export / yaml_ld /
 # schemas / okf / transcode) now reads the native `RdfDataset` carrier off the
 # snapshot product's bundle, NOT a gts `Graph`. This dep is scoped by discipline to
@@ -50,6 +50,25 @@ gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str + the RDF/text projections) the
 # transcode stage drives, split out of gmeow-logic.
 gmeow-logic-compile = { path = "../logic-compile" }
+# The transcode hub, extracted to a leaf so the MCP `convert` tool can reach it
+# without a pipeline dependency. Re-exported from lib.rs as `transcode` so every
+# existing `gmeow_pipeline::transcode::*` caller is unchanged. stages::yaml_ld's
+# Stage impl still calls into it, which is why the edge points this way.
+gmeow-transcode = { path = "../transcode" }
+# The bundle READ side, extracted to a wasm-clean leaf so a consumer that only
+# reads a materialized gmeow.gts never inherits this executor. The pipeline is the
+# WRITER, so the edge points this way: `stages::export`'s Stage impl drives the
+# renderers here, `stages::carrier`/`stages::release` re-export the four shared
+# graph IRIs and the blob rep labels from it (one constant, no drift), and lib.rs
+# re-exports `bundle_blobs`/`diagnostics_reader` at their historical paths.
+gmeow-bundle-view = { path = "../bundle-view" }
+# The distribution-catalog READ side, extracted to a wasm-clean leaf so `gmeow docs
+# matrix` and the MCP `distribution_matrix` tool read the catalog without either
+# inheriting this executor. The pipeline is the WRITER, so the edge points this way:
+# `stages::distribution_catalog` emits the graph and re-exports the identity/N-Triples
+# helpers from it at their original visibility, and `docs_distribution` re-exports
+# `read_distribution_matrix` / `DistributionRow` at their historical paths.
+gmeow-docs-catalog = { path = "../docs-catalog" }
 # The affect-intensity geometry compute (√(xᵀGx) over gmeow:coreAffectGram): the
 # `mappings` stage's EmotionML lowering projects the canonical schadenfreude example, so
 # the worked-<emotion> intensity + per-dimension unit-clamp values are COMPUTED from the
@@ -61,7 +80,7 @@ gmeow-affect = { path = "../affect" }
 # shippable deliverable, not merely a test-side equality gate). Leaf compute crate
 # (no dependency back on gmeow-pipeline), so no cycle. A normal dependency also
 # satisfies the dev-only math flagship discharge harness, so it is NOT duplicated
-# in [dev-dependencies].
+# in [dev-dependencies]
 gmeow-math = { path = "../math" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
@@ -116,24 +135,24 @@ gmeow-lang-form = { path = "../lang-form" }
 # Level-parallel scheduling: independent stages within a topological level run
 # concurrently; only Reason stages serialize under the process-wide ENGINE_LOCK.
 rayon = "1"
-sha2 = "0.10"
+sha2.workspace = true
 # SHA-1 only for the content-addressed statement reifier mint (mirrors the
 # Python `mint_reifier`); never for security.
-sha1 = "0.10"
+sha1.workspace = true
 # blake3 for the eval span verifier's current-content digest (mirrors the
 # Python `_current_digest`); the corpus digests pin the scored source version.
 blake3.workspace = true
-serde = { version = "1", features = ["derive"] }
+serde.workspace = true
 # Stage products use compact binary encoding in the content-addressed cache; JSON
 # remains the deterministic human-readable cache index and several export formats.
 bincode = "1.3"
-serde_json = "1"
+serde_json.workspace = true
 # YAML-LD-star emission: deterministic, anchor-free YAML from the JSON-LD-star lead.
 serde_yaml = "0.9"
 # The release-as-evidence fold reads the committed snapshot's blob `pub`
 # metadata maps (CBOR `Value`) to recover each blob's declared media-type + rep
 # when replaying them; same ciborium the gts_compose author links.
-ciborium = "0.2"
+ciborium.workspace = true
 # Live target-vocabulary fetch for the correspondence-soundness pass: the
 # `allow_network=true` leg fetches a canonical target source document and filters it to the
 # minimal structural axiom subset. The on-gate path uses `allow_network=false` (snapshots /
@@ -142,13 +161,13 @@ ureq = "3"
 # Self-cleaning system temp dirs for the consumer runtime path (works from a
 # read-only install) — used by the cache, source-load, and validation lanes.
 # Same pin as the test-side tempdir usage.
-tempfile = "3"
+tempfile.workspace = true
 # Structured, subscriber-controlled sink for library-internal telemetry that has
 # no reporter in scope (opt-in per-stage timing, claim-audit phase timing, the
 # advisory bench scoreboard, JSON-Schema lossy-drop notices). Never product data
 # and never a gate — the events surface only when a subscriber (e.g. the CLI's
 # `init_tracing`) is installed and the level is enabled.
-tracing = "0.1"
+tracing.workspace = true
 # The store COMPACTION lane's mandatory packaging signature: purrdf's
 # `compact_streamable` takes the ordering-commitment signer as a plain tuple (never an
 # `Option`), so an unsigned repack is unrepresentable — which means the store lane has
@@ -158,10 +177,15 @@ ed25519-dalek = "2"
 [build-dependencies]
 # Hash the workspace source into GMEOW_BUILD_FINGERPRINT (build.rs) so the
 # persistent per-stage cache invalidates on any code/toolchain change.
-sha2 = "0.10"
+sha2.workspace = true
 
 [dev-dependencies]
-tempfile = "3"
+# The consumer MCP engine, TEST-ONLY: the medium gate drives the runtime-store lane
+# (`store_medium` + the memory dictionaries) that moved out of this crate into the
+# `gmeow-mcp` leaf. A normal dependency would invert the layering — gmeow-mcp is a leaf
+# precisely so the shippable engine never inherits the build executor.
+gmeow-mcp = { path = "../mcp" }
+tempfile.workspace = true
 # The whole-bundle medium gate (tests/medium_bundle.rs) walks the emitted pack's raw
 # CBOR item stream (header catalog + `"dct"` map + per-frame `pub` metadata) and
 # recomputes the stratified digest independently of the producer. Integration-test
@@ -192,20 +216,20 @@ gmeow-errors = { path = "../errors" }
 # deserializes), exactly as the crate-internal `run_full_stage` unit harness does.
 # Integration-test crates do NOT inherit the normal dependency table, so serde_json
 # (a normal dependency) is redeclared here.
-serde_json = "1"
+serde_json.workspace = true
 # Byte goldens for the per-graph `graph/logic` fold: a deterministic
 # snapshot of the canonical RDF-1.2 named-graph carriage, regression-pinned
 # independent of the full gmeow.gts.
-insta = { version = "1.48", features = ["json"] }
+insta = { workspace = true, features = ["json"] }
 # The release-as-evidence fold tests build a deterministic Ed25519 signing key +
 # a synthetic OpenPGP public-key armor; same dalek the snapshot signer uses.
 ed25519-dalek = "2"
 # Determinism tests for the YAML-LD-star / JSON-LD-star emitter vary hash-map
 # seeds to prove that output order is independent of input collection order.
 ahash = "0.8"
-# Validate sample @annotation fragments against the
-# SHACL-derived JSON Schema.
-jsonschema = { version = "0.46", default-features = false }
+# Validate sample @annotation fragments against the SHACL-derived JSON Schema
+# the `json_schema` export leaf compiles.
+jsonschema.workspace = true
 # The gmeow:FlagshipScenario execution-discharge harness (tests/lang_flagship_discharge.rs)
 # drives BOTH validation channels over each flagship's counter-example and worked example,
 # and RUNS each named native producer. Integration-test crates do NOT inherit the normal

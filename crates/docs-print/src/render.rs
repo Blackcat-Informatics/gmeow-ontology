@@ -24,7 +24,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_docs::formats::{Capability, DocFormat, FormatCapabilities};
+use gmeow_docs::formats::{Capability, DocFormat, SurfaceCapabilities};
 use gmeow_docs::model::{DocSlice, DocTerm, DocTermCategory, DocsModel};
 use gmeow_docs::source_map::SourceToPageMap;
 
@@ -94,7 +94,7 @@ pub fn render_typ(
     model: &DocsModel,
     axioms: &BTreeMap<String, Vec<u8>>,
     bib: &[u8],
-    losses: &[FormatCapabilities],
+    losses: &[SurfaceCapabilities],
 ) -> String {
     let mut out = String::new();
 
@@ -665,7 +665,7 @@ fn section_pipeline_dag(out: &mut String, model: &DocsModel) {
 
 // ── Loss-ledger appendix (sourced from the shared table) ────────────────────
 
-fn section_loss_appendix(out: &mut String, losses: &[FormatCapabilities]) {
+fn section_loss_appendix(out: &mut String, losses: &[SurfaceCapabilities]) {
     out.push_str("// <<section:loss-appendix>>\n");
     out.push_str("= Loss ledger appendix\n\n");
     out.push_str(
@@ -674,7 +674,7 @@ fn section_loss_appendix(out: &mut String, losses: &[FormatCapabilities]) {
          matches the ontology's loss ledger by construction.\n\n",
     );
 
-    let pdf = losses.iter().find(|c| c.format == DocFormat::Pdf);
+    let pdf = losses.iter().find(|c| c.format() == Some(DocFormat::Pdf));
     match pdf {
         None => {
             out.push_str("_No capability partition was supplied for the PDF format._\n\n");

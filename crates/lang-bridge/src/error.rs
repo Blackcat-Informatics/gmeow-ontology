@@ -120,6 +120,20 @@ define_diag_kind! {
     message = "lang:GmnGraphOutOfDomain: quad in named graph '{}' is outside the default-graph GMN-0 normal-form domain", graph;
 }
 
+define_diag_kind! {
+    /// A glyph the live codebook registry carries has no entry in
+    /// [`crate::gmn_legend::GLYPH_TOKEN_COSTS`], so the legend cannot state its real token
+    /// cost. A HARD FAIL rather than a silent zero or an omitted row: the legend's whole
+    /// job is to price every glyph the codec may emit, and a missing price is a legend
+    /// that lies by omission. Only reachable when the pinned table is edited out of sync
+    /// with the codebook — the anti-rot test keeps the two in bijection.
+    pub struct GmnUnpinnedGlyphCost { glyph: String }
+    code = "lang-bridge.gmn1.unpinned-glyph-cost";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "glyph '{}' has no pinned token cost — re-pin GLYPH_TOKEN_COSTS (the native anti-rot test reports the real BPE value)", glyph;
+    failure_class = "https://blackcatinformatics.ca/lang/GmnUncostedScriptGlyph";
+}
+
 /// The complete `lang:` bridge diagnostic-code catalog, in registration order.
 pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     DigestCollision::CODE,
@@ -132,6 +146,7 @@ pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     GmnNonDecodableGrammar::CODE,
     GmnNonNfcLiteral::CODE,
     GmnGraphOutOfDomain::CODE,
+    GmnUnpinnedGlyphCost::CODE,
 ];
 
 /// Eagerly intern every `lang:` bridge diagnostic code (idempotent).
@@ -147,6 +162,7 @@ pub fn register_all() -> Vec<Code> {
         GmnNonDecodableGrammar::register(),
         GmnNonNfcLiteral::register(),
         GmnGraphOutOfDomain::register(),
+        GmnUnpinnedGlyphCost::register(),
     ]
 }
 

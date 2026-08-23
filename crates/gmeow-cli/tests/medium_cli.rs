@@ -331,7 +331,7 @@ fn the_medium_verbs_read_verify_and_explain_a_freshly_emitted_bundle() {
 /// `Memory` directly: the medium wiring lives on the production store path, and a test
 /// that opened its own writer would prove nothing about the path a consumer takes.
 fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
-    use gmeow_pipeline::mcp::{McpMode, McpServer};
+    use gmeow_mcp::McpServer;
 
     let memory_path = home.join("memory.gts");
     // SAFETY: this test binary runs one test, single-threaded, and restores nothing
@@ -341,8 +341,8 @@ fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
         std::env::set_var("GMEOW_CONJECTURE_PATH", home.join("conjectures.gts"));
         std::env::remove_var("GMEOW_LANG");
     }
-    let server = McpServer::from_snapshot(bundle, None, McpMode::Consumer)
-        .expect("the freshly emitted bundle serves an MCP session");
+    let server =
+        McpServer::from_snapshot(bundle).expect("the freshly emitted bundle serves an MCP session");
     for text in [
         "a claim stored through the production memory path",
         "a second claim, so the store carries more than one record",

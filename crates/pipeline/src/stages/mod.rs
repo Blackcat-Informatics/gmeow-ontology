@@ -48,7 +48,6 @@ pub mod docs_format_rendering;
 pub mod docs_render;
 pub mod evals;
 pub mod export;
-pub mod fold_arena;
 pub mod frame_shapes;
 pub mod gate_verdict;
 pub mod goal_directed;
@@ -89,7 +88,12 @@ pub mod matrix;
 pub mod medium_dictionaries;
 pub mod meta_findings;
 pub mod metadata;
-pub mod native_query;
+// The native SPARQL substrate the introspection export leaves query through now
+// lives in the read-side leaf `gmeow-bundle-view` (the MCP tool surface needs it
+// without the build executor). Re-exported at its historical path so every
+// `crate::stages::native_query::*` / `gmeow_pipeline::stages::native_query::*`
+// caller is unchanged.
+pub use gmeow_bundle_view::native_query;
 pub mod okf;
 pub mod profiles;
 pub mod provenance_graph;

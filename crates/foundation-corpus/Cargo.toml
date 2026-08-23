@@ -19,15 +19,15 @@ path = "src/lib.rs"
 [dependencies]
 # Native RDF 1.2 graph building over the IR (no rdflib, no oxigraph).
 purrdf.workspace = true
-serde = { version = "1", features = ["derive"] }
+serde.workspace = true
 # Keep serde_json's workspace-wide default map semantics. Ordered JSON-LD
 # projection keys are emitted by a crate-local writer in projections.rs.
-serde_json = "1"
+serde_json.workspace = true
 # NFKD normalization for _slug (matches Python unicodedata.normalize("NFKD", ...)).
 unicode-normalization = "0.1"
 
 [dev-dependencies]
-tempfile = "3"
+tempfile.workspace = true
 # Acceptance-spine parity test: whole-ontology native SHACL + native SPARQL
 # over the imported foundation.ttl — OXIGRAPH-FREE. The fixture parses
 # through the canonical native codec (`purrdf::parse_dataset`) into a frozen

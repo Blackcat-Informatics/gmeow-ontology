@@ -54,38 +54,21 @@ use crate::stages::carrier::{
     archive_blob, list_files, members_relpath, slice_files, slice_named_files,
 };
 
+/// The archive representation ids, from the crate that OWNS them: `gmeow-bundle-view`
+/// addresses these blobs on the read side, and a second definition here would be a
+/// second source of truth for a string the two sides have to agree on exactly.
+pub(crate) use gmeow_bundle_view::bundle_blobs::{
+    REP_AXIOMS, REP_CELLS, REP_MAPPINGS, REP_QUERIES, REP_SCHEMAS, REP_SHAPES, REP_TESTS,
+};
+
 /// The stage id — matches the `gmeow:stage-archive-blobs` individual.
 pub const STAGE_ID: &str = "stage-archive-blobs";
 
-/// tar of `generated/mappings/*.sssom.tsv`, member = bare filename.
-pub(crate) const REP_MAPPINGS: &str = "mappings-archive";
-/// tar of the cell/projection TTL sources, member = repo-relative path.
-pub(crate) const REP_CELLS: &str = "cells-archive";
-/// tar of `generated/queries/*.rq`, member = bare filename.
-pub(crate) const REP_QUERIES: &str = "queries-archive";
-/// tar of the slice test-DSL specs, member = repo-relative path.
-pub(crate) const REP_TESTS: &str = "tests-archive";
-/// tar of the SHACL-derived JSON Schema + OpenAPI, member = bare filename.
-pub(crate) const REP_SCHEMAS: &str = "schemas-archive";
 /// tar of the generated Pydantic model package, member = package-relative path
 /// (`gmeow_models/...`). Re-exported from the reader-side definition in
 /// [`crate::bundle_blobs`] so producer and reader share ONE constant (a drifted
 /// label would silently fold/read an empty package).
 pub(crate) use crate::bundle_blobs::REP_MODELS_PYTHON;
-/// tar of the FULL SHACL shape surface, member = repo-relative path:
-/// every `shapes/*.ttl` (incl. the 4 DSL/manifest lints the consumer's DSL phases
-/// need) + every `generated/shapes/*.ttl` (P11 frame shapes) + every per-slice
-/// `slices/<g>/<n>/shapes.ttl`. The full surface — NOT the validator's filtered
-/// union — so a repo-free `gmeow validate` can re-derive both the data-graph
-/// union and the DSL phases. The Python reader (`bundle.bundled_shapes`) MUST use
-/// this exact rep string.
-pub(crate) const REP_SHAPES: &str = "shapes-archive";
-/// tar of the compiled logic/DL projection surface, member = repo-relative
-/// path: the small committed projections in [`AXIOM_FILES`]. NOT the big reasoning
-/// OUTPUTS (inferred-closure / reasoning-explanations / dl-el-crosscheck-report),
-/// which ride other channels. The Python reader (`bundle.bundled_axioms`) MUST use
-/// this exact rep string.
-pub(crate) const REP_AXIOMS: &str = "axioms-archive";
 /// tar of the WHOLE `lang:` deliverable family — everything under
 /// [`LANG_PROJECTION_DIR`](crate::stages::lang_projection::LANG_PROJECTION_DIR) plus
 /// the two non-RDF terminology surfaces in [`LANG_GLOSSARY_MEMBERS`] — member =

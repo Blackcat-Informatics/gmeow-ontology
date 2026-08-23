@@ -49,7 +49,7 @@ gmeow-errors = { path = "../errors" }
 gmeow-term-arena = { path = "../term-arena" }
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
-sha2 = "0.10"
+sha2.workspace = true
 # blake3: the framed, domain-tagged content-digest discipline shared with
 # crates/logic (`ReasoningContract::content_digest` pins the reasoning contract for
 # the operational `ReasoningSession` identity). Pure-Rust, wasm-clean.
@@ -58,13 +58,13 @@ blake3.workspace = true
 # in-memory product (JSON) from the compile-logic pipeline stage to the mappings stage,
 # which assembles the FINAL projection report over the union of the logic rows and the
 # correspondence ledger. Pure-Rust + wasm-clean (no oxigraph / no std::fs).
-serde = { version = "1", features = ["derive"] }
+serde.workspace = true
 
 [dev-dependencies]
 # insta: snapshot goldens for the projection back-ends (the `.snap` files are the
 # byte-exact unit goldens; crates/conformance owns cross-engine corpus parity).
 # Pinned to match crates/logic. `json` drives `assert_json_snapshot!` where used.
-insta = { version = "1.48", features = ["json"] }
+insta = { workspace = true, features = ["json"] }
 # serde_json: verify the correspondence gate report serializes to stable tagged JSON
 # (the conformance golden shape) in the gate unit tests.
-serde_json = "1"
+serde_json.workspace = true

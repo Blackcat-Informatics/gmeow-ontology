@@ -24,7 +24,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
-sha2 = "0.10"
+sha2.workspace = true
 # The plain-text bridge declares each lifted surface's Unicode normalization form
 # HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared
 # frame must match the actual bytes the surface hash is taken over.
@@ -38,21 +38,32 @@ unicode-security = "0.1.2"
 # both the ⟦·⟧ fragmentation benchmark and the token-cost feed the machine-compression
 # sibling consumes. Default features only — the `async-openai` feature is intentionally off.
 #
-# Native-only: the token-cost primitive feeds `gmn_symbology`/`gmn_metrics` (glyph-cost
-# analytics), which the wasm-clean GMN-1 VALIDATOR path (`gmn1_read` against the embedded
-# codebook, consumed by `gmeow-validate-wasm::gmn_validate`) never touches. tiktoken-rs
-# embeds a ~1.7 MB BPE vocabulary that would bloat the wasm image for zero validation
-# benefit, so it — and the `gmn_symbology` module that uses it — are excluded from the
-# wasm32 target (mirroring how `gmeow-validate` gates its native-only deps). Confirmed off
-# the validate path by `cargo tree` (see the `make wasm` GMN purity gate).
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tiktoken-rs = "0.12"
+# Carried by the `glyph-cost` feature (ON by default), NOT by a target gate. tiktoken-rs
+# itself cross-compiles to wasm32-unknown-unknown cleanly; what the wasm image cannot
+# afford is its ~1.7 MB embedded BPE vocabulary when the consumer never measures a cost.
+# The two GMN wasm shims (`gmeow-validate-wasm`'s `gmn_validate`, `gmeow-gmn-wasm`'s
+# transcode + its pinned `GLYPH_TOKEN_COSTS` legend) therefore take this crate with
+# `default-features = false`, which is what keeps tiktoken-rs off their wasm dependency
+# trees (the `make wasm` GMN purity gate proves it). A consumer that genuinely measures
+# glyph cost on wasm — `gmeow-slice-quality`'s `gmn_glyph_optimality_axis`, and through it
+# the browser-runnable `gmeow-mcp` `slice_quality` tool — keeps the default feature and
+# pays for the vocabulary, because the alternative is an axis that silently stops
+# measuring on one target.
+tiktoken-rs = { version = "0.12", optional = true }
+
+[features]
+default = ["glyph-cost"]
+# The glyph-cost analytics surface: `gmn_symbology` (the `cl100k_base` token-cost
+# primitive) and everything that reads it. Selecting it OUT is an explicit, first-class
+# choice made by the two wasm shims that never call the primitive — never a silent
+# per-target degradation of a caller that does.
+glyph-cost = ["dep:tiktoken-rs"]
 
 [dev-dependencies]
-insta = { version = "1.48", features = ["json"] }
+insta = { workspace = true, features = ["json"] }
 proptest = "1"
 # The Gate-2 vendored-treebank round-trip test dogfoods the real corpus.json descriptor
 # against the native license CATEGORY (ring-fenced + attributed CC BY-SA ⇒ IMPORT_OK) — the
 # same classifier the conformance vendoring audit uses, keyed off the descriptor not a path.
 gmeow-license = { path = "../license" }
-serde_json = "1"
+serde_json.workspace = true

@@ -3,12 +3,18 @@
 
 // gmeow-validate-wasm — the repo-free Tier-1 GMEOW validator over the wasm engine.
 //
-// The wasm-bindgen-generated functions (`validate`/`version`) are re-exported as-is;
-// this wrapper adds the one-time async wasm instantiation the synchronous wasm
-// boundary cannot express, matching the `web` target's init contract.
+// EVERY wasm-bindgen-generated function (`bundle_dataset`/`gmn_codebook_digest`/
+// `gmn_validate`/`validate`/`version`) is re-exported as-is; this wrapper adds only the
+// one-time async wasm instantiation the synchronous wasm boundary cannot express,
+// matching the `web` target's init contract. The re-export is TOTAL by contract — a
+// shipped engine export that the package does not surface is a silent capability
+// degradation, and the export-set-equality gate (`tests/exports.test.mjs` +
+// `crates/gmeow-dev-cli/tests/npm_packaging_contract.rs`) refuses it.
 
 import init, {
   bundle_dataset,
+  gmn_codebook_digest,
+  gmn_validate,
   validate,
   version,
 } from "./pkg/gmeow_validate_wasm.js";
@@ -50,4 +56,4 @@ export function ready(wasmBytesOrUrl) {
   return _ready;
 }
 
-export { bundle_dataset, validate, version };
+export { bundle_dataset, gmn_codebook_digest, gmn_validate, validate, version };

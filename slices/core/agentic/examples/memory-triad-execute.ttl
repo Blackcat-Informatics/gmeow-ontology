@@ -7,7 +7,7 @@
 # trajectory, this file shows the EXECUTE path: each memory WRITE tool (store_claim,
 # revise_belief) runs THROUGH the Transaction-Logic engine, and the executional-entailment
 # verdict gates the commit. This is a worked illustration of the shape the native server
-# (crates/pipeline/src/mcp.rs) produces; the byte-exact engine goldens live in
+# (crates/mcp/src/lib.rs) produces; the byte-exact engine goldens live in
 # conformance/logic/cases/transaction/memory-triad-execute/.
 #
 # TWO LAYERS, kept distinct below:

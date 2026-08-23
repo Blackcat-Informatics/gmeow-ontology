@@ -124,3 +124,51 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:usedTool and nothing else. It is not a definition of gmeow:usedTool (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:usedTool, et rien d'autre. Ce n'est pas une définition de gmeow:usedTool (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derived by"
+msgstr "dérivé par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The tool call a RESULT STATEMENT came out of — the predicate an annotated result triple carries so an agent's answer stays attributable to the call that produced it. Backward-pointing, like gmeow:wasGeneratedBy, but attaching to the statement rather than to an entity: gmeow:wasGeneratedBy says a thing was produced by an activity, this says a particular assertion was. Deliberately domain-free, since any statement a session emits may be annotated this way and the annotated subjects share no class. Distinct from gmeow:derivedByFunction, which names a pure function a derived observation was computed with, not an audited call event."
+msgstr "L'appel d'outil dont est issu un ÉNONCÉ DE RÉSULTAT — le prédicat que porte un triplet de résultat annoté afin que la réponse d'un agent reste imputable à l'appel qui l'a produite. Orienté vers l'amont, comme gmeow:wasGeneratedBy, mais rattaché à l'énoncé plutôt qu'à une entité : gmeow:wasGeneratedBy dit qu'une chose a été produite par une activité, celui-ci dit qu'une assertion particulière l'a été. Délibérément sans domaine, puisque tout énoncé émis par une session peut être annoté ainsi et que les sujets annotés ne partagent aucune classe. À distinguer de gmeow:derivedByFunction, qui nomme la fonction pure ayant servi à calculer une observation dérivée, et non un événement d'appel audité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:answer gmeow:derivedBy ex:searchCall ."
+msgstr "Exemple : ex:answer gmeow:derivedBy ex:searchCall ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/derivedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: ATTRIBUTION, never endorsement — the edge records which call an assertion came out of and says nothing about whether that assertion is true, so an answer later refuted keeps this edge rather than losing it. No rdfs:domain is asserted, deliberately: the annotated subjects share no class, so nothing here checks that the subject is a statement rather than a thing, and that discipline belongs to whichever reification the recording harness uses. The range is a gmeow:ToolCall and nothing wider — a whole session, the requesting gmeow:ModelInvocation, and the bare gmeow:SoftwareAgent that was called are all out of scope, because only the call event carries the arguments and the verbatim payload an auditor has to read."
+msgstr "Portée : ATTRIBUTION, jamais approbation — l'arête enregistre de quel appel est issue une assertion et ne dit rien sur la vérité de cette assertion ; une réponse réfutée par la suite conserve donc cette arête au lieu de la perdre. Aucun rdfs:domain n'est déclaré, et ce délibérément : les sujets annotés ne partagent aucune classe, de sorte que rien ici ne vérifie que le sujet est un énoncé plutôt qu'une chose, et cette discipline relève de la réification qu'emploie le harnais d'enregistrement. Le codomaine est un gmeow:ToolCall et rien de plus large — une session entière, la gmeow:ModelInvocation demandeuse et le simple gmeow:SoftwareAgent appelé sont tous hors de portée, car seul l'événement d'appel porte les arguments et la charge utile textuelle exacte que doit lire un auditeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "session store segment"
+msgstr "segment du magasin de session"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identifier of the append-only session-store segment this call's audit record was appended to. A session's trajectory is written as an ordered run of segments rather than as one rewritten whole, so naming the segment makes the record locatable without re-reading the entire store, and makes an audit that spans several commits reconstructible in order."
+msgstr "L'identifiant du segment en ajout seul du magasin de session auquel l'enregistrement d'audit de cet appel a été ajouté. La trajectoire d'une session est écrite comme une suite ordonnée de segments plutôt que comme un tout réécrit ; nommer le segment rend donc l'enregistrement localisable sans relire le magasin entier, et rend reconstructible dans l'ordre un audit qui s'étend sur plusieurs validations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:call gmeow:sessionStoreSegment \"0003\" ."
+msgstr "Exemple : ex:call gmeow:sessionStoreSegment \"0003\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegment|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: a LOCATOR, not an ordering and not the payload. It names which segment holds the audit record, never an offset inside that segment, and comparing two identifiers is not a sanctioned way to order two calls — replay order comes from the store's append order and from the call's own gmeow:atTime, never from arithmetic on this literal. Nor is it a filesystem path: it names the store's own segment identity, so relocating or renaming the underlying files leaves the record true. Exactly one value per call (gmeow:sessionStoreSegmentFunctionality) — bytes that landed in two segments are a broken append, not a second value."
+msgstr "Portée : un LOCALISATEUR, ni un ordre ni la charge utile. Il nomme le segment qui contient l'enregistrement d'audit, jamais un décalage à l'intérieur de ce segment, et comparer deux identifiants n'est pas un moyen admis d'ordonner deux appels — l'ordre de relecture vient de l'ordre d'ajout du magasin et du gmeow:atTime propre à l'appel, jamais d'une arithmétique sur ce littéral. Ce n'est pas non plus un chemin de fichier : il nomme l'identité de segment propre au magasin, si bien que déplacer ou renommer les fichiers sous-jacents laisse l'enregistrement vrai. Exactement une valeur par appel (gmeow:sessionStoreSegmentFunctionality) — des octets ayant abouti dans deux segments constituent un ajout défectueux, non une seconde valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sessionStoreSegment is functional"
+msgstr "sessionStoreSegment est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:sessionStoreSegment is functional: a tool call's audit record was appended to exactly one append-only session-store segment, the single segment its bytes were committed to. A second value would make the record locatable in two places at once and let a replay re-point an already-committed call at a different segment, which is precisely what an append-only trajectory forbids. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:sessionStoreSegment est fonctionnelle : l'enregistrement d'audit d'un appel d'outil a été ajouté à exactement un segment en ajout seul du magasin de session, l'unique segment auquel ses octets ont été validés. Une seconde valeur rendrait l'enregistrement localisable en deux endroits à la fois et permettrait à une relecture de réorienter un appel déjà validé vers un autre segment, ce qu'une trajectoire en ajout seul interdit précisément. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:sessionStoreSegment and nothing else. It is not a definition of gmeow:sessionStoreSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:sessionStoreSegment, et rien d'autre. Ce n'est pas une définition de gmeow:sessionStoreSegment (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionStoreSegmentFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."
+msgstr "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."

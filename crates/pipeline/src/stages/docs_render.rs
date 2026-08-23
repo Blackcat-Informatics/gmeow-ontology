@@ -1084,11 +1084,20 @@ mod tests {
         // and is walked here), so re-blessing an attestation busts the docs cache and the
         // interactive preservation-kind is causally downstream of the proven parity — not
         // a decorative gate.
+        //
+        // The edge is unchanged in kind and narrower in extent: it used to also name
+        // `assets/purrdf/WITNESS.describe.nt`, because `Capability::LiveSparql` was backed
+        // by two engines. It is backed by the core segment alone now, so the core segment's
+        // attestation carries the whole edge for live SPARQL. The describe property that
+        // witness attested is still proven — by `crates/mcp/tests/witness_explore.rs`,
+        // against the engine that now answers it.
         for witness in [
             "crates/docs/assets/query/WITNESS.describe.nt",
             "crates/docs/assets/validate/WITNESS.validate.json",
             "crates/docs/assets/reason/WITNESS.reason.nq",
             "crates/docs/assets/gmn/WITNESS.gmn1.txt",
+            "crates/docs/assets/mcp-core/WITNESS.core-deferral.json",
+            "crates/docs/assets/mcp/WITNESS.mcp.json",
         ] {
             assert!(
                 files.iter().any(|p| p.ends_with(witness)),

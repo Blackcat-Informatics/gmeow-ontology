@@ -49,7 +49,7 @@ gmeow-logic = { path = "../logic" }
 # (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
 tempfile = "3"
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec
-# file, run in parallel. The headline speed win of the native harness.
+# file, run in parallel. The headline speed win of the native harness (T3).
 datatest-stable = "0.3"
 # The flagship acceptance-manifest cross-check names the frozen dataset and
 # term types directly to walk the manifest ⋈ competency union; the same native codec

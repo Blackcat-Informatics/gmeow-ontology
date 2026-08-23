@@ -380,9 +380,12 @@ fn evidence_compaction_constraint_flags_the_recompacted_exhibit() {
              @prefix ex: <http://example.org/gts/> .\n\
              ex:compact1 a gmeow:GTSCompaction .\n\
              ex:exhibit a gmeow:GTSDocument ;\n\
-                 gmeow:wasGeneratedBy ex:compact1 .\n\
+                 gmeow:wasGeneratedBy ex:compact1 ;\n\
+                 gmeow:gtsSegment ex:seg .\n\
              ex:seg a gmeow:GTSSegment ;\n\
                  gmeow:gtsSegmentOf ex:exhibit ;\n\
+                 gmeow:gtsSegmentIndex 0 ;\n\
+                 gmeow:gtsHeadId \"blake3:0000000000000000000000000000000000000000000000000000000000000000\" ;\n\
                  gmeow:gtsProfile gmeow:{profile} .\n"
         )
     };

@@ -1,0 +1,14 @@
+{
+  "name": "@gmeow/console-smoke",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Dev-only Playwright smoke lane for the standalone GMEOW console. Never shipped to a consumer.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "smoke": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0"
+  }
+}

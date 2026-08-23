@@ -457,8 +457,8 @@ exception). Gated on a stable Python beta so the surface is proven before it is 
 consumer and **not** dependent on `no_std`: WASM has its own ownership model, packaging (npm/ESM), async
 I/O, and idiomatic JS API (RDF/JS `DataFactory`/Stream). Its own parcel, parallel to the C-ABI.
 
-**Delivered** as `crates/rdf-wasm` (the `gmeow-rdf-wasm` cdylib) + the `purrdf` npm/ESM package at
-`crates/rdf-wasm/js/`. It compiles the oxigraph-free / PyO3-free `gmeow-rdf` kernel
+**Delivered** in the sibling purrdf repository as its wasm-bindings cdylib + the
+published `@blackcatinformatics/purrdf` npm/ESM package. It compiles the oxigraph-free / PyO3-free RDF kernel
 (`--no-default-features --features gts`) to `wasm32-unknown-unknown` — no engine cfg-gating was needed
 (the probed `ed25519`/`getrandom` blocker did not materialize: Ed25519 is deterministic and unreachable
 from the RDF/JS surface). The shipped surface:

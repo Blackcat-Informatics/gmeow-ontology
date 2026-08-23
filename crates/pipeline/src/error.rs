@@ -209,28 +209,6 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A hard defect raised by the dogfooding MCP server surface (snapshot decode,
-    /// query dispatch, memory access, or transaction append).
-    pub struct Mcp { message: String }
-    code = "pipeline.mcp";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "mcp error: {}", message;
-}
-
-define_diag_kind! {
-    /// A consumer query matched a bare local name in more than one namespace on the
-    /// MCP surface — a HARD fail (no silent namespace precedence), the twin of the
-    /// shippable-CLI `gmeow-cli.describe.ambiguous`. Minted DISTINCT from the generic
-    /// unknown-term [`Mcp`] so an ambiguous term is greppable as its own code. The
-    /// message names the query and lists the sorted candidate CURIEs the caller must
-    /// disambiguate between.
-    pub struct McpAmbiguousTerm { message: String }
-    code = "pipeline.mcp.ambiguous-term";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "{}", message;
-}
-
-define_diag_kind! {
     /// A hard defect raised while projecting the GTS base graph into a lossy
     /// surface (flat-quad decode, namespace scan, or transpile).
     pub struct Projection { message: String }
@@ -464,8 +442,6 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     StageFailed::CODE,
     Transform::CODE,
     Scoreboard::CODE,
-    Mcp::CODE,
-    McpAmbiguousTerm::CODE,
     Projection::CODE,
     UpProjection::CODE,
     Put::CODE,
@@ -487,10 +463,6 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     crate::transcode::NonInvertibleSource::CODE,
     crate::transcode::UndecodableInput::CODE,
     crate::transcode::CodecError::CODE,
-    crate::bundle_blobs::BundleParse::CODE,
-    crate::bundle_blobs::BundleDecode::CODE,
-    crate::bundle_blobs::BundleUntar::CODE,
-    crate::bundle_blobs::BundleJson::CODE,
     crate::stages::rule_severity::UnknownRuleSeverity::CODE,
 ];
 
@@ -519,8 +491,6 @@ pub fn register_all() -> Vec<Code> {
         StageFailed::register(),
         Transform::register(),
         Scoreboard::register(),
-        Mcp::register(),
-        McpAmbiguousTerm::register(),
         Projection::register(),
         UpProjection::register(),
         Put::register(),
@@ -542,10 +512,6 @@ pub fn register_all() -> Vec<Code> {
         crate::transcode::NonInvertibleSource::register(),
         crate::transcode::UndecodableInput::register(),
         crate::transcode::CodecError::register(),
-        crate::bundle_blobs::BundleParse::register(),
-        crate::bundle_blobs::BundleDecode::register(),
-        crate::bundle_blobs::BundleUntar::register(),
-        crate::bundle_blobs::BundleJson::register(),
         crate::stages::rule_severity::UnknownRuleSeverity::register(),
     ]
 }

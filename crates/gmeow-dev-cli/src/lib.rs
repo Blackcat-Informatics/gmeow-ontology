@@ -131,6 +131,13 @@ pub enum Commands {
     /// three external-distribution design totals.
     #[command(name = "docs-measure")]
     DocsMeasure,
+    /// Assemble the standalone `<gmeow-console>` tree (shell + shared engine assets)
+    /// into a directory, off the same bundle-backed exec the site render uses.
+    #[command(name = "console-assemble")]
+    ConsoleAssemble {
+        #[arg(long = "out", default_value = "dist/console-smoke")]
+        out: PathBuf,
+    },
     /// Package the materialized `dist/gmeow-docs/` external documentation
     /// distribution into one deterministic content-addressed release asset,
     /// alongside a `.blake3` sidecar for the DCAT release manifest.
@@ -756,18 +763,18 @@ fn info() -> i32 {
 
 /// `gmeow-dev mcp` — serve the native, repo-anchored MCP developer surface over
 /// stdio. Reads the on-disk `generated/dist/gmeow.gts` snapshot from the working
-/// tree (like every other dev command) and passes the repository root so the
-/// [`McpMode::Dev`](gmeow_pipeline::mcp::McpMode::Dev) repo-reading maintenance
-/// tools (validate/reason/sync/constitution) are exposed alongside the
-/// consumer surface. Blocks on the JSON-RPC loop until EOF.
+/// tree (like every other dev command) and passes the repository root to
+/// [`gmeow_mcp_dev::dev_server`], which registers the four repo-reading maintenance
+/// tools (validate/reason/sync/constitution) plus the Constitution resource into the
+/// consumer surface through the MCP extension seam. Blocks on the JSON-RPC loop
+/// until EOF.
 fn mcp() -> i32 {
-    use gmeow_pipeline::mcp::{McpMode, McpServer};
     let root = project_root();
     let bytes = match snapshot_bytes(&root) {
         Ok(b) => b,
         Err(code) => return code,
     };
-    let server = match McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev) {
+    let server = match gmeow_mcp_dev::dev_server(&bytes, root) {
         Ok(server) => server,
         Err(e) => return dev_common::fail(format!("mcp: {e}")),
     };
@@ -808,6 +815,7 @@ pub fn run() -> i32 {
             dev_build::fanout(jobs, timings_json.as_deref(), console)
         }
         Commands::DocsMeasure => dev_docs_measure::docs_measure(),
+        Commands::ConsoleAssemble { out } => dev_project::console_assemble(&out),
         Commands::DocsPackage { out } => dev_docs_package::docs_package(&out),
         Commands::ReleaseBundle {
             out,

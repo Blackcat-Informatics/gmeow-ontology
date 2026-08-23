@@ -1552,6 +1552,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-bundle-view"
+version = "0.2.0"
+dependencies = [
+ "blake3",
+ "ciborium",
+ "gmeow-docs-model",
+ "gmeow-errors",
+ "gmeow-logic-compile",
+ "gmeow-ns",
+ "gmeow-validate",
+ "purrdf",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "gmeow-cli"
 version = "0.2.0"
 dependencies = [
@@ -1568,6 +1584,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-math-lift",
+ "gmeow-mcp",
  "gmeow-music",
  "gmeow-ns",
  "gmeow-pipeline",
@@ -1629,12 +1646,15 @@ dependencies = [
  "docs-print",
  "gmeow-cli-core",
  "gmeow-docs",
+ "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-foundation-corpus",
  "gmeow-gts-profile",
  "gmeow-license",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-mcp",
+ "gmeow-mcp-dev",
  "gmeow-music",
  "gmeow-ns",
  "gmeow-pipeline",
@@ -1656,14 +1676,45 @@ name = "gmeow-docs"
 version = "0.2.0"
 dependencies = [
  "blake3",
+ "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-logic-compile",
+ "gmeow-mcp",
  "gmeow-ns",
  "gmeow-validate",
  "insta",
  "minijinja",
  "pretty_assertions",
+ "pulldown-cmark",
+ "purrdf",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha1",
+ "tempfile",
+]
+
+[[package]]
+name = "gmeow-docs-catalog"
+version = "0.2.0"
+dependencies = [
+ "gmeow-bundle-view",
+ "gmeow-errors",
+ "gmeow-ns",
+ "purrdf",
+]
+
+[[package]]
+name = "gmeow-docs-model"
+version = "0.2.0"
+dependencies = [
+ "blake3",
+ "gmeow-errors",
+ "gmeow-lang-bridge",
+ "gmeow-logic-compile",
+ "gmeow-ns",
+ "gmeow-validate",
  "pulldown-cmark",
  "purrdf",
  "regex",
@@ -1846,6 +1897,59 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-mcp"
+version = "0.2.0"
+dependencies = [
+ "ed25519-dalek",
+ "gmeow-bundle-view",
+ "gmeow-docs-catalog",
+ "gmeow-docs-model",
+ "gmeow-errors",
+ "gmeow-gts-profile",
+ "gmeow-lang-bridge",
+ "gmeow-logic",
+ "gmeow-logic-compile",
+ "gmeow-ns",
+ "gmeow-slice-quality",
+ "gmeow-transcode",
+ "gmeow-validate",
+ "jsonschema",
+ "purrdf",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
+name = "gmeow-mcp-core-wasm"
+version = "0.2.0"
+dependencies = [
+ "gmeow-mcp",
+ "serde_json",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "gmeow-mcp-dev"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-logic",
+ "gmeow-mcp",
+ "gmeow-pipeline",
+ "serde_json",
+]
+
+[[package]]
+name = "gmeow-mcp-wasm"
+version = "0.2.0"
+dependencies = [
+ "gmeow-mcp",
+ "serde_json",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "gmeow-music"
 version = "0.2.0"
 dependencies = [
@@ -1874,9 +1978,11 @@ dependencies = [
  "ed25519-dalek",
  "fastrand",
  "gmeow-affect",
+ "gmeow-bundle-view",
  "gmeow-cli-core",
  "gmeow-conformance",
  "gmeow-docs",
+ "gmeow-docs-catalog",
  "gmeow-errors",
  "gmeow-gts-profile",
  "gmeow-lang-bridge",
@@ -1884,11 +1990,13 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-mcp",
  "gmeow-music",
  "gmeow-ns",
  "gmeow-slice-brief",
  "gmeow-slice-quality",
  "gmeow-slicetest",
+ "gmeow-transcode",
  "gmeow-validate",
  "insta",
  "jsonschema",
@@ -1946,7 +2054,7 @@ name = "gmeow-slice-quality"
 version = "0.2.0"
 dependencies = [
  "blake3",
- "gmeow-docs",
+ "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-logic",
@@ -1985,6 +2093,18 @@ dependencies = [
  "hashbrown 0.15.5",
  "purrdf",
  "smallvec",
+]
+
+[[package]]
+name = "gmeow-transcode"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-gts-profile",
+ "gmeow-logic-compile",
+ "purrdf",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

@@ -1,0 +1,11 @@
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+SPDX-License-Identifier: CC-BY-4.0
+
+The deployed-site sections of the console README. `crates/docs/src/console.rs` substitutes
+these bytes into `crates/docs/assets/console/README.md` when it emits that document into the
+assembled console tree, so the header rides in this sidecar rather than inline: the bytes are
+concatenated into a document that already carries one.
+
+The file lives OUTSIDE `assets/console/` on purpose. That directory is the published npm
+package's root, and this content documents the service worker, the PWA shell and the measured
+byte table of the deployed tree — files the package does not ship.

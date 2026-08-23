@@ -1,11 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// gmeow-gmn-wasm — the shipped GMN-0<->GMN-1 codec over the wasm engine. The
-// wasm-bindgen `to_gmn1`/`from_gmn1`/`version` are re-exported as-is; this wrapper adds
-// the one-time async wasm instantiation the synchronous boundary cannot express.
+// gmeow-gmn-wasm — the shipped GMN-0<->GMN-1 codec over the wasm engine. EVERY
+// wasm-bindgen export (`to_gmn1`/`from_gmn1`/`glyph_legend`/`version`) is re-exported
+// as-is; this wrapper adds only the one-time async wasm instantiation the synchronous
+// boundary cannot express. The re-export is TOTAL by contract — a shipped engine export
+// that the package does not surface is a silent capability degradation, and the
+// export-set-equality gate (`tests/exports.test.mjs` +
+// `crates/gmeow-dev-cli/tests/npm_packaging_contract.rs`) refuses it.
 
-import init, { to_gmn1, from_gmn1, version } from "./pkg/gmeow_gmn_wasm.js";
+import init, { from_gmn1, glyph_legend, to_gmn1, version } from "./pkg/gmeow_gmn_wasm.js";
 
 // Cache the in-flight instantiation PROMISE, not a post-resolution boolean: two
 // callers that both reach `ready()` before the first `init()` resolves must share
@@ -36,4 +40,4 @@ export function ready(wasmBytesOrUrl) {
   return _ready;
 }
 
-export { to_gmn1, from_gmn1, version };
+export { from_gmn1, glyph_legend, to_gmn1, version };
