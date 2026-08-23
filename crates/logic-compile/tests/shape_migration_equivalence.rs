@@ -551,14 +551,15 @@ fn envelope_named_class_fields_reject_a_blank_node_value() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
-// Part C — gmeow:RightsStatement statementAbout closed-world range (Principle 17)
+// Part C — gmeow:RightsStatement statementAbout Entity range (Principle 17)
 //
-// gmeow:statementAbout carries a CLOSED-WORLD universal range: every asset a RightsStatement
-// governs is a gmeow:Entity, exactly one, an IRI/blank node. That range is authored as the
-// explicit Principle-17 idiom — logic:allValuesFrom gmeow:Entity plus a class-scoped
-// logic:ClosureEntry — which replaced a logic:someValuesFrom existential that misstated the
-// intent (∃ rather than the ∀ range). These tests pin the derived obligation and prove it is
-// ENFORCED, so a future edit that drops the restriction or the closure reds here.
+// gmeow:statementAbout carries an Entity value range: every asset a RightsStatement governs is a
+// gmeow:Entity, exactly one, an IRI/blank node. It is authored as logic:someValuesFrom
+// gmeow:Entity which, under the exact-one (min1/max1, onClass logic:Thing) cardinality declared
+// on the class, derives exactly the universal sh:class gmeow:Entity plus bare exact-one counts a
+// closed-world allValuesFrom would — so the existential authoring already closes the range and no
+// separate logic:ClosureEntry is needed. These tests pin the derived obligation and prove it is
+// ENFORCED, so a future edit that drops the restriction reds here.
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 
 const RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
@@ -628,7 +629,7 @@ fn rights_statement_about_derives_closed_world_entity_range() {
     let shapes = derived(RIGHTS_MODULE);
     let s = class_shape(&shapes, &g("RightsStatement"));
     let path = g("statementAbout");
-    // The universal value typing — the closed-world range (logic:allValuesFrom + ClosureEntry).
+    // The universal value typing — the Entity range (logic:someValuesFrom under exact-one).
     assert_class(s, &path, &g("Entity"));
     // Presence + functionality: exactly one governed asset (the onClass logic:Thing exact-one).
     assert_min_count(s, &path, 1);
