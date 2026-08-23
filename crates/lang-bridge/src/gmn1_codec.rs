@@ -155,7 +155,7 @@ const GLYPH_VERSION: &str = "2";
 
 // ── The GMN dialect version lineage (graph-resolved acceptance) ──────────────────────
 // The `gmeow:gmnDialectVersions` gmeow:VersionSet and its gmeow:VersionMembership relators:
-// the latest major is read off the `gmeow:roleLatest` member's `owl:versionInfo`, and the
+// the latest major is read off the `gmeow:roleLatest` member's `logic:versionInfo`, and the
 // acceptance window off the set's `gmeow:gmnAcceptWindow`. Version identity comes from the
 // GRAPH — these IRIs are the query keys, never a source of the version value itself.
 const GMN_DIALECT_VERSIONS_IRI: &str = "https://blackcatinformatics.ca/gmeow/gmnDialectVersions";
@@ -1150,7 +1150,7 @@ pub fn resolve_current_codebook(ds: &RdfDataset) -> Result<CurrentCodebook, Glyp
 
 /// The graph-resolved GMN dialect acceptance policy: the latest major and the accept
 /// window, both READ FROM THE GRAPH (`gmeow:gmnDialectVersions`) — never a Rust constant.
-/// The latest major is the `owl:versionInfo` of the lineage's `gmeow:roleLatest` member; the
+/// The latest major is the `logic:versionInfo` of the lineage's `gmeow:roleLatest` member; the
 /// window is the set's `gmeow:gmnAcceptWindow`. A reader accepts the latest major plus the
 /// `accept_window` majors immediately behind it (each of which enters only through a judged
 /// migration crossing), and never a future major beyond the latest.
@@ -1161,7 +1161,7 @@ pub struct DialectAcceptance {
 }
 
 impl DialectAcceptance {
-    /// The lineage's latest major (the `gmeow:roleLatest` member's `owl:versionInfo`).
+    /// The lineage's latest major (the `gmeow:roleLatest` member's `logic:versionInfo`).
     #[must_use]
     pub fn latest_major(&self) -> u32 {
         self.latest_major
@@ -1203,14 +1203,14 @@ impl DialectAcceptance {
 
 /// Resolve the GMN dialect acceptance policy FROM THE GRAPH. Follows the version lineage
 /// `gmeow:gmnDialectVersions`: its `gmeow:roleLatest` `gmeow:VersionMembership` names the
-/// latest `gmeow:versionMember`, whose `owl:versionInfo` is the latest major, and its
+/// latest `gmeow:versionMember`, whose `logic:versionInfo` is the latest major, and its
 /// `gmeow:gmnAcceptWindow` is the window. Version identity is read off the graph, never a
 /// Rust constant.
 ///
 /// Returns `Ok(None)` when the dataset carries no `gmeow:gmnDialectVersions` lineage at all
 /// (a fixture-scale dataset) so a caller can fall back to [`DialectAcceptance::codec_default`];
 /// a PRESENT-but-malformed lineage (no/many latest membership, a member with no/many
-/// `owl:versionInfo`, a non-integer major, no/many `gmeow:gmnAcceptWindow`) is a hard error,
+/// `logic:versionInfo`, a non-integer major, no/many `gmeow:gmnAcceptWindow`) is a hard error,
 /// never a silent default.
 ///
 /// # Errors
@@ -1294,11 +1294,11 @@ pub fn resolve_dialect_acceptance(
         .expect("the exactly-one latest-member set is non-empty");
     let latest_major_lex = exactly_one_literal(
         version_infos.get(&latest_member),
-        &format!("latest GMN dialect version {latest_member} owl:versionInfo"),
+        &format!("latest GMN dialect version {latest_member} versionInfo"),
     )?;
     let latest_major = latest_major_lex.parse::<u32>().map_err(|_| {
         GlyphRegistryError(format!(
-            "latest GMN dialect version {latest_member} owl:versionInfo {latest_major_lex:?} is \
+            "latest GMN dialect version {latest_member} versionInfo {latest_major_lex:?} is \
              not an integer major"
         ))
     })?;
