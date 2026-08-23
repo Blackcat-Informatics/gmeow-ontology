@@ -29,15 +29,14 @@
 //! the `logic:` spelling untouched; ONLY the lossy `owl:`/SHACL views consult this
 //! table. The direction is always canonical → view, never the reverse.
 
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
+use gmeow_ns::{LOGIC_NS, OWL_NS};
 
 /// The canonical `logic:` typing / header / class-declaration LOCAL names, each of
 /// which shares its local name with the `owl:` spelling (a pure namespace swap). These
 /// are the bare declaration markers — NOT the structural predicates (`subClassOf`,
 /// `disjointWith`, …, handled by `owl_for_pred`) and NOT the property characteristics
 /// (`transitiveProperty`, …, handled by `owl_for_char`).
-pub(crate) const TYPING_LOCALS: [&str; 8] = [
+const TYPING_LOCALS: [&str; 8] = [
     "Class",
     "ObjectProperty",
     "DatatypeProperty",
@@ -48,21 +47,15 @@ pub(crate) const TYPING_LOCALS: [&str; 8] = [
     "Nothing",
 ];
 
-/// The `owl:` spelling of a canonical `logic:` typing / header marker, or `None` when
-/// `iri` is not one — the single lookup behind all three readers. Mirrors the
-/// reasoner's `calculus_projection`.
-pub(crate) fn owl_typing_projection(iri: &str) -> Option<String> {
-    let local = iri.strip_prefix(LOGIC_NS)?;
-    TYPING_LOCALS
-        .contains(&local)
-        .then(|| format!("{OWL_NS}{local}"))
-}
-
 /// Whether `iri` is a canonical `logic:` bare typing / header marker (`logic:Class`,
 /// `logic:ObjectProperty`, `logic:Ontology`, …). The OWL projections use this to drop
-/// the marker in lockstep with its (already-omitted) `owl:` spelling.
+/// the marker in lockstep with its (already-omitted) `owl:` spelling, and it backs the
+/// shape-target walk and the property-declaration orphan check. It is a pure membership
+/// test: it never allocates the projected `owl:` IRI — the projection itself, when a
+/// reader needs it, comes from [`to_owl_view`] / [`gmeow_ns`]'s `OWL_*` constants.
 pub(crate) fn is_logic_typing_marker(iri: &str) -> bool {
-    owl_typing_projection(iri).is_some()
+    iri.strip_prefix(LOGIC_NS)
+        .is_some_and(|local| TYPING_LOCALS.contains(&local))
 }
 
 /// Normalize one authored `rdf:type` object onto the `owl:` view spelling the correspondence
@@ -95,30 +88,43 @@ mod tests {
     use super::*;
 
     #[test]
-    fn projects_canonical_typing_markers_to_owl() {
-        assert_eq!(
-            owl_typing_projection("https://blackcatinformatics.ca/logic/Class").as_deref(),
-            Some("http://www.w3.org/2002/07/owl#Class")
-        );
-        assert_eq!(
-            owl_typing_projection("https://blackcatinformatics.ca/logic/Ontology").as_deref(),
-            Some("http://www.w3.org/2002/07/owl#Ontology")
-        );
+    fn recognises_every_canonical_typing_marker() {
+        // The membership test recognises every bare `logic:` typing / header marker,
+        // and (per thread r3818278190) does so without allocating the `owl:` view.
+        for local in TYPING_LOCALS {
+            let iri = format!("{LOGIC_NS}{local}");
+            assert!(is_logic_typing_marker(&iri), "marker not recognised: {iri}");
+        }
     }
 
     #[test]
-    fn passes_through_non_typing_and_owl_iris() {
+    fn rejects_non_typing_and_owl_iris() {
         // A structural predicate is NOT a typing marker (owned by owl_for_pred).
-        assert!(owl_typing_projection("https://blackcatinformatics.ca/logic/subClassOf").is_none());
+        assert!(!is_logic_typing_marker(
+            "https://blackcatinformatics.ca/logic/subClassOf"
+        ));
         // A characteristic is NOT a typing marker (owned by owl_for_char).
-        assert!(
-            owl_typing_projection("https://blackcatinformatics.ca/logic/transitiveProperty")
-                .is_none()
-        );
+        assert!(!is_logic_typing_marker(
+            "https://blackcatinformatics.ca/logic/transitiveProperty"
+        ));
         // A domain type in the logic: namespace (e.g. the holon surface) is not a marker.
-        assert!(owl_typing_projection("https://blackcatinformatics.ca/logic/Holon").is_none());
+        assert!(!is_logic_typing_marker(
+            "https://blackcatinformatics.ca/logic/Holon"
+        ));
         // An already-`owl:` IRI is not a canonical marker (the reverse direction is never taken).
-        assert!(owl_typing_projection("http://www.w3.org/2002/07/owl#Class").is_none());
+        assert!(!is_logic_typing_marker(
+            "http://www.w3.org/2002/07/owl#Class"
+        ));
+    }
+
+    #[test]
+    fn to_owl_view_projects_a_typing_marker_to_its_owl_spelling() {
+        // The projection itself (when a reader needs the `owl:` IRI) comes from the
+        // shared `gmeow_ns` lowering, not a locally re-spelled literal.
+        assert_eq!(
+            to_owl_view("https://blackcatinformatics.ca/logic/Class"),
+            "http://www.w3.org/2002/07/owl#Class"
+        );
     }
 
     #[test]

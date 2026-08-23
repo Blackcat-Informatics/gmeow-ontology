@@ -140,6 +140,13 @@ pub const SUB_PROPERTY_OF: [&str; 2] = [LOGIC_SUB_PROPERTY_OF, RDFS_SUB_PROPERTY
 // `graph/correspondence-laws` corpus, and the reasoner's calculus-vocabulary
 // lowering carries the same map at the EDB boundary.
 
+/// `owl:` — the W3C OWL namespace. Every `OWL_*` projection constant below is
+/// [`OWL_NS`] concatenated with the term's local name; a reader lowering a
+/// canonical `logic:` marker to its OWL view reuses this rather than re-spelling
+/// the literal (Principle 17: OWL is a generated projection, never authored, so
+/// it is deliberately NOT one of the [`TERM_NAMESPACES`] a slice may mint into).
+pub const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
+
 /// `logic:Class` — the canonical class typing marker.
 pub const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
 /// `owl:Class` — the generated OWL projection of [`LOGIC_CLASS`].

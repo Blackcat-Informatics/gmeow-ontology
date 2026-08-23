@@ -1635,7 +1635,7 @@ pub fn derive_validation_shapes(
     // for a property a `ClosedWorldClosure` closure entry explicitly closes. See FAMILY 3.
     let closed_optins = closure_validation_closed_optins(store);
     let closed_requirements = closure_validation_closed_requirements(store);
-    let owl = "http://www.w3.org/2002/07/owl#";
+    let owl = gmeow_ns::OWL_NS;
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
     let owl_thing = format!("{owl}Thing");
