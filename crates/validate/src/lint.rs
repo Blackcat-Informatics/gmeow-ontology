@@ -1301,7 +1301,8 @@ fn check_surface_leak_in_content_key(ds: &RdfDataset, report: &mut LintReport) {
 
 /// `lang:RenderingAsIdentity` — a rendering names the content it renders and never
 /// substitutes for that content's identity. Flag a `lang:Rendering` that is its own
-/// `lang:renderedContent` (a), is `owl:sameAs` its own `lang:renderedContent` (b),
+/// `lang:renderedContent` (a), is `logic:sameAs` (or its `owl:sameAs` view) its own
+/// `lang:renderedContent` (b),
 /// or whose `lang:renderingForm` equals its `lang:renderedContent` (c).
 fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
     let rendered_content = lang_iri("renderedContent");
@@ -1328,8 +1329,8 @@ fn check_rendering_as_identity(ds: &RdfDataset, report: &mut LintReport) {
                 codes::LANG_RENDERING_AS_IDENTITY_SAMEAS,
                 format!("{subj}\t{c}"),
                 format!(
-                    "lang:RenderingAsIdentity: rendering {subj} is asserted owl:sameAs its own \
-                     lang:renderedContent {c}; the rendering has become identity"
+                    "lang:RenderingAsIdentity: rendering {subj} is asserted logic:sameAs or \
+                     owl:sameAs its own lang:renderedContent {c}; the rendering has become identity"
                 ),
             );
         }
