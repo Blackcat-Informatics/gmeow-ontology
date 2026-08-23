@@ -67,7 +67,7 @@ fn canonical_quads(text: &str, media_type: &str) -> gmeow_errors::Result<Vec<Str
     let dataset = parse_native_dataset(text, media_type)?;
     // Native flat RDFC-1.0: the oxigraph-free canonical N-Quads document. This
     // is byte-identical to the prior oxigraph flat-canonical path (proven by the
-    // `canonical_flat_nquads_byte_matches_oxigraph_path` gate in gmeow-rdf), so the
+    // `canonical_flat_nquads_byte_matches_oxigraph_path` gate in purrdf), so the
     // graph-isomorphism verdict is unchanged. Splitting into lines and sorting yields
     // the same canonical quad set the comparator compared before.
     let canonical = purrdf::canonical_flat_nquads(&dataset).map_err(|e| {

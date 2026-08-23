@@ -114,7 +114,7 @@ Under the hood, `validate_all(gts_input=...)` is a thin Python wrapper over the
 Rust-native orchestration `gmeow_validate.validate_all_native`. The Rust
 engine builds the ontology store once, parses the SHACL shapes once, and runs
 every phase against that shared store. `gmeow-gts` decodes and verifies the
-bundle; `gmeow-rdf` then materializes its N-Quads projection into the same
+bundle; `purrdf` then materializes its N-Quads projection into the same
 Oxigraph in-memory store (with RDF 1.2 features enabled) that the rest of the
 validator already uses.
 

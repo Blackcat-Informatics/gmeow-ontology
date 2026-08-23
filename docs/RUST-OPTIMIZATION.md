@@ -99,7 +99,7 @@ Keep object-safe traits only at real plugin/FFI/remote boundaries.
 ### 2. Dense Typed IDs Over String Keys
 
 Prefer dense IDs and interned symbols for repeated joins, indexes, and membership
-tests. The `rdf-core` `TermId` pattern is the reference: an opaque local ID with a
+tests. purrdf's `TermId` pattern is the reference: an opaque local ID with a
 compact layout, no cross-dataset identity leak, and borrowed resolution at the edge.
 
 Native logic code should avoid repeatedly rendering RDF terms to strings for

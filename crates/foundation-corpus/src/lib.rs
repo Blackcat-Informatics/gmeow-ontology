@@ -5,7 +5,7 @@
 //! child `gmeow_tools.foundation_import`.
 //!
 //! Imports a Lillith_Foundation_Docs-shaped JSONL corpus into GMEOW instance data
-//! over the `gmeow-rdf` IR, exercising every interior facility the two EPICs
+//! over the `purrdf` IR, exercising every interior facility the two EPICs
 //! landed: WEMI spine, claim-spine author facts Assessments for goal-score
 //! vectors narrative positions seam links (FLAT BY DEFAULT — the
 //! efficiency doctrine, budget-reported) arc samples scoped roles,

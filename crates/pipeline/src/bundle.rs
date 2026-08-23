@@ -7,7 +7,7 @@
 //!
 //! # The carrier
 //!
-//! C1 landed the generic [`PipelineBundle<H>`] in `gmeow-rdf-core`: a frozen RDF
+//! C1 landed the generic [`PipelineBundle<H>`] in `purrdf`: a frozen RDF
 //! dataset + lookaside + content-addressed blob store + provenance sidecar + a
 //! typed-handle lane. This module plugs the pipeline's concrete handle payload
 //! into that lane (`H = PipelineHandle`) and provides the byte-artifact bridge the

@@ -9,7 +9,7 @@
 //! re-verification). Here we merely time `PurrembRetrievalProvider::call` over a wide,
 //! short, deterministic corpus for a few `k`, so a regression in the streaming scan's
 //! latency is visible. These numbers are intended to be read alongside PurRDF's documented
-//! PURREMB scan baselines (`crates/rdf-core/benches/purremb_alloc.rs` and its timed
+//! PURREMB scan baselines (purrdf's `purremb_alloc` bench and its timed
 //! sibling) as a cross-reference — they are corroboration, not a threshold.
 
 #[allow(

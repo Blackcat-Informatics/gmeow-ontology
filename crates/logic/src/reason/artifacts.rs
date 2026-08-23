@@ -16,7 +16,7 @@
 //!
 //! These builders are the canonical emitters for the reasoning artifacts (the
 //! Python `build_*_ttl` emitters in `gmeow_tools.reason` they replaced were
-//! retired). They serialize via the gmeow-rdf [`purrdf::turtle`] emitter
+//! retired). They serialize via the [`purrdf::turtle`] emitter
 //! (clean full-IRI RDF 1.2), so its anonymous reifiers and `<<( … )>>` triple-term
 //! objects match the committed artifacts and the drift gate (RDFC-1.0 isomorphism)
 //! stays green.

@@ -18,7 +18,7 @@
 //!      parse of authored `.ttl` into a dataset). That is INGESTION, not inter-stage
 //!      transport, so those modules are out of the scanned set.
 //!
-//!   2. The DAG `loader` (`src/loader.rs`) and the oxigraph adapters in `crates/rdf`
+//!   2. The DAG `loader` (`src/loader.rs`) and the oxigraph adapters in `purrdf`
 //!      (`store_from_dataset` / `dataset_from_store`) — general adapters / the build
 //!      graph loader, never the carrier transport. Out of the scanned set.
 //!

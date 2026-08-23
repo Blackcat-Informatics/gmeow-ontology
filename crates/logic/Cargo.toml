@@ -23,7 +23,7 @@ path = "src/lib.rs"
 purrdf.workspace = true
 # The native SPARQL engine over `Arc<RdfDataset>`: the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
-# retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd
+# retired oxigraph `SparqlEvaluator`. A leaf-ish crate (purrdf's rdf-core/sparql-algebra/xsd
 # — no edge back to logic), so this introduces no layering cycle.
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON.
