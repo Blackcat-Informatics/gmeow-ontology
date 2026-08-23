@@ -206,7 +206,7 @@ fn parse(ttl: &str) -> LogicProgram {
 /// Wasm-clean: native codec parse → frozen IR → canonical N-Triples of the
 /// default graph, one sorted line per triple (the trailing ` .` is stripped so a
 /// line reads `<s> <p> <o>`). No oxigraph Store — the compiler crate's test harness
-/// rides the same `gmeow-rdf` `gts` surface the projections themselves use.
+/// rides the same `purrdf` `gts` surface the projections themselves use.
 fn triple_set(turtle: &str) -> Vec<String> {
     use purrdf::{SerializeGraph, parse_dataset, serialize_dataset};
     let dataset = parse_dataset(turtle.as_bytes(), "text/turtle", None)

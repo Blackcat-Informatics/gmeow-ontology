@@ -95,7 +95,7 @@ pub fn load_tag_map(
 ) -> gmeow_errors::Result<HashMap<String, String>> {
     let media_type = media_type_for(format)?;
 
-    // Parse straight into the gmeow-rdf IR via the native codecs: no oxigraph `io`
+    // Parse straight into the purrdf IR via the native codecs: no oxigraph `io`
     // parser, and lenient private-use language tags by construction.
     let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {

@@ -5,7 +5,7 @@
 //!
 //! Every validation engine (coverage, lint, gUFO, statement, constitution, the DSL
 //! SHACL merge, the data-graph path) reads a frozen [`purrdf::RdfDataset`]: the
-//! sources are parsed once with the native gmeow-rdf codecs ([`parse_dataset`]),
+//! sources are parsed once with the native purrdf codecs ([`parse_dataset`]),
 //! merged under per-file blank scopes via [`purrdf::RdfDatasetBuilder`], and
 //! queried through the indexed [`purrdf::DatasetView::quads_for_pattern`]. The
 //! SHACL engine is itself native ([`shacl_validate_dataset`]).
