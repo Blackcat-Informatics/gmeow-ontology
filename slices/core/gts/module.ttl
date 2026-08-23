@@ -3630,5 +3630,5 @@ gmeow:gtsSegmentHeadKey
     gmeow:avoidWhen "Avoid this record when gmeow:GTSSegment no longer bears the condition — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read the record's own logic: fields together: they name gmeow:GTSSegment and the condition asserted over it, and the OWL grounding view projects the matching axiom from them."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:GTSSegment and nothing else. It is not a definition of gmeow:GTSSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "gmeow:gtsSegmentHeadKey logic:characterizes gmeow:GTSSegment ."@x-gmeow-english ;
+    skos:example "gmeow:gtsSegmentHeadKey logic:keyClass gmeow:GTSSegment ; logic:keyProperty gmeow:gtsHeadId ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
