@@ -13,8 +13,8 @@ keywords = ["rdf", "logic", "compiler", "wasm", "owl"]
 
 [lib]
 # rlib-only. The wasm32 build is a `cargo build --target wasm32-unknown-unknown`
-# of this same rlib (a downstream bindings crate, like purrdf's wasm bindings, assembles
-# any shipped wasm bundle); there is no standalone cdylib here.
+# of this same rlib (a downstream bindings crate, like the purrdf repository's wasm
+# bindings crate, assembles any shipped wasm bundle); there is no standalone cdylib here.
 crate-type = ["rlib"]
 path = "src/lib.rs"
 

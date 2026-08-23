@@ -9,7 +9,7 @@
 //!
 //! It carries **no reasoning-runtime dependencies**. The RDF parse/serialize path rides
 //! the wasm-clean `purrdf` `gts`
-//! surface (the same surface purrdf's wasm build uses), so the whole compiler builds for
+//! surface (the same surface the purrdf wasm bindings use), so the whole compiler builds for
 //! `wasm32-unknown-unknown`. The reasoning runtime (worlds, native forward/backward
 //! evaluation, and certification) lives in the sibling `gmeow-logic` crate, which
 //! depends on this one. The compiler-IR → runtime
