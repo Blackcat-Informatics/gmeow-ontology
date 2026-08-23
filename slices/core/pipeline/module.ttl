@@ -2670,7 +2670,7 @@ gmeow:Pipeline logic:subClassOf
 # carries EXACTLY ONE gmeow:flowReason (required + closed to the three individuals);
 # the per-stage/per-execution value properties are closed to their declared sets via
 # logic:oneOf (projected declaratively to sh:in), matching the sibling-slice idiom.
-gmeow:BuildDataFlow rdfs:subClassOf
+gmeow:BuildDataFlow logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:flowReason ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:FlowReason ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:flowReason ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:FlowReason ] .
 gmeow:BuildDataFlow logic:subClassOf
