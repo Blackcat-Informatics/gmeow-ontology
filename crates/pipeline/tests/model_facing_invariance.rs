@@ -23,7 +23,7 @@
 //! gate whose failure arm cannot be reached is not a gate, and a live tree that happens
 //! to be clean proves nothing about the check that looked at it.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use gmeow_pipeline::branch_base::{
@@ -31,7 +31,7 @@ use gmeow_pipeline::branch_base::{
 };
 use gmeow_pipeline::gmn_dialect::{
     self, ModelFacingReport, PINNED_GMN_DIALECT_PRODUCERS, ProducedPath,
-    check_producer_census_is_complete, check_producer_non_interference,
+    check_producer_census_is_complete,
 };
 
 /// The llms-family SHAPE freeze, `#[path]`-included exactly as the shared MEDIUM negative
@@ -41,8 +41,8 @@ use gmeow_pipeline::gmn_dialect::{
 mod llms_shape;
 
 use llms_shape::{
-    FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_LIST, SurfaceMatch, check_frozen_item,
-    check_resource_list, declared_surfaces, extract_item,
+    FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_CONTRIBUTORS, MCP_RESOURCE_LIST, SurfaceMatch,
+    check_frozen_item, check_resource_list, declared_surfaces, extract_item,
 };
 
 /// Run one check over a fresh report and return it — every leg below asserts on the
@@ -144,32 +144,69 @@ fn leg2_the_branch_diff_touches_no_gmn_dialect_producer() {
         "the branch diff against {base} is empty — the gate would pass by looking at nothing"
     );
     println!("leg 2: {} changed path(s) against {base}", changed.len());
-    let report = run(|r| check_producer_non_interference(changed.iter().map(String::as_str), r));
+    let touched: Vec<&str> = changed
+        .iter()
+        .map(String::as_str)
+        .filter(|path| gmn_dialect::is_gmn_dialect_producer(path))
+        .collect();
+    if touched.is_empty() {
+        return;
+    }
+    // A producer was touched, so the leg has to decide whether the DIALECT moved or only the
+    // code that produces it. A binding can only relocate between files that both appear in
+    // the diff — the file that loses it and the file that gains it — so the union over the
+    // touched producers captures a move exactly, without enumerating the census at the base.
+    println!(
+        "leg 2: {} GMN-dialect producer(s) touched; comparing the glyph/cost surface",
+        touched.len()
+    );
+    let mut base_bindings = BTreeMap::new();
+    let mut work_bindings = BTreeMap::new();
+    for path in &touched {
+        if let Some(text) = base_text(&root, &base, path) {
+            base_bindings.extend(gmn_dialect::glyph_cost_bindings(&text));
+        }
+        if let Ok(text) = std::fs::read_to_string(root.join(path)) {
+            work_bindings.extend(gmn_dialect::glyph_cost_bindings(&text));
+        }
+    }
+    let report = run(|r| {
+        gmn_dialect::check_dialect_content_invariance(&base_bindings, &work_bindings, r);
+    });
     assert!(report.is_clean(), "{report}");
 }
 
-/// The targeted red fixture: the SAME live diff with one `crates/gmn-wasm/` path added.
-///
-/// It perturbs the real input rather than a synthetic one, so it proves the failure arm
-/// is reachable through exactly the path the live assertion above takes.
+/// A moved COST reds the leg — the fixture perturbs one binding rather than one path,
+/// because a path touch is exactly what this leg no longer treats as the violation.
 #[test]
-fn leg2_red_fixture_a_gmn_wasm_edit_in_the_diff_reds() {
-    let root = repo_root();
-    let Some(base) = base_ref(&root) else { return };
-    let mut perturbed = changed_paths(&root, &base);
-    perturbed.insert("crates/gmn-wasm/src/lib.rs".to_string());
-    let report = run(|r| check_producer_non_interference(perturbed.iter().map(String::as_str), r));
+fn leg2_red_fixture_a_moved_glyph_cost_reds() {
+    let base = BTreeMap::from([("¬".to_string(), 1), ("⊑".to_string(), 3)]);
+    let repriced = BTreeMap::from([("¬".to_string(), 2), ("⊑".to_string(), 3)]);
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &repriced, r));
+    assert!(!report.is_clean(), "a repriced glyph must red the leg");
+    assert!(report.to_string().contains("1 -> 2"), "{report}");
+
+    let dropped = BTreeMap::from([("⊑".to_string(), 3)]);
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &dropped, r));
+    assert!(!report.is_clean(), "an unpriced glyph must red the leg");
+    assert!(report.to_string().contains("now UNPRICED"), "{report}");
+
+    let added = BTreeMap::from([
+        ("¬".to_string(), 1),
+        ("⊑".to_string(), 3),
+        ("◉".to_string(), 2),
+    ]);
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &added, r));
+    assert!(!report.is_clean(), "a newly priced glyph must red the leg");
+    assert!(report.to_string().contains("NEWLY priced"), "{report}");
+
+    // And the move this branch actually makes — a table relocating between two census
+    // crates with every binding intact — must NOT red, or the leg is unsatisfiable again.
+    let moved = base.clone();
+    let report = run(|r| gmn_dialect::check_dialect_content_invariance(&base, &moved, r));
     assert!(
-        !report.is_clean(),
-        "a gmn-wasm edit must red the non-interference leg"
-    );
-    assert!(
-        report.to_string().contains("crates/gmn-wasm/src/lib.rs"),
-        "{report}"
-    );
-    assert!(
-        report.to_string().contains("model-facing change"),
-        "{report}"
+        report.is_clean(),
+        "a pure relocation must not red: {report}"
     );
 }
 
@@ -397,7 +434,7 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
     for item in FROZEN_LLMS_SHAPE {
         let work = std::fs::read_to_string(root.join(item.path))
             .unwrap_or_else(|err| panic!("{}: unreadable on this branch: {err}", item.path));
-        let Some(base_text) = base_text(&root, &base, item.path) else {
+        let Some(base_text) = base_text(&root, &base, item.base_lookup_path()) else {
             panic!(
                 "{}: absent at the merge base. Every frozen llms-shape source predates this \
                  change; a missing comparand means the freeze list drifted from the tree",
@@ -426,14 +463,11 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
     // The MCP consumer index: STRUCTURE frozen, list allowed to grow only by the delta the
     // ONTOLOGY licenses — one resource per `gmeow:` surface this change declares and the
     // merge base did not.
-    let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path))
-        .expect("the MCP module is readable");
-    let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.path)
+    let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.base_lookup_path())
         .expect("the MCP module predates this change");
-    let work_body =
-        extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch");
-    let base_body =
-        extract_item(&base_mcp, MCP_RESOURCE_LIST.item).expect("resources_result at the base");
+    let work_body = mcp_work_body(&root);
+    let base_body = extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
+        .expect("resources_result at the base");
     let surfaces = declared_surfaces(&root, &base);
     // NON-VACUITY, both sides: a derivation that read no term at all would license every
     // addition as "undeclared-but-unchecked" or refuse every one of them for the wrong
@@ -471,7 +505,8 @@ fn leg4_red_fixture_reordering_a_section_header_reds() {
         .find(|item| item.item == ItemRef::Function("llms_sections"))
         .expect("the section-heading item is frozen");
     let work = std::fs::read_to_string(root.join(item.path)).expect("readable");
-    let base_source = base_text(&root, &base, item.path).expect("present at the base");
+    let base_source =
+        base_text(&root, &base, item.base_lookup_path()).expect("present at the base");
 
     // The live ordering is Classes, Properties, Individuals. Swap the first two.
     let reordered = work.replacen(
@@ -494,30 +529,83 @@ fn leg4_red_fixture_reordering_a_section_header_reds() {
 
 /// The live MCP resource-list bodies at the base and on this branch.
 fn mcp_bodies(root: &Path, base: &str) -> (String, String) {
-    let work = std::fs::read_to_string(root.join(MCP_RESOURCE_LIST.path)).expect("readable");
-    let base_mcp = base_text(root, base, MCP_RESOURCE_LIST.path).expect("present at the base");
-    (
-        extract_item(&base_mcp, MCP_RESOURCE_LIST.item).expect("resources_result at the base"),
-        extract_item(&work, MCP_RESOURCE_LIST.item).expect("resources_result on this branch"),
-    )
+    let base_mcp =
+        base_text(root, base, MCP_RESOURCE_LIST.base_lookup_path()).expect("present at the base");
+    let base_body = extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
+        .expect("resources_result at the base");
+    (base_body, mcp_work_body(root))
 }
 
-/// The anchor every resource-list red fixture splices in front of.
-const RESOURCE_ANCHOR: &str = r#"            resource(
-                "gmeow://ontology/okf-index","#;
+/// Every contributing site's text, concatenated: the advertised surface is assembled from
+/// several of them now, and reading one would grade a fragment as if it were the whole.
+fn mcp_work_body(root: &Path) -> String {
+    let mut uri_consts: BTreeMap<String, String> = BTreeMap::new();
+    let mut bodies: Vec<String> = Vec::new();
+    for (path, item) in MCP_RESOURCE_CONTRIBUTORS {
+        let text = std::fs::read_to_string(root.join(path))
+            .unwrap_or_else(|e| panic!("{path}: unreadable on this branch: {e}"));
+        uri_consts.extend(str_consts(&text));
+        bodies.push(
+            extract_item(&text, *item)
+                .unwrap_or_else(|| panic!("{path}: {} is absent on this branch", item.label())),
+        );
+    }
+    // A URI the base spelled inline is now named by a `const`, because two hosts register the
+    // same descriptor and the surface has to be single-sourced. Resolving the name back to its
+    // value is what lets the entry comparison see ONE surface rather than a rename.
+    let mut body = bodies.join("\n");
+    for (name, value) in &uri_consts {
+        body = body.replace(name, &format!("\"{value}\""));
+    }
+    body
+}
+
+/// Every `const NAME: &str = "value";` in `text`, longest name first so a substitution never
+/// eats a prefix of a longer name.
+fn str_consts(text: &str) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = Vec::new();
+    for line in text.lines() {
+        let line = line.trim();
+        let Some(rest) = line
+            .strip_prefix("pub const ")
+            .or(line.strip_prefix("const "))
+        else {
+            continue;
+        };
+        let Some((name, rest)) = rest.split_once(": &str = ") else {
+            continue;
+        };
+        let value = rest.trim_end_matches(';').trim().trim_matches('"');
+        if !value.is_empty() {
+            out.push((name.trim().to_string(), value.to_string()));
+        }
+    }
+    out.sort_by_key(|a| std::cmp::Reverse(a.0.len()));
+    out
+}
+
+/// The entry every resource-list red fixture splices in front of, found by its URI rather
+/// than by a pinned indentation: the list has already moved once from a method body to a free
+/// function, and a fixture that dies on whitespace is a fixture that stops grading the rule.
+const RESOURCE_ANCHOR_URI: &str = r#""gmeow://ontology/okf-index","#;
 
 /// `work_body` with one extra `resource(...)` entry named `slug`, spliced at the anchor.
 fn with_extra_resource(work_body: &str, slug: &str) -> String {
-    assert!(
-        work_body.contains(RESOURCE_ANCHOR),
-        "the red fixtures' anchor moved; the live list is:\n{work_body}"
-    );
+    let uri_at = work_body.find(RESOURCE_ANCHOR_URI).unwrap_or_else(|| {
+        panic!("the red fixtures' anchor URI is gone; the live list is:\n{work_body}")
+    });
+    // Back up to the `resource(` that opens the anchored entry, and reuse ITS indentation so
+    // the splice reads exactly like the entries around it.
+    let open_at = work_body[..uri_at]
+        .rfind("resource(")
+        .expect("the anchor URI sits inside a resource(...) entry");
+    let line_at = work_body[..open_at].rfind('\n').map_or(0, |nl| nl + 1);
+    let indent = &work_body[line_at..open_at];
     let extra = format!(
-        "            resource(\n                \"gmeow://ontology/{slug}\",\n                \
-         \"{slug}\",\n                \"A red fixture.\",\n                \
-         \"application/json\",\n            ),\n{RESOURCE_ANCHOR}"
+        "{indent}resource(\n{indent}    \"gmeow://ontology/{slug}\",\n{indent}    \"{slug}\",\n\
+         {indent}    \"A red fixture.\",\n{indent}    \"application/json\",\n{indent}),\n"
     );
-    let grown = work_body.replacen(RESOURCE_ANCHOR, &extra, 1);
+    let grown = format!("{}{extra}{}", &work_body[..line_at], &work_body[line_at..]);
     assert_ne!(
         grown, work_body,
         "the red fixture must actually perturb the list"

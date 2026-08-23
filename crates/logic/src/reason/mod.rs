@@ -314,9 +314,30 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
 pub fn reason_closure_dataset(
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
-    let inferred = reason_closure_axioms(edb)?;
+    inferred_axioms_to_dataset(&reason_closure_axioms(edb)?)
+}
+
+/// Materialize an already-computed closure ([`InferredAxiom`]s) into a frozen
+/// [`RdfDataset`] of the inferred triples.
+///
+/// Split out of [`reason_closure_dataset`] because there are two ways to GET a closure and
+/// only one right way to lower it to RDF. [`reason_closure_dataset`] runs the UNBUDGETED
+/// chase, which is correct for an in-process caller that owns its own input; the agent-facing
+/// MCP `reason_graph` tool must run [`reason_all_budgeted`] instead (R4 forbids exposing an
+/// unbudgeted Turing-complete evaluation to an agent loop) and then lower
+/// [`ReasoningResult::inferred`](crate::result::ReasoningResult::inferred). Both lower through
+/// THIS function, so a budgeted closure and an unbudgeted one of the same size serialize to
+/// byte-identical RDF — which is what lets the browser's live entailment panel and the native
+/// reasoner be compared byte-for-byte.
+///
+/// # Errors
+///
+/// Returns `Err` if an inferred term cannot be lowered to RDF or the dataset cannot freeze.
+pub fn inferred_axioms_to_dataset(
+    inferred: &[InferredAxiom],
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
-    for ax in &inferred {
+    for ax in inferred {
         let subject = RdfTerm::iri(ax.subject.clone());
         let object = term_value_to_rdf_term(&crate::rule_ir::surface_to_value(&ax.object)?)?;
         let quad = RdfQuad::new(subject, ax.predicate.clone(), object);

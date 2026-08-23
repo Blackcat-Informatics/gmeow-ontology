@@ -5,12 +5,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 # Rust Crate Source Map
 
-The Rust workspace is the native implementation surface for GMEOW's RDF,
+The Rust workspace is the native implementation surface for GMEOW's ontology,
 logic, validation, documentation, and pipeline paths. Use this map to decide
 where source documentation belongs before opening a crate.
 
-Every crate directory under `crates/` has a `README.md`, and every crate
-manifest points Cargo at that README.
+Directory names are short; package names are not. `crates/ns` publishes
+`gmeow-ns`, `crates/mcp` publishes `gmeow-mcp`, and so on. The authority for a
+package name is always the `name` key of that directory's `Cargo.toml` — this
+map names packages, and a committed test keeps it honest.
+
+Put high-level crate orientation in each crate's `README.md` where one exists,
+public API contracts in `//!` module documentation, and non-obvious invariants
+next to the code that enforces them.
 
 ## Layers
 
@@ -22,20 +28,18 @@ Crates here compose over it; none re-implements it.
 
 | Area | Crates | Purpose |
 | --- | --- | --- |
-| Foundation values | `gmeow-errors`, `gmeow-ns`, `gmeow-term-arena`, `gmeow-license` | The diagnostics substrate, the registered term namespaces, the hash-consed structured-term arena, and the license/axiom-copy policy classifier. |
-| Ontology and validation engines | `gmeow-validate`, `gmeow-slicetest`, `gmeow-slice-quality`, `gmeow-slice-brief`, `gmeow-conformance` | The wasm-clean repo-free Tier-1 conformance core, slice-resident test-DSL execution, per-slice quality reports, authoring packets, and the logic-conformance harness. |
-| Logic engines | `gmeow-logic-compile`, `gmeow-logic` | The pure wasm-able parse→IR→project compiler, and the world-indexed reasoning engine core. |
-| Build and release | `gmeow-pipeline`, `gmeow-docs`, `gmeow-gts-profile`, `gmeow-foundation-corpus`, `docs-print`, `xtask` | The dogfooded build DAG, the typed documentation model, the single mandated GTS authorship entry, the corpus importer, the Typst/PDF renderer, and worktree-local workflow orchestration. |
-| Command-line surfaces | `gmeow-cli`, `gmeow-cli-core`, `gmeow-dev-cli` | The shippable consumer `gmeow` command, the shared CLI foundation, and the repo-maintenance `gmeow-dev` command. |
-| Browser engines (wasm32) | `gmeow-query-wasm`, `gmeow-validate-wasm`, `gmeow-reason-wasm`, `gmeow-gmn-wasm` | The four engines the documentation site ships: the SPARQL playground / bundle-explorer query engine, the repo-free validator, the structured-DL reasoner, and the GMN codec. |
-| Domain and lifting | `gmeow-math`, `gmeow-math-lift`, `gmeow-affect`, `gmeow-affect-ingest`, `gmeow-music`, `gmeow-lang-bridge`, `gmeow-lang-form`, `gmeow-gmn-cost-matrix` | Exact-rational geometry, executable-math ingestion, affect-intensity geometry and classifier ingestion, the music toolchain, and the linguistic surfaces. |
-| Developer tools and measurement | `gmeow-lsp`, `gmeow-bench-engines`, `gmeow-cost-measure` | Local editor diagnostics/SARIF, the engine benchmark harness, and the deterministic allocation-measurement allocator. |
+| Foundation values | `gmeow-ns`, `gmeow-errors`, `gmeow-license`, `gmeow-math`, `gmeow-term-arena` | Registered term namespaces, the diagnostics/error substrate, the vendoring-policy classifier, exact-rational geometry, and the one hash-consed, binder-aware, content-addressed structured-term arena — carrying no reasoning runtime, so any front-end can intern a term without linking the engine. |
+| RDF transport and bundle access | `gmeow-transcode`, `gmeow-bundle-view`, `gmeow-gts-profile` | Parse/serialize any RDF 1.2 codec through the frozen dataset IR with realized-loss accounting, read a materialized `gmeow.gts` bundle without the build executor, and author one through the single mandated GTS door that declares the frame profile every payload frame must carry. |
+| Logic engines | `gmeow-logic-compile`, `gmeow-logic`, `gmeow-conformance` | The pure parse→IR→project compiler, the world-indexed reasoning core, and the native conformance harness that gates both. |
+| Validation and slice authoring | `gmeow-validate`, `gmeow-slicetest`, `gmeow-slice-quality`, `gmeow-slice-brief` | Tier-1 conformance plus the authoring dev gate, the slice-resident test-DSL harness, the per-slice quality rubric, and authoring-packet assembly. |
+| Build and release | `gmeow-pipeline`, `xtask` | The dogfooded single-pass build DAG over an in-memory RDF dataflow, and the worktree-local orchestration of the developer gate. |
+| Documentation | `gmeow-docs`, `gmeow-docs-model`, `gmeow-docs-catalog`, `docs-print` | The typed documentation model over the slice catalog, its renderer-free core, the distribution matrix and concept lattice read from the bundle, and the deterministic Typst/PDF projection. |
+| Command surfaces and services | `gmeow-cli-core`, `gmeow-cli`, `gmeow-dev-cli`, `gmeow-lsp`, `gmeow-mcp`, `gmeow-mcp-dev` | Shared console/reporter/exit-code foundation, the consumer command surface, the repo-maintenance command surface, editor diagnostics and SARIF, the bundle-only MCP engine, and the repo-reading MCP dev tools. |
+| wasm packaging | `gmeow-validate-wasm`, `gmeow-reason-wasm`, `gmeow-gmn-wasm`, `gmeow-query-wasm`, `gmeow-mcp-core-wasm`, `gmeow-mcp-wasm` | wasm32 bindings for the repo-free validator, the reasoner, the GMN codec, the RDF 1.2 / SPARQL query engine behind the documentation playground, the lean MCP core image, and its demand-loaded reasoning segment. The first four are the surfaces the documentation site dispatches to, one per capability; the last two are the console's, where every widget speaks JSON-RPC to one engine. |
+| Domain corpora and modeling | `gmeow-affect`, `gmeow-affect-ingest`, `gmeow-foundation-corpus`, `gmeow-lang-bridge`, `gmeow-lang-form`, `gmeow-math-lift`, `gmeow-music` | Affect-intensity geometry and attributed classifier ingestion, the narrative foundation corpus importer, the linguistic bridge and form AST, the file-reading `math:` ingestion front-ends that lift R scripts, ONNX graphs, and TSTP derivations into the shipped `math:` codomain (kept out of the pure in-bundle producers), and the music-package toolchain. |
+| Off-gate measurement | `gmeow-bench-engines`, `gmeow-cost-measure`, `gmeow-gmn-cost-matrix` | Engine-vs-reference benchmarking, the harness-scoped counting allocator, and the tokenizer cost matrix. Leaf crates — nothing ships depends on them. |
 
 ## Documentation Hot Spots
-
-Put high-level crate orientation in each crate's `README.md`, public API
-contracts in `//!` module documentation, and non-obvious invariants next to the
-code that enforces them.
 
 The densest directories currently merit per-directory or module-level
 orientation:
@@ -43,8 +47,8 @@ orientation:
 | Path | Why it matters |
 | --- | --- |
 | [`pipeline/src/stages/`](pipeline/src/stages/README.md) | Each file is a production build-DAG stage with source/output ownership rules. |
-| [`logic/src/`](logic/src/README.md) | Several reasoning engines, result contracts, Python-facing seams, and certifiers share one crate. |
-| [`validate/src/`](validate/src/README.md) | Validation lints mix PyO3 surfaces with PyO3-free engine modules. |
+| [`logic/src/`](logic/src/README.md) | Several reasoning engines, result contracts, and certifiers share one crate. |
+| [`validate/src/`](validate/src/README.md) | Validation lints mix the wasm-clean repo-free core with repo-reading dev-gate modules. |
 | [`logic-compile/src/projections/`](logic-compile/src/projections/README.md) | Projection targets encode explicit preservation and loss behavior. |
 
 ## Local Checks

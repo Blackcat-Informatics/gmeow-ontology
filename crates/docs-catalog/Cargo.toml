@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-docs-catalog"
+description = "GMEOW's documentation-catalog read side: the per-format distribution matrix and the formal-concept lattice, read straight out of a materialized gmeow.gts distribution-catalog graph"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["gmeow", "gts", "catalog", "rdf", "wasm"]
+
+[lib]
+# rlib-only, and a LEAF with respect to gmeow-pipeline: `gmeow docs matrix` and the MCP
+# `distribution_matrix` tool both read this catalog, and neither may inherit the build
+# executor to do it. `cargo check --target wasm32-unknown-unknown` is part of the
+# contract, so nothing in this dependency set may pull in rayon, process spawning, or an
+# embedded-asset crate — in particular never `gmeow-docs` (whose renderer embeds ~13.6 MB
+# of vendored wasm) and never `gmeow-pipeline`, which depends on THIS crate and re-exports
+# its items at the historical paths.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The RDF 1.2 kernel: the catalog is read through the STRUCTURAL gts reader
+# (`purrdf::gts::read_graph`), which is the only reader that preserves the named graph
+# the catalog rides in. purrdf is the ONLY permitted RDF crate.
+purrdf.workspace = true
+# The diagnostic substrate: every catalog defect is a typed `DiagKind` raised as a `Diag`
+# under this crate's own `docs-catalog.*` code namespace (see `error`), so the reader
+# reports on the same content-bound substrate as every other crate rather than borrowing
+# the pipeline's kinds — which is what lets it stand as a leaf.
+gmeow-errors = { path = "../errors" }
+# The registered term namespaces (`GMEOW_NS`): the readers build predicate and class IRIs
+# from the ONE declaration site.
+gmeow-ns = { path = "../ns" }
+# The read side's named-graph IRI declarations: `graph_iris::GRAPH_DISTRIBUTION_CATALOG` is
+# the single definition site of the graph both readers scope to, shared with the carrier
+# that writes it (which re-exports it back).
+gmeow-bundle-view = { path = "../bundle-view" }

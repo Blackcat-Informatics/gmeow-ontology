@@ -17,7 +17,7 @@ use gmeow_docs::model::{
 
 /// The per-format capability partitions for every format (the loss appendix
 /// reads the PDF row).
-fn losses() -> Vec<gmeow_docs::formats::FormatCapabilities> {
+fn losses() -> Vec<gmeow_docs::formats::SurfaceCapabilities> {
     DocFormat::ALL
         .into_iter()
         .map(format_capabilities)

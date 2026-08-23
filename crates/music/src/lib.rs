@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Rust-owned music-package toolchain.
@@ -1791,7 +1791,12 @@ pub fn manifest_turtle(
     let profile = get_profile(format_name)?;
     let mut out = String::new();
     out.push_str("@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\n");
-    out.push_str("[] a gmeow:InformationObject ;\n");
+    // Co-typed `gmeow:LossBearingProfile`: the manifest is the subject of the
+    // `gmeow:declaredLoss` / `gmeow:representableParameter` ledger below, and that category
+    // is the single declared domain of BOTH predicates. Asserting it here is what keeps the
+    // one loss vocabulary usable by a render manifest that is neither a notation projection
+    // profile nor a shipped documentation distribution — no second loss predicate is minted.
+    out.push_str("[] a gmeow:InformationObject ,\n        gmeow:LossBearingProfile ;\n");
     let _ = writeln!(
         out,
         "    gmeow:targetNotationSystem <{}> ;",
@@ -2338,6 +2343,14 @@ mod tests {
         assert!(manifest.contains("gmeow:targetNotationSystem"));
         assert!(manifest.contains("gmeow:projectionFunction"));
         assert!(manifest.contains("gmeow:declaredLoss"));
+        // The subject of `gmeow:declaredLoss` must inhabit that predicate's declared
+        // domain. Nothing else in this manifest supplies it: the node is a bare blank
+        // node, so the type has to be asserted here or the ledger is out of domain.
+        assert!(
+            manifest.contains("gmeow:LossBearingProfile"),
+            "the manifest declares loss, so it MUST be typed gmeow:LossBearingProfile: \
+             {manifest}"
+        );
         let import = import_manifest_turtle(
             Path::new("fixtures/source file.musicxml"),
             "urn:gmeow:piece:imported",

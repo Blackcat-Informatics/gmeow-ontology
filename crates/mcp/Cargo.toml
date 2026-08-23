@@ -1,0 +1,163 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-mcp"
+description = "GMEOW's consumer-mode MCP engine: the bundle-only tool/resource surface, the JSON-RPC stdio loop, and the extension seam a repo-anchored host registers dev tools through"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["gmeow", "mcp", "agent", "rdf", "wasm"]
+
+[lib]
+# rlib-only, and a LEAF with respect to gmeow-pipeline: the consumer MCP surface is
+# served off the embedded `gmeow.gts` snapshot alone, so it must never inherit the
+# build executor — its scheduler, cache, release signer, network client, or the docs
+# renderer's embedded multi-megabyte wasm. Every repo-reading tool lives in
+# `gmeow-mcp-dev`, which depends on THIS crate and registers through its extension
+# seam. Nothing in this dependency set may pull in rayon, process spawning, or an
+# embedded-asset crate.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[features]
+# The DEFAULT is the whole engine: every native consumer (`gmeow mcp`) and `gmeow-mcp-dev`
+# build with BOTH segments on and are therefore bit-for-bit the engine they were before
+# these features existed — 38 tools, 5 resources, one image. Only the two BROWSER images
+# select a single segment, and each selects a DISJOINT one.
+#
+# Every count below is gated against this crate's own `TOOL_COUNT` /
+# `REASONING_SEGMENT_TOOL_COUNT` / `CORE_SEGMENT_TOOL_COUNT` constants by
+# `the_shipped_prose_states_the_derived_tool_counts`; a TOML comment cannot read them, so
+# it is checked instead of trusted.
+default = ["core", "reasoning"]
+# The core SEGMENT: the 23 tools and all five resources that answer off the
+# bundle alone — documentation lookup/cards/`llms.txt`, the SPARQL surfaces, the GMN-1
+# codec, the shipped validator, the transcode hub, and the distribution catalog. Selecting
+# it out is an EXPLICIT deployment choice (the demand-loaded reasoning image, whose
+# governing metric is the DELTA it adds over the always-resident core), never a capability
+# downgrade: the surface stays total at 38, `tools/list` is identical, and a `tools/call`
+# for a core tool returns the typed `mcp.segment-not-loaded` signal naming the tool and the
+# `core` segment.
+#
+# `gmeow-transcode` and `gmeow-docs-catalog` are OPTIONAL under it because they are the two
+# dependencies NOTHING else in this crate reaches — `convert` and `distribution_matrix` are
+# their sole readers — so selecting the segment out removes them from the reasoning image's
+# dependency tree outright rather than merely leaving them unreferenced.
+core = ["dep:gmeow-bundle-view", "dep:gmeow-transcode", "dep:gmeow-docs-catalog"]
+# The reasoning SEGMENT: the native DL reasoner (`gmeow-logic`) and the rubric kernel
+# built on it (`gmeow-slice-quality`), plus the 15 tools that cannot answer without them
+# or that share the claim package with the writes that cannot (the grounded-memory triad
+# is indivisible — a wasm module's claim store is private to that module).
+# Selecting it out is an EXPLICIT deployment choice (a tiered browser image whose
+# governing metric is first-load bytes), never a capability downgrade: the tool surface
+# stays total at 38, `tools/list` is identical, and a `tools/call` for a segment tool
+# returns the typed `mcp.segment-not-loaded` signal naming the tool and the segment that
+# provides it, which the host uses to load the segment and re-dispatch the SAME frame.
+reasoning = ["dep:gmeow-logic", "dep:gmeow-slice-quality"]
+
+[dependencies]
+# The RDF 1.2 kernel: the snapshot is imported to a `purrdf::RdfDataset`, every query
+# surface evaluates SPARQL over one, and the grounded-memory triad + the append-only
+# conjecture/candidate libraries are GTS segment files written with purrdf's writer.
+purrdf.workspace = true
+# The store COMPACTION lane's mandatory packaging signature: purrdf's
+# `compact_streamable` takes the ordering-commitment signer as a plain tuple (never an
+# `Option`), so an unsigned repack is unrepresentable — the lane has to name the key type.
+ed25519-dalek = "2"
+# The mandated GTS authorship profile: `store_medium` resolves a runtime store's priming
+# bytes out of the loaded bundle's in-band "dct" map through this leaf, so the consumer
+# engine and the build agree on one dictionary id → one byte sequence.
+gmeow-gts-profile = { path = "../gts-profile" }
+# The diagnostic substrate: every tool defect is a typed `DiagKind` raised as a
+# `Diag`, and `explain_finding` rehydrates `gmeow_errors::Finding` values.
+gmeow-errors = { path = "../errors" }
+# The registered term namespaces (`GMEOW_NS` / `LOGIC_NS` / `MATH_NS`): the tool
+# surface builds predicate and class IRIs from the ONE declaration site.
+gmeow-ns = { path = "../ns" }
+# The bundle READ side: `bundle_blobs` (shapes/schemas archives out of the raw
+# snapshot bytes), `export` (the fold view, the term surface, `doc_card`/`llms.txt`
+# rendering, consumer resolution), `diagnostics_reader` (`explain_finding`),
+# `native_query` (the SPARQL substrate) and `graph_iris` (the named graphs the tools
+# address). This is the crate that lets the MCP surface read a bundle without the
+# writer.
+# OPTIONAL, selected by the `core` feature (default ON). The reasoning image imports the
+# snapshot with `purrdf::import_gts_events` and reasons over the carrier dataset directly;
+# the fold view, the term surface, the export renderers, the diagnostics reader and the
+# SPARQL substrate are all reached ONLY by core tools and core resources, so the delta
+# links none of them.
+gmeow-bundle-view = { path = "../bundle-view", optional = true }
+# The distribution-catalog READ side: `distribution_matrix` serves the per-format
+# consumer-need matrix and the formal-concept lattice straight out of the bundle's
+# meta-level catalog graph. A wasm-clean leaf over gmeow-bundle-view — never
+# `gmeow-pipeline`, which is where that reader used to live, and never `gmeow-docs`.
+# OPTIONAL, selected by the `core` feature (default ON): `distribution_matrix` is its only
+# reader, so the reasoning-segment image links no catalog reader at all.
+gmeow-docs-catalog = { path = "../docs-catalog", optional = true }
+# The universal RDF-1.2 transcode hub: the `convert` tool calls the SAME
+# `Codec::from_cli_str` / `transcode` / `realized_loss_json` triple `gmeow convert` does,
+# so the agent surface and the CLI are one implementation. A leaf, which is what lets a
+# bundle-only surface reach it without inheriting the build executor.
+# OPTIONAL, selected by the `core` feature (default ON): `convert` is its only reader, so
+# the reasoning-segment image links no transcode hub at all.
+gmeow-transcode = { path = "../transcode", optional = true }
+# The documentation MODEL only — never `gmeow-docs`, whose renderer embeds ~13.6 MB
+# of vendored wasm. `doc_card` renders through the shared `card` surface, `llms_txt`
+# through `llms`, and the `gmn1-primer` resource through `gmn1_primer`, so the MCP
+# card is the genuine twin of the docs-site card rather than a second renderer.
+gmeow-docs-model = { path = "../docs-model" }
+# The native DL reasoner and its result algebra: `verify_graph` / `explain_quad` reason,
+# the conjecture engine evaluates, and every WRITE tool's Transaction-Logic commit gate
+# (`execute_transaction`) runs executional entailment. OPTIONAL, selected by the
+# `reasoning` feature (default ON): it is the single heaviest thing the engine links, and
+# the tiered browser deployment ships it as a demand-loaded SEGMENT rather than in the
+# first-load image. Selecting it out never removes a tool from the surface — the 15
+# reasoning-segment tools stay advertised and answer with the machine-readable
+# `mcp.segment-not-loaded` signal the host re-dispatches on.
+gmeow-logic = { path = "../logic", optional = true }
+# The canonical prefix registry (`ingest::prefixes::registry_pairs`) the tool
+# surface renders canonical Turtle with, and `ir::LOGIC_NAMESPACE`.
+gmeow-logic-compile = { path = "../logic-compile" }
+# The shipped validator: `validate_local` runs `data_validate` over the bundle's
+# folded Tier-1 shapes, `advise` runs the advisory catalog, and `local_oracle`
+# supplies the finding JSON Schema + entailment/fixture views.
+gmeow-validate = { path = "../validate" }
+# The GMN-1 codec: `gmn_validate` / `gmn_expand` / `gmn_explain` read, write, and
+# canonically compare GMN documents through the ONE bridge implementation.
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature: the four GMN
+# tools use the codec, the dictionary, and the PINNED `GLYPH_TOKEN_COSTS` legend (which is
+# not behind that feature) — none of them calls the `gmn_symbology` primitive, so the
+# ~1.9 MB `tiktoken-rs` cl100k vocabulary has no reader here and must not ride into a
+# browser image. The same explicit selection the two GMN/validator wasm shims already make.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
+# The slice-quality advisor kernel: `slice_quality` scores an IN-MEMORY slice file
+# map against the rubric carried IN the bundle bytes
+# (`score_external_slice_files`), so the tool needs neither a checkout nor a
+# filesystem. OPTIONAL under the same `reasoning` feature as `gmeow-logic`, because it
+# is a DEPENDENT of it (its axiom-recovery axes drive `gmeow_logic::reason`): a build
+# that has selected the DL reasoner out cannot score a rubric either, so the two travel
+# as ONE demand-loaded segment rather than as two half-loadable halves.
+gmeow-slice-quality = { path = "../slice-quality", optional = true }
+# JSON is the MCP wire format: every tool envelope, every JSON-RPC frame, and the
+# `format=json` card projection are `serde_json::Value`s.
+serde_json.workspace = true
+# SHA-256 content addressing for the append-only conjecture/candidate library
+# segments and the claim fingerprints the grounded-memory triad keys on.
+sha2.workspace = true
+
+# Atomic, self-cleaning temp files for the NATIVE append-only library commit path
+# (write a sibling temp file, fsync, then rename over the target), so a crash
+# mid-append can never leave a torn library. Native-only: it is reachable solely from
+# `storage::native`, the filesystem-backed half of the storage seam, and it does not
+# cross-compile to wasm32 (its randomness backend has no wasm32-unknown-unknown
+# support). The browser backend replaces a library's bytes under one lock, which needs
+# no temp file to be atomic.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tempfile.workspace = true
+
+[dev-dependencies]
+# The `doc_card` JSON projection is asserted against the hand-authored
+# `card.schema.json` (`gmeow_docs_model::card::card_json_schema`), so the tests
+# compile and run a real JSON Schema validator over the tool output.
+jsonschema.workspace = true

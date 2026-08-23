@@ -41,3 +41,30 @@ ext:cqWhichToolRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "tool" ; gmeow:cellValueIri ex:storeClaim ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "invocation" ; gmeow:cellValueIri ex:invocation-7 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "args" ; gmeow:cellValueLiteral "{\"text\": \"the GTS spec mandates RFC 8949 deterministic encoding\"}" ] .
+
+# ── The action policy is one theory over the whole advertised surface ─────────
+#
+# The shipped example IS a gmeow:ActionPolicy, and the question that makes that
+# claim answerable rather than decorative is: does the policy exist, and does it
+# reach the capabilities its schemas route on? A policy that typed itself and
+# named nothing would answer the first half and fail the second.
+
+ext:cqTheActionPolicyIsOneTheory a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?policy WHERE {
+    ?policy a gmeow:ActionPolicy .
+}""" ;
+    gmeow:cqDataFile "examples/mcp-action-policy.ttl" ;
+    gmeow:cqRationale "The engine's action theory is published as ONE gmeow:ActionPolicy over the whole advertised tool surface, not as a loose set of schemas: a caller deciding whether an action is admissible needs to know the theory it is reading is the theory the engine obeys, and that identity is what the type carries. Without this row the example could stop being a policy and nothing would notice." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ext:cqActionPolicyShape ;
+    gmeow:cqExpectRow ext:cqActionPolicyRow .
+
+ext:cqActionPolicyShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "policy" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ext:cqActionPolicyRow a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "policy" ;
+        gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/mcpActionPolicy> ] .

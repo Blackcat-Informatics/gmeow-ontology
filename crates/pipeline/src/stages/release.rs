@@ -46,8 +46,10 @@ use purrdf::{NativeRdfFormat, PROJECTION_CODECS, pair_loss_ledger, parse_dataset
 
 use crate::error::Release;
 
-/// The named graph the release-manifest + per-artifact attestations ride in.
-pub const GRAPH_ATTESTATIONS: &str = "https://blackcatinformatics.ca/gmeow/graph/attestations";
+/// The named graph the release-manifest + per-artifact attestations ride in. DEFINED
+/// ONCE in [`gmeow_bundle_view::graph_iris`] — a release verifier reads this graph
+/// back out of the signed bundle, so signer and verifier share ONE constant.
+pub use gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
 
 use gmeow_ns::GMEOW_NS;
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";

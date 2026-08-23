@@ -15,13 +15,13 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-regex = "1"
-rayon = "1"
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
 # The project's canonical content-digest — the fingerprint the projected
 # quality-assessment corpus carries so a consumer can prove the record still
-# describes the working tree instead of re-scoring to find out. Pure-Rust.
+# describes the working tree instead of re-scoring to find out. Pure-Rust, so it
+# stays on the wasm-clean side of the crate with the rest of [dependencies].
 blake3.workspace = true
 gmeow-ns = { path = "../ns" }
 purrdf.workspace = true
@@ -32,7 +32,11 @@ gmeow-errors = { path = "../errors" }
 gmeow-validate = { path = "../validate" }
 # The typed documentation model + coverage/i18n dimensions the documentation and
 # translation axes bind to.
-gmeow-docs = { path = "../docs" }
+# The docs MODEL only — this crate uses i18n/i18n_compile/maturity/model/rdf and
+# needs none of the renderer. Pointing at gmeow-docs would drag 13.6 MB of
+# embedded vendored wasm into every consumer of this crate, including the
+# wasm-clean MCP engine.
+gmeow-docs-model = { path = "../docs-model" }
 # The correspondence-calculus machinery the linkage axis binds: `extract_correspondences`
 # (the `logic:Correspondence` lens individuals — the calculus-routed set) and
 # `lint_dc_refinement` (names hand-authored `dc:` alignments the calculus should derive).
@@ -47,14 +51,49 @@ gmeow-logic = { path = "../logic" }
 # gmn1_coverage_axis composes it directly rather than duplicating the codec's term
 # encoder. A leaf crate with no reasoning-runtime or pipeline deps (lang-bridge does
 # NOT depend on slice-quality), so no dependency cycle.
-gmeow-lang-bridge = { path = "../lang-bridge" }
+#
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature, and with it
+# `tiktoken-rs`' ~1.7 MB embedded `cl100k_base` vocabulary. This crate is linked by the
+# browser reasoning segment (`gmeow-mcp` → `gmeow-mcp-wasm`), and cargo unifies features
+# per package: taking lang-bridge with defaults here silently DEFEATED the deliberate
+# `default-features = false` that `crates/mcp` and every wasm shim already make, and put
+# the whole vocabulary in the shipped image. The glyph-optimality axis still weighs real
+# BPE costs — it reads them from `GMN_SYMBOL_AUDIT_TOKEN_COSTS`, the pinned table whose
+# agreement with the measuring primitive is asserted on native by
+# `tests/gmn_token_cost_pin.rs`. Measured cost in, measured cost out; only the vocabulary
+# moved to a dev-dependency.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
+
+# rayon: native-only. wasm32 has no threads, and the browser engine that
+# consumes this crate (through the MCP tool surface) must build for wasm32, so
+# the parallel scoring fan-out is compiled out there and the dependency with it.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rayon = "1"
+# tempfile: native-only, and used by exactly one axis arm. The scorer reads a slice
+# from an in-memory file map, but the documentation model it consumes is built by
+# `purrdf`'s `SliceCatalog`, which has no in-memory constructor (private fields;
+# `discover` / `from_slice_dir` are `&Path` + `std::fs` readers). The external
+# `DocMaturity` arm therefore stages the map back into a temp directory and calls the
+# SAME real loader, keeping the off-repo score byte-for-byte what it was rather than
+# forking a second, divergent documentation model. On wasm32 there is no filesystem to
+# stage into, so both the arm and this dependency are compiled out.
+tempfile.workspace = true
 
 [dev-dependencies]
-# RAII temp directories/files for tests. Every scratch path a test creates is
-# removed on drop — including on panic and early return — so a gate run never
-# leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
-# under `std::env::temp_dir()` is banned by the repo-static guard
-# (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
-tempfile = "3"
-pretty_assertions = "1"
-insta = { version = "1.48", features = ["json"] }
+pretty_assertions.workspace = true
+insta = { workspace = true, features = ["json"] }
+# The token-cost anti-rot gate measures the REAL `cl100k_base` cost of every token the
+# glyph-optimality axis weighs and asserts `GMN_SYMBOL_AUDIT_TOKEN_COSTS` equals it, so it
+# needs the `glyph-cost` feature the shipped reasoning segment deliberately drops. A
+# dev-dependency is exactly the right seam — it is absent from `cargo tree -e no-dev` and
+# from every non-test build, so the wasm image is unaffected while the pin stays
+# machine-checked on native. The same seam `crates/gmn-wasm` already uses for the codec
+# legend's pin.
+gmeow-lang-bridge = { path = "../lang-bridge" }
+# NOTE on tempfile: `main` added it here as a dev-dependency for the RAII temp
+# roots the fixtures build. It is NOT restated here because this crate already
+# carries it in the `cfg(not(target_arch = "wasm32"))` dependency table above —
+# a table that is in scope for tests as well as the lib, and that additionally
+# keeps the (filesystem-less) wasm32 image free of it. Same guarantee, narrower
+# blast radius; hand-rolling a path under `std::env::temp_dir()` stays banned by
+# `check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs.

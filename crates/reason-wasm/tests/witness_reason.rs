@@ -7,7 +7,7 @@
 //! `gmeow_logic::reason::reason_closure_dataset` → serialize N-Quads), so the browser
 //! reasoner produces byte-identical output to native. This test pins the NATIVE
 //! reasoned closure of a fixed input to a committed content-addressed attestation
-//! (`crates/docs/assets/reason/WITNESS.reason.nq`); the Node lane runs the WASM
+//! (`crates/reason-wasm/tests/WITNESS.reason.nq`); the Node lane runs the WASM
 //! `reason` over the SAME input and asserts byte-identity with that attestation.
 //! Both matching the one attestation proves native ≡ wasm. Refreshed via
 //! `GMEOW_WITNESS_BLESS=1`.
@@ -28,7 +28,7 @@ fn attestation_path() -> PathBuf {
         .join("../..")
         .canonicalize()
         .expect("repo root")
-        .join("crates/docs/assets/reason/WITNESS.reason.nq")
+        .join("crates/reason-wasm/tests/WITNESS.reason.nq")
 }
 
 /// The exact pipeline the wasm `reason(data, format)` shim runs.

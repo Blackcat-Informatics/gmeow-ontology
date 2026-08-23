@@ -31,7 +31,7 @@ const AXIS_DOC_MATURITY: &str = "https://blackcatinformatics.ca/gmeow/axisDocMat
 const AXIS_TRANSLATION: &str = "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage";
 /// The advice-harvest-coverage axis: like `gmn1`/`DocMaturity`, its Repo-mode
 /// producer ([`gmeow_slice_quality::axes`]'s `advice_coverage_axis`) resolves the
-/// advisory-constraint authority off `ctx.slice_dir`'s `slices/` ancestor
+/// advisory-constraint authority off the `ScoringEnv::Repo` checkout anchor's `slices/` ancestor
 /// (`repo_root_of`), so a slice staged with NO such ancestor (this fixture's
 /// deliberately repo-free staging) goes vacuous 1.0 in Repo mode — while Bundle
 /// mode measures the fixture's OWN graph self-containedly and finds neither
@@ -319,7 +319,9 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
     let repo = gmeow_slice_quality::report::score_slice_with_standard(
         &slice_dir,
         &std_meas,
-        ScoringEnv::Repo,
+        ScoringEnv::Repo {
+            slice_dir: slice_dir.clone(),
+        },
     )
     .expect("repo score");
 

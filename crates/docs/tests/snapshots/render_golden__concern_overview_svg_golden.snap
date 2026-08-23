@@ -7,23 +7,23 @@ expression: "svg::concern_overview_svg(&model)"
   <rect width="708" height="244" fill="#ffffff" />
   <text x="256" y="42" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">GTS packaging</text>
   <rect x="264" y="28" width="360" height="18" rx="3" fill="#5b78c0" />
-  <text x="630" y="42" font-family="sans-serif" font-size="12" fill="#1b2436">71</text>
+  <text x="630" y="42" font-family="sans-serif" font-size="12" fill="#1b2436">82</text>
   <text x="256" y="70" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">statement metadata</text>
-  <rect x="264" y="56" width="81" height="18" rx="3" fill="#5b78c0" />
-  <text x="351" y="70" font-family="sans-serif" font-size="12" fill="#1b2436">16</text>
+  <rect x="264" y="56" width="70" height="18" rx="3" fill="#5b78c0" />
+  <text x="340" y="70" font-family="sans-serif" font-size="12" fill="#1b2436">16</text>
   <text x="256" y="98" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">standpoints</text>
-  <rect x="264" y="84" width="76" height="18" rx="3" fill="#5b78c0" />
-  <text x="346" y="98" font-family="sans-serif" font-size="12" fill="#1b2436">15</text>
+  <rect x="264" y="84" width="65" height="18" rx="3" fill="#5b78c0" />
+  <text x="335" y="98" font-family="sans-serif" font-size="12" fill="#1b2436">15</text>
   <text x="256" y="126" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">provenance and evidence</text>
-  <rect x="264" y="112" width="40" height="18" rx="3" fill="#5b78c0" />
-  <text x="310" y="126" font-family="sans-serif" font-size="12" fill="#1b2436">8</text>
+  <rect x="264" y="112" width="35" height="18" rx="3" fill="#5b78c0" />
+  <text x="305" y="126" font-family="sans-serif" font-size="12" fill="#1b2436">8</text>
   <text x="256" y="154" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">disclosure and suppression</text>
-  <rect x="264" y="140" width="35" height="18" rx="3" fill="#5b78c0" />
-  <text x="305" y="154" font-family="sans-serif" font-size="12" fill="#1b2436">7</text>
+  <rect x="264" y="140" width="30" height="18" rx="3" fill="#5b78c0" />
+  <text x="300" y="154" font-family="sans-serif" font-size="12" fill="#1b2436">7</text>
   <text x="256" y="182" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">frames and units</text>
-  <rect x="264" y="168" width="20" height="18" rx="3" fill="#5b78c0" />
-  <text x="290" y="182" font-family="sans-serif" font-size="12" fill="#1b2436">4</text>
+  <rect x="264" y="168" width="17" height="18" rx="3" fill="#5b78c0" />
+  <text x="287" y="182" font-family="sans-serif" font-size="12" fill="#1b2436">4</text>
   <text x="256" y="210" text-anchor="end" font-family="sans-serif" font-size="12" fill="#1b2436">identifiers and coreference</text>
-  <rect x="264" y="196" width="15" height="18" rx="3" fill="#5b78c0" />
-  <text x="285" y="210" font-family="sans-serif" font-size="12" fill="#1b2436">3</text>
+  <rect x="264" y="196" width="13" height="18" rx="3" fill="#5b78c0" />
+  <text x="283" y="210" font-family="sans-serif" font-size="12" fill="#1b2436">3</text>
 </svg>

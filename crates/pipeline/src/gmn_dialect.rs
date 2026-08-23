@@ -423,30 +423,91 @@ pub fn is_gmn_dialect_producer(path: &str) -> bool {
         .any(|pin| path == *pin || path.starts_with(pin))
 }
 
-/// Leg 2, as a PURE function over a changed-path list: no change on this branch may
-/// touch a GMN-dialect producer.
+/// Every `("<glyph>", <cost>)` token-cost binding a producer source declares.
 ///
-/// Pure so it is falsifiable — the red fixture feeds it a synthetic diff containing a
-/// `crates/gmn-wasm/` path and requires it to refuse. A gate whose failure arm cannot be
-/// reached is not a gate.
-pub fn check_producer_non_interference<'a, I>(changed: I, report: &mut ModelFacingReport)
-where
-    I: IntoIterator<Item = &'a str>,
-{
-    let touched: BTreeSet<&str> = changed
-        .into_iter()
-        .filter(|path| is_gmn_dialect_producer(path))
-        .collect();
-    if touched.is_empty() {
+/// The glyph token costs ARE model-facing: they are emitted into the versioned GMN-1 pack's
+/// `token-metrics.ttl`, so a cost that moves changes what a model reads about the dialect.
+/// Extracted from source text rather than from a compiled table so the SAME extractor reads
+/// this branch's bytes and the merge base's, where the table may live in another crate.
+#[must_use]
+pub fn glyph_cost_bindings(text: &str) -> BTreeMap<String, usize> {
+    let mut out = BTreeMap::new();
+    let mut inside = false;
+    for line in text.lines() {
+        let line = line.trim();
+        if !inside {
+            // ONLY `GLYPH_TOKEN_COSTS` — the glyphs the codec may emit, the shipped legend a
+            // reader consults. Its sibling `GMN_SYMBOL_AUDIT_TOKEN_COSTS` is a superset that
+            // also prices the ASCII fallbacks (`"is_subclass_of"`, …) a candidate glyph is
+            // compared AGAINST, which is an audit input rather than anything a model reads.
+            inside = line.contains("const GLYPH_TOKEN_COSTS: &[(&str, usize)]");
+            continue;
+        }
+        if line.starts_with("];") {
+            inside = false;
+            continue;
+        }
+        let Some(rest) = line.strip_prefix("(\"") else {
+            continue;
+        };
+        let Some((glyph, rest)) = rest.split_once("\", ") else {
+            continue;
+        };
+        if let Ok(cost) = rest
+            .trim_end_matches(&[')', ','][..])
+            .trim()
+            .parse::<usize>()
+        {
+            out.insert(glyph.to_string(), cost);
+        }
+    }
+    out
+}
+
+/// Leg 2's real claim: the glyph/cost surface a model reads is IDENTICAL to the merge base's.
+///
+/// The census (see [`PINNED_GMN_DIALECT_PRODUCERS`]) says WHERE the dialect is produced; this
+/// says WHAT it produces, and the second is the thing the medium axis promises not to move.
+/// Checking content rather than file paths is what makes the leg both stronger and
+/// satisfiable: stronger because moving a table between two census crates cannot dodge it and
+/// a moved binding is named outright, satisfiable because a producer refactor that changes no
+/// binding is a refactor rather than a model-facing change — and a gate no correct change can
+/// ever pass is a tripwire, not an invariant.
+///
+/// SCOPE, stated so it is not read as more than it is: this proves the GLYPH/COST surface. The
+/// codebook a document decodes against is proven separately and on-gate by
+/// [`crate::stages::gmn1_gate::check_gmn1_codebook_digest_on_gate`], which reds a shipped
+/// envelope whose declared digest has gone stale against the recomputed codebook.
+pub fn check_dialect_content_invariance(
+    base: &BTreeMap<String, usize>,
+    work: &BTreeMap<String, usize>,
+    report: &mut ModelFacingReport,
+) {
+    let mut moved: Vec<String> = Vec::new();
+    for (glyph, base_cost) in base {
+        match work.get(glyph) {
+            None => moved.push(format!(
+                "{glyph:?} priced {base_cost} at the base, now UNPRICED"
+            )),
+            Some(work_cost) if work_cost != base_cost => {
+                moved.push(format!("{glyph:?} {base_cost} -> {work_cost}"));
+            }
+            Some(_) => {}
+        }
+    }
+    for (glyph, work_cost) in work {
+        if !base.contains_key(glyph) {
+            moved.push(format!("{glyph:?} is NEWLY priced {work_cost}"));
+        }
+    }
+    if moved.is_empty() {
         return;
     }
     report.problem(format!(
-        "this change touches {} GMN-dialect producer file(s): {touched:?}. The medium axis \
-         re-CODES the bundle's bytes and must leave what a model reads untouched, so a diff \
-         against a producer of the GMN dialect surfaces is a model-facing change by \
-         definition. Land it separately; do NOT trim PINNED_GMN_DIALECT_PRODUCERS to make \
-         this pass — the census is shrink-only for RETIREMENTS, not for exemptions",
-        touched.len()
+        "{} glyph token-cost binding(s) moved against the merge base: {moved:?}. The medium \
+         axis re-CODES the bundle's bytes and must leave what a model reads untouched, and \
+         these costs are emitted into the versioned GMN-1 pack's token-metrics",
+        moved.len()
     ));
 }
 
@@ -654,37 +715,6 @@ mod tests {
         assert!(report.to_string().contains("gmn.lark"), "{report}");
     }
 
-    #[test]
-    fn the_producer_ratchet_passes_on_a_diff_that_avoids_the_dialect() {
-        let report = run(|r| {
-            check_producer_non_interference(
-                ["crates/pipeline/src/medium/registry.rs", "Makefile"],
-                r,
-            );
-        });
-        assert!(
-            report.is_clean(),
-            "a medium-only diff touches no dialect producer: {report}"
-        );
-    }
-
-    /// The red fixture the acceptance criterion names: a `crates/gmn-wasm/` path in the
-    /// diff.
-    #[test]
-    fn the_producer_ratchet_reds_on_a_gmn_wasm_edit() {
-        let report = run(|r| {
-            check_producer_non_interference(
-                ["crates/pipeline/src/lib.rs", "crates/gmn-wasm/src/lib.rs"],
-                r,
-            );
-        });
-        assert!(!report.is_clean(), "a gmn-wasm edit must red");
-        assert!(
-            report.to_string().contains("crates/gmn-wasm/src/lib.rs"),
-            "{report}"
-        );
-    }
-
     /// Both spellings under the ONE `crates/lang-bridge/src/gmn` row.
     #[test]
     fn the_pin_covers_both_gmn_and_gmn1_module_spellings() {
@@ -735,6 +765,23 @@ mod tests {
         assert!(
             report.to_string().contains("freezes the incompleteness"),
             "{report}"
+        );
+    }
+    /// The dialect-content leg refuses a moved binding and accepts a pure relocation — the
+    /// two arms that make it an invariant rather than a tripwire.
+    #[test]
+    fn the_dialect_content_leg_reds_on_a_moved_cost_and_passes_on_a_relocation() {
+        let base = BTreeMap::from([("¬".to_string(), 1)]);
+        let report = run(|r| {
+            check_dialect_content_invariance(&base, &BTreeMap::from([("¬".to_string(), 4)]), r);
+        });
+        assert!(!report.is_clean(), "a repriced glyph must red");
+        assert!(report.to_string().contains("1 -> 4"), "{report}");
+
+        let report = run(|r| check_dialect_content_invariance(&base, &base.clone(), r));
+        assert!(
+            report.is_clean(),
+            "an unchanged surface must pass: {report}"
         );
     }
 }

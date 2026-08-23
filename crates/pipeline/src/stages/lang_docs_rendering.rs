@@ -56,8 +56,9 @@ const EXAMPLE_BASE: &str = "http://example.org/lang/";
 /// The prose the exec-docs English-only boundary carries as its untranslated English source
 /// (the declared asymmetry, recorded as data rather than silently omitted).
 const EXEC_DOCS_BOUNDARY: &str = "GMEOW executable documentation surfaces (the offline SPARQL \
-     playground, the reasoned try-it inference diffs, and the export substrate) are rendered \
-     only in the English documentation tree.";
+     playground, the bundle explorer, the conjecture playground, the standalone \
+     <gmeow-console> shell, the reasoned try-it inference diffs, and the export substrate) \
+     are rendered only in the English documentation tree.";
 
 /// The assembled docs-rendering corpus: the sorted, byte-stable N-Triples graph plus the
 /// per-page + per-boundary loss-ledger rows.

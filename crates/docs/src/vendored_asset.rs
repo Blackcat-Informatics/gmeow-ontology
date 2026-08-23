@@ -3,7 +3,11 @@
 
 //! Shared wasm-asset harness.
 //!
-//! The docs site ships four wasm engines — the query engine behind the offline
+//! The docs site ships four wasm engines, and the standalone console two more
+//! ([`MCP_CORE_ASSET`], [`MCP_ASSET`]) through this same registry — TWO dispatch
+//! architectures (the site routes per capability, the console over one JSON-RPC
+//! protocol) sharing one digest discipline, which is indifferent to which surface
+//! consumes the bytes. The four are — the query engine behind the offline
 //! SPARQL playground (`gmeow-query-wasm`), the repo-free Tier-1 validator
 //! (`gmeow-validate-wasm`), the structured-DL reasoner (`gmeow-reason-wasm`), and
 //! the GMN codec (`gmeow-gmn-wasm`) — as pinned `include_bytes!` build inputs under
@@ -442,8 +446,122 @@ pub fn check_capability_attestations() -> Vec<String> {
 /// engines while the renderer shipped five, and its own docstring claimed a fifth engine
 /// "cannot" be added without reddening it — a claim the copy made false. Adding an engine
 /// here reaches every consumer at once.
-pub static ALL_ASSETS: &[&VendoredWasmAsset] =
-    &[&QUERY_ASSET, &VALIDATE_ASSET, &REASON_ASSET, &GMN_ASSET];
+pub static ALL_ASSETS: &[&VendoredWasmAsset] = &[
+    &QUERY_ASSET,
+    &VALIDATE_ASSET,
+    &REASON_ASSET,
+    &GMN_ASSET,
+    &MCP_CORE_ASSET,
+    &MCP_ASSET,
+];
+
+/// The console's LEAN-CORE MCP segment — the only engine the standalone console loads
+/// eagerly. Emitted under `assets/mcp-core/`; refreshed by `make maint-refresh-mcp-core-asset`.
+///
+/// It is not a fifth docs engine. The four above are the surfaces the DOCS SITE dispatches
+/// to, one per capability; these two are the surfaces the standalone CONSOLE dispatches to,
+/// where every widget speaks JSON-RPC to one MCP engine instead. Both stacks ship, and they
+/// share this registry precisely so neither can drift out of digest discipline: an asset
+/// that is emitted but unpinned is the failure this list exists to prevent, and it does not
+/// care which surface consumes the bytes.
+pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "mcp-core",
+    emitted_files: &[
+        ("index.mjs", include_bytes!("../assets/mcp-core/index.mjs")),
+        (
+            "pkg/gmeow_mcp_core_wasm.js",
+            include_bytes!("../assets/mcp-core/pkg/gmeow_mcp_core_wasm.js"),
+        ),
+        (
+            "pkg/gmeow_mcp_core_wasm_bg.wasm",
+            include_bytes!("../assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm"),
+        ),
+    ],
+    vendored_files: &[
+        "SUBSTRATE.txt",
+        "WITNESS.core-deferral.json",
+        "index.mjs",
+        "pkg/gmeow_mcp_core_wasm.d.ts",
+        "pkg/gmeow_mcp_core_wasm.js",
+        "pkg/gmeow_mcp_core_wasm_bg.wasm",
+        "pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts",
+    ],
+    wasm_file: "pkg/gmeow_mcp_core_wasm_bg.wasm",
+    min_wasm_len: 1_000_000,
+    export_checks: &[
+        ExportCheck {
+            file: "pkg/gmeow_mcp_core_wasm.js",
+            needle: "export function mcp",
+            hint: "vendored core bindings lack the JSON-RPC entry point",
+        },
+        ExportCheck {
+            file: "pkg/gmeow_mcp_core_wasm.d.ts",
+            needle: "export function mcp(request_json: string): string;",
+            hint: "vendored core .d.ts lacks the JSON-RPC entry point's type signature",
+        },
+        // The tiering itself: a core image that cannot NAME the segment it defers to has
+        // no route to re-dispatch along, so the demand-load is unreachable.
+        ExportCheck {
+            file: "pkg/gmeow_mcp_core_wasm.d.ts",
+            needle: "export function deferred_segment(): string;",
+            hint: "vendored core .d.ts lacks the deferred-segment route",
+        },
+    ],
+    refresh_target: "maint-refresh-mcp-core-asset",
+    bless_env: "GMEOW_MCP_CORE_BLESS",
+    // The native↔wasm deferral attestation: the typed `mcp.segment-not-loaded` frame the
+    // core image returns for a reasoning tool, which the shipped wasm reproduces
+    // byte-for-byte. It attests the ROUTING, which is what the tiering rests on.
+    witness_attestation: Some("WITNESS.core-deferral.json"),
+};
+
+/// The console's DEMAND-LOADED MCP segment — the full engine including the reasoner.
+///
+/// Emitted under `assets/mcp/`; refreshed by `make maint-refresh-mcp-asset`. Fetched on the
+/// first `tools/call` the core image defers, never as part of the first load.
+pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
+    name: "mcp",
+    emitted_files: &[
+        ("index.mjs", include_bytes!("../assets/mcp/index.mjs")),
+        (
+            "pkg/gmeow_mcp_wasm.js",
+            include_bytes!("../assets/mcp/pkg/gmeow_mcp_wasm.js"),
+        ),
+        (
+            "pkg/gmeow_mcp_wasm_bg.wasm",
+            include_bytes!("../assets/mcp/pkg/gmeow_mcp_wasm_bg.wasm"),
+        ),
+    ],
+    vendored_files: &[
+        "SUBSTRATE.txt",
+        "WITNESS.mcp.json",
+        "index.mjs",
+        "pkg/gmeow_mcp_wasm.d.ts",
+        "pkg/gmeow_mcp_wasm.js",
+        "pkg/gmeow_mcp_wasm_bg.wasm",
+        "pkg/gmeow_mcp_wasm_bg.wasm.d.ts",
+    ],
+    wasm_file: "pkg/gmeow_mcp_wasm_bg.wasm",
+    min_wasm_len: 1_000_000,
+    export_checks: &[
+        ExportCheck {
+            file: "pkg/gmeow_mcp_wasm.js",
+            needle: "export function mcp",
+            hint: "vendored segment bindings lack the JSON-RPC entry point",
+        },
+        ExportCheck {
+            file: "pkg/gmeow_mcp_wasm.d.ts",
+            needle: "export function mcp(request_json: string): string;",
+            hint: "vendored segment .d.ts lacks the JSON-RPC entry point's type signature",
+        },
+    ],
+    refresh_target: "maint-refresh-mcp-asset",
+    bless_env: "GMEOW_MCP_BLESS",
+    // The native↔wasm attestation: a real `conjecture_test` frame answered by the segment,
+    // byte-identical both to the shipped wasm's answer and to what the FULL native engine
+    // returns for the same frame.
+    witness_attestation: Some("WITNESS.mcp.json"),
+};
 
 pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     name: "query",

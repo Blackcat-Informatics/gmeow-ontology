@@ -555,7 +555,7 @@ fn observed_term(_cq_iri: &str, _var: &str, term: &TermValue) -> Result<Observed
         TermValue::Literal { datatype, .. } => {
             // An RDF-1.2 directional language-tagged literal reports the effective
             // datatype rdf:dirLangString, but a column declares the stable identity
-            // datatype rdf:langString (the same convention crates/rdf-wasm uses):
+            // datatype rdf:langString (the same convention the purrdf wasm bindings use):
             // normalise so a directional literal conforms to a langString column
             // rather than false-positiving a DatatypeMismatch.
             let datatype = if datatype == DIR_LANG_STRING {

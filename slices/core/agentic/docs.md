@@ -85,28 +85,39 @@ namespace: bridging them is a projection concern (Lillith worked example Workflo
 OpenLineage precedent), recorded as REFUSED cells in the mapping trailer rather than
 papered over.
 
-## Dogfood — the memory-MCP triad as governed action schemas
+## Dogfood — the whole MCP tool surface as action schemas
 
-`examples/mcp-action-policy.ttl` models the **real** memory-MCP tools the production
-server exposes (the native Rust MCP server, `crates/pipeline/src/mcp.rs`) as action schemas under the
-canonical-process action theory — the dogfood case where the process model governs the
-agent's own tool calls under explicit **capability / precondition / compensation**
-(rollback).
+`examples/mcp-action-policy.ttl` models the **real** tools the production native Rust
+MCP server (`crates/mcp`) exposes as action schemas under the canonical-process action
+theory — the dogfood case where the process model governs the agent's own tool calls
+under explicit **capability / precondition / compensation** (rollback).
 
-- **`store_claim`** (`logic:McpActionSchema`) — writes a reified claim. Its
-  `logic:compensation` is `revise_belief`: suppression undoes the store (P10,
-  never erasure).
-- **`revise_belief`** (`logic:McpActionSchema`) — suppresses a claim (P10). Its
-  `logic:compensation` is `store_claim`: a suppression is reversible by re-asserting
-  the claim, never by deletion.
-- **`recall`** (a plain `logic:ActionSchema`, **not** `logic:McpActionSchema`) — the
-  read path, with a precondition + capability but **no** compensation, because a read
-  changes no state and so needs no rollback.
+It is **total**, not a sample: every tool the consumer server advertises has exactly
+one row, and every row names exactly one advertised tool. The correspondence is carried
+by **`logic:mcpToolName`**, an asserted wire name on each schema, and is checked in both
+directions by a gate in `crates/mcp`. A schema's local name is an *ontology* name chosen
+for what the action **is** — `ex:persistConjecture` is the tool `store_conjecture`,
+`ex:withdrawConjecture` is `refute_conjecture` — so the wire name has to be asserted
+rather than mangled out of the local name.
 
-Typing the two write tools `logic:McpActionSchema` opts them into the stricter
+The partition is read off the **asserted** types:
+
+- **6 governed writes** (`logic:McpActionSchema`) — `store_claim` ⇄ `revise_belief`,
+  `store_conjecture` ⇄ `refute_conjecture`, `submit_candidate` ⇄ `withdraw_candidate`.
+  Each pair is its own compensation: the rollback is supersession, never erasure (P10).
+- **31 reads** (plain `logic:ActionSchema`) — capability + precondition, but **no**
+  `logic:effect` and **no** `logic:compensation`, because a read changes no state.
+  `conjecture_test` is the instructive one: it runs the same isolated-world evaluation
+  as `store_conjecture` but never commits, so evaluation is not commitment and it stays
+  a plain schema.
+
+Typing the write tools `logic:McpActionSchema` opts them into the stricter
 `logic:McpActionPolicyShape` (capability + precondition + compensation each required);
-`recall` stays a plain `logic:ActionSchema`, where the compensation obligation would be
-vacuous. The companion Rust evaluator (`crates/logic/src/teleology.rs`, `gate_action`)
-exercises the same `store_claim` pattern: **admit** when the precondition holds and the
-memory-write capability is available, **deny** (carrying `revise_belief` as the
-rollback) when either is missing.
+the reads stay plain `logic:ActionSchema`, where the compensation obligation would be
+vacuous. `logic:McpActionSchema` is a **subclass** of `logic:ActionSchema`, so the
+read/write split is a statement about what is *asserted*, not about disjointness — and
+the projection the engine reads (and the `action_policy` tool serves) is an
+asserted-quad projection. The companion Rust evaluator
+(`crates/logic/src/teleology.rs`, `gate_action`) exercises the same `store_claim`
+pattern: **admit** when the precondition holds and the memory-write capability is
+available, **deny** (carrying `revise_belief` as the rollback) when either is missing.

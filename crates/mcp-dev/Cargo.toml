@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-mcp-dev"
+description = "The repo-reading GMEOW MCP developer tools (validate / sync / reason / constitution), registered into the consumer engine through its extension seam"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["gmeow", "mcp", "agent", "developer"]
+
+[lib]
+# rlib-only. This crate is where the repo-anchored half of the MCP surface lives,
+# and it is deliberately the ONLY MCP crate that depends on the build executor:
+# `gmeow-mcp` stays a leaf precisely because `run_full` / `RunMode` sit on THIS side
+# of the extension seam. Nothing may depend on this crate except a launcher that
+# already has a checkout (`gmeow-dev`).
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# The consumer MCP engine: the server, the bundle view, and the `Extension` seam the
+# four dev tools register through. Every consumer tool is inherited unchanged.
+gmeow-mcp = { path = "../mcp" }
+# The build executor: `run::run_full` + `run::RunMode` are what the `validate` and
+# `sync` tools ARE. This single edge is why the dev tools were split out of
+# `gmeow-mcp` at all.
+gmeow-pipeline = { path = "../pipeline" }
+# The native reasoner: the `reason` tool runs `gmeow_logic::reason::reason_all` over
+# the bundle's folded carrier graph.
+gmeow-logic = { path = "../logic" }
+# The diagnostic substrate: the dev tools raise typed `DiagKind`s as `Diag`s, on the
+# same content-bound catalog as every other crate.
+gmeow-errors = { path = "../errors" }
+# JSON is the MCP wire format: the tool descriptors and every result envelope.
+serde_json.workspace = true

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Rust repository-static guards for source, workflow, and lane policy.
@@ -3745,10 +3745,10 @@ const PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS: &[&str] = &[
     "music.import.unsupported-suffix",
     "music.musicxml.parse",
     "music.musicxml.timeline-overflow",
-    "pipeline.bundle.decode",
-    "pipeline.bundle.json",
-    "pipeline.bundle.parse",
-    "pipeline.bundle.untar",
+    "bundle-view.bundle.decode",
+    "bundle-view.bundle.json",
+    "bundle-view.bundle.parse",
+    "bundle-view.bundle.untar",
     "pipeline.cache.decode",
     "pipeline.cache.mismatch",
     "pipeline.contract.attach-decl-mismatch",
@@ -3767,8 +3767,8 @@ const PINNED_DIAG_KINDS_WITHOUT_FAILURE_CLASS: &[&str] = &[
     "pipeline.eval.schema",
     "pipeline.generator",
     "pipeline.io",
-    "pipeline.mcp",
-    "pipeline.mcp.ambiguous-term",
+    "mcp.error",
+    "mcp.ambiguous-term",
     "pipeline.meta-fold",
     "pipeline.projection",
     "pipeline.put",
@@ -5995,9 +5995,12 @@ mod tests {
             "crates/gmeow-dev-cli/src/feedback_bundle.rs",
             "crates/math/src/lib.rs",
             "crates/music/src/lib.rs",
-            "crates/pipeline/src/mcp.rs",
+            // The MCP engine is its own leaf crate now, and its runtime store opens its own
+            // segment, so the census must find BOTH of its authorship doors.
+            "crates/mcp/src/lib.rs",
+            "crates/mcp/src/storage.rs",
             "crates/pipeline/src/stages/carrier.rs",
-            "crates/pipeline/src/transcode.rs",
+            "crates/transcode/src/lib.rs",
         ] {
             assert!(
                 files.contains(known),
@@ -6634,7 +6637,13 @@ mod tests {
         assert_eq!(
             bound.keys().copied().collect::<Vec<_>>(),
             vec![
+                "bundle-view.export",
+                "bundle-view.io",
+                "bundle-view.rdf.parse",
+                "docs-catalog.concept-lattice",
+                "docs-catalog.distribution",
                 "gts-profile.frame",
+                "lang-bridge.gmn1.unpinned-glyph-cost",
                 "math.lift.empty-codomain",
                 "math.lift.onnx.unliftable",
                 "math.lift.onnx.wire",
@@ -6643,6 +6652,13 @@ mod tests {
                 "math.lift.r.parse",
                 "math.lift.r.unliftable",
                 "math.lift.source.not-utf8",
+                "mcp-dev.error",
+                "mcp.duplicate-registration",
+                "mcp.invalid-registration",
+                "mcp.medium.unpinned-store-dictionary",
+                "mcp.segment-not-loaded",
+                "mcp.unknown-resource",
+                "mcp.unknown-tool",
                 "pipeline.medium.corpus-drift",
                 "pipeline.medium.dictionary-regression",
                 "pipeline.medium.digest-mismatch",

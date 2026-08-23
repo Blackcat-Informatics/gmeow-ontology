@@ -91,6 +91,10 @@ const AFTER_SYNC: &[&str] = &["sync"];
 /// edge transitively carries the generated-tree dependency as well.
 const AFTER_RUST_BUILD: &[&str] = &["rust-build"];
 
+/// The browser lane needs the ASSEMBLED console tree, which only `console` produces —
+/// `AFTER_SYNC` materializes the bundle but assembles nothing.
+const AFTER_CONSOLE: &[&str] = &["sync", "console"];
+
 const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "crate-check",
@@ -108,6 +112,9 @@ const FINAL_DEPS: &[&str] = &[
     "wikidata",
     "coverage",
     "reason-verify",
+    "console-test",
+    "console",
+    "console-smoke",
     "lint-alignment",
     "doc-lint",
     "slice-quality-gate",
@@ -237,6 +244,36 @@ const CHECK_DAG: &[Task] = &[
         target: "reason-verify",
         dependencies: AFTER_SYNC,
     },
+    // The standalone console's DOM-free acceptance lane. It drives the SHIPPED wasm
+    // engine over the SHIPPED bundle, so it depends on the synchronized tree; its
+    // assertions (the derived pane set, the recorded round-trip failure, the hard error
+    // on a missing asset, the quoted-triple annotations, the conjecture selector, the
+    // wasm export subset) are gate blockers, not a smoke test. It stays on `make check`
+    // — unlike `wasm-parity`, it builds nothing: it executes the already-vendored
+    // `crates/docs/assets/mcp-core/` bytes, so its cost tracks the change under test.
+    Task {
+        name: "console-test",
+        target: "console-test",
+        dependencies: AFTER_SYNC,
+    },
+    // The standalone console's assembled tree, and the browser lane that drives it. Two
+    // tasks, not one: `console-smoke` needs the ASSEMBLED tree, and `AFTER_SYNC` never
+    // assembles anything — so the edge `console-smoke <- console` is what makes the browser
+    // lane run against the artifact rather than against nothing. The browser surface IS the
+    // console's deliverable, so this lane is a gate blocker: it serves the assembled tree
+    // over plain static HTTP with no COOP/COEP (exactly what Pages provides), drives the
+    // whole read surface through the assembled worker, and boots the REAL `npm pack`
+    // tarball the way the shipped README prescribes.
+    Task {
+        name: "console",
+        target: "console",
+        dependencies: AFTER_SYNC,
+    },
+    Task {
+        name: "console-smoke",
+        target: "console-smoke",
+        dependencies: AFTER_CONSOLE,
+    },
     // `correspondence_soundness` audits `generated/mappings/*.sssom.tsv`,
     // `generated/projections/*.edoal.ttl`, and the generated FnO catalog.
     Task {
@@ -245,7 +282,8 @@ const CHECK_DAG: &[Task] = &[
         dependencies: AFTER_SYNC,
     },
     // The documentation model and the rendered English site come from the
-    // content-addressed `.cache/docs-fixture` store (`gmeow_docs::fixture`), whose key
+    // content-addressed `.cache/docs-fixture` store (the model half in
+    // `gmeow_docs_model::fixture`, the rendered half in `gmeow_docs::fixture`), whose key
     // folds `generated/catalog/constraint-catalog.nq` and
     // `generated/catalog/term-content-manifest.nq` — the same two files
     // `DocsModel::discover` reads, and which it HARD-fails without.
@@ -922,5 +960,37 @@ mod tests {
         assert!(pid_alive(std::process::id()));
         // pid 0 is never a userspace process on Linux.
         assert!(!pid_alive(0));
+    }
+
+    /// Every task's `target` is a real Makefile RULE. The scheduler spawns
+    /// `make <target>`; an undeclared target fails the child, which at least reports —
+    /// but a target that exists only as a `.PHONY` entry with no rule would "succeed"
+    /// with `make: Nothing to be done`, so the RULE line is what is asserted here.
+    #[test]
+    fn every_task_target_has_a_makefile_rule() {
+        let makefile = std::fs::read_to_string(workspace_root().join("Makefile"))
+            .expect("the workspace Makefile is readable");
+        let rules: BTreeSet<&str> = makefile
+            .lines()
+            .filter(|line| !line.starts_with(['\t', ' ', '#']))
+            .filter_map(|line| line.split_once(':'))
+            .filter(|(name, rest)| {
+                !name.is_empty()
+                    && !rest.starts_with('=')
+                    && name
+                        .chars()
+                        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.'))
+            })
+            .map(|(name, _)| name)
+            .collect();
+        let missing = CHECK_DAG
+            .iter()
+            .map(|task| task.target)
+            .filter(|target| !rules.contains(target))
+            .collect::<Vec<_>>();
+        assert!(
+            missing.is_empty(),
+            "these CHECK_DAG targets have no Makefile rule: {missing:?}"
+        );
     }
 }

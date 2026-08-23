@@ -113,6 +113,14 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
     # Committed changes AND the working tree, so the rule fires before a commit is
     # made rather than only after.
     #
+    # A CSS HEX COLOUR is not an issue reference. The digit pattern matches a six-digit
+    # colour whose leading characters are digits, so a stylesheet reds a lint about
+    # process-flow leakage. The filter drops a hash followed by exactly three, four, six
+    # or eight hexadecimal characters and nothing more — the four lawful CSS colour
+    # widths. That cannot swallow a real reference: a hash plus five digits is not a
+    # colour width, and a shorter one is followed by a word boundary rather than by more
+    # hex, so the tracker forms this rule exists to catch all survive the filter.
+    #
     # TWO exclusions beyond the shared set, each because the reference IS the content:
     #   * `.deficiencies` — a descope ledger whose own mandated entry format is
     #     "## From #<issue> — <title>" with a `Decided-by:` line. The rule exists to keep
@@ -150,7 +158,8 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
                 if ($0 ~ /#[0-9][0-9][0-9]/) { printf "%s:%d:%s\n", file, line, substr($0, 2) }
             }
         ' | grep -v -e '^generated/' -e '^vendor/' -e '^\.github/' -e '^docs/BRAND\.md:' \
-              -e '^\.deficiencies:' -e '^crates/xtask/tests/issue_refs_lint\.rs:'
+              -e '^\.deficiencies:' -e '^crates/xtask/tests/issue_refs_lint\.rs:' \
+        | grep -vE '#[0-9a-fA-F]{3}([^0-9a-fA-F]|$)|#[0-9a-fA-F]{4}([^0-9a-fA-F]|$)|#[0-9a-fA-F]{6}([^0-9a-fA-F]|$)|#[0-9a-fA-F]{8}([^0-9a-fA-F]|$)'
     ) || true
     if [ -n "$diff_matches" ]; then
         echo "Found issue/PR number references in lines this branch ADDED:" >&2

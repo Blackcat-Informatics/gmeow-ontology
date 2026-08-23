@@ -1043,29 +1043,16 @@ pub fn describe(
 
 // ── conjecture ─────────────────────────────────────────────────────────────────
 
-/// The medium every append-only runtime store this CLI writes is written through:
-/// the shipped `gmeow-memory-hot-v1` dictionary, read out of the EMBEDDED bundle's
-/// in-band `"dct"` map.
-///
-/// The bundle travels with the binary ([`crate::BUNDLE_GTS`]), so the dictionary is
-/// available in a wheel-mode install exactly as it is in a checkout — the store never
-/// needs a second artifact, and it is primed with the same bytes the MCP server uses,
-/// so one store file stays readable by both.
-fn cli_store_medium(
-    reporter: &dyn Reporter,
-    code: &str,
-) -> Result<gmeow_pipeline::mcp::StoreMedium, i32> {
-    gmeow_pipeline::mcp::store_medium(
-        crate::BUNDLE_GTS,
-        gmeow_pipeline::mcp::MEMORY_HOT_DICTIONARY,
-    )
-    .map_err(|e| fail(reporter, code, format!("store medium unavailable: {e}")))
+/// The hot store medium, resolved from the embedded bundle exactly as the MCP engine resolves
+/// it — the CLI and the tool run one implementation, so they prime one way.
+fn hot_store_medium() -> gmeow_errors::Result<gmeow_mcp::StoreMedium> {
+    gmeow_mcp::store_medium(BUNDLE_GTS, gmeow_mcp::MEMORY_HOT_DICTIONARY)
 }
 
 /// `gmeow conjecture test` — test a candidate `logic:` formula against a KB in an
 /// isolated, standpoint-scoped scenario world, print the engine verdict, and —
 /// unless `--dry-run` — APPEND it to the append-only conjecture library. Delegates
-/// to the SHARED [`gmeow_pipeline::mcp::run_conjecture_test`] core (the same path
+/// to the SHARED [`gmeow_mcp::run_conjecture_test`] core (the same path
 /// the MCP `conjecture_test` tool runs), so there is one implementation, not two.
 #[allow(clippy::too_many_arguments)]
 pub fn conjecture_test(
@@ -1099,13 +1086,18 @@ pub fn conjecture_test(
         }
     };
 
-    let medium = match cli_store_medium(reporter, "gmeow-cli.conjecture.medium") {
+    let medium = match hot_store_medium() {
         Ok(medium) => medium,
-        Err(code) => return code,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.conjecture.failed",
+                format!("the bundle pins no runtime-store dictionary: {e}"),
+            );
+        }
     };
-    let out =
-        match gmeow_pipeline::mcp::run_conjecture_test(&gmeow_pipeline::mcp::ConjectureRunInput {
-            medium: &medium,
+    let out = match gmeow_mcp::run_conjecture_test(
+        &gmeow_mcp::ConjectureRunInput {
             formula_ttl: &formula_ttl,
             kb_ttl: &kb_ttl,
             standpoint,
@@ -1113,16 +1105,18 @@ pub fn conjecture_test(
             dry_run,
             max_steps,
             max_answers,
-        }) {
-            Ok(out) => out,
-            Err(e) => {
-                return fail(
-                    reporter,
-                    "gmeow-cli.conjecture.failed",
-                    format!("conjecture test failed: {e}"),
-                );
-            }
-        };
+        },
+        &medium,
+    ) {
+        Ok(out) => out,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.conjecture.failed",
+                format!("conjecture test failed: {e}"),
+            );
+        }
+    };
 
     // A precondition-unmet TR gate refused the write: report it and fail (exit 1),
     // mirroring the MCP `ok:false` path — the verdict was computed but not persisted.
@@ -1164,7 +1158,7 @@ pub fn conjecture_test(
 
 /// `gmeow candidate submit` — test a candidate `logic:` formula against a KB and, ONLY if the
 /// isolated-world verdict CORROBORATES it (admissible), APPEND it to the append-only candidate
-/// library. Delegates to the SHARED [`gmeow_pipeline::mcp::run_submit_candidate`] core (the same
+/// library. Delegates to the SHARED [`gmeow_mcp::run_submit_candidate`] core (the same
 /// path the MCP `submit_candidate` tool runs), so there is one implementation, not two. A refuted
 /// or open candidate is not admitted (a non-zero exit), and `--dry-run` writes nothing.
 #[allow(clippy::too_many_arguments)]
@@ -1201,13 +1195,18 @@ pub fn candidate_submit(
         }
     };
 
-    let medium = match cli_store_medium(reporter, "gmeow-cli.candidate.medium") {
+    let medium = match hot_store_medium() {
         Ok(medium) => medium,
-        Err(code) => return code,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.failed",
+                format!("the bundle pins no runtime-store dictionary: {e}"),
+            );
+        }
     };
-    let out = match gmeow_pipeline::mcp::run_submit_candidate(
-        &gmeow_pipeline::mcp::CandidateSubmitInput {
-            medium: &medium,
+    let out = match gmeow_mcp::run_submit_candidate(
+        &gmeow_mcp::CandidateSubmitInput {
             formula_ttl: &formula_ttl,
             kb_ttl: &kb_ttl,
             standpoint,
@@ -1218,6 +1217,7 @@ pub fn candidate_submit(
             max_steps,
             max_answers,
         },
+        &medium,
     ) {
         Ok(out) => out,
         Err(e) => {
@@ -1257,7 +1257,7 @@ pub fn candidate_submit(
 }
 
 /// `gmeow candidate withdraw` — withdraw a persisted candidate (P10 supersession). Delegates to
-/// the SHARED [`gmeow_pipeline::mcp::run_withdraw_candidate`] core the MCP tool runs. An unknown
+/// the SHARED [`gmeow_mcp::run_withdraw_candidate`] core the MCP tool runs. An unknown
 /// or already-withdrawn id is a hard error (a non-zero exit).
 pub fn candidate_withdraw(
     reporter: &dyn Reporter,
@@ -1265,11 +1265,17 @@ pub fn candidate_withdraw(
     reason: Option<&str>,
     dry_run: bool,
 ) -> i32 {
-    let medium = match cli_store_medium(reporter, "gmeow-cli.candidate.medium") {
+    let medium = match hot_store_medium() {
         Ok(medium) => medium,
-        Err(code) => return code,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.candidate.failed",
+                format!("the bundle pins no runtime-store dictionary: {e}"),
+            );
+        }
     };
-    let body = match gmeow_pipeline::mcp::run_withdraw_candidate(
+    let body = match gmeow_mcp::run_withdraw_candidate(
         candidate_id,
         reason.unwrap_or(""),
         dry_run,
@@ -1288,13 +1294,13 @@ pub fn candidate_withdraw(
 }
 
 /// `gmeow candidate list` — list admitted candidates with their disposition + provenance.
-/// Delegates to the SHARED [`gmeow_pipeline::mcp::run_list_candidates`] core.
+/// Delegates to the SHARED [`gmeow_mcp::run_list_candidates`] core.
 pub fn candidate_list(
     reporter: &dyn Reporter,
     slice: Option<&str>,
     disposition: Option<&str>,
 ) -> i32 {
-    let body = match gmeow_pipeline::mcp::run_list_candidates(slice, disposition) {
+    let body = match gmeow_mcp::run_list_candidates(slice, disposition) {
         Ok(body) => body,
         Err(e) => {
             return fail(
@@ -4876,13 +4882,20 @@ pub fn crossref(reporter: &dyn Reporter, out: &Path, gts: Option<&Path>) -> i32 
 
 /// `gmeow mcp` — serve the native, bundle-only MCP consumer surface over stdio.
 ///
-/// The embedded [`BUNDLE_GTS`] snapshot is the sole ontology source (repo-free);
-/// `root = None` so no repo-reading dev tools are exposed. Blocks on the stdio
-/// JSON-RPC loop until EOF, then exits `0`; a construction or I/O error maps to a
-/// nonzero exit.
+/// The embedded [`BUNDLE_GTS`] snapshot is the sole ontology source (repo-free).
+/// This binary links `gmeow-mcp` alone, never `gmeow-mcp-dev`, so the repo-reading
+/// dev tools are not merely hidden here — they are not compiled in. Blocks on the
+/// stdio JSON-RPC loop until EOF, then exits `0`; a construction or I/O error maps
+/// to a nonzero exit.
 pub fn mcp(reporter: &dyn Reporter) -> i32 {
-    use gmeow_pipeline::mcp::{McpMode, McpServer};
-    let server = match McpServer::from_snapshot(BUNDLE_GTS, None, McpMode::Consumer) {
+    use gmeow_mcp::McpServer;
+    // The medium registry rides an extension because the MCP engine is a leaf that does not
+    // link the build executor; this binary DOES, so the shipped consumer surface is unchanged.
+    let medium = gmeow_mcp::extension::Extension::new()
+        .with_resource(gmeow_mcp::medium_resource_descriptor(), |server, _args| {
+            gmeow_pipeline::medium::inspect::inventory_json(server.view().gts_bytes())
+        });
+    let server = match McpServer::from_snapshot_with(BUNDLE_GTS, medium) {
         Ok(server) => server,
         Err(e) => return fail(reporter, "gmeow-cli.mcp.construct", format!("mcp: {e}")),
     };
@@ -5351,7 +5364,7 @@ pub fn slice_lint(
 /// tiering [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
 /// pipeline stage uses — so an in-repo slice's live CLI brief and its committed
 /// `generated/briefs/authoring-packets.nt` projection tier terms identically. The
-/// bundle path runs the SAME [`gmeow_pipeline::mcp::extract_authoring_packets`] core the
+/// bundle path runs the SAME [`gmeow_mcp::extract_authoring_packets`] core the
 /// MCP `slice_brief` tool serves. A `--batch` out of range is a typed hard failure
 /// through [`fail`] (a non-zero exit) on both paths, never a panic or an empty packet.
 pub fn slice_brief(
@@ -5384,7 +5397,7 @@ pub fn slice_brief(
 
 /// `gmeow slice brief --from-bundle <slice>` — serve the pre-assembled authoring
 /// packet(s) for a slice straight from the embedded gmeow.gts bundle, via the SAME
-/// [`gmeow_pipeline::mcp::extract_authoring_packets`] core the MCP `slice_brief` tool
+/// [`gmeow_mcp::extract_authoring_packets`] core the MCP `slice_brief` tool
 /// runs (one implementation, not two). Checkout-free: no repo root, no SHACL shape union.
 fn slice_brief_from_bundle(
     reporter: &dyn Reporter,
@@ -5393,21 +5406,17 @@ fn slice_brief_from_bundle(
     batch: Option<u32>,
     format: &str,
 ) -> i32 {
-    let out = match gmeow_pipeline::mcp::slice_brief_from_bundle(
-        BUNDLE_GTS,
-        slice,
-        axis,
-        batch.map(u64::from),
-    ) {
-        Ok(v) => v,
-        Err(e) => {
-            return fail(
-                reporter,
-                "gmeow-cli.slice.brief.bundle",
-                format!("cannot serve packet for slice {slice:?}: {e}"),
-            );
-        }
-    };
+    let out =
+        match gmeow_mcp::slice_brief_from_bundle(BUNDLE_GTS, slice, axis, batch.map(u64::from)) {
+            Ok(v) => v,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.slice.brief.bundle",
+                    format!("cannot serve packet for slice {slice:?}: {e}"),
+                );
+            }
+        };
     let rendered = match format {
         "json" => serde_json::to_string_pretty(&out).unwrap_or_else(|_| out.to_string()),
         "turtle" => out
@@ -5632,13 +5641,16 @@ pub fn docs_matrix(reporter: &dyn Reporter) -> i32 {
             );
         }
     };
+    // The family column is 20 wide because `interactive-runtime` is 19 characters: the
+    // previous 14 made the console's row overflow its column and knocked every field after
+    // it out of alignment.
     println!(
-        "{:<10} {:<14} {:<40} {:<24} dropped-capabilities",
+        "{:<10} {:<20} {:<40} {:<24} dropped-capabilities",
         "slug", "family", "consumers", "media-type"
     );
     for row in &rows {
         println!(
-            "{:<10} {:<14} {:<40} {:<24} {}",
+            "{:<10} {:<20} {:<40} {:<24} {}",
             row.slug,
             row.family,
             row.consumers.join(","),
