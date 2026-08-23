@@ -16,10 +16,25 @@ crate-type = ["cdylib", "rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-# The GMN-0/GMN-1 codec + glyph symbology (already shipped + gated). Cross-compiles
-# to wasm32 as-is (blake3 / purrdf / unicode-* / tiktoken-rs are pure-Rust, no
-# network, no filesystem).
-gmeow-lang-bridge = { path = "../lang-bridge" }
+# The GMN-0/GMN-1 codec (already shipped + gated). Cross-compiles to wasm32 as-is
+# (blake3 / purrdf / unicode-* are pure-Rust, no network, no filesystem).
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature: the shipped
+# surface serves the PINNED `GLYPH_TOKEN_COSTS` legend, never a live measurement, so the
+# ~1.7 MB embedded BPE vocabulary stays out of the browser image. The anti-rot test that
+# pins that legend against the real tokenizer is native-only and takes the feature back
+# through the dev-dependency below.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
 # The ONE canonical RDF parser/serializer.
 purrdf.workspace = true
+# EXACTLY pinned ONCE, in `[workspace.dependencies]`: the wasm-bindgen CLI that
+# generates the JS bindings refuses to run unless it matches the library version
+# byte-for-byte.
 wasm-bindgen.workspace = true
+
+[dev-dependencies]
+# The token-cost anti-rot gate measures the REAL `cl100k_base` cost of every codebook
+# glyph and pins `GLYPH_TOKEN_COSTS` to it, so it needs the `glyph-cost` feature the
+# shipped wasm image deliberately drops. A dev-dependency is exactly the right seam: it
+# is absent from `cargo tree -e no-dev` and from every non-test build, so the wasm image
+# is unaffected while the pin stays machine-checked on native.
+gmeow-lang-bridge = { path = "../lang-bridge" }

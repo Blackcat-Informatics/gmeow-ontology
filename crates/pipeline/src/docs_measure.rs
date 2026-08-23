@@ -241,14 +241,11 @@ fn render_every_format(
 ) -> Result<Vec<RenderedFormat>, Diag> {
     let model = build_docs_model(root, products)?;
 
-    let playground_trig = crate::stages::carrier::playground_trig_from_bundle(carrier)
-        .map_err(|e| err(format!("build the playground TriG asset: {e}")))?;
     let known_term_iris: std::collections::BTreeSet<String> =
         model.terms.iter().map(|t| t.iri.clone()).collect();
     let term_entailments =
         crate::stages::carrier::term_entailments_from_upstream(products, &known_term_iris)?;
     let exec = gmeow_docs::ExecutableDocsData {
-        playground_trig,
         term_entailments,
         ..Default::default()
     };
@@ -386,7 +383,7 @@ fn render_print(
         .and_then(|p| p.artifact(BIB_PATH))
         .ok_or_else(|| err("missing stage-export-references bibliography for the print renderer"))?
         .to_vec();
-    let losses: Vec<gmeow_docs::formats::FormatCapabilities> = [
+    let losses: Vec<gmeow_docs::formats::SurfaceCapabilities> = [
         gmeow_docs::formats::DocFormat::Site,
         gmeow_docs::formats::DocFormat::Mdbook,
         gmeow_docs::formats::DocFormat::Pdf,

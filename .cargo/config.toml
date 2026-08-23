@@ -14,6 +14,15 @@ xtask = "run --quiet --package xtask --"
 CFLAGS = { value = "-O2 -march=native -mtune=native", force = true }
 CXXFLAGS = { value = "-O2 -march=native -mtune=native", force = true }
 
+[target.wasm32-unknown-unknown]
+# The wasm default stack is 1 MiB. The browser reasoning segment runs the SAME chase the
+# native engine does — `verify_graph` over the governed bundle recurses deeply enough to
+# exhaust that, and a wasm stack overflow is not an error a caller can see: it traps as
+# `RuntimeError: unreachable`, with no panic text and no way to tell it from a bug. Sizing
+# the stack to the work the engine actually does is what keeps the browser answer identical
+# to the native one rather than merely smaller.
+rustflags = ["-C", "link-arg=-zstack-size=16777216"]
+
 [target.x86_64-unknown-linux-gnu]
 # Link with the toolchain's BUNDLED rust-lld (no system lld / apt install — the
 # nightly toolchain CI already uses ships it under gcc-ld/). This reduces peak

@@ -1,31 +1,50 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example — the REAL memory-MCP triad, dogfooded as action schemas under the
-# canonical-process action theory.
+# Worked example — the REAL consumer MCP tool surface, dogfooded IN FULL as action
+# schemas under the canonical-process action theory.
 #
-# These are the three tools the production native memory MCP server actually
-# exposes: `store_claim` (writes a reified claim to memory),
-# `revise_belief` (SUPPRESSES a claim — P10 suppression-not-erasure, the recovery /
-# rollback action), and `recall` (the read path, which records nothing). This file
-# models each tool as a logic:ActionSchema and brings the two WRITE tools under the
-# stricter MCP-action governance profile (logic:McpActionPolicyShape) by typing them
-# logic:McpActionSchema — the dogfood case where the canonical process model governs
-# the agent's own tool calls under explicit capability / precondition / compensation
-# (rollback).
+# TOTALITY IS THE POINT. Every tool the shipped consumer server (`gmeow mcp`,
+# crates/mcp) advertises has exactly one row here, and every row here names exactly
+# one advertised tool. The correspondence is carried by logic:mcpToolName — an
+# ASSERTED wire name on each schema — and is checked in BOTH directions by a gate in
+# crates/mcp (`the_action_theory_is_bijective_with_the_consumer_tool_surface`). A tool
+# with no row, or a row with no tool, is a hard test failure naming the offender. So
+# this file is not a sample of the surface: it is the surface, and an agent (or a
+# browser reading the gmeow://ontology/action-policy resource) can enumerate what the
+# engine can be asked to do from the ontology alone.
 #
-# THE GOVERNANCE WIRING.
+# WHY logic:mcpToolName EXISTS. A schema's local name is an ONTOLOGY name, chosen for
+# what the action IS. `ex:persistConjecture` is named for the append it performs; the
+# tool that performs it is called `store_conjecture`. `ex:withdrawConjecture` is the
+# tool `refute_conjecture`. No name-mangling heuristic recovers those, and one that
+# appeared to work would silently rot. The wire name is therefore asserted.
+#
+# THE READ / WRITE PARTITION. A tool that mutates state is typed
+# logic:McpActionSchema, which opts it into the stricter MCP-action governance profile
+# (logic:McpActionPolicyShape: capability + precondition + compensation each REQUIRED).
+# A tool that only reads is typed a PLAIN logic:ActionSchema with a capability and a
+# precondition but NO logic:effect and NO logic:compensation, because a read changes no
+# state and a rollback obligation on it would be vacuous — see the note on ex:recall
+# below, which is the pattern every read row follows. The partition is read off the
+# ASSERTED types: 6 governed writes, 32 plain reads. (logic:McpActionSchema is a
+# SUBCLASS of logic:ActionSchema, so under the subclass-closed view every write is also
+# an ActionSchema; the partition is a statement about what is asserted, and the
+# projection the engine reads is an asserted-quad projection.)
+#
+# THE GOVERNANCE WIRING OF THE WRITES.
 #   • store_claim  — logic:McpActionSchema: capability = memory-write, precondition =
 #     a well-formed claim, compensation = revise_belief. Suppression UNDOES the store
 #     (P10: the rollback is suppression, never erasure).
 #   • revise_belief — logic:McpActionSchema: capability = memory-write, precondition =
 #     the target claim exists, compensation = store_claim (re-assertion). P10 again:
 #     a suppression is itself reversible by RE-STORING the claim, never by deletion.
-#   • recall — a PLAIN logic:ActionSchema (NOT logic:McpActionSchema): a read action
-#     with precondition + capability (memory-read) but NO compensation, because a read
-#     changes no state and so needs no rollback. This is exactly why it is a plain
-#     action schema rather than a governed write action: the McpActionPolicyShape's
-#     compensation requirement would be vacuous on a read.
+#   • store_conjecture (ex:persistConjecture) ⇄ refute_conjecture
+#     (ex:withdrawConjecture) — the append-only conjecture library's persist /
+#     supersede pair; each is the other's compensation.
+#   • submit_candidate (ex:submitCandidate) ⇄ withdraw_candidate
+#     (ex:withdrawCandidate) — the same pair over the append-only candidate library,
+#     entered only on a CORROBORATED isolated-world verdict.
 #
 # The companion Rust evaluator crate (crates/logic/src/teleology.rs, gate_action)
 # exercises this same store_claim schema pattern: ADMIT when the well-formed-claim
@@ -44,6 +63,14 @@
 # left untyped to match the conformance fixtures (the policy shape gates on the
 # property's presence, not on a capability class — no new vocabulary is minted).
 # --------------------------------------------------------------------------- #
+
+# The policy this file IS — one action theory over the engine's whole advertised tool surface.
+# Typing it makes the example a worked instance of gmeow:ActionPolicy rather than a loose bag
+# of schemas that happens to look like one.
+ex:mcpActionPolicy
+    a gmeow:ActionPolicy ;
+    rdfs:label "the GMEOW MCP action policy"@x-gmeow-english ;
+    rdfs:comment "The action theory governing the engine's advertised tool surface: one schema per tool, tied by logic:mcpToolName, each carrying the preconditions that must obtain, the effects that follow, and — for a write — the compensation that undoes it."@x-gmeow-english .
 
 ex:memoryWriteCapability
     rdfs:label "memory-write capability"@x-gmeow-english ;
@@ -80,15 +107,15 @@ ex:claimSuppressed
     rdfs:label "the claim is suppressed"@x-gmeow-english ;
     rdfs:comment "revise_belief's effect: the claim is suppressed (P10 — superseded, never erased)."@x-gmeow-english .
 
-# Conjecture-library situations (conjecture_test's precondition + effect, and the
-# withdraw-conjecture compensation's effect). Untyped like the memory situations above.
+# Conjecture-library situations (store_conjecture's precondition + effect, and the
+# refute_conjecture compensation's effect). Untyped like the memory situations above.
 ex:conjectureVerdictPresented
     rdfs:label "a conjecture verdict has been presented"@x-gmeow-english ;
-    rdfs:comment "conjecture_test's precondition: the engine has produced a verdict ready to persist."@x-gmeow-english .
+    rdfs:comment "store_conjecture's precondition: the engine has produced a verdict ready to persist. NOT conjecture_test's — that tool evaluates and stops (see ex:conjectureCandidatePresented), which is exactly why only one of the two is a governed write."@x-gmeow-english .
 
 ex:conjectureInLibrary
     rdfs:label "the conjecture verdict is in the library"@x-gmeow-english ;
-    rdfs:comment "conjecture_test's effect: the content-addressed verdict node has been appended to the append-only conjecture library."@x-gmeow-english .
+    rdfs:comment "store_conjecture's effect: the content-addressed verdict node has been appended to the append-only conjecture library."@x-gmeow-english .
 
 ex:conjectureWithdrawn
     rdfs:label "the conjecture verdict is withdrawn"@x-gmeow-english ;
@@ -101,6 +128,7 @@ ex:conjectureWithdrawn
 
 ex:storeClaim a logic:McpActionSchema ;
     rdfs:label "store_claim — write a reified claim to memory"@x-gmeow-english ;
+    logic:mcpToolName  "store_claim" ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:wellFormedClaim ;
     logic:effect       ex:storeClaimEffect ;
@@ -124,6 +152,7 @@ ex:storeClaimEffect
 
 ex:reviseBelief a logic:McpActionSchema ;
     rdfs:label "revise_belief — suppress a claim (P10, never delete)"@x-gmeow-english ;
+    logic:mcpToolName  "revise_belief" ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:targetClaimExists ;
     logic:effect       ex:reviseBeliefEffect ;
@@ -148,7 +177,8 @@ ex:reviseBeliefEffect
 # --------------------------------------------------------------------------- #
 
 ex:persistConjecture a logic:McpActionSchema ;
-    rdfs:label "conjecture_test — append a conjecture verdict to the library"@x-gmeow-english ;
+    rdfs:label "store_conjecture — append a conjecture verdict to the library"@x-gmeow-english ;
+    logic:mcpToolName  "store_conjecture" ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:conjectureVerdictPresented ;
     logic:effect       ex:persistConjectureEffect ;
@@ -158,7 +188,7 @@ ex:persistConjecture a logic:McpActionSchema ;
 # library. Append-only — it inserts conjecture-in-library and DELETES NOTHING (a persist
 # only adds; the library never mutates a prior segment).
 ex:persistConjectureEffect
-    rdfs:label "effect of conjecture_test"@x-gmeow-english ;
+    rdfs:label "effect of store_conjecture"@x-gmeow-english ;
     rdfs:comment "Inserts conjecture-in-library; deletes nothing — an append-only persist only adds."@x-gmeow-english ;
     logic:ins ex:conjectureInLibrary .
 
@@ -170,7 +200,8 @@ ex:persistConjectureEffect
 # --------------------------------------------------------------------------- #
 
 ex:withdrawConjecture a logic:McpActionSchema ;
-    rdfs:label "withdraw a persisted conjecture verdict (P10, never delete)"@x-gmeow-english ;
+    rdfs:label "refute_conjecture — withdraw a persisted conjecture verdict (P10, never delete)"@x-gmeow-english ;
+    logic:mcpToolName  "refute_conjecture" ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:conjectureInLibrary ;
     logic:effect       ex:withdrawConjectureEffect ;
@@ -211,6 +242,7 @@ ex:candidateWithdrawn
 
 ex:submitCandidate a logic:McpActionSchema ;
     rdfs:label "submit_candidate — append an admissible authoring candidate to the library"@x-gmeow-english ;
+    logic:mcpToolName  "submit_candidate" ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:candidateAdmissible ;
     logic:effect       ex:submitCandidateEffect ;
@@ -232,7 +264,8 @@ ex:submitCandidateEffect
 # --------------------------------------------------------------------------- #
 
 ex:withdrawCandidate a logic:McpActionSchema ;
-    rdfs:label "withdraw a persisted authoring candidate (P10, never delete)"@x-gmeow-english ;
+    rdfs:label "withdraw_candidate — withdraw a persisted authoring candidate (P10, never delete)"@x-gmeow-english ;
+    logic:mcpToolName  "withdraw_candidate" ;
     logic:capability   ex:memoryWriteCapability ;
     logic:precondition ex:candidateInLibrary ;
     logic:effect       ex:withdrawCandidateEffect ;
@@ -253,6 +286,14 @@ ex:withdrawCandidateEffect
 ex:recall a logic:ActionSchema ;
     rdfs:label "recall — read claims from memory (records nothing)"@x-gmeow-english ;
     rdfs:comment "A read action: precondition + capability but NO compensation, because reading changes no state. Typed as a plain logic:ActionSchema rather than logic:McpActionSchema for exactly this reason — the MCP-action policy's compensation requirement would be vacuous on a read."@x-gmeow-english ;
+    logic:mcpToolName  "recall" ;
+    logic:capability   ex:memoryReadCapability ;
+    logic:precondition ex:memoryReadable .
+
+ex:storeSegment a logic:ActionSchema ;
+    rdfs:label "store_segment — serialize the memory store for export and replay"@x-gmeow-english ;
+    rdfs:comment "A read action: projects the whole grounded-memory store — every claim and every recorded tool call, in append order — into the shared session-store transport shape, so an exported session carries the store it ran against and a replay can re-seed one from it. Shares ex:recall's capability and precondition because it reads the same store; it is a DIFFERENT action because recall answers a query with a ranked, truncated view while this returns the store's whole readable content, and a query result is not a snapshot. NO compensation — projecting stored state changes no state."@x-gmeow-english ;
+    logic:mcpToolName  "store_segment" ;
     logic:capability   ex:memoryReadCapability ;
     logic:precondition ex:memoryReadable .
 
@@ -268,17 +309,373 @@ ex:recall a logic:ActionSchema ;
 ex:explainQuad a logic:ActionSchema ;
     rdfs:label "explain_quad — derive the grounding proof for one quad"@x-gmeow-english ;
     rdfs:comment "A read action: reconstructs the reasoning path (asserted or derived, with antecedents) that grounds a single quad in the reasoner's closure. NO compensation — deriving and returning a proof changes no state."@x-gmeow-english ;
+    logic:mcpToolName  "explain_quad" ;
     logic:capability   ex:memoryReadCapability ;
     logic:precondition ex:memoryReadable .
 
 ex:verifyGraph a logic:ActionSchema ;
     rdfs:label "verify_graph — check an overlay graph against the reasoner"@x-gmeow-english ;
     rdfs:comment "A read action: reasons over the canon bundle unioned with a caller-supplied overlay and reports the proof-carrying verdict. NO compensation — verification changes no state; the transient union is dropped after the call."@x-gmeow-english ;
+    logic:mcpToolName  "verify_graph" ;
     logic:capability   ex:memoryReadCapability ;
     logic:precondition ex:memoryReadable .
 
 ex:coherenceCertificate a logic:ActionSchema ;
     rdfs:label "coherence_certificate — surface the bundle's coherence certificate"@x-gmeow-english ;
     rdfs:comment "A read action: surfaces the coherence certificate or attestation already carried by the bundle. NO compensation — reading a carried certificate changes no state."@x-gmeow-english ;
+    logic:mcpToolName  "coherence_certificate" ;
     logic:capability   ex:memoryReadCapability ;
     logic:precondition ex:memoryReadable .
+
+# =========================================================================== #
+# THE REST OF THE READ SURFACE — the 27 remaining advertised consumer tools.
+#
+# Together with ex:recall, ex:storeSegment, ex:explainQuad, ex:verifyGraph and
+# ex:coherenceCertificate above, these are the 32 READ tools; with the 6 governed
+# writes they exhaust the 38-tool consumer surface. Every row below follows the
+# ex:recall pattern EXACTLY: a plain logic:ActionSchema, one logic:capability
+# (what the engine must be able to do), one logic:precondition (what must hold in
+# the world for the call to be answerable), NO logic:effect, NO
+# logic:compensation.
+#
+# The capability is the honest executional axis — a bundle read, a SPARQL
+# evaluation, a validator pass, a GMN codec run, a transcode, an isolated-world
+# conjecture evaluation, a rubric scoring, a candidate-library read, a
+# diagnostics read — and NOT a single blanket "read" capability, because these
+# are genuinely different things an engine may or may not be able to do (a
+# bundle-only server can read the term surface but a reasoner-less one cannot
+# evaluate a conjecture).
+# =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# Capability individuals for the read surface. EXAMPLE individuals referenced by
+# logic:capability, left untyped exactly like ex:memoryReadCapability above.
+# --------------------------------------------------------------------------- #
+
+ex:bundleReadCapability
+    rdfs:label "bundle-read capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to read the resident gmeow.gts snapshot — its term surface, its documentation projection, and its meta-level catalogs. The weakest capability on the surface: a checkout-free consumer server has it by construction, because the bundle IS what it is built over."@x-gmeow-english .
+
+ex:sparqlQueryCapability
+    rdfs:label "SPARQL-evaluation capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to evaluate a caller-supplied SPARQL SELECT/ASK query and return SPARQL-1.1 JSON results. Strictly more than a bundle read: it needs the query evaluator, not just the dataset."@x-gmeow-english .
+
+ex:validatorReadCapability
+    rdfs:label "validator capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to run the shipped validator core (the Tier-1 shape/discipline pass and the advisory harvest) over a caller-supplied graph. Read-only in effect: the caller's graph is validated in memory and discarded, never merged into the canon."@x-gmeow-english .
+
+ex:reasonerReadCapability
+    rdfs:label "reasoner capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to run the native forward closure under a step governor and return a proof-carrying judgment. Needed by the diagnostics reads and by any isolated-world evaluation; a bundle reader without a reasoner does not have it."@x-gmeow-english .
+
+ex:gmnCodecCapability
+    rdfs:label "GMN codec capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to drive the GMN-1 codec against the bundled codebook: validate a document to a typed lang:Gmn*Failure, expand it to GMN-0 normal form under a round-trip witness, or resolve one operator glyph to its denotation and gloss."@x-gmeow-english .
+
+ex:codecTranscodeCapability
+    rdfs:label "transcode capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to run the universal RDF-1.2 transcode hub from any source codec to any target codec AND to report the loss the conversion actually realized. The loss ledger is part of the capability: a transcoder that cannot say what it dropped does not have it."@x-gmeow-english .
+
+ex:conjectureEvaluationCapability
+    rdfs:label "isolated-world conjecture-evaluation capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to evaluate a candidate logic: formula against a caller-supplied KB in an ISOLATED world under a budget and return the verdict — WITHOUT committing anything. The read half of the propose/verify seam: ex:persistConjecture and ex:submitCandidate need this capability too, plus memory-write, because they also persist the verdict."@x-gmeow-english .
+
+ex:sliceScoringCapability
+    rdfs:label "slice-scoring capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to score a slice's bytes against the bundle-carried slice-quality rubric and rank the uplift advice. Needs the rubric (which ships in the bundle) and the scorer; it needs no directory and no checkout."@x-gmeow-english .
+
+ex:candidateLibraryReadCapability
+    rdfs:label "candidate-library-read capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to read the append-only candidate library and fold its segments into each candidate's EFFECTIVE disposition. Distinct from a bundle read: the library is agent-written local state, not canon."@x-gmeow-english .
+
+ex:diagnosticsReadCapability
+    rdfs:label "diagnostics-read capability"@x-gmeow-english ;
+    rdfs:comment "What the engine must be able to do to read the bundled diagnostics projection and walk one finding's provenance DAG back to its ledger verdict and minimal fatal cut. Distinct from the reasoner capability: the DAG is a published projection, not a fresh closure."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# Situation individuals for the read surface — the state gates (what must hold
+# for the call to be ANSWERABLE, so that a miss is a hard error rather than an
+# empty-but-ok answer). Untyped for the same reason as the situations above.
+# --------------------------------------------------------------------------- #
+
+ex:termIsBundled
+    rdfs:label "the named term is in the bundle"@x-gmeow-english ;
+    rdfs:comment "The gate on every term-addressed read (lookup_term, doc_card, counter_examples, entailments): the IRI or short name the caller supplied resolves to a term the bundle actually carries. An unknown term is a hard error — the surface never fabricates a card for a term it does not have."@x-gmeow-english .
+
+ex:vocabularyIndexPresent
+    rdfs:label "the vocabulary index is present in the bundle"@x-gmeow-english ;
+    rdfs:comment "llms_txt / llms_full's precondition: the bundle carries the term surface the index is projected from. The index is DERIVED at call time from that surface, so its availability is exactly the surface's presence."@x-gmeow-english .
+
+ex:okfManifestPresent
+    rdfs:label "the OKF manifest is present in the bundle"@x-gmeow-english ;
+    rdfs:comment "okf_index's precondition: the bundle carries the Open Knowledge Foundation manifest envelope the tool serves."@x-gmeow-english .
+
+ex:documentationGraphPresent
+    rdfs:label "the documentation graph is present in the bundle"@x-gmeow-english ;
+    rdfs:comment "The gate on every read scoped to gmeow:graph/documentation (query_docs, docs_search, competency_questions): that named graph is present and non-empty. An absent or empty documentation graph is a hard error, never an empty result set — an empty answer would be indistinguishable from 'no match'."@x-gmeow-english .
+
+ex:overlayParsesInDeclaredFormat
+    rdfs:label "the overlay parses in its DECLARED format"@x-gmeow-english ;
+    rdfs:comment "query_local's precondition: the caller supplied an inline overlay graph together with the format DECLARING how to read it, and the bytes parse in that format within the size ceiling. The format is declared, never guessed — a missing or unrecognized format is a hard error, so a mis-parse can never be silently reinterpreted as a smaller graph."@x-gmeow-english .
+
+ex:claimDocumentPresented
+    rdfs:label "a parseable claim document is presented"@x-gmeow-english ;
+    rdfs:comment "validate_local's and advise's precondition: the caller supplied an inline RDF claim plus its declared format, and it parses within the size ceiling. What DIFFERS between the two is not this gate but the polarity of the answer — validate_local reports obligations (it can fail the claim), advise reports recommendations (it always returns ok) — so they share a precondition and not an outcome."@x-gmeow-english .
+
+ex:gmnDocumentPresented
+    rdfs:label "a GMN-1 document is presented"@x-gmeow-english ;
+    rdfs:comment "gmn_validate's and gmn_expand's precondition: the caller supplied GMN-1 document text within the size ceiling. Note it is NOT 'the document is well-formed': for gmn_validate a defective document is a valid RESULT (conformant:false with the typed failure class), which is the whole point of the repair loop, so well-formedness belongs in the answer rather than in the gate."@x-gmeow-english .
+
+ex:glyphPresented
+    rdfs:label "a candidate operator glyph is presented"@x-gmeow-english ;
+    rdfs:comment "gmn_explain's precondition: the caller supplied a glyph to resolve. Deliberately NOT 'the glyph is covered': an uncovered glyph returns an honest typed miss (found:false + lang:GmnUncoveredTerm), so coverage is part of the answer, never a precondition that would turn a legitimate question into an error."@x-gmeow-english .
+
+ex:findingTargetAddressable
+    rdfs:label "the diagnostic target is addressable in the projection"@x-gmeow-english ;
+    rdfs:comment "explain_finding's precondition: the caller's IRI addresses either one finding (by its fingerprint) or one cluster (by its anchor) in the bundled diagnostics projection. An unknown target is a hard error, never an empty-but-ok provenance DAG."@x-gmeow-english .
+
+ex:conjectureCandidatePresented
+    rdfs:label "a candidate formula, KB and standpoint are presented"@x-gmeow-english ;
+    rdfs:comment "conjecture_test's precondition: the caller supplied one candidate logic: formula, a KB to test it against, and the REQUIRED reified standpoint that scopes the verdict (P9 — a verdict outside a declared standpoint is not a verdict). This is where conjecture_test parts from store_conjecture: it shares the evaluation but has no ex:conjectureVerdictPresented effect gate, because it is a PURE hypothetical that never commits."@x-gmeow-english .
+
+ex:sliceFileMapPresented
+    rdfs:label "a scorable slice file map is presented"@x-gmeow-english ;
+    rdfs:comment "slice_quality's precondition: the caller supplied a path→text map carrying at least a well-formed manifest.ttl. The slice is scored from those bytes alone, so this gate — not a directory's existence — is what makes the call answerable; a map with no or a malformed manifest is a hard error naming what is missing."@x-gmeow-english .
+
+ex:authoringPacketPresent
+    rdfs:label "the authoring packet is present in the bundle"@x-gmeow-english ;
+    rdfs:comment "slice_brief's precondition: the bundle's authoring-briefs graph carries a packet for the requested slice/axis/batch. The packet is PRE-ASSEMBLED at pipeline time, so a slice/axis/batch with no packet is a hard error rather than an on-the-fly assembly."@x-gmeow-english .
+
+ex:candidateLibraryReadable
+    rdfs:label "the candidate library is readable"@x-gmeow-english ;
+    rdfs:comment "list_candidates' precondition: the append-only candidate library is available to read. Deliberately satisfied by an ABSENT library — a library that was never written lists nothing, which is a true answer, not a failure; contrast ex:candidateInLibrary, which gates a withdrawal on a specific node actually being there."@x-gmeow-english .
+
+ex:codecPairDeclared
+    rdfs:label "the source and target codecs are declared and the source decodes"@x-gmeow-english ;
+    rdfs:comment "convert's precondition: the caller declared both codecs of the edge and the source document decodes under the declared source codec (and declared encoding). Both halves are DECLARED, never sniffed — an unknown codec or an undecodable source is a hard error, which is what keeps the reported loss ledger about the conversion rather than about a misread input."@x-gmeow-english .
+
+ex:codebookPresent
+    rdfs:label "the GMN codebook is present in the bundle"@x-gmeow-english ;
+    rdfs:comment "gmn_glyph_legend's precondition: the bundle carries the GMN-1 codebook the legend enumerates, with the real per-glyph token costs. The legend is the alphabet an agent needs BEFORE it can write GMN-1, so serving a partial one would be worse than failing."@x-gmeow-english .
+
+ex:distributionCatalogPresent
+    rdfs:label "the distribution catalog is present in the bundle"@x-gmeow-english ;
+    rdfs:comment "distribution_matrix's precondition: the bundle's meta-level distribution-catalog graph is present. A bundle carrying no catalog at all is a hard error; a catalog carrying no formal-concept lattice is NOT — an empty concept list is a legitimate declaration, and the two cases must not be conflated."@x-gmeow-english .
+
+ex:actionTheoryPresent
+    rdfs:label "the canonical action theory is present"@x-gmeow-english ;
+    rdfs:comment "action_policy's precondition: the canonical action theory — THIS file — is available to project. The self-referential row: the tool that serves the action theory is itself a row in the action theory, which is what makes the theory total over its own surface rather than total-except-for-itself."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# The bundle-read tools — the term surface, the indices, and the documentation
+# projection. Each answers from the resident snapshot and writes nothing.
+# --------------------------------------------------------------------------- #
+
+ex:lookupTerm a logic:ActionSchema ;
+    rdfs:label "lookup_term — resolve a bundled GMEOW term"@x-gmeow-english ;
+    rdfs:comment "A read action: resolves one term IRI or short name against the bundled term surface and returns its definition and axioms. NO compensation — resolving a term changes no state."@x-gmeow-english ;
+    logic:mcpToolName  "lookup_term" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:termIsBundled .
+
+ex:llmsTxt a logic:ActionSchema ;
+    rdfs:label "llms_txt — serve the standard vocabulary index"@x-gmeow-english ;
+    rdfs:comment "A read action: projects the bundled term surface into the compact llms.txt index. NO compensation — projecting an index changes no state."@x-gmeow-english ;
+    logic:mcpToolName  "llms_txt" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:vocabularyIndexPresent .
+
+ex:llmsFull a logic:ActionSchema ;
+    rdfs:label "llms_full — serve the complete inlined vocabulary index"@x-gmeow-english ;
+    rdfs:comment "A read action: the same projection as llms_txt with every definition inlined — the whole-vocabulary variant for a caller that will not follow links. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "llms_full" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:vocabularyIndexPresent .
+
+ex:docCard a logic:ActionSchema ;
+    rdfs:label "doc_card — serve a token-budgeted term card"@x-gmeow-english ;
+    rdfs:comment "A read action: renders one bundled term as a prompt-ready card at a selected detail tier inside a cost-metadata envelope. The tier and format are EXPLICIT selections, never silent degradations — an unknown one is a hard error. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "doc_card" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:termIsBundled .
+
+ex:okfIndex a logic:ActionSchema ;
+    rdfs:label "okf_index — serve the OKF manifest envelope"@x-gmeow-english ;
+    rdfs:comment "A read action: returns the bundled Open Knowledge Foundation manifest JSON envelope verbatim. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "okf_index" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:okfManifestPresent .
+
+ex:counterExamples a logic:ActionSchema ;
+    rdfs:label "counter_examples — serve a term's conformance fixtures"@x-gmeow-english ;
+    rdfs:comment "A read action: returns the authored well-formed exemplars and counter-examples documenting one term, each with its body, expected outcome, violation code, and rationale. A term with no fixtures returns empty lists; an UNKNOWN term is a hard error — absence of fixtures and absence of the term are different facts. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "counter_examples" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:termIsBundled .
+
+ex:entailments a logic:ActionSchema ;
+    rdfs:label "entailments — serve a term's recorded derivations"@x-gmeow-english ;
+    rdfs:comment "A read action: returns the reasoner derivations documenting one term — each with its rule, conclusion, and every premise — READ from the documentation projection rather than recomputed, so what is served is what the pipeline actually derived. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "entailments" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:termIsBundled .
+
+ex:competencyQuestions a logic:ActionSchema ;
+    rdfs:label "competency_questions — serve the runnable competency questions"@x-gmeow-english ;
+    rdfs:comment "A read action: returns the runnable competency questions with their SPARQL text, rationale, and expected row counts — the whole index, or one term's questions when a term is named. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "competency_questions" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:documentationGraphPresent .
+
+ex:sliceBrief a logic:ActionSchema ;
+    rdfs:label "slice_brief — serve a slice's pre-assembled authoring packet"@x-gmeow-english ;
+    rdfs:comment "A read action: serves the covered-term IRIs, grounding cells, exemplars, and coverage margins the pipeline pre-assembled for a slice. The authoring-side companion of the term reads: it says WHAT IS MISSING from a slice, which is what an author needs before writing. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "slice_brief" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:authoringPacketPresent .
+
+ex:gmnGlyphLegend a logic:ActionSchema ;
+    rdfs:label "gmn_glyph_legend — serve the GMN-1 glyph legend"@x-gmeow-english ;
+    rdfs:comment "A read action: enumerates every glyph the bundled codebook may emit, in canonical order, with its real token cost. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "gmn_glyph_legend" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:codebookPresent .
+
+ex:distributionMatrix a logic:ActionSchema ;
+    rdfs:label "distribution_matrix — serve the documentation-distribution catalog"@x-gmeow-english ;
+    rdfs:comment "A read action: returns the per-format consumer-need matrix (which documentation surfaces exist, who each is for, and what capability each one DROPS) plus the formal-concept lattice over that incidence. The dropped-capability column is why this is a first-class read: it is the surface where projection loss is stated rather than hidden. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "distribution_matrix" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:distributionCatalogPresent .
+
+ex:actionPolicy a logic:ActionSchema ;
+    rdfs:label "action_policy — serve this action theory"@x-gmeow-english ;
+    rdfs:comment "A read action: projects THIS theory to N-Quads — the exact projection the Transaction-Logic executor reads, so what a caller inspects is what the engine obeys. The self-referential row that closes the surface: without it the theory would describe every tool except the one that discloses it. NO compensation — disclosing the policy changes no state."@x-gmeow-english ;
+    logic:mcpToolName  "action_policy" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:actionTheoryPresent .
+
+# --------------------------------------------------------------------------- #
+# The query tools — caller-supplied SPARQL over the bundle, and over the bundle
+# unioned with a read-only inline overlay.
+# --------------------------------------------------------------------------- #
+
+ex:queryDocs a logic:ActionSchema ;
+    rdfs:label "query_docs — SPARQL over the bundled documentation graph"@x-gmeow-english ;
+    rdfs:comment "A read action: evaluates a caller-supplied SELECT or ASK scoped to gmeow:graph/documentation and returns SPARQL-1.1 JSON results. NO compensation — a SELECT/ASK writes nothing, and no update form is accepted."@x-gmeow-english ;
+    logic:mcpToolName  "query_docs" ;
+    logic:capability   ex:sparqlQueryCapability ;
+    logic:precondition ex:documentationGraphPresent .
+
+ex:queryLocal a logic:ActionSchema ;
+    rdfs:label "query_local — SPARQL over a read-only overlay, alone or unioned with the bundle"@x-gmeow-english ;
+    rdfs:comment "A read action: evaluates a caller-supplied SELECT, ASK, CONSTRUCT or DESCRIBE over an inline overlay loaded as an EXTERNAL, read-only annex. The declared scope chooses what the overlay is read against — unioned with the signed canon, or alone — and both are first-class readings of the same graph rather than a full and a degraded mode. The overlay is NEVER merged into the signed canon and NEVER written anywhere under either scope, which is precisely why this is a read with no compensation despite taking caller data."@x-gmeow-english ;
+    logic:mcpToolName  "query_local" ;
+    logic:capability   ex:sparqlQueryCapability ;
+    logic:precondition ex:overlayParsesInDeclaredFormat .
+
+ex:reasonGraph a logic:ActionSchema ;
+    rdfs:label "reason_graph — the entailed closure of a caller-supplied graph"@x-gmeow-english ;
+    rdfs:comment "A read action: runs the native structured-DL forward chase over an inline graph under the step governor and returns the ENTAILED CLOSURE. Distinct from ex:verifyGraph, which returns a proof-carrying VERDICT about a graph rather than its entailments, and from ex:entailments, which serves precomputed derivation rows for a BUNDLED term and cannot see caller data. Scoped to the caller's graph alone: the question is what THIS document entails, so unioning the canon in would answer a different one. The closure is computed in memory and discarded — nothing is persisted, so there is nothing to roll back. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "reason_graph" ;
+    logic:capability   ex:reasonerReadCapability ;
+    logic:precondition ex:overlayParsesInDeclaredFormat .
+
+ex:docsSearch a logic:ActionSchema ;
+    rdfs:label "docs_search — full-text search the bundled documentation graph"@x-gmeow-english ;
+    rdfs:comment "A read action: ranks terms, slices, and concerns whose label, definition, or advisory prose match a query — the entry point for a caller who does not yet know the IRI to look up. A query that matches nothing returns an empty list, which is an answer, not a failure. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "docs_search" ;
+    logic:capability   ex:bundleReadCapability ;
+    logic:precondition ex:documentationGraphPresent .
+
+# --------------------------------------------------------------------------- #
+# The validation tools — obligations and recommendations over caller data. Both
+# validate in memory and discard: nothing the caller sends is ever persisted.
+# --------------------------------------------------------------------------- #
+
+ex:validateLocal a logic:ActionSchema ;
+    rdfs:label "validate_local — validate an inline graph against the bundled shapes"@x-gmeow-english ;
+    rdfs:comment "A read action: reports OBLIGATIONS — every finding with its rule helpUri, the corresponding counter-example fixture, a positive exemplar, and the term's entailments, so a failure arrives with its repair. The data is validated in memory and discarded, so there is nothing to roll back. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "validate_local" ;
+    logic:capability   ex:validatorReadCapability ;
+    logic:precondition ex:claimDocumentPresented .
+
+ex:advise a logic:ActionSchema ;
+    rdfs:label "advise — harvest the advisory recommendations for an inline claim"@x-gmeow-english ;
+    rdfs:comment "A read action: reports RECOMMENDATIONS, never rejections — the avoid-when, how-to-use, and use-when prose of the advisory findings a claim trips. Always returns ok:true; a clean claim returns an empty list. The non-gating counterpart of validate_local, routed through the SAME validator core so the two can never diverge. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "advise" ;
+    logic:capability   ex:validatorReadCapability ;
+    logic:precondition ex:claimDocumentPresented .
+
+ex:explainFinding a logic:ActionSchema ;
+    rdfs:label "explain_finding — explain a published diagnostic witness"@x-gmeow-english ;
+    rdfs:comment "A read action: walks a published finding's provenance DAG back to the aggregate ledger verdict, the minimal fatal cut, and the anchor cluster. DISTINCT from explain_quad: this addresses a PUBLISHED diagnostic over the diagnostics projection, while explain_quad proves an arbitrary entailed quad from premise provenance. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "explain_finding" ;
+    logic:capability   ex:diagnosticsReadCapability ;
+    logic:precondition ex:findingTargetAddressable .
+
+# --------------------------------------------------------------------------- #
+# The GMN-1 codec tools — the token-compact notation surface an external model
+# writes in, and its repair loop.
+# --------------------------------------------------------------------------- #
+
+ex:gmnValidate a logic:ActionSchema ;
+    rdfs:label "gmn_validate — validate a GMN-1 document"@x-gmeow-english ;
+    rdfs:comment "A read action: checks a GMN-1 document against the shipped codebook and validator tier and returns either conformant:true or the TYPED lang:Gmn*Failure class of the first defect. A defect is a valid RESULT, never a tool error — that is what makes the @err repair loop mechanical. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "gmn_validate" ;
+    logic:capability   ex:gmnCodecCapability ;
+    logic:precondition ex:gmnDocumentPresented .
+
+ex:gmnExpand a logic:ActionSchema ;
+    rdfs:label "gmn_expand — expand GMN-1 to its GMN-0 normal form"@x-gmeow-english ;
+    rdfs:comment "A read action: expands the alias/glyph surface to full IRIs and returns canonical N-Quads, carrying an internal round-trip witness (the decoded model is re-encoded, re-read, and canonical equality asserted) so a LOSSY expansion is a hard error rather than a returned answer. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "gmn_expand" ;
+    logic:capability   ex:gmnCodecCapability ;
+    logic:precondition ex:gmnDocumentPresented .
+
+ex:encodeGmn1 a logic:ActionSchema ;
+    rdfs:label "encode_gmn1 — encode authored RDF into the GMN-1 surface"@x-gmeow-english ;
+    rdfs:comment "A read action, and the codec's WRITE leg: encodes an inline RDF graph into the token-compact GMN-1 surface against the dictionary the bundle carries. The exact inverse of ex:gmnExpand — the other four GMN schemas all CONSUME the notation, so without this one the codec could be read through the protocol but never written through it. Carries an internal round-trip witness (the emitted document is read back and canonical equality asserted), so a LOSSY encoding is a hard error rather than a returned answer, exactly as in ex:gmnExpand. The document rides the call and is never stored. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "encode_gmn1" ;
+    logic:capability   ex:gmnCodecCapability ;
+    logic:precondition ex:claimDocumentPresented .
+
+ex:gmnExplain a logic:ActionSchema ;
+    rdfs:label "gmn_explain — explain one GMN operator glyph"@x-gmeow-english ;
+    rdfs:comment "A read action: resolves a glyph to its lang:Denotation, its graph-authored fixity/precedence/arity signature, and its controlled-NL gloss. An uncovered glyph returns an honest typed miss (found:false + lang:GmnUncoveredTerm), never a fabricated answer. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "gmn_explain" ;
+    logic:capability   ex:gmnCodecCapability ;
+    logic:precondition ex:glyphPresented .
+
+# --------------------------------------------------------------------------- #
+# The remaining reads — transcode, hypothetical conjecture evaluation, slice
+# scoring, and the candidate-library listing.
+# --------------------------------------------------------------------------- #
+
+ex:convert a logic:ActionSchema ;
+    rdfs:label "convert — transcode a document and report the realized loss"@x-gmeow-english ;
+    rdfs:comment "A read action: transcodes an RDF-1.2 document between declared codecs and returns the loss the conversion ACTUALLY realized on this dataset (empty for a lossless pair), not the edge's theoretical loss. Nothing is stored — the source and the output both ride the call. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "convert" ;
+    logic:capability   ex:codecTranscodeCapability ;
+    logic:precondition ex:codecPairDeclared .
+
+ex:conjectureTest a logic:ActionSchema ;
+    rdfs:label "conjecture_test — evaluate a conjecture WITHOUT committing"@x-gmeow-english ;
+    rdfs:comment "A read action, and the one place the read/write partition is subtle: it runs the SAME isolated-world evaluation store_conjecture runs, but it NEVER TR-commits and NEVER appends to the conjecture library. Because it changes no state it is a plain logic:ActionSchema with no effect and no compensation, whereas its committing counterpart ex:persistConjecture is a governed logic:McpActionSchema. Evaluation is not commitment."@x-gmeow-english ;
+    logic:mcpToolName  "conjecture_test" ;
+    logic:capability   ex:conjectureEvaluationCapability ;
+    logic:precondition ex:conjectureCandidatePresented .
+
+ex:sliceQuality a logic:ActionSchema ;
+    rdfs:label "slice_quality — score a slice against the bundled rubric"@x-gmeow-english ;
+    rdfs:comment "A read action: scores a slice from a path→text map alone and returns its per-axis grades and ranked uplift advice. Needs no directory and no checkout, because the rubric ships in the bundle and the bytes ride the call. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "slice_quality" ;
+    logic:capability   ex:sliceScoringCapability ;
+    logic:precondition ex:sliceFileMapPresented .
+
+ex:listCandidates a logic:ActionSchema ;
+    rdfs:label "list_candidates — list the candidate library by effective disposition"@x-gmeow-english ;
+    rdfs:comment "A read action: folds the append-only candidate library's segments into each candidate's EFFECTIVE disposition (in-library or withdrawn) with its target provenance. Reading the fold is what makes P10 supersession legible without ever deleting a segment. NO compensation."@x-gmeow-english ;
+    logic:mcpToolName  "list_candidates" ;
+    logic:capability   ex:candidateLibraryReadCapability ;
+    logic:precondition ex:candidateLibraryReadable .

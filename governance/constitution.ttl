@@ -160,14 +160,14 @@ meta:tests-reasoning a meta:TestSuite ;
 meta:gate-products a meta:Gate ;
     rdfs:label "the product surfaces: pip client, MCP memory triad, GTS engine"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/stages/gts_sink.rs",
-        "crates/pipeline/src/mcp.rs", "docs/mcp-server.md" ;
+        "crates/mcp/src/lib.rs", "docs/mcp-server.md" ;
     meta:symbol "tool_store_claim" ;
     meta:cliCommand "mcp" .
 
 meta:tests-products a meta:TestSuite ;
     rdfs:label "client / MCP memory / GTS engine tests"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/stages/gts_sink.rs",
-        "crates/pipeline/src/mcp.rs" .
+        "crates/mcp/src/lib.rs" .
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;
@@ -492,7 +492,7 @@ meta:gate-docs-loss-lattice a meta:Gate ;
     rdfs:label "documentation formats are preservation-judged lossy projections over a total, monotone capability lattice"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/docs_loss_lattice.rs",
         "crates/pipeline/src/stages/docs_format_rendering.rs",
-        "crates/docs/src/formats.rs",
+        "crates/docs-model/src/formats.rs",
         "slices/grounding/lang/module.ttl" ;
     meta:symbol "check_docs_loss_lattice", "fold_docs_format_loss", "renderingBook" ;
     meta:cliCommand "crate-check" ;

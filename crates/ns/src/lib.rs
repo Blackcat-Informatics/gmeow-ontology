@@ -41,6 +41,14 @@
 //! assert!(!vocab.owns_term("http://www.w3.org/2002/07/owl#Class"));
 //! ```
 
+// The named-GRAPH IRIs a bundle reader addresses, alongside the term NAMESPACES it mints
+// into. They belong to the same question — "what is the ONE spelling of this GMEOW IRI?" —
+// and this crate is the answer to it. They used to live in `gmeow-bundle-view`, which meant
+// a consumer that merely selects on a graph had to link the whole bundle read side;
+// `gmeow_bundle_view::graph_iris` now re-exports this module, so every existing reference
+// is unchanged and there is still exactly one definition site.
+pub mod graph_iris;
+
 use purrdf::{Namespaces, OntologyProfile, SliceVocab};
 
 /// GMEOW's canonical ontology namespace (trailing `/` for term concatenation).

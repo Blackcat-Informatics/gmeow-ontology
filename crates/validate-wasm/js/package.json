@@ -1,7 +1,7 @@
 {
-  "name": "gmeow-validate-wasm",
-  "version": "0.1.0",
-  "description": "The repo-free GMEOW Tier-1 validator (SHACL + OntoUML disciplines over a gmeow.gts bundle) compiled to wasm32 for client-side validation in editors, browsers, and LLM clients.",
+  "name": "@blackcatinformatics/gmeow-validate-wasm",
+  "version": "0.2.0",
+  "description": "The repo-free GMEOW Tier-1 validator (SHACL + OntoUML disciplines over a gmeow.gts bundle, plus the GMN-1 codec validator) compiled to wasm32 for client-side validation in editors, browsers, and LLM clients.",
   "type": "module",
   "license": "AGPL-3.0-only",
   "author": "Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>",
@@ -39,5 +39,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-docs-model"
+description = "GMEOW documentation model: term/slice/concern model, RDF projection, cards, coverage, i18n and naming — the docs surface without the renderer's embedded wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["documentation", "rdf", "model", "wasm"]
+
+[lib]
+# rlib-only, and a LEAF with respect to gmeow-docs: `render.rs` and
+# `vendored_asset.rs` are the only files in gmeow-docs carrying include_bytes!,
+# and they embed 13.6 MB of vendored wasm. Consumers that need the docs MODEL
+# (the MCP tool surface via card/gmn1_primer/llms; gmeow-slice-quality via
+# i18n/maturity/model/rdf) must not inherit those bytes.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+purrdf.workspace = true
+# Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
+# `describe`, `i18n_compile` and `model` bind the slice vocabulary through it.
+gmeow-ns = { path = "../ns" }
+gmeow-errors = { path = "../errors" }
+gmeow-logic-compile = { path = "../logic-compile" }
+gmeow-validate = { path = "../validate" }
+# `default-features = false` selects OUT lang-bridge's `glyph-cost` feature: this crate
+# renders the GMN-1 primer and the card surfaces through the codec + registry, and never
+# calls the `gmn_symbology` token-cost primitive — so it must not be the edge that drags
+# the ~1.9 MB `tiktoken-rs` cl100k vocabulary into a consumer's image. Cargo unifies
+# features across a build, so a consumer that DOES measure glyph cost (gmeow-slice-quality,
+# gmeow-docs, gmeow-pipeline) keeps it on through its OWN direct lang-bridge edge; this one
+# simply stops voting for a vocabulary it does not use.
+gmeow-lang-bridge = { path = "../lang-bridge", default-features = false }
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+sha1.workspace = true
+blake3.workspace = true
+pulldown-cmark.workspace = true
+
+[dev-dependencies]
+# RAII temp directories/files for tests. Every scratch path a test creates is
+# removed on drop — including on panic and early return — so a gate run never
+# leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
+# under `std::env::temp_dir()` is banned by the repo-static guard
+# (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs). Needed
+# here because `main`'s RAII conversion landed on the model + i18n-compile tests
+# that this branch had already moved out of `crates/docs` into this crate.
+tempfile.workspace = true

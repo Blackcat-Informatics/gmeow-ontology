@@ -1,0 +1,9 @@
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+SPDX-License-Identifier: AGPL-3.0-only
+
+The bundle-explorer `describe` attestation: the object-level description of a
+deterministic term, which BOTH the native core-bundle projection and the browser's
+`query_local` route must reproduce byte-for-byte (`crates/mcp/tests/witness_explore.rs`).
+
+GMEOW-produced output, so it carries this repository's licence. Do not hand-edit; it is
+re-derived only under `GMEOW_WITNESS_BLESS=1`.

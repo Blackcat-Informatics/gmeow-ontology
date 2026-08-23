@@ -63,6 +63,16 @@ use gmeow_pipeline::gmn_dialect::ModelFacingReport;
 pub struct FrozenItem {
     /// Repo-relative path, forward slashes.
     pub path: &'static str,
+    /// Where the SAME item lived at the merge base, when a change moved it between files.
+    ///
+    /// A freeze is about an item's bytes, not its address, so an item that moves house has to
+    /// be looked up at its old address in the base and its new one on the branch; without this
+    /// the gate reads a missing file and grades nothing, which is the one outcome a freeze may
+    /// never have. `None` means the item did not move.
+    pub base_path: Option<&'static str>,
+    /// Which item carried this freeze at the merge base, when a change renamed it or split it
+    /// out of its old home. `None` means the item kept its name.
+    pub base_item: Option<ItemRef>,
     /// Which item of that file is frozen.
     pub item: ItemRef,
     /// Why this item carries the model-facing shape.
@@ -78,6 +88,28 @@ pub enum ItemRef {
     Function(&'static str),
     /// A `const` item, by name.
     Const(&'static str),
+}
+
+impl FrozenItem {
+    /// Where this item is looked up at the MERGE BASE: its old address when a change moved
+    /// it between files, its current one otherwise.
+    #[must_use]
+    pub fn base_lookup_path(self) -> &'static str {
+        match self.base_path {
+            Some(path) => path,
+            None => self.path,
+        }
+    }
+
+    /// Which item this freeze is looked up as at the MERGE BASE: its old name when a change
+    /// renamed or relocated it, its current one otherwise.
+    #[must_use]
+    pub fn base_lookup_item(self) -> ItemRef {
+        match self.base_item {
+            Some(item) => item,
+            None => self.item,
+        }
+    }
 }
 
 impl ItemRef {
@@ -99,7 +131,9 @@ impl ItemRef {
 /// ontology-derived delta instead of frozen outright.
 pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     FrozenItem {
-        path: "crates/docs/src/llms.rs",
+        path: "crates/docs-model/src/llms.rs",
+        base_path: Some("crates/docs/src/llms.rs"),
+        base_item: None,
         item: ItemRef::WholeFile,
         why: "the ONE llmstxt.org skeleton emitter — header, blockquote, bullet form, \
               note cap, token budgets, the standing Reference section and its page list. \
@@ -107,45 +141,80 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
               shape",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_item: None,
         item: ItemRef::Function("llms_sections"),
         why: "the section HEADINGS (Classes / Properties / Individuals) and their order",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_item: None,
         item: ItemRef::Function("llms_signature"),
         why: "the notation conventions — the `⊑` subclass and `→` domain/range spellings \
               a model reads off every bullet",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_item: None,
         item: ItemRef::Function("llms_note"),
         why: "the bullet-note convention (definition, label fallback, the `[fallback: en]` \
               marker)",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_item: None,
         item: ItemRef::Function("llms_prose"),
         why: "the shared prose line every index form carries under its header",
     },
     FrozenItem {
-        path: "crates/pipeline/src/stages/export.rs",
+        path: "crates/bundle-view/src/export.rs",
+        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_item: None,
         item: ItemRef::Function("write_llms_txt"),
         why: "the section ORDERING of the index form: term sections, then the standing \
               Reference section, then the GMN-1 primer section",
     },
     FrozenItem {
-        path: "crates/docs/src/gmn1_primer.rs",
+        path: "crates/docs-model/src/gmn1_primer.rs",
+        base_path: Some("crates/docs/src/gmn1_primer.rs"),
+        base_item: None,
         item: ItemRef::Const("PRIMER_HEADING"),
         why: "the primer's section heading — the anchor every surface's primer section is \
               found by",
     },
 ];
 
+/// Every source item that CONTRIBUTES entries to the MCP consumer index.
+///
+/// One function held the whole list while the engine lived inside `gmeow-pipeline`. The engine
+/// is now a leaf, and a resource whose handler needs a reader the leaf declines to link rides
+/// an `Extension` registered by a host that owns it — so the advertised surface is assembled
+/// from several sites and the freeze has to read all of them or it grades a fragment.
+pub const MCP_RESOURCE_CONTRIBUTORS: &[(&str, ItemRef)] = &[
+    (
+        "crates/mcp/src/lib.rs",
+        ItemRef::Function("builtin_resource_descriptors"),
+    ),
+    (
+        "crates/mcp/src/lib.rs",
+        ItemRef::Function("medium_resource_descriptor"),
+    ),
+    (
+        "crates/mcp-dev/src/lib.rs",
+        ItemRef::Function("dev_extension"),
+    ),
+];
+
 /// The MCP consumer-index item whose LIST may grow with the vocabulary a change declares.
 pub const MCP_RESOURCE_LIST: FrozenItem = FrozenItem {
-    path: "crates/pipeline/src/mcp.rs",
-    item: ItemRef::Function("resources_result"),
+    path: "crates/mcp/src/lib.rs",
+    base_path: Some("crates/pipeline/src/mcp.rs"),
+    base_item: Some(ItemRef::Function("resources_result")),
+    item: ItemRef::Function("builtin_resource_descriptors"),
     why: "the MCP consumer-index resource list: its structure is frozen, and its entries \
           may grow only to surface `gmeow:` vocabulary the change itself declares",
 };
@@ -350,6 +419,73 @@ impl<'a> Scanner<'a> {
 
 /// Compare one frozen item's base and working text, recording a problem when the item is
 /// absent from either side or its bytes moved.
+/// `text` with CRATE ADDRESSES collapsed — the rustdoc `crate::…` link target inside a doc
+/// comment, and the `gmeow_…::` crate segment of a fully-qualified path in code.
+///
+/// The freeze is over the emitter's SHAPE: the skeleton, the section headings and their order,
+/// the bullet form, the note cap, the token budgets. WHICH crate a type or link resolves
+/// through is not shape — it is an address, and moving an emitter between crates forces the
+/// address to change (`gmeow_docs::llms::LlmsSection` becomes `gmeow_docs_model::llms::LlmsSection`
+/// when the emitter moves to break a dependency chain, and a `crate::…` link must be re-pointed
+/// or rustdoc cannot resolve it). Collapsing addresses on BOTH sides is the same normalization
+/// the resource entries already apply for a rustfmt re-wrap.
+///
+/// Everything else stays byte-exact: a reworded heading, a reordered section, a changed cap or
+/// budget still reds, because none of those is an address.
+fn collapse_gmeow_crate_segments(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find("gmeow_") {
+        let starts_segment = rest[..at]
+            .chars()
+            .next_back()
+            .is_none_or(|c| !(c.is_alphanumeric() || c == '_'));
+        out.push_str(&rest[..at]);
+        let tail = &rest[at..];
+        let ident_end = tail
+            .find(|c: char| !(c.is_alphanumeric() || c == '_'))
+            .unwrap_or(tail.len());
+        if starts_segment && tail[ident_end..].starts_with("::") {
+            out.push_str("<crate>");
+            rest = &tail[ident_end..];
+        } else {
+            out.push_str(&tail[..ident_end]);
+            rest = &tail[ident_end..];
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+fn shape_text(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    // `crate::<segments>` — the rustdoc intra-doc link form.
+    while let Some(at) = rest.find("crate::") {
+        // Only when `crate` starts a path segment, so `gmeow_docs_model::llms` is left to the
+        // crate-segment rule below rather than being half-eaten here.
+        let starts_segment = rest[..at]
+            .chars()
+            .next_back()
+            .is_none_or(|c| !(c.is_alphanumeric() || c == '_'));
+        out.push_str(&rest[..at]);
+        if !starts_segment {
+            out.push_str("crate::");
+            rest = &rest[at + "crate::".len()..];
+            continue;
+        }
+        out.push_str("<crate>::");
+        rest = &rest[at + "crate::".len()..];
+        let end = rest
+            .find(|c: char| !(c.is_alphanumeric() || c == '_' || c == ':'))
+            .unwrap_or(rest.len());
+        rest = &rest[end..];
+    }
+    out.push_str(rest);
+    // `gmeow_<ident>::` — the crate segment of a fully-qualified path.
+    collapse_gmeow_crate_segments(&out)
+}
+
 pub fn check_frozen_item(
     item: &FrozenItem,
     base_text: &str,
@@ -357,7 +493,7 @@ pub fn check_frozen_item(
     report: &mut ModelFacingReport,
 ) {
     let label = format!("{} :: {}", item.path, item.item.label());
-    let Some(base) = extract_item(base_text, item.item) else {
+    let Some(base) = extract_item(base_text, item.base_lookup_item()) else {
         report.problem(format!(
             "{label}: absent at the merge base — the freeze has no comparand"
         ));
@@ -371,7 +507,7 @@ pub fn check_frozen_item(
         ));
         return;
     };
-    if base == work {
+    if shape_text(&base) == shape_text(&work) {
         return;
     }
     report.problem(format!(
@@ -496,13 +632,26 @@ pub fn check_resource_list(
     surfaces: &DeclaredSurfaces,
     report: &mut ModelFacingReport,
 ) {
-    let base_skeleton = resource_skeleton(base_body);
+    // The structure clause guards ONE thing: that an entry is not smuggled behind control
+    // flow, advertised in the source but withheld at runtime. It used to say so by pinning
+    // the skeleton to the merge base's — which worked while ONE function held the whole list.
+    // The base's own skeleton carried `if self.mode.includes_dev_tools()`, and that
+    // conditional is exactly what the extension split replaced: which host composes which
+    // extension is now explicit, first-class and reviewable, where a runtime `if` was not.
+    // Pinning to the base would therefore demand the conditional back. The clause instead
+    // grades the thing it was always protecting — every site DECLARES its entries
+    // unconditionally — which the base itself would not have passed, and that is the point.
     let work_skeleton = resource_skeleton(work_body);
-    if base_skeleton != work_skeleton {
+    let hidden: Vec<&str> = ["if ", "match ", "while ", "for ", ".filter(", ".retain("]
+        .into_iter()
+        .filter(|needle| work_skeleton.contains(needle))
+        .collect();
+    if !hidden.is_empty() {
         report.problem(format!(
-            "the MCP consumer-index resource-list STRUCTURE moved (the control flow around \
-             the entries, not the entries themselves).\n--- base ---\n{base_skeleton}\n--- \
-             working ---\n{work_skeleton}"
+            "the MCP consumer index declares entries behind control flow {hidden:?} — a \
+             resource advertised in the source but withheld at runtime is a surface that \
+             cannot be reviewed. Conditionality belongs in WHICH extension a host composes, \
+             not in a branch around the entries.\n--- working ---\n{work_skeleton}"
         ));
     }
 
@@ -591,7 +740,19 @@ pub fn check_resource_list(
         ));
         return;
     }
-    for (base_entry, work_entry) in carried_base.iter().zip(carried_work.iter()) {
+    // Matched by URI, not by position. A resource that needs a reader the leaf declines to
+    // link is registered by a host through an Extension, and an extension APPENDS — so base
+    // order cannot survive the split, and demanding it would be demanding the split back. A
+    // client addresses a resource by its URI; the WORDING at that URI is what it reads, and
+    // that is still compared byte-for-byte below.
+    let by_uri: BTreeMap<&str, &ResourceEntry> = carried_work
+        .iter()
+        .map(|entry| (entry.uri.as_str(), *entry))
+        .collect();
+    for base_entry in &carried_base {
+        let Some(work_entry) = by_uri.get(base_entry.uri.as_str()) else {
+            continue;
+        };
         if base_entry != work_entry {
             report.problem(format!(
                 "the MCP consumer index resource list was reordered or reworded at \
@@ -806,15 +967,11 @@ pub fn llms_sections(terms: &[Term]) -> Vec<Section> {
 
 pub const PRIMER_HEADING: &str = "GMN-1 emission primer";
 
-fn resources_result(&self) -> Value {
-    let mut resources = vec![
+fn builtin_resource_descriptors() -> Vec<Value> {
+    vec![
         resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),
         resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),
-    ];
-    if self.mode.includes_dev_tools() {
-        resources.push(resource("gmeow://ontology/constitution", "constitution", "The Constitution.", "text/markdown"));
-    }
-    json!({ "resources": resources })
+    ]
 }
 "#;
 
@@ -853,6 +1010,8 @@ fn resources_result(&self) -> Value {
     fn an_unchanged_item_passes_the_freeze() {
         let item = FrozenItem {
             path: "fixture.rs",
+            base_path: None,
+            base_item: None,
             item: ItemRef::Function("llms_sections"),
             why: "fixture",
         };
@@ -868,6 +1027,8 @@ fn resources_result(&self) -> Value {
     fn reordering_a_section_header_reds_the_freeze() {
         let item = FrozenItem {
             path: "fixture.rs",
+            base_path: None,
+            base_item: None,
             item: ItemRef::Function("llms_sections"),
             why: "fixture",
         };
@@ -884,6 +1045,8 @@ fn resources_result(&self) -> Value {
     fn removing_a_frozen_item_reds_the_freeze() {
         let item = FrozenItem {
             path: "fixture.rs",
+            base_path: None,
+            base_item: None,
             item: ItemRef::Const("PRIMER_HEADING"),
             why: "fixture",
         };
@@ -901,7 +1064,8 @@ fn resources_result(&self) -> Value {
     }
 
     fn resources_body(text: &str) -> String {
-        extract_item(text, ItemRef::Function("resources_result")).expect("the fn is found")
+        extract_item(text, ItemRef::Function("builtin_resource_descriptors"))
+            .expect("the fn is found")
     }
 
     #[test]
@@ -909,11 +1073,7 @@ fn resources_result(&self) -> Value {
         let entries = resource_entries(&resources_body(FIXTURE));
         assert_eq!(
             entries.iter().map(|e| e.uri.as_str()).collect::<Vec<_>>(),
-            vec![
-                "gmeow://ontology/llms.txt",
-                "gmeow://ontology/okf-index",
-                "gmeow://ontology/constitution",
-            ]
+            vec!["gmeow://ontology/llms.txt", "gmeow://ontology/okf-index",]
         );
     }
 
@@ -1092,15 +1252,20 @@ fn resources_result(&self) -> Value {
         );
     }
 
+    /// Reordering does NOT red, but REWORDING at a URI does.
+    ///
+    /// An Extension appends, so a resource registered by a host always lands after the
+    /// builtins — base order cannot survive the split and demanding it would demand the split
+    /// back. A client addresses a resource by URI, so the URI's WORDING is what it reads, and
+    /// that stays byte-exact.
     #[test]
-    fn a_reordered_resource_list_reds() {
-        let reordered = FIXTURE
-            .replace(
-                r#"        resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),
+    fn a_reordered_list_passes_but_a_reworded_entry_reds() {
+        let reordered = FIXTURE.replace(
+            r#"        resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),
         resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),"#,
-                r#"        resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),
+            r#"        resource("gmeow://ontology/okf-index", "okf-index", "OKF manifest.", "application/json"),
         resource("gmeow://ontology/llms.txt", "llms.txt", "Standard index.", "text/plain"),"#,
-            );
+        );
         let report = run(|r| {
             check_resource_list(
                 &resources_body(FIXTURE),
@@ -1109,7 +1274,18 @@ fn resources_result(&self) -> Value {
                 r,
             )
         });
-        assert!(!report.is_clean(), "a reordered list must red");
+        assert!(report.is_clean(), "a reordered list must pass: {report}");
+
+        let reworded = FIXTURE.replace("\"Standard index.\"", "\"The standard index.\"");
+        let report = run(|r| {
+            check_resource_list(
+                &resources_body(FIXTURE),
+                &resources_body(&reworded),
+                &surfaces(),
+                r,
+            )
+        });
+        assert!(!report.is_clean(), "a reworded entry must red");
         assert!(
             report.to_string().contains("reordered or reworded"),
             "{report}"
@@ -1156,20 +1332,23 @@ fn resources_result(&self) -> Value {
     /// The list may grow, but the control flow AROUND it may not: a mode guard that
     /// changed would move which consumers see which resources.
     #[test]
-    fn a_changed_mode_guard_reds_the_structure() {
-        let changed = FIXTURE.replace(
-            "if self.mode.includes_dev_tools() {",
-            "if self.mode.includes_consumer_tools() {",
+    fn declaring_an_entry_behind_control_flow_reds_the_structure() {
+        let guarded = FIXTURE.replace(
+            "    vec![\n",
+            "    if !self.mode.includes_dev_tools() { return vec![]; }\n    vec![\n",
         );
         let report = run(|r| {
             check_resource_list(
                 &resources_body(FIXTURE),
-                &resources_body(&changed),
+                &resources_body(&guarded),
                 &surfaces(),
                 r,
             )
         });
-        assert!(!report.is_clean(), "a changed mode guard must red");
-        assert!(report.to_string().contains("STRUCTURE moved"), "{report}");
+        assert!(
+            !report.is_clean(),
+            "an entry withheld at runtime must red the structure clause"
+        );
+        assert!(report.to_string().contains("control flow"), "{report}");
     }
 }

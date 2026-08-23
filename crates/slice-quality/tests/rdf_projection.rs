@@ -27,7 +27,13 @@ fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
     let module = root.join("slices/core/slice-quality-rubric/module.ttl");
     let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
     let standard = gmeow_slice_quality::rubric::load_rubric(&ds)?.standard;
-    score_slice_with_standard(dir, &standard, ScoringEnv::Repo)
+    score_slice_with_standard(
+        dir,
+        &standard,
+        ScoringEnv::Repo {
+            slice_dir: dir.to_path_buf(),
+        },
+    )
 }
 
 #[test]
@@ -110,9 +116,15 @@ fn recorded_grades_round_trip_exactly() {
     let standard = gmeow_slice_quality::rubric::load_rubric(&ds)
         .expect("rubric loads")
         .standard;
-    let fresh = score_slice_with_standard(&dir, &standard, ScoringEnv::Repo)
-        .expect("the rubric slice scores")
-        .assessment;
+    let fresh = score_slice_with_standard(
+        &dir,
+        &standard,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
+    )
+    .expect("the rubric slice scores")
+    .assessment;
 
     // The corpus as the pipeline projects it: the two corpus witnesses plus this slice's
     // block. The input-fingerprint value is irrelevant here (freshness is proven
@@ -127,8 +139,14 @@ fn recorded_grades_round_trip_exactly() {
             &gmeow_slice_quality::report::corpus_content_digest(std::slice::from_ref(&fresh)),
         ),
         {
-            let report = score_slice_with_standard(&dir, &standard, ScoringEnv::Repo)
-                .expect("the rubric slice scores");
+            let report = score_slice_with_standard(
+                &dir,
+                &standard,
+                ScoringEnv::Repo {
+                    slice_dir: dir.clone(),
+                },
+            )
+            .expect("the rubric slice scores");
             report.to_gmeow_rdf()
         }
     );
@@ -198,8 +216,14 @@ fn an_edited_record_is_refused_by_its_own_content_digest() {
     let standard = gmeow_slice_quality::rubric::load_rubric(&ds)
         .expect("rubric loads")
         .standard;
-    let report =
-        score_slice_with_standard(&dir, &standard, ScoringEnv::Repo).expect("the slice scores");
+    let report = score_slice_with_standard(
+        &dir,
+        &standard,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
+    )
+    .expect("the slice scores");
     let honest = format!(
         "{}{}",
         gmeow_slice_quality::report::corpus_fingerprint_nquads(
@@ -273,8 +297,14 @@ fn every_per_axis_grade_names_its_axis() {
     let standard = gmeow_slice_quality::rubric::load_rubric(&ds)
         .expect("rubric loads")
         .standard;
-    let report =
-        score_slice_with_standard(&dir, &standard, ScoringEnv::Repo).expect("the slice scores");
+    let report = score_slice_with_standard(
+        &dir,
+        &standard,
+        ScoringEnv::Repo {
+            slice_dir: dir.clone(),
+        },
+    )
+    .expect("the slice scores");
     let projected = report.to_gmeow_rdf();
 
     for grade in &report.assessment.grades {

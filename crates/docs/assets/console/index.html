@@ -1,0 +1,92 @@
+<!doctype html>
+<!--
+SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+SPDX-License-Identifier: AGPL-3.0-only
+
+The standalone console shell. Deliberately thin: one <gmeow-console>, the two live
+regions the no-optionality rule needs, and the service-worker registration. Everything
+else — panes, forms, diagrams, the session — lives in the element.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GMEOW console</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="color-scheme" content="light dark" />
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+             padding: 1rem clamp(.8rem, 3vw, 2.5rem) 3rem; }
+      header { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+               border-bottom: 1px solid #d7d9e0; padding-bottom: .6rem; margin-bottom: .9rem; }
+      h1 { font-size: 1.25rem; margin: 0; }
+      #version-chip { font: .8rem ui-monospace, SFMono-Regular, Menlo, monospace;
+                      border: 1px solid currentColor; border-radius: 999px; padding: .05rem .55rem;
+                      opacity: .75; }
+      #error-banner:not(:empty) { background: #fdecea; color: #7f1d1d; border: 1px solid #b3261e;
+                                  border-radius: 6px; padding: .55rem .7rem; margin-bottom: .7rem; }
+      #status-banner:not(:empty) { font-size: .9em; opacity: .8; margin-bottom: .7rem; }
+      .skip { position: absolute; left: -9999px; }
+      .skip:focus { position: static; display: inline-block; padding: .3rem .6rem; }
+      @media (prefers-color-scheme: dark) {
+        #error-banner:not(:empty) { background: #3b1416; color: #ffd7d3; }
+        header { border-bottom-color: #3a3d46; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#console">Skip to the console</a>
+    <header>
+      <h1>GMEOW console</h1>
+      <span id="version-chip">engine: booting…</span>
+    </header>
+
+    <!--
+      The two live regions. `#error-banner` is role=alert: a missing asset, a failed
+      digest or an unavailable engine is announced, never swallowed. `#status-banner` is
+      role=status: progress, including a demand-loaded engine segment, which is a LOADING
+      state and not a failure.
+    -->
+    <div id="error-banner" role="alert"></div>
+    <div id="status-banner" role="status"></div>
+
+    <gmeow-console id="console"></gmeow-console>
+
+    <script type="module">
+      const errorBanner = document.getElementById("error-banner");
+      const statusBanner = document.getElementById("status-banner");
+      const chip = document.getElementById("version-chip");
+
+      // Every hard error the element raises lands here. Nothing is filtered.
+      document.addEventListener("gmeow-console-error", (event) => {
+        errorBanner.textContent = `${event.detail.where}: ${event.detail.message}`;
+      });
+      document.addEventListener("gmeow-console-status", (event) => {
+        statusBanner.textContent = event.detail.text;
+        chip.textContent = "engine: ready";
+      });
+      // A module that fails to load never reaches the element's own catch, so the window
+      // handlers are wired too — a blank page with a silent console is exactly the
+      // failure mode the visible-error rule forbids.
+      window.addEventListener("error", (event) => {
+        errorBanner.textContent = `boot: ${event.message}`;
+      });
+      window.addEventListener("unhandledrejection", (event) => {
+        errorBanner.textContent = `boot: ${event.reason?.message ?? event.reason}`;
+      });
+
+      import("./element.mjs").catch((error) => {
+        errorBanner.textContent = `boot: the console element failed to load — ${error.message ?? error}`;
+      });
+
+      // Offline: cache-first, scoped to this directory. Registration failure is reported,
+      // never ignored — an offline claim that silently did not take is a false claim.
+      if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+        navigator.serviceWorker.register("sw.mjs", { scope: "./" }).catch((error) => {
+          errorBanner.textContent = `offline: the service worker did not register — ${error.message ?? error}`;
+        });
+      }
+    </script>
+  </body>
+</html>

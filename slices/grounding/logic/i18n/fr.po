@@ -18582,6 +18582,34 @@ msgctxt "https://blackcatinformatics.ca/logic/RefinementPinComesFromCandidateSet
 msgid "The logic:Constraint rejecting a logic:RefinementEpisode whose logic:selectedPin is not a logic:refinementCandidate of the logic:RefinementCandidateSet it produced. A roster is a claim about what the search FOUND, and a commitment to something outside it says the roster describes some other search — after which its closedness, its budget and its declared fragment all certify a deliberation that did not produce this decision. The failure is invisible to any check over one record, since the episode, the roster and the pin are each individually well-formed."
 msgstr "La logic:Constraint qui rejette un logic:RefinementEpisode dont le logic:selectedPin n'est pas un logic:refinementCandidate du logic:RefinementCandidateSet qu'il a produit. Une liste est une prétention sur ce que la recherche A TROUVÉ, et s'engager sur quelque chose d'extérieur à elle revient à dire que la liste décrit une autre recherche — après quoi sa clôture, son budget et son fragment déclaré certifient tous une délibération qui n'a pas produit cette décision. La défaillance échappe à tout contrôle portant sur un seul relevé, puisque l'épisode, la liste et l'épinglage sont chacun bien formés isolément."
 
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MCP tool name"
+msgstr "nom d'outil MCP"
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The EXACT wire name of the MCP (Model Context Protocol) tool a logic:ActionSchema governs — the string a client puts in `tools/call`, such as 'store_conjecture'. A schema's local name is an ONTOLOGY name chosen for what the action IS (an append to the conjecture library is named for the appending, not for the tool that triggers it), so it deliberately need not equal the tool's wire name; this property carries the wire name as an ASSERTED fact, which is what lets a surface↔theory correspondence be checked rather than guessed by mangling local names. Declared on logic:ActionSchema, not on logic:McpActionSchema, because the correspondence must cover the READ tools too: a read is a plain logic:ActionSchema (a compensation obligation would be vacuous on it) and is still an advertised tool. The intended discipline on a governed surface is BIJECTION — every advertised tool names exactly one schema and every schema names exactly one advertised tool — which is what makes an action theory TOTAL over its tool surface rather than a sample of it. Domain logic:ActionSchema; range xsd:string."
+msgstr "Le nom de fil EXACT de l'outil MCP (Model Context Protocol) que régit un logic:ActionSchema — la chaîne qu'un client place dans `tools/call`, par exemple 'store_conjecture'. Le nom local d'un schéma est un nom ONTOLOGIQUE choisi pour ce que l'action EST (un ajout à la bibliothèque de conjectures est nommé d'après l'ajout, non d'après l'outil qui le déclenche) ; il n'a donc délibérément pas à coïncider avec le nom de fil de l'outil. Cette propriété porte le nom de fil comme un fait ASSERTÉ, ce qui permet de vérifier la correspondance surface↔théorie au lieu de la deviner en triturant les noms locaux. Elle est déclarée sur logic:ActionSchema et non sur logic:McpActionSchema, car la correspondance doit couvrir aussi les outils de LECTURE : une lecture est un simple logic:ActionSchema (une obligation de compensation y serait vide) et demeure un outil annoncé. La discipline visée sur une surface gouvernée est la BIJECTION — chaque outil annoncé nomme exactement un schéma et chaque schéma nomme exactement un outil annoncé — ce qui rend une théorie de l'action TOTALE sur sa surface d'outils plutôt qu'un simple échantillon de celle-ci. Domaine logic:ActionSchema ; portée xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:persistConjecture a logic:McpActionSchema ; logic:mcpToolName \"store_conjecture\" ."
+msgstr "Exemple : ex:persistConjecture a logic:McpActionSchema ; logic:mcpToolName \"store_conjecture\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: an identity STRING on the wire, carrying no semantics of its own — it says WHICH tool a schema governs and nothing about what that tool does, which is what the eight action-theory facets are for; it is not a ninth facet. It is not a label either: nothing may translate, prettify, or case-fold the value, because it is compared byte-for-byte against the name the server advertises, and a friendlier spelling silently empties the correspondence. And it is ASSERTED, never derived: a schema's local name is an ONTOLOGY name chosen for the action — ex:withdrawConjecture is the tool refute_conjecture — so no transformation of a local name substitutes for this fact, and any gate built on name mangling would either reject the honest pairs or accept anything."
+msgstr "Portée : une CHAÎNE d'identité sur le fil, qui ne porte aucune sémantique propre — elle dit QUEL outil un schéma régit et rien de ce que cet outil fait, ce dont se chargent les huit facettes de la théorie de l'action ; ce n'est pas une neuvième facette. Ce n'est pas non plus un libellé : rien ne doit traduire, embellir ni normaliser la casse de cette valeur, car elle est comparée octet par octet au nom qu'annonce le serveur, et une graphie plus avenante vide silencieusement la correspondance. Et elle est ASSERTÉE, jamais dérivée : le nom local d'un schéma est un nom ONTOLOGIQUE choisi pour l'action — ex:withdrawConjecture est l'outil refute_conjecture — de sorte qu'aucune transformation d'un nom local ne remplace ce fait, et qu'un contrôle fondé sur la déformation des noms rejetterait les paires honnêtes ou accepterait n'importe quoi."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting it on anything outside the declared logic:domain of logic:ActionSchema, and avoid the two shapes that break the bijection — a second wire name on one schema, or two schemas claiming one name — since either leaves the engine's gate ambiguous while still passing a naive set comparison. Never omit it on a schema in the hope that its local name can be mangled back into the wire name: that guess is exactly what this property replaces."
+msgstr "À éviter sur tout ce qui sort du logic:domain déclaré, logic:ActionSchema, et à éviter dans les deux configurations qui brisent la bijection — un second nom de fil sur un même schéma, ou deux schémas revendiquant un même nom — car l'une comme l'autre rend le contrôle du moteur ambigu tout en passant une comparaison d'ensembles naïve. Ne l'omettez jamais sur un schéma en espérant que son nom local puisse être retransformé en nom de fil : cette conjecture est précisément ce que cette propriété remplace."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert exactly one literal per schema, copied VERBATIM from the name the server advertises in tools/call, and let the schema keep the ontology local name that says what the action IS. Assert it on the READ schemas too — a read is a plain logic:ActionSchema because a compensation obligation would be vacuous on it, but it is still an advertised tool, and a missing row there is what turns a total action theory back into a sample."
+msgstr "Affirmez exactement un littéral par schéma, recopié TEXTUELLEMENT depuis le nom que le serveur annonce dans tools/call, et laissez au schéma son nom local ontologique, celui qui dit ce que l'action EST. Affirmez-le également sur les schémas de LECTURE — une lecture est un simple logic:ActionSchema parce qu'une obligation de compensation y serait vide, mais elle reste un outil annoncé, et c'est une ligne manquante à cet endroit qui ramène une théorie de l'action totale à un simple échantillon."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use whenever an advertised MCP tool surface must be CHECKED against the action theory that governs it rather than assumed to match: this literal is the join the bijection gate resolves in both directions, so a tool with no schema (the engine offers an action its theory does not describe) and a schema with no tool (the theory describes an action the engine cannot perform) each fail by name instead of passing unnoticed."
+msgstr "À utiliser dès qu'une surface d'outils MCP annoncée doit être VÉRIFIÉE face à la théorie de l'action qui la régit, au lieu d'être supposée concordante : ce littéral est la jointure que le contrôle de bijection résout dans les deux sens, si bien qu'un outil sans schéma (le moteur propose une action que sa théorie ne décrit pas) et un schéma sans outil (la théorie décrit une action que le moteur ne peut pas exécuter) échouent chacun nommément au lieu de passer inaperçus."
+
 # --- GMN logic glyph-plane enrichment: truth constants, turnstiles, modal & DL operators, sequents, Belnap values ---
 
 msgctxt "https://blackcatinformatics.ca/logic/TruthConstant|http://www.w3.org/2000/01/rdf-schema#label"
@@ -18869,3 +18897,143 @@ msgstr "Affirme sur le porteur canonique que logic:overAccessibility est fonctio
 msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE obligation d'intégrité concernant logic:overAccessibility et rien d'autre. Ce n'est pas une définition de logic:overAccessibility (celle-ci réside sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionCapabilityDeclaredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action capability declared constraint"
+msgstr "Contrainte de capacité d'action déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionCapabilityDeclaredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:ActionSchema declares the logic:capability it exercises. The registry is a bijection between what the surface advertises and what it can dispatch, and the capability is the routing key that makes an advertised action reachable — a schema declaring none is advertised-but-not-dispatchable, which is exactly half of what a broken registration is. The converse half, dispatchable-but-not-advertised, is unreachable by contract and is the same defect read from the other side."
+msgstr "Une contrainte d'intégrité en monde clos : chaque logic:ActionSchema déclare la logic:capability qu'il exerce. Le registre est une bijection entre ce que la surface annonce et ce qu'elle peut répartir, et la capacité est la clé de routage qui rend une action annoncée atteignable — un schéma qui n'en déclare aucune est annoncé mais non répartissable, ce qui constitue exactement la moitié d'un enregistrement défectueux. L'autre moitié, répartissable mais non annoncée, est inatteignable par contrat et constitue le même défaut lu de l'autre côté."
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionDispatchPreconditionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action dispatch precondition constraint"
+msgstr "Contrainte de précondition de répartition d'action"
+
+msgctxt "https://blackcatinformatics.ca/logic/ActionDispatchPreconditionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:ActionSchema states the logic:precondition its action requires. A deployment may carry fewer SEGMENTS than the theory governs, but it may never carry fewer OBLIGATIONS: the deferral signal re-dispatches an identical frame to the segment that serves it, and the answer must be identical to the full engine's, which is only true if the precondition travelled with the action rather than with the image. A schema without one has nothing to re-check on arrival."
+msgstr "Une contrainte d'intégrité en monde clos : chaque logic:ActionSchema énonce la logic:precondition que son action exige. Un déploiement peut porter moins de SEGMENTS que la théorie n'en gouverne, mais jamais moins d'OBLIGATIONS : le signal de report re-répartit une trame identique vers le segment qui la sert, et la réponse doit être identique à celle du moteur complet, ce qui n'est vrai que si la précondition a voyagé avec l'action plutôt qu'avec l'image. Un schéma sans précondition n'a rien à revérifier à l'arrivée."
+
+msgctxt "https://blackcatinformatics.ca/logic/BrokenToolRegistration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Broken Tool Registration"
+msgstr "Enregistrement d'outil défectueux"
+
+msgctxt "https://blackcatinformatics.ca/logic/BrokenToolRegistration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when the engine's own registry is not a bijection: a descriptor carrying no name (tool) or no URI and media type (resource), or a descriptor list and handler list that disagree at some index. Every case means advertised-but-not-dispatchable, or dispatchable-but-not-advertised, and the totality contract forbids both — a surface that advertises what it cannot serve lies to every client that reads the index, and one that serves what it does not advertise is unreachable by contract."
+msgstr "L'échec levé lorsque le registre du moteur n'est pas une bijection : un descripteur sans nom (outil) ou sans URI ni type de média (ressource), ou une liste de descripteurs et une liste de gestionnaires qui divergent à un indice. Chaque cas signifie annoncé mais non répartissable, ou répartissable mais non annoncé, et le contrat de totalité interdit les deux — une surface qui annonce ce qu'elle ne peut servir ment à tout client qui lit l'index, et une qui sert ce qu'elle n'annonce pas est inatteignable par contrat."
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolCompensationDeclaredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dev tool compensation declared constraint"
+msgstr "Contrainte de compensation d'outil de développement déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolCompensationDeclaredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:compensation that undoes its action. The repo-reading developer tools are the only ones that reach outside the bundle and the only ones that write to a working tree, so an action carrying no compensation is one a caller cannot back out of — a failed multi-step run leaves the tree in a state nothing in the theory says how to restore. Declaring the undo is what makes the write recoverable rather than merely recorded."
+msgstr "Une contrainte d'intégrité en monde clos : chaque logic:McpActionSchema déclare la logic:compensation qui défait son action. Les outils de développement qui lisent le dépôt sont les seuls à atteindre l'extérieur du paquet et les seuls à écrire dans un arbre de travail ; une action sans compensation est donc une action qu'un appelant ne peut annuler — une exécution multi-étapes échouée laisse l'arbre dans un état que rien dans la théorie ne sait restaurer. Déclarer l'annulation est ce qui rend l'écriture récupérable plutôt que simplement consignée."
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolSurfaceFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dev Tool Surface Failure"
+msgstr "Échec de la surface d'outils de développement"
+
+msgctxt "https://blackcatinformatics.ca/logic/DevToolSurfaceFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised by a repo-reading developer tool of the MCP surface — the native reasoner refusing the bundle's carrier graph, or the checked-out Constitution failing to read. These tools are the ONLY ones that reach outside the bundle, so their failures are about the working tree rather than the shipped artifact, and they are typed separately for exactly that reason: a consumer running the shipped engine can never raise one."
+msgstr "L'échec levé par un outil de développement de la surface MCP qui lit le dépôt — le raisonneur natif refusant le graphe porteur du paquet, ou la Constitution extraite qui ne se lit pas. Ces outils sont les SEULS à atteindre l'extérieur du paquet ; leurs échecs portent donc sur l'arbre de travail plutôt que sur l'artefact livré, et ils sont typés séparément pour exactement cette raison : un consommateur exécutant le moteur livré ne peut jamais en lever un."
+
+msgctxt "https://blackcatinformatics.ca/logic/DuplicateToolRegistration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Duplicate Tool Registration"
+msgstr "Enregistrement d'outil en double"
+
+msgctxt "https://blackcatinformatics.ca/logic/DuplicateToolRegistration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when two distinct logic:ActionSchema individuals claim the SAME logic:mcpToolName. The wire name is the join between a client's `tools/call` and the action governing it, so two schemas sharing one name make that join ambiguous: which precondition must hold, which effect is claimed, and which compensation applies all become unanswerable, and an engine would have to pick one silently. HARD FAIL: the name identifies the schema, so two schemas agreeing on it are either the same action written twice or a collision, and both are defects rather than a choice the dispatcher may resolve."
+msgstr "L'échec levé lorsque deux individus logic:ActionSchema distincts revendiquent le MÊME logic:mcpToolName. Le nom sur le fil est la jointure entre le `tools/call` d'un client et l'action qui le gouverne ; deux schémas partageant un nom rendent cette jointure ambiguë : quelle précondition doit tenir, quel effet est revendiqué et quelle compensation s'applique deviennent tous sans réponse, et un moteur devrait en choisir un silencieusement. ÉCHEC FRANC : le nom identifie le schéma, donc deux schémas qui s'accordent dessus sont soit la même action écrite deux fois, soit une collision, et les deux sont des défauts plutôt qu'un choix que le répartiteur peut trancher."
+
+msgctxt "https://blackcatinformatics.ca/logic/McpResourceDeclaredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mcp resource declared constraint"
+msgstr "Contrainte de ressource MCP déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/McpResourceDeclaredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:McpActionSchema states the logic:precondition its dispatch must satisfy. The resource half of the surface is declared and served from the same descriptors as the tool half, so a schema carrying no precondition is one the engine can list and cannot decide to serve — and a read that reaches it has nothing to check before answering. Measured to hold over every authored schema, so the record is a live gate rather than an assertion about unchecked data."
+msgstr "Une contrainte d'intégrité en monde clos : chaque logic:McpActionSchema énonce la logic:precondition que sa répartition doit satisfaire. La moitié ressource de la surface est déclarée et servie à partir des mêmes descripteurs que la moitié outil ; un schéma sans précondition est donc un schéma que le moteur peut lister sans pouvoir décider de le servir — et une lecture qui l'atteint n'a rien à vérifier avant de répondre. Mesurée comme tenant sur chaque schéma rédigé, l'obligation est donc une barrière vivante plutôt qu'une affirmation sur des données non vérifiées."
+
+msgctxt "https://blackcatinformatics.ca/logic/McpToolGovernedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "McpToolGoverned constraint"
+msgstr "Contrainte d'outil MCP gouverné"
+
+msgctxt "https://blackcatinformatics.ca/logic/McpToolGovernedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every logic:McpActionSchema declares the logic:capability a dispatcher routes on. The action theory is the authority over the advertised surface only if every governed action can be PLACED — a schema carrying no capability is advertised and unroutable, so a call reaching it has nothing to dispatch against. This is the graph-side counterpart of the engine's unknown-tool refusal, one step earlier. The obligation is measured to hold over every authored logic:McpActionSchema, so the constraint is a live gate rather than a claim about data nobody checked."
+msgstr "Une contrainte d'intégrité en monde clos : chaque logic:McpActionSchema déclare la logic:capability sur laquelle un répartiteur route. La théorie de l'action n'a autorité sur la surface annoncée que si chaque action gouvernée peut être PLACÉE — un schéma sans capacité est annoncé et non routable, si bien qu'un appel qui l'atteint n'a rien contre quoi être réparti. C'est le pendant côté graphe du refus d'outil inconnu du moteur, une étape plus tôt. L'obligation est mesurée comme tenant sur chaque logic:McpActionSchema rédigé, si bien que la contrainte est une barrière vivante plutôt qu'une prétention sur des données que personne n'a vérifiées."
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedResourceRead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unadvertised Resource Read"
+msgstr "Lecture de ressource non annoncée"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedResourceRead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a resources/read names a URI the engine does not advertise. The resource half of the surface is declared exactly as the tool half is and served from the descriptors the index publishes, so a read of an unlisted URI has no declared media type and no handler. HARD FAIL rather than an empty body: an empty result is indistinguishable from a resource that exists and is empty, which is the ambiguity the refusal removes."
+msgstr "L'échec levé lorsqu'un resources/read nomme une URI que le moteur n'annonce pas. La moitié ressource de la surface est déclarée exactement comme la moitié outil et servie à partir des descripteurs que publie l'index ; la lecture d'une URI non listée n'a donc ni type de média déclaré ni gestionnaire. ÉCHEC FRANC plutôt qu'un corps vide : un résultat vide est indiscernable d'une ressource qui existe et qui est vide, et c'est précisément l'ambiguïté que le refus supprime."
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedToolInvocation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unadvertised Tool Invocation"
+msgstr "Invocation d'outil non annoncé"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnadvertisedToolInvocation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a tools/call names a tool the engine surface does not advertise. The action theory is the authority over that surface — one logic:ActionSchema per advertised tool, joined by logic:mcpToolName — so a call resolving to no schema is a call with no precondition to check, no effect to claim and no compensation to run. HARD FAIL rather than a best-effort dispatch: an engine that guessed which action was meant would execute an unlicensed one. Distinct from logic:UnloadedEngineSegment, where the tool IS advertised and the deployment has merely not loaded the segment serving it; 'does not exist' and 'not here yet' are different facts a caller must be able to tell apart mechanically."
+msgstr "L'échec levé lorsqu'un tools/call nomme un outil que la surface du moteur n'annonce pas. La théorie de l'action fait autorité sur cette surface — un logic:ActionSchema par outil annoncé, joints par logic:mcpToolName — si bien qu'un appel qui ne résout vers aucun schéma est un appel sans précondition à vérifier, sans effet à revendiquer et sans compensation à exécuter. ÉCHEC FRANC plutôt qu'une répartition au mieux : un moteur qui devinerait quelle action était visée en exécuterait une non autorisée. À distinguer de logic:UnloadedEngineSegment, où l'outil EST annoncé et où le déploiement n'a simplement pas chargé le segment qui le sert ; « n'existe pas » et « pas encore ici » sont des faits différents qu'un appelant doit pouvoir distinguer mécaniquement."
+
+msgctxt "https://blackcatinformatics.ca/logic/acdForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action capability declared constraint formula"
+msgstr "Formule de contrainte de capacité d'action déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/acdForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:ActionCapabilityDeclaredConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:ActionCapabilityDeclaredConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/adpForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Action dispatch precondition constraint formula"
+msgstr "Formule de contrainte de précondition de répartition d'action"
+
+msgctxt "https://blackcatinformatics.ca/logic/adpForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:ActionDispatchPreconditionConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:ActionDispatchPreconditionConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/dteForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dev tool compensation declared constraint formula"
+msgstr "Formule de contrainte de compensation d'outil de développement déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/dteForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:DevToolCompensationDeclaredConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:DevToolCompensationDeclaredConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/mrdForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mcp resource declared constraint formula"
+msgstr "Formule de contrainte de ressource MCP déclarée"
+
+msgctxt "https://blackcatinformatics.ca/logic/mrdForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:McpResourceDeclaredConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:McpResourceDeclaredConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/mtgForall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "McpToolGoverned constraint formula"
+msgstr "Formule de contrainte d'outil MCP gouverné"
+
+msgctxt "https://blackcatinformatics.ca/logic/mtgForall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The top-level forall-implies-exists integrity formula of logic:McpToolGovernedConstraint."
+msgstr "La formule d'intégrité de plus haut niveau, en pour-tout-implique-il-existe, de logic:McpToolGovernedConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an action schema is keyed by its MCP tool name"
+msgstr "un schéma d'action est clé par son nom d'outil MCP"
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that a logic:ActionSchema is identified by its logic:mcpToolName: the wire name is the join a client's `tools/call` resolves through, so two schemas sharing it would leave the dispatcher without an answer to which precondition, effect and compensation govern the call. The name therefore uniquely identifies its schema, and the native DL consistency gate forces two schemas asserted distinct yet sharing a name into owl:Nothing. Stated as a key (the logic: analogue of owl:hasKey, OWL 2 DL) rather than an inverse-functional characteristic, which on the datatype property logic:mcpToolName would be OWL 2 Full."
+msgstr "Affirme qu'un logic:ActionSchema est identifié par son logic:mcpToolName : le nom sur le fil est la jointure par laquelle se résout le `tools/call` d'un client, si bien que deux schémas le partageant laisseraient le répartiteur sans réponse quant à la précondition, l'effet et la compensation qui gouvernent l'appel. Le nom identifie donc uniquement son schéma, et la barrière de cohérence DL native force vers owl:Nothing deux schémas affirmés distincts mais partageant un nom. Énoncé comme une clé (l'analogue logic: de owl:hasKey, OWL 2 DL) plutôt que comme une caractéristique inverse-fonctionnelle, laquelle, portant sur la propriété de type de données logic:mcpToolName, relèverait d'OWL 2 Full."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about logic:ActionSchema and nothing else. It is not a definition of logic:ActionSchema, not a shape, and not a second place to state the term's meaning."
+msgstr "Portée : cet enregistrement porte UNE obligation d'intégrité concernant logic:ActionSchema et rien d'autre. Ce n'est ni une définition de logic:ActionSchema, ni une forme, ni un second endroit où énoncer le sens du terme."
+
+msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unloaded Engine Segment"
+msgstr "Segment de moteur non chargé"
+
+msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a dispatch names a tool the surface DOES advertise and DOES govern, but whose implementation lives in an engine segment this deployment has not loaded. It is a ROUTING signal, not a refusal: the payload names both the dispatch key and the segment providing it, so a host loads exactly that segment and re-dispatches the identical frame for an answer identical to the full engine's. That is what makes it a deployment tier rather than a reduced theory — the call becomes slower, never weaker."
+msgstr "L'échec levé lorsqu'une répartition nomme un outil que la surface annonce BIEN et gouverne BIEN, mais dont l'implémentation réside dans un segment de moteur que ce déploiement n'a pas chargé. C'est un signal de ROUTAGE, non un refus : la charge utile nomme à la fois la clé de répartition et le segment qui la fournit, si bien qu'un hôte charge exactement ce segment et re-répartit la trame identique pour obtenir une réponse identique à celle du moteur complet. C'est ce qui en fait un palier de déploiement plutôt qu'une théorie réduite — l'appel devient plus lent, jamais plus faible."

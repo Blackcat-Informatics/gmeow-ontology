@@ -215,9 +215,9 @@ fn the_medium_gate_passes_the_emitted_bundle_and_a_real_runtime_store_and_reds_e
 /// it. What is asserted here is the other half of that claim: that the one resource is
 /// real, is served from the bundle's OWN graphs rather than from a repository, and
 /// carries the coordinates a consumer needs to prime a decode.
-fn assert_medium_resource(server: &gmeow_pipeline::mcp::McpServer) {
+fn assert_medium_resource(server: &gmeow_mcp::McpServer) {
     const URI: &str = "gmeow://ontology/medium";
-    let list = server.resource_index();
+    let list = server.resources_result();
     let resources = list["resources"].as_array().expect("resources array");
     let advertised: Vec<&str> = resources
         .iter()
@@ -236,7 +236,7 @@ fn assert_medium_resource(server: &gmeow_pipeline::mcp::McpServer) {
         "exactly ONE medium resource is the enumerated delta: {advertised:?}"
     );
 
-    let read = server.read_resource(URI);
+    let read = server.read_resource_result(URI);
     assert!(
         read.get("isError").is_none(),
         "the medium resource must read cleanly: {read}"
@@ -304,7 +304,7 @@ fn assert_medium_resource(server: &gmeow_pipeline::mcp::McpServer) {
 /// Write a runtime store through the PRODUCTION `Memory::store` path, primed from the
 /// freshly emitted bundle.
 fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
-    use gmeow_pipeline::mcp::{McpMode, McpServer};
+    use gmeow_mcp::McpServer;
 
     let memory_path = home.join("memory.gts");
     // SAFETY: this test binary runs one test, single-threaded, and restores nothing
@@ -314,7 +314,10 @@ fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
         std::env::set_var("GMEOW_CONJECTURE_PATH", home.join("conjectures.gts"));
         std::env::remove_var("GMEOW_LANG");
     }
-    let server = McpServer::from_snapshot(bundle, None, McpMode::Consumer)
+    // The medium registry rides an Extension: the MCP engine is a leaf that does not link the
+    // build executor, so the host that owns the reader registers the surface. Asserting against
+    // the bare leaf would assert a capability no leaf can have.
+    let server = McpServer::from_snapshot_with(bundle, gmeow_mcp_dev::medium_extension())
         .expect("the freshly emitted bundle serves an MCP session");
     assert_medium_resource(&server);
     for text in [

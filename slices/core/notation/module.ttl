@@ -14,6 +14,7 @@ gmeow:NotationProjectionProfile
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "Notation Projection Profile"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Profile ;
+    logic:subClassOf gmeow:LossBearingProfile ;
     skos:definition "A closed descriptor schema for the lossy projection from frame-relative content to one notation system. Declares representable parameters, incurred losses, and the FnO projection function that performs the render (Principles 4, 11, 12). RETAINED under the notation graft (Principle 19), not superseded by lang:Rendering: a projection profile IS the rendering convention for a notation crossing — the reusable, per-notation-system ledger of representable parameters, declared losses, and the FnO render — and lang:Rendering holds none of that parameter-level ledger or the executable FnO binding. A concrete render of canonical content through this profile is a lang:Rendering whose lang:renderingKind is lang:renderingNotation, whose lang:renderingConvention names this profile, and whose lang:renderingPreservation carries a logic:PreservationKind judging the crossing; the profile's declared-loss ledger is the fine-grained parameter account under that coarse preservation kind. No notation-local preservation enum or display-kind ladder is minted."@x-gmeow-english ;
     skos:example "ex:staffProfile a gmeow:NotationProjectionProfile ; gmeow:notationSystemOf ex:westernStaff ; gmeow:declaredLoss ex:lossMicrotiming ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerWikidata ;
@@ -157,11 +158,11 @@ gmeow:accountsForParameter
 
 gmeow:declaredLoss
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:domain gmeow:LossBearingProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "declared loss"@x-gmeow-english ;
     rdfs:range gmeow:ProjectionLoss ;
-    skos:definition "A loss that this notation system incurs when rendering canonical frame-relative content (e.g. quantization to 12-EDO, dropping microtiming)."@x-gmeow-english ;
+    skos:definition "A loss the projecting construct incurs when it renders canonical frame-relative content (e.g. quantization to 12-EDO, dropping microtiming, dropping a live surface a print artifact cannot carry). ONE predicate for every projection: its domain is the gmeow:LossBearingProfile category, which a notation projection profile, a shipped documentation distribution, and a minted render manifest all inhabit, so a new kind of projection joins the existing ledger instead of forking a second loss vocabulary. The category is used rather than a union of those classes because OWL unionOf is not an EL construct: a union domain would push this property out of the EL profile the derived shapes are compiled from, and it would still exclude every projection the union does not name."@x-gmeow-english ;
     skos:example "ex:staffProfile gmeow:declaredLoss ex:lossMicrotiming ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for a parameter the notation carries faithfully (that is gmeow:representableParameter) and avoid declaring a loss without pointing its gmeow:accountsForParameter at the parameter it omits."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -366,11 +367,11 @@ gmeow:projectionFunction
 
 gmeow:representableParameter
     a logic:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:domain gmeow:LossBearingProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "representable parameter"@x-gmeow-english ;
     rdfs:range logic:Thing ;
-    skos:definition "A parameter that this notation system can represent without loss (e.g. pitch in a 12-EDO-aware staff notation). Range is kept open in the core framework; domain-specific slices restrict it to their parameter vocabularies."@x-gmeow-english ;
+    skos:definition "A parameter the projecting construct carries without loss (e.g. pitch in a 12-EDO-aware staff notation, or a live query surface a rendered site keeps). The exact complement of gmeow:declaredLoss and so carried by the same gmeow:LossBearingProfile domain: whatever may declare a loss must be able to declare what it does keep, or the completeness pairing has only one half. Range is kept open in the core framework; domain-specific slices restrict it to their parameter vocabularies."@x-gmeow-english ;
     skos:example "ex:staffProfile gmeow:representableParameter ex:pitch ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for a parameter the notation drops or approximates (that is gmeow:declaredLoss with gmeow:accountsForParameter) and avoid leaving a known parameter neither represented nor accounted-for — the gate flags that gap."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;

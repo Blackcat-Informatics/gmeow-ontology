@@ -11,36 +11,31 @@
 //! analyzer.
 //!
 //! The model in [`model`] is PyO3-free so every consumer (renderers, lint,
-//! diagram, bundle) shares one source of truth. The [`render`] module turns the
+//! diagram, bundle) shares one source of truth — including its once-per-run disk
+//! cache, [`gmeow_docs_model::fixture`], on top of whose key [`fixture`] layers the
+//! rendered site and mdBook caches. The [`render`] module turns the
 //! model into a deterministic static-site tree (Markdown + self-contained HTML),
 //! and [`svg`] hand-emits deterministic SVG diagrams folded into that tree.
 //! The crate is native Rust throughout; lint and i18n consumers share the same
 //! typed model directly.
 
-pub mod badge;
-pub mod card;
-pub mod coverage;
-pub mod describe;
-pub mod error;
-pub mod exec;
+pub mod console;
 pub mod fixture;
-pub mod formats;
-pub mod gmn1_primer;
-pub mod i18n;
-pub mod i18n_compile;
 pub mod lint;
-pub mod llms;
-pub mod maturity;
 pub mod mdbook;
-pub mod model;
-pub mod prose;
-pub mod rdf;
+// The documentation model now lives in `gmeow-docs-model`, re-exported here at
+// its original paths so every `gmeow_docs::<module>` caller is unchanged.
+pub use gmeow_docs_model::{
+    badge, card, coverage, describe, error, exec, formats, gmn1_primer, i18n, i18n_compile, llms,
+    maturity, model, prose, rdf, slug, source_map, surface_lattice, svg,
+};
+
 pub mod render;
-pub mod source_map;
-mod store;
-pub mod svg;
+// The vendored wasm-engine assets (the browser-side glue/wrapper/`.d.ts` triples and
+// their pinned `DIGESTS.blake3`) and the anti-rot gate over them.
 pub mod vendored_asset;
 
+pub use console::{CONSOLE_PREFIX, console_files, generated_shell};
 pub use describe::{
     DescribeGraph, DescribeStatus, Resolution, build_card, describe, describe_dataset, resolve_term,
 };

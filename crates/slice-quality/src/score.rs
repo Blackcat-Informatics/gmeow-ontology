@@ -7,7 +7,19 @@
 //! `ctx.terms` (the slice's own authored terms) and returns an [`AxisScore`]: a
 //! normalized 0.0–1.0 score plus the advisory findings it wants surfaced. Advice
 //! output is always about the one target slice, whatever the read scope.
+//!
+//! Every SLICE-LOCAL file the file-shaped axes read (`shapes.ttl`, `docs.md`, the
+//! `i18n/*.po` catalogs, the `mappings/` correspondence surface, the `tests/`
+//! counter-example fixtures, …) is served from [`ScoreContext::files`] — an
+//! in-memory map, never a directory. That is what lets the whole scoring kernel run
+//! on a target with no filesystem at all (the browser/wasm32 console) and lets a
+//! caller score a slice that only ever existed as bytes (a bundle projection, an
+//! upload, a git blob). The ONE thing that legitimately still needs a real path is
+//! the surrounding CHECKOUT the repo-anchored axis arms walk up to, so that path
+//! lives on [`ScoringEnv::Repo`] — the environment it is a property of — and
+//! [`ScoringEnv::Bundle`] is reachable with no directory whatsoever.
 
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -31,21 +43,61 @@ pub enum ScoringEnv {
     /// Source wide-scope inputs from the surrounding repo checkout (the verbatim
     /// pre-seam behaviour): read `slices/grounding/lang/module.ttl` off disk and
     /// build the documentation model with a repo-wide `slices/` sweep.
-    Repo,
+    ///
+    /// `slice_dir` is the scored slice's directory INSIDE that checkout. It is
+    /// carried here rather than on the context because the surrounding checkout is
+    /// a property of THIS environment alone: the repo-anchored arms walk `slice_dir`
+    /// up to the first `slices/` component to find the repo root
+    /// ([`crate::axes::repo_root_of`]), and no other arm may read a path. A slice
+    /// scored in [`ScoringEnv::Bundle`] has no checkout and therefore no such path —
+    /// making the field variant-local is what makes that state unrepresentable.
+    Repo {
+        /// The scored slice's directory inside the surrounding checkout.
+        slice_dir: PathBuf,
+    },
     /// Source wide-scope inputs from an embedded bundle. The carried dictionary is
     /// ALREADY loaded and validated (constructed with `?` at bundle-build time, so a
     /// corrupt wheel hard-fails there): the `gmn1_coverage` arm uses it directly with
     /// no tolerant advisory. `DocMaturity` ignores the payload and builds a fresh
-    /// single-slice model from the slice's own directory.
+    /// single-slice model from the slice's own carried files.
     Bundle(Arc<GmnDictionary>),
+}
+
+/// The result of asking [`ScoreContext::text`] for one slice-relative path as text.
+///
+/// The on-disk predecessor of the file map distinguished `io::ErrorKind::NotFound`
+/// (a file the slice honestly does not ship) from any OTHER read error (a file that
+/// IS there but is broken, which must surface a finding rather than score as a clean
+/// absence). A map has only "key present" / "key absent", so the second arm would
+/// silently vanish — except that a present key whose bytes are not valid UTF-8 is
+/// exactly the map's form of "a broken input": the slice ships the file, but it
+/// cannot be read as text. This three-way enum keeps those two failure modes
+/// distinct at every call site instead of collapsing them into one `Option`.
+pub enum FileText<'a> {
+    /// The key is present and its bytes decode as UTF-8.
+    Present(&'a str),
+    /// The key is absent — HONEST ABSENCE, the map twin of `ErrorKind::NotFound`.
+    Absent,
+    /// The key is present but its bytes are not UTF-8 — a BROKEN INPUT, the map twin
+    /// of "any other read error", never to be treated as absence.
+    Invalid(std::str::Utf8Error),
 }
 
 /// Everything an axis primitive may read about the slice under assessment.
 pub struct ScoreContext<'a> {
     /// The slice ontology IRI (`…/slices/<name>`).
     pub slice_iri: String,
-    /// The slice directory on disk (for file-shaped checks — test cells, i18n).
-    pub slice_dir: PathBuf,
+    /// The slice's OWN files, keyed by slice-relative forward-slash path
+    /// (`"manifest.ttl"`, `"module.ttl"`, `"shapes.ttl"`, `"docs.md"`,
+    /// `"examples/foo.ttl"`, `"tests/counter-examples/bar.ttl"`, `"i18n/fr.po"`,
+    /// `"mappings/equivalences.ttl"`, …).
+    ///
+    /// A `BTreeMap` (not a `HashMap`) because every axis that scans a subtree does so
+    /// by prefix in KEY ORDER, and that order must be deterministic and must agree
+    /// with the sorted-path order the on-disk predecessor produced — otherwise two
+    /// runs of the same scorer could union the same Turtle documents in different
+    /// orders.
+    pub files: &'a BTreeMap<String, Vec<u8>>,
     /// The dataset to read, already assembled at the axis's licensed scope.
     pub graph: &'a RdfDataset,
     /// The slice's own authored term IRIs (typed subjects `rdfs:isDefinedBy`
@@ -56,23 +108,79 @@ pub struct ScoreContext<'a> {
 }
 
 impl<'a> ScoreContext<'a> {
-    /// Build a context for `slice_iri`, computing the slice's own term set from
-    /// the graph (subjects whose `rdfs:isDefinedBy` is the slice IRI).
+    /// Build a context for `slice_iri` over the slice's own in-memory `files`,
+    /// computing the slice's own term set from the graph (subjects whose
+    /// `rdfs:isDefinedBy` is the slice IRI).
     #[must_use]
     pub fn new(
         slice_iri: String,
-        slice_dir: PathBuf,
+        files: &'a BTreeMap<String, Vec<u8>>,
         graph: &'a RdfDataset,
         env: ScoringEnv,
     ) -> Self {
         let terms = slice_terms(graph, &slice_iri);
         Self {
             slice_iri,
-            slice_dir,
+            files,
             graph,
             terms,
             env,
         }
+    }
+
+    /// Whether the slice ships `key` — the map twin of `Path::is_file`.
+    #[must_use]
+    pub fn has(&self, key: &str) -> bool {
+        self.files.contains_key(key)
+    }
+
+    /// The raw bytes the slice ships at `key`, or `None` when it ships no such file.
+    #[must_use]
+    pub fn bytes(&self, key: &str) -> Option<&[u8]> {
+        self.files.get(key).map(Vec::as_slice)
+    }
+
+    /// `key`'s bytes decoded as text, keeping honest absence and a broken (non-UTF-8)
+    /// file distinguishable — see [`FileText`].
+    #[must_use]
+    pub fn text(&self, key: &str) -> FileText<'_> {
+        match self.files.get(key) {
+            None => FileText::Absent,
+            Some(bytes) => match std::str::from_utf8(bytes) {
+                Ok(text) => FileText::Present(text),
+                Err(e) => FileText::Invalid(e),
+            },
+        }
+    }
+
+    /// Every file the slice ships directly under `prefix` (which must end in `/`)
+    /// whose key ends in `suffix`, in BTreeMap key order.
+    ///
+    /// `recursive` selects the sweep shape the replaced on-disk walk had: `true`
+    /// matches the whole subtree (a `read_dir` recursion), `false` matches only the
+    /// directory's immediate children (a single-level `read_dir`). Both are exact
+    /// replacements — an axis that deliberately reads `examples/*.ttl` but NOT
+    /// `examples/nested/*.ttl` keeps that scope.
+    #[must_use]
+    pub fn keys_under(&self, prefix: &str, suffix: &str, recursive: bool) -> Vec<&str> {
+        debug_assert!(prefix.ends_with('/'), "a directory prefix ends in '/'");
+        self.files
+            .keys()
+            .map(String::as_str)
+            .filter(|key| key.starts_with(prefix) && key.ends_with(suffix))
+            .filter(|key| recursive || !key[prefix.len()..].contains('/'))
+            .collect()
+    }
+
+    /// `keys_under` paired with each key's bytes — the shape every "parse this
+    /// subtree into one dataset" call site wants, in the same deterministic key
+    /// order.
+    #[must_use]
+    pub fn docs_under(&self, prefix: &str, suffix: &str, recursive: bool) -> Vec<(&str, &[u8])> {
+        self.keys_under(prefix, suffix, recursive)
+            .into_iter()
+            .map(|key| (key, self.files[key].as_slice()))
+            .collect()
     }
 }
 

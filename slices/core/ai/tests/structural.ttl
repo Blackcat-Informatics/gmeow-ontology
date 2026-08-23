@@ -88,8 +88,8 @@ ex:saVectorEmbeddingKinds a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Embedding            a owl:Class , logic:Kind ; (logic:subClassOf|rdfs:subClassOf) gmeow:InformationObject .
     gmeow:VectorIndex          a owl:Class , logic:Kind ; (logic:subClassOf|rdfs:subClassOf) gmeow:InformationObject .
@@ -102,8 +102,8 @@ ex:saDistanceMetricValueVocab a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:DistanceMetric a owl:Class , logic:AbstractIndividualType ; (logic:subClassOf|rdfs:subClassOf) logic:QualityValue .
     gmeow:distanceMetricCosine a gmeow:DistanceMetric . gmeow:distanceMetricDotProduct a gmeow:DistanceMetric .

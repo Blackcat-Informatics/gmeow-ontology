@@ -75,7 +75,17 @@ fn population_has_no_namespace_fallback_when_ownership_is_absent() {
 
 fn grounding_score(ttl: &str, slice_iri: &str) -> gmeow_slice_quality::score::AxisScore {
     let ds = parse(ttl);
-    let ctx = ScoreContext::new(slice_iri.to_owned(), PathBuf::new(), &ds, ScoringEnv::Repo);
+    // The grounding axis is graph-only: the slice ships no file this axis reads, so an
+    // empty map is the honest input rather than a stand-in for one.
+    let files = std::collections::BTreeMap::new();
+    let ctx = ScoreContext::new(
+        slice_iri.to_owned(),
+        &files,
+        &ds,
+        ScoringEnv::Repo {
+            slice_dir: PathBuf::new(),
+        },
+    );
     axes::resolve("grounding_axis").expect("producer exists")(&ctx)
 }
 

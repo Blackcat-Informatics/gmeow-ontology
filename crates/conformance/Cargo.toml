@@ -60,7 +60,7 @@ purrdf.workspace = true
 # budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
 # the default BTreeMap-backed `Value` serializes keys in sorted order, which IS
 # the canonical form the Python runner produced via `json.dumps(sort_keys=True)`.
-serde_json = "1"
+serde_json.workspace = true
 # Content-addressed, blake3-keyed instance IRIs for the reified conformance
 # comparison + agreement-tally individuals (the SAME hash the diagnostics finding
 # IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals

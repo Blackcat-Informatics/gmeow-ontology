@@ -34,12 +34,17 @@
 
 pub mod branch_base;
 pub mod bundle;
-pub mod bundle_blobs;
+// The bundle READ side lives in the leaf crate `gmeow-bundle-view` so a consumer
+// that only reads a materialized `gmeow.gts` (the `gmeow` CLI, `gmeow-dev`, the MCP
+// tool surface) never inherits the build executor. Re-exported under the original
+// paths so every `gmeow_pipeline::bundle_blobs::*` /
+// `gmeow_pipeline::diagnostics_reader::*` caller is unchanged.
+pub use gmeow_bundle_view::bundle_blobs;
+pub use gmeow_bundle_view::diagnostics_reader;
 pub mod cache;
 pub mod catalog_families;
 pub mod cli_ops;
 pub mod correspondence_law;
-pub mod diagnostics_reader;
 pub mod docs_distribution;
 pub mod docs_loss_lattice;
 pub mod docs_measure;
@@ -62,13 +67,15 @@ pub mod run;
 pub mod scheduler;
 pub mod scoreboards;
 pub mod stages;
-pub mod transcode;
+// The transcode hub now lives in the leaf crate `gmeow-transcode` so the MCP
+// `convert` tool can reach it without pulling gmeow-pipeline into a wasm build.
+// Re-exported under the original path so `gmeow_pipeline::transcode::*` callers
+// (crates/gmeow-cli/src/commands.rs) are unchanged.
+pub use gmeow_transcode as transcode;
 pub mod transform;
 pub mod up_projection_corpus;
 pub mod up_projection_gates;
 pub mod up_projection_report;
-
-pub mod mcp;
 
 pub use bundle::{PipelineHandle, bundle_artifact, bundle_artifacts};
 pub use cache::PipelineCache;

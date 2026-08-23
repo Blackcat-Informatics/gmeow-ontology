@@ -1,0 +1,46 @@
+{
+  "name": "@blackcatinformatics/gmeow-reason-wasm",
+  "version": "0.2.0",
+  "description": "The native GMEOW structured-DL reasoner (reasoned closure + the symmetric conjecture engine) compiled to wasm32 for client-side reasoning in browsers, editors, and LLM clients.",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "author": "Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blackcat-Informatics/gmeow-ontology"
+  },
+  "keywords": [
+    "rdf",
+    "rdf-1.2",
+    "reasoner",
+    "description-logic",
+    "wasm",
+    "knowledge-graph"
+  ],
+  "main": "./index.mjs",
+  "module": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs"
+    }
+  },
+  "files": [
+    "index.mjs",
+    "index.d.ts",
+    "pkg/gmeow_reason_wasm.js",
+    "pkg/gmeow_reason_wasm.d.ts",
+    "pkg/gmeow_reason_wasm_bg.wasm",
+    "pkg/gmeow_reason_wasm_bg.wasm.d.ts"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

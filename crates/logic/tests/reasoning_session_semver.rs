@@ -215,6 +215,15 @@ use session_common::*;
 /// silently lost the rest. `relational_core.rs` is a folded engine-source axis, so its bytes
 /// and the folded descriptor move. The fixed edge-only input authors no enactment record, so
 /// no reasoning verdict on it changes; only the identity moved.
+/// Re-blessed once more when `reason_closure_dataset`'s axiom-to-RDF lowering was extracted
+/// into the public `inferred_axioms_to_dataset` so the agent-facing MCP `reason_graph` tool
+/// could lower a BUDGETED closure through the SAME code path the unbudgeted one uses (R4
+/// forbids exposing an unbudgeted chase to an agent loop, and two lowerings would have let a
+/// budgeted and an unbudgeted closure of the same size serialize differently). `reason/mod.rs`
+/// is one of the folded native-contract source axes, so the descriptor moves with the file;
+/// the extraction is a pure refactor — `reason_closure_dataset` now calls the extracted
+/// function and no rule, no chase step, and no verdict changed, so the fixed edge-only input's
+/// reasoning verdict is unchanged.
 /// Re-blessed once more when the hash-consed structured-term arena was relocated out of
 /// this runtime into the reasoner-free `gmeow-term-arena` crate: `EXTERNAL_BACKWARD_SOURCE`
 /// (`runtime.rs`) `include_str!`s that crate's `src/` tree into `backward_source_hash`, so
@@ -414,7 +423,7 @@ use session_common::*;
 /// authored surface reached literal zero `owl:` tokens). `native_contract_hash()` `include_str!`s
 /// `reason/refute.rs`, so its byte content moves the descriptor; no reasoning verdict changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "91209aba78ac64dc895e91a5994c5e3c8b8bc0c06aabf8681acc47331470d8b1";
+    "3b728aa526ca6e4296fb492c90f9186e4cfee05a90bbe06c950f83b020a6e9d9";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -519,6 +528,10 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed again for the same reason as the engine descriptor above: the violation
 /// rules' head tuple now names the law that drew the conclusion, moving `relational_core.rs`
 /// and therefore the fixed-input session identity with it.
+/// Re-blessed once more for the `inferred_axioms_to_dataset` extraction (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded
+/// identity axes and moves with the changed `reason/mod.rs` source, while the fixed edge-only
+/// input's reasoning verdict is unchanged.
 /// Re-blessed once more for the term-arena relocation (see the engine-descriptor golden
 /// above): the backward-source digest is one of the seven folded identity axes and moves
 /// with the arena's new crate-relative source paths, while the fixed edge-only input's
@@ -614,7 +627,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// `owl:TransitiveProperty` the RL characteristic rules match, per
 /// `adapter::OWL_CHARACTERISTIC_TO_LOGIC`.)
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "e39b89a1b305ae39dab829e00f294961abf810d414406892457751407e34d3dc";
+    "8fbfa00c5a49fb621c115ba9b3cb5036e2f42531015723a864e5e92e28284165";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

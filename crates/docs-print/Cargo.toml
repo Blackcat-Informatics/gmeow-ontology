@@ -36,4 +36,4 @@ typst-assets = { version = "=0.13.1", features = ["fonts"] }
 blake3.workspace = true
 
 [dev-dependencies]
-insta = "1.48"
+insta.workspace = true

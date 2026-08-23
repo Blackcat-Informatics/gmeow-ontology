@@ -11,7 +11,7 @@
 //! out-of-band `r_<hash>` by-reference literal and reads back from raw text):
 //!
 //!   1. `transcode_to_gmn1(input)` is deterministic and matches the committed GMN-1
-//!      attestation `crates/docs/assets/gmn/WITNESS.gmn1.txt`;
+//!      attestation `crates/gmn-wasm/tests/WITNESS.gmn1.txt`;
 //!   2. `transcode_from_gmn1(that GMN-1 text)` reproduces the input's canonical
 //!      N-Quads byte-for-byte — the round-trip the widget shows.
 //!
@@ -36,7 +36,7 @@ fn attestation_path() -> PathBuf {
         .join("../..")
         .canonicalize()
         .expect("repo root")
-        .join("crates/docs/assets/gmn/WITNESS.gmn1.txt")
+        .join("crates/gmn-wasm/tests/WITNESS.gmn1.txt")
 }
 
 /// The canonical N-Quads of `INPUT` — the round-trip target.

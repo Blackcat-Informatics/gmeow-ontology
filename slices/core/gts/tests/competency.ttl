@@ -45,7 +45,31 @@ ex:cqMediumFailureClasses a gmeow:CompetencyQuestion ;
         ex:rowFailure08 ,
         ex:rowFailure09 ,
         ex:rowFailure10 ,
-        ex:rowFailure11 .
+        ex:rowFailure11 ,
+        ex:rowFailureUnpinnedStore ,
+        ex:rowFailureBundleUnreadable ,
+        ex:rowFailureBundleUnparsable ,
+        ex:rowFailureFlatExportRefused .
+
+ex:rowFailureUnpinnedStore a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:MediumUnpinnedStoreDictionary ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:CompressionDictionaryIdentifiedConstraint ] .
+
+ex:rowFailureBundleUnreadable a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:BundleArtifactUnreadable ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:GtsDocumentSegmentedConstraint ] .
+
+ex:rowFailureBundleUnparsable a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:BundleSourceUnparsable ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:GtsSegmentHeadedConstraint ] .
+
+ex:rowFailureFlatExportRefused a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri gmeow:FlatExportRefused ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri gmeow:GtsConformanceFailure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "gate" ; gmeow:cellValueIri gmeow:GtsSegmentProfiledConstraint ] .
 
 ex:shapeMediumFailureClasses a logic:ResultShape ;
     logic:declaresColumn

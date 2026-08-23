@@ -5,6 +5,19 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+gmeow:ActionPolicy
+    a logic:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "Action Policy"@x-gmeow-english ;
+    skos:definition "The action theory governing an agent's whole tool surface: one action schema per advertised tool, each carrying the preconditions that must obtain before the tool may run, the effects that obtain after it does, and — for a write — the compensation that undoes it. It is what makes a tool surface REASONED-ABOUT rather than merely listed: a caller can decide whether an action is admissible without invoking it, and an executed turn can be audited against the theory it claimed to follow."@x-gmeow-english ;
+    skos:example "The engine's own policy, published as the gmeow://ontology/action-policy resource and the action_policy tool: one schema per advertised tool, tied to it by logic:mcpToolName."@x-gmeow-english ;
+    skos:scopeNote "Scope: the THEORY of a tool surface, not a record of what was run. A performed call is a gmeow:ToolCall; the schema that call instantiates belongs here."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a single tool's schema — that is one member of the policy, not the policy — and avoid it for an access-control rule, which decides who may call rather than what calling means."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Publish one policy per agent surface and tie each schema to its tool by logic:mcpToolName, so the advertised surface and the reasoned-about surface cannot drift apart."@x-gmeow-english ;
+    gmeow:useWhen "Use when an agent surface must be reasoned about before it is invoked: checking a precondition, planning a compensation, or auditing an executed turn against the theory it declared."@x-gmeow-english .
+
 gmeow:ToolCall
     a logic:Event ,
         logic:Class ;
@@ -44,6 +57,33 @@ gmeow:calledByInvocation
     rdfs:range gmeow:ModelInvocation ;
     skos:definition "The model invocation that requested this tool call. Functional: one requesting invocation per call. Optional: a recording harness may not expose the invocation — a ToolCall without one is still auditable provenance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:derivedBy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "derived by"@x-gmeow-english ;
+    rdfs:range gmeow:ToolCall ;
+    skos:definition "The tool call a RESULT STATEMENT came out of — the predicate an annotated result triple carries so an agent's answer stays attributable to the call that produced it. Backward-pointing, like gmeow:wasGeneratedBy, but attaching to the statement rather than to an entity: gmeow:wasGeneratedBy says a thing was produced by an activity, this says a particular assertion was. Deliberately domain-free, since any statement a session emits may be annotated this way and the annotated subjects share no class. Distinct from gmeow:derivedByFunction, which names a pure function a derived observation was computed with, not an audited call event."@x-gmeow-english ;
+    skos:example "ex:answer gmeow:derivedBy ex:searchCall ."@x-gmeow-english ;
+    skos:scopeNote "Scope: ATTRIBUTION, never endorsement — the edge records which call an assertion came out of and says nothing about whether that assertion is true, so an answer later refuted keeps this edge rather than losing it. No rdfs:domain is asserted, deliberately: the annotated subjects share no class, so nothing here checks that the subject is a statement rather than a thing, and that discipline belongs to whichever reification the recording harness uses. The range is a gmeow:ToolCall and nothing wider — a whole session, the requesting gmeow:ModelInvocation, and the bare gmeow:SoftwareAgent that was called are all out of scope, because only the call event carries the arguments and the verbatim payload an auditor has to read."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it where the subject is an entity the call produced rather than an assertion about one — that is gmeow:wasGeneratedBy — and avoid it for a computation with no call event, which is gmeow:derivedByFunction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Annotate the result statement with the gmeow:ToolCall it came out of, and let the call itself carry the tool, the arguments, and the verbatim payload; a reader recovers the whole provenance chain by following this one edge back."@x-gmeow-english ;
+    gmeow:useWhen "Use when an assertion an agent emits must remain traceable to the specific tool call that yielded it, so a later reader can audit the answer rather than trusting it."@x-gmeow-english .
+
+gmeow:sessionStoreSegment
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ToolCall ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "session store segment"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The identifier of the append-only session-store segment this call's audit record was appended to. A session's trajectory is written as an ordered run of segments rather than as one rewritten whole, so naming the segment makes the record locatable without re-reading the entire store, and makes an audit that spans several commits reconstructible in order."@x-gmeow-english ;
+    skos:example "ex:call gmeow:sessionStoreSegment \"0003\" ."@x-gmeow-english ;
+    skos:scopeNote "Scope: a LOCATOR, not an ordering and not the payload. It names which segment holds the audit record, never an offset inside that segment, and comparing two identifiers is not a sanctioned way to order two calls — replay order comes from the store's append order and from the call's own gmeow:atTime, never from arithmetic on this literal. Nor is it a filesystem path: it names the store's own segment identity, so relocating or renaming the underlying files leaves the record true. Exactly one value per call (gmeow:sessionStoreSegmentFunctionality) — bytes that landed in two segments are a broken append, not a second value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to carry the audit payload itself (that is gmeow:toolResult) and avoid re-pointing an existing call at a different segment, which would falsify an append-only record."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Record the segment identifier at the moment the audit bytes are appended, so the identifier and the bytes are committed together and the trajectory can be replayed in append order."@x-gmeow-english ;
+    gmeow:useWhen "Use to locate a tool call's audit record inside an append-only session store, when the store is written as a run of segments rather than as one rewritten file."@x-gmeow-english .
 
 gmeow:toolArguments
     a logic:DatatypeProperty ;
@@ -151,6 +191,21 @@ gmeow:calledByInvocationFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:calledByInvocation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:calledByInvocation and nothing else. It is not a definition of gmeow:calledByInvocation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByInvocation ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sessionStoreSegmentFunctionality
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    rdfs:label "sessionStoreSegment is functional"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:sessionStoreSegment is functional: a tool call's audit record was appended to exactly one append-only session-store segment, the single segment its bytes were committed to. A second value would make the record locatable in two places at once and let a replay re-point an already-committed call at a different segment, which is precisely what an append-only trajectory forbids. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    logic:characterizes gmeow:sessionStoreSegment ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:sessionStoreSegment ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:sessionStoreSegment names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:sessionStoreSegment, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
+    skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sessionStoreSegment and nothing else. It is not a definition of gmeow:sessionStoreSegment (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
+    skos:example "gmeow:sessionStoreSegmentFunctionality logic:characterizes gmeow:sessionStoreSegment ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:toolArgumentsFunctionality
     a logic:NamedIndividual ,

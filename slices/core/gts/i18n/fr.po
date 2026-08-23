@@ -922,3 +922,95 @@ msgstr "Portée : cette classe couvre une ligne de la carte site-de-production-v
 msgctxt "https://blackcatinformatics.ca/gmeow/Medium|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this class covers the lawful (encode, decode) PAIR and the coordinates that pick it out. It is not the codec alone (gmeow:TransformCodec names an algorithm, and several media may share one), not a GTS profile (gmeow:GTSProfile names a segment's purpose and requirement set, not a byte transform), and not the per-frame record of what a payload was written through (gmeow:MediumEnvelope). The round-trip claim is not stored here either: it lives on the correspondence the medium points at."
 msgstr "Portée : cette classe couvre la PAIRE licite (encoder, décoder) et les coordonnées qui la désignent. Ce n'est pas le codec seul (gmeow:TransformCodec nomme un algorithme, et plusieurs media peuvent en partager un), ni un profil GTS (gmeow:GTSProfile nomme l'objectif et les exigences d'un segment, non une transformation d'octets), ni l'enregistrement par trame de ce par quoi une charge utile a été écrite (gmeow:MediumEnvelope). L'assertion d'aller-retour n'est pas stockée ici non plus : elle réside sur la correspondance que le medium désigne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bundle Artifact Unreadable"
+msgstr "Artefact de paquet illisible"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a read-side consumer cannot READ a source artifact at all — a Turtle source handed to the native query substrate, or a materialized gmeow.gts. It is a byte-level refusal below any RDF judgment: nothing was parsed, so nothing can be said about what the artifact contains. HARD FAIL rather than an empty dataset, because an empty result is indistinguishable from an artifact that legitimately carries nothing."
+msgstr "L'échec levé lorsqu'un consommateur côté lecture ne peut pas LIRE du tout un artefact source — une source Turtle confiée au substrat de requête natif, ou un gmeow.gts matérialisé. C'est un refus au niveau des octets, en deçà de tout jugement RDF : rien n'a été analysé, donc rien ne peut être dit du contenu de l'artefact. ÉCHEC FRANC plutôt qu'un jeu de données vide, car un résultat vide est indiscernable d'un artefact qui, légitimement, ne porte rien."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bundle Source Unparsable"
+msgstr "Source de paquet non analysable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised on the READ side when bytes were obtained but are not the RDF the reader requires: a syntactically invalid Turtle source, a query evaluation failure, or a query whose result form is not the one the caller demands. Distinct from gmeow:BundleArtifactUnreadable, where the bytes never arrived: here they did and are wrong, so the reader refuses rather than returning a partial binding set that would read as a complete answer over less data."
+msgstr "L'échec levé côté LECTURE lorsque les octets ont été obtenus mais ne sont pas le RDF que le lecteur exige : une source Turtle syntaxiquement invalide, un échec d'évaluation de requête, ou une requête dont la forme de résultat n'est pas celle que l'appelant demande. À distinguer de gmeow:BundleArtifactUnreadable, où les octets ne sont jamais arrivés : ici ils sont arrivés et sont erronés, si bien que le lecteur refuse plutôt que de renvoyer un ensemble de liaisons partiel qui se lirait comme une réponse complète sur moins de données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FlatExportRefused|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Flat Export Refused"
+msgstr "Export à plat refusé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FlatExportRefused|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a flat-export projection — CSVW, SKOS, OBO Graphs, N-Quads, TriG — cannot carry a term the bundle holds, or is asked for a configuration it refuses. The projection is REFUSED rather than degraded: a flat surface that silently drops a term it cannot encode publishes a smaller ontology under the same name, and a consumer has no way to learn what is missing. Every declared loss belongs in the distribution catalog, where it is queryable, never in a projection that quietly omits."
+msgstr "L'échec levé lorsqu'une projection d'export à plat — CSVW, SKOS, OBO Graphs, N-Quads, TriG — ne peut porter un terme que le paquet détient, ou se voit demander une configuration qu'elle refuse. La projection est REFUSÉE plutôt que dégradée : une surface plate qui laisse silencieusement tomber un terme qu'elle ne sait pas encoder publie une ontologie plus petite sous le même nom, et un consommateur n'a aucun moyen d'apprendre ce qui manque. Toute perte déclarée a sa place dans le catalogue de distribution, où elle est interrogeable, jamais dans une projection qui omet en silence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryIdentifiedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compression dictionary identified constraint"
+msgstr "Contrainte de dictionnaire de compression identifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryIdentifiedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:CompressionDictionary declares the gmeow:dictionaryId it is pinned under. The id is the ONLY key a consumer has: a runtime store resolves its priming bytes by looking that string up in the shipped bundle's in-band header map, so a dictionary declared without one can be trained, shipped and still be unreachable — the store asks for a name the bundle never wrote down, and there is no weaker unprimed store to fall back to because the store's own header is what makes it decodable. This is the authoring-side cause of the consumer engine's refusal, caught where the dictionary is declared rather than where it is opened. Measured to hold over all six shipped dictionaries, so the record is a live gate."
+msgstr "Une contrainte d'intégrité en monde clos : chaque gmeow:CompressionDictionary déclare le gmeow:dictionaryId sous lequel il est épinglé. Cet identifiant est la SEULE clé dont dispose un consommateur : un magasin d'exécution résout ses octets d'amorçage en cherchant cette chaîne dans la carte d'en-tête en bande du paquet livré, si bien qu'un dictionnaire déclaré sans identifiant peut être entraîné, livré et rester malgré tout inatteignable — le magasin réclame un nom que le paquet n'a jamais consigné, et il n'existe aucun magasin non amorcé plus faible sur lequel se rabattre, puisque c'est l'en-tête propre du magasin qui le rend décodable. C'est la cause, côté rédaction, du refus du moteur consommateur, saisie là où le dictionnaire est déclaré plutôt que là où il est ouvert. Mesurée comme tenant sur les six dictionnaires livrés, la contrainte est donc une barrière vivante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsDocumentSegmentedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS document segmented constraint"
+msgstr "Contrainte de document GTS segmenté"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsDocumentSegmentedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:GTSDocument carries at least one gmeow:gtsSegment. A document IS its ordered segment list — the composite identity is the heads taken in index order — so a document declaring no segment has no content to read and no identity to verify. A reader handed one cannot distinguish it from a file it failed to open, which is why the refusal happens here rather than being reported as an empty result."
+msgstr "Une contrainte d'intégrité en monde clos : chaque gmeow:GTSDocument porte au moins un gmeow:gtsSegment. Un document EST sa liste ordonnée de segments — l'identité composite est celle des têtes prises dans l'ordre des indices — si bien qu'un document ne déclarant aucun segment n'a ni contenu à lire ni identité à vérifier. Un lecteur à qui on en confie un ne peut le distinguer d'un fichier qu'il n'a pas réussi à ouvrir, et c'est pourquoi le refus intervient ici plutôt que d'être rapporté comme un résultat vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentHeadedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS segment headed constraint"
+msgstr "Contrainte de segment GTS à tête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentHeadedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:GTSSegment carries its gmeow:gtsHeadId. The head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so it is what makes the bytes CHECKABLE — a segment without one can be parsed into terms but never verified against the chain it claims to continue, and a reader has no way to tell a good read from a corrupted one."
+msgstr "Une contrainte d'intégrité en monde clos : chaque gmeow:GTSSegment porte son gmeow:gtsHeadId. La tête est un identifiant de contenu BLAKE3 qui s'engage transitivement sur toute l'histoire des trames du segment ; c'est donc elle qui rend les octets VÉRIFIABLES — un segment sans tête peut être analysé en termes mais jamais vérifié contre la chaîne qu'il prétend continuer, et un lecteur n'a aucun moyen de distinguer une bonne lecture d'une lecture corrompue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "GTS segment profiled constraint"
+msgstr "Contrainte de segment GTS profilé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: every gmeow:GTSSegment declares its gmeow:gtsProfile. The profile states what the segment is FOR, and a flat projection reads it to decide which of the segment's claims a lossy surface may carry — CSVW, SKOS, OBO Graphs and the rest each drop what they cannot encode. A segment with no declared profile leaves the projector guessing, and a projector that guesses publishes a smaller ontology under the same name rather than refusing."
+msgstr "Une contrainte d'intégrité en monde clos : chaque gmeow:GTSSegment déclare son gmeow:gtsProfile. Le profil énonce à quoi SERT le segment, et une projection à plat le lit pour décider lesquelles des affirmations du segment une surface avec perte peut porter — CSVW, SKOS, OBO Graphs et les autres laissent chacune tomber ce qu'elles ne savent pas encoder. Un segment sans profil déclaré laisse le projecteur deviner, et un projecteur qui devine publie une ontologie plus petite sous le même nom au lieu de refuser."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleArtifactUnreadable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A `gmeow query` run against a path that is not there, or a materialized gmeow.gts truncated mid-write: the reader raises gmeow:BundleArtifactUnreadable rather than answering over zero quads."
+msgstr "Une exécution de `gmeow query` sur un chemin absent, ou un gmeow.gts matérialisé tronqué en cours d'écriture : le lecteur lève gmeow:BundleArtifactUnreadable plutôt que de répondre sur zéro quad."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BundleSourceUnparsable|http://www.w3.org/2004/02/skos/core#example"
+msgid "A slice example with an unterminated triple: the bytes arrive, the Turtle parse fails, and the reader raises gmeow:BundleSourceUnparsable rather than binding the prefix of the file that did parse."
+msgstr "Un exemple de tranche comportant un triplet non terminé : les octets arrivent, l'analyse Turtle échoue, et le lecteur lève gmeow:BundleSourceUnparsable plutôt que de lier le préfixe du fichier qui, lui, s'est analysé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FlatExportRefused|http://www.w3.org/2004/02/skos/core#example"
+msgid "A CSVW export asked to carry an RDF-star annotation it has no column for: the projection raises gmeow:FlatExportRefused, and the declared loss is recorded in the distribution catalog where a consumer can query it."
+msgstr "Un export CSVW à qui l'on demande de porter une annotation RDF-star pour laquelle il n'a aucune colonne : la projection lève gmeow:FlatExportRefused, et la perte déclarée est consignée dans le catalogue de distribution, où un consommateur peut l'interroger."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryIdentifiedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:dictGmeowMemoryHotV1 declares gmeow:dictionaryId \"gmeow-memory-hot-v1\", which is the string a runtime store looks up in the shipped bundle's in-band header map to prime its decode."
+msgstr "gmeow:dictGmeowMemoryHotV1 déclare gmeow:dictionaryId « gmeow-memory-hot-v1 », la chaîne qu'un magasin d'exécution cherche dans la carte d'en-tête en bande du paquet livré pour amorcer son décodage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsDocumentSegmentedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-package-001 is segmented by ex:gts-dist-segment-core and ex:gts-dist-segment-music, asserted from the segment side through gmeow:gtsSegmentOf."
+msgstr "ex:gts-dist-package-001 est segmenté par ex:gts-dist-segment-core et ex:gts-dist-segment-music, affirmé du côté segment via gmeow:gtsSegmentOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentHeadedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-segment-core carries gmeow:gtsHeadId \"blake3:929d046b...\", the content-id committing to its whole frame history."
+msgstr "ex:gts-dist-segment-core porte gmeow:gtsHeadId « blake3:929d046b... », l'identifiant de contenu qui s'engage sur toute son histoire de trames."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GtsSegmentProfiledConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:gts-dist-segment-core declares gmeow:gtsProfile gmeow:gtsProfileDist, which is what tells a flat projector the segment carries distribution content rather than a generic appendix."
+msgstr "ex:gts-dist-segment-core déclare gmeow:gtsProfile gmeow:gtsProfileDist, ce qui indique à un projecteur à plat que le segment porte du contenu de distribution plutôt qu'une annexe générique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/payloadSchemaExamplesArchive|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId \"examples-archive\" — the rep a consumer reads the slices' example Turtle out of."
+msgstr "gmeow:payloadSchemaExamplesArchive gmeow:payloadSchemaId « examples-archive » — le rep dont un consommateur lit le Turtle d'exemple des tranches."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gtsProducerRuntimeStoreSegments|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite \"crates/mcp/src/storage.rs\" ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."
+msgstr "gmeow:gtsProducerRuntimeStoreSegments gmeow:producerCallSite « crates/mcp/src/storage.rs » ; gmeow:producerMedium gmeow:mediumProfileStoreL12 ."
