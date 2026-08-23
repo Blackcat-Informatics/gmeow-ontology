@@ -11,8 +11,8 @@
 //!   (`purrdf::parse_dataset`) and `RdfDataset::union`-ing them into one — the
 //!   same merge `gmeow_validate::store::build_store` did, but in the IR, never an
 //!   oxigraph `Store`;
-//! * queries run through [`NativeSparqlEngine`] (`crates/sparql-eval`), the single
-//!   required impl of the `gmeow-rdf-core` `SparqlEngine` seam;
+//! * queries run through [`NativeSparqlEngine`] (`purrdf::sparql`), the single
+//!   required impl of the `purrdf` `SparqlEngine` seam;
 //! * result terms are dataset-independent [`TermValue`]s, rendered to a canonical
 //!   N-Triples lexical form so a competency question's expected rows compare on the
 //!   SAME string both sides.

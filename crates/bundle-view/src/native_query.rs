@@ -12,8 +12,8 @@
 //!   each Turtle source through the canonical native codec (`purrdf::parse_dataset`)
 //!   and [`RdfDataset::union`]-ing them into one (blanks standardized apart per
 //!   source, the same disjointness `turtle_bytes_into_store_scoped` provided);
-//! * SELECT / CONSTRUCT queries run through [`NativeSparqlEngine`] (`crates/sparql-eval`),
-//!   the single required impl of the `gmeow-rdf-core` `SparqlEngine` seam;
+//! * SELECT / CONSTRUCT queries run through [`NativeSparqlEngine`] (`purrdf::sparql`),
+//!   the single required impl of the `purrdf` `SparqlEngine` seam;
 //! * result terms are dataset-independent [`TermValue`]s, projected by column index.
 
 use std::sync::Arc;

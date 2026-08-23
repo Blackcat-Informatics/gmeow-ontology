@@ -24,7 +24,6 @@ repos:
             LICENSE.*|
             tests/fixtures/coverage/external/.*|
             crates/validate/tests/goldens/crossref/.*|
-            crates/rdf/tests/corpus/w3c/.*|
             crates/lang-bridge/tests/fixtures/.*|
             crates/gmn-cost-matrix/assets/vocab/.*|
             crates/slice-quality/tests/fixtures/goldens/.*|
@@ -99,7 +98,7 @@ repos:
         # under generated/projections/glossary.*) carry the fr/zh terminology
         # renderings verbatim; codespell reads that non-English text as typos, so
         # they are excluded exactly as the authored i18n catalogs are.
-        exclude: '^(crates/rdf/tests/corpus/w3c/|crates/gmn-cost-matrix/assets/vocab/|generated/briefs/|generated/catalog/glossary\.md|generated/projections/glossary\.|vendor/)'
+        exclude: '^(crates/gmn-cost-matrix/assets/vocab/|generated/briefs/|generated/catalog/glossary\.md|generated/projections/glossary\.|vendor/)'
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
@@ -115,7 +114,7 @@ repos:
     rev: v0.17.2
     hooks:
       - id: markdownlint-cli2
-        exclude: '^(ontology-docs/|crates/rdf/tests/corpus/w3c/|vendor/)'
+        exclude: '^(ontology-docs/|vendor/)'
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1

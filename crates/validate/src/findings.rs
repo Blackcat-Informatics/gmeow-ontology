@@ -4,7 +4,7 @@
 //! Bridge from the structured RDF/SHACL diagnostics into the canonical
 //! [`gmeow_errors::Finding`] model.
 //!
-//! `gmeow-validate` depends on both `gmeow-errors` and the `gmeow-rdf` kernel,
+//! `gmeow-validate` depends on both `gmeow-errors` and the `purrdf` kernel,
 //! so the conversion lives here. The Rust orphan rules forbid
 //! `impl From<RdfDiagnostic> for Finding` in this crate (it owns neither type),
 //! hence these are plain named functions.

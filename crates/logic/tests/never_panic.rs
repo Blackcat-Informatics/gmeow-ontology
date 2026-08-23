@@ -8,7 +8,7 @@
 //! `LogicProgram`; `query_ir::parse_query_program` parses the `.logic` query DSL
 //! and documents "Never panics" — this PROVES it. Given arbitrary input both must
 //! return `Ok`/`Err`, never panic. Inputs are bounded so a superlinear parse
-//! cannot become a spurious timeout. See `crates/rdf/tests/never_panic.rs` for
+//! cannot become a spurious timeout. See purrdf's `never_panic` test for
 //! the contract rationale.
 
 use gmeow_logic::query_ir::parse_query_program;
