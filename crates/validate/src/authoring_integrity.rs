@@ -238,7 +238,7 @@ pub fn authoring_integrity_findings(
     findings.extend(slice_source_untagged_findings(project_root)?);
     findings.extend(nonslice_authored_untagged_findings(project_root)?);
     findings.extend(seam_registry_drift_findings(project_root, slices_dir)?);
-    findings.extend(retired_authoring_prefix_findings(slices_dir)?);
+    findings.extend(retired_authoring_prefix_findings(project_root, slices_dir)?);
     Ok(findings)
 }
 
@@ -1468,7 +1468,10 @@ fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
 /// derives, so a hand-authored `owl:` token in a slice module is a forbidden
 /// second source of truth. Discovered by MANIFEST (a `module.ttl` is scanned only
 /// when present), mirroring the R3c/R9 slice-source lints.
-pub fn retired_authoring_prefix_findings(slices_dir: &Path) -> Result<Vec<Finding>> {
+pub fn retired_authoring_prefix_findings(
+    project_root: &Path,
+    slices_dir: &Path,
+) -> Result<Vec<Finding>> {
     let mut findings = Vec::new();
     for manifest in all_manifests(slices_dir)? {
         let Some(dir) = manifest.parent() else {
@@ -1477,9 +1480,11 @@ pub fn retired_authoring_prefix_findings(slices_dir: &Path) -> Result<Vec<Findin
         let module = dir.join("module.ttl");
         if module.is_file() {
             let text = std::fs::read_to_string(&module).map_err(|e| io_err(&module, &e))?;
+            // Label repo-root-relative (e.g. `slices/core/x/module.ttl`), matching every
+            // other gate here and the fixtures — never slices_dir-relative or absolute.
             findings.extend(detect_retired_authoring_prefixes(
                 &text,
-                &rel(&module, slices_dir),
+                &rel(&module, project_root),
             ));
         }
     }
@@ -2287,6 +2292,27 @@ mod tests {
         assert!(
             detect_retired_authoring_prefixes(text, "slices/core/x/module.ttl").is_empty(),
             "clean logic: authoring with a full-IRI owl# target must not fire"
+        );
+    }
+
+    #[test]
+    fn retired_authoring_prefix_findings_label_repo_relative() {
+        // Thread r3818278198: the production scan must label findings repo-root-relative
+        // (`slices/core/x/module.ttl`), not slices_dir-relative (`core/x/…`) or absolute.
+        let tmp = tempfile::tempdir().expect("temp project root");
+        let root = tmp.path();
+        let slice_dir = root.join("slices").join("core").join("x");
+        std::fs::create_dir_all(&slice_dir).unwrap();
+        // manifest.ttl is the discovery surface all_manifests walks; module.ttl carries the owl:.
+        std::fs::write(slice_dir.join("manifest.ttl"), "").unwrap();
+        std::fs::write(slice_dir.join("module.ttl"), "ex:Thing a owl:Class .\n").unwrap();
+        let findings =
+            retired_authoring_prefix_findings(root, &root.join("slices")).expect("scan succeeds");
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.starts_with("slices/core/x/module.ttl:")),
+            "finding must be labelled repo-relative, got: {findings:?}"
         );
     }
 
