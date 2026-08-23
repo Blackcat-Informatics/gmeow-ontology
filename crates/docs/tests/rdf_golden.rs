@@ -249,7 +249,7 @@ fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
 /// N-Quads validity cross-check for the hand-built `to_gmeow_rdf` projection.
 ///
 /// `to_gmeow_rdf` assembles its N-Quads document by hand (`format!`/`push_str`),
-/// NOT through any gmeow-rdf serializer — so re-parsing it through the
+/// NOT through any purrdf serializer — so re-parsing it through the
 /// *independent* native N-Quads reader ([`purrdf::parse_dataset`]) proves the
 /// projection emits valid, round-trippable N-Quads without testing the codec
 /// against itself. (docs is oxigraph-free; this carve-out moved from

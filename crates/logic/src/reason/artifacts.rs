@@ -16,7 +16,7 @@
 //!
 //! These builders are the canonical emitters for the reasoning artifacts (the
 //! Python `build_*_ttl` emitters in `gmeow_tools.reason` they replaced were
-//! retired). They serialize via the gmeow-rdf [`purrdf::turtle`] emitter
+//! retired). They serialize via the [`purrdf::turtle`] emitter
 //! (clean full-IRI RDF 1.2), so its anonymous reifiers and `<<( … )>>` triple-term
 //! objects match the committed artifacts and the drift gate (RDFC-1.0 isomorphism)
 //! stays green.
@@ -637,7 +637,7 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
 }
 
 /// Escape a string for embedding in a double-quoted Turtle literal (mirrors the
-/// gmeow-rdf emitter's literal escaping; inlined here for ledger string literals
+/// purrdf emitter's literal escaping; inlined here for ledger string literals
 /// that are not full [`purrdf::RdfLiteral`] terms).
 pub(crate) fn escape_literal(value: &str) -> String {
     value

@@ -35,7 +35,7 @@ gmeow-logic = { path = "../logic" }
 # gmeow-logic; the runtime-side diagnostics_report still comes from gmeow-logic.
 gmeow-logic-compile = { path = "../logic-compile" }
 # Native (oxigraph-free) Turtle parse for the .ttl linter: the `gts`
-# feature pulls the native text codecs; `gmeow-rdf-core` carries the RdfDiagnostic
+# feature pulls the native text codecs; `purrdf` carries the RdfDiagnostic
 # location type the analyzer reports positions from.
 purrdf.workspace = true
 # The substrate SHACL validator: the `.ttl` analyzer routes a parsed data graph

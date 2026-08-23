@@ -7,7 +7,7 @@
 //! wasm-clean `gmeow-logic-compile` correspondence lowerings, not by the historical
 //! oxigraph-coupled `gmeow-slice` emitters. This module is the file-reading edge: it
 //! natively parses the DSL + ontology + metadata sources into `RdfDataset`s (via the
-//! oxigraph-free `gmeow-rdf` codecs) and drives the four lowerings. EDOAL + SPARQL
+//! oxigraph-free `purrdf` codecs) and drives the four lowerings. EDOAL + SPARQL
 //! lower from one shared get-leg model, so the historical `spec-drift` invariant is
 //! gone by construction.
 

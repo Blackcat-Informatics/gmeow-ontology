@@ -5,7 +5,7 @@
 //!
 //! These provide the RDF term/graph idioms the compiler relies on — `str(node)`,
 //! `graph.value(s, p)`, `graph.objects(s, p)`, `graph.subjects(p, o)` — over the
-//! oxigraph-free [`RdfDataset`] (the wasm-clean `gmeow-rdf` `gts` surface
+//! oxigraph-free [`RdfDataset`] (the wasm-clean `purrdf` `gts` surface
 //! ), so the frontend, adapter, and projections share one definition of node
 //! stringification (the golden-pinned surface) and the whole compiler builds for
 //! `wasm32-unknown-unknown` — no oxigraph Store, no RocksDB.

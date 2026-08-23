@@ -4,7 +4,7 @@
 //! `FoundationImporter` — one corpus → one RDF dataset + one budget report.
 //!
 //! A port of the Python `FoundationImporter`. It builds the dataset over the
-//! `gmeow-rdf` IR (`RdfDatasetBuilder`) rather than rdflib, and records the
+//! `purrdf` IR (`RdfDatasetBuilder`) rather than rdflib, and records the
 //! flat-vs-reified split in a [`BudgetReport`]. The IRI/term shapes follow the
 //! Python so the projections (which navigate the graph) are byte-deterministic
 //! against the committed goldens.
