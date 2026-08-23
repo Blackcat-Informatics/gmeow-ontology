@@ -22,6 +22,27 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
+const EMPTY_DEFICIENCY_LEDGER: &str = concat!(
+    "# DEFICIENCY EMERGENCY LEDGER\n",
+    "\n",
+    "ALL ITEMS BELOW THE MARKER ARE 100% UNAUTHORIZED, CRITICALLY UNDONE WORK,\n",
+    "AND 100% BUGS. EACH ENTRY MEANS THE ISSUE OR PULL REQUEST THAT PRODUCED IT\n",
+    "FAILED.\n",
+    "\n",
+    "This is the log of last resort for work misrepresented to pass PR gates, work\n",
+    "misrepresented by an agent, or a discovery that an agent was fundamentally\n",
+    "defective. An entry is literally a cry for help from a failing agent. It is\n",
+    "never an accepted risk, authorized descope, backlog, or success with caveats.\n",
+    "\n",
+    "The normal state is this notice and marker with no entries below it. Any entry\n",
+    "blocks completion, PR creation, and merge of the work that produced it until\n",
+    "the defect is verified and has a durable, visible remediation owner. Removing\n",
+    "the emergency entry does not resolve the bug or make the failed work successful.\n",
+    "\n",
+    "--- ENTRIES BELOW THIS LINE ---\n",
+);
+const DEFICIENCY_ENTRY_MARKER: &str = "--- ENTRIES BELOW THIS LINE ---";
+
 // The ELK/HermiT/Docker OWL-reasoner lane AND the in-process `purrdf::entail`
 // differential reasoning oracle (both since retired) have been DELETED
 // entirely — the native `logic:` reasoner is the single reasoning authority, so
@@ -85,6 +106,12 @@ impl RepoStaticReport {
 
 pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     let mut report = RepoStaticReport::default();
+    // Synthetic unit-test repositories intentionally omit repository-wide policy files. A real
+    // checkout (including a linked worktree, whose `.git` is a file) must carry the canonical
+    // notice-only emergency ledger; a fixture that explicitly creates the ledger is checked too.
+    if root.join(".git").exists() || root.join(".deficiencies").exists() {
+        check_deficiency_emergency_ledger(root, &mut report);
+    }
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
@@ -108,6 +135,57 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_wasm_bindgen_pin_parity(root, &mut report);
     check_gts_emit_chokepoint(root, &mut report);
     report
+}
+
+/// Fail closed unless `.deficiencies` is exactly the canonical notice and marker.
+///
+/// The ledger is an emergency signal, not a risk register. Any entry is proof that its
+/// originating work failed, so the repository gate must red before another PR can present that
+/// state as complete. Exact notice bytes also prevent moving an entry above the marker or quietly
+/// weakening the doctrine while leaving the marker-shaped check green.
+fn check_deficiency_emergency_ledger(root: &Path, report: &mut RepoStaticReport) {
+    let path = root.join(".deficiencies");
+    let text = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(err) => {
+            report.error(format!(
+                ".deficiencies: the canonical emergency ledger is missing or unreadable: {err}"
+            ));
+            return;
+        }
+    };
+    if text == EMPTY_DEFICIENCY_LEDGER {
+        return;
+    }
+
+    let marker_count = text
+        .lines()
+        .filter(|line| *line == DEFICIENCY_ENTRY_MARKER)
+        .count();
+    if marker_count != 1 {
+        report.error(format!(
+            ".deficiencies: expected exactly one canonical entry marker, found {marker_count}"
+        ));
+        return;
+    }
+
+    let (_, after_marker) = text
+        .split_once(DEFICIENCY_ENTRY_MARKER)
+        .expect("the counted marker is present");
+    if after_marker.lines().any(|line| !line.trim().is_empty()) {
+        report.error(
+            ".deficiencies contains unauthorized critically undone work below its marker; every \
+             entry is a bug and blocks completion, PR creation, and merge"
+                .to_owned(),
+        );
+        return;
+    }
+
+    report.error(
+        ".deficiencies must equal the canonical notice-only emergency ledger byte-for-byte; its \
+         doctrine cannot be weakened and entries cannot be moved above the marker"
+            .to_owned(),
+    );
 }
 
 pub fn to_diagnostics_report(report: &RepoStaticReport) -> Report {
@@ -3038,8 +3116,9 @@ const GMEOW_GTS_PRODUCER_DOORS: &[&str] = &[
 /// three branches is a total function over producers, so there is no producer the
 /// ontology may decline to classify. The constant exists (rather than a bare
 /// `is_empty()` assertion) so the failure message can name the idiom, and so the one
-/// legitimate way to add an entry — a human-signed-off descope recorded in
-/// `.deficiencies` — is visible in the same place the ratchet is read.
+/// permissible value is visible where the ratchet is read. There is no ledger-based
+/// exception: an entry in `.deficiencies` is unauthorized failed work and cannot create
+/// headroom or approve a producer without a declared medium.
 const PINNED_GTS_PRODUCERS_WITHOUT_DECLARED_MEDIUM: &[&str] = &[];
 
 /// The lower bound on the live producer census.
@@ -4043,6 +4122,68 @@ fn collect_rust_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<P
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn deficiency_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_deficiency_emergency_ledger(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn canonical_notice_only_deficiency_ledger_passes() {
+        let temp = tempfile::tempdir().unwrap();
+        write(&temp.path().join(".deficiencies"), EMPTY_DEFICIENCY_LEDGER);
+        assert!(deficiency_errors(temp.path()).is_empty());
+    }
+
+    #[test]
+    fn any_deficiency_entry_fails_the_repository_gate() {
+        let temp = tempfile::tempdir().unwrap();
+        write(
+            &temp.path().join(".deficiencies"),
+            &format!(
+                "{EMPTY_DEFICIENCY_LEDGER}\n## failed work\nThis must never pass as accepted risk.\n"
+            ),
+        );
+        let errors = deficiency_errors(temp.path());
+        assert_eq!(errors.len(), 1, "{errors:?}");
+        assert!(errors[0].contains("unauthorized critically undone work"));
+        assert!(errors[0].contains("blocks completion"));
+    }
+
+    #[test]
+    fn a_weakened_notice_or_moved_entry_fails_the_repository_gate() {
+        let temp = tempfile::tempdir().unwrap();
+        write(
+            &temp.path().join(".deficiencies"),
+            &EMPTY_DEFICIENCY_LEDGER.replace("100% UNAUTHORIZED", "sometimes unauthorized"),
+        );
+        let errors = deficiency_errors(temp.path());
+        assert_eq!(errors.len(), 1, "{errors:?}");
+        assert!(errors[0].contains("byte-for-byte"));
+        assert!(errors[0].contains("cannot be moved above the marker"));
+    }
+
+    #[test]
+    fn a_missing_or_duplicate_deficiency_marker_fails_the_repository_gate() {
+        let missing = tempfile::tempdir().unwrap();
+        write(
+            &missing.path().join(".deficiencies"),
+            "# DEFICIENCY EMERGENCY LEDGER\n",
+        );
+        let missing_errors = deficiency_errors(missing.path());
+        assert_eq!(missing_errors.len(), 1, "{missing_errors:?}");
+        assert!(missing_errors[0].contains("found 0"));
+
+        let duplicate = tempfile::tempdir().unwrap();
+        write(
+            &duplicate.path().join(".deficiencies"),
+            &format!("{EMPTY_DEFICIENCY_LEDGER}{DEFICIENCY_ENTRY_MARKER}\n"),
+        );
+        let duplicate_errors = deficiency_errors(duplicate.path());
+        assert_eq!(duplicate_errors.len(), 1, "{duplicate_errors:?}");
+        assert!(duplicate_errors[0].contains("found 2"));
+    }
 
     /// Build a minimal tree carrying just the wasm-bindgen pin surface the parity guard
     /// reads: the workspace pin, one `*-wasm` member, and the CI CLI install line.

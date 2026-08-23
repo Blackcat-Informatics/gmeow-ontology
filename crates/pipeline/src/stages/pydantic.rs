@@ -25,10 +25,12 @@
 //!
 //! This REPLACES gmeow's former hand-rolled slice-routed renderer, which
 //! emitted one module per owning slice, per-class docs-digest linkage
-//! (`gmeow:definitionDigest`), and a generated `README.md`. purrdf's emitter
-//! produces a flat single-module package with none of that — an explicitly
-//! user-approved capability regression tracked in `.deficiencies` with an
-//! upstream purrdf feature request as the forward path.
+//! (`gmeow:definitionDigest`), and a generated `README.md`. PurRDF now supports
+//! caller-owned routed topology and class metadata, but this GMEOW stage still
+//! selects its flat compatibility configuration and supplies neither. The
+//! missing per-slice and ontology-linkage surface is live, durably tracked
+//! developer-surface work, not an authorized regression; `.deficiencies`
+//! cannot approve or defer it.
 //!
 //! # Wheel version stamping (kept as gmeow orchestration)
 //!
