@@ -1,10 +1,10 @@
 ---
 name: deficiency-cleanup
 description: >-
-  Drains the `.deficiencies` emergency ledger into completed, tracked remediation:
+  Drains the `.deficiencies` emergency ledger into verified, durably owned remediation:
   verify every entry, consolidate duplicates, file or update the owning GitHub work,
-  finish the defects, and restore the notice-only normal state. Use whenever any text
-  appears below the ledger marker or when asked to clean up deficiencies.
+  record the remediation evidence, and restore the notice-only normal state. Use whenever
+  any text appears below the ledger marker or when asked to clean up deficiencies.
 ---
 
 # Deficiency Cleanup
@@ -28,7 +28,7 @@ is itself a malformed ledger and blocks the workflow. With one marker, any non-b
 after it is an entry:
 
 ```bash
-test "$(grep -cxF -- '--- ENTRIES BELOW THIS LINE ---' .deficiencies)" -eq 1
+test "$(grep -cxF -- '--- ENTRIES BELOW THIS LINE ---' .deficiencies)" -eq 1 &&
 ! awk '/^--- ENTRIES BELOW THIS LINE ---$/ { seen=1; next }
        seen && NF { found=1 }
        END { exit found ? 0 : 1 }' .deficiencies
