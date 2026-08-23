@@ -2681,6 +2681,17 @@ gmeow:PipelineStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:stageObligation ; logic:allValuesFrom [ logic:oneOf ( gmeow:obligationMandatory gmeow:obligationDegradable ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:allValuesFrom [ logic:oneOf ( gmeow:stabilityStablePrefix gmeow:stabilityPerTurnVariance ) ] ] .
 
+# Functionality (at-most-one): these are single-outcome axes — a gmeow:StageExecution ends
+# in ONE gmeow:StageDisposition, and a gmeow:PipelineStage carries ONE gmeow:StageObligation
+# and ONE gmeow:StageStability; two values on any of them are incoherent. Enforce the
+# max-qualified bound (projected to sh:maxCount 1) alongside the logic:oneOf value closure
+# above, mirroring gmeow:flowReason's qualified-cardinality bound.
+gmeow:StageExecution logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageDisposition ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageDisposition ] .
+gmeow:PipelineStage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageObligation ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageObligation ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageStability ] .
+
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 gmeow:PipelineStage logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:stageImpl ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .

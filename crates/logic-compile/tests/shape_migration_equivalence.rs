@@ -563,6 +563,38 @@ fn envelope_named_class_fields_reject_a_blank_node_value() {
 
 const RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
 
+/// The pipeline single-outcome axes are FUNCTIONAL: a gmeow:StageExecution ends in at most
+/// one gmeow:StageDisposition, and a gmeow:PipelineStage carries at most one
+/// gmeow:StageObligation and one gmeow:StageStability. The max-qualified restrictions derive
+/// the sh:qualifiedMaxCount 1 bound over the value class, alongside the sh:in value closure.
+#[test]
+fn pipeline_stage_outcome_axes_are_functional() {
+    let shapes = derived("slices/core/pipeline/module.ttl");
+    let exec = class_shape(&shapes, &g("StageExecution"));
+    assert_qualified(
+        exec,
+        &g("stageDisposition"),
+        &g("StageDisposition"),
+        None,
+        Some(1),
+    );
+    let stage = class_shape(&shapes, &g("PipelineStage"));
+    assert_qualified(
+        stage,
+        &g("stageObligation"),
+        &g("StageObligation"),
+        None,
+        Some(1),
+    );
+    assert_qualified(
+        stage,
+        &g("stageStability"),
+        &g("StageStability"),
+        None,
+        Some(1),
+    );
+}
+
 /// A minimal RightsStatement governing `ex:asset`. Only gmeow:statementAbout is set; every
 /// other RightsStatement property is optional, so a well-typed target validates clean and the
 /// only obligation under test is the closed-world gmeow:Entity range. `target_type` is the
