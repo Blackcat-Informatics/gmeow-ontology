@@ -422,8 +422,14 @@ use session_common::*;
 /// the slice `logic:fragmentCompletenessBound`/`logic:expressivenessBoundary` mirrors now carry (the
 /// authored surface reached literal zero `owl:` tokens). `native_contract_hash()` `include_str!`s
 /// `reason/refute.rs`, so its byte content moves the descriptor; no reasoning verdict changes.
+/// Re-blessed once more when the reasoner's fixed calculus-vocabulary table was exposed through
+/// a public `reason::calculus_vocabulary()` accessor (#1682 review remediation r3818278202), so
+/// the grounding cross-check reads the engine's own table instead of a hand-copied 49-row mirror.
+/// `native_contract_hash()` `include_str!`s `reason/mod.rs`, so adding the accessor moves the
+/// descriptor by byte content alone; the `CALCULUS_VOCABULARY` data, every calculus lowering, and
+/// all reasoning verdicts are unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "3b728aa526ca6e4296fb492c90f9186e4cfee05a90bbe06c950f83b020a6e9d9";
+    "489f3aaccaf1556ea70e6c3b6ffbb05d5b4504388f6ea78a8f987250585e0a0d";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -626,8 +632,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// canonical LOWER-camel `logic:` spelling — `logic:transitiveProperty` — onto the upper-camel
 /// `owl:TransitiveProperty` the RL characteristic rules match, per
 /// `adapter::OWL_CHARACTERISTIC_TO_LOGIC`.)
+/// Re-blessed once more for the public `reason::calculus_vocabulary()` accessor (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded identity
+/// axes and it `include_str!`s `reason/mod.rs`, so this fixed-input session identity moves with the
+/// added accessor even though the fixed edge-only input's reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "8fbfa00c5a49fb621c115ba9b3cb5036e2f42531015723a864e5e92e28284165";
+    "c3e3208cb9bde8c0a7f0984133890c95a74a232ae6e54079048e4a8692a29b21";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
