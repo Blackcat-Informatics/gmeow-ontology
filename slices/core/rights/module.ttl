@@ -305,7 +305,7 @@ gmeow:RightsStatement
         [
             a logic:Restriction ;
             logic:onProperty gmeow:statementAbout ;
-            logic:someValuesFrom gmeow:Entity ;
+            logic:allValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A reified, machine-readable statement of the rights situation of an entity — an observation in the universal claim stack (observation-spine bridge). Who may do what with it, under what licence, with what copyright, attributed to whom, over what term. The canonical superset of an ODRL Policy / Set: it bears gmeow:Permission, gmeow:Prohibition and gmeow:Duty rules and points at the asset it governs via gmeow:statementAbout (the observedFeature). Promote a flat gmeow:hasLicense / gmeow:hasCopyright to a RightsStatement only when the deontic rules are needed."@x-gmeow-english ;
     skos:example "ex:photoRights a gmeow:RightsStatement ; gmeow:statementAbout ex:photo ; gmeow:hasPermission ex:mayReproduce ; gmeow:hasDuty ex:mustAttribute ."@x-gmeow-english ;
@@ -2086,6 +2086,15 @@ gmeow:Trademark logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:
 # global OWL FunctionalProperty declaration (folded into the class comparison whenever
 # the legacy shape's own max matches it — no Rule-scoped max restriction needed).
 [ a logic:ClosureEntry ; logic:onClass gmeow:Rule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/ruleAction" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# gmeow:statementAbout's range is a CLOSED-WORLD universal: every value a RightsStatement
+# governs is a gmeow:Entity. That is now authored explicitly — the logic:allValuesFrom
+# gmeow:Entity restriction above is the universal range (it replaced a logic:someValuesFrom
+# existential that misstated the intent as ∃, not the ∀ range) — and this class-scoped
+# ClosureEntry declares the closed-world commitment as a first-class, auditable opt-in under
+# Principle 17, mirroring gmeow:ruleAction's Pattern-3 closure above. Presence/functionality
+# ride the exact-one (min1/max1, onClass logic:Thing) restrictions declared elsewhere.
+[ a logic:ClosureEntry ; logic:onClass gmeow:RightsStatement ; logic:closureKey "https://blackcatinformatics.ca/gmeow/statementAbout" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # =========================================================================== #
 # Procedural constraint authored as a raw logic:Formula integrity tree —        #

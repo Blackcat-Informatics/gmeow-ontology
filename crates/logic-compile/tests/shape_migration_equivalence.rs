@@ -549,3 +549,68 @@ fn envelope_named_class_fields_reject_a_blank_node_value() {
          {flagged:?}"
     );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// Part C — gmeow:RightsStatement statementAbout closed-world range (Principle 17)
+//
+// gmeow:statementAbout carries a CLOSED-WORLD universal range: every asset a RightsStatement
+// governs is a gmeow:Entity, exactly one, an IRI/blank node. That range is authored as the
+// explicit Principle-17 idiom — logic:allValuesFrom gmeow:Entity plus a class-scoped
+// logic:ClosureEntry — which replaced a logic:someValuesFrom existential that misstated the
+// intent (∃ rather than the ∀ range). These tests pin the derived obligation and prove it is
+// ENFORCED, so a future edit that drops the restriction or the closure reds here.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+const RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
+
+/// A minimal RightsStatement governing `ex:asset`. Only gmeow:statementAbout is set; every
+/// other RightsStatement property is optional, so a well-typed target validates clean and the
+/// only obligation under test is the closed-world gmeow:Entity range. `target_type` is the
+/// asset's `rdf:type` local, or `None` to leave it untyped (a non-Entity value).
+fn rights_statement_fixture(target_type: Option<&str>) -> String {
+    let decl = target_type
+        .map(|t| format!("ex:asset a gmeow:{t} .\n"))
+        .unwrap_or_default();
+    format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix ex: <http://example.org/rights/> .\n\
+         {decl}\
+         ex:governingStatement a gmeow:RightsStatement ;\n\
+             gmeow:statementAbout ex:asset .\n"
+    )
+}
+
+/// The derived RightsStatement shape carries the closed-world range obligation on
+/// gmeow:statementAbout: universal sh:class gmeow:Entity plus bare exact-one counts.
+#[test]
+fn rights_statement_about_derives_closed_world_entity_range() {
+    let shapes = derived(RIGHTS_MODULE);
+    let s = class_shape(&shapes, &g("RightsStatement"));
+    let path = g("statementAbout");
+    // The universal value typing — the closed-world range (logic:allValuesFrom + ClosureEntry).
+    assert_class(s, &path, &g("Entity"));
+    // Presence + functionality: exactly one governed asset (the onClass logic:Thing exact-one).
+    assert_min_count(s, &path, 1);
+    assert_max_count(s, &path, 1);
+}
+
+/// The range is ENFORCED, not merely declared: a gmeow:Entity target validates clean while a
+/// non-Entity (untyped) target is rejected by the closed-world sh:class gmeow:Entity.
+#[test]
+fn rights_statement_about_rejects_a_non_entity_target() {
+    let shapes = derived(RIGHTS_MODULE);
+    let s = class_shape(&shapes, &g("RightsStatement"));
+
+    let good = flag_with_shape(s, &rights_statement_fixture(Some("Entity")));
+    assert!(
+        good.is_empty(),
+        "a RightsStatement governing a gmeow:Entity must validate clean; flagged: {good:?}"
+    );
+
+    let bad = flag_with_shape(s, &rights_statement_fixture(None));
+    assert!(
+        bad.iter().any(|f| f.contains("governingStatement")),
+        "a RightsStatement whose gmeow:statementAbout value is not a gmeow:Entity must be \
+         REJECTED by the closed-world range; flagged: {bad:?}"
+    );
+}
