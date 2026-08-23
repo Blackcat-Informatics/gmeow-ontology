@@ -571,6 +571,15 @@ const RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
 fn pipeline_stage_outcome_axes_are_functional() {
     let shapes = derived("slices/core/pipeline/module.ttl");
     let exec = class_shape(&shapes, &g("StageExecution"));
+    // stageDisposition is exactly-one (a run ends in one disposition; none is incomplete) —
+    // the min and max ride separate qualified components, so assert each.
+    assert_qualified(
+        exec,
+        &g("stageDisposition"),
+        &g("StageDisposition"),
+        Some(1),
+        None,
+    );
     assert_qualified(
         exec,
         &g("stageDisposition"),

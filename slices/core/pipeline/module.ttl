@@ -2681,12 +2681,14 @@ gmeow:PipelineStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:stageObligation ; logic:allValuesFrom [ logic:oneOf ( gmeow:obligationMandatory gmeow:obligationDegradable ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:allValuesFrom [ logic:oneOf ( gmeow:stabilityStablePrefix gmeow:stabilityPerTurnVariance ) ] ] .
 
-# Functionality (at-most-one): these are single-outcome axes — a gmeow:StageExecution ends
-# in ONE gmeow:StageDisposition, and a gmeow:PipelineStage carries ONE gmeow:StageObligation
-# and ONE gmeow:StageStability; two values on any of them are incoherent. Enforce the
-# max-qualified bound (projected to sh:maxCount 1) alongside the logic:oneOf value closure
-# above, mirroring gmeow:flowReason's qualified-cardinality bound.
+# gmeow:stageDisposition is EXACTLY ONE on a gmeow:StageExecution: a run ends in one
+# gmeow:StageDisposition, and a run with no disposition is an incomplete execution record —
+# so it carries both the min- and max-qualified bound, mirroring gmeow:flowReason.
+# gmeow:stageObligation and gmeow:stageStability are single-VALUED on a gmeow:PipelineStage
+# (at most one — two values are incoherent); their max-qualified bound is enforced here
+# alongside the logic:oneOf value closure above.
 gmeow:StageExecution logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageDisposition ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageDisposition ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:stageDisposition ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageDisposition ] .
 gmeow:PipelineStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:stageObligation ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageObligation ] ,
