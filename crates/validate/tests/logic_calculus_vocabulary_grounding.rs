@@ -14,19 +14,16 @@
 //! performs. This test parses the shipped laws and asserts the Rust table is a
 //! subset of them, so the drift is a red test rather than a silent divergence.
 //!
-//! The expected pairs are hardcoded here to mirror `CALCULUS_VOCABULARY` (which
-//! is a private `static` in a different crate); the pairs the `gmeow-ns` crate
-//! also anchors are cross-checked against those constants so the ns constants,
-//! the reasoner table, and the shipped laws are pinned to one another.
+//! The expected pairs are read DIRECTLY from the reasoner via
+//! [`gmeow_logic::reason::calculus_vocabulary`] (the table was a private `static`; it is
+//! now exposed) rather than re-typed here, so the two can never drift; the pairs the
+//! `gmeow-ns` crate also anchors are cross-checked against those constants so the ns
+//! constants, the reasoner table, and the shipped laws are pinned to one another.
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use purrdf::slice::rdf_query::Dataset;
-
-const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
-const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 
 const GROUNDING_CORRESPONDENCE: &str =
     "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
@@ -43,16 +40,6 @@ fn repo_root() -> PathBuf {
 
 fn logic_module() -> PathBuf {
     repo_root().join("slices/grounding/logic/module.ttl")
-}
-
-/// `logic:<local>` → its full IRI.
-fn logic(local: &str) -> String {
-    format!("{LOGIC_NS}{local}")
-}
-
-/// `owl:<local>` → its full IRI.
-fn owl(local: &str) -> String {
-    format!("{OWL_NS}{local}")
 }
 
 /// The (source, target) endpoint pairs of every shipped `logic:GroundingCorrespondence`.
@@ -91,78 +78,16 @@ fn shipped_grounding_pairs() -> BTreeSet<(String, String)> {
     pairs
 }
 
-/// The reasoner's `CALCULUS_VOCABULARY` table, mirrored as (canonical `logic:`
-/// IRI, projected W3C OWL/RDFS IRI). Kept in lockstep with
-/// `crates/logic/src/reason/mod.rs`.
+/// The reasoner's `CALCULUS_VOCABULARY`, consumed DIRECTLY from the engine via
+/// [`gmeow_logic::reason::calculus_vocabulary`] rather than re-typed here — each
+/// `(canonical logic: IRI, projected W3C OWL/RDFS IRI)` pair as owned `String`s. A
+/// hand-copied mirror could drift from the engine table silently; reading the exposed
+/// table makes any drift a compile/link fact, not a stale duplicate.
 fn expected_calculus_pairs() -> BTreeSet<(String, String)> {
-    let mut out: BTreeSet<(String, String)> = BTreeSet::new();
-
-    // Subsumption anchors — the two RDFS-projected edges.
-    out.insert((logic("subClassOf"), format!("{RDFS_NS}subClassOf")));
-    out.insert((logic("subPropertyOf"), format!("{RDFS_NS}subPropertyOf")));
-
-    // Class-expression body + typing markers + class/property axioms whose
-    // canonical local name equals the OWL projection's local name.
-    for local in [
-        "equivalentClass",
-        "Restriction",
-        "onProperty",
-        "someValuesFrom",
-        "allValuesFrom",
-        "hasValue",
-        "onClass",
-        "onDataRange",
-        "onDatatype",
-        "withRestrictions",
-        "cardinality",
-        "minCardinality",
-        "maxCardinality",
-        "qualifiedCardinality",
-        "minQualifiedCardinality",
-        "maxQualifiedCardinality",
-        "Class",
-        "ObjectProperty",
-        "DatatypeProperty",
-        "NamedIndividual",
-        "AnnotationProperty",
-        "Ontology",
-        "Thing",
-        "Nothing",
-        "disjointWith",
-        "inverseOf",
-        "unionOf",
-        "oneOf",
-        "intersectionOf",
-        "disjointUnionOf",
-        "sameAs",
-        "differentFrom",
-        "equivalentProperty",
-        "propertyChainAxiom",
-        "propertyDisjointWith",
-        "hasKey",
-        "members",
-        "hasSelf",
-        "AllDisjointClasses",
-        "AllDisjointProperties",
-    ] {
-        out.insert((logic(local), owl(local)));
-    }
-
-    // Property-characteristic markers — construct-aware lower-camel `logic:` →
-    // upper-camel `owl:` (the `adapter::OWL_CHARACTERISTIC_TO_LOGIC` map).
-    for (logic_local, owl_local) in [
-        ("functionalProperty", "FunctionalProperty"),
-        ("inverseFunctionalProperty", "InverseFunctionalProperty"),
-        ("transitiveProperty", "TransitiveProperty"),
-        ("symmetricProperty", "SymmetricProperty"),
-        ("asymmetricProperty", "AsymmetricProperty"),
-        ("reflexiveProperty", "ReflexiveProperty"),
-        ("irreflexiveProperty", "IrreflexiveProperty"),
-    ] {
-        out.insert((logic(logic_local), owl(owl_local)));
-    }
-
-    out
+    gmeow_logic::reason::calculus_vocabulary()
+        .iter()
+        .map(|(canonical, projected)| ((*canonical).to_owned(), (*projected).to_owned()))
+        .collect()
 }
 
 /// Every reasoner-lowered construct is backed by a shipped grounding law.

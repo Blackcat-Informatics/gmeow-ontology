@@ -1789,6 +1789,15 @@ static CALCULUS_VOCABULARY: [(&str, &str); 49] = {
     ]
 };
 
+/// The reasoner's fixed-calculus lowering table: each `(canonical logic: IRI, projected
+/// W3C OWL/RDFS IRI)` pair the EDB boundary normalizes (Principle 17). Exposed so the
+/// grounding-law cross-check (`crates/validate`) can pin the shipped
+/// `logic:GroundingCorrespondence` corpus against THIS table directly, rather than a
+/// hand-retyped 49-row mirror that can silently drift from it.
+pub fn calculus_vocabulary() -> &'static [(&'static str, &'static str)] {
+    &CALCULUS_VOCABULARY
+}
+
 /// The fixed-calculus spelling of a canonical `logic:` axiom term, or `None` when `iri`
 /// is not one — the single lookup behind both lowerings below.
 fn calculus_projection(iri: &str) -> Option<&'static str> {
