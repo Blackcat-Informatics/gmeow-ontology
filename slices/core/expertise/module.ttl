@@ -87,7 +87,7 @@ gmeow:credentialFor
     rdfs:domain gmeow:Credential ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "credential for"@x-gmeow-english ;
-    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. The union range (Skill|Occupation) is an EL-safe existential restriction on gmeow:Credential (OWL someValuesFrom an anonymous OWL unionOf class), never a direct rdfs:range union, which would violate OWL 2 RL/EL; the pipeline derives the projected sh:or shape from it (Principle 17)."@x-gmeow-english ;
+    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. The union range (Skill|Occupation) is an EL-safe existential restriction on gmeow:Credential (authored as a logic:someValuesFrom existential over an anonymous logic:unionOf class, projected to the matching OWL restriction), never a direct rdfs:range union, which would violate OWL 2 RL/EL; the pipeline derives the projected sh:or shape from it (Principle 17)."@x-gmeow-english ;
     skos:example "ex:rnLicense gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the issuer (gmeow:credentialIssuer) or the holder (gmeow:holdsCredential); and avoid asserting a direct rdfs:range union — the Skill|Occupation union is carried by the existential restriction on gmeow:Credential instead."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;

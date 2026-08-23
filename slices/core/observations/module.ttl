@@ -1029,7 +1029,8 @@ gmeow:StandpointClaim logic:subClassOf
 
 # gmeow:CoreObservationMethodShape multi-target exactly-one: the plain sh:maxCount 1 the retired
 # shape carried on gmeow:observationMethod (the max-qualified onClass gmeow:ObservationMethod
-# antecedents project a qualified count; OWL onClass OWL Thing degrades to the plain sh:maxCount 1
+# antecedents project a qualified count; a max-qualified count whose onClass is the universal
+# logic:Thing degrades to the plain sh:maxCount 1
 # the oracle compares). One per concrete method-bearing observation kind the shape targeted.
 gmeow:Measurement logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
