@@ -54,7 +54,9 @@ use purrdf::provenance::DatasetProvenance;
 
 use crate::bundle::bundle_from_artifacts_over;
 use crate::medium::corpus::{self, CorpusSources};
-use crate::medium::envelope::{DigestStratum, FrameFacts, MediumEnvelope, seal};
+use crate::medium::envelope::{
+    DigestStratum, FrameDigestFacts, FrameFacts, MediumEnvelope, seal, seal_digests,
+};
 use crate::medium::rdf::{DictionaryRealization, check_dictionary_retention, realize};
 use crate::medium::registry::{DictionaryStrategy, MediumRegistry, MediumSelection};
 use crate::medium::{GMEOW, MEDIUM_REGISTRY_GRAPH, SNAPSHOT_WIRE_REP, blake3_digest, train};
@@ -361,13 +363,12 @@ pub fn frame_iri(rep: &str, content_digest: &str) -> String {
 /// Seal one `gmeow:MediumEnvelope` per payload-bearing frame of the emission: every
 /// blob row, and the snapshot frame itself.
 ///
-/// `snapshot_payload` is the canonical CBOR of the ENVELOPE-FREE snapshot payload,
-/// so its digest is `snapshot_content_id()` verbatim; `snapshot_stratum` is the
-/// canonical serialization of that same payload's quad set, which is the region
-/// `gmeow:stratumPayloadExcludingMediumEnvelope` names. Adding the sealed envelopes
-/// to the payload cannot change either value — the first is taken before they
-/// exist, the second over a region that excludes them — so the emission reaches its
-/// fixed point in exactly two passes rather than iterating.
+/// `snapshot_content_digest` is the content id of the ENVELOPE-FREE snapshot payload;
+/// `snapshot_strata_digest` is the identity of that same payload's canonical quad
+/// set, which is the region `gmeow:stratumPayloadExcludingMediumEnvelope` names.
+/// The terminal computes and releases each large preimage separately before calling
+/// here. Adding the sealed envelopes cannot change either value, so emission reaches
+/// its fixed point in exactly two passes rather than iterating.
 ///
 /// # Errors
 /// A blob whose rep is unregistered or unassigned, a plan that primes a frame with a
@@ -378,8 +379,8 @@ pub(crate) fn seal_bundle_envelopes(
     selection: &MediumSelection,
     plan: &MediumPlan,
     blobs: &[&BlobRow],
-    snapshot_payload: &[u8],
-    snapshot_stratum: &[u8],
+    snapshot_content_digest: &str,
+    snapshot_strata_digest: &str,
 ) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {
     use purrdf::gts_compose::{DictSelection as WireDictSelection, FrameSlot};
 
@@ -420,15 +421,14 @@ pub(crate) fn seal_bundle_envelopes(
         )?);
     }
 
-    let snapshot_digest = blake3_digest(snapshot_payload);
-    envelopes.push(seal(
+    envelopes.push(seal_digests(
         registry,
         selection,
-        &FrameFacts {
-            frame: &frame_iri(SNAPSHOT_WIRE_REP, &snapshot_digest),
+        &FrameDigestFacts {
+            frame: &frame_iri(SNAPSHOT_WIRE_REP, snapshot_content_digest),
             rep: SNAPSHOT_WIRE_REP,
-            payload: snapshot_payload,
-            stratum_bytes: snapshot_stratum,
+            content_digest: snapshot_content_digest,
+            strata_digest: snapshot_strata_digest,
             stratum: DigestStratum::PayloadExcludingMediumEnvelope,
             dictionary_id: dictionary_of(&FrameSlot::Snapshot),
         },

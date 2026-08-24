@@ -45,7 +45,7 @@ use ciborium::value::Value;
 use purrdf::gts::model::{Quad, Term};
 use purrdf::gts::wire::{SELF_DESCRIBE_TAG, iter_items, map_get, unwrap_header};
 use purrdf::gts::writer::{FrameOptions, Writer, term_to_wire};
-use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
+use purrdf::gts_compose::{BlobRow, DictSelection, FrameSlot, MediumPlan, SnapshotBuilder};
 
 /// Required transform on every payload-bearing GMEOW GTS frame.
 pub const GMEOW_GTS_FRAME_TRANSFORM: &str = "zstd-rsyncable";
@@ -339,6 +339,112 @@ pub fn emit_gmeow_gts_with_medium(
         medium,
     )
     .map_err(|message| gmeow_errors::Diag::of_kind(error::Profile { message }))
+}
+
+/// Consume a completed snapshot builder and emit it under the mandated frame
+/// profile and explicit medium plan.
+///
+/// This is the ownership-aware form of [`emit_gmeow_gts_with_medium`].  The borrowed
+/// form must keep the builder's full canonical tables resident while purrdf builds a
+/// second wire-value tree and two canonical byte buffers (one for transform selection,
+/// one in the writer).  GMEOW always selects `zstd-rsyncable` explicitly, so payload
+/// length cannot affect the transform.  This form constructs the wire value once,
+/// releases the builder, and hands the value directly to the writer.  Frame ordering,
+/// metadata, dictionary selection, codec, level, and resulting bytes are identical;
+/// [`tests::owned_snapshot_emission_is_byte_identical`] pins that contract.
+///
+/// # Errors
+/// A medium plan with an incomplete frame assignment, or a codec/writer failure.
+pub fn emit_owned_gmeow_gts_with_medium(
+    builder: SnapshotBuilder,
+    archive_blobs: Vec<BlobRow>,
+    report_blobs: Vec<BlobRow>,
+    medium: &MediumPlan,
+) -> gmeow_errors::Result<Vec<u8>> {
+    let payload = builder.snapshot_payload();
+    // The payload owns all of its wire terms/rows.  Releasing the interning tables
+    // before canonical encoding is the peak-memory boundary this API exists to make
+    // expressible; a borrowed-builder API cannot do it on the caller's behalf.
+    drop(builder);
+    emit_snapshot_payload_with_medium(payload, archive_blobs, report_blobs, medium)
+}
+
+fn selected_dictionary<'a>(
+    plan: &'a MediumPlan,
+    slot: &FrameSlot,
+) -> gmeow_errors::Result<Option<&'a str>> {
+    if plan.dicts.is_empty() {
+        return Ok(None);
+    }
+    match plan.assignment.get(slot) {
+        Some(DictSelection::Named(name)) => Ok(Some(name.as_str())),
+        Some(DictSelection::Baseline) => Ok(None),
+        None => Err(profile_error(format!(
+            "the medium plan pins {} dictionar(y/ies) but assigns none to {slot:?}; every frame \
+             slot needs an explicit DictSelection",
+            plan.dicts.len()
+        ))),
+    }
+}
+
+fn emit_snapshot_payload_with_medium(
+    payload: Value,
+    archive_blobs: Vec<BlobRow>,
+    report_blobs: Vec<BlobRow>,
+    medium: &MediumPlan,
+) -> gmeow_errors::Result<Vec<u8>> {
+    let options = purrdf::gts::writer::WriterOptions {
+        dicts: medium.dicts.clone(),
+        zstd_level: medium.zstd_level,
+        ..Default::default()
+    };
+    let mut writer = Writer::with_options("dist", options)
+        .map_err(|err| profile_error(format!("snapshot header: {err}")))?;
+
+    // Match purrdf's snapshot composer exactly: blob frames precede the snapshot and
+    // are sorted by representation, then decoded bytes.
+    let mut blobs = archive_blobs;
+    blobs.extend(report_blobs);
+    blobs.sort_by(|a, b| a.rep.cmp(&b.rep).then_with(|| a.data.cmp(&b.data)));
+    for blob in blobs {
+        let dictionary = selected_dictionary(medium, &FrameSlot::Blob(blob.rep.clone()))?;
+        let public = Value::Map(vec![
+            (
+                "digest".into(),
+                Value::Text(purrdf::gts::writer::digest_string(&blob.data)),
+            ),
+            ("mt".into(), Value::Text(blob.media_type.clone())),
+            ("rep".into(), Value::Text(blob.rep.clone())),
+        ]);
+        writer
+            .add_frame_with_options(
+                "blob",
+                FrameOptions {
+                    raw: Some(blob.data),
+                    transform: vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()],
+                    pub_meta: Some(public),
+                    zstd_level: medium.zstd_level,
+                    dict: dictionary.map(str::to_string),
+                    ..Default::default()
+                },
+            )
+            .map_err(|err| profile_error(format!("blob frame: {err}")))?;
+    }
+
+    let dictionary = selected_dictionary(medium, &FrameSlot::Snapshot)?;
+    writer
+        .add_frame_with_options(
+            "snapshot",
+            FrameOptions {
+                payload: Some(payload),
+                transform: vec![GMEOW_GTS_FRAME_TRANSFORM.to_string()],
+                zstd_level: medium.zstd_level,
+                dict: dictionary.map(str::to_string),
+                ..Default::default()
+            },
+        )
+        .map_err(|err| profile_error(format!("snapshot frame: {err}")))?;
+    Ok(writer.into_bytes())
 }
 
 /// Serialize a frozen carrier [`RdfDataset`](purrdf::RdfDataset) to GMEOW GTS
@@ -738,6 +844,40 @@ mod tests {
         )
         .expect("emit fixture");
         validate_mandated_frames(&bytes).expect("fixture uses mandated frame profile");
+    }
+
+    #[test]
+    fn owned_snapshot_emission_is_byte_identical() {
+        let blob_rows = || {
+            vec![BlobRow {
+                data: b"the same blob bytes".to_vec(),
+                media_type: "text/plain".to_string(),
+                rep: "profile-test".to_string(),
+            }]
+        };
+        let expected = emit_gmeow_gts_with_medium(
+            &fixture_builder(),
+            blob_rows(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            &baseline_medium_plan(),
+        )
+        .expect("borrowed snapshot emission");
+        let actual = emit_owned_gmeow_gts_with_medium(
+            fixture_builder(),
+            blob_rows(),
+            Vec::new(),
+            &baseline_medium_plan(),
+        )
+        .expect("owned snapshot emission");
+
+        assert_eq!(
+            actual, expected,
+            "releasing the builder and skipping the redundant length probe cannot alter wire bytes"
+        );
+        validate_mandated_frames(&actual).expect("owned emission uses the mandated profile");
     }
 
     /// The leaf raises its OWN code namespace. A profile violation reported under

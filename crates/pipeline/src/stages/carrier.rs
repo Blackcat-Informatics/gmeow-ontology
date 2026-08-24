@@ -1814,8 +1814,16 @@ fn serialize_snapshot(
             .add_dataset(graph)
             .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
     }
-    let snapshot_payload = purrdf::gts::wire::canonical(&builder.snapshot_payload());
-    let stratum_bytes = stratum_nquads(carrier, &strata)?;
+    // Bound the terminal's live set.  Both identities are over whole-carrier
+    // representations, but the envelope needs only their digests.  Materialize and
+    // release each preimage in its own scope so canonical CBOR and canonical N-Quads
+    // never coexist.  `snapshot_content_id` is byte-for-byte the digest previously
+    // computed from `canonical(snapshot_payload())`.
+    let snapshot_content_digest = builder.snapshot_content_id();
+    let snapshot_strata_digest = {
+        let stratum = stratum_nquads(carrier, &strata)?;
+        crate::medium::blake3_digest(stratum.as_bytes())
+    };
 
     let reps: std::collections::BTreeSet<String> =
         frames.iter().map(|row| row.rep.clone()).collect();
@@ -1828,8 +1836,8 @@ fn serialize_snapshot(
         selection,
         &plan,
         &frames,
-        &snapshot_payload,
-        stratum_bytes.as_bytes(),
+        &snapshot_content_digest,
+        &snapshot_strata_digest,
     )?;
     let envelope_quads = medium::envelope_quads(&registry, &envelopes)?;
     let envelope_graph = purrdf::dataset_from_quads(&envelope_quads)
@@ -1838,16 +1846,12 @@ fn serialize_snapshot(
         .add_dataset(&envelope_graph)
         .map_err(|e| stage_err(&format!("fold the medium envelopes into snapshot: {e}")))?;
 
-    gmeow_gts_profile::emit_gmeow_gts_with_medium(
-        &builder,
-        blobs,
-        report_blobs,
-        None,
-        None,
-        None,
-        &plan,
-    )
-    .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+    // Consume the builder.  The profile extracts its owned wire payload and drops
+    // these full interning tables before the writer canonicalizes/compresses the
+    // snapshot; it also skips purrdf's redundant length-probe serialization because
+    // this profile selects zstd-rsyncable explicitly, independent of payload size.
+    gmeow_gts_profile::emit_owned_gmeow_gts_with_medium(builder, blobs, report_blobs, &plan)
+        .map_err(|e| stage_err(&format!("emit_gts: {e}")))
 }
 
 /// The canonical serialization of the snapshot payload's quad set MINUS the

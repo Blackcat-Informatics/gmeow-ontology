@@ -156,7 +156,11 @@ impl Stage for GtsSinkStage {
         // emitted `opaque` fanout manifest both change, so the key moves.
         // v8: fold the dedicated verify stage's normalized JSON receipt into the
         // generated-opaque archive; graph/verify continues to ride in the snapshot.
-        "gts_sink.v8-dedicated-verify-receipt"
+        // v9: seal whole-carrier digest preimages sequentially, then consume/release
+        // the snapshot builder before its one canonical encode. Emitted bytes stay
+        // identical; peak memory no longer includes the builder plus two redundant
+        // whole-payload serializations.
+        "gts_sink.v9-owned-single-encode"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
