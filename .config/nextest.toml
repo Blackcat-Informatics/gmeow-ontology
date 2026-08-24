@@ -74,6 +74,25 @@ default-filter = 'all()'
 junit = { path = "junit.xml" }
 fail-fast = false
 
+# Bounded SHARED resource group for the whole-bundle CONSUMER tests (the MCP consumer surface,
+# the bundle-view export, the CLI whole-bundle proofs, the LSP, the affect consumer). Each
+# loads the WHOLE shipped bundle into memory to answer against it. Live processes show only
+# ~2 threads and ~15-23% CPU each, so they are MEMORY-bound, not CPU full-width pools —
+# `threads-required = num-cpus` is the wrong tool here (it would serialize each one against the
+# whole host for no CPU reason). Instead, nextest running num-cpus of them at once holds that
+# many whole-bundle images resident simultaneously, which exhausts memory and slows every one
+# past the 120s kill: the 122s TRY-3 timeout wave in the retained gate receipt. This group caps
+# how many hold the bundle resident at once. It is a SCOPED budget, not a change to the global
+# concurrency, and it touches no slow-timeout: a fast test in a grouped crate still runs
+# immediately and releases its slot. Sized for the 16 GiB hosted runner the cold generation targets:
+# one whole-bundle consumer measures ~2.7 GiB peak RSS (measured VmHWM 2,756,248 KiB for
+# gmeow-cli::slice_quality_bundle, which itself passes in ~8-21s uncontended). max-threads = 3
+# caps the resident consumer set near ~8 GiB and leaves headroom for the OS, the test harness,
+# and the other concurrent tests; six of them (~16.6 GiB) already exceed a 16 GiB runner before
+# any overhead and swap, which is precisely the 122s TRY-3 timeout wave this group removes.
+[test-groups.bundle-consumers]
+max-threads = 3
+
 # Overrides only extend the runaway backstop for exhaustive paths or reserve the
 # whole host for tests that create their own full-width worker pool. There are no
 # fixed one- or two-thread scheduling ceilings.
@@ -98,12 +117,15 @@ slow-timeout = { period = "600s", "terminate-after" = 2, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(medium_bundle)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
-# Reserves a SHARE of the box, not all of it. A timeout is a statement about how long the WORK
-# takes, and a whole-DAG lane competing with 8500 other tests spends its budget being starved.
-# Taking `num-cpus` fixes that and breaks the opposite end: the binary-invoking CLI tests then
-# blow their own 60s budgets waiting. Half the machine is enough for the DAG to make progress
-# and leaves the rest of the run schedulable.
-threads-required = 8
+# Reserve the whole host. This lane is a whole-DAG execution that spins up its OWN full-width
+# worker pool and materializes a full bundle in TMPDIR. An earlier revision reserved only a
+# SHARE (8 threads) to keep the rest of the run schedulable, but that let this lane co-schedule
+# with its sibling `medium_identity_gate` (also a whole-DAG run): on a >=16-CPU host 8+8 fit,
+# so the two ran at once, each driving a full-width internal pool. That doubled TMPDIR residency
+# (StorageFull/ENOSPC on a 13 GiB tmpfs) and oversubscribed the cores, starving ordinary tests
+# into timeouts. Same reservation and reason as the sibling `medium_cli` / `medium_gate`
+# whole-DAG lanes below; this is a host reservation for a full-width pool, not a scheduling cap.
+threads-required = "num-cpus"
 
 # The MEDIUM IDENTITY GATE emits the real carrier TWICE from one in-memory DAG run —
 # once under the authored `gmeow:mediumProfileDistL12` assignment and once under the
@@ -114,9 +136,13 @@ threads-required = 8
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(medium_identity_gate)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
-# Same reservation, same reason: it costs a whole-DAG execution plus a second emission, and it
-# timed out on-gate at 1800s only because it was competing with the rest of the run.
-threads-required = 8
+# Reserve the whole host, same class and reason as `medium_bundle` above: a whole-DAG execution
+# plus a SECOND emission, driving its own full-width worker pool and a full-bundle TMPDIR
+# materialization. Reserving only 8 threads let it co-schedule with `medium_bundle`; the two
+# overlapping exhausted the tmpfs (TRY 1 ENOSPC/StorageFull at crates/pipeline/src/cache.rs:818)
+# and it only passed on retry once the sibling released the tmpfs. Reserving the host makes its
+# wall clock a property of the pipeline, not of what else nextest happened to schedule alongside.
+threads-required = "num-cpus"
 
 # The two CONSUMER-SURFACE medium suites. `crates/gmeow-cli/build.rs` embeds
 # `generated/dist/gmeow.gts`, which is a git-ignored LOCAL product, so a suite that read
@@ -468,3 +494,20 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & test(/the_schema_org_howto_profile_projects_the_prescription_spine/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# Assign the whole-bundle CONSUMER crates to the bounded `bundle-consumers` group above, so no
+# more than a handful hold the bundle resident at once. Memory-bound concurrency, not per-test
+# full-width pools, so a shared group budget is the right instrument rather than reserving each
+# binary. Two exclusions avoid a threads-required conflict with the 3-slot group budget: the
+# MCP `verify_graph_accepts_…_whole_bundle` case and gmeow-cli's `medium_cli` binary both already
+# reserve the whole host (`threads-required = num-cpus`). The gmeow-cli side is scoped by
+# `!binary(medium_cli)` rather than an enumerated binary list, because enumerating binaries missed
+# real whole-bundle consumers (slice_lint_cli, slice_quality_cli, slice_quality_bundle,
+# slice_brief_cli, gmn_conformance, self_sufficiency, and the console/explain cases) which then
+# ran UNBOUNDED at full width and starved the already-grouped bundle-view/affect tests into
+# timeouts. Excluding only the conflicting binary admits every genuine consumer; cheap gmeow-cli
+# unit tests pass straight through the group (fast, releasing their slot). No global cap and no
+# slow-timeout change: this is purely a membership correction.
+[[profile.default.overrides]]
+filter = 'package(gmeow-mcp) & !test(/verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle/) | package(gmeow-mcp-dev) | package(gmeow-mcp-core-wasm) | package(gmeow-bundle-view) | package(gmeow-lsp) | package(gmeow-affect) | (package(gmeow-cli) & !binary(medium_cli))'
+test-group = "bundle-consumers"
