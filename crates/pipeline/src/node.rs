@@ -275,7 +275,8 @@ pub struct StageOutput {
     /// The pre-lowered diagnostic nodes this stage emits (the FORWARD projection of
     /// its `gmeow_errors::Report` findings). Empty for every stage that produces no
     /// findings; the diagnostics producers (`stage-validate`, `stage-compile-logic`,
-    /// and `stage-reason`) populate it from their report. The scheduler folds
+    /// `stage-reason`, and `stage-verify-attestation`) populate it from their report.
+    /// The scheduler folds
     /// these into the run-level `DiagLedger` (fresh run) or reads them back from the
     /// product's `diagnostics:nodes` blob (cache hit), so the ledger is a projection
     /// of the SAME producer findings whether the stage ran or replayed.
@@ -325,10 +326,51 @@ impl StageOutput {
     }
 }
 
+/// Whether a stage's output is stable for identical declared inputs.
+///
+/// This is the executable twin of RDF `gmeow:stageStability`. The loader requires
+/// exact agreement before scheduling, so a receipt never claims a stronger stability
+/// class than the canonical DAG declares.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StageStability {
+    /// Identical declared inputs produce byte-identical output across runs.
+    StablePrefix,
+    /// The output intentionally varies between otherwise identical runs.
+    PerTurnVariance,
+}
+
+impl StageStability {
+    /// Parse one closed-vocabulary RDF individual.
+    #[must_use]
+    pub fn from_iri(value: &str) -> Option<Self> {
+        match value {
+            "https://blackcatinformatics.ca/gmeow/stabilityStablePrefix" => {
+                Some(Self::StablePrefix)
+            }
+            "https://blackcatinformatics.ca/gmeow/stabilityPerTurnVariance" => {
+                Some(Self::PerTurnVariance)
+            }
+            _ => None,
+        }
+    }
+
+    /// The canonical RDF individual IRI serialized into immutable receipts.
+    #[must_use]
+    pub const fn iri(self) -> &'static str {
+        match self {
+            Self::StablePrefix => "https://blackcatinformatics.ca/gmeow/stabilityStablePrefix",
+            Self::PerTurnVariance => {
+                "https://blackcatinformatics.ca/gmeow/stabilityPerTurnVariance"
+            }
+        }
+    }
+}
+
 /// Whether a stage product should use the persistent structural cache.
 ///
-/// This is a performance policy only: both variants execute the same stage body and
-/// the scheduler applies the same attach-drift, provenance, and diagnostics gates.
+/// This is the executable twin of RDF `gmeow:stageCacheDisposition`: both variants
+/// execute the same stage body and the scheduler applies the same attach-drift,
+/// provenance, and diagnostics gates. The loader requires exact RDF/Rust agreement.
 /// [`Self::Recompute`] is for very large aggregate products whose canonical-byte
 /// reparse and typed-handle reconstruction costs more than rebuilding them from their
 /// already-live upstream products.
@@ -339,6 +381,29 @@ pub enum CachePolicy {
     Persistent,
     /// Always compute the product and do not persist it.
     Recompute,
+}
+
+impl CachePolicy {
+    /// Parse one closed-vocabulary RDF individual.
+    #[must_use]
+    pub fn from_iri(value: &str) -> Option<Self> {
+        match value {
+            "https://blackcatinformatics.ca/gmeow/cachePersistentContribution" => {
+                Some(Self::Persistent)
+            }
+            "https://blackcatinformatics.ca/gmeow/cacheRecomputeAggregate" => Some(Self::Recompute),
+            _ => None,
+        }
+    }
+
+    /// The canonical RDF individual IRI serialized into immutable receipts.
+    #[must_use]
+    pub const fn iri(self) -> &'static str {
+        match self {
+            Self::Persistent => "https://blackcatinformatics.ca/gmeow/cachePersistentContribution",
+            Self::Recompute => "https://blackcatinformatics.ca/gmeow/cacheRecomputeAggregate",
+        }
+    }
 }
 
 /// A pipeline stage: one node in the build DAG. The Rust impl is the executable
@@ -369,6 +434,12 @@ pub trait Stage: Send + Sync {
     /// disagrees with the RDF `gmeow:requiresResource` declaration.
     fn resources(&self) -> &[String] {
         &[]
+    }
+    /// The output-stability declaration mirrored by RDF `gmeow:stageStability`.
+    /// Deterministic repository stages use the stable-prefix class by default; a
+    /// stage with intentional per-run variance must opt in explicitly.
+    fn stability(&self) -> StageStability {
+        StageStability::StablePrefix
     }
     /// The persistent-cache policy for this stage's product. Most stages are cheap to
     /// hydrate and use [`CachePolicy::Persistent`]. A stage may opt into

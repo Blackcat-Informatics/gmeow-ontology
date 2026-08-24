@@ -21,7 +21,7 @@ use purrdf::{
 };
 
 use crate::graph::StageGraph;
-use crate::node::{GMEOW, SINK_CAPABILITY, Stage};
+use crate::node::{CachePolicy, GMEOW, SINK_CAPABILITY, Stage, StageStability};
 use crate::registry::StageRegistry;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -61,6 +61,14 @@ pub struct StageSpec {
     /// exclusively while running, sorted, deduplicated. Validated against the Rust
     /// impl's `resources()` at bind time (Rust/RDF agreement).
     pub resources: Vec<String>,
+    /// Exactly one `gmeow:stageStability` closed-vocabulary individual. The loader
+    /// rejects missing, multiple, non-IRI, or unknown declarations and proves this
+    /// value agrees with the executable stage twin before scheduling.
+    pub stability: StageStability,
+    /// Exactly one `gmeow:stageCacheDisposition` closed-vocabulary individual. This
+    /// declaration decides whether the independently bounded stage contribution is
+    /// admitted to the persistent cache or recomputed from live upstream products.
+    pub cache_disposition: CachePolicy,
     /// Reified `gmeow:BuildDataFlow` typed dataflow: for each upstream producer this
     /// stage reads only SPECIFIC named-graph entities from, the `(producer-local-name,
     /// sorted entity IRIs)`, the list sorted by producer. Empty = every consumed
@@ -277,6 +285,23 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
     resources.sort();
     resources.dedup();
 
+    let stability_iri = required_named_declaration(ds, stage_iri, "stageStability", &id)?;
+    let stability = StageStability::from_iri(&stability_iri).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!("stage {id} has unknown gmeow:stageStability value {stability_iri}"),
+        })
+    })?;
+
+    let cache_disposition_iri =
+        required_named_declaration(ds, stage_iri, "stageCacheDisposition", &id)?;
+    let cache_disposition = CachePolicy::from_iri(&cache_disposition_iri).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::InvalidDeclaration {
+            message: format!(
+                "stage {id} has unknown gmeow:stageCacheDisposition value {cache_disposition_iri}"
+            ),
+        })
+    })?;
+
     // gmeow:dataflowConsumes (zero or more stage IRIs → local names).
     let mut consumes: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "dataflowConsumes"))
         .into_iter()
@@ -323,12 +348,48 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         impl_key,
         consumes,
         resources,
+        stability,
+        cache_disposition,
         // Filled in by from_store from the reified gmeow:BuildDataFlow edges.
         dataflow_entities: Vec::new(),
         formats,
         attaches_graphs,
         attaches_blob_reps,
     })
+}
+
+/// Read one required closed-vocabulary stage declaration as an IRI.
+///
+/// Cardinality is checked over every RDF object before term discrimination: a literal
+/// plus an IRI is still two values and therefore fails rather than silently selecting
+/// the usable-looking one.
+fn required_named_declaration(
+    ds: &RdfDataset,
+    stage_iri: &str,
+    property: &str,
+    stage_id: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let values = objects(ds, stage_iri, &iri(GMEOW, property));
+    if values.len() != 1 {
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::InvalidDeclaration {
+                message: format!(
+                    "stage {stage_id} must declare exactly one gmeow:{property}; found {}",
+                    values.len()
+                ),
+            },
+        ));
+    }
+    match values.into_iter().next().expect("one value was checked") {
+        ObjTerm::Named(value) => Ok(value),
+        ObjTerm::Literal(_) | ObjTerm::Other => Err(gmeow_errors::Diag::of_kind(
+            crate::error::InvalidDeclaration {
+                message: format!(
+                    "stage {stage_id} gmeow:{property} must name a closed-vocabulary IRI"
+                ),
+            },
+        )),
+    }
 }
 
 /// Parse the reified `gmeow:BuildDataFlow` typed-dataflow edges into a
@@ -475,6 +536,27 @@ pub fn bind(
                     stage: s.id.clone(),
                     rdf: s.resources.clone(),
                     rust: rust_res,
+                },
+            ));
+        }
+
+        if stage.stability() != s.stability {
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::StagePolicyMismatch {
+                    stage: s.id.clone(),
+                    property: "gmeow:stageStability".to_string(),
+                    rdf: s.stability.iri().to_string(),
+                    rust: stage.stability().iri().to_string(),
+                },
+            ));
+        }
+        if stage.cache_policy() != s.cache_disposition {
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::StagePolicyMismatch {
+                    stage: s.id.clone(),
+                    property: "gmeow:stageCacheDisposition".to_string(),
+                    rdf: s.cache_disposition.iri().to_string(),
+                    rust: stage.cache_policy().iri().to_string(),
                 },
             ));
         }

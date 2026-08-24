@@ -35,12 +35,16 @@ use gmeow_errors::{
 use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
 
+use crate::cache::StageReceipt;
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
-    ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, StageProduct,
+    CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
+    StageProduct, StageStability,
 };
 use crate::registry::default_registry;
-use crate::scheduler::{CarrierRetention, RunContext, run};
+use crate::scheduler::{
+    CarrierRetention, LevelTiming, RunContext, StagePhaseTiming, StageTiming, run,
+};
 
 /// The stage id every drift/superset diagnostic is attributed to on the carrier
 /// ledger (pin-on-attach).
@@ -156,6 +160,20 @@ pub struct RunReport {
     pub drifted: Vec<String>,
     /// Per-phase timing records for profiling the gate without parsing stderr.
     pub timings: Vec<TimingRecord>,
+    /// Deterministic root of the topologically ordered stage receipts. Cache outcomes
+    /// and timings are excluded, so cold and warm executions share this identity.
+    pub stage_receipt_root: String,
+    /// Structured per-stage execution/cache observations. These are run telemetry,
+    /// deliberately separate from deterministic receipts.
+    pub stage_timings: Vec<StageTiming>,
+    /// Internal phase observations emitted by freshly executed stages. Stable work
+    /// metadata is carried separately from the observed elapsed duration.
+    pub stage_phase_timings: Vec<StagePhaseTiming>,
+    /// Structured scheduler critical levels used to compute the DAG critical-path floor.
+    pub level_timings: Vec<LevelTiming>,
+    /// Immutable deterministic receipts for every executed DAG stage. These carry the
+    /// exact action context and structural output census but no wall-clock observation.
+    pub stage_receipts: Vec<StageReceipt>,
     /// Every non-internal logical output path produced by the run, sorted and
     /// deduplicated. Callers use this to build whole-run output manifests without
     /// rediscovering or re-running the pipeline.
@@ -253,6 +271,19 @@ pub fn full_spec() -> PipelineSpec {
             "reason",
             &[
                 "stage-compile-logic",
+                "stage-source-load",
+                "stage-statements",
+            ],
+        ),
+        // Evaluate every native bad-example query against the exact object-level EDB
+        // and stage-reason's typed result. This is a dedicated bounded/cacheable
+        // contribution stage; it never constructs a second closure.
+        st_verify_attestation(
+            "stage-verify-attestation",
+            "verify_attestation",
+            &[
+                "stage-compile-logic",
+                "stage-reason",
                 "stage-source-load",
                 "stage-statements",
             ],
@@ -383,14 +414,15 @@ pub fn full_spec() -> PipelineSpec {
                 // The authoring-packet corpus (graph/authoring-briefs), folded into
                 // gmeow.gts and its fanout twin generated/briefs/authoring-packets.nt.
                 "stage-slice-brief",
-                // The self-description named graphs (authored default / imports / metadata
-                // / alignments / slice-analysis / verify / provenance): the presenter reads
-                // them off this product instead of re-loading + re-canonicalizing sources.
+                // The authored self-description named graphs (default / imports / metadata
+                // / alignments / slice-analysis / provenance): the presenter reads them
+                // off this product instead of re-loading + re-canonicalizing sources.
                 "stage-source-load",
                 "stage-statements",
                 // Fold the generated term content manifest into graph/fanout/catalog.
                 "stage-term-manifest",
                 "stage-validate",
+                "stage-verify-attestation",
             ],
         ),
     ];
@@ -614,6 +646,7 @@ pub fn full_spec() -> PipelineSpec {
             // used to carry survives transitively (archive-blobs consumes statements, and
             // the sink consumes archive-blobs).
             "stage-validate",
+            "stage-verify-attestation",
         ],
     ));
 
@@ -638,6 +671,8 @@ pub fn full_spec() -> PipelineSpec {
                 b.dedup();
                 b
             };
+            s.stability = stage.stability();
+            s.cache_disposition = stage.cache_policy();
         }
     }
 
@@ -657,6 +692,8 @@ fn st(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
         impl_key: impl_key.to_string(),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: Vec::new(),
+        stability: StageStability::StablePrefix,
+        cache_disposition: CachePolicy::Persistent,
         dataflow_entities: Vec::new(),
         formats: Vec::new(),
         // Filled by full_spec()'s registry-derivation pass from the bound Rust impl's
@@ -726,6 +763,24 @@ fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
         "stage-compile-logic".to_string(),
         crate::stages::compile_logic::object_level_entity_list(),
     )];
+    s
+}
+
+/// The verify-attestation stage consumes the same object-level compiler graphs as the
+/// reason stage plus the already-built `graph/reasoning` typed-result projection. This
+/// narrows cache invalidation to the exact entities evaluated by the query battery.
+fn st_verify_attestation(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
+    s.dataflow_entities = vec![
+        (
+            "stage-compile-logic".to_string(),
+            crate::stages::compile_logic::object_level_entity_list(),
+        ),
+        (
+            "stage-reason".to_string(),
+            vec![gmeow_logic::result_rdf::GRAPH_REASONING.to_string()],
+        ),
+    ];
     s
 }
 
@@ -811,15 +866,16 @@ pub fn run_full_scoped_with_progress(
     let graph = spec.validate()?;
     let registry = default_registry();
     let bound = bind(&spec, &graph, &registry)?;
-    // The whole-run sync manifest is the profitable cache boundary. Pipeline stage
-    // products are cumulative carrier snapshots; persisting or hydrating them creates
-    // multi-gigabyte duplicate state and measured slower than recomputation. On a
-    // manifest miss, execute the DAG once with no per-stage cache I/O.
-    let mut ctx = RunContext::open_uncached(root, jobs);
+    // The whole-run manifest remains the zero-work fixed-point boundary. On a manifest
+    // miss, the DAG's exact-one cache dispositions admit independently bounded stage
+    // contributions to the structural cache while the four cumulative carrier
+    // aggregates recompute from the live frontier. Cache misses still execute every
+    // selected stage and all attach/receipt/provenance gates remain mandatory.
+    let mut ctx = RunContext::open(root, jobs)?;
     // Bound peak residency: release each stage's carrier once its last declared consumer
-    // has run. This path is the whole-repository build — ~47 stages, each emitting a
-    // CUMULATIVE carrier snapshot — so retaining every product's bundle for the run's life
-    // makes peak memory the SUM over the DAG rather than the live frontier, which is what
+    // has run. This path is the whole-repository build — roughly 47 contribution and
+    // aggregate products — so retaining every product's bundle for the run's life makes
+    // peak memory the SUM over the DAG rather than the live frontier, which is what
     // OOM-kills a 16 GB CI runner. Everything the reconcile below reads (each product's
     // COMMITTED byte-artifact lane, every digest) survives the release untouched, so the
     // written/compared bytes and `combined_digest` are byte-identical either way.
@@ -851,7 +907,14 @@ pub fn run_full_scoped_with_progress(
         timings.push(TimingRecord {
             phase: format!("stage:{}", timing.stage_id),
             elapsed_ms: timing.elapsed_ms,
-            metadata: Some(format!("level={};cached={}", timing.level, timing.cached)),
+            metadata: Some(format!(
+                "level={};cached={};cache-outcome={};cache-read-bytes={};cache-write-bytes={}",
+                timing.level,
+                timing.cached,
+                timing.cache_outcome,
+                timing.cache_read_bytes,
+                timing.cache_write_bytes
+            )),
         });
     }
     for timing in &result.stage_phase_timings {
@@ -871,6 +934,11 @@ pub fn run_full_scoped_with_progress(
             )),
         });
     }
+    let stage_receipt_root = result.receipt_root.clone();
+    let stage_timings = result.stage_timings.clone();
+    let stage_phase_timings = result.stage_phase_timings.clone();
+    let level_timings = result.level_timings.clone();
+    let stage_receipts = result.stage_receipts.clone();
     let products: BTreeMap<String, StageProduct> = result.products;
     // The run-level ledger is the scheduler's FORWARD fold of every producer's
     // diagnostic nodes (their report findings, projected once — the single source). The
@@ -1259,6 +1327,11 @@ pub fn run_full_scoped_with_progress(
         ledger,
         drifted,
         timings,
+        stage_receipt_root,
+        stage_timings,
+        stage_phase_timings,
+        level_timings,
+        stage_receipts,
         output_paths,
         certification,
     })
@@ -2146,7 +2219,7 @@ ex:RequiredShape a sh:NodeShape ;
     /// (guarding against a vacuous `[]` blob).
     #[test]
     fn cache_replay_yields_byte_identical_run_ledger() {
-        use crate::cache::PipelineCache;
+        use crate::cache::{PipelineCache, ReceiptOutputSelection, StageKeyContext};
 
         let repo = violating_repo();
         let out = run_validate(repo.path());
@@ -2171,10 +2244,19 @@ ex:RequiredShape a sh:NodeShape ;
 
         // Persist + re-read the product through the real per-stage cache.
         let dir = tempfile::tempdir().unwrap();
-        let mut cache = PipelineCache::open(dir.path()).unwrap();
-        cache.put("stage-validate", &out.product).unwrap();
-        let restored = cache.get("stage-validate").unwrap().expect("cache hit");
-        let restored_nodes = restored.diag_nodes();
+        let cache = PipelineCache::open(dir.path()).unwrap();
+        let context = StageKeyContext::new("stage-validate", "test-v1", Vec::new(), Vec::new());
+        cache
+            .put(
+                &context,
+                "stable",
+                "persistent",
+                &ReceiptOutputSelection::default(),
+                &out.product,
+            )
+            .unwrap();
+        let restored = cache.get(&context).unwrap().expect("cache hit");
+        let restored_nodes = restored.product.diag_nodes();
         assert!(
             !restored_nodes.is_empty(),
             "the cache-restored product must carry a NON-empty diagnostics:nodes blob"

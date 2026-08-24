@@ -55,7 +55,7 @@ use purrdf::{PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm, parse_datas
 use serde::{Deserialize, Serialize};
 
 use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::diag_render::{DiagnosticsPaths, render_diagnostics_artifacts};
 
 /// The single authoritative `logic:` vocabulary source the compiler reads.
@@ -436,6 +436,13 @@ impl Stage for CompileLogicStage {
     fn attaches_blob_reps(&self) -> &[String] {
         crate::stages::attach::blob_reps(self.id())
     }
+    fn cache_policy(&self) -> CachePolicy {
+        // The structural cache stores graph-derived relational/correspondence handles and
+        // the complete typed Logic IR. The latter is required because graph/logic is an
+        // intentionally lossy governed projection; serving a reverse-parsed shorter
+        // program would violate no-optionality.
+        CachePolicy::Persistent
+    }
     fn impl_version(&self) -> &str {
         // v5: the authored `logic:PathShape` worked-example instances
         // (`PATH_SHAPES_EXAMPLE_PATH`) are now folded into `program.path_shapes`, so
@@ -454,7 +461,12 @@ impl Stage for CompileLogicStage {
         // (`REASONING_PROGRAMS_EXAMPLE_PATH`) is now folded into `program.reasoning_programs`,
         // so `stage-goal-directed` compiles authored `logic:ReasoningProgram`s instead of the
         // hand-interned Rust demonstrator constants.
-        "compile-logic.v9"
+        // v10: persistence is fail-closed for typed handles. graph/logic deliberately
+        // omits source-verbatim IR collections, so a semantically shorter reverse parse
+        // is never admitted.
+        // v11: the structural cache carries the complete serde LogicProgram payload,
+        // authenticates its canonical key, and can therefore persist this exact product.
+        "compile-logic.v11-complete-typed-ir"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
@@ -1059,7 +1071,8 @@ fn relational_core_graph_dataset(
 
 /// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
 /// `graph/logic` named graph of a fresh frozen dataset — the backing graph the typed
-/// Logic handle pins to and the cache re-derives the program from.
+/// Logic handle pins to. Persistent receipts carry the complete typed program beside
+/// this deliberately lossy governed projection.
 fn logic_graph_dataset(
     canonical_rdf12_turtle: &str,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
@@ -1083,12 +1096,6 @@ fn logic_graph_dataset(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs::{OpenOptions, TryLockError};
-    use std::sync::OnceLock;
-    use std::time::{Duration, Instant};
-
-    use crate::cache::{BUILD_FINGERPRINT, PipelineCache, stage_key};
-    use crate::scheduler::input_files_digest;
 
     fn repo_root() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -1098,156 +1105,24 @@ mod tests {
             .unwrap()
     }
 
-    /// Cross-process, content-addressed fixture for the assertion-only tests below.
-    ///
-    /// Nextest runs each test in a separate process, so an in-process `OnceLock`
-    /// alone cannot prevent every test from rebuilding the real repository's full
-    /// logic projection. Reuse the production cache codec and its fail-closed build
-    /// fingerprint/input digest instead. On a genuine miss, an atomic lock elects
-    /// one test process to build while its siblings wait for the persisted product;
-    /// no separate cargo prime invocation is needed. One sibling test deliberately
-    /// calls the stage directly, retaining uncached end-to-end teeth.
+    /// Exact production-action fixture for the assertion-only tests below. The cache
+    /// carries the complete typed Logic IR, so nextest processes share one lossless
+    /// product and immutable receipt rather than one ineffective process-local value.
     fn compile_logic_fixture() -> StageProduct {
-        static PRODUCT: OnceLock<StageProduct> = OnceLock::new();
-        PRODUCT
-            .get_or_init(|| {
-                let root = repo_root();
-                let stage = CompileLogicStage::new();
-                let source_digest =
-                    input_files_digest(&stage, &root).expect("digest compile-logic fixture inputs");
-                let key = stage_key(
-                    stage.id(),
-                    stage.impl_version(),
-                    &[],
-                    source_digest.as_deref(),
-                );
-
-                let cache_base = root.join(".cache/pipeline-test-fixtures");
-                let fingerprint = &BUILD_FINGERPRINT[..16];
-                let cache_dir = cache_base.join(fingerprint);
-                std::fs::create_dir_all(&cache_dir)
-                    .expect("create compile-logic fixture cache directory");
-                let cache =
-                    PipelineCache::open(&cache_dir).expect("open compile-logic fixture cache");
-                if let Some(product) = cache.get(&key).expect("read compile-logic fixture cache") {
-                    return product;
-                }
-
-                // Keep the election file outside the Actions-cached product tree:
-                // a cancelled job must not archive and restore a live-looking lock.
-                let lock_dir = root.join(".cache/pipeline-test-fixture-locks");
-                std::fs::create_dir_all(&lock_dir)
-                    .expect("create compile-logic fixture lock directory");
-                let lock_path = lock_dir.join(format!("{fingerprint}.lock"));
-                let lock_file = OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .create(true)
-                    .truncate(false)
-                    .open(&lock_path)
-                    .expect("open compile-logic fixture lock");
-                let started = Instant::now();
-                let _lock = loop {
-                    match lock_file.try_lock() {
-                        Ok(()) => break FixtureBuildLock(lock_file),
-                        Err(TryLockError::WouldBlock) => {
-                            // The elected process publishes through PipelineCache's atomic
-                            // index/content writes. Check for that product before sleeping.
-                            let cache = PipelineCache::open(&cache_dir)
-                                .expect("reopen compile-logic fixture cache while waiting");
-                            if let Some(product) = cache
-                                .get(&key)
-                                .expect("read compile-logic fixture cache while waiting")
-                            {
-                                return product;
-                            }
-
-                            // File-lock ownership is tied to the live descriptor/process.
-                            // Normal close and process death both release it, so a slow live
-                            // builder cannot be evicted by elapsed time and a former owner's
-                            // Drop cannot remove a successor's election.
-                            assert!(
-                                started.elapsed() < Duration::from_secs(360),
-                                "timed out waiting for compile-logic fixture builder"
-                            );
-                            std::thread::sleep(Duration::from_millis(50));
-                        }
-                        Err(TryLockError::Error(error)) => {
-                            panic!("acquire compile-logic fixture lock: {error}")
-                        }
-                    }
-                };
-
-                // Another process may have published between our first miss and lock
-                // acquisition. Recheck before paying the stage cost.
-                let mut cache =
-                    PipelineCache::open(&cache_dir).expect("reopen elected fixture cache");
-                if let Some(product) = cache
-                    .get(&key)
-                    .expect("recheck elected compile-logic fixture cache")
-                {
-                    return product;
-                }
-
-                // compile-logic now consumes the `stage-source-load` product (the
-                // narrowed `graph/logic-compile-inputs` entity), so the fixture must
-                // supply that upstream — an empty map would hard-fail the stage.
-                let upstream = source_load_upstream(&root);
-                let product = stage
-                    .run(StageInput {
-                        root: &root,
-                        upstream: &upstream,
-                    })
-                    .expect("build compile-logic fixture")
-                    .product;
-                cache
-                    .put(&key, &product)
-                    .expect("persist compile-logic fixture");
-                product
-            })
-            .clone()
+        let root = repo_root();
+        crate::fixture::stage_fixture(
+            &root,
+            std::thread::available_parallelism()
+                .map(std::num::NonZeroUsize::get)
+                .unwrap_or(1),
+            "stage-compile-logic",
+        )
+        .expect("hydrate exact compile-logic fixture")
+        .outcome
+        .product
     }
 
-    struct FixtureBuildLock(std::fs::File);
-
-    impl Drop for FixtureBuildLock {
-        fn drop(&mut self) {
-            let _ = self.0.unlock();
-        }
-    }
-
-    #[test]
-    fn fixture_build_lock_is_owned_by_the_live_file_handle() {
-        let temp = tempfile::tempdir().expect("create fixture-lock tempdir");
-        let path = temp.path().join("fixture.lock");
-        let open = || {
-            OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .truncate(false)
-                .open(&path)
-                .expect("open fixture lock")
-        };
-
-        let owner = open();
-        owner.try_lock().expect("first handle owns lock");
-        let guard = FixtureBuildLock(owner);
-        let successor = open();
-        assert!(matches!(
-            successor.try_lock(),
-            Err(TryLockError::WouldBlock)
-        ));
-
-        drop(guard);
-        successor
-            .try_lock()
-            .expect("closing the owner releases lock to successor");
-        successor.unlock().expect("release successor fixture lock");
-    }
-
-    /// Proves the content-addressed fixture itself remains readable; on a cold
-    /// nextest run this test may also be the process elected to populate it.
+    /// Proves the cross-process fixture remains available to assertion-only tests.
     #[test]
     fn compile_logic_fixture_is_primed() {
         let product = compile_logic_fixture();
@@ -1261,7 +1136,8 @@ mod tests {
     fn compile_logic_stage_emits_every_product() {
         let root = repo_root();
         let upstream = source_load_upstream(&root);
-        let out = CompileLogicStage::new()
+        let stage = CompileLogicStage::new();
+        let out = stage
             .run(StageInput {
                 root: &root,
                 upstream: &upstream,
@@ -1321,6 +1197,64 @@ mod tests {
             channel.header.axiom_count > 0,
             "report header axiom count must be populated"
         );
+
+        // Cache admission is semantic, not merely structural. The live LogicProgram
+        // carries source-verbatim ReasoningProgram/validation collections that the
+        // graph/logic projection deliberately omits, so the cache stores the complete
+        // typed IR and must hydrate a canonical-key-identical handle.
+        assert_eq!(stage.cache_policy(), CachePolicy::Persistent);
+        let key_context = crate::scheduler::action_key_context(&stage, &root, &upstream)
+            .expect("build compile-logic action key");
+        let cache_dir = tempfile::tempdir().expect("create cache-admission tempdir");
+        let cache = crate::cache::PipelineCache::open(cache_dir.path())
+            .expect("open cache-admission store");
+        let selection = crate::cache::ReceiptOutputSelection {
+            graphs: stage.attaches_graphs().to_vec(),
+            blob_representations: stage.attaches_blob_reps().to_vec(),
+            logical_artifacts: out
+                .product
+                .bundle()
+                .lookaside()
+                .resources
+                .iter()
+                .filter_map(|resource| resource.name.clone())
+                .collect(),
+            handles: out.product.bundle().handles().keys().cloned().collect(),
+        };
+        let cold = cache
+            .put(
+                &key_context,
+                crate::node::StageStability::StablePrefix.iri(),
+                CachePolicy::Persistent.iri(),
+                &selection,
+                &out.product,
+            )
+            .expect("complete typed Logic IR is persistable");
+        let warm = cache
+            .get(&key_context)
+            .expect("read compile-logic cache")
+            .expect("compile-logic cache hit");
+        crate::cache::PipelineCache::validate_hit_receipt(
+            &key_context,
+            crate::node::StageStability::StablePrefix.iri(),
+            CachePolicy::Persistent.iri(),
+            &selection,
+            &warm,
+        )
+        .expect("warm receipt is structurally complete");
+        assert_eq!(cold, warm.receipt, "cold/warm immutable receipt identity");
+        assert_eq!(out.product.artifacts(), warm.product.artifacts());
+        let logic_key = |product: &StageProduct| {
+            let entry = product
+                .bundle()
+                .handle(GRAPH_LOGIC)
+                .expect("typed Logic handle");
+            let PipelineHandle::Logic(program) = &entry.payload else {
+                panic!("Logic handle arm")
+            };
+            program.canonical_key()
+        };
+        assert_eq!(logic_key(&out.product), logic_key(&warm.product));
     }
 
     /// Acceptance C2: the loss ledger's OWN witness projection, folded through the

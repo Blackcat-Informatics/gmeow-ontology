@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::dataset_to_sorted_nquads;
 
 /// Compose the upstream products into one frozen dataset by [`RdfDataset::union`]
@@ -182,6 +182,12 @@ impl Stage for GtsComposeStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // This is a whole-dataset aggregate over already-live upstream products.
+        // Hydrating its canonical cache blob must parse and reconstruct the same
+        // carrier the native union creates, while also retaining a duplicate on disk.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "gts_compose.v1"

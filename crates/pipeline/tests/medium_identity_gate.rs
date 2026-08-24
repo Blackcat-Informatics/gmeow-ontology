@@ -52,7 +52,7 @@ use gmeow_pipeline::gmn_dialect::{self, ModelFacingReport, check_artifact_invari
 use gmeow_pipeline::medium::MEDIUM_REGISTRY_GRAPH;
 use gmeow_pipeline::medium::registry::{MediumRegistry, MediumSelection};
 use gmeow_pipeline::stages::medium_dictionaries::frame_iri;
-use gmeow_pipeline::{PipelineCache, RunContext, bind, default_registry, full_spec, run};
+use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
 use purrdf::gts::codec::{Codec, ZstdBlockInfo, decode_chain, zstd_block_layout};
 use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
 use purrdf::{RdfQuad, RdfTerm};
@@ -81,17 +81,16 @@ fn repo_root() -> PathBuf {
 }
 
 /// Run the REAL production DAG (`full_spec`, the same spec `make regen` executes) once,
-/// in memory, over a temp cache, and return every stage product.
+/// in memory, reusing only receipt-verified bounded contributions, and return every
+/// stage product. Aggregate stages still execute and remain the subject of this gate.
 fn run_the_dag(root: &Path) -> BTreeMap<String, gmeow_pipeline::node::StageProduct> {
     let spec = full_spec();
     let graph = spec.validate().expect("the production DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("every production stage binds");
-    let cache_dir = tempfile::tempdir().expect("tempdir");
     let jobs = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(4);
     let mut ctx = RunContext::open(root, jobs).expect("run context");
-    ctx.cache = PipelineCache::open(cache_dir.path()).expect("temp cache");
     run(&graph, &bound, &mut ctx)
         .expect("the production DAG runs end to end")
         .products

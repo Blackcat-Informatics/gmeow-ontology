@@ -12,6 +12,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
+use std::time::Instant;
 
 use gmeow_errors::{DiagLedger, Finding, Report, Severity, StageId};
 use gmeow_logic::result_rdf::GRAPH_REASONING;
@@ -19,7 +20,7 @@ use purrdf::provenance::DatasetProvenance;
 use serde_json::json;
 
 use crate::bundle::PipelineHandle;
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
 use crate::stages::source_load::BASE_GRAPH_PATH;
 
 /// Strip a leading `<` / trailing `>` off a reasoned-axiom term string. The EL closure's
@@ -298,16 +299,27 @@ pub fn validate_source_graph(
     source_nquads: &[u8],
     fresh: &BTreeMap<String, Vec<u8>>,
 ) -> Result<(Report, Vec<gmeow_validate::advisory::Advisory>), gmeow_errors::Diag> {
-    // Parse the source graph into the native IR and validate it directly through the
-    // native SHACL engine (`validate_dataset`), oxigraph-free.
     let dataset =
         purrdf::parse_dataset(source_nquads, "application/n-quads", None).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!("source graph parse: {e}"),
             })
         })?;
+    validate_parsed_source_graph(root, dataset.as_ref(), fresh)
+}
+
+/// Validate an already parsed source graph against this run's exact shape union.
+///
+/// `ValidateStage::run` retains the indexed dataset for its guidance and abductive
+/// consumers, so the production path parses the multi-megabyte authored graph once.
+/// The byte-oriented public helper above remains available to focused fixtures.
+fn validate_parsed_source_graph(
+    root: &Path,
+    dataset: &purrdf::RdfDataset,
+    fresh: &BTreeMap<String, Vec<u8>>,
+) -> Result<(Report, Vec<gmeow_validate::advisory::Advisory>), gmeow_errors::Diag> {
     let (shape_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, fresh)?;
-    let mut report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
+    let mut report = purrdf::shapes::engine::validate_dataset(dataset, &shapes)
         .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
     // The stage calls the engine directly (it needs the shape store for the advisory
     // split), so it applies the same result-set collapse
@@ -324,7 +336,7 @@ pub fn validate_source_graph(
     // MATCH). The shape store carries each advisory shape's `logic:formalizes` provenance; the
     // source `dataset` carries the formalized terms' howToUse/useWhen prose the advisory surfaces.
     let (retained, advisories) =
-        gmeow_validate::advisory::split_advisory_results(report, &shape_store, &dataset);
+        gmeow_validate::advisory::split_advisory_results(report, &shape_store, dataset);
     Ok((diagnostics_report(&retained, &failure_classes), advisories))
 }
 
@@ -480,6 +492,9 @@ impl Stage for ValidateStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v8: parse the authored source graph once and reuse its indexed dataset for
+        // SHACL, guidance enrichment, and the abductive union. The optional substrate
+        // A-Box remains validation-only through an explicit dataset union.
         // v6: the advisory tier is HARVESTED — the fixed demonstrator is gone;
         // every ACCEPTED logic:CategoryRecommendation FormalizationCandidate in the
         // source graph projects into a Note finding (→ `graph/diagnostics`) + a
@@ -504,7 +519,7 @@ impl Stage for ValidateStage {
         // corpus so the derived PinAgreement/PinCoverage constraints target it on the
         // production path; the substrate build inputs join the recorded shaclInputDigest.
         // The bump busts the stage cache so the wider corpus is validated on cached inputs.
-        "validate.v7-substrate-abox"
+        "validate.v8-parse-once"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The AUTHORED half of the shape union only — the GENERATED members are
@@ -527,6 +542,7 @@ impl Stage for ValidateStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let mut timings = Vec::new();
         let source_graph = input
             .upstream
             .get("stage-source-load")
@@ -541,6 +557,13 @@ impl Stage for ValidateStage {
             self.id(),
             input.upstream,
         )?;
+        let parse_started = Instant::now();
+        let source_dataset = purrdf::parse_dataset(source_graph, "application/n-quads", None)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("source graph parse: {e}"),
+                })
+            })?;
         // Fold the substrate reconciliation A-Box (issue 1672, F2) into the validated
         // corpus so the derived PinAgreement / PinCoverage constraints have target data on
         // the PRODUCTION validate path (the authored default graph carries none). The A-Box
@@ -550,18 +573,38 @@ impl Stage for ValidateStage {
         // exit code. The real A-Box conforms (all sites agree), so this mints no finding on
         // the normal build; only a disagreeing A-Box fires the constraint.
         let substrate_nt = substrate_abox_from_source_load(input.upstream)?;
-        let combined = if substrate_nt.is_empty() {
-            std::borrow::Cow::Borrowed(source_graph)
+        let validation_dataset = if substrate_nt.is_empty() {
+            Arc::clone(&source_dataset)
         } else {
-            let mut combined = Vec::with_capacity(source_graph.len() + substrate_nt.len() + 1);
-            combined.extend_from_slice(source_graph);
-            if !combined.is_empty() && !combined.ends_with(b"\n") {
-                combined.push(b'\n');
-            }
-            combined.extend_from_slice(substrate_nt.as_bytes());
-            std::borrow::Cow::Owned(combined)
+            let substrate_dataset =
+                purrdf::parse_dataset(substrate_nt.as_bytes(), "application/n-triples", None)
+                    .map_err(|e| {
+                        gmeow_errors::Diag::of_kind(crate::error::Parse {
+                            message: format!("substrate A-Box parse: {e}"),
+                        })
+                    })?;
+            Arc::new(purrdf::RdfDataset::union(&[
+                source_dataset.as_ref(),
+                substrate_dataset.as_ref(),
+            ]))
         };
-        let (mut report, advisories) = validate_source_graph(input.root, &combined, &fresh)?;
+        timings.push(StageRunTiming {
+            phase: "parse-source-once".to_string(),
+            elapsed_ms: parse_started.elapsed().as_millis(),
+            metadata: Some(format!(
+                "source_quads={};validation_quads={}",
+                source_dataset.quad_count(),
+                validation_dataset.quad_count()
+            )),
+        });
+        let shacl_started = Instant::now();
+        let (mut report, advisories) =
+            validate_parsed_source_graph(input.root, validation_dataset.as_ref(), &fresh)?;
+        timings.push(StageRunTiming::new(
+            "fresh-shape-union-and-shacl",
+            shacl_started.elapsed().as_millis(),
+        ));
+        let post_validation_started = Instant::now();
         // Record EXACTLY what this pass validated: the authored source corpus, read
         // from disk, plus the effective shape union — authored members from disk and
         // generated members from THIS run's product bytes (never `generated/shapes` off
@@ -633,14 +676,8 @@ impl Stage for ValidateStage {
         // BOTH the bundle and the subject: `documented_terms` guidance (prose authored
         // directly on ontology terms) still resolves fully, and the rule-governing-term
         // key stays an honest, structurally-guaranteed absence rather than a fabricated
-        // join. No new `consumes()` edge: this is the SAME `stage-source-load` product
-        // already declared.
-        let source_dataset = purrdf::parse_dataset(source_graph, "application/n-quads", None)
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: format!("source graph parse (guidance join): {e}"),
-                })
-            })?;
+        // join. No new `consumes()` edge: this is the SAME parsed
+        // `stage-source-load` product already used by SHACL above.
         gmeow_validate::enrich::enrich_findings(
             &mut report,
             source_dataset.as_ref(),
@@ -845,7 +882,13 @@ impl Stage for ValidateStage {
         Ok(StageOutput {
             product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
             diags: nodes,
-            timings: Vec::new(),
+            timings: {
+                timings.push(StageRunTiming::new(
+                    "post-validation-projections",
+                    post_validation_started.elapsed().as_millis(),
+                ));
+                timings
+            },
         })
     }
 }

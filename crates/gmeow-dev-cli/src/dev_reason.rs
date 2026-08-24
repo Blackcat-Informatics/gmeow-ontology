@@ -16,19 +16,29 @@ use std::time::Instant;
 
 use gmeow_logic::reason::{native_contract_hash, reason_all};
 use gmeow_logic::result::ReasoningResult;
-use gmeow_logic::verify::{verify as verify_reasoned, verify_with_reasoning_result};
+use gmeow_logic::verify::verify_with_reasoning_result;
 
 use crate::dev_common::{
     elapsed_ms, emit_report, fail, note, project_root, snapshot_bytes, write_timings_json,
 };
 use crate::error;
 
-/// Import the committed snapshot into a reasoning dataset.
-fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
+const TELEMETRY_SCHEMA_VERSION: u32 = 1;
+
+/// Import the committed snapshot through the content-keyed graph-preserving dataset
+/// product. The original bytes remain available to the independent frame/profile gates;
+/// this boundary only eliminates repeated container decode/freeze/index work.
+fn snapshot_import(root: &Path) -> Result<gmeow_logic::bundle_import::ImportOutcome, i32> {
     let bytes = snapshot_bytes(root)?;
-    let bundle = purrdf::import_gts_events(&bytes)
-        .map_err(|e| fail(format!("cannot read snapshot: {e}")))?;
-    Ok(bundle.dataset)
+    gmeow_logic::bundle_import::import_graph_preserving_cached(
+        &root.join(".cache/gmeow-bundle-import"),
+        &bytes,
+    )
+    .map_err(|e| fail(format!("cannot read snapshot: {e}")))
+}
+
+fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
+    snapshot_import(root).map(|outcome| outcome.dataset)
 }
 
 /// Recover the exact object-level reasoning EDB from a full shipped snapshot. The
@@ -89,22 +99,35 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
     let root = project_root();
     let started = Instant::now();
-    let dataset = match snapshot_dataset(&root) {
-        Ok(d) => d,
+    let imported = match snapshot_import(&root) {
+        Ok(imported) => imported,
         Err(code) => return code,
     };
-    let (result, phase) = if fresh {
+    let import_work = serde_json::json!({
+        "action_key": imported.receipt.action_key,
+        "source_digest": imported.receipt.source_digest,
+        "source_bytes": imported.receipt.source_bytes,
+        "pack_digest": imported.receipt.pack_digest,
+        "pack_bytes": imported.receipt.pack_bytes,
+        "dataset_quads": imported.receipt.dataset_quads,
+        "named_graphs": imported.receipt.named_graphs,
+    });
+    let import_built = imported.built;
+    let import_transfer_bytes = imported.transferred_bytes;
+    let dataset = imported.dataset;
+    let (result, phase, edb_quads) = if fresh {
         let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
             Ok(edb) => edb,
             Err(code) => return code,
         };
+        let edb_quads = edb.quad_count();
         match reason_all(edb.as_ref()) {
-            Ok(r) => (r, "reason-native"),
+            Ok(r) => (r, "reason-native", Some(edb_quads)),
             Err(e) => return fail(format!("native reasoning failed: {e}")),
         }
     } else {
         match shipped_reasoning_result(dataset.as_ref()) {
-            Ok(r) => (r, "reason-shipped"),
+            Ok(r) => (r, "reason-shipped", None),
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
         }
     };
@@ -115,9 +138,25 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     let ok = result.is_decided_consistent();
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
+            "schema_version": TELEMETRY_SCHEMA_VERSION,
             "command": "reason",
             "mode": "native",
             "ok": ok,
+            "deterministic_work": {
+                "gts_imports": 1,
+                "gts_import": import_work,
+                "closure_constructions": usize::from(fresh),
+                "edb_quads": edb_quads,
+                "inferred_axioms": result.inferred().len(),
+                "budget_consumed": result.provenance.consumed_budget.consumed,
+                "budget_allowance": result.provenance.consumed_budget.allowance,
+                "budget_limit": result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
+            },
+            "observations": {
+                "gts_import_built": import_built,
+                "gts_import_transfer_bytes": import_transfer_bytes,
+                "timings": [{ "phase": phase, "elapsed_ms": elapsed, "metadata": null }],
+            },
             "timings": [{ "phase": phase, "elapsed_ms": elapsed, "metadata": null }],
         });
         let code = write_timings_json(path, &payload);
@@ -169,37 +208,65 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
     let root = project_root();
     let started = Instant::now();
-    let dataset = match snapshot_dataset(&root) {
-        Ok(d) => d,
+    let imported = match snapshot_import(&root) {
+        Ok(imported) => imported,
         Err(code) => return code,
     };
+    let dataset = imported.dataset.clone();
     let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
         Ok(edb) => edb,
         Err(code) => return code,
     };
     let queries = gmeow_logic::verify::embedded_verify_queries();
-    let report = if fresh {
-        match verify_reasoned(edb.as_ref(), &queries) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("native verify failed: {e}")),
+    let result = if fresh {
+        match reason_all(edb.as_ref()) {
+            Ok(result) => result,
+            Err(e) => return fail(format!("native verify reasoning failed: {e}")),
         }
     } else {
-        let result = match shipped_reasoning_result(dataset.as_ref()) {
-            Ok(r) => r,
+        match shipped_reasoning_result(dataset.as_ref()) {
+            Ok(result) => result,
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
-        };
-        match verify_with_reasoning_result(edb.as_ref(), &result, &queries) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("native verify failed: {e}")),
         }
+    };
+    let report = match verify_with_reasoning_result(edb.as_ref(), &result, &queries) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("native verify failed: {e}")),
     };
     let elapsed = elapsed_ms(started);
     emit_report(&report);
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
+            "schema_version": TELEMETRY_SCHEMA_VERSION,
             "command": "verify",
             "mode": "native",
             "ok": report.ok(),
+            "deterministic_work": {
+                "gts_imports": 1,
+                "gts_import": {
+                    "action_key": imported.receipt.action_key,
+                    "source_digest": imported.receipt.source_digest,
+                    "source_bytes": imported.receipt.source_bytes,
+                    "pack_digest": imported.receipt.pack_digest,
+                    "pack_bytes": imported.receipt.pack_bytes,
+                    "dataset_quads": imported.receipt.dataset_quads,
+                    "named_graphs": imported.receipt.named_graphs,
+                },
+                "closure_constructions": usize::from(fresh),
+                "edb_quads": edb.quad_count(),
+                "verify_queries": queries.len(),
+                "inferred_axioms": result.inferred().len(),
+                "budget_consumed": result.provenance.consumed_budget.consumed,
+                "budget_allowance": result.provenance.consumed_budget.allowance,
+                "budget_limit": result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
+                "verify_errors": report.error_count(),
+                "verify_warnings": report.warning_count(),
+            },
+            "observations": {
+                "gts_import_built": imported.built,
+                "gts_import_transfer_bytes": imported.transferred_bytes,
+                "timings": [{ "phase": "verify-native", "elapsed_ms": elapsed, "metadata": null }],
+            },
             "timings": [{ "phase": "verify-native", "elapsed_ms": elapsed, "metadata": null }],
         });
         let code = write_timings_json(path, &payload);
@@ -286,10 +353,11 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     let root = project_root();
     let started = Instant::now();
     let snapshot_started = Instant::now();
-    let dataset = match snapshot_dataset(&root) {
-        Ok(d) => d,
+    let imported = match snapshot_import(&root) {
+        Ok(imported) => imported,
         Err(code) => return code,
     };
+    let dataset = imported.dataset.clone();
     let edb = match snapshot_reasoning_dataset(dataset.as_ref()) {
         Ok(edb) => edb,
         Err(code) => return code,
@@ -317,15 +385,100 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         Ok(evaluation) => evaluation,
         Err(message) => return fail(message),
     };
+    // Grade the producer's two verify projections independently. The query battery
+    // above evaluated the exact EDB/result pair; now re-render its graph and normalized
+    // record and require byte/graph identity with what the single producer shipped.
+    // This never constructs another closure and prevents a stale positive attestation
+    // from passing merely because the typed reasoning result itself is fresh.
+    let verify_record_path =
+        root.join(gmeow_pipeline::stages::verify_attestation::VERIFY_JSON_PATH);
+    let verify_record = match std::fs::read(&verify_record_path) {
+        Ok(bytes) => bytes,
+        Err(error) => {
+            if !evaluation.report.ok() {
+                emit_report(&evaluation.report);
+            }
+            return fail(format!(
+                "cannot read shipped verify record {}: {error}",
+                verify_record_path.display()
+            ));
+        }
+    };
+    let attestation = match gmeow_pipeline::stages::verify_attestation::grade_shipped_attestation(
+        dataset.as_ref(),
+        edb.as_ref(),
+        &evaluation.result,
+        &queries,
+        &evaluation.report,
+        &verify_record,
+    ) {
+        Ok(attestation) => attestation,
+        Err(error) => {
+            if !evaluation.report.ok() {
+                emit_report(&evaluation.report);
+            }
+            return fail(format!("verify attestation freshness failed: {error}"));
+        }
+    };
     let elapsed = elapsed_ms(started);
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
+            "schema_version": TELEMETRY_SCHEMA_VERSION,
             "command": "reason-verify",
             "mode": "native",
             "ok": evaluation.report.ok(),
             "metrics": {
                 "inferred_axioms": evaluation.result.inferred().len(),
                 "verify_errors": evaluation.report.error_count(),
+                "bundle_import_builds": usize::from(imported.built),
+                "bundle_import_bytes": imported.transferred_bytes,
+                "bundle_import_quads": imported.receipt.dataset_quads,
+                "bundle_import_named_graphs": imported.receipt.named_graphs,
+                "closure_constructions": usize::from(fresh),
+                "attestation_closure_constructions": attestation.closure_constructions,
+                "attestation_graph_digest": attestation.graph_digest.clone(),
+                "attestation_record_digest": attestation.record_digest.clone(),
+                "verify_queries": queries.len(),
+                "edb_quads": edb.quad_count(),
+                "budget_consumed": evaluation.result.provenance.consumed_budget.consumed,
+                "budget_allowance": evaluation.result.provenance.consumed_budget.allowance,
+                "budget_limit": evaluation.result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
+            },
+            "deterministic_work": {
+                "gts_imports": 1,
+                "gts_import": {
+                    "action_key": imported.receipt.action_key,
+                    "source_digest": imported.receipt.source_digest,
+                    "source_bytes": imported.receipt.source_bytes,
+                    "pack_digest": imported.receipt.pack_digest,
+                    "pack_bytes": imported.receipt.pack_bytes,
+                    "dataset_quads": imported.receipt.dataset_quads,
+                    "named_graphs": imported.receipt.named_graphs,
+                },
+                "closure_constructions": usize::from(fresh),
+                "attestation": {
+                    "closure_constructions": attestation.closure_constructions,
+                    "graph_digest": attestation.graph_digest,
+                    "record_digest": attestation.record_digest,
+                    "query_count": attestation.query_count,
+                },
+                "verify_queries": queries.len(),
+                "edb_quads": edb.quad_count(),
+                "inferred_axioms": evaluation.result.inferred().len(),
+                "budget_consumed": evaluation.result.provenance.consumed_budget.consumed,
+                "budget_allowance": evaluation.result.provenance.consumed_budget.allowance,
+                "budget_limit": evaluation.result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
+                "verify_errors": evaluation.report.error_count(),
+            },
+            "observations": {
+                "gts_import_built": imported.built,
+                "gts_import_transfer_bytes": imported.transferred_bytes,
+                "timings": [
+                    { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
+                    { "phase": result_phase, "elapsed_ms": evaluation.result_ms, "metadata": null },
+                    { "phase": "verify-native", "elapsed_ms": evaluation.verify_ms, "metadata": null },
+                    { "phase": "reason-verify-total", "elapsed_ms": elapsed, "metadata": null },
+                ],
             },
             "timings": [
                 { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },

@@ -14,7 +14,7 @@ use std::time::Instant;
 use std::time::UNIX_EPOCH;
 
 use gmeow_cli_core::{ConsoleMode, Reporter};
-use gmeow_pipeline::cache::BUILD_FINGERPRINT;
+use gmeow_pipeline::cache::{BUILD_FINGERPRINT, BuildIdentity};
 use gmeow_pipeline::run::{RunMode, RunOutputScope, RunReport, run_full_scoped_with_progress};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -24,7 +24,8 @@ use crate::dev_common::{
 };
 use crate::{SyncMode, SyncOutput};
 
-const MANIFEST_VERSION: u32 = 3;
+const MANIFEST_VERSION: u32 = 4;
+const TELEMETRY_SCHEMA_VERSION: u32 = 2;
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
 /// The HOST-GLOBAL gate-lock path — one GMEOW gate (`make check`, or the single
@@ -152,6 +153,7 @@ struct FileWitness {
 struct SyncManifest {
     version: u32,
     build_fingerprint: String,
+    build_identity: BuildIdentity,
     input_digest: String,
     output: String,
     language: String,
@@ -162,6 +164,10 @@ struct SyncManifest {
     docs_rendered: bool,
     managed_roots: Vec<String>,
     files: Vec<FileWitness>,
+    /// Deterministic fold over `(path, length, sha256)` for every managed output.
+    managed_output_root: String,
+    /// Deterministic topological fold of the producing pipeline's immutable receipts.
+    stage_receipt_root: String,
 }
 
 /// A process-owned advisory lock. A top-level `cargo xtask check` passes its
@@ -347,28 +353,58 @@ pub fn sync(
     if verbose {
         reporter.stage_start("sync:validate-manifest");
     }
-    let manifest_hit = std::fs::read(&manifest_path)
+    let current_manifest = std::fs::read(&manifest_path)
         .ok()
         .and_then(|bytes| serde_json::from_slice::<SyncManifest>(&bytes).ok())
-        .is_some_and(|manifest| {
-            manifest_is_current(&root, &manifest, mode, output, &language, &input_digest)
+        .filter(|manifest| {
+            manifest_is_current(&root, manifest, mode, output, &language, &input_digest)
         });
     if verbose {
         reporter.stage_end("sync:validate-manifest", manifest_started.elapsed());
     }
-    if manifest_hit {
+    if let Some(manifest) = current_manifest {
         println!(
             "sync: clean manifest hit (mode={}, output={}); pipeline and docs skipped",
             mode.as_str(),
             output.as_str()
         );
         if let Some(path) = timings_json {
+            let output_bytes = manifest.files.iter().map(|file| file.len).sum::<u64>();
             let payload = serde_json::json!({
+                "schema_version": TELEMETRY_SCHEMA_VERSION,
                 "command": "sync",
                 "mode": mode.as_str(),
                 "output": output.as_str(),
+                "language": language,
                 "cache_hit": true,
                 "pipeline_runs": 0,
+                "build_identity": manifest.build_identity,
+                "input_digest": manifest.input_digest,
+                "stage_receipt_root": manifest.stage_receipt_root,
+                "managed_output_root": manifest.managed_output_root,
+                "managed_output_count": manifest.files.len(),
+                "managed_output_bytes": output_bytes,
+                "critical_path_ms": 0,
+                "stages": [],
+                "stage_phases": [],
+                "stage_receipts": [],
+                "levels": [],
+                "deterministic_work": {
+                    "input_digest": manifest.input_digest,
+                    "stage_receipt_root": manifest.stage_receipt_root,
+                    "managed_output_root": manifest.managed_output_root,
+                    "managed_output_count": manifest.files.len(),
+                    "managed_output_bytes": output_bytes,
+                    "stage_receipts": [],
+                },
+                "observations": {
+                    "manifest_hit": true,
+                    "pipeline_runs": 0,
+                    "critical_path_ms": 0,
+                    "stages": [],
+                    "stage_phases": [],
+                    "levels": [],
+                },
             });
             let code = write_timings_json(path, &payload);
             if code != 0 {
@@ -460,9 +496,11 @@ pub fn sync(
     if verbose {
         reporter.stage_end("sync:rehash-inputs", final_hash_started.elapsed());
     }
+    let managed_output_root = managed_output_root(&files);
     let manifest = SyncManifest {
         version: MANIFEST_VERSION,
         build_fingerprint: BUILD_FINGERPRINT.to_string(),
+        build_identity: BuildIdentity::current(),
         input_digest: final_input_digest,
         output: output.as_str().to_string(),
         language,
@@ -471,6 +509,8 @@ pub fn sync(
         docs_rendered,
         managed_roots,
         files,
+        managed_output_root,
+        stage_receipt_root: report.stage_receipt_root.clone(),
     };
     let write_manifest_started = Instant::now();
     if verbose {
@@ -499,17 +539,144 @@ pub fn sync(
                 })
             })
             .collect::<Vec<_>>();
+        let stages = report
+            .stage_timings
+            .iter()
+            .map(|stage| {
+                serde_json::json!({
+                    "level": stage.level,
+                    "stage": stage.stage_id,
+                    "elapsed_ms": stage.elapsed_ms,
+                    "cached": stage.cached,
+                    "cache_outcome": stage.cache_outcome,
+                    "cache_read_bytes": stage.cache_read_bytes,
+                    "cache_write_bytes": stage.cache_write_bytes,
+                })
+            })
+            .collect::<Vec<_>>();
+        let levels = report
+            .level_timings
+            .iter()
+            .map(|level| {
+                serde_json::json!({
+                    "level": level.level,
+                    "elapsed_ms": level.elapsed_ms,
+                    "critical_stage": level.critical_stage,
+                })
+            })
+            .collect::<Vec<_>>();
+        let stage_phases = report
+            .stage_phase_timings
+            .iter()
+            .map(|phase| {
+                serde_json::json!({
+                    "stage": phase.stage_id,
+                    "phase": phase.phase,
+                    "elapsed_ms": phase.elapsed_ms,
+                    "work_metadata": phase.metadata,
+                })
+            })
+            .collect::<Vec<_>>();
+        let stage_work = report
+            .stage_phase_timings
+            .iter()
+            .filter_map(|phase| {
+                phase.metadata.as_ref().map(|metadata| {
+                    serde_json::json!({
+                        "stage": phase.stage_id,
+                        "phase": phase.phase,
+                        "work_metadata": metadata,
+                    })
+                })
+            })
+            .collect::<Vec<_>>();
+        let stage_phase_observations = report
+            .stage_phase_timings
+            .iter()
+            .map(|phase| {
+                serde_json::json!({
+                    "stage": phase.stage_id,
+                    "phase": phase.phase,
+                    "elapsed_ms": phase.elapsed_ms,
+                })
+            })
+            .collect::<Vec<_>>();
+        let critical_path_ms = report
+            .level_timings
+            .iter()
+            .map(|level| level.elapsed_ms)
+            .sum::<u128>();
+        let executed_stage_count = report
+            .stage_timings
+            .iter()
+            .filter(|stage| !stage.cached)
+            .count();
+        let hydrated_stage_count = report
+            .stage_timings
+            .iter()
+            .filter(|stage| stage.cached)
+            .count();
+        let cache_read_bytes = report
+            .stage_timings
+            .iter()
+            .map(|stage| stage.cache_read_bytes)
+            .sum::<u64>();
+        let cache_write_bytes = report
+            .stage_timings
+            .iter()
+            .map(|stage| stage.cache_write_bytes)
+            .sum::<u64>();
+        let managed_output_bytes = manifest.files.iter().map(|file| file.len).sum::<u64>();
         let payload = serde_json::json!({
+            "schema_version": TELEMETRY_SCHEMA_VERSION,
             "command": "sync",
             "mode": mode.as_str(),
             "output": output.as_str(),
+            "language": manifest.language,
             "cache_hit": false,
             "pipeline_runs": 1,
+            "build_identity": manifest.build_identity,
+            "input_digest": manifest.input_digest,
+            "stage_receipt_root": manifest.stage_receipt_root,
+            "managed_output_root": manifest.managed_output_root,
+            "managed_output_count": manifest.files.len(),
+            "managed_output_bytes": managed_output_bytes,
+            "executed_stage_count": executed_stage_count,
+            "hydrated_stage_count": hydrated_stage_count,
+            "cache_read_bytes": cache_read_bytes,
+            "cache_write_bytes": cache_write_bytes,
+            "critical_path_ms": critical_path_ms,
             "produced": total_produced,
             "written": total_written,
             "unchanged": total_unchanged,
             "removed": total_removed,
+            "stages": stages,
+            "stage_phases": stage_phases,
+            "stage_receipts": &report.stage_receipts,
+            "levels": levels,
             "timings": timings,
+            "deterministic_work": {
+                "input_digest": manifest.input_digest,
+                "stage_receipt_root": manifest.stage_receipt_root,
+                "managed_output_root": manifest.managed_output_root,
+                "managed_output_count": manifest.files.len(),
+                "managed_output_bytes": managed_output_bytes,
+                "stage_receipts": &report.stage_receipts,
+                "stage_work": stage_work,
+            },
+            "observations": {
+                "manifest_hit": false,
+                "pipeline_runs": 1,
+                "executed_stage_count": executed_stage_count,
+                "hydrated_stage_count": hydrated_stage_count,
+                "cache_read_bytes": cache_read_bytes,
+                "cache_write_bytes": cache_write_bytes,
+                "critical_path_ms": critical_path_ms,
+                "stages": stages,
+                "stage_phases": stage_phase_observations,
+                "levels": levels,
+                "timings": timings,
+            },
         });
         let code = write_timings_json(path, &payload);
         if code != 0 {
@@ -645,12 +812,15 @@ fn manifest_is_current(
 ) -> bool {
     if manifest.version != MANIFEST_VERSION
         || manifest.build_fingerprint != BUILD_FINGERPRINT
+        || manifest.build_identity != BuildIdentity::current()
         || manifest.input_digest != input_digest
         || manifest.output != output.as_str()
         || manifest.language != language
         || (mode == SyncMode::Check && !manifest.strict_checked)
         || (mode == SyncMode::Update && !manifest.materialized)
         || (matches!(output, SyncOutput::All | SyncOutput::Docs) && !manifest.docs_rendered)
+        || manifest.managed_output_root != managed_output_root(&manifest.files)
+        || !is_sha256(&manifest.stage_receipt_root)
     {
         return false;
     }
@@ -686,6 +856,29 @@ fn manifest_is_current(
             .map(|bytes| sha256(&bytes) == witness.sha256)
             .unwrap_or(false)
     })
+}
+
+fn managed_output_root(files: &[FileWitness]) -> String {
+    let mut rows = files
+        .iter()
+        .map(|file| (file.path.as_str(), file.len, file.sha256.as_str()))
+        .collect::<Vec<_>>();
+    rows.sort_unstable();
+    let mut hasher = Sha256::new();
+    hasher.update(b"gmeow:sync-managed-output-root:v1\x1f");
+    for (path, len, digest) in rows {
+        hasher.update(path.as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(len.to_le_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(digest.as_bytes());
+        hasher.update(b"\x1e");
+    }
+    hex(&hasher.finalize())
+}
+
+fn is_sha256(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 fn capture_outputs(
@@ -859,6 +1052,7 @@ mod tests {
         let manifest = SyncManifest {
             version: MANIFEST_VERSION,
             build_fingerprint: BUILD_FINGERPRINT.to_string(),
+            build_identity: BuildIdentity::current(),
             input_digest: "same".to_string(),
             output: SyncOutput::Generated.as_str().to_string(),
             language: "default".to_string(),
@@ -867,6 +1061,8 @@ mod tests {
             docs_rendered: false,
             managed_roots: Vec::new(),
             files: Vec::new(),
+            managed_output_root: managed_output_root(&[]),
+            stage_receipt_root: "0".repeat(64),
         };
         assert!(!manifest_is_current(
             Path::new("/does/not/matter"),
@@ -884,6 +1080,27 @@ mod tests {
             "default",
             "same",
         ));
+    }
+
+    #[test]
+    fn managed_output_root_binds_content_but_not_observational_mtime() {
+        let witness = FileWitness {
+            path: "generated/example".to_string(),
+            len: 3,
+            modified_ns: 1,
+            sha256: sha256(b"one"),
+        };
+        let root = managed_output_root(std::slice::from_ref(&witness));
+        let mut changed_mtime = witness.clone();
+        changed_mtime.modified_ns = 99;
+        assert_eq!(
+            managed_output_root(&[changed_mtime]),
+            root,
+            "mtime is run telemetry, never immutable output identity"
+        );
+        let mut changed_digest = witness;
+        changed_digest.sha256 = sha256(b"two");
+        assert_ne!(managed_output_root(&[changed_digest]), root);
     }
 
     #[test]

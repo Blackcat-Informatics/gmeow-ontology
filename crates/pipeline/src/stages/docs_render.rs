@@ -18,7 +18,7 @@ use gmeow_docs::model::{
 use gmeow_docs::rdf::to_gmeow_rdf;
 use purrdf::RdfTerm;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the documentation named graph (N-Quads, in-memory dataflow).
 pub const DOCS_GRAPH_PATH: &str = "pipeline/documentation.nq";
@@ -929,6 +929,11 @@ impl Stage for DocsRenderStage {
     /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
     fn attaches_blob_reps(&self) -> &[String] {
         crate::stages::attach::blob_reps(self.id())
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 241.6 MB serialized for a ~6.1 s rebuild. Hydration
+        // cannot amortize the disk/RSS cost, so the typed DAG keeps it recompute-only.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         // v9: the per-term content-address manifest (definition digest + first-seen

@@ -10,15 +10,18 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use crate::cache::{PipelineCache, stage_key};
+use crate::cache::{
+    PipelineCache, RawInputDigest, ReceiptOutputSelection, StageInputDigest, StageKeyContext,
+    stage_key,
+};
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
     CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
-    StageProduct,
+    StageProduct, StageStability,
 };
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
-use crate::scheduler::{RunContext, run};
+use crate::scheduler::{RunContext, dependency_closure, run, run_targets};
 use gmeow_cli_core::Reporter;
 use gmeow_errors::Report;
 
@@ -49,6 +52,8 @@ fn spec(id: &str, consumes: &[&str]) -> StageSpec {
         impl_key: format!("impl:{id}"),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: resources_for(id),
+        stability: StageStability::StablePrefix,
+        cache_disposition: CachePolicy::Persistent,
         dataflow_entities: Vec::new(),
         formats: Vec::new(),
         attaches_graphs: Vec::new(),
@@ -335,16 +340,22 @@ gmeow:pipeline-test a gmeow:Pipeline ;
 
 gmeow:stageSource a gmeow:PipelineStage ;
     gmeow:hasCapability gmeow:sourceOrigin ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:stageImpl "source_load" .
 
 gmeow:stageReason a gmeow:PipelineStage ;
     gmeow:stageImpl "reason" ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ;
     gmeow:dataflowConsumes gmeow:stageSource ;
     gmeow:requiresResource gmeow:engineResource .
 
 gmeow:stageSink a gmeow:PipelineStage ;
     gmeow:hasCapability gmeow:sinkCapability ;
     gmeow:stageImpl "gts_sink" ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:dataflowConsumes gmeow:stageReason ;
     gmeow:producesFormat "gts" .
 "#;
@@ -372,21 +383,113 @@ fn turtle_dag_round_trips_and_validates() {
     assert_eq!(g.order(), vec!["stageSource", "stageReason", "stageSink"]);
 }
 
+#[test]
+fn stage_cache_declarations_fail_closed() {
+    let missing = DAG_TTL.replacen(
+        "    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;\n",
+        "",
+        1,
+    );
+    let err = PipelineSpec::from_turtle(&[&missing]).expect_err("missing disposition must fail");
+    assert!(
+        err.to_string()
+            .contains("must declare exactly one gmeow:stageCacheDisposition; found 0")
+    );
+
+    let unknown = DAG_TTL.replacen("gmeow:cachePersistentContribution", "gmeow:cacheUnknown", 1);
+    let err = PipelineSpec::from_turtle(&[&unknown]).expect_err("unknown disposition must fail");
+    assert!(
+        err.to_string()
+            .contains("unknown gmeow:stageCacheDisposition value")
+    );
+
+    let multiple = DAG_TTL.replacen(
+        "gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;",
+        "gmeow:stageCacheDisposition gmeow:cachePersistentContribution, gmeow:cacheRecomputeAggregate ;",
+        1,
+    );
+    let err = PipelineSpec::from_turtle(&[&multiple]).expect_err("multiple dispositions must fail");
+    assert!(
+        err.to_string()
+            .contains("must declare exactly one gmeow:stageCacheDisposition; found 2")
+    );
+
+    let missing_stability = DAG_TTL.replacen(
+        "    gmeow:stageStability gmeow:stabilityStablePrefix ;\n",
+        "",
+        1,
+    );
+    let err =
+        PipelineSpec::from_turtle(&[&missing_stability]).expect_err("missing stability must fail");
+    assert!(
+        err.to_string()
+            .contains("must declare exactly one gmeow:stageStability; found 0")
+    );
+}
+
 // ── Cache key ─────────────────────────────────────────────────────────────────
 
 #[test]
-fn stage_key_is_deterministic_and_order_sensitive() {
-    let k1 = stage_key("s", "v1", &["aa".into(), "bb".into()], None);
-    let k2 = stage_key("s", "v1", &["aa".into(), "bb".into()], None);
+fn stage_key_is_deterministic_and_structurally_sensitive() {
+    let input = |producer: &str, entity: Option<&str>, digest: &str| StageInputDigest {
+        producer: producer.to_string(),
+        entity: entity.map(str::to_owned),
+        digest: digest.to_string(),
+    };
+    let context = |version: &str, upstream: Vec<StageInputDigest>, raw_inputs| {
+        StageKeyContext::new("s", version, upstream, raw_inputs)
+    };
+    let c1 = context(
+        "v1",
+        vec![input("left", None, "aa"), input("right", None, "bb")],
+        Vec::new(),
+    );
+    let k1 = stage_key(&c1);
+    let k2 = stage_key(&c1);
     assert_eq!(k1, k2, "same inputs → same key");
 
-    let k3 = stage_key("s", "v1", &["bb".into(), "aa".into()], None);
-    assert_ne!(k1, k3, "upstream digest order matters (caller sorts)");
+    let reordered = context(
+        "v1",
+        vec![input("right", None, "bb"), input("left", None, "aa")],
+        Vec::new(),
+    );
+    assert_eq!(k1, stage_key(&reordered), "typed rows sort canonically");
 
-    let k4 = stage_key("s", "v2", &["aa".into(), "bb".into()], None);
+    let swapped = context(
+        "v1",
+        vec![input("left", None, "bb"), input("right", None, "aa")],
+        Vec::new(),
+    );
+    assert_ne!(
+        k1,
+        stage_key(&swapped),
+        "swapping digests between producers changes the key"
+    );
+    let entity = context(
+        "v1",
+        vec![
+            input("left", Some("http://example.org/entity"), "aa"),
+            input("right", None, "bb"),
+        ],
+        Vec::new(),
+    );
+    assert_ne!(k1, stage_key(&entity), "entity marker changes the key");
+
+    let k4 = stage_key(&context(
+        "v2",
+        vec![input("left", None, "aa"), input("right", None, "bb")],
+        Vec::new(),
+    ));
     assert_ne!(k1, k4, "impl version bump changes the key");
 
-    let k5 = stage_key("s", "v1", &["aa".into(), "bb".into()], Some("src"));
+    let k5 = stage_key(&context(
+        "v1",
+        vec![input("left", None, "aa"), input("right", None, "bb")],
+        vec![RawInputDigest {
+            path: "source.ttl".to_string(),
+            digest: "src".to_string(),
+        }],
+    ));
     assert_ne!(k1, k5, "source digest changes the key");
 }
 
@@ -395,30 +498,50 @@ fn stage_key_is_deterministic_and_order_sensitive() {
 #[test]
 fn cache_round_trips() {
     let dir = tempfile::tempdir().unwrap();
-    let mut c = PipelineCache::open(dir.path().join("c")).unwrap();
+    let c = PipelineCache::open(dir.path().join("c")).unwrap();
     assert!(c.is_empty());
     let p = StageProduct::new("s", "abc123");
-    c.put("key1", &p).unwrap();
+    let context = StageKeyContext::new("s", "v1", Vec::new(), Vec::new());
+    c.put(
+        &context,
+        "stable",
+        "persistent",
+        &ReceiptOutputSelection::default(),
+        &p,
+    )
+    .unwrap();
     assert_eq!(c.len(), 1);
     // `StageProduct`'s carrier (`Arc<PipelineBundle>`) has no value equality, so
     // compare by the persisted fields: id, digest, and the byte-artifact lane.
-    let got = c.get("key1").unwrap().expect("cached product round-trips");
-    assert_eq!(got.stage_id, p.stage_id);
-    assert_eq!(got.digest, p.digest);
-    assert_eq!(got.artifacts(), p.artifacts());
-    assert!(c.get("absent").unwrap().is_none());
+    let got = c
+        .get(&context)
+        .unwrap()
+        .expect("cached product round-trips");
+    assert_eq!(got.product.stage_id, p.stage_id);
+    assert_eq!(got.product.digest, p.digest);
+    assert_eq!(got.product.artifacts(), p.artifacts());
+    let absent = StageKeyContext::new("absent", "v1", Vec::new(), Vec::new());
+    assert!(c.get(&absent).unwrap().is_none());
 
-    // Reopening the same dir recovers the index (persistence).
+    // Reopening the same dir recovers the immutable receipt (persistence).
     let c2 = PipelineCache::open(dir.path().join("c")).unwrap();
-    assert_eq!(c2.get("key1").unwrap().unwrap().digest, "abc123");
+    assert_eq!(c2.get(&context).unwrap().unwrap().product.digest, "abc123");
 }
 
 #[test]
 fn cache_hard_fails_on_corruption() {
     let dir = tempfile::tempdir().unwrap();
     let cdir = dir.path().join("c");
-    let mut c = PipelineCache::open(&cdir).unwrap();
-    c.put("key1", &StageProduct::new("s", "abc123")).unwrap();
+    let c = PipelineCache::open(&cdir).unwrap();
+    let context = StageKeyContext::new("s", "v1", Vec::new(), Vec::new());
+    c.put(
+        &context,
+        "stable",
+        "persistent",
+        &ReceiptOutputSelection::default(),
+        &StageProduct::new("s", "abc123"),
+    )
+    .unwrap();
 
     // Corrupt the blob: append a byte so its re-hash no longer matches the index.
     // The on-disk store lives under the version-segmented `v<CACHE_VERSION>` leaf.
@@ -433,7 +556,7 @@ fn cache_hard_fails_on_corruption() {
     }
     // No silent repair — a corrupt entry is a hard failure.
     assert!(
-        c.get("key1")
+        c.get(&context)
             .unwrap_err()
             .is::<crate::error::CacheMismatch>()
     );
@@ -465,6 +588,7 @@ struct ComputeStage {
     capabilities: Vec<String>,
     consumes: Vec<String>,
     resources: Vec<String>,
+    stability: StageStability,
     cache_policy: CachePolicy,
     runs: Arc<AtomicUsize>,
 }
@@ -481,6 +605,9 @@ impl Stage for ComputeStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn stability(&self) -> StageStability {
+        self.stability
     }
     fn cache_policy(&self) -> CachePolicy {
         self.cache_policy
@@ -511,6 +638,7 @@ fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegist
                 capabilities: s.capabilities.clone(),
                 consumes: s.consumes.clone(),
                 resources: s.resources.clone(),
+                stability: s.stability,
                 cache_policy: CachePolicy::Persistent,
                 runs: Arc::clone(runs),
             }) as Arc<dyn Stage>,
@@ -577,6 +705,35 @@ fn scheduler_streams_each_stage_to_an_explicit_progress_sink() {
 }
 
 #[test]
+fn target_run_executes_exactly_the_declared_dependency_closure() {
+    use std::collections::BTreeSet;
+
+    let spec = reason_diamond();
+    let graph = spec.validate().unwrap();
+    let runs = Arc::new(AtomicUsize::new(0));
+    let registry = compute_registry(&spec, &runs);
+    let bound = bind(&spec, &graph, &registry).unwrap();
+    let targets = BTreeSet::from(["a".to_string()]);
+    assert_eq!(
+        dependency_closure(&bound, &targets).unwrap(),
+        BTreeSet::from(["a".to_string(), "source".to_string()])
+    );
+
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open(dir.path(), 4).unwrap();
+    let result = run_targets(&graph, &bound, &mut ctx, &targets).unwrap();
+    assert_eq!(
+        result.products.keys().cloned().collect::<BTreeSet<_>>(),
+        dependency_closure(&bound, &targets).unwrap()
+    );
+    assert_eq!(runs.load(Ordering::SeqCst), 2);
+
+    let unknown = BTreeSet::from(["ghost".to_string()]);
+    assert!(dependency_closure(&bound, &unknown).is_err());
+    assert!(dependency_closure(&bound, &BTreeSet::new()).is_err());
+}
+
+#[test]
 fn scheduler_runs_diamond_and_caches() {
     let s = reason_diamond();
     let g = s.validate().unwrap();
@@ -607,13 +764,23 @@ fn scheduler_runs_diamond_and_caches() {
         first.combined_digest, second.combined_digest,
         "warm-cache run is identical"
     );
+    assert_eq!(
+        first.stage_receipts, second.stage_receipts,
+        "hit/miss observations never enter immutable receipts"
+    );
+    assert_eq!(
+        first.receipt_root, second.receipt_root,
+        "cold and warm topological receipt roots are identical"
+    );
 }
 
 #[test]
 fn recompute_policy_reruns_the_stage_but_keeps_downstream_cache_hits() {
+    let mut source = spec("source", &[]);
+    source.cache_disposition = CachePolicy::Recompute;
     let spec = PipelineSpec {
         id: "recompute-policy".to_owned(),
-        stages: vec![spec("source", &[]), spec("sink", &["source"])],
+        stages: vec![source, spec("sink", &["source"])],
     };
     let graph = spec.validate().unwrap();
     let runs = Arc::new(AtomicUsize::new(0));
@@ -626,6 +793,7 @@ fn recompute_policy_reruns_the_stage_but_keeps_downstream_cache_hits() {
                 capabilities: stage.capabilities.clone(),
                 consumes: stage.consumes.clone(),
                 resources: stage.resources.clone(),
+                stability: stage.stability,
                 cache_policy: if stage.id == "source" {
                     CachePolicy::Recompute
                 } else {
@@ -650,6 +818,41 @@ fn recompute_policy_reruns_the_stage_but_keeps_downstream_cache_hits() {
             .map(|timing| (timing.stage_id.as_str(), timing.cached))
             .collect::<Vec<_>>(),
         vec![("source", false), ("sink", true)]
+    );
+}
+
+#[test]
+fn unstable_stage_never_reads_or_writes_the_persistent_cache() {
+    let mut source = spec("source", &[]);
+    source.stability = StageStability::PerTurnVariance;
+    let spec = PipelineSpec {
+        id: "unstable-policy".to_owned(),
+        stages: vec![source, spec("sink", &["source"])],
+    };
+    let graph = spec.validate().unwrap();
+    let runs = Arc::new(AtomicUsize::new(0));
+    let registry = compute_registry(&spec, &runs);
+    let bound = bind(&spec, &graph, &registry).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open(dir.path(), 2).unwrap();
+
+    let cold = run(&graph, &bound, &mut ctx).unwrap();
+    let warm = run(&graph, &bound, &mut ctx).unwrap();
+
+    assert_eq!(runs.load(Ordering::SeqCst), 3, "source reruns; sink hits");
+    assert_eq!(cold.combined_digest, warm.combined_digest);
+    assert_eq!(
+        warm.stage_timings
+            .iter()
+            .map(|timing| {
+                (
+                    timing.stage_id.as_str(),
+                    timing.cached,
+                    timing.cache_outcome.as_str(),
+                )
+            })
+            .collect::<Vec<_>>(),
+        vec![("source", false, "bypass:unstable"), ("sink", true, "hit")]
     );
 }
 
@@ -1345,6 +1548,11 @@ fn retention_chain() -> PipelineSpec {
         impl_key: format!("impl:{id}"),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
         resources: Vec::new(),
+        stability: StageStability::StablePrefix,
+        // This fixture isolates carrier lifetime. Its Rust twin intentionally
+        // recomputes, so the RDF half must make the same declaration and let the
+        // binding parity gate remain load-bearing.
+        cache_disposition: CachePolicy::Recompute,
         dataflow_entities: Vec::new(),
         formats: Vec::new(),
         attaches_graphs: vec![watch_graph(id)],

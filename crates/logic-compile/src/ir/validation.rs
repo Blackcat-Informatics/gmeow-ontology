@@ -38,7 +38,9 @@ fn key_list<I: IntoIterator<Item = String>>(items: I) -> String {
 }
 
 /// The focus-node selector of a [`ValidationShapeIr`].
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum ShapeTarget {
     /// Focus nodes are instances of this class IRI (`sh:targetClass`).
     Class(String),
@@ -96,7 +98,9 @@ impl ShapeTarget {
 }
 
 /// The `sh:nodeKind` vocabulary (verbatim SHACL local names).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum ShaclNodeKind {
     /// `sh:IRI`.
     Iri,
@@ -128,7 +132,9 @@ impl ShaclNodeKind {
 
 /// The `sh:severity` vocabulary (verbatim SHACL local names). Carried per property shape so
 /// a projected surface reproduces the authored severity of a shape a bespoke renderer emitted.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum ShaclSeverity {
     /// `sh:Violation` (the SHACL default).
     Violation,
@@ -162,7 +168,9 @@ impl ShaclSeverity {
 }
 
 /// A single member of a closed value set (`sh:in`): an IRI or a typed/lang literal.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum ShapeValue {
     /// An IRI term.
     Iri(String),
@@ -202,7 +210,9 @@ impl ShapeValue {
 /// meaning — it is never claimed exact. An OPT/ADL-native constraint
 /// (`occurrences`/`existence`/magnitude) is natively **closed-world**, so it may be
 /// discharged exactly. See `design/LOGIC-VALIDATION.md` ("Where the loss is").
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum ConstraintProvenance {
     /// Lifted from an OWL cardinality/restriction axiom (open-world source).
     OwlRestriction,
@@ -222,7 +232,7 @@ impl ConstraintProvenance {
 
 /// A value-level constraint component on a property shape. The **closed** sum covers the
 /// SHACL Core / ShEx-expressible fragment plus the ADL2/OPT constraint node kinds.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum ConstraintComponent {
     /// A numeric interval. Bounds are optional (half-open intervals are admissible);
     /// each `*_inclusive` selects the SHACL facet
@@ -560,7 +570,7 @@ impl ConstraintComponent {
 
 /// A property shape: the closed-world constraints on the values reachable via one
 /// predicate path (`sh:PropertyShape`).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PropertyConstraintIr {
     /// The predicate IRI this property shape constrains (`sh:path`).
     pub path: String,
@@ -782,7 +792,7 @@ impl PropertyConstraintIr {
 /// A named closed-world validation shape (`logic:ValidationShape`): the canonical form the
 /// SHACL Core and ShEx surfaces project from. Identity is the content-addressed
 /// [`Self::content_key`]; the `iri` is the sort key.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ValidationShapeIr {
     /// IRI string of the shape individual (identity / sort key).
     pub iri: String,

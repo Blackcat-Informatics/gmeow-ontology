@@ -82,6 +82,9 @@ impl GtsSinkStage {
                 // The ORDERING it used to carry is unchanged: `stage-archive-blobs`
                 // consumes `stage-statements`, and the sink consumes that.
                 "stage-validate".to_string(),
+                // The normalized verify receipt is an opaque generated-fanout member;
+                // graph/verify itself already rides in the snapshot carrier.
+                "stage-verify-attestation".to_string(),
                 // The opaque fanout members ride in from their producing export leaves
                 // (each rendered once, in the leaf); `collect_fanout_opaque_members` reads them
                 // off these products instead of re-rendering from disk (§3.2/§4).
@@ -151,7 +154,9 @@ impl Stage for GtsSinkStage {
         // two byte projections and the two non-RDF terminology surfaces — which now ride
         // `statements-archive` / `lang-projections-archive`. The emitted bytes and the
         // emitted `opaque` fanout manifest both change, so the key moves.
-        "gts_sink.v7-statements-and-terminology-off-the-opaque-archive"
+        // v8: fold the dedicated verify stage's normalized JSON receipt into the
+        // generated-opaque archive; graph/verify continues to ride in the snapshot.
+        "gts_sink.v8-dedicated-verify-receipt"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
@@ -384,6 +389,13 @@ mod tests {
             b"".to_vec(),
         );
         let validate = StageProduct::from_artifacts("stage-validate", validate_artifacts);
+        let verify = StageProduct::from_artifacts(
+            "stage-verify-attestation",
+            BTreeMap::from([(
+                crate::stages::verify_attestation::VERIFY_JSON_PATH.to_string(),
+                b"{\"metadata\":{\"closureConstructions\":0}}\n".to_vec(),
+            )]),
+        );
 
         // The generated shape surfaces are required products (fail-closed):
         // REP_SHAPES folds them from the in-memory products, never a disk read.
@@ -490,6 +502,7 @@ mod tests {
         upstream.insert("stage-source-load".to_string(), source_load);
         upstream.insert("stage-statements".to_string(), statements);
         upstream.insert("stage-validate".to_string(), validate);
+        upstream.insert("stage-verify-attestation".to_string(), verify);
         upstream.insert("stage-export-result-shapes".to_string(), result_shapes);
         upstream.insert("stage-export-frame-shapes".to_string(), frame_shapes);
         upstream.insert(

@@ -15,6 +15,7 @@
 //! — the determinism the P2 tests pin.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::io::Read as _;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Duration;
@@ -24,9 +25,12 @@ use purrdf::provenance::DatasetProvenance;
 use rayon::prelude::*;
 
 use crate::bundle::set_bundle_provenance;
-use crate::cache::{PipelineCache, content_digest, stage_key};
+use crate::cache::{
+    PipelineCache, RawInputDigest, ReceiptOutputSelection, StageInputDigest, StageKeyContext,
+    StageReceipt, content_digest,
+};
 use crate::graph::StageGraph;
-use crate::node::{CachePolicy, Stage, StageInput, StageProduct, StageRunTiming};
+use crate::node::{CachePolicy, Stage, StageInput, StageProduct, StageRunTiming, StageStability};
 use crate::provenance::register_stage_unit;
 
 /// The process-wide registry of per-resource mutexes. A stage that declares a
@@ -99,6 +103,10 @@ pub struct RunContext {
     pub cache: PipelineCache,
     /// Whether stage cache reads and writes are enabled for this run.
     pub stage_cache_enabled: bool,
+    /// Whether deterministic stage receipts are produced. It is disabled together
+    /// with the legacy full-run inert boundary so this foundational change cannot add
+    /// receipt work to that path before bounded RDF admission is enabled.
+    pub stage_receipts_enabled: bool,
     /// Optional live stage-progress sink. Absent by default; `sync --verbose`
     /// supplies one explicitly.
     pub progress: Option<Arc<dyn Reporter>>,
@@ -125,29 +133,23 @@ impl RunContext {
     /// Construct a run context rooted at `root` with `jobs` parallelism, opening the
     /// persistent cache under `.cache/gmeow-sync/pipeline/<build-fingerprint>/`.
     ///
-    /// The cache is namespaced by [`crate::cache::BUILD_FINGERPRINT`] and any SIBLING
-    /// fingerprint directory is garbage-collected on open. Because every cache key also
-    /// embeds the fingerprint, a code/dependency/toolchain change orphans the whole
-    /// prior cache; GC-ing it bounds disk to a single build's products instead of
-    /// growing unbounded across edits.
+    /// The cache is namespaced by [`crate::cache::BUILD_FINGERPRINT`]. Opening it keeps
+    /// the current and newest prior namespace and reaps only older IDLE siblings; a
+    /// shared namespace lease protects concurrent work. Every action key also embeds
+    /// the fingerprint, so code/dependency/toolchain changes cannot serve an older
+    /// executable's product.
     pub fn open(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
         let base = PipelineCache::default_dir(&root);
         let fp = &crate::cache::BUILD_FINGERPRINT[..16];
-        // GC stale fingerprint namespaces (best-effort: a missing base dir is fine).
-        if let Ok(entries) = std::fs::read_dir(&base) {
-            for entry in entries.flatten() {
-                if entry.file_name().to_string_lossy() != *fp {
-                    let _ = std::fs::remove_dir_all(entry.path());
-                }
-            }
-        }
         let cache = PipelineCache::open(base.join(fp))?;
+        PipelineCache::prune_namespaces(&base, fp, 2)?;
         Ok(Self {
             root,
             jobs: jobs.max(1),
             cache,
             stage_cache_enabled: true,
+            stage_receipts_enabled: true,
             progress: None,
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
@@ -161,9 +163,9 @@ impl RunContext {
     /// directory rather than the persistent `.cache/gmeow-sync/pipeline/`.
     ///
     /// Used by tests that want a clean, isolated cache per run (no cross-test or
-    /// cross-invocation reuse). The full build ([`crate::run::run_full`]) uses
-    /// [`Self::open_uncached`] because cumulative carrier snapshots are the wrong
-    /// persistence boundary; unified sync owns whole-run reuse instead.
+    /// cross-invocation reuse). The full build ([`crate::run::run_full`]) uses the
+    /// persistent boundary with DAG-declared admission; its cumulative aggregates are
+    /// explicitly recompute-only.
     ///
     /// The directory is a [`tempfile::TempDir`] OWNED by the returned context, so it
     /// is removed when the run ends — including on error and on panic. It is
@@ -184,6 +186,7 @@ impl RunContext {
             jobs: jobs.max(1),
             cache,
             stage_cache_enabled: true,
+            stage_receipts_enabled: true,
             progress: None,
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
@@ -193,15 +196,16 @@ impl RunContext {
 
     /// Construct a context with no per-stage cache I/O.
     ///
-    /// Full repository synchronization uses this boundary because its stage
-    /// products are cumulative carrier snapshots. Persisting them multiplies disk
-    /// and hydration work; a whole-run clean manifest is the profitable cache.
+    /// This remains an explicit diagnostic/test boundary. Full repository
+    /// synchronization uses [`Self::open`] so independently bounded contributions can
+    /// be reused; cumulative aggregates stay out through their DAG declarations.
     pub fn open_uncached(root: impl Into<PathBuf>, jobs: usize) -> Self {
         Self {
             root: root.into(),
             jobs: jobs.max(1),
             cache: PipelineCache::inert(),
             stage_cache_enabled: false,
+            stage_receipts_enabled: false,
             progress: None,
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
@@ -235,6 +239,10 @@ pub struct RunResult {
     pub stage_phase_timings: Vec<StagePhaseTiming>,
     /// Per-level critical-stage timings in topological level order.
     pub level_timings: Vec<LevelTiming>,
+    /// Deterministic stage receipts in topological commit order.
+    pub stage_receipts: Vec<StageReceipt>,
+    /// Content root over `(stage id, receipt digest)` in that same order.
+    pub receipt_root: String,
     /// The run-level diagnostic ledger: the FORWARD fold of every stage's emitted
     /// `DiagNode`s (each producer's report findings, projected once). It is built by
     /// replaying each stage's `diags` (fresh run) or its cache-restored
@@ -256,6 +264,13 @@ pub struct StageTiming {
     pub elapsed_ms: u128,
     /// Whether the product came from the persistent stage cache.
     pub cached: bool,
+    /// Stable observational outcome label (`hit`, `miss:not-found`, or an explicit
+    /// bypass reason). This is telemetry and never part of a receipt.
+    pub cache_outcome: String,
+    /// Serialized bytes read while hydrating a hit.
+    pub cache_read_bytes: u64,
+    /// Serialized bytes published for a cold persistent result.
+    pub cache_write_bytes: u64,
 }
 
 /// One internal phase timing qualified by its producing stage.
@@ -286,7 +301,7 @@ pub struct LevelTiming {
 /// product can be persisted after the parallel phase of its level.
 struct StageRun {
     id: String,
-    key: String,
+    key_context: StageKeyContext,
     product: StageProduct,
     cached: bool,
     /// Wall-clock spent in [`exec_stage`] for this stage (compute + cache probe).
@@ -297,6 +312,11 @@ struct StageRun {
     diags: Vec<gmeow_errors::DiagNode>,
     /// Internal phase telemetry from a cache-miss execution.
     timings: Vec<StageRunTiming>,
+    receipt: Option<StageReceipt>,
+    output_selection: ReceiptOutputSelection,
+    cache_outcome: String,
+    cache_read_bytes: u64,
+    cache_write_bytes: u64,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -307,6 +327,61 @@ pub fn run(
     ctx: &mut RunContext,
 ) -> Result<RunResult, gmeow_errors::Diag> {
     run_without(graph, bound, ctx, &BTreeSet::new())
+}
+
+/// Compute the exact transitive producer closure required to build `targets`.
+///
+/// The returned set includes every target and every stage reachable through its
+/// declared [`Stage::consumes`] edges. An unknown target hard-fails; an empty target
+/// set is not a selected operation and therefore also hard-fails.
+pub fn dependency_closure(
+    bound: &[Arc<dyn Stage>],
+    targets: &BTreeSet<String>,
+) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+    if targets.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "<scheduler>".to_string(),
+            message: "dependency closure requires at least one target stage".to_string(),
+        }));
+    }
+    let by_id: BTreeMap<&str, &Arc<dyn Stage>> =
+        bound.iter().map(|stage| (stage.id(), stage)).collect();
+    let mut closure = BTreeSet::new();
+    let mut pending: Vec<String> = targets.iter().cloned().collect();
+    while let Some(stage_id) = pending.pop() {
+        if !closure.insert(stage_id.clone()) {
+            continue;
+        }
+        let stage = by_id.get(stage_id.as_str()).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "<scheduler>".to_string(),
+                message: format!("dependency closure names unknown target stage {stage_id}"),
+            })
+        })?;
+        pending.extend(stage.consumes().iter().cloned());
+    }
+    Ok(closure)
+}
+
+/// Run exactly the dependency closure needed to produce `targets`.
+///
+/// This is the fixture/partial-DAG counterpart to [`run`]. It uses the same bound
+/// stages, scheduler action keys, receipts, cache dispositions, resource permits, and
+/// attach checks; only stages outside the mechanically derived ancestor closure are
+/// omitted.
+pub fn run_targets(
+    graph: &StageGraph,
+    bound: &[Arc<dyn Stage>],
+    ctx: &mut RunContext,
+    targets: &BTreeSet<String>,
+) -> Result<RunResult, gmeow_errors::Diag> {
+    let closure = dependency_closure(bound, targets)?;
+    let skip: BTreeSet<String> = graph
+        .order()
+        .into_iter()
+        .filter(|stage| !closure.contains(stage))
+        .collect();
+    run_without(graph, bound, ctx, &skip)
 }
 
 /// Run the pipeline with a DECLARED set of stages omitted, returning the products of
@@ -375,6 +450,7 @@ pub fn run_without(
     // (level_index, slowest-stage ms in the level, slowest-stage id): the sum of the
     // per-level maxima is the critical-path floor the level-barrier scheduler imposes.
     let mut level_timings: Vec<LevelTiming> = Vec::new();
+    let mut stage_receipts: Vec<StageReceipt> = Vec::new();
     // The run-wide FORWARD diagnostics ledger: each stage's `diags` (fresh or cache-
     // restored) are replayed here in the sequential commit phase. `replay` hash-conses
     // by content-addressed fingerprint, so the folded ledger is byte-identical
@@ -451,9 +527,30 @@ pub fn run_without(
             let stage = by_id[r.id.as_str()];
             if ctx.stage_cache_enabled
                 && !r.cached
+                && stage.stability() == StageStability::StablePrefix
                 && stage.cache_policy() == CachePolicy::Persistent
             {
-                ctx.cache.put(&r.key, &r.product)?;
+                let receipt = ctx.cache.put(
+                    &r.key_context,
+                    stage.stability().iri(),
+                    stage.cache_policy().iri(),
+                    &r.output_selection,
+                    &r.product,
+                )?;
+                r.cache_write_bytes = receipt.product_blob_bytes;
+                r.receipt = Some(receipt);
+            }
+            if ctx.stage_receipts_enabled && r.receipt.is_none() {
+                r.receipt = Some(PipelineCache::receipt_only(
+                    &r.key_context,
+                    stage.stability().iri(),
+                    stage.cache_policy().iri(),
+                    &r.output_selection,
+                    &r.product,
+                )?);
+            }
+            if let Some(receipt) = r.receipt.clone() {
+                stage_receipts.push(receipt);
             }
             // Fold this stage's forward diagnostic nodes into the run-wide ledger.
             run_ledger.replay(std::mem::take(&mut r.diags));
@@ -481,6 +578,9 @@ pub fn run_without(
                 stage_id: r.id.clone(),
                 elapsed_ms: r.elapsed_ms,
                 cached: r.cached,
+                cache_outcome: r.cache_outcome,
+                cache_read_bytes: r.cache_read_bytes,
+                cache_write_bytes: r.cache_write_bytes,
             });
             stage_phase_timings.extend(r.timings.drain(..).map(|timing| StagePhaseTiming {
                 stage_id: r.id.clone(),
@@ -573,12 +673,15 @@ pub fn run_without(
     }
 
     let combined_digest = combined(&products);
+    let receipt_root = combined_receipts(&stage_receipts);
     Ok(RunResult {
         products,
         combined_digest,
         stage_timings,
         stage_phase_timings,
         level_timings,
+        stage_receipts,
+        receipt_root,
         ledger: run_ledger,
     })
 }
@@ -638,8 +741,9 @@ fn exec_stage(
         upstream.insert(dep.clone(), p.clone());
     }
 
-    // Cache key = build fingerprint ++ id ++ impl_version ++ sorted(upstream digests)
-    // ++ the content digest of any RAW source files the stage declares via `input_files`
+    // Cache key = the typed action context: build/toolchain/target/profile/features,
+    // stage/implementation/codec identity, producer-qualified whole/entity inputs,
+    // and each declared RAW source path+digest.
     // (export leaves that read non-fold sources — references.ttl, the eval corpus, the
     // slice manifests — declare them there so a source change busts the cache;
     // cache soundness for stages that legitimately consume nothing).
@@ -651,37 +755,13 @@ fn exec_stage(
     // to nothing: it stays a whole-product dependency (the sound default). Narrowing
     // can only ever REMOVE inputs from the key for graphs the stage provably ignores;
     // the loader's DataFlow agreement is what guarantees the declaration is honest.
-    let entities: BTreeMap<&str, &[String]> = stage
-        .consumed_entities()
-        .iter()
-        .map(|(producer, ents)| (producer.as_str(), ents.as_slice()))
-        .collect();
-    let mut up_digests: Vec<String> = Vec::new();
-    for (dep, product) in &upstream {
-        match entities.get(dep.as_str()) {
-            Some(ents) if !ents.is_empty() => {
-                // Fold each consumed named graph's canonical content digest.
-                for graph in *ents {
-                    up_digests.push(product.bundle().graph_digest(graph).to_hex());
-                }
-            }
-            _ => up_digests.push(product.digest.clone()),
-        }
-    }
-    up_digests.sort();
-    let source_digest = input_files_digest(stage, root)?;
-    let key = stage_key(
-        stage.id(),
-        stage.impl_version(),
-        &up_digests,
-        source_digest.as_deref(),
-    );
-
+    let key_context = action_key_context(stage, root, &upstream)?;
     let started = std::time::Instant::now();
 
     if stage_cache_enabled
+        && stage.stability() == StageStability::StablePrefix
         && stage.cache_policy() == CachePolicy::Persistent
-        && let Some(product) = cache.get(&key)?
+        && let Some(hit) = cache.get(&key_context)?
     {
         // A cache hit re-serves the identical product, so its `diagnostics:nodes` blob
         // (empty for a non-producer) recovers this stage's run-ledger contribution
@@ -689,16 +769,28 @@ fn exec_stage(
         // The attach-drift check MUST fire here too: a declaration edit need not bump
         // `impl_version`, so a stale cached product with drifted declarations would sail
         // through unless the compare runs on the returned product in BOTH branches.
-        verify_attach_drift(stage, &upstream, &product)?;
-        let diags = product.diag_nodes();
+        let output_selection = verify_attach_drift(stage, &upstream, &hit.product)?;
+        PipelineCache::validate_hit_receipt(
+            &key_context,
+            stage.stability().iri(),
+            stage.cache_policy().iri(),
+            &output_selection,
+            &hit,
+        )?;
+        let diags = hit.product.diag_nodes();
         return Ok(StageRun {
             id: stage.id().to_string(),
-            key,
-            product,
+            key_context,
+            product: hit.product,
             cached: true,
             elapsed_ms: started.elapsed().as_millis(),
             diags,
             timings: Vec::new(),
+            receipt: Some(hit.receipt),
+            output_selection,
+            cache_outcome: "hit".to_string(),
+            cache_read_bytes: hit.hydrated_bytes,
+            cache_write_bytes: 0,
         });
     }
 
@@ -729,16 +821,31 @@ fn exec_stage(
     // Verify the stage's ACTUAL attach delta against its declaration on the cache-miss
     // path too — the same compare as the cache-hit branch, so drift HARD-fails regardless
     // of whether the product came fresh or from cache.
-    verify_attach_drift(stage, &upstream, &out.product)?;
+    let output_selection = verify_attach_drift(stage, &upstream, &out.product)?;
+
+    let cache_outcome = if !stage_cache_enabled {
+        "bypass:disabled"
+    } else if stage.stability() != StageStability::StablePrefix {
+        "bypass:unstable"
+    } else if stage.cache_policy() == CachePolicy::Recompute {
+        "bypass:recompute"
+    } else {
+        "miss:not-found"
+    };
 
     Ok(StageRun {
         id: stage.id().to_string(),
-        key,
+        key_context,
         product: out.product,
         cached: false,
         elapsed_ms: started.elapsed().as_millis(),
         diags: out.diags,
         timings: out.timings,
+        receipt: None,
+        output_selection,
+        cache_outcome: cache_outcome.to_string(),
+        cache_read_bytes: 0,
+        cache_write_bytes: 0,
     })
 }
 
@@ -775,6 +882,28 @@ fn product_blob_records(
     records
 }
 
+fn product_artifact_records(product: &StageProduct) -> BTreeMap<String, BTreeSet<String>> {
+    let mut records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for resource in &product.bundle().lookaside().resources {
+        if let (Some(name), Some(digest)) = (&resource.name, &resource.content_digest) {
+            records
+                .entry(name.clone())
+                .or_default()
+                .insert(digest.clone());
+        }
+    }
+    records
+}
+
+fn product_handle_records(product: &StageProduct) -> BTreeMap<String, String> {
+    product
+        .bundle()
+        .handles()
+        .iter()
+        .map(|(graph, entry)| (graph.clone(), entry.content_digest.to_hex()))
+        .collect()
+}
+
 /// HARD-fail if a stage's ACTUAL attach delta diverges from its DECLARED attach set,
 /// in either direction. The delta is "what this stage attaches" = the named graphs /
 /// blob-rep lanes present in its OUTPUT product bundle but NOT in its effective INPUT.
@@ -790,11 +919,11 @@ fn product_blob_records(
 /// `attaches_blob_reps()` declaration (Rust/RDF-verified at load). Runs on both the cache-hit
 /// and cache-miss paths (called by [`exec_stage`]) so a cached product with drifted
 /// declarations cannot slip through. No optionality, no fallback.
-fn verify_attach_drift(
+pub(crate) fn verify_attach_drift(
     stage: &dyn Stage,
     upstream: &BTreeMap<String, StageProduct>,
     product: &StageProduct,
-) -> Result<(), gmeow_errors::Diag> {
+) -> Result<ReceiptOutputSelection, gmeow_errors::Diag> {
     use std::collections::BTreeSet;
 
     // Effective input graph set = the same typed-entity narrowing used by the cache key.
@@ -809,6 +938,8 @@ fn verify_attach_drift(
         .collect();
     let mut input_graphs: BTreeSet<String> = BTreeSet::new();
     let mut input_blob_records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut input_artifacts: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut input_handles: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for (producer, up) in upstream {
         let upstream_graphs = product_graphs(up);
         match entities.get(producer.as_str()) {
@@ -824,6 +955,12 @@ fn verify_attach_drift(
                 .entry(representation)
                 .or_default()
                 .extend(digests);
+        }
+        for (name, digests) in product_artifact_records(up) {
+            input_artifacts.entry(name).or_default().extend(digests);
+        }
+        for (graph, digest) in product_handle_records(up) {
+            input_handles.entry(graph).or_default().insert(digest);
         }
     }
 
@@ -853,7 +990,30 @@ fn verify_attach_drift(
         &delta_blob_reps,
         stage.attaches_blob_reps(),
     )?;
-    Ok(())
+    let delta_artifacts = product_artifact_records(product)
+        .into_iter()
+        .filter_map(|(name, output_digests)| {
+            let already_present = input_artifacts
+                .get(&name)
+                .is_some_and(|input_digests| output_digests.is_subset(input_digests));
+            (!already_present).then_some(name)
+        })
+        .collect();
+    let delta_handles = product_handle_records(product)
+        .into_iter()
+        .filter_map(|(graph, digest)| {
+            let already_present = input_handles
+                .get(&graph)
+                .is_some_and(|input_digests| input_digests.contains(&digest));
+            (!already_present).then_some(graph)
+        })
+        .collect();
+    Ok(ReceiptOutputSelection {
+        graphs: delta_graphs.into_iter().collect(),
+        blob_representations: delta_blob_reps.into_iter().collect(),
+        logical_artifacts: delta_artifacts,
+        handles: delta_handles,
+    })
 }
 
 /// Compare one lane's actual attach delta against its declared set, HARD-failing on any
@@ -878,44 +1038,105 @@ fn check_lane(
     Ok(())
 }
 
-/// The content digest of a stage's declared raw `input_files`, or `None` when it
-/// declares none (so the cache key is unchanged for the common case). The digest
-/// folds each file's repo-relative logical path AND its bytes (sorted by path, so
-/// it is order-independent); a declared file that cannot be read HARD-fails — a
-/// missing required input is never silently treated as "unchanged" (no-optionality).
-pub(crate) fn input_files_digest(
+/// Build the scheduler's single typed action-key authority for a stage and its exact
+/// assembled upstream map. Producer and entity identity remain attached to every
+/// digest; raw inputs remain separate path/digest rows.
+pub fn action_key_context(
     stage: &dyn Stage,
     root: &Path,
-) -> Result<Option<String>, gmeow_errors::Diag> {
-    let mut files = stage.input_files(root)?;
-    if files.is_empty() {
-        return Ok(None);
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<StageKeyContext, gmeow_errors::Diag> {
+    let entities: BTreeMap<&str, &[String]> = stage
+        .consumed_entities()
+        .iter()
+        .map(|(producer, entities)| (producer.as_str(), entities.as_slice()))
+        .collect();
+    let mut upstream_rows = Vec::new();
+    for (producer, product) in upstream {
+        match entities.get(producer.as_str()) {
+            Some(selected) if !selected.is_empty() => {
+                let present = product_graphs(product);
+                for entity in *selected {
+                    if !present.contains(entity) {
+                        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            stage: stage.id().to_string(),
+                            message: format!(
+                                "declared input entity <{entity}> is absent from producer \
+                                 {producer}"
+                            ),
+                        }));
+                    }
+                    upstream_rows.push(StageInputDigest {
+                        producer: producer.clone(),
+                        entity: Some(entity.clone()),
+                        digest: product.bundle().graph_digest(entity).to_hex(),
+                    });
+                }
+            }
+            _ => upstream_rows.push(StageInputDigest {
+                producer: producer.clone(),
+                entity: None,
+                digest: product.digest.clone(),
+            }),
+        }
     }
+
+    let raw_inputs = input_file_digests(stage, root)?;
+    Ok(StageKeyContext::new(
+        stage.id(),
+        stage.impl_version(),
+        upstream_rows,
+        raw_inputs,
+    ))
+}
+
+/// Each declared raw input as a repo-relative path plus content digest. A missing
+/// input hard-fails; it is never silently treated as unchanged.
+pub(crate) fn input_file_digests(
+    stage: &dyn Stage,
+    root: &Path,
+) -> Result<Vec<RawInputDigest>, gmeow_errors::Diag> {
+    let mut files = stage.input_files(root)?;
     files.sort();
     files.dedup();
-    let mut rels: Vec<Vec<u8>> = Vec::with_capacity(files.len());
-    let mut bytes: Vec<Vec<u8>> = Vec::with_capacity(files.len());
+    let mut rows = Vec::with_capacity(files.len());
     for path in &files {
         let rel = path
             .strip_prefix(root)
             .unwrap_or(path)
             .to_string_lossy()
             .into_owned();
-        let content = std::fs::read(path).map_err(|e| {
+        let digest = digest_input_file(path).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: stage.id().to_string(),
                 message: format!("declared input file {} could not be read: {e}", rel),
             })
         })?;
-        rels.push(rel.into_bytes());
-        bytes.push(content);
+        rows.push(RawInputDigest { path: rel, digest });
     }
-    let mut fields: Vec<&[u8]> = Vec::with_capacity(files.len() * 2);
-    for (rel, content) in rels.iter().zip(bytes.iter()) {
-        fields.push(rel.as_slice());
-        fields.push(content.as_slice());
+    rows.sort();
+    rows.dedup();
+    Ok(rows)
+}
+
+/// Stream one raw input through the same single-field framing as
+/// `content_digest(&[bytes])`. Action-key construction must not make peak RSS a function
+/// of the largest declared input merely to learn its digest.
+fn digest_input_file(path: &Path) -> std::io::Result<String> {
+    use sha2::{Digest as _, Sha256};
+
+    let mut input = std::io::BufReader::new(std::fs::File::open(path)?);
+    let mut hash = Sha256::new();
+    let mut buffer = [0_u8; 1024 * 1024];
+    loop {
+        let read = input.read(&mut buffer)?;
+        if read == 0 {
+            break;
+        }
+        hash.update(&buffer[..read]);
     }
-    Ok(Some(content_digest(&fields)))
+    hash.update(b"\x1f");
+    Ok(format!("{:x}", hash.finalize()))
 }
 
 /// Fold the products into one order-independent digest over sorted
@@ -927,4 +1148,30 @@ fn combined(products: &BTreeMap<String, StageProduct>) -> String {
         fields.push(p.digest.as_bytes());
     }
     content_digest(&fields)
+}
+
+fn combined_receipts(receipts: &[StageReceipt]) -> String {
+    let rows: Vec<Vec<u8>> = receipts
+        .iter()
+        .map(|receipt| format!("{}\x1f{}", receipt.context.stage_id, receipt.digest()).into_bytes())
+        .collect();
+    let fields: Vec<&[u8]> = rows.iter().map(Vec::as_slice).collect();
+    content_digest(&fields)
+}
+
+#[cfg(test)]
+mod digest_tests {
+    use std::io::Write as _;
+
+    #[test]
+    fn streamed_input_digest_matches_the_action_key_framing_across_chunks() {
+        let mut file = tempfile::NamedTempFile::new().expect("temporary input");
+        let bytes = vec![0xa5_u8; 2 * 1024 * 1024 + 17];
+        file.write_all(&bytes).expect("write multi-chunk input");
+        file.flush().expect("flush input");
+        assert_eq!(
+            super::digest_input_file(file.path()).expect("stream digest"),
+            crate::cache::content_digest(&[&bytes]),
+        );
+    }
 }

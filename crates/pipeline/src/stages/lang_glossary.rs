@@ -60,7 +60,7 @@ use gmeow_logic_compile::projections::ProjectionResult;
 use gmeow_validate::distinctiveness::skeleton;
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 
 /// Committed logical path of the human-readable per-slice terminology glossary — the
 /// Markdown projection of the `graph/lang-glossary-corpus` graph, grouped by slice then
@@ -861,6 +861,11 @@ impl Stage for GlossaryTableStage {
     }
     fn consumes(&self) -> &[String] {
         &[]
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 62.0 MB serialized for a ~3.0 s source fold.
+        // Hydration is not cheaper than rebuilding this deterministic leaf.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "lang_glossary_table.v1"

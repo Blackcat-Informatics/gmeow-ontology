@@ -135,6 +135,7 @@ pub mod superset;
 pub mod term_manifest;
 pub mod validate;
 pub(crate) mod value_vocab;
+pub mod verify_attestation;
 pub mod yaml_ld;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
@@ -149,6 +150,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
+    registry.register(
+        "verify_attestation",
+        Arc::new(verify_attestation::VerifyAttestationStage::new()),
+    );
     registry.register(
         "goal_directed",
         Arc::new(goal_directed::GoalDirectedStage::new()),

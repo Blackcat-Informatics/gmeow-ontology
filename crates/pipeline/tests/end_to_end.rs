@@ -15,8 +15,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_pipeline::{
-    PipelineCache, PipelineSpec, RunContext, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput,
-    StageOutput, StageProduct, StageRegistry, StageSpec, bind, default_registry, run,
+    CachePolicy, PipelineCache, PipelineSpec, RunContext, SINK_CAPABILITY, SOURCE_ORIGIN, Stage,
+    StageInput, StageOutput, StageProduct, StageRegistry, StageSpec, StageStability, bind,
+    default_registry, run,
 };
 
 fn repo_root() -> PathBuf {
@@ -56,6 +57,14 @@ fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
             .as_ref()
             .map(|s| s.resources().to_vec())
             .unwrap_or_default(),
+        stability: bound
+            .as_ref()
+            .map(|s| s.stability())
+            .unwrap_or(StageStability::StablePrefix),
+        cache_disposition: bound
+            .as_ref()
+            .map(|s| s.cache_policy())
+            .unwrap_or(CachePolicy::Persistent),
         dataflow_entities: bound
             .as_ref()
             .map(|s| s.consumed_entities().to_vec())

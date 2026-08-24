@@ -6,6 +6,10 @@
 //! This crate is single-target native only.
 
 pub mod annotation;
+/// Content-keyed, self-verifying graph-preserving GTS dataset import. Required
+/// repository consumers share one packed dataset across process boundaries while raw
+/// frame/profile audits remain independent gates over the original bytes.
+pub mod bundle_import;
 pub mod certificate;
 /// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
 /// first-order formula against a KB in an isolated, standpoint-scoped scenario world.

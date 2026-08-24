@@ -32,7 +32,9 @@ use purrdf::RdfDataset;
 use purrdf::native_codecs::jsonld;
 use serde_json::Value;
 
-use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{
+    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct,
+};
 
 /// Logical path of the JSON-LD-star artifact emitted by this stage.
 pub const JSON_LD_PATH: &str = "dist/gmeow.jsonld";
@@ -119,6 +121,11 @@ impl Stage for YamlLdStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 1.555 GB serialized / ~79.5 s rebuild, with an
+        // 8.37-GiB renderer peak. The whole-document pair is not a bounded cache unit.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         // v2: adds deterministic YAML-LD-star output and the preservation ledger.

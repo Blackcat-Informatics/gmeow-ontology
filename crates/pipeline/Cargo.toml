@@ -147,6 +147,9 @@ serde.workspace = true
 # remains the deterministic human-readable cache index and several export formats.
 bincode = "1.3"
 serde_json.workspace = true
+# Report-only `perf_sample` binary: Unix child CPU/RSS/fault/block-I/O counters.
+# The pipeline library itself contains no libc calls.
+libc.workspace = true
 # YAML-LD-star emission: deterministic, anchor-free YAML from the JSON-LD-star lead.
 serde_yaml = "0.9"
 # The release-as-evidence fold reads the committed snapshot's blob `pub`

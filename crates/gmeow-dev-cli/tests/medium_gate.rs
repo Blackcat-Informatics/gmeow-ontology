@@ -9,7 +9,8 @@
 //! checkout that has not re-materialized it since the medium axis landed would make this
 //! suite assert something weaker (or fail for a reason unrelated to the gate). Emitting it
 //! in memory keeps the subject the SAME emitter's output while making the suite
-//! independent of what happens to be on disk.
+//! independent of what happens to be on disk. Bounded intermediary products reuse the
+//! exact persistent receipts primed before test fanout; aggregate stages still execute.
 //!
 //! The runtime-store leg is the one this gate exists for. A `~/.gmeow/*.gts` agent memory
 //! is not a build artifact, so no `generated/` gate ever reaches it — and it is written
@@ -23,7 +24,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use gmeow_pipeline::node::StageProduct;
-use gmeow_pipeline::{PipelineCache, RunContext, bind, default_registry, full_spec, run};
+use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
 
 #[path = "../../pipeline/tests/support/medium_tamper.rs"]
 mod tamper;
@@ -36,17 +37,15 @@ fn repo_root() -> PathBuf {
         .expect("workspace root")
 }
 
-/// Run the REAL production DAG once, in memory, over a temp cache.
+/// Run the REAL production DAG once, reusing only verified bounded contributions.
 fn run_the_dag(root: &Path) -> BTreeMap<String, StageProduct> {
     let spec = full_spec();
     let graph = spec.validate().expect("the production DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("every production stage binds");
-    let cache_dir = tempfile::tempdir().expect("tempdir");
     let jobs = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(4);
     let mut ctx = RunContext::open(root, jobs).expect("run context");
-    ctx.cache = PipelineCache::open(cache_dir.path()).expect("temp cache");
     run(&graph, &bound, &mut ctx)
         .expect("the production DAG runs end to end")
         .products

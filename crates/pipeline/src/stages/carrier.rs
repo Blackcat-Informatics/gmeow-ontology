@@ -57,7 +57,7 @@ const GRAPH_IMPORTS: &str = gmeow_logic::reasoning_graphs::GRAPH_IMPORTS;
 const GRAPH_METADATA: &str = "https://blackcatinformatics.ca/gmeow/graph/metadata";
 pub(crate) const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
 pub(crate) const GRAPH_STATEMENTS: &str = gmeow_logic::reasoning_graphs::GRAPH_STATEMENTS;
-const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
+pub(crate) const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
 /// The grounding seam registry: every `gmeow:Seam` individual authored in a grounding
 /// slice's `manifest.ttl` — the CLOSED set of sanctioned cross-grounding reference
@@ -646,7 +646,7 @@ fn okf_link_targets_missing_from(
 /// / reasoning graphs ride in from the upstream producers' carriers (no re-derivation),
 /// while only logic / relational-core enter the object-level reasoning EDB;
 /// the snapshot-owned graphs (authored default, statement layer, imports, metadata,
-/// alignments, slice-analysis, verify, documentation, diagnostics, conformance,
+/// alignments, slice-analysis, documentation, diagnostics, conformance,
 /// projection-ledger, provenance) are parsed and re-rooted here. This carrier is the
 /// single internal transport — it is BOTH serialized to gts and carried as the snapshot
 /// product's bundle, so the snapshot is assembled ONCE.
@@ -654,8 +654,10 @@ fn okf_link_targets_missing_from(
 /// `stage-source-load` cache busts when any of them changes (cache soundness — a stale
 /// self-description graph would ship a stale bundle). Over-covers rather than under: the
 /// authored ontology + modules + imports (base / provenance), the self-description
-/// metadata, the slice manifests (slice-analysis), the full SHACL shape surface (verify),
-/// and the docs sources (translations + guides folded into the authored default). The
+/// metadata, the slice manifests (slice-analysis), and the docs sources (translations +
+/// guides folded into the authored default). The verify attestation is now produced by
+/// `stage-reason` from that stage's existing closure, so source-load neither reads its
+/// queries nor launches a second native chase. The
 /// generated SSSOM alignments (`generated/mappings/`) are a produced artifact, not an
 /// authored source, so they are covered by the producing stage's own cache, not here.
 pub(crate) fn self_description_source_files(
@@ -668,13 +670,6 @@ pub(crate) fn self_description_source_files(
     if metadata.is_file() {
         files.push(metadata);
     }
-    files.extend(list_files(&root.join("shapes"), "ttl")?);
-    // The `generated/shapes/*.ttl` are NOT declared here: they are produced projections,
-    // not authored sources source-load reads at run(), and each is covered by its own
-    // producing stage's cache (frame/result/constraint-shapes + compile-logic). Reading
-    // `generated/` from disk to cache-key a stage is the stale-disk-fold class this change
-    // retires — freshness rides the consumes chain, not a disk enumeration here.
-    files.extend(slice_named_files(root, "shapes.ttl")?);
     // The quality-assessment graph is built here by scoring every slice, so the cache must
     // bust when ANY scored input changes (rubric module, each slice's manifest / module /
     // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
@@ -701,8 +696,7 @@ pub(crate) fn self_description_source_files(
 /// The returned dataset carries, each in its final named graph: the authored default
 /// ([`GRAPH_AUTHORED_DEFAULT`], re-rooted into the carrier's default graph by the
 /// presenter), the import closure ([`GRAPH_IMPORTS`]), self-description metadata
-/// ([`GRAPH_METADATA`]), the slice-analysis graph ([`GRAPH_SLICE_ANALYSIS`]), the native
-/// verify attestation ([`GRAPH_VERIFY`], over the authored ∪ imports EDB), and the
+/// ([`GRAPH_METADATA`]), the slice-analysis graph ([`GRAPH_SLICE_ANALYSIS`]), and the
 /// occurrence-based provenance projection
 /// ([`crate::stages::provenance_graph::GRAPH_PROVENANCE`]). Byte-identical to the former
 /// in-snapshot construction — the SAME loaders and canonicalizers, relocated verbatim.
@@ -742,7 +736,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
     let authored_canon = canonicalize_nq(&authored, "base")?;
     reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
     // The authored default rides its own named graph (re-rooted to default by the
-    // presenter); base ∪ imports is the EDB the verify attestation runs over.
+    // presenter).
     let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("base parse: {e}")))?;
 
@@ -757,12 +751,6 @@ pub(crate) fn build_self_description_dataset_with_quality(
     // A `manifest.ttl` never enters the composed fold, so this graph is the ONLY way the
     // closed set of sanctioned cross-grounding channels reaches `gmeow.gts`.
     let grounding_seams = build_grounding_seams(&catalog)?;
-    let verify_attestation = {
-        let imports_ds = parse_dataset(&imports, "text/turtle", None)
-            .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
-        let edb = purrdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
-        run_verify_attestation(&edb)?
-    };
     let provenance_nt = build_provenance_projection(root)?;
     // graph/provenance also carries the substrate reconciliation A-Box (issue 1672): one
     // gmeow:SubstrateComponent per external engine/library, a gmeow:PinClaim per (site,
@@ -794,7 +782,6 @@ pub(crate) fn build_self_description_dataset_with_quality(
             "application/n-quads",
             GRAPH_QUALITY_ASSESSMENT,
         )?,
-        parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
         parse_into_graph(
             provenance_nt.as_bytes(),
             "application/n-triples",
@@ -902,7 +889,7 @@ fn assemble_carrier(
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     // ── the self-description graphs ride in from stage-source-load's carrier ────
     // The presenter no longer loads or canonicalizes any source: the authored default,
-    // imports, metadata, alignments, slice-analysis, verify attestation, and provenance
+    // imports, metadata, alignments, slice-analysis, and provenance
     // were all built ONCE at the parallel DAG root (`build_self_description_dataset`) and
     // are read here as pure projections. The authored default rides its own named graph;
     // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
@@ -1012,7 +999,7 @@ fn assemble_carrier(
         // like graph/norm-claims: it carries no committed `generated/` file, so it maps to
         // no reconstruction rep, and it stays OUT of the reasoned object-level EDB.
         source_load_graph(upstream, GRAPH_GROUNDING_SEAMS)?,
-        source_load_graph(upstream, GRAPH_VERIFY)?,
+        producer_graph(upstream, "stage-verify-attestation", GRAPH_VERIFY)?,
         source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
         documentation,
         std::sync::Arc::new(diagnostics),
@@ -2566,6 +2553,10 @@ fn collect_fanout_opaque_members(
             "stage-compile-logic",
             crate::stages::compile_logic::DIAG_HTML_PATH,
         ),
+        (
+            "stage-verify-attestation",
+            crate::stages::verify_attestation::VERIFY_JSON_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
@@ -3814,16 +3805,18 @@ impl SnapshotStage {
                 "stage-goal-directed".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
-                // The self-description named graphs (authored default / imports / metadata
-                // / alignments / slice-analysis / verify / provenance) are attached by
-                // stage-source-load; the presenter reads them off this product instead of
-                // re-loading + re-canonicalizing the sources (PIPELINE_SPINE §3.2/§4).
+                // The source self-description graphs (authored default / imports /
+                // metadata / alignments / slice-analysis / provenance) are attached by
+                // stage-source-load. The presenter reads them without reloading sources.
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
                 // The generated term content manifest `.nq`, folded as the
                 // graph/fanout/catalog/term-content-manifest.nq named graph.
                 "stage-term-manifest".to_string(),
                 "stage-validate".to_string(),
+                // The dedicated bounded transform evaluates graph/verify against
+                // stage-reason's typed result without constructing another closure.
+                "stage-verify-attestation".to_string(),
             ],
         }
     }
@@ -3970,7 +3963,9 @@ impl Stage for SnapshotStage {
         // `assemble_object_level_edb`, the reasoned closure) instead of being read only by
         // the docs/competency-question harvest. Same reasoning as v32: the merged product
         // differs from either line alone, so it needs its own key.
-        "snapshot.v33-grounding-seams-executable-lifts-and-examples"
+        // v34 reads graph/verify from its dedicated downstream producer rather than
+        // treating it as part of stage-reason's cumulative product.
+        "snapshot.v34-dedicated-verify-attestation"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
@@ -5090,117 +5085,6 @@ fn expand_curie(
         return Ok(format!("{ns}{local}"));
     }
     Err(stage_err(&format!("unresolvable CURIE {curie:?}")))
-}
-
-// ── verify attestation (graph/verify) ───────────────────────────────────────────
-
-/// Run the native verify lane over `edb` and build the attestation graph as
-/// N-Quads. Mirrors `gts_gen.build_verify_attestation_graph` exactly (the same
-/// `gmeow:QualityAssessment` vocabulary, one per query).
-///
-/// The query set is compile-time-embedded (`gmeow_logic::verify::
-/// embedded_verify_queries`) rather than walked off disk: `queries/verify/` and
-/// `slices/**/queries/verify/` are baked into the `gmeow-logic` binary by its
-/// `build.rs`, sorted by stem.
-fn run_verify_attestation(edb: &purrdf::RdfDataset) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let pairs = gmeow_logic::verify::embedded_verify_queries();
-
-    let report = gmeow_logic::verify::verify(edb, &pairs)
-        .map_err(|e| stage_err(&format!("native verify: {e}")))?;
-
-    // The failed set: stems whose finding is an error coded `verify.<stem>`.
-    let mut failed: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for finding in &report.findings {
-        if matches!(finding.severity, gmeow_errors::Severity::Error)
-            && finding.code.starts_with("verify.")
-        {
-            failed.insert(finding.code["verify.".len()..].to_string());
-        }
-    }
-
-    let attestation = emit_verify_attestation(&pairs, &failed);
-    turtle_to_nquads(attestation.as_bytes())
-}
-
-/// Emit the verify-attestation Turtle (pure, deterministic). One
-/// `gmeow:QualityAssessment` per query; mirrors `build_verify_attestation_graph`.
-fn emit_verify_attestation(
-    query_paths: &[(String, String)],
-    failed: &std::collections::BTreeSet<String>,
-) -> String {
-    use std::fmt::Write;
-    let mut body = String::new();
-    writeln!(body, "@prefix gmeow: <{GMEOW_NS}> .").unwrap();
-    writeln!(body, "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .").unwrap();
-    writeln!(
-        body,
-        "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> ."
-    )
-    .unwrap();
-    writeln!(body).unwrap();
-
-    let ontology_iri = GMEOW_NS.trim_end_matches('/');
-    // The verify activity and per-query assessments are generated A-Box
-    // instance data folded into the bundle's `graph/verify`, not vocabulary
-    // surface: each typed subject carries a human label, its named-graph
-    // provenance anchor, and the assertional `gmeow:boxABox` role so the bundle
-    // satisfies the assertional-tier validation contract (no `skos:definition`).
-    writeln!(
-        body,
-        "<{GMEOW_NS}activity/native-verify> a <{GMEOW_NS}Activity> ;"
-    )
-    .unwrap();
-    writeln!(body, "    rdfs:label \"Native verify activity\" ;").unwrap();
-    writeln!(body, "    rdfs:isDefinedBy <{GMEOW_NS}graph/verify> ;").unwrap();
-    writeln!(body, "    gmeow:graphBoxRole gmeow:boxABox ;").unwrap();
-    writeln!(
-        body,
-        "    <{GMEOW_NS}wasAssociatedWith> <{GMEOW_NS}agent/native-verify> ."
-    )
-    .unwrap();
-    writeln!(body).unwrap();
-
-    for (name, _sparql) in query_paths {
-        let stem = query_stem(name);
-        let passed = !failed.contains(stem);
-        writeln!(body, "<{GMEOW_NS}verify-attestation/{stem}>").unwrap();
-        writeln!(body, "    a <{GMEOW_NS}QualityAssessment> ;").unwrap();
-        writeln!(body, "    rdfs:label \"Verify attestation: {stem}\" ;").unwrap();
-        writeln!(body, "    rdfs:isDefinedBy <{GMEOW_NS}graph/verify> ;").unwrap();
-        writeln!(body, "    gmeow:graphBoxRole gmeow:boxABox ;").unwrap();
-        writeln!(body, "    <{GMEOW_NS}assessedEntity> <{ontology_iri}> ;").unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}qualityDimension> <{GMEOW_NS}qualityDimensionLogicalConsistency> ;"
-        )
-        .unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}observationResult> \"{}\"^^xsd:boolean ;",
-            if passed { "true" } else { "false" }
-        )
-        .unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}wasDerivedFrom> <{GMEOW_NS}verify-query/{stem}> ;"
-        )
-        .unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}wasGeneratedBy> <{GMEOW_NS}activity/native-verify> ."
-        )
-        .unwrap();
-        writeln!(body).unwrap();
-    }
-    body
-}
-
-fn query_stem(name: &str) -> &str {
-    name.rsplit('/')
-        .next()
-        .unwrap_or(name)
-        .strip_suffix(".rq")
-        .unwrap_or(name)
 }
 
 // ── small helpers ───────────────────────────────────────────────────────────────

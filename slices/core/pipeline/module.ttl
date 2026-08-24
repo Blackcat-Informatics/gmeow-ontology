@@ -445,6 +445,37 @@ gmeow:pipeline-dataflow-reason-compile-logic
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
 
+# stage-verify-attestation reassembles the SAME object-level EDB as stage-reason.
+# Its compile-logic edge is therefore narrowed to the same logic / relational-core
+# graphs; projection reports and diagnostics cannot invalidate the query battery.
+gmeow:pipeline-dataflow-verify-compile-logic
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: compile-logic → verify attestation"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
+    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-verify-attestation: verification reassembles the exact object-level EDB and therefore reads only the logic and relational-core named graphs from the compiler product, matching the sole reasoning stage. Its cache key excludes the compiler's diagnostics, correspondence envelope, and byte projections because none is evaluated by the reasoned bad-example battery."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-compile-logic ;
+    gmeow:buildFlowTo gmeow:stage-verify-attestation ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/logic> ,
+        <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
+
+# stage-verify-attestation evaluates the reasoned bad-example battery from the typed
+# Reasoning handle. The backing graph is a lossless cache-key projection of that result;
+# the stage never calls the closure constructor.
+gmeow:pipeline-dataflow-verify-reason
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: reason → verify attestation"@x-gmeow-english ;
+    gmeow:flowReason gmeow:flowReasonDataflow ;
+    skos:definition "The typed dataflow edge from gmeow:stage-reason to gmeow:stage-verify-attestation: the verifier consumes the already-built typed ReasoningResult pinned to graph/reasoning and evaluates every embedded bad-example query against it. Narrowing the edge to graph/reasoning keys the bounded persistent attestation on the exact logical result while excluding the reason stage's committed prose and report byte lanes; no second closure is constructed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-reason ;
+    gmeow:buildFlowTo gmeow:stage-verify-attestation ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+
 # stage-validate reads the validation-shape byte artifacts of stage-compile-logic's
 # product (generated/shapes/validation-shapes.ttl + procedural-constraints.ttl —
 # fresh union members, never a stale disk read). The edge is narrowed to the complete
@@ -538,7 +569,10 @@ gmeow:pipeline-build
     logic:planFlowEdge
         gmeow:pipeline-dataflow-compile-logic-source-load ,
         gmeow:pipeline-dataflow-reason-compile-logic ,
+        gmeow:pipeline-dataflow-verify-compile-logic ,
+        gmeow:pipeline-dataflow-verify-reason ,
         gmeow:pipeline-dataflow-validate-compile-logic ,
+        gmeow:pipeline-dataflow-validate-reason ,
         gmeow:pipeline-dataflow-goal-directed-reason ;
     gmeow:hasStage
         gmeow:stage-source-load ,
@@ -549,6 +583,7 @@ gmeow:pipeline-build
         gmeow:stage-gmn-training-corpus ,
         gmeow:stage-slice-brief ,
         gmeow:stage-reason ,
+        gmeow:stage-verify-attestation ,
         gmeow:stage-goal-directed ,
         gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
@@ -586,6 +621,56 @@ gmeow:pipeline-build
         gmeow:stage-archive-blobs ,
         gmeow:stage-medium-dictionaries ,
         gmeow:stage-gts-sink .
+
+# The production DAG's cache algebra. Every build stage is deterministic for the
+# same declared inputs. Independently bounded contributions are persistable; the
+# four cumulative carrier aggregates are reconstructed from the live frontier.
+gmeow:stage-source-load gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-statements gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-compile-logic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-mappings gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-math-producers gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-gmn-training-corpus gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-slice-brief gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-reason gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-verify-attestation gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-goal-directed gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-gts-compose gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-validate gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-conformance gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-constraint-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-term-manifest gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-docs-render gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-snapshot gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-export-schemas gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-catalog gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-profiles gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-export gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-export-okf gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-export-apache gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-frame-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-constraint-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-governance-floors gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-projection-ceilings gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-result-shapes gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-validate-result-shape-composition gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-json-schema gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-pydantic gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-matrix gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-glossary gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-export-skos-surface gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-metadata gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-research-objects gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-references gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-evals gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-bench gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-cost-ledger gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-agreement gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-lpg gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-export-yaml-ld gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate .
+gmeow:stage-archive-blobs gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-medium-dictionaries gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
+gmeow:stage-gts-sink gmeow:stageStability gmeow:stabilityStablePrefix ; gmeow:stageCacheDisposition gmeow:cachePersistentContribution .
 
 # ── Spine ──
 
@@ -685,6 +770,22 @@ gmeow:stage-reason
         gmeow:stage-statements ;
     gmeow:producesFormat "rdf12-turtle" ;
     gmeow:requiresResource gmeow:engineResource .
+
+gmeow:stage-verify-attestation
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "verify attestation"@x-gmeow-english ;
+    skos:definition "Evaluate the complete embedded native bad-example query battery as a dedicated downstream transform over the exact object-level EDB and gmeow:stage-reason's already-built typed ReasoningResult. It repeats only the shared transport-independent EDB canonicalization and constructs ZERO additional closures. Its bounded persistent contribution is graph/verify, a normalized generated/diagnostics/verify.json receipt carrying input, reasoning-contract, query-set, work-count, and zero-closure evidence, plus the diagnostics:nodes cache lane. Missing EDB producers or a missing/mistyped Reasoning handle hard-fail; a cache miss recomputes the complete selected battery, never a reduced fallback."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "verify_attestation" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-reason ,
+        gmeow:stage-source-load ,
+        gmeow:stage-statements ;
+    gmeow:producesFormat "diagnostic-json" , "rdf12-turtle" .
 
 gmeow:stage-goal-directed
     a gmeow:PipelineStage ;
@@ -812,7 +913,8 @@ gmeow:stage-snapshot
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
         gmeow:stage-term-manifest ,
-        gmeow:stage-validate .
+        gmeow:stage-validate ,
+        gmeow:stage-verify-attestation .
 
 # ── Export leaves (parallel fan-out, each folds one artifact set) ──
 
@@ -1212,7 +1314,8 @@ gmeow:stage-gts-sink
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
-        gmeow:stage-validate .
+        gmeow:stage-validate ,
+        gmeow:stage-verify-attestation .
 
 # =========================================================================== #
 # Stage attach declarations (gmeow:attachesGraph / gmeow:attachesBlobRep) —    #
@@ -1234,8 +1337,7 @@ gmeow:stage-source-load
         <https://blackcatinformatics.ca/gmeow/graph/metadata> ,
         <https://blackcatinformatics.ca/gmeow/graph/provenance> ,
         <https://blackcatinformatics.ca/gmeow/graph/quality-assessment> ,
-        <https://blackcatinformatics.ca/gmeow/graph/slice-analysis> ,
-        <https://blackcatinformatics.ca/gmeow/graph/verify> ;
+        <https://blackcatinformatics.ca/gmeow/graph/slice-analysis> ;
     gmeow:attachesBlobRep "spans:source-table" .
 
 gmeow:stage-compile-logic
@@ -1284,6 +1386,10 @@ gmeow:stage-reason
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ,
         <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
+    gmeow:attachesBlobRep "diagnostics:nodes" .
+
+gmeow:stage-verify-attestation
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/verify> ;
     gmeow:attachesBlobRep "diagnostics:nodes" .
 
 gmeow:stage-goal-directed
@@ -2318,6 +2424,43 @@ gmeow:stabilityPerTurnVariance
     skos:definition "The stage's output VARIES turn to turn (a live fetch, a sampled model call, a timestamped record) and therefore cannot be prefix-cached: it must be placed after the stable prefix, and everything downstream of it inherits the variance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:StageCacheDisposition
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Cache Disposition"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The CLOSED persistence disposition of one pipeline stage's output: gmeow:cachePersistentContribution admits an independently bounded contribution to the structural disk cache, while gmeow:cacheRecomputeAggregate rebuilds a large aggregate from its already-live upstream products. The distinction changes storage and hydration only; both paths execute the same semantic stage and every receipt and attach contract remains mandatory."@x-gmeow-english ;
+    skos:example "gmeow:stage-snapshot gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:stageCacheDisposition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stage cache disposition"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range gmeow:StageCacheDisposition ;
+    skos:definition "Relates a gmeow:PipelineStage to exactly one cache disposition. The scheduler persists a content-addressed, receipt-bound stage product only for gmeow:cachePersistentContribution; it recomputes gmeow:cacheRecomputeAggregate from live upstream products because serializing and hydrating that aggregate duplicates the carrier. A cache miss always recomputes and never skips the selected stage."@x-gmeow-english ;
+    skos:example "gmeow:stage-mappings gmeow:stageCacheDisposition gmeow:cachePersistentContribution ."@x-gmeow-english ;
+    gmeow:useWhen "Declare whether an unchanged stage product is an independently bounded reusable contribution or an aggregate cheaper to reconstruct from the live DAG frontier."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this declaration to weaken, omit, or substitute a stage; it controls persistence only, and a miss or recompute disposition still executes the exact stage."@x-gmeow-english ;
+    gmeow:howToUse "Assert exactly one value on every pipeline stage and keep the executable Stage twin identical; the DAG loader rejects a missing, unknown, multiple, or divergent declaration before execution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:cachePersistentContribution
+    a gmeow:StageCacheDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "cache: persistent contribution"@x-gmeow-english ;
+    skos:definition "Persist this stage's independently bounded output behind its structural action key and immutable receipt. An absent entry causes the exact stage to run and publish atomically; a corrupt or nondeterministic entry is a hard failure, never a fallback."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:cacheRecomputeAggregate
+    a gmeow:StageCacheDisposition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "cache: recompute aggregate"@x-gmeow-english ;
+    skos:definition "Rebuild this stage's large aggregate from its already-live upstream products on every admitted DAG run because persisting and hydrating its canonical representation would duplicate the carrier and cost at least as much as the native assembly. The stage still emits an immutable receipt and remains fully verified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # ── (4) Per-stage resource budgets ─────────────────────────────────────────── #
 
 gmeow:StageBudget
@@ -2679,7 +2822,12 @@ gmeow:StageExecution logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:stageDisposition ; logic:allValuesFrom [ logic:oneOf ( gmeow:dispositionCompleted gmeow:dispositionTypedAbsence gmeow:dispositionRejectedCandidate gmeow:dispositionRetryable gmeow:dispositionFatalToCandidate gmeow:dispositionTimedOut ) ] ] .
 gmeow:PipelineStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:stageObligation ; logic:allValuesFrom [ logic:oneOf ( gmeow:obligationMandatory gmeow:obligationDegradable ) ] ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:allValuesFrom [ logic:oneOf ( gmeow:stabilityStablePrefix gmeow:stabilityPerTurnVariance ) ] ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:allValuesFrom [ logic:oneOf ( gmeow:stabilityStablePrefix gmeow:stabilityPerTurnVariance ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageStability ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageStability ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageCacheDisposition ; logic:allValuesFrom [ logic:oneOf ( gmeow:cachePersistentContribution gmeow:cacheRecomputeAggregate ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageCacheDisposition ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageCacheDisposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageCacheDisposition ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageCacheDisposition ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.

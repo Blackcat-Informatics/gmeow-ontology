@@ -36,9 +36,7 @@ use gmeow_logic::foundation::{
 use gmeow_logic::reason::dl_consistency;
 use gmeow_logic::reasoning_graphs::is_object_level_named_graph;
 use gmeow_logic::store::WorldStore;
-use purrdf::{
-    NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, dataset_from_bytes, import_gts_events,
-};
+use purrdf::{NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, dataset_from_bytes};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
@@ -121,6 +119,22 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+/// Decode/freeze/index the committed graph-preserving bundle once across the separate
+/// nextest processes that execute the whole-bundle coherence teeth. The cache key binds
+/// the exact GTS bytes and importer/dependency/toolchain unit; corruption hard-fails.
+fn shipped_dataset() -> std::sync::Arc<purrdf::RdfDataset> {
+    let root = repo_root();
+    let gts_path = root.join("generated/dist/gmeow.gts");
+    let bytes = std::fs::read(&gts_path)
+        .unwrap_or_else(|error| panic!("read committed bundle {}: {error}", gts_path.display()));
+    gmeow_logic::bundle_import::import_graph_preserving_cached(
+        &root.join(".cache/gmeow-bundle-import"),
+        &bytes,
+    )
+    .expect("import the committed gmeow.gts bundle")
+    .dataset
+}
+
 fn admitted_reasoning_graph(graph: &Option<RdfTerm>) -> bool {
     match graph {
         None => true,
@@ -163,11 +177,7 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
     // Load the committed bundle exactly as production `reason-verify` does, then recover
     // its object-level EDB. Running DL closure over every shipped meta/report graph is
     // both semantically wrong and asymptotically tied to documentation growth.
-    let gts_path = repo_root().join("generated/dist/gmeow.gts");
-    let bytes = std::fs::read(&gts_path)
-        .unwrap_or_else(|e| panic!("read committed bundle {}: {e}", gts_path.display()));
-    let bundle = import_gts_events(&bytes).expect("import the committed gmeow.gts bundle");
-    let snapshot = bundle.dataset;
+    let snapshot = shipped_dataset();
 
     // Locate the SHIPPED gmeow:Agent ⊥ gmeow:SocialObject edge in the bundle and read the
     // world (named graph) it lives in. Finding it AT ALL proves the net-new production
@@ -298,11 +308,8 @@ fn relcomp_offenders(nquads: &str) -> Vec<String> {
 /// outside the default nextest profile.
 #[test]
 fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
-    let gts_path = repo_root().join("generated/dist/gmeow.gts");
-    let bytes = std::fs::read(&gts_path)
-        .unwrap_or_else(|e| panic!("read committed bundle {}: {e}", gts_path.display()));
-    let bundle = import_gts_events(&bytes).expect("import the committed gmeow.gts bundle");
-    let facts = project_relator_facts(bundle.dataset.as_ref());
+    let dataset = shipped_dataset();
+    let facts = project_relator_facts(dataset.as_ref());
     let projection: String = facts.iter().cloned().collect();
 
     // The shipped ontology satisfies relator mediation: zero RelComp violations.
@@ -431,11 +438,8 @@ fn characteristic_violations(quads: &[FoundationQuad]) -> Vec<(String, String)> 
 /// (budget-exempt, not gate-exempt).
 #[test]
 fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
-    let gts_path = repo_root().join("generated/dist/gmeow.gts");
-    let bytes = std::fs::read(&gts_path)
-        .unwrap_or_else(|e| panic!("read committed bundle {}: {e}", gts_path.display()));
-    let bundle = import_gts_events(&bytes).expect("import the committed gmeow.gts bundle");
-    let facts = project_characteristic_facts(bundle.dataset.as_ref());
+    let dataset = shipped_dataset();
+    let facts = project_characteristic_facts(dataset.as_ref());
     let projection: String = facts.iter().cloned().collect();
 
     // Bind to production: every DL-projectable H4 target carries BOTH its OWL marker and

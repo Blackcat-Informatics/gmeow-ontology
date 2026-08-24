@@ -364,15 +364,17 @@ mod tests {
     #[test]
     fn run_attaches_the_authoring_briefs_graph() {
         let root = repo_root();
-        let stage = SliceBriefStage::new();
-        let upstream = fresh_shape_upstream(&root);
-        let out = stage
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("slice_brief stage runs");
-        let dataset = out.product.dataset();
+        let product = crate::fixture::stage_fixture(
+            &root,
+            std::thread::available_parallelism()
+                .map(std::num::NonZeroUsize::get)
+                .unwrap_or(1),
+            "stage-slice-brief",
+        )
+        .expect("exact slice-brief fixture")
+        .outcome
+        .product;
+        let dataset = product.dataset();
         let projected = dataset.project_named_graph(GRAPH_AUTHORING_BRIEFS);
         assert!(
             projected.quad_count() > 0,

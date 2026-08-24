@@ -1822,6 +1822,7 @@ dependencies = [
  "foldhash 0.1.5",
  "gmeow-cost-measure",
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",
@@ -2000,6 +2001,7 @@ dependencies = [
  "gmeow-validate",
  "insta",
  "jsonschema",
+ "libc",
  "purrdf",
  "rayon",
  "serde",
@@ -2092,6 +2094,7 @@ dependencies = [
  "foldhash 0.1.5",
  "hashbrown 0.15.5",
  "purrdf",
+ "serde",
  "smallvec",
 ]
 

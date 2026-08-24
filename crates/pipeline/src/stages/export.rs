@@ -19,7 +19,9 @@ use purrdf::RdfDataset;
 
 pub use gmeow_bundle_view::export::*;
 
-use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{
+    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct,
+};
 
 /// Borrow THIS run's carrier dataset. The runtime path every fold-reading
 /// export leaf (export / okf) uses: the `stage-snapshot` product carries the
@@ -111,6 +113,12 @@ impl Stage for ExportStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 2.543 GB serialized / ~34.5 s rebuild, while the
+        // renderer itself peaks at 9.06 GiB. Persisting it duplicates the two complete
+        // whole-document buffers and is not a bounded-cache win.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "export.v1"

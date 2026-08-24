@@ -33,11 +33,15 @@ ex:load a gmeow:PipelineStage ;
     gmeow:hasCapability gmeow:sourceOrigin ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:stageImpl "source_load" .
 
 ex:reason a gmeow:PipelineStage ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ;
     gmeow:stageImpl "reason" ;
     gmeow:dataflowConsumes ex:load ;
     gmeow:requiresResource gmeow:engineResource .
@@ -46,6 +50,8 @@ ex:sink a gmeow:PipelineStage ;
     gmeow:hasCapability gmeow:sinkCapability ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:stageImpl "gts_sink" ;
     gmeow:dataflowConsumes ex:reason ;
     gmeow:producesFormat "gts" .

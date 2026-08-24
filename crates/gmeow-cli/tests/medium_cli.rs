@@ -12,7 +12,8 @@
 //! either fail for a reason that is not about the code under test, or — much worse —
 //! quietly assert something weaker.
 //!
-//! So this suite runs the production DAG once, in memory, over a temp cache, writes the
+//! So this suite runs the production DAG once, in memory, over the exact persistent
+//! stage cache primed before test fanout, writes the
 //! bundle the terminal sink emits to a temp path, and passes that path as the verb's
 //! `FILE` argument. That is the SAME emitter, the SAME terminal, and the real CLI binary
 //! reading a real file — not a hand-built fixture, and not a skip-if-absent branch.
@@ -27,7 +28,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use gmeow_pipeline::node::StageProduct;
-use gmeow_pipeline::{PipelineCache, RunContext, bind, default_registry, full_spec, run};
+use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
 
 #[path = "../../pipeline/tests/support/medium_tamper.rs"]
 mod tamper;
@@ -52,17 +53,15 @@ fn repo_root() -> PathBuf {
 }
 
 /// Run the REAL production DAG (`full_spec`, the same spec `make regen` executes) once,
-/// in memory, over a temp cache.
+/// in memory, reusing only receipt-verified bounded stage contributions.
 fn run_the_dag(root: &Path) -> BTreeMap<String, StageProduct> {
     let spec = full_spec();
     let graph = spec.validate().expect("the production DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("every production stage binds");
-    let cache_dir = tempfile::tempdir().expect("tempdir");
     let jobs = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(4);
     let mut ctx = RunContext::open(root, jobs).expect("run context");
-    ctx.cache = PipelineCache::open(cache_dir.path()).expect("temp cache");
     run(&graph, &bound, &mut ctx)
         .expect("the production DAG runs end to end")
         .products

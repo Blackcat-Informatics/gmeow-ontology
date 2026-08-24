@@ -19,7 +19,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::{Term, collect_term_surface, read_fold_upstream};
 
 /// The bundle directory name under `dist/`.
@@ -615,6 +615,11 @@ impl Stage for OkfStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 19.8 MB serialized for a ~3.6 s deterministic fold.
+        // Rebuilding is cheaper than cache publication plus hydration.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "okf.v1"

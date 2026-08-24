@@ -91,6 +91,21 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// A stage's executable stability or cache-disposition twin disagrees with the
+    /// canonical RDF DAG declaration. Scheduling under either side would make cache
+    /// behavior depend on which representation a caller happened to read.
+    pub struct StagePolicyMismatch {
+        stage: String,
+        property: String,
+        rdf: String,
+        rust: String,
+    }
+    code = "pipeline.contract.stage-policy-mismatch";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "stage {}: RDF {} {} disagrees with the Rust executable twin {}", stage, property, rdf, rust;
+}
+
+define_diag_kind! {
     /// The registry stage's `consumed_entities()` disagrees with the RDF
     /// `gmeow:BuildDataFlow` typed-dataflow declaration (Rust/RDF dataflow agreement).
     pub struct DataFlowMismatch {

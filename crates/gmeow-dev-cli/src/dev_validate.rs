@@ -22,6 +22,8 @@ use crate::dev_common::{
     NAMESPACE, ONTOLOGY_IRI, emit_report, fail, project_root, write_timings_json,
 };
 
+const TELEMETRY_SCHEMA_VERSION: u32 = 1;
+
 /// Audit a distribution bundle's wire against BOTH halves of the codec rule.
 ///
 /// The two halves are separate checks because they have different domains, and
@@ -163,6 +165,7 @@ pub fn validate(
     }
 
     let root = project_root();
+    let collect_timings = timings || timings_json.is_some();
     let signature_config = if signature_flags {
         match build_signature_config(trust_policy, require_signed, trusted_key) {
             Ok(c) => Some(c),
@@ -206,13 +209,17 @@ pub fn validate(
     // `--gts PATH`: validate a folded bundle directly (with the optional signature
     // pre-gate). Default: validate the authored repository sources — the `make
     // validate` gate — over the same merged shapes.
+    let source_input_count: usize;
+    let source_input_bytes: u64;
     let run = if let Some(path) = gts {
         let gts_bytes = match std::fs::read(path) {
             Ok(b) => b,
             Err(e) => return fail(format!("cannot read {}: {e}", path.display())),
         };
+        source_input_count = 1;
+        source_input_bytes = u64::try_from(gts_bytes.len()).unwrap_or(u64::MAX);
         let options = ValidateOptions {
-            timings,
+            timings: collect_timings,
             gts_bytes: Some(gts_bytes),
             signature_config,
             deep,
@@ -226,9 +233,16 @@ pub fn validate(
         // assembled in ONE testable place (`authored_source_invocation`) so the
         // wiring cannot silently regress to the historical defect of empty DSL
         // args. `authored_source_invocation_wires_every_dsl_surface` binds it.
-        let inv = match authored_source_invocation(&root, timings, deep, merged_shacl) {
+        let inv = match authored_source_invocation(&root, collect_timings, deep, merged_shacl) {
             Ok(inv) => inv,
             Err(code) => return code,
+        };
+        source_input_count = inv.source_paths.len();
+        source_input_bytes = match inv.source_paths.iter().try_fold(0_u64, |sum, path| {
+            std::fs::metadata(path).map(|metadata| sum.saturating_add(metadata.len()))
+        }) {
+            Ok(bytes) => bytes,
+            Err(error) => return fail(format!("cannot census validation source bytes: {error}")),
         };
         ValidationRun::run(
             &inv.source_paths,
@@ -243,17 +257,45 @@ pub fn validate(
         Ok(r) => r,
         Err(e) => return fail(format!("validation error: {e}")),
     };
+    let dataset_quads = run.dataset.quad_count();
+    let declared_terms = run.declared_terms.len();
+    let phase_timings = run
+        .timings
+        .iter()
+        .map(|timing| {
+            serde_json::json!({
+                "phase": timing.phase,
+                "elapsed_ms": timing.elapsed_ms,
+                "work_metadata": timing.metadata,
+            })
+        })
+        .collect::<Vec<_>>();
     let report = run.report;
 
     emit_report(&report);
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
+            "schema_version": TELEMETRY_SCHEMA_VERSION,
             "command": "validate",
             "gts": gts.map(|p| p.display().to_string()),
             "deep": deep,
             "ok": report.ok(),
             "errors": report.error_count(),
             "warnings": report.warning_count(),
+            "deterministic_work": {
+                "source_inputs": source_input_count,
+                "source_input_bytes": source_input_bytes,
+                "dataset_quads": dataset_quads,
+                "declared_terms": declared_terms,
+                "closure_constructions": usize::from(deep && gts.is_some()),
+                "findings": report.findings.len(),
+                "errors": report.error_count(),
+                "warnings": report.warning_count(),
+            },
+            "observations": {
+                "timings": phase_timings,
+            },
+            "timings": phase_timings,
         });
         let code = write_timings_json(path, &payload);
         if code != 0 {

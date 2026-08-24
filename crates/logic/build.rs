@@ -1,126 +1,221 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Embed the verify "bad-example" query set — `queries/verify/*.rq` plus every
-//! `slices/**/queries/verify/*.rq` — into the binary at compile time, so the
-//! production verify lane (`crates/pipeline`, `gmeow-dev-cli`) never walks the
-//! disk at runtime to assemble it. See `crate::verify::embedded_verify_queries`.
+//! Emit the exact producer identity for the graph-preserving bundle-import product.
 //!
-//! Emits `OUT_DIR/verify_queries.rs`: a `pub static VERIFY_QUERIES: &[(&str,
-//! &str)]` of `(stem, sparql_text)` pairs, sorted by stem (a `BTreeMap` walk),
-//! each sparql text pulled in via `include_str!` on an absolute path so the
-//! authored `.rq` files stay the single source of truth and edits to them
-//! re-trigger this build. A stem collision between two source files (top-level
-//! vs. slice, or slice vs. slice) is a hard build-time error — never a silent
-//! dedup/overwrite.
+//! The content key already binds the exact GTS bytes. The producer identity additionally
+//! covers every workspace crate source/compile-time asset, dependency resolution and
+//! configuration, and the compiler unit. An ontology edit which emits byte-identical GTS
+//! therefore remains warm; any importer, transitive implementation, purrdf pin, toolchain,
+//! target, profile, feature, or codegen change must invalidate the packed product.
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
+use sha2::{Digest, Sha256};
+
 fn main() {
-    let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
-    // crates/logic → workspace root is two levels up.
-    let workspace = Path::new(&manifest)
-        .join("..")
-        .join("..")
+    let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
+    let workspace = manifest
+        .join("../..")
         .canonicalize()
-        .expect("canonicalize workspace root from CARGO_MANIFEST_DIR");
+        .expect("workspace root");
+    embed_verify_queries(&workspace);
+    let mut inputs = BTreeMap::<String, Vec<u8>>::new();
+    collect_workspace_inputs(&workspace.join("crates"), &workspace, &mut inputs);
+    for relative in [
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain",
+        "rust-toolchain.toml",
+        ".cargo/config",
+        ".cargo/config.toml",
+    ] {
+        let path = workspace.join(relative);
+        if let Ok(bytes) = std::fs::read(&path) {
+            println!("cargo:rerun-if-changed={}", path.display());
+            inputs.insert(relative.to_string(), bytes);
+        }
+    }
 
+    let mut hash = Sha256::new();
+    hash.update(b"gmeow:bundle-import-build:v1\x1f");
+    for (path, bytes) in inputs {
+        hash.update(path.as_bytes());
+        hash.update([0x1f]);
+        hash.update(bytes);
+        hash.update([0x1e]);
+    }
+    let rustc = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".to_string());
+    let rustc_vv = command_identity(&rustc, &["-Vv"]);
+    hash.update(b"rustc-vv\x1f");
+    hash.update(rustc_vv.as_bytes());
+
+    let mut unit = BTreeMap::new();
+    for name in [
+        "HOST",
+        "TARGET",
+        "PROFILE",
+        "OPT_LEVEL",
+        "DEBUG",
+        "CARGO_BUILD_TARGET",
+        "CARGO_ENCODED_RUSTFLAGS",
+        "RUSTFLAGS",
+        "RUSTDOCFLAGS",
+    ] {
+        if let Ok(value) = std::env::var(name) {
+            unit.insert(name.to_string(), value);
+        }
+    }
+    for (name, value) in std::env::vars().filter(|(name, _)| name.starts_with("CARGO_CFG_")) {
+        unit.insert(name, value);
+    }
+    let mut features: Vec<String> = std::env::vars()
+        .filter_map(|(name, value)| {
+            name.strip_prefix("CARGO_FEATURE_")
+                .filter(|_| value == "1")
+                .map(str::to_owned)
+        })
+        .collect();
+    features.sort();
+    features.dedup();
+    unit.insert("FEATURES".to_string(), features.join(","));
+    for (name, value) in unit {
+        hash.update(name.as_bytes());
+        hash.update([0x1f]);
+        hash.update(value.as_bytes());
+        hash.update([0x1e]);
+    }
+    println!(
+        "cargo:rustc-env=GMEOW_BUNDLE_IMPORT_BUILD_FINGERPRINT={}",
+        hex(&hash.finalize())
+    );
+}
+
+/// Preserve the pre-existing build-script authority that embeds every authored
+/// `queries/verify/*.rq` source into `OUT_DIR/verify_queries.rs` fail-closed.
+fn embed_verify_queries(workspace: &Path) {
     let mut by_stem: BTreeMap<String, PathBuf> = BTreeMap::new();
-
-    let top = workspace.join("queries").join("verify");
+    let top = workspace.join("queries/verify");
     println!("cargo:rerun-if-changed={}", top.display());
     collect_rq(&top, &mut by_stem);
-
     let slices = workspace.join("slices");
     println!("cargo:rerun-if-changed={}", slices.display());
     collect_slice_verify(&slices, &mut by_stem);
-
     assert!(
         !by_stem.is_empty(),
-        "no queries/verify/*.rq or slices/**/queries/verify/*.rq sources found under {} \
-         (fail-closed: the embedded verify query set must never be empty)",
-        workspace.display()
+        "the embedded verify query set must never be empty"
     );
 
     let mut out = String::new();
     out.push_str(
-        "/// Generated by `crates/logic/build.rs` — DO NOT EDIT.\n\
-         /// `(stem, sparql_text)` pairs for every authored verify bad-example query,\n\
-         /// sorted by stem. See `crate::verify::embedded_verify_queries`.\n\
+        "/// Generated by `crates/logic/build.rs` -- DO NOT EDIT.\n\
          pub static VERIFY_QUERIES: &[(&str, &str)] = &[\n",
     );
     for (stem, path) in &by_stem {
-        let path_str = path
+        let path = path
             .to_str()
             .unwrap_or_else(|| panic!("non-UTF-8 verify query path: {}", path.display()));
-        let _ = writeln!(out, "    ({stem:?}, include_str!({path_str:?})),");
+        let _ = writeln!(out, "    ({stem:?}, include_str!({path:?})),");
     }
     out.push_str("];\n");
-
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR");
-    let dest = Path::new(&out_dir).join("verify_queries.rs");
-    std::fs::write(&dest, out).expect("write verify_queries.rs");
+    std::fs::write(Path::new(&out_dir).join("verify_queries.rs"), out)
+        .expect("write verify_queries.rs");
 }
 
-/// Collect `*.rq` files directly under `dir` into `by_stem`, keyed by the file
-/// basename without `.rq`. Panics on a stem collision: two source files
-/// producing the same stem would silently shadow one query's coverage in the
-/// embedded set, which is worse than a loud build failure. `dir` is always a
-/// path the caller has already confirmed exists (the top-level
-/// `queries/verify` root, or a per-slice `queries/verify` subdir just checked
-/// with `is_dir()`), so a `read_dir` failure here is a real I/O/permissions
-/// error, not an expected "no such directory" — it must fail loud rather than
-/// silently yielding an empty (falsely-passing) verify query set.
 fn collect_rq(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
     let entries = std::fs::read_dir(dir)
-        .unwrap_or_else(|e| panic!("failed to read verify query dir {}: {e}", dir.display()));
-    let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
+        .unwrap_or_else(|error| panic!("read verify query dir {}: {error}", dir.display()));
+    let mut paths: Vec<PathBuf> = entries
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .collect();
     paths.sort();
     for path in paths {
-        if path.extension().is_some_and(|ext| ext == "rq") {
-            println!("cargo:rerun-if-changed={}", path.display());
-            let stem = path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .unwrap_or_else(|| panic!("non-UTF-8 verify query filename: {}", path.display()))
-                .to_owned();
-            if let Some(prior) = by_stem.insert(stem.clone(), path.clone()) {
-                panic!(
-                    "duplicate verify query stem {stem:?}: {} and {} both produce it — \
-                     rename one so verify query stems stay globally unique",
-                    prior.display(),
-                    path.display()
-                );
-            }
+        if !path.extension().is_some_and(|extension| extension == "rq") {
+            continue;
+        }
+        println!("cargo:rerun-if-changed={}", path.display());
+        let stem = path
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .unwrap_or_else(|| panic!("non-UTF-8 verify query path: {}", path.display()))
+            .to_owned();
+        if let Some(previous) = by_stem.insert(stem.clone(), path.clone()) {
+            panic!(
+                "duplicate verify query stem {stem:?}: {} and {}",
+                previous.display(),
+                path.display()
+            );
         }
     }
 }
 
-/// Recurse `slices/**`, collecting `queries/verify/*.rq` under every directory
-/// (at any depth) that has one — mirrors `slices/<group>/<slice>/queries/verify/`
-/// without hardcoding the two-level group/slice shape. `dir` is always either
-/// the required `slices/` workspace root or a subdirectory this function just
-/// enumerated from a successful parent `read_dir`, so a failure here is a real
-/// I/O/permissions error, not an expected "no such directory" — it must fail
-/// loud rather than silently truncating the recursion (and thus the embedded
-/// verify query set).
 fn collect_slice_verify(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
     let entries = std::fs::read_dir(dir)
-        .unwrap_or_else(|e| panic!("failed to read slices dir {}: {e}", dir.display()));
-    let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
+        .unwrap_or_else(|error| panic!("read slices dir {}: {error}", dir.display()));
+    let mut paths: Vec<PathBuf> = entries
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .collect();
     paths.sort();
     for path in paths {
         if !path.is_dir() {
             continue;
         }
         println!("cargo:rerun-if-changed={}", path.display());
-        let verify = path.join("queries").join("verify");
+        let verify = path.join("queries/verify");
         if verify.is_dir() {
             println!("cargo:rerun-if-changed={}", verify.display());
             collect_rq(&verify, by_stem);
         }
         collect_slice_verify(&path, by_stem);
     }
+}
+
+fn collect_workspace_inputs(dir: &Path, workspace: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    let mut paths: Vec<PathBuf> = entries
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .collect();
+    paths.sort();
+    for path in paths {
+        if path.is_dir() {
+            if path.file_name().is_some_and(|name| name == "target") {
+                continue;
+            }
+            collect_workspace_inputs(&path, workspace, out);
+        } else if path.is_file()
+            && let Ok(bytes) = std::fs::read(&path)
+        {
+            println!("cargo:rerun-if-changed={}", path.display());
+            let relative = path
+                .strip_prefix(workspace)
+                .unwrap_or(&path)
+                .to_string_lossy()
+                .into_owned();
+            out.insert(relative, bytes);
+        }
+    }
+}
+
+fn command_identity(program: &str, args: &[&str]) -> String {
+    match std::process::Command::new(program).args(args).output() {
+        Ok(output) if output.status.success() => {
+            String::from_utf8_lossy(&output.stdout).into_owned()
+        }
+        Ok(output) => format!(
+            "status={};stdout={};stderr={}",
+            output.status,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        ),
+        Err(error) => format!("unavailable:{error}"),
+    }
+}
+
+fn hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }

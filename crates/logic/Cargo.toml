@@ -116,6 +116,12 @@ sha2.workspace = true
 # parser (weeks/days/hours/minutes/seconds), not chrono.
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
+[build-dependencies]
+# Content identity for the graph-preserving GTS -> PURRPCK import product. The build
+# fingerprint covers every workspace crate, the dependency lock, toolchain, target, and
+# profile so a cache entry cannot cross an importer/transitive implementation identity.
+sha2.workspace = true
+
 [dev-dependencies]
 # Also a dev-dependency so the integration tests (tests/never_panic.rs,
 # proptest_invariants.rs) can `use gmeow_logic_compile::` directly.
@@ -134,6 +140,9 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 # Harness-only allocator accounting for the OWL-RL oracle scan. This dependency
 # installs no allocator itself; the dedicated bench binary opts in explicitly.
 gmeow-cost-measure = { path = "../cost-measure" }
+# Test bundles still pass through the mandatory GMEOW authorship profile; the import
+# cache itself is a reader and keeps no production writer edge.
+gmeow-gts-profile = { path = "../gts-profile" }
 # iai-callgrind: the DETERMINISTIC instruction-count backend for the engine bench
 # (benches/engines_iai.rs). It counts retired instructions under Valgrind Callgrind
 # — a machine-independent, run-to-run stable metric — as external corroboration for

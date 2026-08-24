@@ -214,6 +214,10 @@ insta = { version = "1.48" }
 # part of the shared fact, not a per-crate choice: the default feature set pulls a
 # network-fetching resolver that no gate is permitted to depend on.
 jsonschema = { version = "0.46", default-features = false }
+# Unix process resource accounting for the report-only performance sampler. The
+# sampler reads `getrusage(RUSAGE_CHILDREN)` around exactly one measured command;
+# production libraries never call libc through this dependency.
+libc = "0.2"
 # Pure-Rust template engine for the static site: no build scripts, deterministic
 # rendering.
 minijinja = "2"

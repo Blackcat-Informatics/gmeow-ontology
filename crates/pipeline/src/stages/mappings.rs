@@ -1590,6 +1590,12 @@ mod tests {
             .unwrap()
     }
 
+    fn fixture_jobs() -> usize {
+        std::thread::available_parallelism()
+            .map(std::num::NonZeroUsize::get)
+            .unwrap_or(1)
+    }
+
     fn triple_set(bytes: &[u8], media_type: &str) -> std::collections::BTreeSet<String> {
         let dataset = rdf_bytes_to_dataset(bytes, media_type, "triple_set").unwrap();
         purrdf::flat_rdf_quads_from_dataset(&dataset)
@@ -1665,7 +1671,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // is subject to the committed-vs-local env/staleness drift and is the CI
         // strict-sync gate, not asserted here.
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
         let mut overlap = 0usize;
         for (path, bytes) in &artifacts {
             if !path.ends_with(".sssom.tsv") {
@@ -1692,7 +1699,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     #[test]
     fn bcp47_projection_queries_join_through_variety() {
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
         let query = |name: &str| -> String {
             let path = format!("{QUERIES_DIR}/{name}");
             let (_, bytes) = artifacts
@@ -1745,7 +1753,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // Every EDOAL `.edoal.ttl` and SPARQL `.rq` the stage emits MUST equal its
         // committed counterpart byte-for-byte (the lowerings' parity contract).
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
         // Oracle for the inverse ingest leg: the lowering IS the authority for the
         // `.put.rq` set, so the expected committed put count is exactly the length of the
         // emitted `sparql_put` map. ml-schema authors the ingest-claim terms today, so
@@ -1838,7 +1847,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // and `dsl-stats.json` the stage emits MUST equal their committed counterparts
         // byte-for-byte (the emitters' parity contract).
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
         let mut standpoint = 0usize;
         let mut failures: Vec<String> = Vec::new();
 
@@ -1885,7 +1895,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // The emitted `observation-claim-view.rq` MUST equal its committed counterpart
         // byte-for-byte (the emitter's parity contract).
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
         let path = format!("{QUERIES_DIR}/{CLAIM_VIEW_FILE}");
         let bytes = artifacts.get(&path).expect("claim-view artifact");
         let committed =
@@ -1900,41 +1911,10 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     /// mappings product AND the upstream products (so a caller can re-read the consumed
     /// surfaces without re-running the producers).
     fn run_mappings_with_real_upstream() -> (StageProduct, BTreeMap<String, StageProduct>) {
-        use crate::node::StageInput;
-        use crate::stages::compile_logic::CompileLogicStage;
-        use crate::stages::constraint_shapes::ConstraintShapesStage;
-
         let root = repo_root();
-        // Run the real compile-logic stage to get the logic-projections channel, then the
-        // real mappings stage to assemble the FINAL projection report over the union.
-        // compile-logic reads its narrowed corpus off the source-load product.
-        let compile_upstream = crate::stages::compile_logic::source_load_upstream(&root);
-        let compile = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &compile_upstream,
-            })
-            .expect("compile-logic");
-        let constraint_shapes = ConstraintShapesStage
-            .run(StageInput {
-                root: &root,
-                upstream: &BTreeMap::new(),
-            })
-            .expect("constraint-shapes");
-        let mut up: BTreeMap<String, StageProduct> = BTreeMap::new();
-        up.insert("stage-compile-logic".to_string(), compile.product);
-        up.insert(
-            "stage-export-constraint-shapes".to_string(),
-            constraint_shapes.product,
-        );
-        let product = MappingsStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &up,
-            })
-            .expect("mappings")
-            .product;
-        (product, up)
+        let fixture = crate::fixture::mappings_fixture(&root, fixture_jobs())
+            .expect("exact mappings fixture");
+        (fixture.outcome.product, fixture.upstream)
     }
 
     #[test]
@@ -2197,7 +2177,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // catalog that parses. (Committed-byte/iso parity is the CI strict-sync
         // gate, env-matched.)
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
         let fno = artifacts.get(FNO_PATH).expect("fno artifact");
         let triples = triple_set(fno, "text/turtle");
         assert!(
@@ -2213,7 +2194,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // set + JSON-LD context, and the Turtle parses with the importable node
         // carrying the generalized sh:declare surface.
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
 
         let core = artifacts
             .get(CORE_PREFIXES_PATH)
@@ -2254,7 +2236,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // `purrdf::fno::to_quads` serializer, §19 one-path), each typed via
         // fno:Output and fno:Function.
         let root = repo_root();
-        let artifacts = compile_mappings(&root).expect("compile").artifacts;
+        let artifacts =
+            crate::fixture::mapping_artifacts(&root, fixture_jobs()).expect("mapping fixture");
         let lf = artifacts
             .get(LIST_FUNCTIONS_PATH)
             .expect("list-functions artifact");

@@ -631,7 +631,7 @@ impl Stage for SourceLoadStage {
     }
     fn impl_version(&self) -> &str {
         // v2: attach the self-description named graphs (authored-default / imports /
-        // metadata / alignments / slice-analysis / verify / provenance) so the presenter
+        // metadata / alignments / slice-analysis / provenance) so the presenter
         // reads them instead of re-loading + re-canonicalizing the sources on the serial
         // snapshot node (PIPELINE_SPINE §3.2/§4). The BASE_GRAPH_PATH byte lane and the
         // default-graph fold `gts_compose` takes are unchanged.
@@ -655,12 +655,15 @@ impl Stage for SourceLoadStage {
         // the loader that reads the slices reads it too; it is admitted to the object-level
         // reasoning EDB, so every slice's worked examples reach the shipped bundle's
         // reasoned closure instead of only the docs/competency-question harvest.
-        "source_load.v7-examples"
+        // v8: graph/verify leaves this root stage; the dedicated downstream verify
+        // stage projects it from stage-reason's already-built ReasoningResult instead
+        // of launching a second native chase here.
+        "source_load.v8-verify-after-reason"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
-        // files: imports, self-description metadata, SSSOM alignments, slice manifests +
-        // shapes (slice-analysis / verify), translation catalogs + docs guides (the
+        // files: imports, self-description metadata, SSSOM alignments, slice manifests,
+        // translation catalogs + docs guides (the
         // translated authored default). Declare them ALL so any of these busting the
         // cache re-runs the loader (cache soundness — a stale self-description graph would
         // ship a stale bundle). `build_self_description_dataset` is the single authority

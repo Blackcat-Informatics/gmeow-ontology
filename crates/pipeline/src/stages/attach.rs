@@ -97,7 +97,6 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/provenance",
             "https://blackcatinformatics.ca/gmeow/graph/quality-assessment",
             "https://blackcatinformatics.ca/gmeow/graph/slice-analysis",
-            "https://blackcatinformatics.ca/gmeow/graph/verify",
         ],
         &["spans:source-table"],
     );
@@ -215,7 +214,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &[],
     );
 
-    // stage-reason — the reasoned closure plus its production chase certificates.
+    // stage-reason — the reasoned closure and its production chase certificates.
     entry(
         &mut t,
         "stage-reason",
@@ -223,6 +222,15 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/diagnostics",
             "https://blackcatinformatics.ca/gmeow/graph/reasoning",
         ],
+        &["diagnostics:nodes"],
+    );
+
+    // stage-verify-attestation — the reasoned bad-example assessments plus their
+    // forward diagnostic nodes, evaluated from stage-reason's typed result.
+    entry(
+        &mut t,
+        "stage-verify-attestation",
+        &["https://blackcatinformatics.ca/gmeow/graph/verify"],
         &["diagnostics:nodes"],
     );
 
