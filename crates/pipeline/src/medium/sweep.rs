@@ -1004,7 +1004,7 @@ pub const REPLAY_RECORD_COUNT: usize = 512;
 ///
 /// Both arms use `purrdf::gts::examples::agent_memory::Memory` with the production
 /// authoring options (`ai-package`, `zstd-rsyncable`, level 12 — upstream's defaults,
-/// which ARE the mandated profile), exactly as [`crate::mcp`] configures a runtime
+/// which ARE the mandated profile), exactly as `gmeow_mcp` configures a runtime
 /// store. The ONLY difference between the arms is the in-band dictionary, which is
 /// what makes their difference attributable to it.
 ///

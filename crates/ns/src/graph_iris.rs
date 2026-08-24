@@ -43,8 +43,9 @@ pub const GRAPH_AUTHORING_BRIEFS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authoring-briefs";
 
 /// The named graph the run's `gmeow:Finding` diagnostics ride in, as emitted by
-/// `gmeow_errors::render::to_gmeow_rdf_in_graph`. [`crate::diagnostics_reader`] is
-/// the right-inverse of that projection and scopes every SELECT to this graph.
+/// `gmeow_errors::render::to_gmeow_rdf_in_graph`. The
+/// `gmeow_bundle_view::diagnostics_reader` module is the right-inverse of that projection
+/// and scopes every SELECT to this graph.
 pub const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 
 /// The named graph the release manifest and the per-artifact attestations ride in.

@@ -74,7 +74,8 @@ pub struct ExportStage {
 impl ExportStage {
     /// Construct the stage; it consumes THIS run's snapshot fold plus the
     /// `stage-export-json-schema` product, whose freshly-emitted `$defs` drive the
-    /// `llms-full.txt` cards' `python_model` gate (see [`class_is_modeled`]) —
+    /// `llms-full.txt` cards' `python_model` gate (see
+    /// `gmeow_docs_model::describe::class_is_modeled`) —
     /// without this edge the stage would only ever see the PREVIOUS run's
     /// committed schema (or none on a first run).
     ///

@@ -6,7 +6,7 @@
 //! Compiles the reasoning half of the shipped consumer MCP engine ([`gmeow_mcp`]) to
 //! `wasm32-unknown-unknown` and exposes it to JavaScript/TypeScript. It is the second tier
 //! of the console: the host loads it on the first `tools/call` the always-resident core
-//! image ([`gmeow-mcp-core-wasm`]) deferred, and replays the identical frame against it.
+//! image (`gmeow-mcp-core-wasm`) deferred, and replays the identical frame against it.
 //!
 //! ## Scope
 //!

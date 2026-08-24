@@ -6,12 +6,12 @@
 //!
 //! The documentation-maturity standard (the Formal-Concept coverage lattice and the
 //! bounded per-slice `gmeow:coverageFraction ∈ [0,1]`) is owned end-to-end by
-//! [`gmeow_docs`]: [`DocsModel::discover`] builds the typed model and
+//! `gmeow-docs-model`: [`DocsModel::discover`] builds the typed model and
 //! [`documentation_graph`] projects the per-slice covered-dimension incidence and its
 //! bounded coverage fraction. This axis reads that projection AS-IS — the axis score
 //! IS the slice's `coverage_fraction` and the advisories name the FULL-anchor
 //! dimensions the slice does not yet cover. It defines no dimension, no intent, and no
-//! fraction of its own (Principle 17: `crates/docs` is the single owner; this is a
+//! fraction of its own (Principle 17: `crates/docs-model` is the single owner; this is a
 //! consumer).
 //!
 //! # Cost & caching

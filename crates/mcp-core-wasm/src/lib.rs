@@ -5,7 +5,7 @@
 //!
 //! The first-load half of the tiered browser console. Compiles [`gmeow_mcp`] with the
 //! `reasoning` feature selected OUT to `wasm32-unknown-unknown` and exposes the SAME
-//! lifecycle its full sibling [`gmeow-mcp-wasm`] does, so a page can boot the engine on a
+//! lifecycle its full sibling `gmeow-mcp-wasm` does, so a page can boot the engine on a
 //! small image and fetch the reasoner only if a caller actually asks for reasoning.
 //!
 //! ## What is different from `gmeow-mcp-wasm`, and what is NOT

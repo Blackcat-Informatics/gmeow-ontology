@@ -4,7 +4,7 @@
 //! The shared [llmstxt.org](https://llmstxt.org) skeleton emitter.
 //!
 //! Three surfaces emit an `llms.txt`-family document — the docs site index
-//! ([`crate::slug::llms_txt`]), the live MCP consumer index, and the flat
+//! (`gmeow_docs::render::llms_txt`), the live MCP consumer index, and the flat
 //! `dist/llms.txt` export. These were previously three independently-written
 //! renderers that had silently diverged (`⊑` vs `subClassOf`, `→` vs `->`, a
 //! three-line header vs a blockquote). This module is the ONE source of truth for

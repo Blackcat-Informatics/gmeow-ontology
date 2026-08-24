@@ -33,8 +33,8 @@
 //!   `RunMode`, and they now sit on the dev side of the seam.
 //! * **wasm-clean, and not merely at the dependency level.** Nothing in the
 //!   dependency tree pulls in rayon or process spawning, AND no module outside
-//!   [`storage`]'s native half calls `std::fs` or `std::env`. Persistence and
-//!   configuration go through the [`storage`] seam, which is `cfg`-selected: a real
+//!   [`mod@storage`]'s native half calls `std::fs` or `std::env`. Persistence and
+//!   configuration go through the [`mod@storage`] seam, which is `cfg`-selected: a real
 //!   filesystem + environment natively, a real in-process store in a browser. The one
 //!   surface that is not seamed is [`McpServer::run_stdio`], the blocking process-stdio
 //!   line loop, which is `cfg`-gated OUT of wasm — a browser drives the identical
@@ -299,7 +299,7 @@ pub const CORE_SEGMENT: &str = "core";
 /// would be core reads. They are here anyway, and the reason is a hard property of the
 /// deployment rather than a preference: **a segment is an image, and an image is a store.**
 /// The browser backend's claim package
-/// ([`storage::browser_storage`](crate::storage::browser_storage)) is a `static` inside one
+/// ([`storage::browser_storage`]) is a `static` inside one
 /// wasm module, and two wasm modules have two linear memories — there is no arrangement in
 /// which they share one. Splitting the triad therefore does not distribute it; it FORKS it,
 /// and a `store_claim` that reported a minted claim id would be unreachable by every read:
@@ -310,7 +310,7 @@ pub const CORE_SEGMENT: &str = "core";
 /// Transaction-Logic executor, so serving them from the core image would mean linking the
 /// reasoner into the first-load image and deleting the split. So the triad follows the
 /// writes: every tool that touches the claim package
-/// ([`ClaimStore`](crate::storage::ClaimStore)) is served by ONE segment, and this is it.
+/// ([`ClaimStore`]) is served by ONE segment, and this is it.
 /// The price is honest and bounded — a caller that recalls demand-loads the reasoning image
 /// exactly as a caller that stores does — and it buys the property the triad is for: what
 /// was stored can be read back, and what `store_segment` exports is the store the session's
@@ -350,7 +350,7 @@ pub const REASONING_SEGMENT_TOOLS: &[&str] = &[
 /// indivisibility argument in [`REASONING_SEGMENT_TOOLS`] is CHECKED rather than asserted:
 /// `the_grounded_memory_triad_is_served_by_one_segment` proves this whole set maps to a
 /// single segment, which is what makes a stored claim recallable in the browser. Any new
-/// tool that reaches [`ClaimStore`](crate::storage::ClaimStore) belongs here, and the same
+/// tool that reaches [`ClaimStore`] belongs here, and the same
 /// proof then constrains where it may be served.
 pub const CLAIM_STORE_TOOLS: &[&str] = &["store_claim", "recall", "store_segment", "revise_belief"];
 
@@ -1415,7 +1415,7 @@ impl McpView {
     /// The raw `gmeow.gts` snapshot bytes this view serves, for the native
     /// validation surface that reads the folded `shapes-archive` blob directly.
     ///
-    /// PUBLIC because an [`Extension`](crate::Extension) handler is by definition code the
+    /// PUBLIC because an [`Extension`] handler is by definition code the
     /// leaf does not carry: a host that owns a reader this crate deliberately does not link
     /// — the medium registry among them — still has to be handed the same bytes the builtin
     /// surface answers from, or it would be answering about a different artifact.
@@ -5454,7 +5454,8 @@ pub struct ConjecturePureOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body
+    /// `gmeow_logic::result_rdf::project_conjecture_verdict` emitted.
     pub verdict_nt: String,
 }
 
@@ -5485,7 +5486,8 @@ pub struct ConjectureRunOutput {
     pub witness: Option<ConjectureRunWitness>,
     /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
     pub node_iri: String,
-    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    /// The deterministic N-Triples body
+    /// `gmeow_logic::result_rdf::project_conjecture_verdict` emitted.
     pub verdict_nt: String,
     /// The TR receipt gating the persist (rendered as the transaction summary by callers).
     pub receipt: TxReceipt,
