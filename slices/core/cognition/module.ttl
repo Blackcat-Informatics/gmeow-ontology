@@ -368,9 +368,9 @@ DOCTRINE.
 
 # =========================================================================== #
 # Relational-dependence cardinality: a gmeow:KnowledgeProficiency #
-# relator names its subject and its knowledge level. Migrated from the         #
-# hand-authored gmeow:KnowledgeProficiencyShape min-count property constraints  #
-# to compact logic: disjunctive-requiredness records, projected to a           #
+# relator names its subject and its knowledge level. Its min-count property     #
+# constraints are compact logic: disjunctive-requiredness records, projected    #
+# to a                                                                          #
 # sh:SPARQLConstraint keyed onto gmeow:KnowledgeProficiency.                    #
 # =========================================================================== #
 

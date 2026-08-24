@@ -467,7 +467,7 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
     // generated-view-only (a projection) for transitivity and symmetry too: the authoring
     // vocabulary was retired to logic:, so `owl:TransitiveProperty` / `owl:SymmetricProperty` are
     // ABSENT from the bundle, exactly as functionality was moved to a logic:-only carrier + an
-    // owl:-view-only projection by issue 1579. This loop therefore binds the logic: marker, not
+    // owl:-view-only projection for functionality. This loop therefore binds the logic: marker, not
     // the owl: one. gmeow:versionOf / gmeow:editionOf go further (carrier-record only, no direct
     // marker) and are asserted below via the same logic:-only treatment as counterGoal
     // irreflexivity, not through this dual-carrier loop.
@@ -536,7 +536,7 @@ fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
         "the counterGoal irreflexivity record must assert logic:irreflexiveProperty"
     );
 
-    // Functionality is a logic:-ONLY carrier (issue 1579): the source owl:FunctionalProperty
+    // Functionality is a logic:-ONLY carrier: the source owl:FunctionalProperty
     // marker was deprecated and now exists only in the generated OWL view, so the bundle
     // carries NO marker triple for these — only the logic: record. The pair (record →
     // characterizes property, record → characteristicSort functionalProperty) is the single
