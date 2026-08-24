@@ -67,7 +67,6 @@ rustc-ice-*.txt
 
 # insta pending-snapshot temp files (never commit)
 *.snap.new
-.deficiencies
 
 # coding-ethos generated runtime output
 .claude/settings.local.json
