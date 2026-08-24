@@ -688,7 +688,7 @@ ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferencePro
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as logic: restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
 # (Principle 17). A restriction carrying both a logic: qualified-cardinality bound and
 # logic:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
@@ -743,7 +743,7 @@ gmeow:InferenceApplication rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:appliedRule ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:appliedSubstitution ; logic:allValuesFrom xsd:string ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Correspondence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/correspondingSource> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Correspondence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/correspondingTarget> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
@@ -761,7 +761,7 @@ gmeow:InferenceApplication rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/InferenceCommitment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/conclusion> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
+# Closed-world SHACL SPARQL constraints                                #
 # from slices/core/inference/shapes.ttl, re-expressed as canonical            #
 # logic:Constraints (Principle 17). The authored shapes stay (additive).       #
 # =========================================================================== #

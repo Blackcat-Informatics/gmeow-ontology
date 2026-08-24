@@ -1214,7 +1214,7 @@ DOCTRINE.
   * CONDITIONS ARE STORED, NEVER EXECUTED. A gmeow:Condition is an InformationObject whose canonical form is prose (conditionText); formalizations (SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL) attach as ConditionExpressions, and EACH FORMALIZATION IS A CLAIM of equivalence to the prose, challengeable through the statement layer. Whether a condition held is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. No CI step, test, or tool may evaluate a ConditionExpression against the graph as part of validation (the Principle 12 boundary made operational; see docs.md).
   * THE RIGHTS GRAFT (rights graft) lands here, norms-side, with ZERO churn in the rights slice: gmeow:Rule ⊑ gmeow:Norm plus subproperty grafts. The deontic trio (Permission / Prohibition / Duty) is NOT an inferior duplicate of Norm + deonticModality — it is a rigid subkind partition (fixed modality per subkind) under the open modality axis, kept for the asset case and its projection affordances. Without the graft, the rights slice behaves exactly as before.
   * Deontic force ranges over teleology: gmeow:prescribedConduct points at event types, goals (teleology design), situations, or rights actions; its range is intentionally open (the tenurePosition precedent) so the graft needs no dual-typing and the generated schema surface keeps a clean property.
-  * ALIGNMENTS DEFERRED to the compiler-arc window (the aboutness-axis precedent): ODRL 2.2 (EDOAL — odrl:Constraint ↔ Condition is structural), LegalRuleML (<Override> ↔ overrides/PrecedenceTenure — the one target where precedence survives round-trip), LKIF-Core, DPV, SUMO normative attributes, UFO-L. Target list is fixed in the alignment ledger."""@x-gmeow-english ;
+  * External normative-alignment targets (the aboutness-axis precedent): ODRL 2.2 (EDOAL — odrl:Constraint ↔ Condition is structural), LegalRuleML (<Override> ↔ overrides/PrecedenceTenure — the one target where precedence survives round-trip), LKIF-Core, DPV, SUMO normative attributes, UFO-L."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "GMEOW Norms Module"@x-gmeow-english ;
     skos:definition "The GMEOW Norms Module — generalized deontics with indexed authority."@x-gmeow-english ;
@@ -1389,7 +1389,7 @@ gmeow:usesScale rdfs:range gmeow:ScoreScale .
   logic:closureKey "https://blackcatinformatics.ca/gmeow/usesScale" ;
   logic:closureValue logic:ClosedWorldClosure ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Assessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
@@ -1615,7 +1615,7 @@ logic:usfEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 
 # =========================================================================== #
-# Procedural constraint (#1194): a gmeow:ScoreAnchor's range must lie within the  #
+# Procedural constraint: a gmeow:ScoreAnchor's range must lie within the  #
 # scale its criterion (or the criterion's owning rubric, when the criterion       #
 # declares none) advertises. Projected to a sh:SPARQLConstraint keyed onto the    #
 # gmeow:ScoreAnchor source-term. The scale-source disjunction is a UNION (each    #
@@ -1678,7 +1678,7 @@ logic:sarAbove a logic:Formula ; logic:relation logic:termGreater ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "amax" ] , [ logic:termIndex 1 ; logic:termVariable "smax" ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the remaining closed-world norms /    #
+# Closed-world norms / rubrics well-formedness constraints               #
 # rubrics well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).    #
 # =========================================================================== #
 
@@ -1774,7 +1774,7 @@ gmeow:ScoreAnchorMeaningConstraint
     logic:onClass gmeow:ScoreAnchor ;
     logic:anyOf gmeow:anchorMeaning ;
     logic:formalizes gmeow:ScoreAnchor ;
-    logic:message "A ScoreAnchor must carry at least one gmeow:anchorMeaning, at most one per language tag — an anchor without a meaning is just an interval (localizable prose, PR #376 review)." .
+    logic:message "A ScoreAnchor must carry at least one gmeow:anchorMeaning, at most one per language tag — an anchor without a meaning is just an interval (localizable prose)." .
 
 gmeow:ScoreAnchorRangeMinConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -1822,7 +1822,7 @@ gmeow:ExemplarPolarityConstraint
     logic:formalizes gmeow:Exemplar ;
     logic:message "An Exemplar must state exactly one gmeow:exemplarPolarity (positive / negative / cautionary — a CLOSED vocabulary, hence sh:in)." .
 
-# Registers (#355): Persona/StyleGuide presence halves of the closed-world shapes
+# Registers: Persona/StyleGuide presence halves of the closed-world shapes
 # (the nodeKind half is gmeow:PersonaRegisterNodeKindConstraint above).
 gmeow:PersonaBearerConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -1857,7 +1857,7 @@ gmeow:StyleGuideForConstraint
     logic:formalizes gmeow:StyleGuide ;
     logic:message "A StyleGuide must voice at least one gmeow:styleGuideFor target (a Persona or a Register) — a style guide for nothing is just a document." .
 
-# Migrated (#1194): the deontic subkind fixes the modality (#352) — projections
+# The deontic subkind fixes the modality — projections
 # of gmeow:GraftProhibitionModalityShape / gmeow:GraftDutyModalityShape.
 gmeow:ProhibitionModalityConstraint
     a logic:ValueSetMembershipConstraint ;
@@ -1869,7 +1869,7 @@ gmeow:ProhibitionModalityConstraint
     logic:formalizes gmeow:Prohibition ;
     logic:valuePath gmeow:deonticModality ;
     logic:memberValue gmeow:deonticProhibition ;
-    logic:message "A Prohibition's deontic modality, when stated, must be gmeow:deonticProhibition — the subkind fixes the modality (#352)." .
+    logic:message "A Prohibition's deontic modality, when stated, must be gmeow:deonticProhibition — the subkind fixes the modality." .
 
 gmeow:DutyModalityConstraint
     a logic:ValueSetMembershipConstraint ;
@@ -1881,7 +1881,7 @@ gmeow:DutyModalityConstraint
     logic:formalizes gmeow:Duty ;
     logic:valuePath gmeow:deonticModality ;
     logic:memberValue gmeow:deonticObligation ;
-    logic:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality (#352)." .
+    logic:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Criterion> ] .

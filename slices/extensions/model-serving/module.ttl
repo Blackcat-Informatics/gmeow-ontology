@@ -292,11 +292,11 @@ gmeow:eventTypeAgentEpisode
 # Declarative constraint axioms (extension slices) — the closed-
 # world cardinality / class obligations the hand-authored shapes.ttl NodeShapes
 # state (gmeow:ModelDeploymentShape, gmeow:ModelCardServingSplitShape,
-# gmeow:AgentSessionShape), authored here once as logic: restriction axioms and
+# gmeow:AgentSessionShape), authored here once as logic:Restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by
-# derive_validation_shapes (Principle 17). A restriction carrying OWL maxQualifiedCardinality
-# (onClass OWL Thing) lowers to sh:maxCount; OWL allValuesFrom C to sh:class C. The deployment /
-# awareness-subject disjointness rides the existing OWL disjointWith gmeow:Agent
+# derive_validation_shapes (Principle 17). A restriction carrying logic:maxQualifiedCardinality
+# (logic:onClass logic:Thing) lowers to sh:maxCount; logic:allValuesFrom C to sh:class C. The deployment /
+# awareness-subject disjointness rides the existing logic:disjointWith gmeow:Agent
 # (a procedural sh:not twin has no ordinary-OWL antecedent — the disjointWith IS
 # the antecedent and already projects). No numeric-range / sh:sparql conditions
 # here, so nothing is carried to the procedural constraint fragment.

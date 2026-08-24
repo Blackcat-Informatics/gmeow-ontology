@@ -245,7 +245,7 @@ gmeow:taggingTagger
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of RetractedTagSuppressionShape.  #
+# Suppression constraint — projection of RetractedTagSuppressionShape.  #
 # A retracted/superseded tagging (whose gmeow:taggingInterval has ended, i.e.   #
 # carries gmeow:endedAtTime) that is not suppressed (gmeow:displayable false) is #
 # a Warning — a source may lag the flag.                                        #

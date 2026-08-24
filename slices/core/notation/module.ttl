@@ -515,7 +515,7 @@ gmeow:writingSystemAsNotation
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as logic: restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
 # (Principle 17). A restriction carrying both a logic: qualified-cardinality bound
 # and logic:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /

@@ -970,7 +970,7 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraints (#1194) — projections of the finance Phase B–D        #
+# Suppression constraints — projections of the finance Phase B–D        #
 # suppression shapes. A reversed/cancelled record that is not suppressed        #
 # (gmeow:displayable false) is a Warning — a source may lag on setting the flag. #
 # =========================================================================== #
@@ -1097,7 +1097,7 @@ logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # posting-direction value set. The gmeow:Agent obligations on                   #
 # ledgerAccountHolder / invoiceIssuer / invoiceRecipient hold under reasoning    #
 # (gmeow:Organization logic:subClassOf gmeow:Agent), so they ground              #
-# declaratively via OWL allValuesFrom gmeow:Agent.                              #
+# declaratively via logic:allValuesFrom gmeow:Agent.                            #
 # =========================================================================== #
 
 gmeow:ReversedTransactionSuppressionConstraint logic:formalizes gmeow:ReversedTransactionSuppressionShape .
@@ -1149,7 +1149,7 @@ gmeow:JournalEntryPostingsCountConstraint
     logic:formalizes gmeow:JournalEntryHasPostingsShape ;
     logic:message "A JournalEntry must have at least two postings (gmeow:journalEntryPostings)." .
 
-# postingDirection sh:in value set → OWL oneOf antecedent (declarative sh:in).
+# postingDirection sh:in value set → logic:oneOf antecedent (declarative sh:in).
 gmeow:Posting logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:postingDirection ; logic:allValuesFrom [ logic:oneOf ( gmeow:postingDirectionDebit gmeow:postingDirectionCredit ) ] ] .
 
@@ -1163,7 +1163,7 @@ gmeow:Invoice logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceIssuer" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceRecipient" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-# JournalEntry: at least two postings, projected as a BARE sh:minCount 2 (OWL Thing
+# JournalEntry: at least two postings, projected as a BARE sh:minCount 2 (logic:Thing
 # filler collapses the qualified count to the plain minimum the legacy shape stated).
 gmeow:JournalEntry logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:journalEntryPostings ; logic:minQualifiedCardinality 2 ; logic:onClass logic:Thing ] .

@@ -2281,7 +2281,7 @@ gmeow:dictGmeowProoftraceV1
     gmeow:dictionaryId "gmeow-prooftrace-v1" ;
     gmeow:dictionaryVersion "1" ;
     gmeow:dictionaryStrategy gmeow:dictStrategyTrained ;
-    gmeow:dictionaryTargetLength "16384"^^xsd:nonNegativeInteger ;
+    gmeow:dictionaryTargetLength "65536"^^xsd:nonNegativeInteger ;
     gmeow:trainsOverCorpus gmeow:corpusGmeowProoftraceV1 ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox .
@@ -3126,7 +3126,7 @@ logic:PayloadSchemaDictionaryConstraint
 
 # =========================================================================== #
 # Medium-axis declarative constraint axioms — authored ONCE in the CANONICAL   #
-# logic: restriction vocabulary and PROJECTED to                              #
+# logic:Restriction vocabulary and PROJECTED to                              #
 # generated/shapes/validation-shapes.ttl by derive_validation_shapes           #
 # (Principle 17). The rdfs:/OWL spelling is the derived projection, never a   #
 # hand-authored second source: an OWL Restriction written here would be        #

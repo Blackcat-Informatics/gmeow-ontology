@@ -188,7 +188,7 @@ gmeow:polarityLimited
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of RetractedAccessibilityAssertionShape.
+# Suppression constraint — projection of RetractedAccessibilityAssertionShape.
 # A retracted/superseded accessibility assertion (one carrying gmeow:validUntil) #
 # that is not suppressed (gmeow:displayable false) is a Warning — source may lag. #
 # =========================================================================== #

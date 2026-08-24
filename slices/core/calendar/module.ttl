@@ -749,7 +749,7 @@ DESIGN PRINCIPLES.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of CancelledOccurrenceSuppressionShape.
+# Suppression constraint — projection of CancelledOccurrenceSuppressionShape.
 # A cancelled Event occurrence — one whose eventTime matches a ScheduleException #
 # of gmeow:exceptionType exceptionTypeCancellation on a schedule that occurs it  #
 # — that is not suppressed (gmeow:displayable false) is a Warning.               #

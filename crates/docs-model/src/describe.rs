@@ -1439,8 +1439,15 @@ mod tests {
         let bytes = shipped_bundle_bytes();
         let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load shipped bundle");
 
+        // The bundle carries each term's type in the CANONICAL `logic:` spelling (a term is
+        // `logic:Class`, not `owl:Class`, after the `owl:`→`logic:` surface flip); the `owl:`
+        // spellings are kept so a not-yet-reauthored corpus is still covered. Enumerate both.
         let mut term_subjects: BTreeSet<String> = BTreeSet::new();
         for ty in [
+            gmeow_ns::LOGIC_CLASS,
+            gmeow_ns::LOGIC_OBJECT_PROPERTY,
+            gmeow_ns::LOGIC_DATATYPE_PROPERTY,
+            gmeow_ns::LOGIC_ANNOTATION_PROPERTY,
             OWL_CLASS,
             OWL_OBJECT_PROPERTY,
             OWL_DATATYPE_PROPERTY,
@@ -1450,7 +1457,8 @@ mod tests {
         }
         assert!(
             !term_subjects.is_empty(),
-            "the shipped bundle declared no OWL terms — the gate would be vacuous"
+            "the shipped bundle declared no vocabulary terms (logic:/owl: class or property) \
+             — the gate would be vacuous"
         );
 
         let registered: BTreeSet<&str> = PREFIX_REGISTRY.iter().map(|(_, ns)| *ns).collect();

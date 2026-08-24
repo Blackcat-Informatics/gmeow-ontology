@@ -241,10 +241,10 @@ gmeow:vectorRef
 # =========================================================================== #
 # Declarative constraint axioms (extension slices) — the closed-
 # world cardinality obligations the hand-authored shapes.ttl NodeShapes state
-# (gmeow:ExtractedRelationshipEndsShape), authored here once as OWL restriction
+# (gmeow:ExtractedRelationshipEndsShape), authored here once as a logic:Restriction
 # axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
-# derive_validation_shapes (Principle 17). exact-one -> OWL maxQualifiedCardinality 1
-# (onClass OWL Thing) -> sh:minCount 1 + sh:maxCount 1. The Embedding/RetrievalEvent
+# derive_validation_shapes (Principle 17). exact-one -> logic:maxQualifiedCardinality 1
+# (logic:onClass logic:Thing) -> sh:minCount 1 + sh:maxCount 1. The Embedding/RetrievalEvent
 # cardinality axioms (gmeow:EmbeddingProvenanceShape, gmeow:RetrievalEventShape)
 # migrated to the ai slice's module.ttl alongside the classes they constrain.
 # =========================================================================== #
@@ -253,7 +253,7 @@ gmeow:ExtractedRelationship rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:relationshipSource ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:relationshipTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipSource> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipTarget> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .

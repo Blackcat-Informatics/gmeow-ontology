@@ -2395,7 +2395,8 @@ pub fn derive_validation_shapes(
                     // bare blank shape — skip (do not emit).
                     Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
                     Some(Node::Iri(q)) if is_top_thing(&q) => {
-                        // `owl:onClass owl:Thing` qualifies over "any individual" — the qualified
+                        // `logic:onClass logic:Thing` (canonical; `owl:onClass owl:Thing` is its
+                        // generated projection) qualifies over "any individual" — the qualified
                         // count degrades to an unqualified `sh:minCount`/`sh:maxCount` rather than
                         // a vacuous inner shape.
                         let pc = PropertyConstraintIr::new(

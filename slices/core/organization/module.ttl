@@ -762,7 +762,7 @@ STANDPOINT DOCTRINE. Contested facts in the organization slice — disputed memb
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world organization         #
+# Closed-world organization constraints                                  #
 # well-formedness shapes from shapes/organization-shapes.ttl (Principle 17).    #
 # =========================================================================== #
 
@@ -834,7 +834,7 @@ logic:mfpDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "memOrg" ] , [ logic:termIndex 1 ; logic:termVariable "postOrg" ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world multi-org change    #
+# Closed-world multi-org change constraints                             #
 # event shapes from shapes/organization-shapes.ttl, re-expressed as canonical  #
 # logic:Constraints (Principle 17). The authored shapes stay (additive). The   #
 # aggregate "at least N" is expressed first-order: N distinct existentials via  #

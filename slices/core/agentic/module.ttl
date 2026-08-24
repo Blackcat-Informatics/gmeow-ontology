@@ -134,14 +134,14 @@ DOCTRINE.
 # =========================================================================== #
 # Declarative constraint axioms — the closed-
 # world cardinality / class / literal obligations the hand-authored
-# gmeow:ToolCallShape states, authored here once as logic: restriction axioms and
+# gmeow:ToolCallShape states, authored here once as logic:Restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). OWL maxQualifiedCardinality (onClass OWL Thing) -> sh:maxCount;
-# OWL maxQualifiedCardinality 1 (onClass OWL Thing) -> sh:minCount 1 + sh:maxCount 1;
-# OWL allValuesFrom C -> sh:class C;
-# OWL allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
+# (Principle 17). logic:maxQualifiedCardinality (logic:onClass logic:Thing) -> sh:maxCount;
+# logic:maxQualifiedCardinality 1 (logic:onClass logic:Thing) -> sh:minCount 1 + sh:maxCount 1;
+# logic:allValuesFrom C -> sh:class C;
+# logic:allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
 # facet). The `sh:nodeKind sh:IRI` facet on the object-valued paths has no
-# ordinary-OWL antecedent (OWL Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
+# ordinary-OWL antecedent (logic:Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
 # stays on the procedural constraint fragment.
 # =========================================================================== #
 
@@ -151,9 +151,9 @@ gmeow:ToolCall logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:toolArguments ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:toolResult ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-# onClass OWL Thing (not the specific class) so the qualified count degrades to
+# logic:onClass logic:Thing (not the specific class) so the qualified count degrades to
 # the bare sh:minCount/maxCount gmeow:ToolCallShape wants, matching the class
 # component already supplied by the someValuesFrom/allValuesFrom restrictions
 # in this class's own definition above.

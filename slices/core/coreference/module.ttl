@@ -97,7 +97,7 @@ gmeow:versionOf
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
-# Migrated (#1194): projection of gmeow:AuthorityLinkMatchStrengthShape (Warning)
+# Projection of gmeow:AuthorityLinkMatchStrengthShape (Warning)
 # — a gmeow:authorityLink target should also be asserted as skos:exactMatch or
 # skos:closeMatch to record coreference strength (Principle 17).
 gmeow:AuthorityLinkMatchStrengthConstraint

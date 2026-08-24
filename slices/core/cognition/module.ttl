@@ -367,7 +367,7 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Relational-dependence cardinality (issue #1194): a gmeow:KnowledgeProficiency #
+# Relational-dependence cardinality: a gmeow:KnowledgeProficiency #
 # relator names its subject and its knowledge level. Migrated from the         #
 # hand-authored gmeow:KnowledgeProficiencyShape min-count property constraints  #
 # to compact logic: disjunctive-requiredness records, projected to a           #
@@ -397,7 +397,7 @@ gmeow:KnowledgeProficiencyLevelRequiredConstraint
     logic:message "A KnowledgeProficiency must carry a KnowledgeLevel (gmeow:knowledgeProficiencyLevel)." .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world KnowledgeProficiency #
+# Closed-world KnowledgeProficiency constraints                         #
 # well-formedness shapes from shapes/cognition-shapes.ttl, re-authored as        #
 # compact logic: constraint-sugar records (Principle 17).                        #
 # =========================================================================== #

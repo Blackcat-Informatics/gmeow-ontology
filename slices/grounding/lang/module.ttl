@@ -10513,9 +10513,9 @@ gmeow:gmnCodebookCurrent gmeow:references
 # =========================================================================== #
 # Declarative constraint axioms (grounding slices) — the closed-world presence /
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as logic: restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl (Principle 17). A restriction that
-# carries OWL allValuesFrom OWL Thing projects to sh:nodeKind sh:BlankNodeOrIRI
+# carries logic:allValuesFrom logic:Thing projects to sh:nodeKind sh:BlankNodeOrIRI
 # (the "a present value is a resource, not a literal" obligation). The
 # cross-node / value-set / targetSubjectsOf conditions have no OWL/DL antecedent
 # and remain the procedural sh:sparql constraint fragment.
@@ -10815,7 +10815,7 @@ lang:paraphraseSamenessClosure
 # logic:onClass — an entry naming a class is class-scoped and feeds the required-path
 # reading instead). rdfs:range is an open-world INFERENCE axiom, so the derive keeps its
 # closed-world sh:class reading suppressed unless a ClosureEntry opts the property in.
-# Both envelope fields are named-class QUALIFIED (OWL onClass gmeow:GmnSecurityRing /
+# Both envelope fields are named-class QUALIFIED (logic:onClass gmeow:GmnSecurityRing /
 # logic:Correspondence), and a qualified cardinality alone does NOT entail the universal
 # "every value is a …" — so without these entries the derived envelope shape would carry
 # only sh:qualifiedValueShape and would silently lose the sh:class obligation the retired
@@ -10851,7 +10851,7 @@ lang:gmnEnvelopeCorrespondenceRangeClosure
 # ex:saNoForbiddenCharacteristics structural assertion forbids it, on the property AND on
 # the logic:PropertyCharacteristicAssertion carrier), and the pipeline projects no
 # sh:maxCount from it, so the marker would silently drop the obligation. As in
-# lang:Grapheme's inScript bound above, logic:onClass OWL Thing is what degrades the
+# lang:Grapheme's inScript bound above, logic:onClass logic:Thing is what degrades the
 # qualified max cardinality to the BARE, class-scoped sh:maxCount 1 the retired shapes had;
 # logic:onClass <range> would project a qualified sh:qualifiedMaxCount instead.
 lang:Form logic:subClassOf
@@ -10903,7 +10903,7 @@ lang:Grapheme logic:subClassOf
 # globally without wrongly tightening SurfaceForm. Scoping the max bound to lang:Grapheme's OWN
 # restriction avoids that: a qualified max cardinality with onClass lang:Script would project to
 # a QUALIFIED sh:qualifiedMaxCount (never matching the legacy BARE sh:maxCount 1), but onClass
-# OWL Thing degrades a qualified cardinality to a bare, class-scoped sh:maxCount (the same proven
+# logic:Thing degrades a qualified cardinality to a bare, class-scoped sh:maxCount (the same proven
 # recipe used for gmeow:citingEntity/gmeow:citedEntity in slices/core/citations/module.ttl), so it
 # combines with the allValuesFrom restriction above into bare min=1/max=1/class=Script — exactly
 # lang:GraphemeGroundedShape's covered fragment — without touching lang:SurfaceForm's own,
@@ -10946,7 +10946,7 @@ lang:TranslationUnit logic:subClassOf
 # The canonicalization/analyzer profile declares its frame identity (script, encoding,
 # normalization, collation) and its version as single-valued properties; each is bounded
 # maxQualifiedCardinality 1, the same idiom as lang:Denotation's denotationKind bound —
-# logic:onClass OWL Thing for the object-valued lang:profileScript, logic:onDataRange
+# logic:onClass logic:Thing for the object-valued lang:profileScript, logic:onDataRange
 # xsd:string for the string-valued frame and version properties.
 lang:CanonicalizationProfile logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:profileScript ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
@@ -10956,7 +10956,7 @@ lang:CanonicalizationProfile logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:profileCollation ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
 # One pipeline stage names exactly one lang:StageKind; the stage-kind bound mirrors the
-# same idiom (logic:onClass OWL Thing for the object-valued lang:stageKind).
+# same idiom (logic:onClass logic:Thing for the object-valued lang:stageKind).
 lang:ProfileStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:stageKind ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
@@ -11174,7 +11174,7 @@ lang:ReadingClaimVantageConstraint
     logic:formalizes lang:ReadingClaimGroundedShape ;
     logic:message "A reading-correctness claim (a gmeow:Observation about a lang:Reading) must name its gmeow:vantage; an ungrounded reading claim is ill-formed (lang:UngroundedReadingClaim)." .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/lang/FormSlot> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/lang/slotIndex> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#integer> ] .
 <https://blackcatinformatics.ca/lang/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/lang/demonstratedByExample> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#string> ] .
@@ -11246,7 +11246,7 @@ lang:GmnEnvelopeCorrespondenceNodeKindConstraint
     logic:message "A gmeow:GmnEnvelope must name its gmeow:gmnEnvelopeCorrespondence by IRI — the losslessness judgment is a citable logic:Correspondence, never an anonymous node." .
 
 # A surface must carry its material either inline or by content-addressed blob.
-# The four remaining field obligations are ordinary OWL restrictions above; this
+# The four remaining field obligations are ordinary logic:Restriction axioms above; this
 # disjunctive requiredness record is the canonical authority for the only
 # non-declarative part of lang:SurfaceMaterialShape.
 lang:SurfaceMaterialChoiceConstraint
@@ -11259,7 +11259,7 @@ lang:SurfaceMaterialChoiceConstraint
 
 # Zero-based contiguity without aggregation: every observed non-zero slot index
 # has an observed predecessor whose index plus one equals it. Together with the
-# exact-one integer slotIndex OWL restriction and the uniqueness constraint,
+# exact-one integer slotIndex logic:Restriction and the uniqueness constraint,
 # this is equivalent over finite RDF graphs to indexes {0,...,n-1}. The formula
 # is canonical; termSum lowers to a checked arithmetic BIND and termEqual to a
 # FILTER, so this is not an uninterpreted proxy for the legacy aggregate query.
@@ -11545,7 +11545,7 @@ lang:ggcS2 a logic:Formula ; logic:relation gmeow:gmnSigilScope ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "g2" ] , [ logic:termIndex 1 ; logic:termVariable "sc2" ] .
 
 # =========================================================================== #
-# Procedural constraints (#1194) authored as raw logic:Formula integrity trees, #
+# Procedural constraints authored as raw logic:Formula integrity trees, #
 # projected to sh:SPARQLConstraint keyed (via logic:formalizes) onto the same    #
 # source-terms the hand-authored SHACL enforced. GmnCompaction uses the          #
 # logic:linkVia variable-predicate relation; GmnVersionOverclaim a filter        #
@@ -11631,7 +11631,7 @@ lang:gmnVoNotTrivial a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scaleTrivial ] .
 
 # =========================================================================== #
-# Unmarked-surface translation (#1194): a lang:TranslationUnit whose source or   #
+# Unmarked-surface translation: a lang:TranslationUnit whose source or   #
 # target is a lang:SurfaceForm realizing no analyzed form is honest only if that #
 # surface is typed lang:UnanalyzedProse AND its carried logic:Correspondence     #
 # carries the weakest preservation (logic:Unsupported / logic:ValidationOnly).   #
@@ -11799,7 +11799,7 @@ lang:ustToVal a logic:Formula ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:ValidationOnly ] .
 
 # =========================================================================== #
-# Procedural constraints (#1194) — remaining hand-authored sh:sparql NodeShapes  #
+# Procedural constraints — remaining hand-authored sh:sparql NodeShapes  #
 # of shapes.ttl migrated to canonical logic:Constraint records. Each carries      #
 # logic:formalizes keyed on the shape term its projected sh:SPARQLConstraint twin #
 # replaces; the raw logic:Formula integrity trees mirror each sh:select's BGP +   #
@@ -12130,7 +12130,7 @@ lang:rniSelf a logic:Formula ; logic:relation lang:renderedContent ;
 # lang:translationMethod is lang:methodMachine names the gmeow:wasGeneratedBy
 # activity that produced it (a guarded implication: the machine-method trigger
 # value requires a generating activity). The lang:translationMethod cardinality
-# half is a peer OWL restriction / cardinality shape.
+# half is a peer logic:Restriction / cardinality shape.
 lang:MachineTranslationProvenanceConstraint
     a logic:GuardedImplicationConstraint ;
     logic:onClass lang:TranslationUnit ;

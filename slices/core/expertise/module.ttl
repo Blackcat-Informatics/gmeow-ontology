@@ -324,7 +324,7 @@ logic:caHas a logic:Formula ; logic:relation gmeow:hasAttestation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "att" ] .
 
 # =========================================================================== #
-# Relational-dependence cardinality (issue #1194): a gmeow:SkillProficiency    #
+# Relational-dependence cardinality: a gmeow:SkillProficiency    #
 # relator names its skill and its level. Migrated from the hand-authored       #
 # gmeow:SkillProficiencyShape min-count property constraints to compact logic: #
 # disjunctive-requiredness records (each a single-predicate ∃-requirement),    #

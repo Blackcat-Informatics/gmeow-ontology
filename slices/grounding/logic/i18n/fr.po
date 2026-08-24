@@ -19037,3 +19037,823 @@ msgstr "Segment de moteur non chargé"
 msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a dispatch names a tool the surface DOES advertise and DOES govern, but whose implementation lives in an engine segment this deployment has not loaded. It is a ROUTING signal, not a refusal: the payload names both the dispatch key and the segment providing it, so a host loads exactly that segment and re-dispatches the identical frame for an answer identical to the full engine's. That is what makes it a deployment tier rather than a reduced theory — the call becomes slower, never weaker."
 msgstr "L'échec levé lorsqu'une répartition nomme un outil que la surface annonce BIEN et gouverne BIEN, mais dont l'implémentation réside dans un segment de moteur que ce déploiement n'a pas chargé. C'est un signal de ROUTAGE, non un refus : la charge utile nomme à la fois la clé de répartition et le segment qui la fournit, si bien qu'un hôte charge exactement ce segment et re-répartit la trame identique pour obtenir une réponse identique à celle du moteur complet. C'est ce qui en fait un palier de déploiement plutôt qu'une théorie réduite — l'appel devient plus lent, jamais plus faible."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "All Disjoint Classes"
+msgstr "Toutes classes disjointes"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typing marker for an n-ary axiom asserting that every class in its logic:members list is pairwise disjoint from every other. It is not a binary logic:disjointWith edge; its generated OWL projection is the AllDisjointClasses axiom type."
+msgstr "Marqueur de typage d'un axiome n-aire affirmant que chaque classe de sa liste logic:members est deux à deux disjointe de toutes les autres. Ce n'est pas une arête binaire logic:disjointWith ; sa projection OWL générée est le type d'axiome AllDisjointClasses."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:primaryColourDisjointness a logic:AllDisjointClasses ; logic:members ( ex:Red ex:Green ex:Blue ) ."
+msgstr "Exemple : ex:primaryColourDisjointness a logic:AllDisjointClasses ; logic:members ( ex:Red ex:Green ex:Blue ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One axiom resource captures the full pairwise disjointness of three or more classes."
+msgstr "Une seule ressource d'axiome capture la disjonction deux à deux complète de trois classes ou plus."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "All Disjoint Properties"
+msgstr "Toutes propriétés disjointes"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typing marker for an n-ary axiom asserting that every property in its logic:members list is pairwise disjoint from every other. It is not a binary logic:propertyDisjointWith edge; its generated OWL projection is the AllDisjointProperties axiom type."
+msgstr "Marqueur de typage d'un axiome n-aire affirmant que chaque propriété de sa liste logic:members est deux à deux disjointe de toutes les autres. Ce n'est pas une arête binaire logic:propertyDisjointWith ; sa projection OWL générée est le type d'axiome AllDisjointProperties."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:kinshipDisjointness a logic:AllDisjointProperties ; logic:members ( ex:parentOf ex:siblingOf ex:spouseOf ) ."
+msgstr "Exemple : ex:kinshipDisjointness a logic:AllDisjointProperties ; logic:members ( ex:parentOf ex:siblingOf ex:spouseOf ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One axiom resource captures the full pairwise disjointness of three or more properties."
+msgstr "Une seule ressource d'axiome capture la disjonction deux à deux complète de trois propriétés ou plus."
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Annotation Property"
+msgstr "Propriété d'annotation"
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a non-logical annotation relation that carries documentation rather than entailment. It is not an object or datatype property in the reasoning theory; its generated OWL projection is the AnnotationProperty type object."
+msgstr "Le marqueur canonique typant une relation d'annotation non logique qui porte de la documentation plutôt qu'une implication. Ce n'est pas une propriété d'objet ou de type de données dans la théorie de raisonnement ; sa projection OWL générée est l'objet de type AnnotationProperty."
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:editorialNote a logic:AnnotationProperty ."
+msgstr "Exemple : ex:editorialNote a logic:AnnotationProperty ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Annotation-property triples are out-of-band metadata and license no logical inference."
+msgstr "Les triplets de propriété d'annotation sont des métadonnées hors bande et n'autorisent aucune inférence logique."
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axiom"
+msgstr "Axiome"
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typing marker for a reified axiom resource that carries out-of-band annotations on an asserted statement. It is not the asserted statement itself; its generated OWL projection is the Axiom reification type."
+msgstr "Marqueur de typage d'une ressource d'axiome réifiée qui porte des annotations hors bande sur un énoncé affirmé. Ce n'est pas l'énoncé affirmé lui-même ; sa projection OWL générée est le type de réification Axiom."
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reifiedClaim a logic:Axiom ."
+msgstr "Exemple : ex:reifiedClaim a logic:Axiom ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reifier hangs annotations on a statement without changing the statement's assertion."
+msgstr "Le réificateur accroche des annotations à un énoncé sans modifier l'assertion de cet énoncé."
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Class"
+msgstr "Classe"
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a named class expression on the logic: reasoning surface. It is not an instance-level individual; its generated OWL projection is the Class type object a reader recognizes a class by."
+msgstr "Le marqueur canonique typant une expression de classe nommée sur la surface de raisonnement logic:. Ce n'est pas un individu au niveau des instances ; sa projection OWL générée est l'objet de type Class auquel un lecteur reconnaît une classe."
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Animal a logic:Class ."
+msgstr "Exemple : ex:Animal a logic:Class ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Typing a resource as a class licenses subsumption and membership reasoning over it."
+msgstr "Typer une ressource comme classe autorise le raisonnement de subsomption et d'appartenance à son sujet."
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Datatype Property"
+msgstr "Propriété de type de données"
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a relation whose values are literals. It is not an object or annotation relation; its generated OWL projection is the DatatypeProperty type object."
+msgstr "Le marqueur canonique typant une relation dont les valeurs sont des littéraux. Ce n'est pas une relation d'objet ou d'annotation ; sa projection OWL générée est l'objet de type DatatypeProperty."
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:age a logic:DatatypeProperty ."
+msgstr "Exemple : ex:age a logic:DatatypeProperty ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A datatype property relates individuals to literals in a datatype value space."
+msgstr "Une propriété de type de données relie des individus à des littéraux dans un espace de valeurs de type de données."
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Named Individual"
+msgstr "Individu nommé"
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a named ABox individual. It is not a class or property; its generated OWL projection is the NamedIndividual type object a reader recognizes an individual by."
+msgstr "Le marqueur canonique typant un individu ABox nommé. Ce n'est pas une classe ou une propriété ; sa projection OWL générée est l'objet de type NamedIndividual auquel un lecteur reconnaît un individu."
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:socrates a logic:NamedIndividual ."
+msgstr "Exemple : ex:socrates a logic:NamedIndividual ."
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker records that a resource denotes one individual, distinct from a class or property."
+msgstr "Le marqueur enregistre qu'une ressource dénote un seul individu, distinct d'une classe ou d'une propriété."
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nothing"
+msgstr "Néant"
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical empty (bottom) class: no individual is a logic:Nothing. It is not a modelling placeholder for missing data; its generated OWL projection is the Nothing bottom an inconsistency collapses to."
+msgstr "La classe vide (bottom) canonique : aucun individu n'est un logic:Nothing. Ce n'est pas un espace réservé de modélisation pour des données manquantes ; sa projection OWL générée est le bottom Nothing vers lequel une incohérence s'effondre."
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:SquareCircle logic:equivalentClass logic:Nothing ."
+msgstr "Exemple : ex:SquareCircle logic:equivalentClass logic:Nothing ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bottom is the unsatisfiable class; deriving membership in it signals an inconsistency."
+msgstr "Le bottom est la classe insatisfiable ; dériver une appartenance à celui-ci signale une incohérence."
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Object Property"
+msgstr "Propriété d'objet"
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a relation whose values are individuals. It is not a datatype or annotation relation; its generated OWL projection is the ObjectProperty type object."
+msgstr "Le marqueur canonique typant une relation dont les valeurs sont des individus. Ce n'est pas une relation de type de données ou d'annotation ; sa projection OWL générée est l'objet de type ObjectProperty."
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:memberOf a logic:ObjectProperty ."
+msgstr "Exemple : ex:memberOf a logic:ObjectProperty ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An object property relates individuals to individuals and can carry logical characteristics."
+msgstr "Une propriété d'objet relie des individus à des individus et peut porter des caractéristiques logiques."
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ontology"
+msgstr "Ontologie"
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing an ontology or module header resource that carries importation and versioning metadata. It is not a domain class; its generated OWL projection is the Ontology type object."
+msgstr "Le marqueur canonique typant une ressource d'en-tête d'ontologie ou de module qui porte des métadonnées d'importation et de versionnement. Ce n'est pas une classe de domaine ; sa projection OWL générée est l'objet de type Ontology."
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:myModule a logic:Ontology ."
+msgstr "Exemple : ex:myModule a logic:Ontology ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The header resource anchors module-level metadata such as imports and version information."
+msgstr "La ressource d'en-tête ancre les métadonnées au niveau du module telles que les importations et l'information de version."
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Thing"
+msgstr "Chose"
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical universal (top) class: every individual is a logic:Thing. It is not a domain root that authors should subclass casually; its generated OWL projection is the Thing top the clash readers compare against."
+msgstr "La classe universelle (top) canonique : chaque individu est un logic:Thing. Ce n'est pas une racine de domaine que les auteurs devraient sous-classer à la légère ; sa projection OWL générée est le top Thing auquel les lecteurs comparent un conflit."
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:anyRestriction logic:onClass logic:Thing ."
+msgstr "Exemple : ex:anyRestriction logic:onClass logic:Thing ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Top denotes the whole domain of discourse and subsumes every class."
+msgstr "Le top dénote tout le domaine de discours et subsume chaque classe."
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blake3Head a logic:StringPatternConstraint ; logic:onClass ex:Segment ; logic:valuePath ex:headId ; logic:stringOp \"regexRequired\" ; logic:stringPattern \"^blake3:[0-9a-f]{64}$\" ."
+msgstr "Exemple : ex:blake3Head a logic:StringPatternConstraint ; logic:onClass ex:Segment ; logic:valuePath ex:headId ; logic:stringOp \"regexRequired\" ; logic:stringPattern \"^blake3:[0-9a-f]{64}$\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deprecated"
+msgstr "obsolète"
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Annotation marking a term as deprecated and scheduled for removal, so consumers avoid authoring against it. It carries no logical entailment; its generated OWL projection is the deprecated annotation."
+msgstr "Annotation marquant un terme comme obsolète et destiné au retrait, afin que les consommateurs évitent d'écrire du contenu qui en dépend. Elle ne porte aucune implication logique ; sa projection OWL générée est l'annotation deprecated."
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:legacyProperty logic:deprecated true ."
+msgstr "Exemple : ex:legacyProperty logic:deprecated true ."
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Deprecation is advisory metadata, not a retraction of the term's existing assertions."
+msgstr "La dépréciation est une métadonnée consultative, non une rétractation des assertions existantes du terme."
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "different from"
+msgstr "différent de"
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical individual distinctness: the two related IRIs denote distinct individuals and may never be merged. It is not class disjointness; its generated OWL projection is the differentFrom relation."
+msgstr "Distinction canonique d'individus : les deux IRIs reliés dénotent des individus distincts et ne peuvent jamais être fusionnés. Ce n'est pas une disjonction de classes ; sa projection OWL générée est la relation differentFrom."
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:markTwain logic:differentFrom ex:charlesDickens ."
+msgstr "Exemple : ex:markTwain logic:differentFrom ex:charlesDickens ."
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The assertion blocks an identity inference that would otherwise unify the two individuals."
+msgstr "L'assertion bloque une inférence d'identité qui autrement unifierait les deux individus."
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "disjoint union of"
+msgstr "union disjointe de"
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class to the RDF list of pairwise-disjoint classes that exhaustively partition it: every instance belongs to exactly one listed class. It is not a bare union, which permits overlap; its generated OWL projection is the disjointUnionOf constructor."
+msgstr "Relie une classe à la liste RDF de classes deux à deux disjointes qui la partitionnent exhaustivement : chaque instance appartient à exactement une classe listée. Ce n'est pas une union nue, qui permet le chevauchement ; sa projection OWL générée est le constructeur disjointUnionOf."
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Person logic:disjointUnionOf ( ex:Child ex:Adult ) ."
+msgstr "Exemple : ex:Person logic:disjointUnionOf ( ex:Child ex:Adult ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The axiom asserts both exhaustive coverage and pairwise disjointness of the listed classes."
+msgstr "L'axiome affirme à la fois la couverture exhaustive et la disjonction deux à deux des classes listées."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has key"
+msgstr "a pour clé"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class to the RDF list of properties that jointly identify its instances: two class members agreeing on every key value are the same individual. It is not inverse functionality of a single property; its generated OWL projection is the hasKey constructor."
+msgstr "Relie une classe à la liste RDF de propriétés qui identifient conjointement ses instances : deux membres de la classe s'accordant sur chaque valeur de clé sont le même individu. Ce n'est pas la fonctionnalité inverse d'une propriété unique ; sa projection OWL générée est le constructeur hasKey."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Country logic:hasKey ( ex:isoCode ) ."
+msgstr "Exemple : ex:Country logic:hasKey ( ex:isoCode ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The key is a closed-world identification over named individuals of the class."
+msgstr "La clé est une identification en monde clos sur les individus nommés de la classe."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has self"
+msgstr "a self"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Self restriction: the constrained logic:onProperty relates each instance to itself. Its truth-valued object is the local reflexivity flag of one restriction, not the global logic:reflexiveProperty characteristic; its generated OWL projection is the hasSelf restriction."
+msgstr "Restriction réflexive locale : la logic:onProperty contrainte relie chaque instance à elle-même. Son objet à valeur de vérité est le drapeau de réflexivité locale d'une restriction, non la caractéristique globale logic:reflexiveProperty ; sa projection OWL générée est la restriction hasSelf."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:selfAwareRestriction logic:onProperty ex:knows ; logic:hasSelf true ."
+msgstr "Exemple : ex:selfAwareRestriction logic:onProperty ex:knows ; logic:hasSelf true ."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag constrains the self-edge of one property inside a single class expression."
+msgstr "Le drapeau contraint l'arête réflexive d'une propriété au sein d'une seule expression de classe."
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intersection of"
+msgstr "intersection de"
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class expression to the RDF list of class expressions whose intersection it denotes: an individual is a member exactly when it is a member of every listed class. It is not a subclass chain; its generated OWL projection is the intersectionOf constructor."
+msgstr "Relie une expression de classe à la liste RDF d'expressions de classe dont elle dénote l'intersection : un individu en est membre exactement lorsqu'il est membre de chaque classe listée. Ce n'est pas une chaîne de sous-classes ; sa projection OWL générée est le constructeur intersectionOf."
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:WorkingParent logic:intersectionOf ( ex:Parent ex:Employee ) ."
+msgstr "Exemple : ex:WorkingParent logic:intersectionOf ( ex:Parent ex:Employee ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The intersection extension is the set-theoretic intersection of the listed class extensions."
+msgstr "L'extension de l'intersection est l'intersection ensembliste des extensions des classes listées."
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "members"
+msgstr "membres"
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an n-ary disjointness axiom resource to the RDF list of the classes or properties it declares pairwise disjoint. It is not a class-extension membership edge; its generated OWL projection is the members constructor."
+msgstr "Relie une ressource d'axiome de disjonction n-aire à la liste RDF des classes ou propriétés qu'elle déclare deux à deux disjointes. Ce n'est pas une arête d'appartenance à l'extension d'une classe ; sa projection OWL générée est le constructeur members."
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:disjointColours logic:members ( ex:Red ex:Green ex:Blue ) ."
+msgstr "Exemple : ex:disjointColours logic:members ( ex:Red ex:Green ex:Blue ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The list carries the terms of a logic:AllDisjointClasses or logic:AllDisjointProperties axiom."
+msgstr "La liste porte les termes d'un axiome logic:AllDisjointClasses ou logic:AllDisjointProperties."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "property chain axiom"
+msgstr "axiome de chaîne de propriétés"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a property to the RDF list of properties whose ordered composition it subsumes: following the chain entails the head property. It is not a subproperty edge over a single property; its generated OWL projection is the propertyChainAxiom constructor."
+msgstr "Relie une propriété à la liste RDF de propriétés dont elle subsume la composition ordonnée : suivre la chaîne implique la propriété de tête. Ce n'est pas une arête de sous-propriété sur une propriété unique ; sa projection OWL générée est le constructeur propertyChainAxiom."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hasGrandparent logic:propertyChainAxiom ( ex:hasParent ex:hasParent ) ."
+msgstr "Exemple : ex:hasGrandparent logic:propertyChainAxiom ( ex:hasParent ex:hasParent ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The list order matters: the chain composes the properties left to right."
+msgstr "L'ordre de la liste importe : la chaîne compose les propriétés de gauche à droite."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "property disjoint with"
+msgstr "propriété disjointe de"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical property disjointness: no ordered pair may be related by both properties at once. It is not class disjointness; its generated OWL projection is the propertyDisjointWith relation."
+msgstr "Disjonction canonique de propriétés : aucune paire ordonnée ne peut être reliée par les deux propriétés à la fois. Ce n'est pas une disjonction de classes ; sa projection OWL générée est la relation propertyDisjointWith."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:parentOf logic:propertyDisjointWith ex:siblingOf ."
+msgstr "Exemple : ex:parentOf logic:propertyDisjointWith ex:siblingOf ."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The disjointness is symmetric between the two properties at the ordered-pair level."
+msgstr "La disjonction est symétrique entre les deux propriétés au niveau des paires ordonnées."
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same as"
+msgstr "identique à"
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical individual identity: the two related IRIs denote the same individual, so their assertions merge. It is not class equivalence or similarity; its generated OWL projection is the sameAs relation."
+msgstr "Identité canonique d'individus : les deux IRIs reliés dénotent le même individu, de sorte que leurs assertions fusionnent. Ce n'est pas une équivalence ou une similarité de classes ; sa projection OWL générée est la relation sameAs."
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:samuelClemens logic:sameAs ex:markTwain ."
+msgstr "Exemple : ex:samuelClemens logic:sameAs ex:markTwain ."
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Identity is symmetric and transitive and licenses substitution of one IRI for the other."
+msgstr "L'identité est symétrique et transitive et autorise la substitution d'un IRI par l'autre."
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "union of"
+msgstr "union de"
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class expression to the RDF list of class expressions whose union it denotes: an individual is a member exactly when it is a member of at least one listed class. It is not a subclass hint; its generated OWL projection is the unionOf constructor."
+msgstr "Relie une expression de classe à la liste RDF d'expressions de classe dont elle dénote l'union : un individu en est membre exactement lorsqu'il est membre d'au moins une classe listée. Ce n'est pas un indice de sous-classe ; sa projection OWL générée est le constructeur unionOf."
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Parent logic:unionOf ( ex:Mother ex:Father ) ."
+msgstr "Exemple : ex:Parent logic:unionOf ( ex:Mother ex:Father ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The union extension is the set-theoretic union of the listed class extensions."
+msgstr "L'extension de l'union est l'union ensembliste des extensions des classes listées."
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version info"
+msgstr "information de version"
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Annotation carrying free-text version information for an ontology header or term. It carries no logical entailment; its generated OWL projection is the versionInfo annotation."
+msgstr "Annotation portant une information de version en texte libre pour un en-tête d'ontologie ou un terme. Elle ne porte aucune implication logique ; sa projection OWL générée est l'annotation versionInfo."
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:myModule logic:versionInfo \"2026-08-19\" ."
+msgstr "Exemple : ex:myModule logic:versionInfo \"2026-08-19\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is human-readable version metadata, not a machine-ordered version identifier."
+msgstr "La valeur est une métadonnée de version lisible par l'humain, non un identifiant de version ordonné par machine."
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "logic:mcpToolNameKey logic:characterizes logic:ActionSchema ."
+msgstr "Exemple : logic:mcpToolNameKey logic:characterizes logic:ActionSchema ."
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "logic:overAccessibilityFunctionality logic:characterizes logic:overAccessibility ."
+msgstr "Exemple : logic:overAccessibilityFunctionality logic:characterizes logic:overAccessibility ."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointClassesGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:AllDisjointClasses to W3C OWL AllDisjointClasses grounding"
+msgstr "ancrage de logic:AllDisjointClasses vers W3C OWL AllDisjointClasses"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointClassesGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:AllDisjointClasses axiom type is projected to the W3C OWL AllDisjointClasses type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le type d'axiome canonique logic:AllDisjointClasses est projeté vers le type W3C OWL AllDisjointClasses comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointPropertiesGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:AllDisjointProperties to W3C OWL AllDisjointProperties grounding"
+msgstr "ancrage de logic:AllDisjointProperties vers W3C OWL AllDisjointProperties"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointPropertiesGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:AllDisjointProperties axiom type is projected to the W3C OWL AllDisjointProperties type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le type d'axiome canonique logic:AllDisjointProperties est projeté vers le type W3C OWL AllDisjointProperties comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllValuesFromGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:allValuesFrom to W3C OWL allValuesFrom grounding"
+msgstr "ancrage de logic:allValuesFrom vers W3C OWL allValuesFrom"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllValuesFromGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:allValuesFrom term is projected to the W3C OWL allValuesFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:allValuesFrom est projeté vers la construction W3C OWL allValuesFrom comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAnnotationPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:AnnotationProperty to W3C OWL AnnotationProperty grounding"
+msgstr "ancrage de logic:AnnotationProperty vers W3C OWL AnnotationProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAnnotationPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:AnnotationProperty typing marker is projected to the W3C OWL AnnotationProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de typage canonique logic:AnnotationProperty est projeté vers l'objet de type W3C OWL AnnotationProperty comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAsymmetricPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:asymmetricProperty to W3C OWL AsymmetricProperty grounding"
+msgstr "ancrage de logic:asymmetricProperty vers W3C OWL AsymmetricProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAsymmetricPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:asymmetricProperty characteristic marker is projected to the W3C OWL AsymmetricProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de caractéristique canonique logic:asymmetricProperty est projeté vers le type W3C OWL AsymmetricProperty. Le renommage sensible à la construction, du bas-de-casse-chameau vers le haut-de-casse-chameau, demeure un logic:Isomorphism sous un logic:InstitutionMorphism avec logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAxiomGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Axiom to W3C OWL Axiom grounding"
+msgstr "ancrage de logic:Axiom vers W3C OWL Axiom"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAxiomGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Axiom reification marker is projected to the W3C OWL Axiom type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de réification canonique logic:Axiom est projeté vers le type W3C OWL Axiom comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:cardinality to W3C OWL cardinality grounding"
+msgstr "ancrage de logic:cardinality vers W3C OWL cardinality"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:cardinality term is projected to the W3C OWL cardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:cardinality est projeté vers la construction W3C OWL cardinality comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrClassGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Class to W3C OWL Class grounding"
+msgstr "ancrage de logic:Class vers W3C OWL Class"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrClassGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Class typing marker is projected to the W3C OWL Class type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de typage canonique logic:Class est projeté vers l'objet de type W3C OWL Class comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDatatypePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:DatatypeProperty to W3C OWL DatatypeProperty grounding"
+msgstr "ancrage de logic:DatatypeProperty vers W3C OWL DatatypeProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDatatypePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:DatatypeProperty typing marker is projected to the W3C OWL DatatypeProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de typage canonique logic:DatatypeProperty est projeté vers l'objet de type W3C OWL DatatypeProperty comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDeprecatedGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:deprecated to W3C OWL deprecated grounding"
+msgstr "ancrage de logic:deprecated vers W3C OWL deprecated"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDeprecatedGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:deprecated annotation is projected to the W3C OWL deprecated annotation as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : l'annotation canonique logic:deprecated est projetée vers l'annotation W3C OWL deprecated comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDifferentFromGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:differentFrom to W3C OWL differentFrom grounding"
+msgstr "ancrage de logic:differentFrom vers W3C OWL differentFrom"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDifferentFromGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:differentFrom term is projected to the W3C OWL differentFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:differentFrom est projeté vers la construction W3C OWL differentFrom comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointUnionOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:disjointUnionOf to W3C OWL disjointUnionOf grounding"
+msgstr "ancrage de logic:disjointUnionOf vers W3C OWL disjointUnionOf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointUnionOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:disjointUnionOf term is projected to the W3C OWL disjointUnionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:disjointUnionOf est projeté vers la construction W3C OWL disjointUnionOf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointWithGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:disjointWith to W3C OWL disjointWith grounding"
+msgstr "ancrage de logic:disjointWith vers W3C OWL disjointWith"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointWithGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:disjointWith term is projected to the W3C OWL disjointWith construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:disjointWith est projeté vers la construction W3C OWL disjointWith comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDomainGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:domain to W3C RDFS domain grounding"
+msgstr "ancrage de logic:domain vers W3C RDFS domain"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDomainGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:domain edge is projected to the W3C RDFS domain edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. The property-domain axiom is preserved exactly and invertibly; the reasoner lowers logic:domain onto rdfs:domain at the EDB boundary so the fixed DL/RL domain rules fire."
+msgstr "Correspondance d'ancrage : l'arête canonique logic:domain est projetée vers l'arête W3C RDFS domain comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation. L'axiome de domaine de propriété est préservé exactement et de façon inversible ; le raisonneur abaisse logic:domain vers rdfs:domain à la frontière EDB afin que les règles fixes de domaine DL/RL se déclenchent."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentClassGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:equivalentClass to W3C OWL equivalentClass grounding"
+msgstr "ancrage de logic:equivalentClass vers W3C OWL equivalentClass"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentClassGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:equivalentClass term is projected to the W3C OWL equivalentClass construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation, the projection changing only the namespace of an otherwise identical term."
+msgstr "Correspondance d'ancrage : le terme canonique logic:equivalentClass est projeté vers la construction W3C OWL equivalentClass comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation, la projection ne changeant que l'espace de noms d'un terme par ailleurs identique."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:equivalentProperty to W3C OWL equivalentProperty grounding"
+msgstr "ancrage de logic:equivalentProperty vers W3C OWL equivalentProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:equivalentProperty term is projected to the W3C OWL equivalentProperty construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:equivalentProperty est projeté vers la construction W3C OWL equivalentProperty comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrFunctionalPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:functionalProperty to W3C OWL FunctionalProperty grounding"
+msgstr "ancrage de logic:functionalProperty vers W3C OWL FunctionalProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrFunctionalPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:functionalProperty characteristic marker is projected to the W3C OWL FunctionalProperty type. The rename is construct-aware — the canonical lower-camel spelling maps to the upper-camel W3C marker — but remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation, the property-characteristic semantics being preserved exactly and invertibly."
+msgstr "Correspondance d'ancrage : le marqueur de caractéristique canonique logic:functionalProperty est projeté vers le type W3C OWL FunctionalProperty. Le renommage est sensible à la construction — l'orthographe canonique bas-de-casse-chameau correspond au marqueur W3C haut-de-casse-chameau — mais demeure un logic:Isomorphism sous un logic:InstitutionMorphism avec logic:ExactPreservation, la sémantique de caractéristique de propriété étant préservée exactement et de façon inversible."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasKeyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:hasKey to W3C OWL hasKey grounding"
+msgstr "ancrage de logic:hasKey vers W3C OWL hasKey"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasKeyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:hasKey term is projected to the W3C OWL hasKey construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:hasKey est projeté vers la construction W3C OWL hasKey comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasSelfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:hasSelf to W3C OWL hasSelf grounding"
+msgstr "ancrage de logic:hasSelf vers W3C OWL hasSelf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasSelfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:hasSelf term is projected to the W3C OWL hasSelf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:hasSelf est projeté vers la construction W3C OWL hasSelf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasValueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:hasValue to W3C OWL hasValue grounding"
+msgstr "ancrage de logic:hasValue vers W3C OWL hasValue"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasValueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:hasValue term is projected to the W3C OWL hasValue construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:hasValue est projeté vers la construction W3C OWL hasValue comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrImportsGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:imports to W3C OWL imports grounding"
+msgstr "ancrage de logic:imports vers W3C OWL imports"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrImportsGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:imports module-importation edge is projected to the W3C OWL imports edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : l'arête canonique d'importation de module logic:imports est projetée vers l'arête W3C OWL imports comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIntersectionOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:intersectionOf to W3C OWL intersectionOf grounding"
+msgstr "ancrage de logic:intersectionOf vers W3C OWL intersectionOf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIntersectionOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:intersectionOf term is projected to the W3C OWL intersectionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:intersectionOf est projeté vers la construction W3C OWL intersectionOf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseFunctionalPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:inverseFunctionalProperty to W3C OWL InverseFunctionalProperty grounding"
+msgstr "ancrage de logic:inverseFunctionalProperty vers W3C OWL InverseFunctionalProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseFunctionalPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:inverseFunctionalProperty characteristic marker is projected to the W3C OWL InverseFunctionalProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de caractéristique canonique logic:inverseFunctionalProperty est projeté vers le type W3C OWL InverseFunctionalProperty. Le renommage sensible à la construction, du bas-de-casse-chameau vers le haut-de-casse-chameau, demeure un logic:Isomorphism sous un logic:InstitutionMorphism avec logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:inverseOf to W3C OWL inverseOf grounding"
+msgstr "ancrage de logic:inverseOf vers W3C OWL inverseOf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:inverseOf term is projected to the W3C OWL inverseOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:inverseOf est projeté vers la construction W3C OWL inverseOf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIrreflexivePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:irreflexiveProperty to W3C OWL IrreflexiveProperty grounding"
+msgstr "ancrage de logic:irreflexiveProperty vers W3C OWL IrreflexiveProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIrreflexivePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:irreflexiveProperty characteristic marker is projected to the W3C OWL IrreflexiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de caractéristique canonique logic:irreflexiveProperty est projeté vers le type W3C OWL IrreflexiveProperty. Le renommage sensible à la construction, du bas-de-casse-chameau vers le haut-de-casse-chameau, demeure un logic:Isomorphism sous un logic:InstitutionMorphism avec logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:maxCardinality to W3C OWL maxCardinality grounding"
+msgstr "ancrage de logic:maxCardinality vers W3C OWL maxCardinality"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:maxCardinality term is projected to the W3C OWL maxCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:maxCardinality est projeté vers la construction W3C OWL maxCardinality comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxQualifiedCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:maxQualifiedCardinality to W3C OWL maxQualifiedCardinality grounding"
+msgstr "ancrage de logic:maxQualifiedCardinality vers W3C OWL maxQualifiedCardinality"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxQualifiedCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:maxQualifiedCardinality term is projected to the W3C OWL maxQualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:maxQualifiedCardinality est projeté vers la construction W3C OWL maxQualifiedCardinality comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMembersGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:members to W3C OWL members grounding"
+msgstr "ancrage de logic:members vers W3C OWL members"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMembersGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:members term is projected to the W3C OWL members construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:members est projeté vers la construction W3C OWL members comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:minCardinality to W3C OWL minCardinality grounding"
+msgstr "ancrage de logic:minCardinality vers W3C OWL minCardinality"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:minCardinality term is projected to the W3C OWL minCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:minCardinality est projeté vers la construction W3C OWL minCardinality comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinQualifiedCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:minQualifiedCardinality to W3C OWL minQualifiedCardinality grounding"
+msgstr "ancrage de logic:minQualifiedCardinality vers W3C OWL minQualifiedCardinality"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinQualifiedCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:minQualifiedCardinality term is projected to the W3C OWL minQualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:minQualifiedCardinality est projeté vers la construction W3C OWL minQualifiedCardinality comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNamedIndividualGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:NamedIndividual to W3C OWL NamedIndividual grounding"
+msgstr "ancrage de logic:NamedIndividual vers W3C OWL NamedIndividual"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNamedIndividualGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:NamedIndividual typing marker is projected to the W3C OWL NamedIndividual type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de typage canonique logic:NamedIndividual est projeté vers l'objet de type W3C OWL NamedIndividual comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNothingGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Nothing to W3C OWL Nothing grounding"
+msgstr "ancrage de logic:Nothing vers W3C OWL Nothing"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNothingGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Nothing bottom class is projected to the W3C OWL Nothing bottom as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : la classe bottom canonique logic:Nothing est projetée vers le bottom W3C OWL Nothing comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrObjectPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:ObjectProperty to W3C OWL ObjectProperty grounding"
+msgstr "ancrage de logic:ObjectProperty vers W3C OWL ObjectProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrObjectPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:ObjectProperty typing marker is projected to the W3C OWL ObjectProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de typage canonique logic:ObjectProperty est projeté vers l'objet de type W3C OWL ObjectProperty comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnClassGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onClass to W3C OWL onClass grounding"
+msgstr "ancrage de logic:onClass vers W3C OWL onClass"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnClassGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onClass term is projected to the W3C OWL onClass construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:onClass est projeté vers la construction W3C OWL onClass comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDataRangeGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onDataRange to W3C OWL onDataRange grounding"
+msgstr "ancrage de logic:onDataRange vers W3C OWL onDataRange"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDataRangeGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onDataRange term is projected to the W3C OWL onDataRange construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:onDataRange est projeté vers la construction W3C OWL onDataRange comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDatatypeGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onDatatype to W3C OWL onDatatype grounding"
+msgstr "ancrage de logic:onDatatype vers W3C OWL onDatatype"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDatatypeGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onDatatype term is projected to the W3C OWL onDatatype construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:onDatatype est projeté vers la construction W3C OWL onDatatype comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onProperty to W3C OWL onProperty grounding"
+msgstr "ancrage de logic:onProperty vers W3C OWL onProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onProperty term is projected to the W3C OWL onProperty construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:onProperty est projeté vers la construction W3C OWL onProperty comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOneOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:oneOf to W3C OWL oneOf grounding"
+msgstr "ancrage de logic:oneOf vers W3C OWL oneOf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOneOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:oneOf term is projected to the W3C OWL oneOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:oneOf est projeté vers la construction W3C OWL oneOf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOntologyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Ontology to W3C OWL Ontology grounding"
+msgstr "ancrage de logic:Ontology vers W3C OWL Ontology"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOntologyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Ontology typing marker is projected to the W3C OWL Ontology type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de typage canonique logic:Ontology est projeté vers l'objet de type W3C OWL Ontology comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyChainAxiomGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:propertyChainAxiom to W3C OWL propertyChainAxiom grounding"
+msgstr "ancrage de logic:propertyChainAxiom vers W3C OWL propertyChainAxiom"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyChainAxiomGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:propertyChainAxiom term is projected to the W3C OWL propertyChainAxiom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:propertyChainAxiom est projeté vers la construction W3C OWL propertyChainAxiom comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyDisjointWithGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:propertyDisjointWith to W3C OWL propertyDisjointWith grounding"
+msgstr "ancrage de logic:propertyDisjointWith vers W3C OWL propertyDisjointWith"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyDisjointWithGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:propertyDisjointWith term is projected to the W3C OWL propertyDisjointWith construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:propertyDisjointWith est projeté vers la construction W3C OWL propertyDisjointWith comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrQualifiedCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:qualifiedCardinality to W3C OWL qualifiedCardinality grounding"
+msgstr "ancrage de logic:qualifiedCardinality vers W3C OWL qualifiedCardinality"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrQualifiedCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:qualifiedCardinality term is projected to the W3C OWL qualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:qualifiedCardinality est projeté vers la construction W3C OWL qualifiedCardinality comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRangeGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:range to W3C RDFS range grounding"
+msgstr "ancrage de logic:range vers W3C RDFS range"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRangeGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:range edge is projected to the W3C RDFS range edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. The property-range axiom is preserved exactly and invertibly; the reasoner lowers logic:range onto rdfs:range at the EDB boundary so the fixed DL/RL range rules fire."
+msgstr "Correspondance d'ancrage : l'arête canonique logic:range est projetée vers l'arête W3C RDFS range comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation. L'axiome d'image de propriété est préservé exactement et de façon inversible ; le raisonneur abaisse logic:range vers rdfs:range à la frontière EDB afin que les règles fixes d'image DL/RL se déclenchent."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrReflexivePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:reflexiveProperty to W3C OWL ReflexiveProperty grounding"
+msgstr "ancrage de logic:reflexiveProperty vers W3C OWL ReflexiveProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrReflexivePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:reflexiveProperty characteristic marker is projected to the W3C OWL ReflexiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de caractéristique canonique logic:reflexiveProperty est projeté vers le type W3C OWL ReflexiveProperty. Le renommage sensible à la construction, du bas-de-casse-chameau vers le haut-de-casse-chameau, demeure un logic:Isomorphism sous un logic:InstitutionMorphism avec logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRestrictionGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Restriction to W3C OWL Restriction grounding"
+msgstr "ancrage de logic:Restriction vers W3C OWL Restriction"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRestrictionGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Restriction term is projected to the W3C OWL Restriction construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:Restriction est projeté vers la construction W3C OWL Restriction comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSameAsGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:sameAs to W3C OWL sameAs grounding"
+msgstr "ancrage de logic:sameAs vers W3C OWL sameAs"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSameAsGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:sameAs term is projected to the W3C OWL sameAs construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:sameAs est projeté vers la construction W3C OWL sameAs comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSomeValuesFromGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:someValuesFrom to W3C OWL someValuesFrom grounding"
+msgstr "ancrage de logic:someValuesFrom vers W3C OWL someValuesFrom"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSomeValuesFromGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:someValuesFrom term is projected to the W3C OWL someValuesFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:someValuesFrom est projeté vers la construction W3C OWL someValuesFrom comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubClassOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:subClassOf to W3C RDFS subClassOf grounding"
+msgstr "ancrage de logic:subClassOf vers W3C RDFS subClassOf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubClassOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:subClassOf edge is projected to the W3C RDFS subClassOf edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. RDFS is a lossy projection surface overall (Principle 17), yet this single subsumption edge is preserved exactly and invertibly."
+msgstr "Correspondance d'ancrage : l'arête canonique logic:subClassOf est projetée vers l'arête W3C RDFS subClassOf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation. RDFS est globalement une surface de projection avec perte (Principe 17), pourtant cette unique arête de subsomption est préservée exactement et de façon inversible."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubPropertyOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:subPropertyOf to W3C RDFS subPropertyOf grounding"
+msgstr "ancrage de logic:subPropertyOf vers W3C RDFS subPropertyOf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubPropertyOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:subPropertyOf edge is projected to the W3C RDFS subPropertyOf edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation; the relation-subsumption edge is preserved exactly and invertibly."
+msgstr "Correspondance d'ancrage : l'arête canonique logic:subPropertyOf est projetée vers l'arête W3C RDFS subPropertyOf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation ; l'arête de subsomption de relations est préservée exactement et de façon inversible."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSymmetricPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:symmetricProperty to W3C OWL SymmetricProperty grounding"
+msgstr "ancrage de logic:symmetricProperty vers W3C OWL SymmetricProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSymmetricPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:symmetricProperty characteristic marker is projected to the W3C OWL SymmetricProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de caractéristique canonique logic:symmetricProperty est projeté vers le type W3C OWL SymmetricProperty. Le renommage sensible à la construction, du bas-de-casse-chameau vers le haut-de-casse-chameau, demeure un logic:Isomorphism sous un logic:InstitutionMorphism avec logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrThingGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Thing to W3C OWL Thing grounding"
+msgstr "ancrage de logic:Thing vers W3C OWL Thing"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrThingGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Thing top class is projected to the W3C OWL Thing top as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : la classe top canonique logic:Thing est projetée vers le top W3C OWL Thing comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrTransitivePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:transitiveProperty to W3C OWL TransitiveProperty grounding"
+msgstr "ancrage de logic:transitiveProperty vers W3C OWL TransitiveProperty"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrTransitivePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:transitiveProperty characteristic marker is projected to the W3C OWL TransitiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le marqueur de caractéristique canonique logic:transitiveProperty est projeté vers le type W3C OWL TransitiveProperty. Le renommage sensible à la construction, du bas-de-casse-chameau vers le haut-de-casse-chameau, demeure un logic:Isomorphism sous un logic:InstitutionMorphism avec logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrUnionOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:unionOf to W3C OWL unionOf grounding"
+msgstr "ancrage de logic:unionOf vers W3C OWL unionOf"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrUnionOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:unionOf term is projected to the W3C OWL unionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:unionOf est projeté vers la construction W3C OWL unionOf comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrVersionInfoGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:versionInfo to W3C OWL versionInfo grounding"
+msgstr "ancrage de logic:versionInfo vers W3C OWL versionInfo"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrVersionInfoGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:versionInfo annotation is projected to the W3C OWL versionInfo annotation as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : l'annotation canonique logic:versionInfo est projetée vers l'annotation W3C OWL versionInfo comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrWithRestrictionsGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:withRestrictions to W3C OWL withRestrictions grounding"
+msgstr "ancrage de logic:withRestrictions vers W3C OWL withRestrictions"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrWithRestrictionsGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:withRestrictions term is projected to the W3C OWL withRestrictions construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "Correspondance d'ancrage : le terme canonique logic:withRestrictions est projeté vers la construction W3C OWL withRestrictions comme un renommage structurel exact — un logic:Isomorphism sous un logic:InstitutionMorphism portant logic:ExactPreservation."

@@ -2648,7 +2648,7 @@ gmeow:runtimeDagAdmissionBoundary
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as logic: restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
 # (Principle 17). A restriction carrying both a logic: qualified-cardinality bound
 # and logic:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
@@ -2700,7 +2700,7 @@ gmeow:PipelineStage logic:subClassOf [ a logic:Restriction ; logic:onProperty gm
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 # gmeow:PipelineShape: gmeow:hasStage is non-functional (min1, no maxCount).
-# The min-qualified restriction above now uses onClass OWL Thing (not the
+# The min-qualified restriction above now uses logic:onClass logic:Thing (not the
 # specific gmeow:PipelineStage), which degrades to the bare sh:minCount 1
 # (frontend.rs derive_validation_shapes) instead of a qualified sh:qualifiedMinCount
 # — the same fix as the CitationAct/Embedding min1/max1 idiom, here min-only.

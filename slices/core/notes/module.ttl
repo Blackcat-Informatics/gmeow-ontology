@@ -298,7 +298,7 @@ gmeow:relatedNote
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of RetractedNoteSuppressionShape. #
+# Suppression constraint — projection of RetractedNoteSuppressionShape. #
 # A gmeow:Comment whose gmeow:commentParent is itself suppressed                #
 # (gmeow:displayable false) but which is not itself suppressed is a Warning.    #
 # =========================================================================== #

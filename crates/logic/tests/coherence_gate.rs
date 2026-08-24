@@ -44,6 +44,11 @@ use std::path::{Path, PathBuf};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+/// The canonical `logic:` spelling a slice authors after the `owl:`→`logic:` surface flip;
+/// `owl:disjointWith` is its generated projection. The shipped bundle's object-level graph
+/// carries the `logic:` spelling, so the whole-bundle teeth test reads BOTH (mirroring the
+/// `rdfs:subClassOf` / `logic:subClassOf` dual-spelling read in `project_relator_facts`).
+const LOGIC_DISJOINT_WITH: &str = "https://blackcatinformatics.ca/logic/disjointWith";
 const OWL_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
@@ -185,7 +190,7 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
         .owned_quads()
         .find_map(|q| {
             let is_edge = admitted_reasoning_graph(&q.graph_name)
-                && q.predicate == OWL_DISJOINT_WITH
+                && (q.predicate == LOGIC_DISJOINT_WITH || q.predicate == OWL_DISJOINT_WITH)
                 && matches!(
                     (&q.subject, &q.object),
                     (RdfTerm::Iri(s), RdfTerm::Iri(o))
@@ -194,7 +199,8 @@ fn whole_bundle_coherence_gate_catches_injected_clash() {
             is_edge.then(|| q.graph_name.clone())
         })
         .expect(
-            "the committed gmeow.gts must ship gmeow:Agent owl:disjointWith gmeow:SocialObject",
+            "the committed gmeow.gts must ship gmeow:Agent logic:disjointWith gmeow:SocialObject \
+             (the canonical authored spelling; owl:disjointWith is only its generated projection)",
         );
 
     // Type an individual into BOTH classes in that SAME world → the world-scoped DL

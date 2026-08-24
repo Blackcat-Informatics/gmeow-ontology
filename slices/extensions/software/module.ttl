@@ -1115,7 +1115,7 @@ Contribution relator and hasContributor shortcut supersede it."""@x-gmeow-englis
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 gmeow:Merge logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mergeTarget ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 

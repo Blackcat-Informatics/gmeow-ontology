@@ -18,10 +18,14 @@
 #
 # BY-REFERENCE (cell saByReferenceNoLogicTriples): this is a DYNAMIC, open
 # universal, not a hand-listed blacklist. The forbidden thing is ANY logic:
-# IRI in any triple position EXCEPT the fixed set of stereotype IRIs
-# (logic:Kind … logic:Disposition); a FILTER(STRSTARTS(... logic:) && ?t NOT IN
-# (<the 15 stereotypes>)) quantifies over the WHOLE module graph, so a future
-# logic:World / modal-logic leak is caught even though no such term exists today.
+# IRI in any triple position EXCEPT (a) the fixed gUFO stereotype IRIs
+# (logic:Kind … logic:Disposition) and (b) the canonical class-declaration /
+# typing / header markers the owl:->logic: authoring flip mandates (logic:Class,
+# logic:ObjectProperty, … logic:Restriction — the owl:/rdfs: spellings are now the
+# generated projection). A FILTER(STRSTARTS(... logic:) && ?t NOT IN (<allowed>))
+# quantifies over the WHOLE module graph, so a future logic:World / modal-logic
+# leak is still caught (logic:World is kept OUT of the allowed set) even though no
+# such triple exists today.
 #
 # ONE invariant is unreachable by this module-scoped ASK harness and lives as a
 # native Rust conformance twin in crates/validate/tests/conformance_imagination.rs:
@@ -219,7 +223,10 @@ ASK {
         logic:Kind, logic:SubKind, logic:Phase, logic:Role, logic:Category,
         logic:Mixin, logic:RoleMixin, logic:PhaseMixin, logic:Event,
         logic:Situation, logic:AbstractIndividualType, logic:Relator,
-        logic:QualityValue, logic:Mode, logic:Disposition
+        logic:QualityValue, logic:Mode, logic:Disposition,
+        logic:Class, logic:ObjectProperty, logic:DatatypeProperty,
+        logic:AnnotationProperty, logic:NamedIndividual, logic:Ontology,
+        logic:Thing, logic:Nothing, logic:Restriction
     ) )
 }""" ;
-    gmeow:saRationale "By-reference discipline (Principle 5): the module MUST assert NO triple whose subject, predicate, or object is a logic: IRI EXCEPT the fixed stereotype vocabulary (logic:Kind … logic:Disposition) — those are identity/rigidity typing, not modal-world dependencies. This is a DYNAMIC universal (a FILTER over every logic: node in any position), NOT a hand-listed blacklist, so a future logic:World / modal-logic leak is caught even though no such term exists today." .
+    gmeow:saRationale "By-reference discipline (Principle 5): the module MUST assert NO triple whose subject, predicate, or object is a logic: IRI EXCEPT (a) the gUFO stereotype vocabulary (logic:Kind … logic:Disposition — identity/rigidity typing) and (b) the canonical class-declaration / typing / header markers the owl:→logic: authoring flip now mandates (logic:Class, logic:ObjectProperty, logic:DatatypeProperty, logic:AnnotationProperty, logic:NamedIndividual, logic:Ontology, logic:Thing, logic:Nothing, logic:Restriction — whose owl:/rdfs: spellings are the GENERATED projection, Principle 17). Both are the module's OWN declaration surface, not modal-world dependencies. This is a DYNAMIC universal (a FILTER over every logic: node in any position), NOT a hand-listed blacklist. logic:World is deliberately kept OUT of the allowed set: imagination consumes the counterfactual-world machinery strictly BY REFERENCE (documented in prose, never a triple), so a future logic:World / modal-logic leak triple is still caught — the invariant stays non-vacuous." .

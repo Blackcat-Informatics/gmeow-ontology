@@ -1459,7 +1459,7 @@ gmeow:userAgent
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of SuppressedMessageParticipantShape.
+# Suppression constraint — projection of SuppressedMessageParticipantShape.
 # A withdrawn/superseded MessageParticipant (one carrying gmeow:validUntil) that #
 # is not suppressed (gmeow:displayable false) is a Warning — a source may lag.    #
 # =========================================================================== #

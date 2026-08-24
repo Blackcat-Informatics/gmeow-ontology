@@ -444,7 +444,7 @@ gmeow:narratedIn
     rdfs:label "narrated in"@x-gmeow-english ;
     rdfs:range gmeow:ContentSegment ;
     rdfs:subPropertyOf gmeow:narrationLink ;
-    skos:definition "Flat 80% seam link, content-side orientation: the diegetic entity or event appears in the segment. The projection-friendly direction — Wikidata P1441 'present in work' is exactly this edge (SSSOM row deferred to the alignment window). Domain intentionally open. NOT the inverse-axiom twin of gmeow:narrates: no OWL inverseOf is asserted, so EL stays clean and either orientation can be used without entailing the other; consumers query both (the connectsTo convention)."@x-gmeow-english ;
+    skos:definition "Flat 80% seam link, content-side orientation: the diegetic entity or event appears in the segment. The projection-friendly direction — Wikidata P1441 'present in work' is exactly this edge. Domain intentionally open. NOT the inverse-axiom twin of gmeow:narrates: no OWL inverseOf is asserted, so EL stays clean and either orientation can be used without entailing the other; consumers query both (the connectsTo convention)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:narrates
@@ -841,7 +841,7 @@ gmeow:Motif rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:motifOccursIn ; logic:allValuesFrom gmeow:ContentSegment ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/ArcSample> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sampleState> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/RoleInNarrative> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/narrativeRoleBearer> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
@@ -914,7 +914,7 @@ logic:nsaAtom a logic:Formula ; logic:relation gmeow:discourseTimeOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world narrative-interior,   #
+# Closed-world narrative-interior constraints                             #
 # narration-seam and narrative-time well-formedness shapes from                   #
 # shapes/gmeow-shapes.ttl, re-authored as compact logic: sugar records (P17).     #
 # =========================================================================== #
@@ -928,7 +928,7 @@ gmeow:ArcSamplePositionConstraint
     logic:onClass gmeow:ArcSample ;
     logic:anyOf gmeow:samplePosition ;
     logic:formalizes gmeow:ArcSample , gmeow:ArcSampleShape ;
-    logic:message "An ArcSample must read at exactly one gmeow:samplePosition, a NarrativePosition — never a bare index (#359)." .
+    logic:message "An ArcSample must read at exactly one gmeow:samplePosition, a NarrativePosition — never a bare index." .
 
 gmeow:ArcSampleStateConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -973,7 +973,7 @@ gmeow:MotifOccursInSegmentConstraint
     logic:valuePath gmeow:motifOccursIn ;
     logic:valueClass gmeow:ContentSegment ;
     logic:formalizes gmeow:Motif , gmeow:MotifShape ;
-    logic:message "A motif occurrence rides the narration seam into a ContentSegment (#360)." .
+    logic:message "A motif occurrence rides the narration seam into a ContentSegment." .
 
 gmeow:NarrationUsageSegmentConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -1006,7 +1006,7 @@ gmeow:NarrationUsageModeConstraint
     logic:onClass gmeow:NarrationUsage ;
     logic:anyOf gmeow:narrationMode ;
     logic:formalizes gmeow:NarrationUsage , gmeow:NarrationUsageShape ;
-    logic:message "A NarrationUsage must state at least one gmeow:narrationMode (an IRI — the vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention) — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine, #360)." .
+    logic:message "A NarrationUsage must state at least one gmeow:narrationMode (an IRI — the vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention) — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine)." .
 
 gmeow:NarrativeTimeFrameAxisConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -1063,14 +1063,14 @@ gmeow:NarrativeTimeFrameAxisConstraint
 # --- Wave B2 shape-drain: narrative-interior residue (logic: canon; project to generated/shapes) ---
 
 # gmeow:MythShape — a Myth carries at most one gmeow:recurringRisk boolean (the path is not globally
-# OWL FunctionalProperty; the sh:maxCount 1 rides a class-scoped max-qualified antecedent, onDataRange
+# logic:functionalProperty; the sh:maxCount 1 rides a class-scoped max-qualified antecedent, onDataRange
 # xsd:boolean degrading to the plain sh:maxCount 1 the oracle compares).
 gmeow:Myth logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:recurringRisk ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:boolean ] .
 
 # gmeow:MotifShape — a Motif must carry at least one rdfs:label (identity-bearing means nameable).
-# rdfs:label is literal-valued, so the existence axiom ranges over rdfs:Literal (OWL allValuesFrom
-# OWL Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject the literal label); the closure
+# rdfs:label is literal-valued, so the existence axiom ranges over rdfs:Literal (logic:allValuesFrom
+# logic:Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject the literal label); the closure
 # entry projects the sh:minCount 1. The at-most-one-per-language-tag facet rides the UniqueLang sugar.
 gmeow:Motif logic:subClassOf
     [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:allValuesFrom rdfs:Literal ] .
@@ -1101,9 +1101,9 @@ gmeow:NarrativePositionLocatorConstraint
     logic:message "A NarrativePosition must carry a positionOrdinal or a positionLabel (or both)." .
 
 # gmeow:NarrativeTimeFrameShape — the gmeow:narrativeTimeAxis value is one of the two declared axis
-# individuals (discourse time or story time): a closed value set (OWL oneOf), projected declaratively
+# individuals (discourse time or story time): a closed value set (logic:oneOf), projected declaratively
 # to sh:in. The axis PRESENCE (sh:minCount 1) rides gmeow:NarrativeTimeFrameAxisConstraint; the
-# OWL FunctionalProperty contract supplies the sh:maxCount 1.
+# logic:functionalProperty contract supplies the sh:maxCount 1.
 gmeow:NarrativeTimeFrame logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:narrativeTimeAxis ; logic:allValuesFrom [ logic:oneOf ( gmeow:axisDiscourseTime gmeow:axisStoryTime ) ] ] .
 
@@ -1111,7 +1111,7 @@ gmeow:NarrativeTimeFrame logic:subClassOf
 # The at-least-one existence obligation is carried procedurally (mirroring gmeow:ArcSample's locator
 # constraints) so the fixture-conformance corpus — which excludes the declarative validation-shape
 # surface to avoid over-flagging open-world data — still catches a missing subject/type; the closure
-# entries + OWL FunctionalProperty contract carry the same exactly-one bound to the production gate.
+# entries + logic:functionalProperty contract carry the same exactly-one bound to the production gate.
 gmeow:CharacterArcSubjectConstraint
     a logic:DisjunctiveRequirednessConstraint ;
     rdfs:label "Character arc subject-present constraint"@x-gmeow-english ;

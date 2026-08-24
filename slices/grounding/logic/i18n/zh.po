@@ -19037,3 +19037,823 @@ msgstr "引擎段未加载"
 msgctxt "https://blackcatinformatics.ca/logic/UnloadedEngineSegment|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a dispatch names a tool the surface DOES advertise and DOES govern, but whose implementation lives in an engine segment this deployment has not loaded. It is a ROUTING signal, not a refusal: the payload names both the dispatch key and the segment providing it, so a host loads exactly that segment and re-dispatches the identical frame for an answer identical to the full engine's. That is what makes it a deployment tier rather than a reduced theory — the call becomes slower, never weaker."
 msgstr "当一次派发所指名的工具「确已」被表面公布、也「确已」受其治理，但其实现位于本次部署尚未加载的引擎段中时引发的失败。它是「路由」信号而非拒绝：载荷同时指明派发键与提供它的段，于是宿主恰好加载该段并重新派发完全相同的帧，得到与完整引擎完全相同的答案。正因如此，它是一个部署层级而非一套被削减的理论——调用只会变慢，绝不会变弱。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "All Disjoint Classes"
+msgstr "全体两两不相交类"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typing marker for an n-ary axiom asserting that every class in its logic:members list is pairwise disjoint from every other. It is not a binary logic:disjointWith edge; its generated OWL projection is the AllDisjointClasses axiom type."
+msgstr "用于 n 元公理的类型标记，断言其 logic:members 列表中的每个类都与其余每个类两两不相交。它不是二元的 logic:disjointWith 边；其生成的 OWL 投影是 AllDisjointClasses 公理类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:primaryColourDisjointness a logic:AllDisjointClasses ; logic:members ( ex:Red ex:Green ex:Blue ) ."
+msgstr "示例：ex:primaryColourDisjointness a logic:AllDisjointClasses ; logic:members ( ex:Red ex:Green ex:Blue ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointClasses|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One axiom resource captures the full pairwise disjointness of three or more classes."
+msgstr "一个公理资源即可刻画三个或更多类的完整两两不相交性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "All Disjoint Properties"
+msgstr "全体两两不相交属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typing marker for an n-ary axiom asserting that every property in its logic:members list is pairwise disjoint from every other. It is not a binary logic:propertyDisjointWith edge; its generated OWL projection is the AllDisjointProperties axiom type."
+msgstr "用于 n 元公理的类型标记，断言其 logic:members 列表中的每个属性都与其余每个属性两两不相交。它不是二元的 logic:propertyDisjointWith 边；其生成的 OWL 投影是 AllDisjointProperties 公理类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:kinshipDisjointness a logic:AllDisjointProperties ; logic:members ( ex:parentOf ex:siblingOf ex:spouseOf ) ."
+msgstr "示例：ex:kinshipDisjointness a logic:AllDisjointProperties ; logic:members ( ex:parentOf ex:siblingOf ex:spouseOf ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AllDisjointProperties|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One axiom resource captures the full pairwise disjointness of three or more properties."
+msgstr "一个公理资源即可刻画三个或更多属性的完整两两不相交性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Annotation Property"
+msgstr "注解属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a non-logical annotation relation that carries documentation rather than entailment. It is not an object or datatype property in the reasoning theory; its generated OWL projection is the AnnotationProperty type object."
+msgstr "为非逻辑的注解关系定型的规范标记，它承载文档而非蕴涵。在推理理论中它不是对象属性或数据类型属性；其生成的 OWL 投影是 AnnotationProperty 类型对象。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:editorialNote a logic:AnnotationProperty ."
+msgstr "示例：ex:editorialNote a logic:AnnotationProperty ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AnnotationProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Annotation-property triples are out-of-band metadata and license no logical inference."
+msgstr "注解属性三元组是带外元数据，不授权任何逻辑推断。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axiom"
+msgstr "公理"
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typing marker for a reified axiom resource that carries out-of-band annotations on an asserted statement. It is not the asserted statement itself; its generated OWL projection is the Axiom reification type."
+msgstr "为具体化公理资源定型的类型标记，它在被断言的语句上承载带外注解。它本身不是被断言的语句；其生成的 OWL 投影是 Axiom 具体化类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reifiedClaim a logic:Axiom ."
+msgstr "示例：ex:reifiedClaim a logic:Axiom ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Axiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reifier hangs annotations on a statement without changing the statement's assertion."
+msgstr "具体化器在语句上挂载注解，而不改变该语句的断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Class"
+msgstr "类"
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a named class expression on the logic: reasoning surface. It is not an instance-level individual; its generated OWL projection is the Class type object a reader recognizes a class by."
+msgstr "在 logic: 推理面上为具名类表达式定型的规范标记。它不是实例层面的个体；其生成的 OWL 投影是读者据以辨认类的 Class 类型对象。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Animal a logic:Class ."
+msgstr "示例：ex:Animal a logic:Class ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Class|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Typing a resource as a class licenses subsumption and membership reasoning over it."
+msgstr "将资源定型为类，即授权对其进行包含关系与成员关系的推理。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Datatype Property"
+msgstr "数据类型属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a relation whose values are literals. It is not an object or annotation relation; its generated OWL projection is the DatatypeProperty type object."
+msgstr "为取值是字面量的关系定型的规范标记。它不是对象关系或注解关系；其生成的 OWL 投影是 DatatypeProperty 类型对象。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:age a logic:DatatypeProperty ."
+msgstr "示例：ex:age a logic:DatatypeProperty ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DatatypeProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A datatype property relates individuals to literals in a datatype value space."
+msgstr "数据类型属性将个体关联到某数据类型值空间中的字面量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Named Individual"
+msgstr "具名个体"
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a named ABox individual. It is not a class or property; its generated OWL projection is the NamedIndividual type object a reader recognizes an individual by."
+msgstr "为具名 ABox 个体定型的规范标记。它不是类或属性；其生成的 OWL 投影是读者据以辨认个体的 NamedIndividual 类型对象。"
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:socrates a logic:NamedIndividual ."
+msgstr "示例：ex:socrates a logic:NamedIndividual ."
+
+msgctxt "https://blackcatinformatics.ca/logic/NamedIndividual|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker records that a resource denotes one individual, distinct from a class or property."
+msgstr "该标记记录某资源指称一个个体，区别于类或属性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Nothing"
+msgstr "空类"
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical empty (bottom) class: no individual is a logic:Nothing. It is not a modelling placeholder for missing data; its generated OWL projection is the Nothing bottom an inconsistency collapses to."
+msgstr "规范的空（底）类：没有任何个体是 logic:Nothing。它不是用于缺失数据的建模占位符；其生成的 OWL 投影是不一致所坍缩到的 Nothing 底。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:SquareCircle logic:equivalentClass logic:Nothing ."
+msgstr "示例：ex:SquareCircle logic:equivalentClass logic:Nothing ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Nothing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bottom is the unsatisfiable class; deriving membership in it signals an inconsistency."
+msgstr "底是不可满足的类；推导出对它的成员关系即预示不一致。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Object Property"
+msgstr "对象属性"
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing a relation whose values are individuals. It is not a datatype or annotation relation; its generated OWL projection is the ObjectProperty type object."
+msgstr "为取值是个体的关系定型的规范标记。它不是数据类型关系或注解关系；其生成的 OWL 投影是 ObjectProperty 类型对象。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:memberOf a logic:ObjectProperty ."
+msgstr "示例：ex:memberOf a logic:ObjectProperty ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ObjectProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An object property relates individuals to individuals and can carry logical characteristics."
+msgstr "对象属性将个体关联到个体，并可承载逻辑特征。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ontology"
+msgstr "本体"
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical marker typing an ontology or module header resource that carries importation and versioning metadata. It is not a domain class; its generated OWL projection is the Ontology type object."
+msgstr "为承载导入与版本化元数据的本体或模块头资源定型的规范标记。它不是领域类；其生成的 OWL 投影是 Ontology 类型对象。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:myModule a logic:Ontology ."
+msgstr "示例：ex:myModule a logic:Ontology ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Ontology|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The header resource anchors module-level metadata such as imports and version information."
+msgstr "头资源锚定模块级元数据，如导入与版本信息。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Thing"
+msgstr "万物"
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical universal (top) class: every individual is a logic:Thing. It is not a domain root that authors should subclass casually; its generated OWL projection is the Thing top the clash readers compare against."
+msgstr "规范的全域（顶）类：每个个体都是 logic:Thing。它不是作者应随意子类化的领域根；其生成的 OWL 投影是读者据以比对冲突的 Thing 顶。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:anyRestriction logic:onClass logic:Thing ."
+msgstr "示例：ex:anyRestriction logic:onClass logic:Thing ."
+
+msgctxt "https://blackcatinformatics.ca/logic/Thing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Top denotes the whole domain of discourse and subsumes every class."
+msgstr "顶指称整个论域，并包含每一个类。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StringPatternConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blake3Head a logic:StringPatternConstraint ; logic:onClass ex:Segment ; logic:valuePath ex:headId ; logic:stringOp \"regexRequired\" ; logic:stringPattern \"^blake3:[0-9a-f]{64}$\" ."
+msgstr "示例：ex:blake3Head a logic:StringPatternConstraint ; logic:onClass ex:Segment ; logic:valuePath ex:headId ; logic:stringOp \"regexRequired\" ; logic:stringPattern \"^blake3:[0-9a-f]{64}$\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deprecated"
+msgstr "已弃用"
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Annotation marking a term as deprecated and scheduled for removal, so consumers avoid authoring against it. It carries no logical entailment; its generated OWL projection is the deprecated annotation."
+msgstr "将某术语标记为已弃用并计划移除的注解，使消费者避免依赖它进行编写。它不承载任何逻辑蕴涵；其生成的 OWL 投影是 deprecated 注解。"
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:legacyProperty logic:deprecated true ."
+msgstr "示例：ex:legacyProperty logic:deprecated true ."
+
+msgctxt "https://blackcatinformatics.ca/logic/deprecated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Deprecation is advisory metadata, not a retraction of the term's existing assertions."
+msgstr "弃用是建议性的元数据，而非对该术语既有断言的撤回。"
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "different from"
+msgstr "不同于"
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical individual distinctness: the two related IRIs denote distinct individuals and may never be merged. It is not class disjointness; its generated OWL projection is the differentFrom relation."
+msgstr "规范的个体相异性：两个相关的 IRI 指称不同的个体，绝不可被合并。它不是类的不相交性；其生成的 OWL 投影是 differentFrom 关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:markTwain logic:differentFrom ex:charlesDickens ."
+msgstr "示例：ex:markTwain logic:differentFrom ex:charlesDickens ."
+
+msgctxt "https://blackcatinformatics.ca/logic/differentFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The assertion blocks an identity inference that would otherwise unify the two individuals."
+msgstr "该断言阻止一个本会将两个个体统一的同一性推断。"
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "disjoint union of"
+msgstr "不相交并集"
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class to the RDF list of pairwise-disjoint classes that exhaustively partition it: every instance belongs to exactly one listed class. It is not a bare union, which permits overlap; its generated OWL projection is the disjointUnionOf constructor."
+msgstr "将一个类关联到对其进行穷尽划分的两两不相交类的 RDF 列表：每个实例恰好属于一个所列类。它不是允许重叠的裸并集；其生成的 OWL 投影是 disjointUnionOf 构造子。"
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Person logic:disjointUnionOf ( ex:Child ex:Adult ) ."
+msgstr "示例：ex:Person logic:disjointUnionOf ( ex:Child ex:Adult ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/disjointUnionOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The axiom asserts both exhaustive coverage and pairwise disjointness of the listed classes."
+msgstr "该公理同时断言所列各类的穷尽覆盖与两两不相交性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has key"
+msgstr "具有键"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class to the RDF list of properties that jointly identify its instances: two class members agreeing on every key value are the same individual. It is not inverse functionality of a single property; its generated OWL projection is the hasKey constructor."
+msgstr "将一个类关联到共同标识其实例的属性的 RDF 列表：在每个键值上一致的两个类成员即为同一个体。它不是单个属性的逆函数性；其生成的 OWL 投影是 hasKey 构造子。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Country logic:hasKey ( ex:isoCode ) ."
+msgstr "示例：ex:Country logic:hasKey ( ex:isoCode ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The key is a closed-world identification over named individuals of the class."
+msgstr "该键是对类的具名个体所作的闭世界标识。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has self"
+msgstr "具有自反"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Self restriction: the constrained logic:onProperty relates each instance to itself. Its truth-valued object is the local reflexivity flag of one restriction, not the global logic:reflexiveProperty characteristic; its generated OWL projection is the hasSelf restriction."
+msgstr "自反限制：被约束的 logic:onProperty 将每个实例关联到其自身。其真值对象是单个限制的局部自反标志，而非全局的 logic:reflexiveProperty 特征；其生成的 OWL 投影是 hasSelf 限制。"
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:selfAwareRestriction logic:onProperty ex:knows ; logic:hasSelf true ."
+msgstr "示例：ex:selfAwareRestriction logic:onProperty ex:knows ; logic:hasSelf true ."
+
+msgctxt "https://blackcatinformatics.ca/logic/hasSelf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag constrains the self-edge of one property inside a single class expression."
+msgstr "该标志在单个类表达式内约束一个属性的自反边。"
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intersection of"
+msgstr "交集"
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class expression to the RDF list of class expressions whose intersection it denotes: an individual is a member exactly when it is a member of every listed class. It is not a subclass chain; its generated OWL projection is the intersectionOf constructor."
+msgstr "将一个类表达式关联到其所指称交集的类表达式的 RDF 列表：个体当且仅当是每个所列类的成员时才是其成员。它不是子类链；其生成的 OWL 投影是 intersectionOf 构造子。"
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:WorkingParent logic:intersectionOf ( ex:Parent ex:Employee ) ."
+msgstr "示例：ex:WorkingParent logic:intersectionOf ( ex:Parent ex:Employee ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/intersectionOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The intersection extension is the set-theoretic intersection of the listed class extensions."
+msgstr "交集的外延是所列各类外延的集合论交集。"
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "members"
+msgstr "成员"
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an n-ary disjointness axiom resource to the RDF list of the classes or properties it declares pairwise disjoint. It is not a class-extension membership edge; its generated OWL projection is the members constructor."
+msgstr "将 n 元不相交公理资源关联到它声明为两两不相交的类或属性的 RDF 列表。它不是类外延的成员关系边；其生成的 OWL 投影是 members 构造子。"
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:disjointColours logic:members ( ex:Red ex:Green ex:Blue ) ."
+msgstr "示例：ex:disjointColours logic:members ( ex:Red ex:Green ex:Blue ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/members|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The list carries the terms of a logic:AllDisjointClasses or logic:AllDisjointProperties axiom."
+msgstr "该列表承载 logic:AllDisjointClasses 或 logic:AllDisjointProperties 公理的诸项。"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "property chain axiom"
+msgstr "属性链公理"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a property to the RDF list of properties whose ordered composition it subsumes: following the chain entails the head property. It is not a subproperty edge over a single property; its generated OWL projection is the propertyChainAxiom constructor."
+msgstr "将一个属性关联到其所包含有序复合的属性的 RDF 列表：沿该链前行即蕴涵头属性。它不是单个属性上的子属性边；其生成的 OWL 投影是 propertyChainAxiom 构造子。"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hasGrandparent logic:propertyChainAxiom ( ex:hasParent ex:hasParent ) ."
+msgstr "示例：ex:hasGrandparent logic:propertyChainAxiom ( ex:hasParent ex:hasParent ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyChainAxiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The list order matters: the chain composes the properties left to right."
+msgstr "列表顺序至关重要：该链自左向右复合各属性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "property disjoint with"
+msgstr "属性不相交于"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical property disjointness: no ordered pair may be related by both properties at once. It is not class disjointness; its generated OWL projection is the propertyDisjointWith relation."
+msgstr "规范的属性不相交性：没有任何有序对可同时被两个属性关联。它不是类的不相交性；其生成的 OWL 投影是 propertyDisjointWith 关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:parentOf logic:propertyDisjointWith ex:siblingOf ."
+msgstr "示例：ex:parentOf logic:propertyDisjointWith ex:siblingOf ."
+
+msgctxt "https://blackcatinformatics.ca/logic/propertyDisjointWith|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The disjointness is symmetric between the two properties at the ordered-pair level."
+msgstr "该不相交性在有序对层面上于两个属性之间对称。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same as"
+msgstr "等同于"
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical individual identity: the two related IRIs denote the same individual, so their assertions merge. It is not class equivalence or similarity; its generated OWL projection is the sameAs relation."
+msgstr "规范的个体同一性：两个相关的 IRI 指称同一个体，故其断言合并。它不是类的等价或相似；其生成的 OWL 投影是 sameAs 关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:samuelClemens logic:sameAs ex:markTwain ."
+msgstr "示例：ex:samuelClemens logic:sameAs ex:markTwain ."
+
+msgctxt "https://blackcatinformatics.ca/logic/sameAs|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Identity is symmetric and transitive and licenses substitution of one IRI for the other."
+msgstr "同一性是对称且传递的，并授权以一个 IRI 替换另一个。"
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "union of"
+msgstr "并集"
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a class expression to the RDF list of class expressions whose union it denotes: an individual is a member exactly when it is a member of at least one listed class. It is not a subclass hint; its generated OWL projection is the unionOf constructor."
+msgstr "将一个类表达式关联到其所指称并集的类表达式的 RDF 列表：个体当且仅当是至少一个所列类的成员时才是其成员。它不是子类提示；其生成的 OWL 投影是 unionOf 构造子。"
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:Parent logic:unionOf ( ex:Mother ex:Father ) ."
+msgstr "示例：ex:Parent logic:unionOf ( ex:Mother ex:Father ) ."
+
+msgctxt "https://blackcatinformatics.ca/logic/unionOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The union extension is the set-theoretic union of the listed class extensions."
+msgstr "并集的外延是所列各类外延的集合论并集。"
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "version info"
+msgstr "版本信息"
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Annotation carrying free-text version information for an ontology header or term. It carries no logical entailment; its generated OWL projection is the versionInfo annotation."
+msgstr "为本体头或术语承载自由文本版本信息的注解。它不承载任何逻辑蕴涵；其生成的 OWL 投影是 versionInfo 注解。"
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:myModule logic:versionInfo \"2026-08-19\" ."
+msgstr "示例：ex:myModule logic:versionInfo \"2026-08-19\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/versionInfo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is human-readable version metadata, not a machine-ordered version identifier."
+msgstr "该值是人类可读的版本元数据，而非机器排序的版本标识符。"
+
+msgctxt "https://blackcatinformatics.ca/logic/mcpToolNameKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "logic:mcpToolNameKey logic:characterizes logic:ActionSchema ."
+msgstr "示例：logic:mcpToolNameKey logic:characterizes logic:ActionSchema ."
+
+msgctxt "https://blackcatinformatics.ca/logic/overAccessibilityFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "logic:overAccessibilityFunctionality logic:characterizes logic:overAccessibility ."
+msgstr "示例：logic:overAccessibilityFunctionality logic:characterizes logic:overAccessibility ."
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointClassesGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:AllDisjointClasses to W3C OWL AllDisjointClasses grounding"
+msgstr "logic:AllDisjointClasses 到 W3C OWL AllDisjointClasses 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointClassesGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:AllDisjointClasses axiom type is projected to the W3C OWL AllDisjointClasses type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:AllDisjointClasses 公理类型被投影为 W3C OWL AllDisjointClasses 类型，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointPropertiesGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:AllDisjointProperties to W3C OWL AllDisjointProperties grounding"
+msgstr "logic:AllDisjointProperties 到 W3C OWL AllDisjointProperties 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllDisjointPropertiesGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:AllDisjointProperties axiom type is projected to the W3C OWL AllDisjointProperties type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:AllDisjointProperties 公理类型被投影为 W3C OWL AllDisjointProperties 类型，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllValuesFromGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:allValuesFrom to W3C OWL allValuesFrom grounding"
+msgstr "logic:allValuesFrom 到 W3C OWL allValuesFrom 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAllValuesFromGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:allValuesFrom term is projected to the W3C OWL allValuesFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:allValuesFrom 术语被投影为 W3C OWL allValuesFrom 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAnnotationPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:AnnotationProperty to W3C OWL AnnotationProperty grounding"
+msgstr "logic:AnnotationProperty 到 W3C OWL AnnotationProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAnnotationPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:AnnotationProperty typing marker is projected to the W3C OWL AnnotationProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:AnnotationProperty 类型标记被投影为 W3C OWL AnnotationProperty 类型对象，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAsymmetricPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:asymmetricProperty to W3C OWL AsymmetricProperty grounding"
+msgstr "logic:asymmetricProperty 到 W3C OWL AsymmetricProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAsymmetricPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:asymmetricProperty characteristic marker is projected to the W3C OWL AsymmetricProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:asymmetricProperty 特征标记被投影为 W3C OWL AsymmetricProperty 类型。这一感知构造的、从小驼峰到大驼峰的重命名，仍是在 logic:InstitutionMorphism 之下、带 logic:ExactPreservation 的一个 logic:Isomorphism。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAxiomGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Axiom to W3C OWL Axiom grounding"
+msgstr "logic:Axiom 到 W3C OWL Axiom 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrAxiomGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Axiom reification marker is projected to the W3C OWL Axiom type as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:Axiom 具体化标记被投影为 W3C OWL Axiom 类型，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:cardinality to W3C OWL cardinality grounding"
+msgstr "logic:cardinality 到 W3C OWL cardinality 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:cardinality term is projected to the W3C OWL cardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:cardinality 术语被投影为 W3C OWL cardinality 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrClassGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Class to W3C OWL Class grounding"
+msgstr "logic:Class 到 W3C OWL Class 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrClassGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Class typing marker is projected to the W3C OWL Class type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:Class 类型标记被投影为 W3C OWL Class 类型对象，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDatatypePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:DatatypeProperty to W3C OWL DatatypeProperty grounding"
+msgstr "logic:DatatypeProperty 到 W3C OWL DatatypeProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDatatypePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:DatatypeProperty typing marker is projected to the W3C OWL DatatypeProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:DatatypeProperty 类型标记被投影为 W3C OWL DatatypeProperty 类型对象，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDeprecatedGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:deprecated to W3C OWL deprecated grounding"
+msgstr "logic:deprecated 到 W3C OWL deprecated 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDeprecatedGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:deprecated annotation is projected to the W3C OWL deprecated annotation as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:deprecated 注解被投影为 W3C OWL deprecated 注解，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDifferentFromGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:differentFrom to W3C OWL differentFrom grounding"
+msgstr "logic:differentFrom 到 W3C OWL differentFrom 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDifferentFromGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:differentFrom term is projected to the W3C OWL differentFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:differentFrom 术语被投影为 W3C OWL differentFrom 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointUnionOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:disjointUnionOf to W3C OWL disjointUnionOf grounding"
+msgstr "logic:disjointUnionOf 到 W3C OWL disjointUnionOf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointUnionOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:disjointUnionOf term is projected to the W3C OWL disjointUnionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:disjointUnionOf 术语被投影为 W3C OWL disjointUnionOf 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointWithGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:disjointWith to W3C OWL disjointWith grounding"
+msgstr "logic:disjointWith 到 W3C OWL disjointWith 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDisjointWithGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:disjointWith term is projected to the W3C OWL disjointWith construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:disjointWith 术语被投影为 W3C OWL disjointWith 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDomainGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:domain to W3C RDFS domain grounding"
+msgstr "logic:domain 到 W3C RDFS domain 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrDomainGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:domain edge is projected to the W3C RDFS domain edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. The property-domain axiom is preserved exactly and invertibly; the reasoner lowers logic:domain onto rdfs:domain at the EDB boundary so the fixed DL/RL domain rules fire."
+msgstr "接地对应：规范的 logic:domain 边被投影为 W3C RDFS domain 边，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。属性域公理被精确且可逆地保留；推理器在 EDB 边界处将 logic:domain 下降到 rdfs:domain，以便固定的 DL/RL 域规则触发。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentClassGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:equivalentClass to W3C OWL equivalentClass grounding"
+msgstr "logic:equivalentClass 到 W3C OWL equivalentClass 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentClassGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:equivalentClass term is projected to the W3C OWL equivalentClass construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation, the projection changing only the namespace of an otherwise identical term."
+msgstr "接地对应：规范的 logic:equivalentClass 术语被投影为 W3C OWL equivalentClass 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation，该投影仅改变一个在其余方面完全相同的术语的命名空间。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:equivalentProperty to W3C OWL equivalentProperty grounding"
+msgstr "logic:equivalentProperty 到 W3C OWL equivalentProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrEquivalentPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:equivalentProperty term is projected to the W3C OWL equivalentProperty construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:equivalentProperty 术语被投影为 W3C OWL equivalentProperty 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrFunctionalPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:functionalProperty to W3C OWL FunctionalProperty grounding"
+msgstr "logic:functionalProperty 到 W3C OWL FunctionalProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrFunctionalPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:functionalProperty characteristic marker is projected to the W3C OWL FunctionalProperty type. The rename is construct-aware — the canonical lower-camel spelling maps to the upper-camel W3C marker — but remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation, the property-characteristic semantics being preserved exactly and invertibly."
+msgstr "接地对应：规范的 logic:functionalProperty 特征标记被投影为 W3C OWL FunctionalProperty 类型。该重命名感知构造——规范的小驼峰拼写映射到大驼峰的 W3C 标记——但仍是在 logic:InstitutionMorphism 之下、带 logic:ExactPreservation 的一个 logic:Isomorphism，属性特征语义被精确且可逆地保留。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasKeyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:hasKey to W3C OWL hasKey grounding"
+msgstr "logic:hasKey 到 W3C OWL hasKey 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasKeyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:hasKey term is projected to the W3C OWL hasKey construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:hasKey 术语被投影为 W3C OWL hasKey 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasSelfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:hasSelf to W3C OWL hasSelf grounding"
+msgstr "logic:hasSelf 到 W3C OWL hasSelf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasSelfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:hasSelf term is projected to the W3C OWL hasSelf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:hasSelf 术语被投影为 W3C OWL hasSelf 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasValueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:hasValue to W3C OWL hasValue grounding"
+msgstr "logic:hasValue 到 W3C OWL hasValue 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrHasValueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:hasValue term is projected to the W3C OWL hasValue construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:hasValue 术语被投影为 W3C OWL hasValue 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrImportsGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:imports to W3C OWL imports grounding"
+msgstr "logic:imports 到 W3C OWL imports 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrImportsGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:imports module-importation edge is projected to the W3C OWL imports edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:imports 模块导入边被投影为 W3C OWL imports 边，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIntersectionOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:intersectionOf to W3C OWL intersectionOf grounding"
+msgstr "logic:intersectionOf 到 W3C OWL intersectionOf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIntersectionOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:intersectionOf term is projected to the W3C OWL intersectionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:intersectionOf 术语被投影为 W3C OWL intersectionOf 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseFunctionalPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:inverseFunctionalProperty to W3C OWL InverseFunctionalProperty grounding"
+msgstr "logic:inverseFunctionalProperty 到 W3C OWL InverseFunctionalProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseFunctionalPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:inverseFunctionalProperty characteristic marker is projected to the W3C OWL InverseFunctionalProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:inverseFunctionalProperty 特征标记被投影为 W3C OWL InverseFunctionalProperty 类型。这一感知构造的、从小驼峰到大驼峰的重命名，仍是在 logic:InstitutionMorphism 之下、带 logic:ExactPreservation 的一个 logic:Isomorphism。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:inverseOf to W3C OWL inverseOf grounding"
+msgstr "logic:inverseOf 到 W3C OWL inverseOf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrInverseOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:inverseOf term is projected to the W3C OWL inverseOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:inverseOf 术语被投影为 W3C OWL inverseOf 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIrreflexivePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:irreflexiveProperty to W3C OWL IrreflexiveProperty grounding"
+msgstr "logic:irreflexiveProperty 到 W3C OWL IrreflexiveProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrIrreflexivePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:irreflexiveProperty characteristic marker is projected to the W3C OWL IrreflexiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:irreflexiveProperty 特征标记被投影为 W3C OWL IrreflexiveProperty 类型。这一感知构造的、从小驼峰到大驼峰的重命名，仍是在 logic:InstitutionMorphism 之下、带 logic:ExactPreservation 的一个 logic:Isomorphism。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:maxCardinality to W3C OWL maxCardinality grounding"
+msgstr "logic:maxCardinality 到 W3C OWL maxCardinality 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:maxCardinality term is projected to the W3C OWL maxCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:maxCardinality 术语被投影为 W3C OWL maxCardinality 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxQualifiedCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:maxQualifiedCardinality to W3C OWL maxQualifiedCardinality grounding"
+msgstr "logic:maxQualifiedCardinality 到 W3C OWL maxQualifiedCardinality 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMaxQualifiedCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:maxQualifiedCardinality term is projected to the W3C OWL maxQualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:maxQualifiedCardinality 术语被投影为 W3C OWL maxQualifiedCardinality 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMembersGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:members to W3C OWL members grounding"
+msgstr "logic:members 到 W3C OWL members 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMembersGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:members term is projected to the W3C OWL members construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:members 术语被投影为 W3C OWL members 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:minCardinality to W3C OWL minCardinality grounding"
+msgstr "logic:minCardinality 到 W3C OWL minCardinality 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:minCardinality term is projected to the W3C OWL minCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:minCardinality 术语被投影为 W3C OWL minCardinality 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinQualifiedCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:minQualifiedCardinality to W3C OWL minQualifiedCardinality grounding"
+msgstr "logic:minQualifiedCardinality 到 W3C OWL minQualifiedCardinality 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrMinQualifiedCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:minQualifiedCardinality term is projected to the W3C OWL minQualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:minQualifiedCardinality 术语被投影为 W3C OWL minQualifiedCardinality 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNamedIndividualGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:NamedIndividual to W3C OWL NamedIndividual grounding"
+msgstr "logic:NamedIndividual 到 W3C OWL NamedIndividual 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNamedIndividualGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:NamedIndividual typing marker is projected to the W3C OWL NamedIndividual type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:NamedIndividual 类型标记被投影为 W3C OWL NamedIndividual 类型对象，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNothingGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Nothing to W3C OWL Nothing grounding"
+msgstr "logic:Nothing 到 W3C OWL Nothing 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrNothingGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Nothing bottom class is projected to the W3C OWL Nothing bottom as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:Nothing 底类被投影为 W3C OWL Nothing 底，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrObjectPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:ObjectProperty to W3C OWL ObjectProperty grounding"
+msgstr "logic:ObjectProperty 到 W3C OWL ObjectProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrObjectPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:ObjectProperty typing marker is projected to the W3C OWL ObjectProperty type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:ObjectProperty 类型标记被投影为 W3C OWL ObjectProperty 类型对象，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnClassGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onClass to W3C OWL onClass grounding"
+msgstr "logic:onClass 到 W3C OWL onClass 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnClassGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onClass term is projected to the W3C OWL onClass construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:onClass 术语被投影为 W3C OWL onClass 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDataRangeGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onDataRange to W3C OWL onDataRange grounding"
+msgstr "logic:onDataRange 到 W3C OWL onDataRange 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDataRangeGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onDataRange term is projected to the W3C OWL onDataRange construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:onDataRange 术语被投影为 W3C OWL onDataRange 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDatatypeGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onDatatype to W3C OWL onDatatype grounding"
+msgstr "logic:onDatatype 到 W3C OWL onDatatype 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnDatatypeGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onDatatype term is projected to the W3C OWL onDatatype construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:onDatatype 术语被投影为 W3C OWL onDatatype 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:onProperty to W3C OWL onProperty grounding"
+msgstr "logic:onProperty 到 W3C OWL onProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOnPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:onProperty term is projected to the W3C OWL onProperty construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:onProperty 术语被投影为 W3C OWL onProperty 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOneOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:oneOf to W3C OWL oneOf grounding"
+msgstr "logic:oneOf 到 W3C OWL oneOf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOneOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:oneOf term is projected to the W3C OWL oneOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:oneOf 术语被投影为 W3C OWL oneOf 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOntologyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Ontology to W3C OWL Ontology grounding"
+msgstr "logic:Ontology 到 W3C OWL Ontology 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrOntologyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Ontology typing marker is projected to the W3C OWL Ontology type object as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:Ontology 类型标记被投影为 W3C OWL Ontology 类型对象，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyChainAxiomGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:propertyChainAxiom to W3C OWL propertyChainAxiom grounding"
+msgstr "logic:propertyChainAxiom 到 W3C OWL propertyChainAxiom 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyChainAxiomGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:propertyChainAxiom term is projected to the W3C OWL propertyChainAxiom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:propertyChainAxiom 术语被投影为 W3C OWL propertyChainAxiom 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyDisjointWithGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:propertyDisjointWith to W3C OWL propertyDisjointWith grounding"
+msgstr "logic:propertyDisjointWith 到 W3C OWL propertyDisjointWith 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrPropertyDisjointWithGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:propertyDisjointWith term is projected to the W3C OWL propertyDisjointWith construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:propertyDisjointWith 术语被投影为 W3C OWL propertyDisjointWith 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrQualifiedCardinalityGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:qualifiedCardinality to W3C OWL qualifiedCardinality grounding"
+msgstr "logic:qualifiedCardinality 到 W3C OWL qualifiedCardinality 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrQualifiedCardinalityGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:qualifiedCardinality term is projected to the W3C OWL qualifiedCardinality construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:qualifiedCardinality 术语被投影为 W3C OWL qualifiedCardinality 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRangeGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:range to W3C RDFS range grounding"
+msgstr "logic:range 到 W3C RDFS range 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRangeGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:range edge is projected to the W3C RDFS range edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. The property-range axiom is preserved exactly and invertibly; the reasoner lowers logic:range onto rdfs:range at the EDB boundary so the fixed DL/RL range rules fire."
+msgstr "接地对应：规范的 logic:range 边被投影为 W3C RDFS range 边，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。属性值域公理被精确且可逆地保留；推理器在 EDB 边界处将 logic:range 下降到 rdfs:range，以便固定的 DL/RL 值域规则触发。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrReflexivePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:reflexiveProperty to W3C OWL ReflexiveProperty grounding"
+msgstr "logic:reflexiveProperty 到 W3C OWL ReflexiveProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrReflexivePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:reflexiveProperty characteristic marker is projected to the W3C OWL ReflexiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:reflexiveProperty 特征标记被投影为 W3C OWL ReflexiveProperty 类型。这一感知构造的、从小驼峰到大驼峰的重命名，仍是在 logic:InstitutionMorphism 之下、带 logic:ExactPreservation 的一个 logic:Isomorphism。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRestrictionGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Restriction to W3C OWL Restriction grounding"
+msgstr "logic:Restriction 到 W3C OWL Restriction 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrRestrictionGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Restriction term is projected to the W3C OWL Restriction construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:Restriction 术语被投影为 W3C OWL Restriction 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSameAsGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:sameAs to W3C OWL sameAs grounding"
+msgstr "logic:sameAs 到 W3C OWL sameAs 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSameAsGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:sameAs term is projected to the W3C OWL sameAs construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:sameAs 术语被投影为 W3C OWL sameAs 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSomeValuesFromGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:someValuesFrom to W3C OWL someValuesFrom grounding"
+msgstr "logic:someValuesFrom 到 W3C OWL someValuesFrom 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSomeValuesFromGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:someValuesFrom term is projected to the W3C OWL someValuesFrom construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:someValuesFrom 术语被投影为 W3C OWL someValuesFrom 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubClassOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:subClassOf to W3C RDFS subClassOf grounding"
+msgstr "logic:subClassOf 到 W3C RDFS subClassOf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubClassOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:subClassOf edge is projected to the W3C RDFS subClassOf edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation. RDFS is a lossy projection surface overall (Principle 17), yet this single subsumption edge is preserved exactly and invertibly."
+msgstr "接地对应：规范的 logic:subClassOf 边被投影为 W3C RDFS subClassOf 边，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。RDFS 整体上是一个有损的投影面（原则 17），但这一条包含关系边被精确且可逆地保留。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubPropertyOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:subPropertyOf to W3C RDFS subPropertyOf grounding"
+msgstr "logic:subPropertyOf 到 W3C RDFS subPropertyOf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSubPropertyOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:subPropertyOf edge is projected to the W3C RDFS subPropertyOf edge as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation; the relation-subsumption edge is preserved exactly and invertibly."
+msgstr "接地对应：规范的 logic:subPropertyOf 边被投影为 W3C RDFS subPropertyOf 边，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation；这一关系包含边被精确且可逆地保留。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSymmetricPropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:symmetricProperty to W3C OWL SymmetricProperty grounding"
+msgstr "logic:symmetricProperty 到 W3C OWL SymmetricProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrSymmetricPropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:symmetricProperty characteristic marker is projected to the W3C OWL SymmetricProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:symmetricProperty 特征标记被投影为 W3C OWL SymmetricProperty 类型。这一感知构造的、从小驼峰到大驼峰的重命名，仍是在 logic:InstitutionMorphism 之下、带 logic:ExactPreservation 的一个 logic:Isomorphism。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrThingGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:Thing to W3C OWL Thing grounding"
+msgstr "logic:Thing 到 W3C OWL Thing 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrThingGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:Thing top class is projected to the W3C OWL Thing top as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:Thing 顶类被投影为 W3C OWL Thing 顶，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrTransitivePropertyGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:transitiveProperty to W3C OWL TransitiveProperty grounding"
+msgstr "logic:transitiveProperty 到 W3C OWL TransitiveProperty 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrTransitivePropertyGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:transitiveProperty characteristic marker is projected to the W3C OWL TransitiveProperty type. The construct-aware lower-camel to upper-camel rename remains a logic:Isomorphism under a logic:InstitutionMorphism with logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:transitiveProperty 特征标记被投影为 W3C OWL TransitiveProperty 类型。这一感知构造的、从小驼峰到大驼峰的重命名，仍是在 logic:InstitutionMorphism 之下、带 logic:ExactPreservation 的一个 logic:Isomorphism。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrUnionOfGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:unionOf to W3C OWL unionOf grounding"
+msgstr "logic:unionOf 到 W3C OWL unionOf 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrUnionOfGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:unionOf term is projected to the W3C OWL unionOf construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:unionOf 术语被投影为 W3C OWL unionOf 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrVersionInfoGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:versionInfo to W3C OWL versionInfo grounding"
+msgstr "logic:versionInfo 到 W3C OWL versionInfo 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrVersionInfoGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:versionInfo annotation is projected to the W3C OWL versionInfo annotation as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:versionInfo 注解被投影为 W3C OWL versionInfo 注解，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrWithRestrictionsGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logic:withRestrictions to W3C OWL withRestrictions grounding"
+msgstr "logic:withRestrictions 到 W3C OWL withRestrictions 的接地"
+
+msgctxt "https://blackcatinformatics.ca/logic/corrWithRestrictionsGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Grounding correspondence: the canonical logic:withRestrictions term is projected to the W3C OWL withRestrictions construct as an exact structural rename — a logic:Isomorphism under a logic:InstitutionMorphism carrying logic:ExactPreservation."
+msgstr "接地对应：规范的 logic:withRestrictions 术语被投影为 W3C OWL withRestrictions 构造，作为一次精确的结构性重命名——在 logic:InstitutionMorphism 之下的一个 logic:Isomorphism，承载 logic:ExactPreservation。"

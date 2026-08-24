@@ -1619,7 +1619,7 @@ ontolex:LexicalEntry
     a logic:Class .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of DeadnameSuppressionShape.     #
+# Suppression constraint — projection of DeadnameSuppressionShape.     #
 # A superseded name or deadname (namePurpose in {deadname, superseded}) that   #
 # is not suppressed (gmeow:displayable false) is a Warning — a source may lag. #
 # =========================================================================== #
@@ -1656,7 +1656,7 @@ logic:supNmNotSuppressed a logic:Formula ; logic:not logic:supNmDisp .
 logic:supNmDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
-# Migrated (#1194): projection of gmeow:PlaceNamingHasPlayersShape — a NameUsage
+# Projection of gmeow:PlaceNamingHasPlayersShape — a NameUsage
 # that names a gmeow:Place must bind a gmeow:PlaceName appellation (Principle 17).
 gmeow:PlaceNamingHasPlayersConstraint
     a logic:Constraint ;

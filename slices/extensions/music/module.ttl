@@ -7066,15 +7066,15 @@ GTS music-package bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-
 # =========================================================================== #
 # Declarative constraint axioms (extension slices) — the closed-
 # world cardinality / datatype / fixed-value / class obligations the hand-
-# authored shapes.ttl NodeShapes state, authored here once as OWL restriction
+# authored shapes.ttl NodeShapes state, authored here once as a logic:Restriction
 # axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
 # derive_validation_shapes (Principle 17). Counts use the reasoner-safe QUALIFIED
-# form with OWL onClass OWL Thing (the native DL consistency pass decides it, and
-# OWL onClass OWL Thing degrades the qualified count to the plain sh:minCount /
-# sh:maxCount the hand-authored shapes state): exact-one -> OWL maxQualifiedCardinality 1
-# (sh:minCount 1 + sh:maxCount 1); at-most-one -> OWL maxQualifiedCardinality 1;
-# at-least N -> OWL minQualifiedCardinality N; sh:datatype D -> OWL allValuesFrom D;
-# sh:hasValue V -> OWL hasValue V; sh:class C -> OWL allValuesFrom C.
+# form with logic:onClass logic:Thing (the native DL consistency pass decides it, and
+# logic:onClass logic:Thing degrades the qualified count to the plain sh:minCount /
+# sh:maxCount the hand-authored shapes state): exact-one -> logic:maxQualifiedCardinality 1
+# (sh:minCount 1 + sh:maxCount 1); at-most-one -> logic:maxQualifiedCardinality 1;
+# at-least N -> logic:minQualifiedCardinality N; sh:datatype D -> logic:allValuesFrom D;
+# sh:hasValue V -> logic:hasValue V; sh:class C -> logic:allValuesFrom C.
 #
 # Carried in the procedural constraint fragment (no ordinary-OWL antecedent):
 #   * `sh:nodeKind sh:IRI` value-node-kind facets (OWL Thing lowers to
@@ -7287,13 +7287,13 @@ gmeow:MusicAnalysisClaim logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:analysisFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # analysisProperty / analysisFrame bare min1+max1 (Principle 17): the qualified restrictions
-# above degrade to bare sh:maxCount 1 (OWL onClass OWL Thing); bare sh:minCount 1 comes from
+# above degrade to bare sh:maxCount 1 (logic:onClass logic:Thing); bare sh:minCount 1 comes from
 # the allValuesFrom(AnalysisProperty)/allValuesFrom(ReferenceFrame) restrictions above paired
 # with the ClosureEntry below (the ★★ VERIFIED SYSTEMATIC TRANSFORM — see .migration-scratch/PATTERNS.md).
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/analysisProperty" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/analysisFrame" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/PitchTrajectory> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/interpolationKind> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
@@ -7371,7 +7371,7 @@ gmeow:MusicAnalysisClaim logic:subClassOf
 <https://blackcatinformatics.ca/gmeow/MusicalSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/segmentKind> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 
 # =========================================================================== #
-# CANONICAL logic:Constraints migrated from music shapes.ttl (issue #1194)
+# Canonical logic:Constraints for the music validation projection
 # =========================================================================== #
 
 gmeow:MusicalParameterNoSubclassConstraint

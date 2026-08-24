@@ -1428,7 +1428,13 @@ pub(crate) fn assemble_object_level_edb(
         datasets.push(parse_into_graph(turtle.as_bytes(), "text/turtle", graph)?);
     }
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
-    without_recovery_case_envelopes(&purrdf::RdfDataset::union(&refs))
+    // Exclude any inline `logic:GroundingCorrespondence` records (authored in an object-level
+    // graph body) exactly as the snapshot twin `project_object_level_edb` does, so the shipped
+    // reasoned closure and a consumer's fresh re-derivation cannot drift: a correspondence is
+    // meta-level, re-projected into `graph/correspondence-laws`, never an object-level construct.
+    let unioned = purrdf::RdfDataset::union(&refs);
+    let unioned = gmeow_logic::reasoning_graphs::exclude_grounding_correspondences(&unioned)?;
+    without_recovery_case_envelopes(unioned.as_ref())
 }
 
 /// Remove correspondence-owned recovery evidence from an otherwise object-level dataset —

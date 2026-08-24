@@ -45,11 +45,19 @@ use crate::paths;
 ///
 /// Hard-fails if a source file fails to read or parse.
 pub fn merged_store() -> Result<Arc<RdfDataset>> {
-    native_query::dataset_from_files(&source_files()?).map_err(|e| {
+    let raw = native_query::dataset_from_files(&source_files()?).map_err(|e| {
         Diag::of_kind(MergedGraph {
             detail: format!("merging ontology sources: {e}"),
         })
-    })
+    })?;
+    // Competency questions are authored against the OWL/RDFS surface (they filter on
+    // `owl:Class` / `owl:ObjectProperty` and walk `rdfs:subClassOf*`), so materialize
+    // the complete `owl:`/`rdfs:` projection of the canonical `logic:` merged graph.
+    // The projection is dual-write (the canonical `logic:` edges are kept), so a
+    // question that queries either surface sees its answer. Doing it here also feeds
+    // the projected `rdfs:subClassOf` / `rdfs:domain` edges to the RDFS-closure lane
+    // ([`rdfs_closed_store`]), so rdfs2/3/9/11 fire on re-authored subsumption/typing.
+    Ok(native_query::with_owl_rdfs_projection(&raw))
 }
 
 /// Build the merged ontology and return it closed under **RDFS**.
@@ -131,11 +139,18 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
         }));
     }
     let edb = world_scoped(&store)?;
-    gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref()).map_err(|e| {
-        Diag::of_kind(LogicReasoning {
-            detail: format!("native logic reasoning over the native-reasoning sources: {e}"),
-        })
-    })
+    let closure = gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref())
+        .map_err(|e| {
+            Diag::of_kind(LogicReasoning {
+                detail: format!("native logic reasoning over the native-reasoning sources: {e}"),
+            })
+        })?;
+    // Reasoning runs over the CANONICAL `logic:` EDB (the compiler and chase read the
+    // authored surface); the competency queries that consume the closure are authored
+    // against the OWL/RDFS surface. Project the closure AFTER reasoning so the reasoner
+    // is untouched and the query still sees the `owl:`/`rdfs:` view (dual-write keeps
+    // the canonical edges).
+    Ok(native_query::with_owl_rdfs_projection(&closure))
 }
 
 /// Re-scope every quad of `dataset` into the native reasoner's default world
