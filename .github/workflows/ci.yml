@@ -274,6 +274,10 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          # Branch-versus-base Rust gates resolve `origin/main` locally. A shallow
+          # pull-request checkout contains only the synthetic merge ref, so fetch
+          # branch history here rather than letting those gates grade no comparand.
+          fetch-depth: 0
           persist-credentials: false
 
       # Nightly is required by gmeow-logic's targeted `portable_simd` kernels.
