@@ -1981,6 +1981,7 @@ dependencies = [
  "gmeow-bundle-view",
  "gmeow-cli-core",
  "gmeow-conformance",
+ "gmeow-cost-measure",
  "gmeow-docs",
  "gmeow-docs-catalog",
  "gmeow-errors",

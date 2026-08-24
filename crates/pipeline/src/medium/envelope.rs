@@ -81,6 +81,31 @@ pub struct FrameFacts<'a> {
     pub dictionary_id: Option<&'a str>,
 }
 
+/// The already-computed in-band identities of a frame whose payload bytes no longer
+/// need to remain resident.
+///
+/// This is the snapshot terminal's ownership boundary: its envelope-free canonical
+/// payload and canonical RDFC stratum are each whole-corpus documents. Once their
+/// BLAKE3 identities have been computed, retaining either document until final emission
+/// would add a second whole-corpus representation without adding information. Blob
+/// frames continue to use [`FrameFacts`] because their bytes are already the payloads
+/// the writer must consume.
+#[derive(Debug, Clone, Copy)]
+pub struct PrehashedFrameFacts<'a> {
+    /// The frame identity IRI derived from `(rep, content_digest)`.
+    pub frame: &'a str,
+    /// The frame's `pub.rep` content-representation tag.
+    pub rep: &'a str,
+    /// `gmeow:contentDigest`, already computed over the decoded payload bytes.
+    pub content_digest: &'a str,
+    /// `gmeow:strataDigest`, already computed over the declared digest stratum.
+    pub strata_digest: &'a str,
+    /// The stratum those bytes represented.
+    pub stratum: DigestStratum,
+    /// The pack dictionary id the frame's zstd header cites, when it is primed.
+    pub dictionary_id: Option<&'a str>,
+}
+
 /// The seven-field medium-envelope contract, as a typed record.
 ///
 /// Every field is exactly-one because a projection missing a coordinate is a
@@ -128,6 +153,50 @@ pub fn seal(
     selection: &MediumSelection,
     facts: &FrameFacts<'_>,
 ) -> Result<MediumEnvelope, gmeow_errors::Diag> {
+    let content_digest = blake3_digest(facts.payload);
+    let strata_digest = blake3_digest(facts.stratum_bytes);
+    seal_prehashed(
+        registry,
+        selection,
+        &PrehashedFrameFacts {
+            frame: facts.frame,
+            rep: facts.rep,
+            content_digest: &content_digest,
+            strata_digest: &strata_digest,
+            stratum: facts.stratum,
+            dictionary_id: facts.dictionary_id,
+        },
+    )
+}
+
+/// Project a medium envelope from identities already computed over the frame's bytes.
+///
+/// The caller is responsible only for the hashes; registry/schema/medium/dictionary
+/// agreement remains the same fail-closed logic as [`seal`]. This is not a weaker
+/// validation path: [`seal`] delegates here after hashing its byte slices, and tests pin
+/// both paths to the same seven-field record.
+///
+/// # Errors
+/// The same assignment and dictionary errors as [`seal`], plus a hard failure if either
+/// supplied digest is not a canonical `blake3:<64 lowercase hex>` identity.
+pub fn seal_prehashed(
+    registry: &MediumRegistry,
+    selection: &MediumSelection,
+    facts: &PrehashedFrameFacts<'_>,
+) -> Result<MediumEnvelope, gmeow_errors::Diag> {
+    if !is_canonical_digest(facts.content_digest) {
+        return Err(digest_mismatch(format!(
+            "frame <{}> (rep {:?}) supplied a non-canonical content digest {:?}",
+            facts.frame, facts.rep, facts.content_digest
+        )));
+    }
+    if !is_canonical_digest(facts.strata_digest) {
+        return Err(digest_mismatch(format!(
+            "frame <{}> (rep {:?}) supplied a non-canonical stratum digest {:?}",
+            facts.frame, facts.rep, facts.strata_digest
+        )));
+    }
+
     let row = registry.resolved_assignment(selection, facts.rep)?;
 
     let dictionary = match (&row.dictionary, facts.dictionary_id) {
@@ -169,8 +238,8 @@ pub fn seal(
         medium: row.medium.clone(),
         dictionary,
         stratum: facts.stratum,
-        strata_digest: blake3_digest(facts.stratum_bytes),
-        content_digest: blake3_digest(facts.payload),
+        strata_digest: facts.strata_digest.to_string(),
+        content_digest: facts.content_digest.to_string(),
     })
 }
 
@@ -349,6 +418,54 @@ mod tests {
         .expect("the envelope opens")
         .expect("a primed frame resolves a dictionary");
         assert_eq!(dict.id, "gmeow-core-v1");
+    }
+
+    /// Pre-hashing changes only ownership: it releases the byte documents before
+    /// projection without changing any of the envelope's seven coordinates.
+    #[test]
+    fn sealing_prehashed_facts_is_record_identical_to_sealing_bytes() {
+        let registry = registry();
+        let byte_facts = facts("cells-archive", Some("gmeow-core-v1"));
+        let from_bytes = seal(&registry, &MediumSelection::Authored, &byte_facts)
+            .expect("byte-backed facts seal");
+        let content_digest = blake3_digest(PAYLOAD);
+        let strata_digest = blake3_digest(STRATUM);
+        let from_hashes = seal_prehashed(
+            &registry,
+            &MediumSelection::Authored,
+            &PrehashedFrameFacts {
+                frame: byte_facts.frame,
+                rep: byte_facts.rep,
+                content_digest: &content_digest,
+                strata_digest: &strata_digest,
+                stratum: byte_facts.stratum,
+                dictionary_id: byte_facts.dictionary_id,
+            },
+        )
+        .expect("pre-hashed facts seal");
+
+        assert_eq!(from_hashes, from_bytes);
+    }
+
+    #[test]
+    fn prehashed_facts_refuse_noncanonical_digests() {
+        let registry = registry();
+        let canonical = blake3_digest(STRATUM);
+        let diag = seal_prehashed(
+            &registry,
+            &MediumSelection::Authored,
+            &PrehashedFrameFacts {
+                frame: "https://e/frame7",
+                rep: crate::medium::SNAPSHOT_WIRE_REP,
+                content_digest: "blake3:NOT-A-DIGEST",
+                strata_digest: &canonical,
+                stratum: DigestStratum::PayloadExcludingMediumEnvelope,
+                dictionary_id: None,
+            },
+        )
+        .expect_err("a malformed precomputed digest must fail closed");
+
+        assert_eq!(diag.code(), crate::error::MediumDigestMismatch::register());
     }
 
     /// The declared no-dictionary medium round-trips as a SELECTION: no dictionary

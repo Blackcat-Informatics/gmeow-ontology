@@ -19,8 +19,9 @@ members = [
     # CLI transitively depends on gmeow-conformance (cli→pipeline→conformance).
     "crates/bench-engines",
     # Harness-scoped deterministic allocation-measurement allocator + measure()
-    # helper. Depended on ONLY by bench targets / the future maint harness bin —
-    # NEVER by gmeow-cli, since its #[global_allocator] is process-global.
+    # helper. Depended on ONLY by bench targets / dedicated regression-test targets /
+    # the future maint harness bin — NEVER by gmeow-cli, since its
+    # #[global_allocator] is process-global.
     "crates/cost-measure",
     "crates/errors",
     # Rust-owned typed documentation model built from the slice catalog.

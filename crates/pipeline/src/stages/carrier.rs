@@ -30,7 +30,7 @@ use purrdf::{
 #[cfg(test)]
 use rayon::prelude::*;
 
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
 // The archive reps the `archive-blobs` stage owns. The presenter reads them ONLY to
 // answer the superset gate's "which rep carries which committed `generated/` path"
 // questions (`archive_rep_carries_generated` / `committed_path_for_archive_member`) —
@@ -444,15 +444,192 @@ pub fn serialize_carrier_snapshot(
     carrier: &purrdf::RdfDataset,
     selection: &crate::medium::registry::MediumSelection,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    Ok(serialize_carrier_snapshot_observed(root, upstream, carrier, selection)?.bytes)
+}
+
+/// The terminal bytes plus report-only phase evidence captured while producing them.
+///
+/// Timings and residency observations never enter the product, its cache key, or any
+/// generated artifact. They are carried only through [`StageOutput::timings`] so an
+/// opted-in cold run can identify the exact resident phase instead of inferring it from
+/// the last progress line.
+pub(crate) struct SnapshotSerialization {
+    /// The byte-identical terminal GTS artifact.
+    pub bytes: Vec<u8>,
+    /// Stage-local timing, structural-count, and Linux RSS observations.
+    pub timings: Vec<StageRunTiming>,
+}
+
+/// The observed production path used by the real GTS sink. The public convenience
+/// wrapper above deliberately returns only bytes so fixture callers keep the narrow
+/// serialization API and cannot accidentally make telemetry part of product identity.
+pub(crate) fn serialize_carrier_snapshot_observed(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
+    selection: &crate::medium::registry::MediumSelection,
+) -> Result<SnapshotSerialization, gmeow_errors::Diag> {
+    let started = std::time::Instant::now();
     let frames = snapshot_frames(root, upstream, carrier)?;
-    serialize_snapshot(
+    let frame_count = frames.blobs.len() + frames.report_blobs.len();
+    let frame_bytes = frames
+        .blobs
+        .iter()
+        .chain(frames.report_blobs.iter())
+        .map(|row| row.data.len())
+        .sum();
+    let mut timings = vec![sink_phase_timing(
+        "assemble-frames",
+        started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        None,
+        None,
+    )];
+    let bytes = serialize_snapshot(
         carrier,
         &frames.extra_graphs,
         frames.blobs,
         frames.report_blobs,
         upstream,
         selection,
-    )
+        &mut timings,
+    )?;
+    Ok(SnapshotSerialization { bytes, timings })
+}
+
+/// Build one report-only sink phase record. `live_scratch` names the whole-corpus
+/// representation that is RESIDENT at the observation boundary and its byte length;
+/// `released_scratch` names a whole-corpus document that was PROCESSED and then dropped
+/// BEFORE this record is taken, so its bytes are no longer resident. The two are kept
+/// distinct on purpose: reporting a released document as live would misstate the exact
+/// ownership shape this stage exists to prove (the stratum canonical bytes are freed inside
+/// `snapshot_stratum_digest`, so `canonicalize-stratum` observes them as released, not live).
+/// Linux RSS is sampled from `/proc/self/status`; other hosts retain the structural evidence
+/// and report RSS as unavailable. None of this data is content-addressed.
+fn sink_phase_timing(
+    phase: &str,
+    elapsed: std::time::Duration,
+    carrier: &purrdf::RdfDataset,
+    frame_count: usize,
+    frame_bytes: usize,
+    live_scratch: Option<(&str, usize)>,
+    released_scratch: Option<(&str, usize)>,
+) -> StageRunTiming {
+    let (rss_kib, peak_rss_kib) = linux_process_rss_kib();
+    let render = |scratch: Option<(&str, usize)>| {
+        scratch
+            .map(|(name, bytes)| format!("{name}:{bytes}"))
+            .unwrap_or_else(|| "none:0".to_string())
+    };
+    let live = render(live_scratch);
+    let released = render(released_scratch);
+    StageRunTiming {
+        phase: phase.to_string(),
+        elapsed_ms: elapsed.as_millis(),
+        metadata: Some(format!(
+            "carrier_terms={};carrier_quads={};payload_frames={frame_count};\
+             payload_frame_bytes={frame_bytes};live_scratch={live};released_scratch={released};\
+             rss_kib={};peak_rss_kib={}",
+            carrier.term_count(),
+            carrier.quad_count(),
+            rss_kib
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "unavailable".to_string()),
+            peak_rss_kib
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "unavailable".to_string()),
+        )),
+    }
+}
+
+/// Linux current/high-water RSS for this single-process, Rust-native producer.
+/// Reading failure is observational only and therefore returns `(None, None)` rather
+/// than changing the build verdict.
+fn linux_process_rss_kib() -> (Option<u64>, Option<u64>) {
+    let Ok(status) = std::fs::read_to_string("/proc/self/status") else {
+        return (None, None);
+    };
+    let value = |key: &str| {
+        status.lines().find_map(|line| {
+            line.strip_prefix(key)?
+                .split_whitespace()
+                .next()?
+                .parse::<u64>()
+                .ok()
+        })
+    };
+    (value("VmRSS:"), value("VmHWM:"))
+}
+
+#[cfg(test)]
+mod sink_phase_timing_release_tests {
+    use super::*;
+
+    /// A tiny frozen carrier; a phase record only reads its term/quad counts.
+    fn tiny_carrier() -> std::sync::Arc<purrdf::RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri("https://example.org/s");
+        let p = b.intern_iri("https://example.org/p");
+        let o = b.intern_iri("https://example.org/o");
+        b.push_quad(s, p, o, None);
+        b.freeze().expect("freeze tiny carrier")
+    }
+
+    /// The sink's ownership evidence: `canonicalize-stratum` MUST report the stratum bytes as
+    /// RELEASED (they are dropped inside `snapshot_stratum_digest`), never as live scratch,
+    /// while `emit-final-gts` reports the returned bundle bytes as the one live document. If
+    /// this regressed, the telemetry would claim a second whole-corpus copy is resident exactly
+    /// where the repair guarantees it is not.
+    #[test]
+    fn stratum_is_reported_released_and_emitted_gts_is_reported_live() {
+        let carrier = tiny_carrier();
+        let dur = std::time::Duration::from_millis(1);
+
+        let canon = sink_phase_timing(
+            "canonicalize-stratum",
+            dur,
+            carrier.as_ref(),
+            3,
+            100,
+            None,
+            Some(("stratum-nquads", 12_345)),
+        );
+        assert_eq!(canon.phase, "canonicalize-stratum");
+        let meta = canon.metadata.as_deref().expect("phase metadata");
+        assert!(
+            meta.contains("live_scratch=none:0"),
+            "the stratum canonical bytes are released before this boundary: {meta}"
+        );
+        assert!(
+            meta.contains("released_scratch=stratum-nquads:12345"),
+            "the stratum must be reported released with its processed length: {meta}"
+        );
+        assert!(
+            !meta.contains("live_scratch=stratum-nquads"),
+            "a released stratum must never be reported as live scratch: {meta}"
+        );
+
+        let emit = sink_phase_timing(
+            "emit-final-gts",
+            dur,
+            carrier.as_ref(),
+            3,
+            100,
+            Some(("gts", 999)),
+            None,
+        );
+        let meta = emit.metadata.as_deref().expect("phase metadata");
+        assert!(
+            meta.contains("live_scratch=gts:999"),
+            "the returned gts bytes are the one live document at emit: {meta}"
+        );
+        assert!(
+            meta.contains("released_scratch=none:0"),
+            "nothing is released at the emit boundary: {meta}"
+        );
+    }
 }
 
 /// Every payload-bearing BLOB frame this emission authors, plus the carrier-time
@@ -1740,9 +1917,11 @@ fn serialize_snapshot(
     report_blobs: Vec<BlobRow>,
     upstream: &BTreeMap<String, StageProduct>,
     selection: &crate::medium::registry::MediumSelection,
+    timings: &mut Vec<StageRunTiming>,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     use crate::stages::medium_dictionaries as medium;
 
+    let phase_started = std::time::Instant::now();
     let registry = medium::registry_from_carrier(upstream)?;
     let trained = medium::trained_dictionaries(upstream)?;
     let realizations = medium::realization_quads(upstream)?;
@@ -1816,6 +1995,34 @@ fn serialize_snapshot(
     strata.push(measurement);
     strata.push(measurement_fanout);
 
+    let frame_count = frames.len();
+    let frame_bytes = frames.iter().map(|row| row.data.len()).sum();
+    timings.push(sink_phase_timing(
+        "measure-medium",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        None,
+        None,
+    ));
+
+    let phase_started = std::time::Instant::now();
+    let (snapshot_strata_digest, stratum_len) = snapshot_stratum_digest(carrier, &strata)?;
+    timings.push(sink_phase_timing(
+        "canonicalize-stratum",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        // No live scratch at this boundary: `snapshot_stratum_digest` already dropped both the
+        // id-native union and the canonical N-Quads string. Only the stratum's PROCESSED byte
+        // length survives, reported as released evidence rather than as a resident copy.
+        None,
+        Some(("stratum-nquads", stratum_len)),
+    ));
+
+    let phase_started = std::time::Instant::now();
     let mut builder = SnapshotBuilder::new();
     builder
         .add_dataset(carrier)
@@ -1827,8 +2034,30 @@ fn serialize_snapshot(
             .add_dataset(graph)
             .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
     }
-    let snapshot_payload = purrdf::gts::wire::canonical(&builder.snapshot_payload());
-    let stratum_bytes = stratum_nquads(carrier, &strata)?;
+    timings.push(sink_phase_timing(
+        "build-snapshot",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        None,
+        None,
+    ));
+
+    // `snapshot_content_id` owns and releases the pass-1 canonical CBOR internally.
+    // Only its 71-byte identity crosses this boundary; retaining the 200+ MiB payload
+    // until final emission would be a second whole-corpus representation.
+    let phase_started = std::time::Instant::now();
+    let snapshot_content_digest = builder.snapshot_content_id();
+    timings.push(sink_phase_timing(
+        "fingerprint-snapshot",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        None,
+        None,
+    ));
 
     let reps: std::collections::BTreeSet<String> =
         frames.iter().map(|row| row.rep.clone()).collect();
@@ -1841,8 +2070,8 @@ fn serialize_snapshot(
         selection,
         &plan,
         &frames,
-        &snapshot_payload,
-        stratum_bytes.as_bytes(),
+        &snapshot_content_digest,
+        &snapshot_strata_digest,
     )?;
     let envelope_quads = medium::envelope_quads(&registry, &envelopes)?;
     let envelope_graph = purrdf::dataset_from_quads(&envelope_quads)
@@ -1851,7 +2080,8 @@ fn serialize_snapshot(
         .add_dataset(&envelope_graph)
         .map_err(|e| stage_err(&format!("fold the medium envelopes into snapshot: {e}")))?;
 
-    gmeow_gts_profile::emit_gmeow_gts_with_medium(
+    let phase_started = std::time::Instant::now();
+    let bytes = gmeow_gts_profile::emit_gmeow_gts_with_medium(
         &builder,
         blobs,
         report_blobs,
@@ -1860,10 +2090,22 @@ fn serialize_snapshot(
         None,
         &plan,
     )
-    .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+    .map_err(|e| stage_err(&format!("emit_gts: {e}")))?;
+    timings.push(sink_phase_timing(
+        "emit-final-gts",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        // The returned GTS bytes ARE resident at this boundary; nothing was released here.
+        Some(("gts", bytes.len())),
+        None,
+    ));
+    Ok(bytes)
 }
 
-/// The canonical serialization of the snapshot payload's quad set MINUS the
+/// The digest and byte length of the canonical serialization of the snapshot
+/// payload's quad set MINUS the
 /// medium-envelope subgraph — the region `gmeow:stratumPayloadExcludingMediumEnvelope`
 /// names, taken over the pass-1 union (which is exactly that region, because the
 /// envelopes do not exist yet).
@@ -1874,24 +2116,127 @@ fn serialize_snapshot(
 ///
 /// # Errors
 /// The union fails dataset validation or canonicalization.
-fn stratum_nquads(
+pub fn snapshot_stratum_digest(
     carrier: &purrdf::RdfDataset,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
-) -> Result<String, gmeow_errors::Diag> {
-    let mut sources: Vec<Vec<purrdf::RdfQuad>> = vec![purrdf::flat_rdf_quads_from_dataset(carrier)];
-    for graph in extra_graphs {
-        sources.push(purrdf::flat_rdf_quads_from_dataset(graph));
+) -> Result<(String, usize), gmeow_errors::Diag> {
+    let union = flat_stratum_union(carrier, extra_graphs)?;
+    // `union` is already the flattened quad set. Calling `canonical_flat_nquads`
+    // here would re-materialize it into owned quads and freeze a second dataset.
+    let canonical = purrdf::canonicalize(&union).nquads;
+    drop(union);
+    let len = canonical.len();
+    let digest = crate::medium::blake3_digest(canonical.as_bytes());
+    drop(canonical);
+    Ok((digest, len))
+}
+
+/// Build the flattened multi-source stratum directly over PurRDF's interned ids.
+///
+/// The former route expanded every source into `Vec<RdfQuad>`, re-interned that
+/// owned union, expanded the union a second time, and froze a second dataset before
+/// RDFC canonicalization. This keeps one destination term table and one quad table.
+/// Blank labels are qualified and sources are scoped exactly as
+/// `flat_dataset_from_quad_sources(flat_rdf_quads_from_dataset(..))` did, including
+/// the statement overlay's deliberate loss of its source graph coordinate.
+fn flat_stratum_union(
+    carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    let mut builder = RdfDatasetBuilder::new();
+    for (source_index, source) in std::iter::once(carrier)
+        .chain(extra_graphs.iter().map(std::convert::AsRef::as_ref))
+        .enumerate()
+    {
+        let mut remap = vec![None; source.term_count()];
+        let outer_scope = purrdf::BlankScope(source_index as u32);
+        for quad in source.quads() {
+            let s = intern_flat_term(&mut builder, source, &mut remap, quad.s, outer_scope);
+            let p = intern_flat_term(&mut builder, source, &mut remap, quad.p, outer_scope);
+            let o = intern_flat_term(&mut builder, source, &mut remap, quad.o, outer_scope);
+            let g = quad
+                .g
+                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope));
+            builder.push_quad(s, p, o, g);
+        }
+
+        // `flat_rdf_quads_from_dataset` materializes both side tables as ordinary
+        // default-graph quads. Preserve that exact flat contract here.
+        let reifies = builder.intern_iri(purrdf::gts_compose::RDF_REIFIES);
+        for (reifier, triple) in source.reifiers() {
+            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope);
+            let triple = intern_flat_term(&mut builder, source, &mut remap, triple, outer_scope);
+            builder.push_quad(reifier, reifies, triple, None);
+        }
+        for (reifier, predicate, object) in source.annotations() {
+            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope);
+            let predicate =
+                intern_flat_term(&mut builder, source, &mut remap, predicate, outer_scope);
+            let object = intern_flat_term(&mut builder, source, &mut remap, object, outer_scope);
+            builder.push_quad(reifier, predicate, object, None);
+        }
     }
-    let borrowed: Vec<&[purrdf::RdfQuad]> = sources.iter().map(Vec::as_slice).collect();
-    let union = purrdf::flat_dataset_from_quad_sources(&borrowed)
-        .map_err(|e| stage_err(&format!("union the medium digest stratum: {e}")))?;
-    purrdf::canonical_flat_nquads(&union)
-        .map_err(|e| stage_err(&format!("canonicalize the medium digest stratum: {e}")))
+
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("union the medium digest stratum: {e}")))
+}
+
+fn intern_flat_term(
+    builder: &mut RdfDatasetBuilder,
+    source: &purrdf::RdfDataset,
+    remap: &mut [Option<purrdf::TermId>],
+    source_id: purrdf::TermId,
+    outer_scope: purrdf::BlankScope,
+) -> purrdf::TermId {
+    if let Some(mapped) = remap[source_id.index()] {
+        return mapped;
+    }
+
+    let mapped = match source.resolve(source_id) {
+        purrdf::TermRef::Iri(iri) => builder.intern_iri(iri),
+        purrdf::TermRef::Blank { label, scope } => {
+            // Preserve BOTH owned compatibility boundaries in the former route:
+            // source inner-scope -> source-qualified label, then multi-source outer
+            // scope -> union-qualified label, followed by the final flat freeze in
+            // DEFAULT scope. This includes its historical collision behaviour and
+            // therefore keeps the canonical bytes exact rather than merely
+            // isomorphic on ordinary labels.
+            let source_qualified = scope.qualify_label(label);
+            let union_qualified = outer_scope.qualify_label(source_qualified.as_ref());
+            builder.intern_blank(union_qualified.as_ref(), purrdf::BlankScope::DEFAULT)
+        }
+        purrdf::TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            let datatype = match source.resolve(datatype) {
+                purrdf::TermRef::Iri(iri) => iri.to_owned(),
+                other => unreachable!("literal datatype must be an IRI, got {other:?}"),
+            };
+            builder.intern_literal(RdfLiteral {
+                lexical_form: lexical.to_owned(),
+                datatype: Some(datatype),
+                language: language.map(str::to_owned),
+                direction,
+            })
+        }
+        purrdf::TermRef::Triple { s, p, o } => {
+            let s = intern_flat_term(builder, source, remap, s, outer_scope);
+            let p = intern_flat_term(builder, source, remap, p, outer_scope);
+            let o = intern_flat_term(builder, source, remap, o, outer_scope);
+            builder.intern_triple(s, p, o)
+        }
+    };
+    remap[source_id.index()] = Some(mapped);
+    mapped
 }
 
 /// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
 /// snapshot payload: its quad set minus the medium-envelope subgraph, canonicalized
-/// exactly as [`stratum_nquads`] does.
+/// exactly as [`snapshot_stratum_digest`] does.
 ///
 /// This is the reader-side inverse. It is what makes the stratum CHECKABLE rather
 /// than merely asserted: a consumer folds the bundle, strips the envelope quads by
@@ -1902,8 +2247,9 @@ fn stratum_nquads(
 pub fn snapshot_stratum_nquads(payload: &purrdf::RdfDataset) -> Result<String, gmeow_errors::Diag> {
     let stripped = purrdf::flat_dataset_from_quads(&snapshot_stratum_quads(payload))
         .map_err(|e| stage_err(&format!("strip the medium-envelope subgraph: {e}")))?;
-    purrdf::canonical_flat_nquads(&stripped)
-        .map_err(|e| stage_err(&format!("canonicalize the medium digest stratum: {e}")))
+    // `stripped` is already flat; canonicalizing it directly avoids an owned-quad
+    // expansion plus a second identical flat dataset.
+    Ok(purrdf::canonicalize(&stripped).nquads)
 }
 
 /// The stratum's quad set: every quad of an emitted snapshot payload EXCEPT the

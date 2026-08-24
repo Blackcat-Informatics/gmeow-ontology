@@ -162,18 +162,17 @@ impl Stage for GtsSinkStage {
         // by-reference TAR archives are READ off the `stage-archive-blobs` product and
         // stapled alongside it, never re-folded here.
         let carrier = crate::stages::carrier::snapshot_dataset(input.upstream)?;
-        let gts = crate::stages::carrier::serialize_carrier_snapshot(
+        let observed = crate::stages::carrier::serialize_carrier_snapshot_observed(
             input.root,
             input.upstream,
             carrier.as_ref(),
             &crate::medium::registry::MediumSelection::Authored,
         )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(GTS_PATH.to_string(), gts);
-        Ok(StageOutput::new(StageProduct::from_artifacts(
-            self.id(),
-            artifacts,
-        )))
+        artifacts.insert(GTS_PATH.to_string(), observed.bytes);
+        let mut output = StageOutput::new(StageProduct::from_artifacts(self.id(), artifacts));
+        output.timings = observed.timings;
+        Ok(output)
     }
 }
 
@@ -524,7 +523,13 @@ mod tests {
         // exercises the thin `run()` wrapper around this call.
         let carrier =
             crate::stages::carrier::snapshot_dataset(&upstream).expect("snapshot carrier");
-        let emitted = crate::stages::carrier::serialize_carrier_snapshot(
+        // Observe the REAL production serializer so the sink's ownership evidence is pinned on
+        // the actual call-site wiring, not on hand-built arguments: `emitted` still drives every
+        // byte assertion below, and `timings` carries the report-only phase records.
+        let crate::stages::carrier::SnapshotSerialization {
+            bytes: emitted,
+            timings,
+        } = crate::stages::carrier::serialize_carrier_snapshot_observed(
             &root,
             &upstream,
             carrier.as_ref(),
@@ -535,6 +540,34 @@ mod tests {
             emitted.len() > 1024,
             "GTS bundle implausibly small: {} bytes",
             emitted.len()
+        );
+
+        // Ownership evidence on the production path: the stratum canonical bytes are released
+        // inside `snapshot_stratum_digest`, so `canonicalize-stratum` must observe them as
+        // released, never live; the returned bundle is the one live document at `emit-final-gts`.
+        let phase_metadata = |name: &str| -> String {
+            timings
+                .iter()
+                .find(|t| t.phase.as_str() == name)
+                .unwrap_or_else(|| panic!("sink timings must include the {name} phase"))
+                .metadata
+                .clone()
+                .expect("phase metadata")
+        };
+        let canon = phase_metadata("canonicalize-stratum");
+        assert!(
+            canon.contains("live_scratch=none:0")
+                && canon.contains("released_scratch=stratum-nquads:"),
+            "canonicalize-stratum must report the stratum released, not live: {canon}"
+        );
+        assert!(
+            !canon.contains("live_scratch=stratum-nquads"),
+            "a released stratum must never be reported as live scratch: {canon}"
+        );
+        let emit = phase_metadata("emit-final-gts");
+        assert!(
+            emit.contains("live_scratch=gts:"),
+            "emit-final-gts must report the returned bundle bytes as live: {emit}"
         );
 
         // Round-trips through the kernel GTS importer (the bundle is well-formed).
