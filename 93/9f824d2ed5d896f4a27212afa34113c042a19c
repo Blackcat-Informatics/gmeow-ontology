@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 939f824d2ed5d896f4a27212afa34113c042a19c
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1689
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1689
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 139eea0f9195383f0935c28108d3e02f980fe109
+GhpRsq-Head-Ref: dependabot/github_actions/taiki-e/install-action-2.85.12
+GhpRsq-Head-OID: 939f824d2ed5d896f4a27212afa34113c042a19c
+GhpRsq-Result-Tree: 010f265e6c8c149fed4648659be67f9a4ccf5cab
+GhpRsq-Result-Commit: fdaa611af19fb2f0bf7dd2488960150f3a6320eb
+GhpRsq-Parent-Hashes: 939f824d2ed5d896f4a27212afa34113c042a19c
+GhpRsq-Squash-Notes-SHA256: a00cd00b6b1dbc69b90811785696424134af20b3445859ffdf1ca87b9cf95f6c
