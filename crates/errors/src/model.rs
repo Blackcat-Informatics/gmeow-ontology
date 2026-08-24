@@ -426,7 +426,7 @@ impl Rule {
 /// The role of a compilation unit in a diagnostic attribution (§9 / S5).
 ///
 /// This mirrors `purrdf::provenance::AttributionRole` but uses owned strings
-/// so `gmeow-errors` remains dep-free of `gmeow-rdf` (the layering rule:
+/// so `gmeow-errors` remains dep-free of `purrdf` (the layering rule:
 /// diagnostics must not import the RDF kernel). The canonical string form is
 /// identical to `AttributionRole::as_str()`.
 ///

@@ -30,6 +30,6 @@ unicode-normalization = "0.1"
 tempfile.workspace = true
 # Acceptance-spine parity test: whole-ontology native SHACL + native SPARQL
 # over the imported foundation.ttl — OXIGRAPH-FREE. The fixture parses
-# through the canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen
-# `RdfDataset` (`gmeow-rdf-core`), validated IR-natively via `validate_dataset_graphs`
-# and queried through the native `NativeSparqlEngine` (`gmeow-sparql-eval`).
+# through the canonical native codec (`purrdf::parse_dataset`) into a frozen
+# `RdfDataset` (`purrdf`), validated IR-natively via `validate_dataset_graphs`
+# and queried through the native `NativeSparqlEngine` (`purrdf::sparql`).

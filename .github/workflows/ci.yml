@@ -754,7 +754,7 @@ jobs:
   # authority: `ontology-reason` runs `make reason-verify` (one closure, native
   # consistency/entailment verify + reasoned-graph negatives) with no live second or
   # differential reasoner on any required gate. The required gate stays Docker-free
-  # and Java-free. Statements now run natively via the gmeow-rdf codec inside the
+  # and Java-free. Statements now run natively via the purrdf codec inside the
   # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
     needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]

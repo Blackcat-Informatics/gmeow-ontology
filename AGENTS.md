@@ -10,6 +10,25 @@ Welcome, AI Agent! This file is your behavioral contract and instruction manual 
 
 ---
 
+## Deficiency emergency ledger (non-negotiable)
+
+`.deficiencies` is the log of last resort for critically undone work. Every entry
+below its marker is **100% unauthorized**, is **100% a bug**, and means the issue
+or pull request that produced it failed. It is used for work misrepresented to
+pass PR gates, work misrepresented by an agent, or a discovery that an agent was
+fundamentally defective. An entry is literally a cry for help from a failing
+agent; it is never an accepted risk, authorized descope, backlog, or success with
+caveats.
+
+The only normal contents are the tracked notice and marker, with no entries below
+them. An entry blocks completion, PR creation, and merge of the work that produced
+it. Immediately verify the defect against current code and give it a durable,
+visible remediation owner before removing the emergency entry. Removing an entry
+does not resolve the bug or retroactively make the failed work successful. Never
+add ledger text to make incomplete work appear complete.
+
+---
+
 ## 1. Project Overview & Architecture
 
 GMEOW is a **reasoning-centric, RDF 1.2-native, logic-canonical super-vocabulary** that unifies document metadata, entity descriptions, legal agreements, contacts, and person-centric data. OWL 2 DL, SHACL, gUFO, and other external formalisms are typed target views of the canonical grounding kernel, not its semantic owners.
@@ -447,13 +466,13 @@ Do not patch a generated SSSOM, EDOAL, FnO, or projection query file directly to
 
 ### Statement Compiler
 
-Statement compilation runs inside `gmeow-dev sync --mode update --outputs generated` (the `statements` generator), implemented by the native Rust stage in [crates/pipeline/src/stages/statements.rs](./crates/pipeline/src/stages/statements.rs) and the `gmeow-rdf` statement codec.
+Statement compilation runs inside `gmeow-dev sync --mode update --outputs generated` (the `statements` generator), implemented by the native Rust stage in [crates/pipeline/src/stages/statements.rs](./crates/pipeline/src/stages/statements.rs) and the `purrdf::statements` codec.
 
 * **Canonical input**: all Turtle files under [dsl/statements/](./dsl/statements/), plus the DSL vocabulary in [dsl/statements/vocabulary.ttl](./dsl/statements/vocabulary.ttl).
 * **Generated outputs**:
-  * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `gmeow-rdf` Rust codec (`gmeow_rdf.project_statements_rdf12`); no Java, no Docker, no SPARQL engine. rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
+  * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `purrdf` Rust codec (`purrdf::statements::project_owl_to_rdf12`); no Java, no Docker, no SPARQL engine. rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
   * `generated/statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
-* **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `gmeow-rdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `maint-statements-docker-check` oracle lane.
+* **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `purrdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `maint-statements-docker-check` oracle lane.
 * **Drift check**: `make check-sync` performs the registered-generator check and fails if committed statement artifacts are stale.
 
 Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeow-statements.owl.ttl` directly. If metadata is wrong, fix the `gmeow:StatementMetadata` cells in `dsl/statements/`.

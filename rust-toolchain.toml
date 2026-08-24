@@ -8,7 +8,7 @@
 channel = "nightly"
 components = ["rustfmt", "clippy"]
 # The purrdf wasm engine (P10) + the wasm-clean SPARQL leaf
-# compile to wasm32-unknown-unknown; `make wasm` / `make rdf-core-hygiene` build
+# compile to wasm32-unknown-unknown; `make wasm` builds
 # for it. Listing it here means every toolchain consumer (local + the dtolnay CI
 # inputs kept in lockstep) provisions the target by default — no separate
 # `rustup target add`.

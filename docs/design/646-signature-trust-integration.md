@@ -7,10 +7,10 @@
 
 | Item | Choice |
 |------|--------|
-| Integration option | **Option B** — separate `gmeow_gts::verify` phase after parsing |
-| GTS bundle parsing | Keep `gmeow_rdf::gts::read_all_segments` unchanged |
-| Signature verification | `gmeow_gts::verify::verify_file_with_options` |
-| Trust policy | `gmeow_gts::policy::TrustPolicy` built from policy TOML |
+| Integration option | **Option B** — separate `purrdf::gts::verify` phase after parsing |
+| GTS bundle parsing | Keep `purrdf::gts::read_all_segments` unchanged |
+| Signature verification | `purrdf::gts::verify::verify_file_with_options` |
+| Trust policy | `purrdf::gts::policy::TrustPolicy` built from policy TOML |
 | Key resolution | `--trusted-key` optional; omitted → embedded `gts:transportKey` |
 | Short-circuit | Error-level signature/trust findings abort before ontology validation; warnings continue |
 | Consumer relation | Complement to `gmeow verify`; `gmeow-dev validate --gts` adds a policy-aware pre-validation gate |
@@ -19,32 +19,32 @@
 
 The approved plan considered two integration options:
 
-- **Option A**: Modify the parse path so `gmeow_rdf::gts::read_all_segments` accepts a key resolver and verifies signatures during the initial fold.
-- **Option B**: Keep the existing parse path unchanged and add a separate verification phase after the GTS bytes have been folded into a `gmeow_gts::model::Graph`.
+- **Option A**: Modify the parse path so `purrdf::gts::read_all_segments` accepts a key resolver and verifies signatures during the initial fold.
+- **Option B**: Keep the existing parse path unchanged and add a separate verification phase after the GTS bytes have been folded into a `purrdf::gts::model::Graph`.
 
 **Rationale for choosing Option B:**
 
-1. The installed `gmeow-gts` 0.9.2 API does **not** expose signature verification through `gmeow_gts::reader::read` or `read_with_options`. The reader records signature frames but leaves them as `"unverified"` unless an optional *content* key is supplied for decrypting `COSE_Encrypt0` payloads. Cryptographic signature verification is exposed as a separate high-level API in `gmeow_gts::verify`.
-2. Using the existing `verify_file_with_options` helper matches the issue intent (“call `gmeow_gts::reader::read` with signature verification enabled”) with the API that actually exists, without hand-rolling COSE/OpenPGP logic inside `gmeow-validate`.
-3. Keeping `gmeow-rdf` and `gmeow-validate`'s store construction untouched minimizes risk to existing Turtle/GTS validation phases and preserves the content-addressed cache keys derived from `segment_heads`.
+1. The `purrdf::gts` API does **not** expose signature verification through `purrdf::gts::reader::read` or `read_with_options`. The reader records signature frames but leaves them as `"unverified"` unless an optional *content* key is supplied for decrypting `COSE_Encrypt0` payloads. Cryptographic signature verification is exposed as a separate high-level API in `purrdf::gts::verify`.
+2. Using the existing `verify_file_with_options` helper matches the issue intent (“call `purrdf::gts::reader::read` with signature verification enabled”) with the API that actually exists, without hand-rolling COSE/OpenPGP logic inside `gmeow-validate`.
+3. Keeping `purrdf` and `gmeow-validate`'s store construction untouched minimizes risk to existing Turtle/GTS validation phases and preserves the content-addressed cache keys derived from `segment_heads`.
 4. The performance cost is acceptable for a validation gate: the bundle is read once for folding and again inside `verify_file_with_options`, which is a small, deterministic replay of a CBOR sequence.
 
-## Confirmed `gmeow-gts` API Surface
+## Confirmed `purrdf::gts` API Surface
 
-The crate version used by the workspace is declared in `crates/validate/Cargo.toml` and `crates/rdf/Cargo.toml`. The following symbols are confirmed in the installed registry source:
+The crate version used by the workspace is declared in `crates/validate/Cargo.toml` and the `purrdf` pin in the root `Cargo.toml`. The following symbols are confirmed in the installed registry source:
 
-- `gmeow_gts::reader::read(data, allow_segments, expected_head) -> Graph`
-- `gmeow_gts::reader::read_with_options(data, ReadOptions) -> Graph`
-- `gmeow_gts::reader::ReadOptions { allow_segments, expected_head, content_key }`
-- `gmeow_gts::verify::verify_file(data) -> VerificationResult`
-- `gmeow_gts::verify::verify_file_with_options(data, &VerifyOptions) -> VerificationResult`
-- `gmeow_gts::verify::VerifyOptions { armored_key, require_signatures, trust_policy }`
-- `gmeow_gts::verify::VerificationResult { ok, kid, fingerprint, frames, signed, valid, trusted, invalid, unverified, errors, diagnostics, profile_findings, ... }`
-- `gmeow_gts::verify::extract_transport_key(graph) -> Option<EmbeddedTransportKey>`
-- `gmeow_gts::TrustPolicy { trusted_signers, require_trusted_signer, pseudonymous_kid_pattern }`
-- `gmeow_gts::signature_trust(graph, Option<&TrustPolicy>) -> Vec<SignatureTrust>`
-- `gmeow_gts::evaluate_profile_policy(graph, Option<&TrustPolicy>, segment_index) -> Vec<ProfileFinding>`
-- `gmeow_gts::policy::{ProfileFinding, Severity, SignatureTrust}`
+- `purrdf::gts::reader::read(data, allow_segments, expected_head) -> Graph`
+- `purrdf::gts::reader::read_with_options(data, ReadOptions) -> Graph`
+- `purrdf::gts::reader::ReadOptions { allow_segments, expected_head, content_key }`
+- `purrdf::gts::verify::verify_file(data) -> VerificationResult`
+- `purrdf::gts::verify::verify_file_with_options(data, &VerifyOptions) -> VerificationResult`
+- `purrdf::gts::verify::VerifyOptions { armored_key, require_signatures, trust_policy }`
+- `purrdf::gts::verify::VerificationResult { ok, kid, fingerprint, frames, signed, valid, trusted, invalid, unverified, errors, diagnostics, profile_findings, ... }`
+- `purrdf::gts::verify::extract_transport_key(graph) -> Option<EmbeddedTransportKey>`
+- `purrdf::gts::TrustPolicy { trusted_signers, require_trusted_signer, pseudonymous_kid_pattern }`
+- `purrdf::gts::signature_trust(graph, Option<&TrustPolicy>) -> Vec<SignatureTrust>`
+- `purrdf::gts::evaluate_profile_policy(graph, Option<&TrustPolicy>, segment_index) -> Vec<ProfileFinding>`
+- `purrdf::gts::policy::{ProfileFinding, Severity, SignatureTrust}`
 
 Notably, there is **no public `crypto` module** with `KeyProvider`/`InMemoryKeys` providers. Key resolution is performed internally by `verify_file_with_options` from either an armored OpenPGP key or the bundle's embedded `gts:transportKey`.
 
@@ -75,7 +75,7 @@ When an aborting finding is emitted, `ValidationRun::run` returns early with an 
 
 ## TOML Policy Schema
 
-`gmeow-dev validate` accepts `--trust-policy path/to/policy.toml`. The file is a flat TOML document. The trust fields (`trusted_signers`, `require_trusted_signer`) map onto `gmeow_gts::policy::TrustPolicy`; `trusted_key` is a separate key-resolution option used to supply an out-of-band ASCII-armored OpenPGP public key:
+`gmeow-dev validate` accepts `--trust-policy path/to/policy.toml`. The file is a flat TOML document. The trust fields (`trusted_signers`, `require_trusted_signer`) map onto `purrdf::gts::policy::TrustPolicy`; `trusted_key` is a separate key-resolution option used to supply an out-of-band ASCII-armored OpenPGP public key:
 
 ```toml
 # Optional: list of signer KIDs considered trusted by this deployment.
@@ -104,11 +104,11 @@ trusted_key = "keys/gmeow-release-key.asc"
 
 ## API Assumptions and Fallback
 
-The design assumes `gmeow-gts` 0.9.2's `verify_file_with_options` continues to:
+The design assumes `purrdf::gts`'s `verify_file_with_options` continues to:
 
 1. Accept an optional `armored_key` and a `TrustPolicy`.
 2. Return a `VerificationResult` with counts and error strings.
 3. Treat invalid/unverified signatures and missing signatures (when `require_signatures` is true) as non-`ok` outcomes.
 4. Evaluate `require_trusted_signer` through `evaluate_profile_policy` and surface `ProfileFinding` errors.
 
-If a future `gmeow-gts` release changes this surface, the fallback is to drop back to the lower-level building blocks still present in every version: fold with `read`, call `extract_transport_key` to resolve the embedded key (or parse an armored key via `gmeow_gts::openpgp::parse_transport_key` if made public), invoke `gmeow_gts::cose::verify_signatures` directly, and then call `signature_trust`/`evaluate_profile_policy` manually. Because 0.9.2 already exposes the high-level helper, the implementation should use it and avoid this fallback path unless necessary.
+If a future `purrdf::gts` release changes this surface, the fallback is to drop back to the lower-level building blocks still present in every version: fold with `read`, call `extract_transport_key` to resolve the embedded key (or parse an armored key via `purrdf::gts::openpgp::parse_transport_key` if made public), invoke `purrdf::gts::cose::verify_signatures` directly, and then call `signature_trust`/`evaluate_profile_policy` manually. Because `purrdf::gts` already exposes the high-level helper, the implementation should use it and avoid this fallback path unless necessary.

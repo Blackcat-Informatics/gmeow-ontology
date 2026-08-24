@@ -27,7 +27,7 @@ projection of it:
 
 ## Wire coordinates
 
-`Location` mirrors `gmeow_rdf::RdfLocation`'s GTS wire coordinates. `Diag::from_rdf`
+`Location` mirrors `purrdf::RdfLocation`'s GTS wire coordinates. `Diag::from_rdf`
 (here) carries them from the RDF diagnostics model, and the
 `gmeow-validate::findings` bridge (`finding_from_shacl`) carries SHACL focus nodes,
 into the single `Report`, so all projections anchor a diagnostic to the same bundle

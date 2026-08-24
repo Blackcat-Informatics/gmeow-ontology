@@ -41,8 +41,8 @@ use gmeow_pipeline::gmn_dialect::{
 mod llms_shape;
 
 use llms_shape::{
-    FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_CONTRIBUTORS, MCP_RESOURCE_LIST, SurfaceMatch,
-    check_frozen_item, check_resource_list, declared_surfaces, extract_item,
+    FROZEN_LLMS_SHAPE, ItemRef, MCP_RESOURCE_CONTRIBUTORS, SurfaceMatch, check_frozen_item,
+    check_resource_list, declared_surfaces, extract_item,
 };
 
 /// Run one check over a fresh report and return it — every leg below asserts on the
@@ -463,11 +463,8 @@ fn leg4_the_llms_family_shape_is_frozen_against_the_merge_base() {
     // The MCP consumer index: STRUCTURE frozen, list allowed to grow only by the delta the
     // ONTOLOGY licenses — one resource per `gmeow:` surface this change declares and the
     // merge base did not.
-    let base_mcp = base_text(&root, &base, MCP_RESOURCE_LIST.base_lookup_path())
-        .expect("the MCP module predates this change");
+    let base_body = mcp_base_body(&root, &base);
     let work_body = mcp_work_body(&root);
-    let base_body = extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
-        .expect("resources_result at the base");
     let surfaces = declared_surfaces(&root, &base);
     // NON-VACUITY, both sides: a derivation that read no term at all would license every
     // addition as "undeclared-but-unchecked" or refuse every one of them for the wrong
@@ -529,11 +526,27 @@ fn leg4_red_fixture_reordering_a_section_header_reds() {
 
 /// The live MCP resource-list bodies at the base and on this branch.
 fn mcp_bodies(root: &Path, base: &str) -> (String, String) {
-    let base_mcp =
-        base_text(root, base, MCP_RESOURCE_LIST.base_lookup_path()).expect("present at the base");
-    let base_body = extract_item(&base_mcp, MCP_RESOURCE_LIST.base_lookup_item())
-        .expect("resources_result at the base");
-    (base_body, mcp_work_body(root))
+    (mcp_base_body(root, base), mcp_work_body(root))
+}
+
+/// The complete consumer-index body at the merge base.
+///
+/// The index is assembled from the same contributor census on both sides of the comparison.
+/// Reading only the working contributors while treating one base function as the whole index
+/// would compare different surfaces after a contributor split landed.
+fn mcp_base_body(root: &Path, base: &str) -> String {
+    let mut uri_consts: BTreeMap<String, String> = BTreeMap::new();
+    let mut bodies: Vec<String> = Vec::new();
+    for (path, item) in MCP_RESOURCE_CONTRIBUTORS {
+        let text = base_text(root, base, path)
+            .unwrap_or_else(|| panic!("{path}: absent at the merge base"));
+        uri_consts.extend(str_consts(&text));
+        bodies.push(
+            extract_item(&text, *item)
+                .unwrap_or_else(|| panic!("{path}: {} is absent at the merge base", item.label())),
+        );
+    }
+    resolve_mcp_consts(&uri_consts, &bodies)
 }
 
 /// Every contributing site's text, concatenated: the advertised surface is assembled from
@@ -550,11 +563,17 @@ fn mcp_work_body(root: &Path) -> String {
                 .unwrap_or_else(|| panic!("{path}: {} is absent on this branch", item.label())),
         );
     }
-    // A URI the base spelled inline is now named by a `const`, because two hosts register the
-    // same descriptor and the surface has to be single-sourced. Resolving the name back to its
-    // value is what lets the entry comparison see ONE surface rather than a rename.
+    resolve_mcp_consts(&uri_consts, &bodies)
+}
+
+/// Resolve URI constants before comparing the assembled base and working surfaces.
+///
+/// A URI may be named by a `const` because multiple hosts register the same descriptor.
+/// Resolving the name back to its value makes the entry comparison see one surface rather than
+/// a source-level refactor.
+fn resolve_mcp_consts(uri_consts: &BTreeMap<String, String>, bodies: &[String]) -> String {
     let mut body = bodies.join("\n");
-    for (name, value) in &uri_consts {
+    for (name, value) in uri_consts {
         body = body.replace(name, &format!("\"{value}\""));
     }
     body

@@ -335,7 +335,7 @@ are checkable:
 1. **A frame's dictionary is a function on the frame.** `gmeow:payloadSchemaDictionary`
    is `maxQualifiedCardinality 1` in `slices/core/gts/module.ttl`, and the composer's
    `FrameSlot::Snapshot` is singular by **type** and by **construction** — purrdf's
-   `crates/rdf/src/gts_compose.rs` makes exactly one `add_frame_with_options("snapshot", …)`
+   `gts_compose` makes exactly one `add_frame_with_options("snapshot", …)`
    call.
 2. **Every `math:` named graph is unioned into the snapshot payload.** By (1) that is one
    frame, and it already binds `gmeow:dictGmeowCoreV1` through
