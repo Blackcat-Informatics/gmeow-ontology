@@ -132,7 +132,7 @@ impl ItemRef {
 pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     FrozenItem {
         path: "crates/docs-model/src/llms.rs",
-        base_path: Some("crates/docs/src/llms.rs"),
+        base_path: None,
         base_item: None,
         item: ItemRef::WholeFile,
         why: "the ONE llmstxt.org skeleton emitter — header, blockquote, bullet form, \
@@ -142,14 +142,14 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     },
     FrozenItem {
         path: "crates/bundle-view/src/export.rs",
-        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_path: None,
         base_item: None,
         item: ItemRef::Function("llms_sections"),
         why: "the section HEADINGS (Classes / Properties / Individuals) and their order",
     },
     FrozenItem {
         path: "crates/bundle-view/src/export.rs",
-        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_path: None,
         base_item: None,
         item: ItemRef::Function("llms_signature"),
         why: "the notation conventions — the `⊑` subclass and `→` domain/range spellings \
@@ -157,7 +157,7 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     },
     FrozenItem {
         path: "crates/bundle-view/src/export.rs",
-        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_path: None,
         base_item: None,
         item: ItemRef::Function("llms_note"),
         why: "the bullet-note convention (definition, label fallback, the `[fallback: en]` \
@@ -165,14 +165,14 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     },
     FrozenItem {
         path: "crates/bundle-view/src/export.rs",
-        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_path: None,
         base_item: None,
         item: ItemRef::Function("llms_prose"),
         why: "the shared prose line every index form carries under its header",
     },
     FrozenItem {
         path: "crates/bundle-view/src/export.rs",
-        base_path: Some("crates/pipeline/src/stages/export.rs"),
+        base_path: None,
         base_item: None,
         item: ItemRef::Function("write_llms_txt"),
         why: "the section ORDERING of the index form: term sections, then the standing \
@@ -180,7 +180,7 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
     },
     FrozenItem {
         path: "crates/docs-model/src/gmn1_primer.rs",
-        base_path: Some("crates/docs/src/gmn1_primer.rs"),
+        base_path: None,
         base_item: None,
         item: ItemRef::Const("PRIMER_HEADING"),
         why: "the primer's section heading — the anchor every surface's primer section is \
@@ -194,30 +194,29 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
 /// is now a leaf, and a resource whose handler needs a reader the leaf declines to link rides
 /// an `Extension` registered by a host that owns it — so the advertised surface is assembled
 /// from several sites and the freeze has to read all of them or it grades a fragment.
-pub const MCP_RESOURCE_CONTRIBUTORS: &[(&str, ItemRef)] = &[
-    (
-        "crates/mcp/src/lib.rs",
-        ItemRef::Function("builtin_resource_descriptors"),
-    ),
-    (
-        "crates/mcp/src/lib.rs",
-        ItemRef::Function("medium_resource_descriptor"),
-    ),
-    (
-        "crates/mcp-dev/src/lib.rs",
-        ItemRef::Function("dev_extension"),
-    ),
+pub const MCP_RESOURCE_CONTRIBUTORS: &[FrozenItem] = &[
+    FrozenItem {
+        path: "crates/mcp/src/lib.rs",
+        base_path: None,
+        base_item: None,
+        item: ItemRef::Function("builtin_resource_descriptors"),
+        why: "the built-in MCP consumer resources",
+    },
+    FrozenItem {
+        path: "crates/mcp/src/lib.rs",
+        base_path: None,
+        base_item: None,
+        item: ItemRef::Function("medium_resource_descriptor"),
+        why: "the host-bound medium-registry resource",
+    },
+    FrozenItem {
+        path: "crates/mcp-dev/src/lib.rs",
+        base_path: None,
+        base_item: None,
+        item: ItemRef::Function("dev_extension"),
+        why: "the developer-only Constitution resource",
+    },
 ];
-
-/// The MCP consumer-index item whose LIST may grow with the vocabulary a change declares.
-pub const MCP_RESOURCE_LIST: FrozenItem = FrozenItem {
-    path: "crates/mcp/src/lib.rs",
-    base_path: Some("crates/pipeline/src/mcp.rs"),
-    base_item: Some(ItemRef::Function("resources_result")),
-    item: ItemRef::Function("builtin_resource_descriptors"),
-    why: "the MCP consumer-index resource list: its structure is frozen, and its entries \
-          may grow only to surface `gmeow:` vocabulary the change itself declares",
-};
 
 // ── Source-item extraction ───────────────────────────────────────────────────
 
