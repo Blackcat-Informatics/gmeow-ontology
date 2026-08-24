@@ -183,7 +183,7 @@ sha2.workspace = true
 # Dedicated integration-test allocation accounting for the GTS sink's stratum
 # canonicalization. The single-test binary installs the allocator; the pipeline
 # library and shipped CLIs do not.
-gmeow-cost-measure = { path = "../cost-measure" }
+gmeow-cost-measure.workspace = true
 # The consumer MCP engine, TEST-ONLY: the medium gate drives the runtime-store lane
 # (`store_medium` + the memory dictionaries) that moved out of this crate into the
 # `gmeow-mcp` leaf. A normal dependency would invert the layering — gmeow-mcp is a leaf

@@ -11,6 +11,7 @@
 use std::sync::Arc;
 
 use gmeow_cost_measure::{CountingAllocator, measure};
+use gmeow_pipeline::medium::blake3_digest;
 use gmeow_pipeline::stages::carrier::snapshot_stratum_digest;
 use purrdf::{BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral};
 
@@ -64,7 +65,7 @@ fn legacy_stratum_digest(
     drop(borrowed);
     drop(sources);
     let len = canonical.len();
-    let digest = format!("blake3:{}", blake3::hash(canonical.as_bytes()).to_hex());
+    let digest = blake3_digest(canonical.as_bytes());
     drop(canonical);
     (digest, len)
 }

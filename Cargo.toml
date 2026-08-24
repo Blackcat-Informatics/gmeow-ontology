@@ -190,6 +190,10 @@ resolver = "2"
 # analyzer's term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term).
 purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "a59d9f2d" }
 
+# Harness-scoped allocation accounting. Keeping the path here makes the workspace
+# the single dependency authority while individual crates retain dev-only scope.
+gmeow-cost-measure = { path = "crates/cost-measure" }
+
 # `wasm-bindgen` and `blake3` are declared ONCE each in the third-party block below,
 # where this branch's normalization sweep put them — not here. A second declaration in
 # the same table is a TOML duplicate key, and both sides independently reached for one.

@@ -466,6 +466,22 @@ mod tests {
         .expect_err("a malformed precomputed digest must fail closed");
 
         assert_eq!(diag.code(), crate::error::MediumDigestMismatch::register());
+
+        let diag = seal_prehashed(
+            &registry,
+            &MediumSelection::Authored,
+            &PrehashedFrameFacts {
+                frame: "https://e/frame7",
+                rep: crate::medium::SNAPSHOT_WIRE_REP,
+                content_digest: &canonical,
+                strata_digest: "blake3:CAFE",
+                stratum: DigestStratum::PayloadExcludingMediumEnvelope,
+                dictionary_id: None,
+            },
+        )
+        .expect_err("a malformed precomputed stratum digest must fail closed");
+
+        assert_eq!(diag.code(), crate::error::MediumDigestMismatch::register());
     }
 
     /// The declared no-dictionary medium round-trips as a SELECTION: no dictionary
