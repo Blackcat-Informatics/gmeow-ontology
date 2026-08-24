@@ -34,6 +34,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
@@ -73,6 +74,61 @@ pub struct BundleProjection {
     pub files: BTreeMap<String, Vec<u8>>,
 }
 
+/// One verified decode of the two bundle surfaces the projection proof needs.
+///
+/// The RDF dataset deliberately comes from the authoritative segment-aware event
+/// importer, while the folded GTS graph retains the raw blob payloads and metadata
+/// that are outside RDF. Keeping both in one opaque value prevents callers from
+/// accidentally pairing a dataset and blob graph from different bundle bytes, and
+/// lets whole-bundle proofs reuse the expensive decode/index work across assertions.
+pub struct DecodedProjectionSource {
+    dataset: Arc<RdfDataset>,
+    graph: purrdf::gts::model::Graph,
+    lookaside: purrdf::RdfLookaside,
+    header_dicts: BTreeMap<String, Vec<u8>>,
+}
+
+impl DecodedProjectionSource {
+    /// The graph-preserving RDF dataset produced by the authoritative GTS event importer.
+    #[must_use]
+    pub fn dataset(&self) -> &RdfDataset {
+        self.dataset.as_ref()
+    }
+
+    /// The raw folded GTS graph, including inline blob payloads.
+    #[must_use]
+    pub fn graph(&self) -> &purrdf::gts::model::Graph {
+        &self.graph
+    }
+
+    /// The blob/header companion index derived from [`Self::graph`].
+    #[must_use]
+    pub fn lookaside(&self) -> &purrdf::RdfLookaside {
+        &self.lookaside
+    }
+}
+
+/// Decode the RDF, blob and header surfaces of one emitted bundle exactly once.
+///
+/// This is intentionally not a weaker graph-only import: the segment-aware event
+/// importer remains the RDF authority, and the raw reader remains the independent
+/// authority for blob/header semantics. Every error is a hard failure.
+pub fn decode_projection_source(
+    gts_bytes: &[u8],
+) -> Result<DecodedProjectionSource, gmeow_errors::Diag> {
+    let dataset = read_dataset(gts_bytes)?;
+    let graph = purrdf::gts::read_graph(gts_bytes, true)
+        .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
+    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+    let header_dicts = read_header_dicts(gts_bytes)?;
+    Ok(DecodedProjectionSource {
+        dataset,
+        graph,
+        lookaside,
+        header_dicts,
+    })
+}
+
 /// Reconstruct every committed `generated/` file the bundle carries, keyed by its
 /// committed repo-relative path (PIPELINE_SPINE §5/§6). Drives off the *bundle's*
 /// representatives, never the on-disk tree, so it reconstructs from `gmeow.gts`
@@ -90,10 +146,20 @@ pub struct BundleProjection {
 /// opaque/byte-decorated output as a blob member, a trained zstd dictionary as a
 /// header `"dct"` entry), so no path is produced twice.
 pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors::Diag> {
-    let dataset = read_dataset(gts_bytes)?;
-    let dataset = dataset.as_ref();
-    let blob_members = read_blob_members(gts_bytes)?;
-    let header_dicts = read_header_dicts(gts_bytes)?;
+    let source = decode_projection_source(gts_bytes)?;
+    project_decoded_bundle(&source)
+}
+
+/// Reconstruct a bundle already decoded by [`decode_projection_source`].
+///
+/// This performs the complete projection, fanout-bijection and independently
+/// authored expected-output checks. It only avoids re-reading the identical bytes;
+/// no assertion or representation family is skipped.
+pub fn project_decoded_bundle(
+    source: &DecodedProjectionSource,
+) -> Result<BundleProjection, gmeow_errors::Diag> {
+    let dataset = source.dataset();
+    let blob_members = read_blob_members(source.graph(), source.lookaside())?;
     // The path↔representative map as DATA: the gmeow:fanoutExtracts rows read back from the
     // bundle. The RDF-fanout / EDOAL rows are AUTHORED (pipeline slice, default graph); the
     // opaque rows are EMITTED by the carrier (one per generated-opaque archive member,
@@ -153,9 +219,9 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     // bytes from — so the projection reads them from there rather than carrying a
     // second copy through the archive lane.
     let mut header_dict_paths: BTreeSet<String> = BTreeSet::new();
-    for (path, bytes) in header_dicts {
+    for (path, bytes) in &source.header_dicts {
         header_dict_paths.insert(path.clone());
-        if files.insert(path.clone(), bytes).is_some() {
+        if files.insert(path.clone(), bytes.clone()).is_some() {
             return Err(stage_err(&format!(
                 "{path} is carried by two representatives (header \"dct\" entry collides)"
             )));
@@ -1191,11 +1257,10 @@ struct BlobMembers {
     opaque_paths: BTreeSet<String>,
 }
 
-fn read_blob_members(gts_bytes: &[u8]) -> Result<BlobMembers, gmeow_errors::Diag> {
-    let graph = purrdf::gts::read_graph(gts_bytes, true)
-        .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
-    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
-
+fn read_blob_members(
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &purrdf::RdfLookaside,
+) -> Result<BlobMembers, gmeow_errors::Diag> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     let mut opaque_paths: BTreeSet<String> = BTreeSet::new();
     for record in &lookaside.blobs {
@@ -1935,11 +2000,22 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
             gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
                 .expect("emit minimal expected-output bundle");
 
-        // The REAL production path: parse the bundle -> reconstruct -> completeness check.
+        // The reusable path performs the complete proof over one tied decode.
+        let decoded = decode_projection_source(&gts).expect("decode projection source");
+        let decoded_err = project_decoded_bundle(&decoded).expect_err(
+            "decoded projection must HARD-fail: two declared outputs were never produced",
+        );
+        assert_eq!(
+            decoded_err.code(),
+            crate::error::ExpectedOutputMissing::register()
+        );
+
+        // The public one-shot path is exactly the decode + projection composition.
         let err = project_bundle(&gts)
             .expect_err("project_bundle must HARD-fail: two declared outputs were never produced");
         assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
         let msg = err.to_string();
+        assert_eq!(decoded_err.to_string(), msg);
         assert!(
             msg.contains(OPAQUE_MEMBER),
             "the HARD FAIL must name the never-produced opaque-family path, got: {msg}"

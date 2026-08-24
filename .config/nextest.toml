@@ -103,12 +103,11 @@ slow-timeout = { period = "600s", "terminate-after" = 2, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(medium_bundle)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
-# Reserves a SHARE of the box, not all of it. A timeout is a statement about how long the WORK
-# takes, and a whole-DAG lane competing with 8500 other tests spends its budget being starved.
-# Taking `num-cpus` fixes that and breaks the opposite end: the binary-invoking CLI tests then
-# blow their own 60s budgets waiting. Half the machine is enough for the DAG to make progress
-# and leaves the rest of the run schedulable.
-threads-required = 8
+# The test starts a full-width production scheduler. Reserve the runner's actual CPU
+# count so nextest does not nest another full-width workload beside it. The reservation
+# scales on both small CI runners and large development hosts; no fixed thread ceiling
+# turns one host class into the scheduling policy for every other one.
+threads-required = "num-cpus"
 
 # The MEDIUM IDENTITY GATE emits the real carrier TWICE from one in-memory DAG run —
 # once under the authored `gmeow:mediumProfileDistL12` assignment and once under the
@@ -119,9 +118,9 @@ threads-required = 8
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(medium_identity_gate)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }
-# Same reservation, same reason: it costs a whole-DAG execution plus a second emission, and it
-# timed out on-gate at 1800s only because it was competing with the rest of the run.
-threads-required = 8
+# Same natural-width reservation, same reason: it costs a whole-DAG execution plus a
+# second emission and must not be nested beside another full-width worker pool.
+threads-required = "num-cpus"
 
 # The two CONSUMER-SURFACE medium suites. `crates/gmeow-cli/build.rs` embeds
 # `generated/dist/gmeow.gts`, which is a git-ignored LOCAL product, so a suite that read

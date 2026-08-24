@@ -15,7 +15,7 @@
 //! The DAG is run ONCE, so every clause lives in one test function. Splitting them
 //! would multiply a whole-pipeline execution by the number of clauses.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
 
 use ciborium::value::Value;
@@ -23,9 +23,10 @@ use gmeow_pipeline::medium::MEDIUM_REGISTRY_GRAPH;
 use gmeow_pipeline::medium::registry::MediumRegistry;
 use gmeow_pipeline::node::{Stage, StageInput, StageProduct};
 use gmeow_pipeline::stages::medium_dictionaries::frame_iri;
+use gmeow_pipeline::stages::superset::BundleProjection;
 use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
 use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
-use purrdf::{RdfQuad, RdfTerm};
+use purrdf::{RdfLookaside, RdfQuad, RdfTerm};
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -368,6 +369,34 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     gmeow_pipeline::validate_mandated_frames(&bundle)
         .expect("the dictionary-primed bundle still uses the mandated frame profile");
 
+    // ── (d) convergence: re-emit while the upstream products are still required,
+    // then release the whole DAG before decoding/indexing the emitted artifact. Keeping
+    // both carrier generations plus the independent read-side folds resident together
+    // added no proof and could exceed the required 16-GiB runner contract.
+    let again = gmeow_pipeline::stages::gts_sink::GtsSinkStage::new()
+        .run(StageInput {
+            root: &root,
+            upstream: &products,
+        })
+        .expect("the terminal re-emits")
+        .product
+        .artifact(gmeow_pipeline::stages::gts_sink::GTS_PATH)
+        .expect("the re-emission carries the bundle")
+        .to_vec();
+    drop(products);
+    assert_eq!(
+        blake3(&again),
+        blake3(&bundle),
+        "a further pass over the same carrier must reproduce the bundle byte for byte — the \
+         envelopes are derived from a stratum that excludes them, so adding them cannot move it"
+    );
+    assert!(
+        again == bundle,
+        "a further pass over the same carrier must reproduce every bundle byte, not merely its \
+         logical payload"
+    );
+    drop(again);
+
     let head = header(&bundle);
 
     // ── (a) the header pins every declared dictionary, in band ──
@@ -385,9 +414,15 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         );
     }
 
+    // Decode the two independent carrier surfaces ONCE for every assertion below:
+    // the segment-aware RDF event fold plus the raw graph/blob fold. The projection
+    // source keeps them tied to these exact bytes and still hard-fails either reader.
+    let decoded = gmeow_pipeline::stages::superset::decode_projection_source(&bundle)
+        .expect("the emitted bundle's RDF and raw blob surfaces fold back");
+    let dataset = decoded.dataset();
+
     // ── (b) graph/medium-registry: one realization per dictionary + one envelope per frame ──
-    let folded = purrdf::import_gts_events(&bundle).expect("the emitted bundle folds back");
-    let payload: Vec<RdfQuad> = purrdf::flat_rdf_quads_from_dataset(folded.dataset.as_ref());
+    let payload: Vec<RdfQuad> = purrdf::flat_rdf_quads_from_dataset(dataset);
     let registry_quads: Vec<RdfQuad> = payload
         .iter()
         .filter(|quad| quad.graph_name == Some(RdfTerm::iri(MEDIUM_REGISTRY_GRAPH)))
@@ -398,7 +433,7 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         "the shipped bundle must carry graph/medium-registry"
     );
 
-    let module = MediumRegistry::from_dataset(folded.dataset.as_ref())
+    let module = MediumRegistry::from_dataset(dataset)
         .expect("the shipped bundle carries a readable medium axis");
 
     let realizations = subjects_of_type(
@@ -546,29 +581,42 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         !stratum.is_empty(),
         "a degenerate (empty) stratum commits to nothing"
     );
-    let payload_set: BTreeSet<String> = payload.iter().map(|q| format!("{q:?}")).collect();
-    let stratum_set: BTreeSet<String> = stratum.iter().map(|q| format!("{q:?}")).collect();
-    let envelope_set: BTreeSet<String> = envelope_quads.iter().map(|q| format!("{q:?}")).collect();
-    assert_eq!(
-        stratum_set,
-        payload_set
-            .difference(&envelope_set)
-            .cloned()
-            .collect::<BTreeSet<String>>(),
-        "the stratum must be exactly payload − envelopes"
-    );
-    assert_eq!(
-        stratum_set
-            .union(&envelope_set)
-            .cloned()
-            .collect::<BTreeSet<String>>(),
-        payload_set,
-        "the stratum and the envelope subgraph must partition the payload"
-    );
-    assert!(
-        stratum_set.is_disjoint(&envelope_set),
-        "the stratum must EXCLUDE the envelope subgraph — that exclusion is why it converges"
-    );
+    {
+        // Borrowed hash indexes prove the exact set partition without formatting and
+        // owning three more full copies of every quad. The old debug-string indexes
+        // consumed several GiB while asserting the same equality.
+        let payload_set: HashSet<&RdfQuad> = payload.iter().collect();
+        let stratum_set: HashSet<&RdfQuad> = stratum.iter().collect();
+        let envelope_set: HashSet<&RdfQuad> = envelope_quads.iter().collect();
+        assert_eq!(
+            payload_set.len(),
+            payload.len(),
+            "the folded RDF dataset must retain set semantics"
+        );
+        assert_eq!(
+            stratum_set.len(),
+            stratum.len(),
+            "the stratum must retain set semantics"
+        );
+        assert_eq!(
+            envelope_set.len(),
+            envelope_quads.len(),
+            "the envelope subgraph must retain set semantics"
+        );
+        assert!(
+            stratum_set.is_subset(&payload_set) && envelope_set.is_subset(&payload_set),
+            "both partition arms must be subsets of the payload"
+        );
+        assert!(
+            stratum_set.is_disjoint(&envelope_set),
+            "the stratum must EXCLUDE the envelope subgraph — that exclusion is why it converges"
+        );
+        assert_eq!(
+            stratum_set.len() + envelope_set.len(),
+            payload_set.len(),
+            "the stratum and the envelope subgraph must cover the payload exactly"
+        );
+    }
 
     // The stratum digest, recomputed independently over exactly that quad set.
     assert_eq!(
@@ -576,6 +624,8 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         blake3(canonical(&stratum).as_bytes()),
         "the snapshot envelope's gmeow:strataDigest must be the blake3 of its declared stratum"
     );
+    drop(stratum);
+    drop(envelope_quads);
     // …and it is a genuine ADDITION: the content digest is the frame's own wire
     // identity over a different serialization, so the two are not one value twice.
     let content_digest = literal_of(&registry_quads, &snapshot_envelope, "contentDigest");
@@ -603,71 +653,74 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     );
 
     // ── the dictionary-EFFECT measurement, on the shipped artifact ──
-    the_shipped_bundle_proves_every_dictionary_pays_for_itself(&bundle, &module);
-    the_runtime_store_dictionary_pays_for_itself(&bundle, &pinned);
+    the_shipped_bundle_proves_every_dictionary_pays_for_itself(&payload, &module);
+    drop(payload);
+    the_runtime_store_dictionary_pays_for_itself(dataset, &pinned);
 
-    // ── (d) convergence: the emission is a fixed point ──
-    let again = gmeow_pipeline::stages::gts_sink::GtsSinkStage::new()
-        .run(StageInput {
-            root: &root,
-            upstream: &products,
-        })
-        .expect("the terminal re-emits")
-        .product
-        .artifact(gmeow_pipeline::stages::gts_sink::GTS_PATH)
-        .expect("the re-emission carries the bundle")
-        .to_vec();
-    assert_eq!(
-        blake3(&again),
-        blake3(&bundle),
-        "a further pass over the same carrier must reproduce the bundle byte for byte — the \
-         envelopes are derived from a stratum that excludes them, so adding them cannot move it"
-    );
     // …and specifically the MEASUREMENT artifact, named rather than left implied by the
     // whole-bundle digest above: a measurement whose numbers moved between two passes
     // over one carrier would drift the committed generated/ tree on every build.
-    let effect_of = |bytes: &[u8]| -> Vec<u8> {
-        gmeow_pipeline::stages::superset::project_bundle(bytes)
-            .expect("the bundle projects")
-            .files
-            .get(gmeow_pipeline::medium::measure::MEDIUM_EFFECT_PATH)
-            .unwrap_or_else(|| {
-                panic!(
-                    "the bundle projects no {}",
-                    gmeow_pipeline::medium::measure::MEDIUM_EFFECT_PATH
-                )
-            })
-            .clone()
-    };
-    let first_effect = effect_of(&bundle);
+    let projection = gmeow_pipeline::stages::superset::project_decoded_bundle(&decoded)
+        .expect("the already-decoded bundle projects");
+    let first_effect = projection
+        .files
+        .get(gmeow_pipeline::medium::measure::MEDIUM_EFFECT_PATH)
+        .unwrap_or_else(|| {
+            panic!(
+                "the bundle projects no {}",
+                gmeow_pipeline::medium::measure::MEDIUM_EFFECT_PATH
+            )
+        });
     assert!(
         !first_effect.is_empty(),
         "the dictionary-effect projection is empty"
     );
-    assert_eq!(
-        effect_of(&again),
-        first_effect,
-        "the dictionary-effect measurement must be byte-identical across two emissions over the \
-         same carrier — it is a committed generated/ artifact under the strict sync drift gate"
-    );
+    // `again == bundle` above is the stronger byte-level statement: because the
+    // measurement is present in this independently reconstructed projection, those
+    // identical emitted byte streams necessarily carry its identical bytes too. A
+    // second parse/projection of the same bytes would add work, not evidence.
 
     // ── (g) the dictionaries project onto generated/medium/*.zdict, EXACTLY ONCE ──
-    the_dictionaries_project_exactly_once(&bundle, &pinned, &registry_quads, &module);
+    the_dictionaries_project_exactly_once(
+        &projection,
+        decoded.graph(),
+        decoded.lookaside(),
+        &pinned,
+        &registry_quads,
+        &module,
+    );
+    no_rep_is_primed_by_a_retired_dictionary(&projection, &module, &pinned);
+    drop(projection);
+
+    let emitted = emitted_reps(decoded.lookaside());
 
     // ── (h) the lang: and claim: reps are real, emitted frames primed by the
     //        dictionaries named for them, each member is carried by exactly one rep,
     //        and NO rep, header entry or projected file is primed by a retired
     //        dictionary id ──
-    the_lang_reps_are_real_frames_primed_by_lang_ast(&bundle, &module);
-    the_claim_reps_are_real_frames_and_ride_unprimed(&bundle, &module);
-    the_split_out_archive_members_are_carried_by_exactly_one_rep(&bundle);
-    no_rep_is_primed_by_a_retired_dictionary(&bundle, &module, &pinned);
+    the_lang_reps_are_real_frames_primed_by_lang_ast(
+        decoded.graph(),
+        decoded.lookaside(),
+        &emitted,
+        &module,
+    );
+    the_claim_reps_are_real_frames_and_ride_unprimed(
+        decoded.graph(),
+        decoded.lookaside(),
+        &emitted,
+        &module,
+    );
+    the_split_out_archive_members_are_carried_by_exactly_one_rep(
+        decoded.graph(),
+        decoded.lookaside(),
+    );
+    drop(decoded);
 
     // ── (e)/(f) the runtime stores, primed from THIS bundle ──
     let runtime = runtime_stores_are_primed_from(&bundle);
 
     // ── (i) the generalization both (h) clauses are instances of ──
-    every_declared_dictionary_primes_an_emitted_frame(&bundle, &module, &pinned, &runtime);
+    every_declared_dictionary_primes_an_emitted_frame(&emitted, &module, &pinned, &runtime);
 }
 
 /// The generated-opaque archive representation label. Spelled out because it is a WIRE
@@ -687,14 +740,13 @@ const REP_GENERATED: &str = "generated-opaque-archive";
 /// bytes twice — re-folding a blob the snapshot already carries (Constitution §18) and
 /// inflating the archive it rode in.
 fn the_dictionaries_project_exactly_once(
-    bundle: &[u8],
+    projection: &BundleProjection,
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &RdfLookaside,
     pinned: &BTreeMap<String, Vec<u8>>,
     registry_quads: &[RdfQuad],
     module: &MediumRegistry,
 ) {
-    let projection = gmeow_pipeline::stages::superset::project_bundle(bundle)
-        .expect("the shipped bundle projects (header-dict bijection + expected completeness)");
-
     // The realization records, keyed by the dictionary id they realize.
     let digest_by_id: BTreeMap<String, String> = subjects_of_type(
         registry_quads,
@@ -767,8 +819,6 @@ fn the_dictionaries_project_exactly_once(
     );
 
     // EXACTLY ONCE: no generated-opaque archive member is a dictionary.
-    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
-    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
     let mut archives_seen = 0usize;
     for record in &lookaside.blobs {
         if record.representation.as_deref() != Some(REP_GENERATED) {
@@ -798,9 +848,8 @@ fn the_dictionaries_project_exactly_once(
 /// The blob-representation labels the emitted pack actually carries frames for. Read off
 /// the lookaside alone — no payload is decoded, because the question is only WHICH reps
 /// were emitted.
-fn emitted_reps(bundle: &[u8]) -> BTreeSet<String> {
-    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
-    purrdf::gts::lookaside_from_graph(&graph)
+fn emitted_reps(lookaside: &RdfLookaside) -> BTreeSet<String> {
+    lookaside
         .blobs
         .iter()
         .filter_map(|record| record.representation.clone())
@@ -813,9 +862,11 @@ fn emitted_reps(bundle: &[u8]) -> BTreeSet<String> {
 /// Scoped to a single rep on purpose: the big `ontology-docs` / `okf-export` payloads trip
 /// the zstd decode safety bound, so a sweep that decoded every blob would be fatal as well
 /// as wasteful (the same reason `carrier::archive_rep_carries_generated` excludes them).
-fn decoded_frames_for_rep(bundle: &[u8], rep: &str) -> (usize, usize) {
-    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
-    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+fn decoded_frames_for_rep(
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &RdfLookaside,
+    rep: &str,
+) -> (usize, usize) {
     let mut frames = 0usize;
     let mut bytes = 0usize;
     for record in &lookaside.blobs {
@@ -875,8 +926,12 @@ fn primed_reps_by_dictionary(module: &MediumRegistry) -> BTreeMap<String, BTreeS
 /// QUANTITATIVE one that the generalization cannot make (it would pass on a one-literal
 /// population). The registry-level half is enforced a third time, against the declaration
 /// alone, in `medium::registry::tests::the_live_gts_slice_reads_as_a_complete_registry`.
-fn the_lang_reps_are_real_frames_primed_by_lang_ast(bundle: &[u8], module: &MediumRegistry) {
-    let emitted_reps = emitted_reps(bundle);
+fn the_lang_reps_are_real_frames_primed_by_lang_ast(
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &RdfLookaside,
+    emitted_reps: &BTreeSet<String>,
+    module: &MediumRegistry,
+) {
     let primed = primed_reps_by_dictionary(module);
 
     let lang_reps = primed
@@ -891,9 +946,10 @@ fn the_lang_reps_are_real_frames_primed_by_lang_ast(bundle: &[u8], module: &Medi
         emitted_reps.contains(REP_LANG_PROJECTIONS),
         "the bundle emits no {REP_LANG_PROJECTIONS} frame"
     );
-    let (surface_frames, surface_bytes) = decoded_frames_for_rep(bundle, REP_LANG_SURFACE);
+    let (surface_frames, surface_bytes) =
+        decoded_frames_for_rep(graph, lookaside, REP_LANG_SURFACE);
     let (projection_frames, projection_bytes) =
-        decoded_frames_for_rep(bundle, REP_LANG_PROJECTIONS);
+        decoded_frames_for_rep(graph, lookaside, REP_LANG_PROJECTIONS);
     assert!(
         surface_frames > 0,
         "the surface-blob half must be non-empty too, or the comparison below is vacuous"
@@ -926,7 +982,7 @@ fn the_lang_reps_are_real_frames_primed_by_lang_ast(bundle: &[u8], module: &Medi
          must carry the ~18 MB TBX termbase and glossary table alongside the ~150 KB \
          generated/projections/lang/ tree, so a smaller archive means members were dropped"
     );
-    let members = archive_members(bundle, REP_LANG_PROJECTIONS);
+    let members = archive_members(graph, lookaside, REP_LANG_PROJECTIONS);
     for member in LANG_GLOSSARY_MEMBERS {
         let bytes = members
             .get(member)
@@ -964,7 +1020,12 @@ fn the_lang_reps_are_real_frames_primed_by_lang_ast(bundle: &[u8], module: &Medi
 /// reified statement layer rather than a placeholder. The medium assertion is the
 /// counterpart — a rep whose dictionary was retired must ride the dictionary-less medium,
 /// never keep a dangling selection.
-fn the_claim_reps_are_real_frames_and_ride_unprimed(bundle: &[u8], module: &MediumRegistry) {
+fn the_claim_reps_are_real_frames_and_ride_unprimed(
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &RdfLookaside,
+    emitted: &BTreeSet<String>,
+    module: &MediumRegistry,
+) {
     let primed = primed_reps_by_dictionary(module);
     for (dictionary, reps) in &primed {
         for rep in [REP_YAMLLD, REP_STATEMENTS] {
@@ -975,7 +1036,6 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(bundle: &[u8], module: &Medi
             );
         }
     }
-    let emitted = emitted_reps(bundle);
     for rep in [REP_YAMLLD, REP_STATEMENTS] {
         assert!(
             emitted.contains(rep),
@@ -984,9 +1044,10 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(bundle: &[u8], module: &Medi
         );
     }
 
-    let (frames, bytes) = decoded_frames_for_rep(bundle, REP_YAMLLD);
+    let (frames, bytes) = decoded_frames_for_rep(graph, lookaside, REP_YAMLLD);
     assert_eq!(frames, 1, "the claim serializations ride ONE tar frame");
-    let (statement_frames, statement_bytes) = decoded_frames_for_rep(bundle, REP_STATEMENTS);
+    let (statement_frames, statement_bytes) =
+        decoded_frames_for_rep(graph, lookaside, REP_STATEMENTS);
     assert_eq!(
         statement_frames, 1,
         "the statement byte projections ride ONE tar frame"
@@ -996,13 +1057,13 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(bundle: &[u8], module: &Medi
          {statement_frames} statements frame(s) / {statement_bytes} B"
     );
 
-    let members = archive_members(bundle, REP_YAMLLD);
+    let members = archive_members(graph, lookaside, REP_YAMLLD);
     assert_eq!(
         members.keys().map(String::as_str).collect::<Vec<_>>(),
         YAMLLD_MEMBERS.to_vec(),
         "the claim archive carries exactly its two declared members"
     );
-    let statement_members = archive_members(bundle, REP_STATEMENTS);
+    let statement_members = archive_members(graph, lookaside, REP_STATEMENTS);
     assert_eq!(
         statement_members
             .keys()
@@ -1077,7 +1138,7 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(bundle: &[u8], module: &Medi
 ///   one;
 /// * the header-dict fanout projects no `generated/medium/<retired-id>.zdict`.
 fn no_rep_is_primed_by_a_retired_dictionary(
-    bundle: &[u8],
+    projection: &BundleProjection,
     module: &MediumRegistry,
     pinned: &BTreeMap<String, Vec<u8>>,
 ) {
@@ -1087,9 +1148,6 @@ fn no_rep_is_primed_by_a_retired_dictionary(
         .map(|def| def.id.as_str())
         .collect();
     let primed = primed_reps_by_dictionary(module);
-    let projection = gmeow_pipeline::stages::superset::project_bundle(bundle)
-        .expect("the shipped bundle projects");
-
     for id in RETIRED_DICTIONARIES {
         assert!(
             !declared.contains(id),
@@ -1197,12 +1255,11 @@ fn no_rep_is_primed_by_a_retired_dictionary(
 /// store. Both are asserted below as byte equalities, because "pinned something under
 /// that id" is satisfied by a re-derivation and is therefore not the claim.
 fn every_declared_dictionary_primes_an_emitted_frame(
-    bundle: &[u8],
+    emitted: &BTreeSet<String>,
     module: &MediumRegistry,
     pinned: &BTreeMap<String, Vec<u8>>,
     runtime: &RuntimePriming,
 ) {
-    let emitted = emitted_reps(bundle);
     let primed = primed_reps_by_dictionary(module);
 
     for id in SHIPPED_DICTIONARIES {
@@ -1259,9 +1316,11 @@ fn every_declared_dictionary_primes_an_emitted_frame(
 }
 
 /// The members of ONE tar archive rep of the emitted bundle, by member name.
-fn archive_members(bundle: &[u8], rep: &str) -> BTreeMap<String, Vec<u8>> {
-    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
-    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+fn archive_members(
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &RdfLookaside,
+    rep: &str,
+) -> BTreeMap<String, Vec<u8>> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for record in &lookaside.blobs {
         if record.representation.as_deref() != Some(rep) {
@@ -1297,10 +1356,10 @@ fn archive_members(bundle: &[u8], rep: &str) -> BTreeMap<String, Vec<u8>> {
 /// supposed to prime them primed nothing again. So the positive half is asserted here,
 /// over the shipped tars. Both families are checked in ONE sweep because the sweep is
 /// what costs — it decodes every non-oversized tar in the bundle.
-fn the_split_out_archive_members_are_carried_by_exactly_one_rep(bundle: &[u8]) {
-    let graph = purrdf::gts::read_graph(bundle, true).expect("the bundle's blob lane reads");
-    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
-
+fn the_split_out_archive_members_are_carried_by_exactly_one_rep(
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &RdfLookaside,
+) {
     // The documentation/export payloads are large enough to trip the zstd decode safety
     // bound (the same set `carrier::archive_rep_carries_generated` excludes), so they are
     // NOT decoded. The skip is DECLARED rather than silent: any other rep that failed to
@@ -1671,13 +1730,11 @@ const CONJECTURE_KB: &str = "@prefix ex: <https://example.org/> .\nex:a ex:p ex:
 /// than it saves. Only the two-part code separates the two, and only if the
 /// dictionary's own in-band bytes are on the paying side.
 fn the_shipped_bundle_proves_every_dictionary_pays_for_itself(
-    bundle: &[u8],
+    payload: &[RdfQuad],
     module: &MediumRegistry,
 ) {
     use gmeow_pipeline::medium::measure::{self, Population};
 
-    let folded = purrdf::import_gts_events(bundle).expect("the emitted bundle folds back");
-    let payload: Vec<RdfQuad> = purrdf::flat_rdf_quads_from_dataset(folded.dataset.as_ref());
     let measurement_graph = Some(RdfTerm::iri(
         gmeow_pipeline::medium::MEDIUM_MEASUREMENT_GRAPH,
     ));
@@ -1838,12 +1895,13 @@ fn the_shipped_bundle_proves_every_dictionary_pays_for_itself(
 /// against reality: real store files, written through the real `Memory::store` path,
 /// primed with the header entry the pack ships, over a declared corpus taken from the
 /// pack's own statement layer.
-fn the_runtime_store_dictionary_pays_for_itself(bundle: &[u8], pinned: &BTreeMap<String, Vec<u8>>) {
+fn the_runtime_store_dictionary_pays_for_itself(
+    dataset: &purrdf::RdfDataset,
+    pinned: &BTreeMap<String, Vec<u8>>,
+) {
     use gmeow_pipeline::medium::{measure, sweep};
 
-    let folded = purrdf::import_gts_events(bundle).expect("the emitted bundle folds back");
-    let corpus = sweep::replay_corpus(folded.dataset.as_ref())
-        .expect("the bundle-derived replay corpus resolves");
+    let corpus = sweep::replay_corpus(dataset).expect("the bundle-derived replay corpus resolves");
     // The replay extent is part of the claim — whether a store dictionary wins is a pure
     // function of the record count — so it is pinned in BOTH directions rather than
     // merely bounded. [`sweep::REPLAY_RECORD_COUNT`] is the declared CEILING; the bundle's

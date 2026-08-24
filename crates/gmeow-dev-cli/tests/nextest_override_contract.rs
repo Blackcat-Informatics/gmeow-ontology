@@ -226,6 +226,32 @@ fn nextest_override_filters_all_match_a_live_test() {
     );
 }
 
+/// Scheduling reservations scale with the runner. A numeric `threads-required`
+/// silently turns the machine that authored the config into a global ceiling: it
+/// oversubscribes smaller runners and strands larger hosts. Whole-width tests may
+/// reserve the natural host, but no fixed test-group/global cap is part of correctness.
+#[test]
+fn nextest_has_no_fixed_concurrency_caps() {
+    let config = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+        .expect("read .config/nextest.toml");
+    let reservations = config
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with("threads-required"))
+        .collect::<Vec<_>>();
+    assert!(
+        reservations.len() >= 4,
+        "the live config should exercise natural-width reservations non-vacuously"
+    );
+    assert!(
+        reservations
+            .iter()
+            .all(|line| *line == "threads-required = \"num-cpus\""),
+        "fixed nextest concurrency reservations are forbidden; use the runner-scaled \
+         threads-required = \"num-cpus\": {reservations:?}"
+    );
+}
+
 /// Append every `.rs` file's text under `dir` (recursively) to `sink`.
 fn collect_rust_sources(dir: &Path, sink: &mut String) {
     let Ok(entries) = std::fs::read_dir(dir) else {
