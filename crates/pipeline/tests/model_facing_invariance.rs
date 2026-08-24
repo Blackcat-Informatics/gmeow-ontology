@@ -545,11 +545,17 @@ fn assemble_mcp_body(parts: impl IntoIterator<Item = (String, ItemRef)>) -> Stri
             }),
         );
     }
-    // A URI the base spelled inline is now named by a `const`, because two hosts register the
-    // same descriptor and the surface has to be single-sourced. Resolving the name back to its
-    // value is what lets the entry comparison see ONE surface rather than a rename.
+    resolve_mcp_consts(&uri_consts, &bodies)
+}
+
+/// Resolve URI constants before comparing the assembled base and working surfaces.
+///
+/// A URI may be named by a `const` because multiple hosts register the same descriptor.
+/// Resolving the name back to its value makes the entry comparison see one surface rather than
+/// a source-level refactor.
+fn resolve_mcp_consts(uri_consts: &BTreeMap<String, String>, bodies: &[String]) -> String {
     let mut body = bodies.join("\n");
-    for (name, value) in &uri_consts {
+    for (name, value) in uri_consts {
         body = body.replace(name, &format!("\"{value}\""));
     }
     body

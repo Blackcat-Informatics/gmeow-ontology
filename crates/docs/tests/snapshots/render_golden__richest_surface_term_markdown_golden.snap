@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 130
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Doxastic State
@@ -156,7 +157,6 @@ gmeow:DoxasticState ⊑ gmeow:MentalMoment
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **0\.1\.0** — Definition changed
 
 ## Citation
 
