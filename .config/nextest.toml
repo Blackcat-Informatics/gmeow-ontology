@@ -6,13 +6,18 @@
 # as contextual evidence, while correctness failures and the repeated slow-timeout
 # runaway backstop remain hard failures.
 #
+# The carrier-purity binary is composed as its own required `make carrier-purity`
+# sibling by `make check`, `make rust-test`, and CI. Keeping it out of the general
+# archive prevents the authenticated test shards from executing that proof twice.
+#
 # The default filter keeps exhaustive whole-repository proofs in the maintainer
 # lane when focused tests and dedicated drift gates cover their per-commit
 # contracts. Membership is architectural, never triggered by crossing an elapsed
 # threshold. The maint-heavy profile below re-includes everything.
 default-filter = '''
   not (
-    (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
+    (package(gmeow-pipeline) & binary(carrier_purity))
+    | (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
     | (package(gmeow-pipeline) & test(/projections::tests::up_project_(recovers_message_superclass_via_prp_dom|never_fabricates_subkind_or_sibling)/))
     | (package(gmeow-pipeline) & binary(fold_parity))
     | test(/corpus_conformance_heavy_offgate/)

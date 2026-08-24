@@ -65,10 +65,12 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
 /// CHECK_DAG targets that are legitimately NOT invoked as a `make <target>`
 /// step in ci.yml because they are exercised by a dedicated CI job through a
 /// different surface instead of the ontology-lane `make` steps:
-///   - `rust-build`, `nextest`, `doctests`, `clippy`, `carrier-purity`: the
-///     `rust` job runs `cargo nextest run --profile ci --workspace`,
-///     `cargo test --doc --workspace`, and `cargo clippy --all-targets -- -D
-///     warnings` directly (sharded 3×; the whole-workspace gates on shard 1).
+///   - `rust-build`, `nextest`: `rust-archive` compiles the complete CI-profile
+///     inventory once and `rust` runs its exact slice union.
+///   - `doctests`: the parallel `rust-static` job runs `cargo test --doc
+///     --workspace` directly because nextest archives do not carry doctests.
+///   - `clippy`: the parallel `lint` job's pre-commit suite runs the identical
+///     all-target clippy command (and fmt) once.
 ///   - `check-lint`: the `lint` job runs `cargo clippy --all-targets -- -D
 ///     warnings` directly and `make lint` (the standalone, non-scoped
 ///     target) covers the rest of the pre-commit hygiene suite.
@@ -92,15 +94,14 @@ const CI_JOB_COVERED: &[&str] = &[
     "nextest",
     "doctests",
     "clippy",
-    "carrier-purity",
     "check-lint",
     "console",
 ];
 
 /// The tasks lifted off `make check` onto the CI-only `make heavy` lane. Moving a
 /// task there is a SCHEDULING decision, so it must still run on every PR:
-/// `the_heavy_lane_still_runs_on_every_pr` proves ci.yml invokes `make heavy` and
-/// that the Makefile's `HEAVY_TASKS` is exactly this set.
+/// `the_heavy_lane_still_runs_on_every_pr` proves ci.yml expands this exact set as
+/// parallel branches and that the Makefile aggregate has the same membership.
 const HEAVY_TASKS: &[&str] = &[
     "wasm-parity",
     "acceptance",
@@ -385,10 +386,26 @@ fn the_heavy_lane_still_runs_on_every_pr() {
     );
 
     let ci = ci_workflow();
+    let matrix = ci
+        .lines()
+        .find_map(|line| line.trim().strip_prefix("task: ["))
+        .and_then(|tail| tail.strip_suffix(']'))
+        .expect("ci.yml declares the explicit heavy task matrix")
+        .split(',')
+        .map(str::trim)
+        .collect::<Vec<_>>();
+    assert_eq!(
+        matrix, HEAVY_TASKS,
+        "the parallel CI heavy DAG must be exactly the Makefile aggregate membership"
+    );
     assert!(
-        ci_make_targets(&ci).contains("heavy"),
-        "ci.yml must invoke `make heavy` so nothing moved off `make check` stops running \
-         on PRs"
+        ci.contains("run: make ${{ matrix.task }}"),
+        "each heavy matrix branch must invoke its selected task"
+    );
+    assert!(
+        !ci_make_targets(&ci).contains("heavy"),
+        "CI expands the independent heavy DAG; invoking the serial aggregate too would \
+         execute every breadth proof twice"
     );
     for task in HEAVY_TASKS {
         assert!(
@@ -398,8 +415,114 @@ fn the_heavy_lane_still_runs_on_every_pr() {
         );
     }
     assert!(
-        ci.contains("needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"),
+        ci.contains("needs: [producer, lint, rust-archive, rust, rust-static, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"),
         "the aggregate quality gate must require the heavy job"
+    );
+}
+
+/// CI compiles the test inventory once, authenticates it, and runs a disjoint/exact
+/// slice partition from that archive. Static Rust surfaces remain parallel siblings.
+#[test]
+fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
+    let ci = ci_workflow();
+    let makefile = makefile();
+    let receipt_script =
+        std::fs::read_to_string(repo_root().join("scripts/nextest-archive-receipt.sh"))
+            .expect("read nextest archive receipt verifier");
+
+    assert!(
+        ci.contains("  rust-archive:"),
+        "CI needs one archive authority job"
+    );
+    assert_eq!(
+        ci.lines()
+            .filter_map(|line| line.trim().strip_prefix("run: make "))
+            .filter(|command| command.split_whitespace().next() == Some("nextest-archive"))
+            .count(),
+        1,
+        "CI must build exactly one workspace test archive"
+    );
+    assert!(
+        ci.contains("needs: [producer, rust-archive]"),
+        "every test slice must wait for the authenticated archive"
+    );
+    assert!(
+        ci.contains("--archive-file dist/nextest/ci.tar.zst")
+            && ci.contains("--workspace-remap \"$PWD\"")
+            && ci.contains("--profile ci")
+            && ci.contains("--partition slice:${{ matrix.shard }}/3"),
+        "all shards must reuse the same archive, profile, config, and stable slice scheme"
+    );
+    assert!(
+        !ci.contains("--partition count:"),
+        "deprecated timing-sensitive count partitioning must not return"
+    );
+    assert!(
+        ci.matches("cargo-nextest@0.9.137").count() >= 3,
+        "archive, shard, and heavy nextest consumers must pin one reviewed release"
+    );
+    assert!(
+        target_recipe(&makefile, "nextest-archive")
+            .contains("cargo nextest archive --profile ci --workspace")
+            && target_recipe(&makefile, "nextest-archive")
+                .contains("nextest-archive-receipt.sh write"),
+        "the archive target must build and receipt the canonical CI inventory"
+    );
+    assert!(
+        target_recipe(&makefile, "nextest-archive-verify")
+            .contains("nextest-archive-receipt.sh verify"),
+        "every consumer needs the same receipt verifier"
+    );
+    for field in [
+        "source_sha",
+        "source_tree_sha256",
+        "rustc_identity_sha256",
+        "nextest_identity_sha256",
+        "generated_tree_sha256",
+        "build_config_sha256",
+        "inventory_sha256",
+        "junit_inventory_sha256",
+        "perf_sample_sha256",
+    ] {
+        assert!(
+            receipt_script.contains(field),
+            "archive receipt must bind {field}"
+        );
+    }
+    assert!(
+        receipt_script.contains("uniq -d \"$union\"")
+            && receipt_script.contains("cmp -s \"$canonical\" \"$union\""),
+        "receipt verification must prove partition disjointness and exact union"
+    );
+    assert!(
+        ci.contains("dist/nextest/perf_sample")
+            && ci.contains("dist/nextest/junit_inventory")
+            && ci.contains("junit-shard-${{ matrix.shard }}.json")
+            && ci.contains("shard-${{ matrix.shard }}-sample.json"),
+        "each archive shard must emit authenticated inventory/duration and resource evidence"
+    );
+
+    let rust_job = ci
+        .split_once("  rust:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  rust-static:"))
+        .map(|(job, _)| job)
+        .expect("rust shard job is bounded by rust-static");
+    for duplicate in ["cargo fmt", "cargo clippy", "cargo test --doc", "cargo doc"] {
+        assert!(
+            !rust_job.contains(duplicate),
+            "test shards must not serialize the static lane `{duplicate}`"
+        );
+    }
+    assert!(
+        ci.contains("  rust-static:") && ci.contains("run: cargo test --doc --workspace"),
+        "doctests and rustdoc must remain required parallel static surfaces"
+    );
+    assert!(
+        ci.contains("run: make carrier-purity")
+            && std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+                .expect("read nextest config")
+                .contains("binary(carrier_purity)"),
+        "carrier purity must be a required sibling and excluded from duplicate archive replay"
     );
 }
 
@@ -586,7 +709,7 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
     );
     assert_eq!(
         source
-            .matches("run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update")
+            .matches("make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update")
             .count(),
         1,
         "one matrix step must define both cold generations through the prebuilt producer, \
@@ -601,6 +724,18 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         "the authority job must compare the complete independent trees byte-for-byte"
     );
     assert!(
+        source.contains("SYNC_TIMINGS_JSON=dist/sync/update-timings.json")
+            && source.contains("SYNC_TIMINGS_JSON=dist/sync/check-timings.json"),
+        "both cold execution and fixed-point reuse must emit versioned work telemetry"
+    );
+    assert!(
+        source.contains("generation-evidence-${{ github.sha }}-${{ matrix.generation }}")
+            && source.contains("./scripts/producer-receipt.sh write")
+            && source.contains("producer-receipt-${{ github.sha }}")
+            && source.contains("./scripts/producer-receipt.sh verify"),
+        "the authority artifact must carry and downstream-verify the full producer receipt"
+    );
+    assert!(
         !source.contains("two_cold_generations_are_deterministic"),
         "CI must not append two more serial cold generations after the matrix proof"
     );
@@ -612,9 +747,19 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         !generation.contains("validate-gts"),
         "semantic validation must not block publication of the byte-proven authority"
     );
+    let ontology_validate = source
+        .split_once("  ontology-validate:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  ontology-generated:"))
+        .map(|(job, _)| job)
+        .expect("ontology-validate is bounded by ontology-generated");
+    assert_eq!(
+        ontology_validate.matches("uses: actions/checkout@").count(),
+        1,
+        "ontology-validate must not repeat checkout"
+    );
     assert!(
         source.contains(
-            "needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
+            "needs: [producer, lint, rust-archive, rust, rust-static, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
         ),
         "the aggregate quality gate must require the retained quality jobs"
     );

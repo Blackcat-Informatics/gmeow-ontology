@@ -39,6 +39,13 @@ CONSOLE_OUT ?= dist/console-smoke
 # repository as `crates/query-wasm` from the workspace `purrdf` pin, so there is no
 # published tarball to bound and no lower bound to keep. See crates/docs/assets/query/.
 PERF_DIR ?= dist/perf
+# Exact arguments for the report-only paired resource sampler. The measured command
+# follows `--`; see docs/rust-test-performance.md for the mandatory 3-5 sample protocol.
+PERF_SAMPLE_ARGS ?=
+# Exact arguments and sample paths for the report-only paired acceptance grader.
+PERF_ACCEPT_ARGS ?=
+# Arguments for scripts/ci-run-receipt.sh (run, variant, index, node class, output).
+CI_RUN_RECEIPT_ARGS ?=
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
 # overridable (e.g. RELEASE_ISSUED_AT=2026-06-25T00:00:00Z) for reproducible rebuilds.
@@ -139,6 +146,14 @@ FUZZ_TARGETS = nquads gts shacl sssom statements logic query clif cgif xcl
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
 CHECK_ARGS ?=
+NEXTEST_VERSION := 0.9.137
+NEXTEST_ARCHIVE ?= dist/nextest/ci.tar.zst
+NEXTEST_ARCHIVE_RECEIPT ?= dist/nextest/receipt.json
+NEXTEST_SHARDS ?= 3
+NEXTEST_JUNIT_INVENTORY ?= dist/nextest/junit_inventory
+NEXTEST_PERF_SAMPLE ?= dist/nextest/perf_sample
+FIXTURE_TIMINGS_JSON ?=
+FIXTURE_TIMINGS_ARG := $(if $(FIXTURE_TIMINGS_JSON),--timings-json $(FIXTURE_TIMINGS_JSON),)
 
 # The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
 # because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
@@ -158,13 +173,13 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
+	constitution-check crate-check lint-alignment doc-lint rust-gate prime-test-fixtures nextest nextest-evidence-tools nextest-archive nextest-archive-verify doctests coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test query-wasm-pkg query-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
 	console-test console console-smoke console-assemble npm-publish-dry npm-consumable \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
-	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
+	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate perf-sample perf-accept perf-ci-receipt \
 	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
 	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
 	maint-wikidata-live \
@@ -222,7 +237,7 @@ reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
-rust-test: nextest doctests ## Run the Rust workspace tests and doctests.
+rust-test: carrier-purity nextest doctests ## Run the Rust workspace tests, dedicated carrier proof, and doctests.
 
 gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with.
 	$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts
@@ -244,6 +259,7 @@ medium-consumer-surface: rust-build ## HEAVY (CI-only lane, `make heavy`) the tw
 	@# and `medium_bundle`, which are change-dominated. The default nextest filter
 	@# excludes exactly these two binaries, so `maint-heavy` is the profile that can see
 	@# them.
+	$(MAKE) prime-test-fixtures
 	cargo nextest run --profile maint-heavy \
 	  -E '(package(gmeow-cli) & binary(medium_cli)) | (package(gmeow-dev-cli) & binary(medium_gate))'
 
@@ -252,7 +268,7 @@ rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc
 
 lsp-build: lsp-release ## Build the gmeow-lsp binary.
 
-lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage it into dist/bin/.
+lsp-release: ## Build the gmeow-lsp release binary and stage it into dist/bin/ without compiling unrelated test binaries.
 	cargo build -p gmeow-lsp --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
@@ -544,11 +560,31 @@ doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 rust-gate: rust-build carrier-purity clippy nextest doctests ## Aggregate alias: the whole Rust surface (carrier purity, clippy, nextest, doctests). `make check` schedules the four parts concurrently instead.
 	@echo "rust-gate: carrier-purity, clippy, nextest, and doctests all passed"
 
-nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
-	@# The docs-model fixture is primed once, in-process, before the suite: without it
-	@# every docs test rebuilds the same DocsModel in its own process.
+prime-test-fixtures: ## Prime exact content-addressed fixtures shared by nextest processes.
+	@# These examples run the real producers through their typed action/receipt laws.
+	# A miss recomputes; a hit is structurally verified. No fixture is a substitute producer.
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
+	cargo run -q --package gmeow-pipeline --example prime-pipeline-test-fixtures -- $(FIXTURE_TIMINGS_ARG)
+
+nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
+	$(MAKE) prime-test-fixtures
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+
+nextest-evidence-tools: ## Build the exact report-only resource/JUnit tools shipped beside the test archive.
+	mkdir -p $(dir $(NEXTEST_ARCHIVE))
+	cargo build --profile test -p gmeow-validate --bin junit_inventory
+	cargo build --profile test -p gmeow-pipeline --bin perf_sample
+	cp $(CARGO_TARGET_DIR)/debug/junit_inventory $(NEXTEST_JUNIT_INVENTORY)
+	cp $(CARGO_TARGET_DIR)/debug/perf_sample $(NEXTEST_PERF_SAMPLE)
+
+nextest-archive: rust-build nextest-evidence-tools ## Build one authenticated CI-profile nextest archive and prove its slice partitions.
+	$(MAKE) prime-test-fixtures
+	mkdir -p $(dir $(NEXTEST_ARCHIVE))
+	cargo nextest archive --profile ci --workspace --archive-file $(NEXTEST_ARCHIVE)
+	./scripts/nextest-archive-receipt.sh write $(NEXTEST_ARCHIVE) $(NEXTEST_ARCHIVE_RECEIPT) $(NEXTEST_SHARDS) $(NEXTEST_VERSION)
+
+nextest-archive-verify: ## Verify an existing nextest archive receipt and exact slice partition coverage.
+	./scripts/nextest-archive-receipt.sh verify $(NEXTEST_ARCHIVE) $(NEXTEST_ARCHIVE_RECEIPT) $(NEXTEST_SHARDS) $(NEXTEST_VERSION)
 
 doctests: rust-build ## Run the Rust workspace doctests.
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
@@ -954,7 +990,6 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
 		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test query-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
-		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target or node absent in CI — the native≡wasm parity witnesses cannot run; CI must install both"; exit 1; \
 	else \
@@ -1011,6 +1046,15 @@ perf-gate: ## Report-only timings for validate, generated drift, reason, and ver
 	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
 	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
+
+perf-sample: ## Record one exact paired wall/CPU/RSS/I/O sample (PERF_SAMPLE_ARGS required).
+	cargo run -q -p gmeow-pipeline --bin perf_sample -- $(PERF_SAMPLE_ARGS)
+
+perf-accept: ## Grade 3-5 paired cold/warm/partial samples against the predeclared 2x contract.
+	cargo run -q -p gmeow-pipeline --bin perf_accept -- $(PERF_ACCEPT_ARGS)
+
+perf-ci-receipt: ## Capture one successful Actions run's actual job graph and critical path.
+	./scripts/ci-run-receipt.sh $(CI_RUN_RECEIPT_ARGS)
 
 rust-coverage: ## Generate report-only Rust region coverage.
 	cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info

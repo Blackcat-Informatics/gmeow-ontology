@@ -125,10 +125,12 @@ jobs:
       # dies mid-pipeline the last streamed stage NAMES the resident stage, which is the
       # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
-        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_VERBOSE=1
+        run: |
+          mkdir -p dist/sync
+          make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_VERBOSE=1 SYNC_TIMINGS_JSON=dist/sync/update-timings.json
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
-        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=check
+        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=check SYNC_TIMINGS_JSON=dist/sync/check-timings.json
 
       - name: GTS frame/profile gate
         run: make gts-frame-profile-gate GMEOW_DEV=./dist/bin/gmeow-dev
@@ -140,6 +142,9 @@ jobs:
       - name: Medium gate
         run: make medium-gate GMEOW_DEV=./dist/bin/gmeow-dev
 
+      - name: Capture the immutable sync manifest
+        run: cp .cache/gmeow-sync/manifests/generated-default.json dist/sync/manifest.json
+
       - name: Upload independent generated tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -147,6 +152,17 @@ jobs:
           path: generated
           if-no-files-found: error
           retention-days: 1
+
+      - name: Upload independent producer evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: generation-evidence-${{ github.sha }}-${{ matrix.generation }}
+          path: |
+            dist/sync/manifest.json
+            dist/sync/update-timings.json
+            dist/sync/check-timings.json
+          if-no-files-found: error
+          retention-days: 3
 
   # === SINGLE PRODUCER AUTHORITY ===
   # Byte-compare both independently reconstructed trees, publish generation A as the
@@ -159,6 +175,10 @@ jobs:
     outputs:
       bundle_digest: ${{ steps.digest.outputs.sha256 }}
     steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
       - name: Download generation A
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -171,6 +191,18 @@ jobs:
           name: generated-tree-${{ github.sha }}-b
           path: generated-b
 
+      - name: Download generation A evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: generation-evidence-${{ github.sha }}-a
+          path: evidence-a
+
+      - name: Download generation B evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: generation-evidence-${{ github.sha }}-b
+          path: evidence-b
+
       - name: Prove byte-identical independent generations
         run: diff --recursive --brief --no-dereference generated-a generated-b
 
@@ -182,11 +214,26 @@ jobs:
           echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
           echo "producer bundle sha256=$sha256"
 
+      - name: Emit the immutable producer receipt
+        run: >-
+          ./scripts/producer-receipt.sh write
+          generated-a evidence-a/manifest.json
+          generated-b evidence-b/manifest.json
+          dist/producer-receipt.json "${GITHUB_SHA}"
+
       - name: Upload the authoritative generated tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: generated-tree-${{ github.sha }}
           path: generated-a
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Upload the authoritative producer receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: producer-receipt-${{ github.sha }}
+          path: dist/producer-receipt.json
           if-no-files-found: error
           retention-days: 3
 
@@ -249,28 +296,101 @@ jobs:
       - name: Lint gate
         run: make lint
 
-  # Sharded across 3 runners via nextest's `--partition count:N/3` (balances the
-  # test set across shards). All shards share the same Swatinem rust-cache key, so
-  # each restores the same compiled `target/` and only pays an incremental recompile
-  # plus ~1/3 of the test runtime. The whole-workspace gates (fmt/clippy/doctests)
-  # run ONLY on shard 1 — they need not run 3×.
-  # Each shard uses the runner's available CPU width. Tests that create their own
-  # full-width worker pool reserve that runner through nextest's `num-cpus`
-  # weight; no fixed global or test-group concurrency cap throttles the suite.
-  rust:
+  # === ONE RUST TEST BUILD AUTHORITY ===
+  # Compile the CI-profile test inventory once, prime exact producer fixtures once,
+  # and authenticate the archive before any test runner starts. The receipt binds the
+  # source revision + tracked tree, Rust/nextest identities, build configuration,
+  # authoritative generated tree, archive bytes, and canonical test inventory. It also
+  # proves that the configured slice partitions are disjoint and their union is exact.
+  rust-archive:
     needs: [producer]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Download the producer-materialized generated/ tree
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: generated-tree-${{ github.sha }}
+          path: generated
+
+      - name: Validate the producer artifact digest (identity, not regeneration)
+        env:
+          BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
+        run: |
+          set -euo pipefail
+          echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
+
+      - name: Download the authoritative producer receipt
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: producer-receipt-${{ github.sha }}
+          path: dist
+
+      - name: Verify source, complete generated tree, bundle, and receipt envelope
+        run: ./scripts/producer-receipt.sh verify generated dist/producer-receipt.json
+
+      - name: Install cargo-nextest (pinned archive format and partition semantics)
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        with:
+          tool: cargo-nextest@0.9.137
+
+      # The outer cache is only a transfer optimization. Both fixture families carry
+      # their own content keys; a mismatched restore is a verified miss and recompute.
+      - name: Restore exact test fixtures
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            .cache/docs-fixture
+            .cache/gmeow-sync/pipeline
+          key: test-fixtures-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Cargo.lock', 'crates/**/*.rs', 'crates/**/Cargo.toml', 'slices/**', 'dsl/**', 'shapes/**', 'metadata/**', 'imports/**', 'queries/**', 'i18n/**', 'docs/**') }}
+
+      - name: Build and authenticate one CI-profile nextest archive
+        run: make nextest-archive FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings.json
+
+      - name: Upload authenticated test archive and exact fixtures
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: rust-test-archive-${{ github.sha }}
+          path: |
+            dist/nextest/ci.tar.zst
+            dist/nextest/receipt.json
+            dist/nextest/fixture-timings.json
+            dist/nextest/junit_inventory
+            dist/nextest/perf_sample
+            .cache/docs-fixture
+            .cache/gmeow-sync/pipeline
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  # Shards execute the SAME authenticated archive with nextest's stable slice
+  # partitioning. No shard invokes Cargo compilation. Every runner re-verifies the
+  # archive receipt and the mechanical union/disjointness proof before executing its
+  # slice. Tests use the runner's available CPU width; full-width tests retain their
+  # `num-cpus` reservations with no fixed global concurrency cap.
+  rust:
+    needs: [producer, rust-archive]
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2, 3]
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    # security-events: write lets shard 1's rust-category SARIF surface in the
-    # Security tab via upload-sarif.
     permissions:
       contents: read
       checks: write
-      security-events: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -281,10 +401,6 @@ jobs:
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
           toolchain: nightly
-          components: clippy, rustfmt
-
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       # The producer-materialized tree must be present before any workspace compile —
       # gmeow-cli / gmeow-lsp embed generated/dist/gmeow.gts, and the docs tests read
@@ -302,10 +418,19 @@ jobs:
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
-      - name: Install cargo-nextest
+      - name: Download the authenticated test archive and exact fixtures
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: rust-test-archive-${{ github.sha }}
+          path: .
+
+      - name: Install cargo-nextest (pinned archive format and partition semantics)
         uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
         with:
-          tool: cargo-nextest
+          tool: cargo-nextest@0.9.137
+
+      - name: Restore report-only evidence tool modes
+        run: chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample
 
       # crates/xtask/tests/issue_refs_lint.rs drives scripts/lint-issue-refs.sh, which
       # hard-requires ripgrep and is not on the runner image by default — the same
@@ -318,77 +443,41 @@ jobs:
         with:
           tool: ripgrep
 
-      - name: Format gate
-        if: ${{ matrix.shard == 1 }}
-        run: cargo fmt --check
+      - name: Verify archive identity and exact slice coverage
+        run: make nextest-archive-verify
 
-      - name: Clippy (warnings are errors)
-        if: ${{ matrix.shard == 1 }}
-        run: cargo clippy --all-targets -- -D warnings
+      - name: Workspace tests from authenticated archive (slice ${{ matrix.shard }}/3)
+        run: |
+          dist/nextest/perf_sample \
+            --pair-id "ci-${GITHUB_RUN_ID}-rust-archive" \
+            --variant candidate \
+            --sample-index "${{ matrix.shard }}" \
+            --cache-state warm \
+            --cargo-cache-state not-applicable \
+            --sync-cache-state not-applicable \
+            --pipeline-cache-state warm \
+            --fixture-cache-state warm \
+            --bundle-import-cache-state absent \
+            --nextest-archive-cache-state warm \
+            --node-class github-ubuntu-latest-x64 \
+            --runner-image "${ImageOS}@${ImageVersion}" \
+            --output "dist/nextest/shard-${{ matrix.shard }}-sample.json" \
+            --identity-receipt nextest=dist/nextest/receipt.json \
+            --cache-root pipeline=.cache/gmeow-sync/pipeline \
+            --cache-root docs-fixture=.cache/docs-fixture \
+            -- \
+            cargo nextest run \
+              --archive-file dist/nextest/ci.tar.zst \
+              --workspace-remap "$PWD" \
+              --profile ci \
+              --partition slice:${{ matrix.shard }}/3
 
-      # Fail on broken/redundant public rustdoc intra-doc links so the API docs
-      # stay navigable. Shard 1 only (it need not run 3×); private-item links are
-      # allowed (see the make target's RUSTDOCFLAGS).
-      - name: Rust API docs (broken-link gate)
-        if: ${{ matrix.shard == 1 }}
-        run: make rust-docs
-
-      # The fixture is ~600 MB as raw JSON but highly compressible. Actions/cache
-      # stores it compressed, avoiding the 3–4 minute cold model + three-language
-      # render on every shard after the first run for a content state. This key is
-      # exact (no prefix restore): it covers the same authored inputs and local
-      # implementation sources as `fixture::cache_key`. The in-process key remains
-      # authoritative, so even an accidentally over-broad workflow restore can
-      # only miss and rebuild; it cannot serve a stale envelope.
-      # The catalog inputs the docs model reads (generated/catalog/*.nq) are a pure
-      # function of their canonical sources (slices/** + metadata/ + dsl/mappings/) and
-      # the producer/toolchain fingerprint (Cargo.lock + crates/**), all hashed below —
-      # so the key is keyed on those SOURCES, never on the git-ignored generated/** product.
-      - name: Cache docs-model fixture
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/docs-fixture
-          key: docs-fixture-v3-${{ runner.os }}-${{ hashFiles('slices/**', 'shapes/**', 'i18n/**', 'queries/**', 'docs/four-boxes.md', 'metadata/gmeow-self.ttl', 'dsl/mappings/mapping-sets.ttl', 'crates/pipeline/src/**', 'crates/docs/src/**', 'crates/docs/templates/**', 'crates/docs/assets/**', 'crates/docs/Cargo.toml', 'crates/errors/src/**', 'crates/errors/Cargo.toml', 'crates/logic-compile/src/**', 'crates/logic-compile/Cargo.toml', 'crates/validate/src/**', 'crates/validate/Cargo.toml', 'Cargo.lock') }}
-
-      # Build the gmeow-docs model fixture once so every docs test loads it warm.
-      # Without this each docs test rebuilds the same DocsModel in its own process.
-      # The content-addressed cache removes that redundant work from every shard.
-      - name: Prime docs-model fixture cache
-        run: cargo run -q --package gmeow-docs --example prime-docs-fixture
-
-      # The serialized StageProduct is only ~10 MB. An exact workflow key avoids
-      # rebuilding it on all three runners when neither compiler code nor declared
-      # stage inputs changed. The embedded BUILD_FINGERPRINT + input digest remains
-      # authoritative and turns any toolchain/key mismatch into a cold miss.
-      - name: Cache compile-logic fixture
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/pipeline-test-fixtures
-          key: compile-logic-fixture-v1-${{ runner.os }}-${{ hashFiles('crates/**/*.rs', 'Cargo.lock', 'ontology/gmeow.ttl', 'slices/*/*/module.ttl', 'imports/**/*.ttl', 'validations/openehr-bloodpressure/Blutdruck.opt', 'validations/openehr-test-datatypes/TestAllDatatypes.opt', 'slices/grounding/logic/examples/predicate-paths.ttl') }}
-
-      - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
-        run: cargo nextest run --profile ci --workspace --partition count:${{ matrix.shard }}/3
-
-      - name: Doctests
-        if: ${{ matrix.shard == 1 }}
-        run: cargo test --doc --workspace
-
-      # Per-category diagnostics: emit the user-facing rust diagnostics SARIF via
-      # gmeow-lsp. Non-gating (continue-on-error) — it only projects findings for
-      # code scanning. Shard 1 only (it need not run 3×).
-      - name: gmeow-lsp rust diagnostics SARIF (per-category rust, non-gating)
-        if: ${{ matrix.shard == 1 }}
-        continue-on-error: true
-        run: make diagnostics-rust-sarif
-
-      - name: Upload rust diagnostics SARIF
-        if: ${{ matrix.shard == 1 }}
-        uses: ./.github/actions/upload-diagnostics-sarif
-        with:
-          sarif_file: dist/diagnostics/rust/gmeow-feedback.sarif
-          artifact_path: dist/diagnostics/rust/
-          category: rust
-          artifact_name: diagnostics-rust
+      - name: Authenticate JUnit inventory and durations
+        if: always() && hashFiles('target/nextest/ci/junit.xml') != ''
+        run: >-
+          dist/nextest/junit_inventory
+          --output "dist/nextest/junit-shard-${{ matrix.shard }}.json"
+          target/nextest/ci/junit.xml
 
       - name: Upload JUnit report
         if: always()
@@ -398,6 +487,17 @@ jobs:
           path: target/nextest/ci/junit.xml
           if-no-files-found: warn
 
+      - name: Upload Rust shard performance receipts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: rust-perf-receipt-${{ matrix.shard }}
+          path: |
+            dist/nextest/shard-${{ matrix.shard }}-sample.json
+            dist/nextest/junit-shard-${{ matrix.shard }}.json
+          if-no-files-found: warn
+          retention-days: 3
+
       - name: Publish test results
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         if: always()
@@ -405,6 +505,63 @@ jobs:
           name: Rust Tests (shard ${{ matrix.shard }}/3)
           path: target/nextest/ci/junit.xml
           reporter: java-junit
+
+  # Static Rust surfaces are a sibling of archive construction, not serial work on
+  # test shard 1. `make lint` already owns fmt + all-target clippy; this job owns the
+  # non-nextest rustdoc/doctest surfaces and the report-only diagnostics projection.
+  rust-static:
+    needs: [producer]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Download the producer-materialized generated/ tree
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: generated-tree-${{ github.sha }}
+          path: generated
+
+      - name: Validate the producer artifact digest (identity, not regeneration)
+        env:
+          BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
+        run: |
+          set -euo pipefail
+          echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
+
+      - name: Rust API docs (broken-link gate)
+        run: make rust-docs
+
+      - name: Workspace doctests
+        run: cargo test --doc --workspace
+
+      - name: Pipeline carrier purity
+        run: make carrier-purity
+
+      - name: gmeow-lsp rust diagnostics SARIF (non-gating projection)
+        continue-on-error: true
+        run: make diagnostics-rust-sarif
+
+      - name: Upload rust diagnostics SARIF
+        uses: ./.github/actions/upload-diagnostics-sarif
+        with:
+          sarif_file: dist/diagnostics/rust/gmeow-feedback.sarif
+          artifact_path: dist/diagnostics/rust/
+          category: rust
+          artifact_name: diagnostics-rust
 
   # === ONTOLOGY GATE LANES ===
   # Four parallel jobs, each building the gmeow-dev binary from the Rust workspace
@@ -614,11 +771,12 @@ jobs:
       - name: Compliance report (per-principle gate evidence)
         run: make compliance-report
 
-  # === THE CI-ONLY HEAVY LANE (`make heavy`) ===
+  # === THE CI-ONLY HEAVY DAG (`HEAVY_TASKS`, also aggregated by `make heavy`) ===
   # Every task here was lifted OFF the local `make check` DAG because its runtime is
   # dominated by BREADTH (a whole external corpus, five release wasm builds) or by a
   # repeat-for-confidence loop, not by the change under test. Nothing was dropped:
-  # `make heavy` runs all of them here, on every PR, and refuses to run outside CI.
+  # every HEAVY_TASKS member runs on every PR as an explicit parallel branch.
+  # `make heavy` remains the canonical aggregate and its CI-only refusal stays intact.
   #
   #   wasm-parity : wasm32 build + dep purity (`make wasm`) plus the four Node lanes
   #                 that RUN the shipped wasm (query / validate / reason / gmn) and
@@ -635,24 +793,25 @@ jobs:
   #                 (`medium_identity_gate`, `medium_bundle`) stays on `make check`.
   heavy:
     needs: [producer]
+    strategy:
+      fail-fast: false
+      matrix:
+        task: [wasm-parity, acceptance, bench-soak, medium-consumer-surface]
     runs-on: ubuntu-latest
-    # 180 rather than 120: `medium-consumer-surface` adds two whole in-memory DAG runs
-    # to the lane, each of which reserves the host and carries a 1800s runaway backstop
-    # in .config/nextest.toml. The job ceiling has to sit above the sum of the lane's
-    # own budgets, or a green lane would be killed by the wrapper instead.
-    timeout-minutes: 180
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      # Nightly to match the workspace toolchain; the wasm32 target is provisioned
-      # explicitly (rust-toolchain.toml also lists it, kept in lockstep here).
-      - name: Install Rust (nightly + wasm32)
+      - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
           toolchain: nightly
-          targets: wasm32-unknown-unknown
+
+      - name: Install wasm32 target for the parity branch
+        if: ${{ matrix.task == 'wasm-parity' }}
+        run: rustup target add wasm32-unknown-unknown
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
@@ -673,9 +832,16 @@ jobs:
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
+      - name: Install cargo-nextest for the medium consumer branch
+        if: ${{ matrix.task == 'medium-consumer-surface' }}
+        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        with:
+          tool: cargo-nextest@0.9.137
+
       # wasm-bindgen CLI must match the pinned `wasm-bindgen` crate (=0.2.125) byte
       # for byte, or it refuses to generate the JS bindings.
       - name: Install wasm-bindgen-cli (pinned to the crate version)
+        if: ${{ matrix.task == 'wasm-parity' }}
         uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
         with:
           tool: wasm-bindgen-cli@0.2.125
@@ -691,6 +857,7 @@ jobs:
       # `--enable-bulk-memory-opt`, so every wasm-opt rule died on an unknown option and
       # took all four Node parity lanes with it.
       - name: Install binaryen (wasm-opt) — pinned release
+        if: ${{ matrix.task == 'wasm-parity' }}
         run: |
           set -euo pipefail
           BINARYEN_VER="$(make --no-print-directory print-binaryen-ver)"
@@ -702,13 +869,8 @@ jobs:
           echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"
           /tmp/binaryen/bin/wasm-opt --version
 
-      # ubuntu-latest ships a current Node. `make heavy` runs the whole lane in one
-      # step: wasm-parity (which itself runs `make wasm` first, so the wasm32 build +
-      # dep-purity gates still execute), then acceptance, then bench-soak, then
-      # medium-consumer-surface. The target hard-fails unless CI=true AND
-      # GITHUB_ACTIONS=true, both of which Actions sets.
-      - name: Heavy lane — native≡wasm parity, transpile acceptance, golden soak, medium consumer surface (make heavy)
-        run: make heavy
+      - name: Heavy DAG branch — ${{ matrix.task }}
+        run: make ${{ matrix.task }}
 
       # The standalone console's DOM-free acceptance lane. It drives the SHIPPED
       # `crates/docs/assets/mcp-core/` wasm image over the materialized bundle and asserts
@@ -718,17 +880,20 @@ jobs:
       # against the shipped library, and the wasm export subset. It rides this job because
       # it needs the same Node + materialized-bundle preconditions `wasm-parity` does.
       - name: Standalone console acceptance (make console-test)
+        if: ${{ matrix.task == 'wasm-parity' }}
         run: make console-test
 
       # The browser smoke lane's pinned runner. `npm ci` requires the committed lockfile, so
       # the Playwright version the lane drives is the version that was reviewed.
       - name: Install the pinned Playwright runner
+        if: ${{ matrix.task == 'wasm-parity' }}
         run: npm ci --prefix crates/docs/assets/console/smoke
 
       # …and the browser it drives. `--with-deps` provisions the shared libraries a headless
       # Chromium needs on a bare runner; without it the lane fails at launch rather than at
       # an assertion.
       - name: Install the Chromium build Playwright drives
+        if: ${{ matrix.task == 'wasm-parity' }}
         run: npx --prefix crates/docs/assets/console/smoke playwright install --with-deps chromium
 
       # The console's browser surface IS its deliverable, and this is the only lane that
@@ -741,6 +906,7 @@ jobs:
       # this job because it needs the same Node + materialized-bundle preconditions
       # `wasm-parity` does. It hard-fails everywhere; there is no skip branch.
       - name: Standalone console browser smoke lane (make console-smoke)
+        if: ${{ matrix.task == 'wasm-parity' }}
         run: make console-smoke
 
   # Aggregator gate. Branch protection requires the "quality" context; this job
@@ -757,7 +923,7 @@ jobs:
   # and Java-free. Statements now run natively via the purrdf codec inside the
   # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
-    needs: [producer, lint, rust, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs: [producer, lint, rust-archive, rust, rust-static, heavy, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -770,15 +936,17 @@ jobs:
         env:
           PRODUCER: ${{ needs.producer.result }}
           LINT: ${{ needs.lint.result }}
+          RUST_ARCHIVE: ${{ needs.rust-archive.result }}
           RUST: ${{ needs.rust.result }}
+          RUST_STATIC: ${{ needs.rust-static.result }}
           HEAVY: ${{ needs.heavy.result }}
           ONTOLOGY_VALIDATE: ${{ needs.ontology-validate.result }}
           ONTOLOGY_GENERATED: ${{ needs.ontology-generated.result }}
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: producer=$PRODUCER lint=$LINT rust=$RUST heavy=$HEAVY ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$PRODUCER" "$LINT" "$RUST" "$HEAVY" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          echo "results: producer=$PRODUCER lint=$LINT rust-archive=$RUST_ARCHIVE rust=$RUST rust-static=$RUST_STATIC heavy=$HEAVY ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$PRODUCER" "$LINT" "$RUST_ARCHIVE" "$RUST" "$RUST_STATIC" "$HEAVY" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1
