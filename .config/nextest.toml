@@ -18,6 +18,7 @@ default-filter = '''
   not (
     (package(gmeow-pipeline) & binary(carrier_purity))
     | (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
+    | (package(gmeow-validate) & binary(example_sweep) & test(batched_shacl_matches_isolated_reference_heavy_offgate))
     | (package(gmeow-pipeline) & test(/projections::tests::up_project_(recovers_message_superclass_via_prp_dom|never_fabricates_subkind_or_sibling)/))
     | (package(gmeow-pipeline) & binary(fold_parity))
     | test(/corpus_conformance_heavy_offgate/)
@@ -303,26 +304,25 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # existential restriction on `math:withRespectTo`, so the chase invents dimension read-set
 # edges no asserted read can see, and the surface-leak half needs the same closure.
 #
-# Those closures — one per on-disk counter-example — are independent, so they run in parallel and the per-fixture results are
-# folded in the fixtures' own sorted order — 170.3s on the bounded pool it uses (a quarter of
-# the host's parallelism, eight threads on a 32-core machine), down from ~720s sequential.
-# The pool stays bounded to cap simultaneous DL-closure memory, while the natural-width
-# reservation prevents nextest from nesting other test processes beside it. On the prior
-# hosted shard, co-scheduling stretched the same proof beyond 600s on all three attempts;
-# no assertion or timeout changes here, only ownership of the CPU envelope it already uses.
+# Those closures — one per on-disk counter-example — are independent, so they run in parallel
+# and the per-fixture results are folded in the fixtures' own sorted order. The natural-width
+# reservation prevents nextest from nesting other test processes beside the dedicated pool;
+# the pool therefore uses that complete reserved width rather than stranding three quarters
+# of it. On the prior four-CPU hosted shard, the old fractional rule admitted only two workers
+# and the proof crossed 600s on all three attempts. No assertion or timeout changes here,
+# only use of the CPU envelope this exact test already reserves.
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(math_conformance_discharge) & test(total_math_conformance_matrix_is_discharged)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 threads-required = "num-cpus"
 
-# These two corpus proofs also create their own worker pools: `example_sweep` uses the
-# runner's full width over independent examples, while `logic_flagship_discharge` runs four
-# simultaneous merged-module SHACL validations. Measured alone on the same source they take
-# 30.7s and 15.3s; nested beside the shard's other heavy tests, each exhausted the 120s
-# repeated-progress backstop three times. Reserve the runner so nextest does not multiply
-# their internal parallelism. The tests, assertions, and timeout remain unchanged.
+# These corpus proofs also create their own worker pools: the required `example_sweep`
+# alpha-scopes examples in parallel before one shared validation, its maintainer parity twin
+# computes every isolated reference union in parallel, and `logic_flagship_discharge` runs
+# four simultaneous merged-module SHACL validations. Reserve the runner so nextest does not
+# multiply their internal parallelism. The assertions and timeout remain unchanged.
 [[profile.default.overrides]]
-filter = '(package(gmeow-validate) & binary(example_sweep) & test(example_corpus_validates_against_closed_world_schema)) | (package(gmeow-pipeline) & binary(logic_flagship_discharge) & test(every_flagship_is_discharged_by_execution))'
+filter = '(package(gmeow-validate) & binary(example_sweep) & test(/(example_corpus_validates_against_closed_world_schema|batched_shacl_matches_isolated_reference_heavy_offgate)/)) | (package(gmeow-pipeline) & binary(logic_flagship_discharge) & test(every_flagship_is_discharged_by_execution))'
 threads-required = "num-cpus"
 
 # The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree

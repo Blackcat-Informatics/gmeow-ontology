@@ -1667,22 +1667,19 @@ fn total_math_conformance_matrix_is_discharged() {
     // and every collection below is a BTree. Sequentially this gate ran ~700s standalone and
     // exceeded even a 2400s backstop under concurrent gate load, which the doctrine calls a
     // broken test rather than a flaky one; the work itself is what had to get cheaper.
-    // On a BOUNDED pool, not the global one. nextest already runs tests in parallel, so a
-    // test that quietly seizes every core starves its siblings — which is how two heavy
-    // pipeline tests started timing out the moment this loop went parallel. A QUARTER of the
-    // host's parallelism keeps most of the win (the cost is one DL closure per fixture, not
-    // per core: ~700s sequential, ~350s on four threads, ~235s on eight) while leaving the
-    // rest of the suite room to run. Derived rather than hardcoded so the fraction is true on
-    // every host: a fixed count is a quarter of one developer's machine and oversubscription
-    // on a small CI runner, which is precisely the starvation this bound exists to prevent.
-    // Floored at two so the parallel fold is still exercised on a uniprocessor.
+    // Use a DEDICATED natural-width pool, not Rayon's process-global pool. nextest reserves
+    // the runner's full CPU envelope for this exact test (`threads-required = "num-cpus"`),
+    // so a fractional inner pool strands the reserved CPUs and turns a four-CPU runner into
+    // a two-worker machine. Every closure is independent and the sorted fold below remains
+    // the ordering authority, so using every CPU made available to the process changes no
+    // semantic or deterministic boundary.
     let pool_threads = std::thread::available_parallelism()
-        .map(|n| (n.get() / 4).max(2))
-        .unwrap_or(2);
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(pool_threads)
         .build()
-        .expect("a bounded pool for the per-fixture closures");
+        .expect("a natural-width pool for the per-fixture closures");
     let per_fixture: Vec<(String, Vec<(String, Channel)>)> = pool.install(|| {
         fixtures
             .par_iter()
