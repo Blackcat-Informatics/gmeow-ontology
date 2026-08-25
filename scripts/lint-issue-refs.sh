@@ -122,11 +122,10 @@ if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
     # hex, so the tracker forms this rule exists to catch all survive the filter.
     #
     # TWO exclusions beyond the shared set, each because the reference IS the content:
-    #   * `.deficiencies` — a descope ledger whose own mandated entry format is
-    #     "## From #<issue> — <title>" with a `Decided-by:` line. The rule exists to keep
-    #     process references out of SHIPPED ontology and documentation; this file ships
-    #     nowhere, and stripping the issue number would destroy the only pointer back to
-    #     the decision that authorized the descope.
+    #   * `.deficiencies` — the emergency ledger ships nowhere, and any entry must retain
+    #     its direct pointer to the durable bug owner. This exemption preserves that audit
+    #     pointer only: an entry remains unauthorized failed work and cannot authorize a
+    #     descope, completion, PR, or merge.
     #   * `crates/xtask/tests/issue_refs_lint.rs` — this lint's OWN test fixtures, which
     #     must embed the very reference shape the rule rejects in order to prove it is
     #     rejected. Scanning them means the gate fails exactly when its negative tests

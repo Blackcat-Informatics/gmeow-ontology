@@ -289,7 +289,7 @@ jobs:
       # `make lint` runs scripts/lint-issue-refs.sh, which hard-requires ripgrep;
       # it is not present on the runner image by default.
       - name: Install ripgrep
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
           tool: ripgrep
 
@@ -342,7 +342,7 @@ jobs:
         run: ./scripts/producer-receipt.sh verify generated dist/producer-receipt.json
 
       - name: Install cargo-nextest (pinned archive format and partition semantics)
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -425,7 +425,7 @@ jobs:
           path: .
 
       - name: Install cargo-nextest (pinned archive format and partition semantics)
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -439,7 +439,7 @@ jobs:
       # the exit code rather than on what it is asserting. The test runs in the nextest
       # shards, so the tool has to be here too; a gate that cannot run is not a gate.
       - name: Install ripgrep
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
           tool: ripgrep
 
@@ -698,7 +698,7 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
           tool: cargo-nextest
 
@@ -834,7 +834,7 @@ jobs:
 
       - name: Install cargo-nextest for the medium consumer branch
         if: ${{ matrix.task == 'medium-consumer-surface' }}
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
           tool: cargo-nextest@0.9.137
 
@@ -842,7 +842,7 @@ jobs:
       # for byte, or it refuses to generate the JS bindings.
       - name: Install wasm-bindgen-cli (pinned to the crate version)
         if: ${{ matrix.task == 'wasm-parity' }}
-        uses: taiki-e/install-action@43aecc8d72668fbcfe75c31400bc4f890f1c5853 # v2
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
           tool: wasm-bindgen-cli@0.2.125
 
