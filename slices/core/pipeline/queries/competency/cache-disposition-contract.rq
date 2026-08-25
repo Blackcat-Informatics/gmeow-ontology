@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Competency: which closed value class and property govern cache persistence, and
+# which production verification stage declares a bounded persistent contribution?
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?valueClass ?property ?stage WHERE {
+    VALUES (?valueClass ?property ?stage) {
+        (gmeow:StageCacheDisposition gmeow:stageCacheDisposition gmeow:stage-verify-attestation)
+    }
+    ?property a owl:ObjectProperty ;
+              rdfs:domain gmeow:PipelineStage ;
+              rdfs:range ?valueClass .
+    ?stage a gmeow:PipelineStage ;
+           ?property gmeow:cachePersistentContribution .
+}
