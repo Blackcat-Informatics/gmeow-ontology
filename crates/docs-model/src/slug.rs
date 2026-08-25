@@ -19,6 +19,14 @@ use std::collections::BTreeMap;
 
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
 
+// `llms.rs` is byte-frozen as the model-facing output-shape authority and still
+// links to the renderer by its historical `crate::slug::llms_txt` path.  Keep a
+// rustdoc-only alias to the canonical shared emitter so that link stays checked
+// without adding a second production entry point or changing the frozen source.
+#[cfg(doc)]
+#[doc(hidden)]
+pub use crate::llms::render_index as llms_txt;
+
 /// The generated `gmeow_models` module slug for a slice IRI (the last IRI segment,
 /// lowercased, non-identifier chars → `_`) — the same routing the Pydantic emitter
 /// uses, so `gmeow_models.<slice>` resolves to the term's model module.

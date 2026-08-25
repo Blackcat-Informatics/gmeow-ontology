@@ -1397,7 +1397,7 @@ pub struct DocSeamDirection {
 /// the grounding-reference information-flow policy (Principle 19). Authored as
 /// canonical governance data in a grounding slice's `manifest.ttl` (today,
 /// `logic:`'s — see [`extract_seams`]), never hand-duplicated as a markdown
-/// table: [`crate::render::Page::SeamRegistry`] projects this set to the
+/// table: `gmeow_docs::render::Page::SeamRegistry` projects this set to the
 /// generated seam-registry page, and `gmeow-validate`'s authoring-integrity
 /// gate asserts that projection never drifts from this data.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

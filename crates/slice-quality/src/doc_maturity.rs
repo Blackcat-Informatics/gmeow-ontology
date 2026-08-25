@@ -6,7 +6,7 @@
 //!
 //! The documentation-maturity standard (the Formal-Concept coverage lattice and the
 //! bounded per-slice `gmeow:coverageFraction ∈ [0,1]`) is owned end-to-end by
-//! [`gmeow_docs`]: [`DocsModel::discover`] builds the typed model and
+//! `gmeow_docs_model`: [`DocsModel::discover`] builds the typed model and
 //! [`documentation_graph`] projects the per-slice covered-dimension incidence and its
 //! bounded coverage fraction. This axis reads that projection AS-IS — the axis score
 //! IS the slice's `coverage_fraction` and the advisories name the FULL-anchor

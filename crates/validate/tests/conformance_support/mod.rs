@@ -321,6 +321,23 @@ fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
     flatten_to_default_graph(&dataset)
 }
 
+/// Merge a small N-Triples fixture into the real repository ontology.
+///
+/// Keeping this assembly separate from shape selection lets focused conformance
+/// tests exercise one shape family over the production data corpus without also
+/// paying to execute every unrelated repository shape. An empty fixture reuses
+/// the frozen base dataset directly.
+pub fn ontology_with_fixture_dataset(fixture_nt: &str) -> Arc<RdfDataset> {
+    if fixture_nt.is_empty() {
+        return Arc::clone(base_ontology_dataset());
+    }
+
+    let mut merged: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+    let fixture = nt_to_dataset(fixture_nt);
+    merged.extend(flat_rdf_quads_from_dataset(&fixture));
+    flat_dataset_from_quads(&merged).expect("merged dataset must freeze")
+}
+
 /// Validate a dataset against a shape corpus with the FOCUS NODES sharded across
 /// a bounded set of worker threads.
 ///
@@ -432,10 +449,7 @@ where
 /// Use this variant when the fixture triples rely on class/property declarations
 /// from the merged ontology to pass SHACL class-constraint checks.
 pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
-    let mut merged: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
-    let fixture = nt_to_dataset(fixture_nt);
-    merged.extend(flat_rdf_quads_from_dataset(&fixture));
-    let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
+    let dataset = ontology_with_fixture_dataset(fixture_nt);
     validate_dataset_sharded(&dataset, whole_shapes())
 }
 

@@ -304,16 +304,26 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # edges no asserted read can see, and the surface-leak half needs the same closure.
 #
 # Those closures — one per on-disk counter-example — are independent, so they run in parallel and the per-fixture results are
-# folded in the fixtures' own sorted order — ~235s on the bounded pool it uses (a quarter of
-# the host's parallelism, eight threads on a 32-core machine), down from ~720s sequential,
-# which had overrun even a 2400s ceiling under concurrent gate load. The pool is bounded on
-# purpose: nextest already runs tests in parallel, and seizing
-# every core starved two sibling pipeline tests into timing out. A test that reds on machine
-# load is broken rather than flaky, so the work got cheaper instead of the ceiling higher;
-# this budget is the sibling bundle-proof one, not a special case.
+# folded in the fixtures' own sorted order — 170.3s on the bounded pool it uses (a quarter of
+# the host's parallelism, eight threads on a 32-core machine), down from ~720s sequential.
+# The pool stays bounded to cap simultaneous DL-closure memory, while the natural-width
+# reservation prevents nextest from nesting other test processes beside it. On the prior
+# hosted shard, co-scheduling stretched the same proof beyond 600s on all three attempts;
+# no assertion or timeout changes here, only ownership of the CPU envelope it already uses.
 [[profile.default.overrides]]
-filter = 'package(gmeow-pipeline) & binary(math_conformance_discharge)'
+filter = 'package(gmeow-pipeline) & binary(math_conformance_discharge) & test(total_math_conformance_matrix_is_discharged)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
+
+# These two corpus proofs also create their own worker pools: `example_sweep` uses the
+# runner's full width over independent examples, while `logic_flagship_discharge` runs four
+# simultaneous merged-module SHACL validations. Measured alone on the same source they take
+# 30.7s and 15.3s; nested beside the shard's other heavy tests, each exhausted the 120s
+# repeated-progress backstop three times. Reserve the runner so nextest does not multiply
+# their internal parallelism. The tests, assertions, and timeout remain unchanged.
+[[profile.default.overrides]]
+filter = '(package(gmeow-validate) & binary(example_sweep) & test(example_corpus_validates_against_closed_world_schema)) | (package(gmeow-pipeline) & binary(logic_flagship_discharge) & test(every_flagship_is_discharged_by_execution))'
+threads-required = "num-cpus"
 
 # The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree
 # from gmeow.gts twice — once directly for the projection assertions, once more inside
@@ -419,7 +429,7 @@ threads-required = "num-cpus"
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-filter = 'package(gmeow-validate) & ( (binary(consumer_advisory_shape) & !test(/conformance_support::/)) | (binary(conformance_profiles) & test(/open_value_guard_violates_on_orphan_(dimension|realm)/)) | (binary(conformance_creative_works) & test(frameless_expression_fails_frame_requirement)) )'
+filter = 'package(gmeow-validate) & ( (binary(conformance_profiles) & test(/open_value_guard_violates_on_orphan_(dimension|realm)/)) | (binary(conformance_creative_works) & test(frameless_expression_fails_frame_requirement)) )'
 threads-required = "num-cpus"
 
 [[profile.default.overrides]]

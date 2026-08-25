@@ -591,8 +591,9 @@ pub fn run_flagship_discharge_with_counterexample(
     // Fixture validations are immutable and independent. The grounding-kernel
     // data scope is deliberately larger than an ordinary slice module, so run
     // the counter/worked pairs across a small bounded worker set while sharing
-    // the parsed modules and shapes. Four workers keeps memory bounded and gives
-    // the five-scenario flagship test ample headroom under the 25 s policy.
+    // the parsed modules and shapes. Four workers keep memory bounded; nextest's
+    // natural-width reservation keeps this internal pool from being nested beside
+    // other test processes on the same runner.
     let workers = std::thread::available_parallelism()
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(1)

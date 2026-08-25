@@ -15,7 +15,7 @@
 //! * [`emit_gmeow_gts`] / [`emit_gmeow_gts_with_medium`] — snapshot bundles
 //!   composed from a [`purrdf::gts_compose::SnapshotBuilder`]
 //!   (the shipped `gmeow.gts`, release bundles, on-demand consumer bundles),
-//!   unprimed or under an explicit [`MediumPlan`](purrdf::gts_compose::MediumPlan);
+//!   unprimed or under an explicit [`MediumPlan`];
 //! * [`dataset_to_gmeow_gts`] — a frozen carrier
 //!   [`RdfDataset`](purrdf::RdfDataset) serialized straight to GTS bytes (the
 //!   `gmeow convert --to gts` exit);
@@ -351,7 +351,7 @@ pub fn emit_gmeow_gts_with_medium(
 /// length cannot affect the transform.  This form constructs the wire value once,
 /// releases the builder, and hands the value directly to the writer.  Frame ordering,
 /// metadata, dictionary selection, codec, level, and resulting bytes are identical;
-/// [`tests::owned_snapshot_emission_is_byte_identical`] pins that contract.
+/// `tests::owned_snapshot_emission_is_byte_identical` pins that contract.
 ///
 /// # Errors
 /// A medium plan with an incomplete frame assignment, or a codec/writer failure.

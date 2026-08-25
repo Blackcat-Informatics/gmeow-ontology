@@ -3,9 +3,10 @@
 
 //! The formal-concept lattice DERIVED from the `Surface × Capability` incidence.
 //!
-//! The object set is [`DistributionSurface::ALL`] (the four rendered [`DocFormat`]s plus
-//! the interactive console), the attribute set is [`Capability::ALL`], and the incidence is
-//! the single authored table [`DistributionSurface::dropped`]. Nothing here re-authors a
+//! The object set is [`crate::formats::DistributionSurface::ALL`] (the four rendered
+//! [`crate::formats::DocFormat`]s plus the interactive console), the attribute set is
+//! [`crate::formats::Capability::ALL`], and the incidence is the single authored table
+//! [`crate::formats::DistributionSurface::dropped`]. Nothing here re-authors a
 //! cell: every order fact below is *computed* from that table by the standard Galois
 //! connection, so an edit to the incidence moves the lattice and the tests that pin it.
 //!
@@ -13,13 +14,15 @@
 //!
 //! For surfaces, `S ≤ T ⟺ representable(T) ⊆ representable(S)` — the LOSS order, in which
 //! the lossless site is the least element and the print PDF / flat snippets are the
-//! greatest. [`surface_leq`] realizes it, and [`surface_leq_is_the_object_concept_order`]
+//! greatest. [`crate::surface_lattice::surface_leq`] realizes it, and
+//! `surface_leq_is_the_object_concept_order`
 //! proves it is exactly the concept-lattice order restricted to the object concepts, rather
 //! than a second, parallel definition.
 //!
 //! For concepts, the usual FCA order applies: `(A₁,B₁) ≤ (A₂,B₂) ⟺ A₁ ⊆ A₂ ⟺ B₂ ⊆ B₁`,
-//! with `join = ((B₁∩B₂)′, B₁∩B₂)` and `meet = (A₁∩A₂, (A₁∩A₂)′)`. [`SurfaceConcept`]
-//! implements [`BoundedLattice`], which requires `Copy + Eq` — hence the two bit masks
+//! with `join = ((B₁∩B₂)′, B₁∩B₂)` and `meet = (A₁∩A₂, (A₁∩A₂)′)`.
+//! [`crate::surface_lattice::SurfaceConcept`] implements
+//! [`gmeow_errors::grade::BoundedLattice`], which requires `Copy + Eq` — hence the two bit masks
 //! rather than owned sets.
 //!
 //! # This order is NOT the projection DAG
@@ -34,8 +37,8 @@
 //! * `BOTTOM` is `(M′, M)` — the objects carrying EVERY attribute, paired with all of them.
 //!   Since `site` drops nothing, that is `({site}, ALL_CAPS)`, **not** `(∅, ALL_CAPS)`:
 //!   an empty extent there is not a formal concept at all, would never appear in
-//!   [`concepts`], and would break the least-element law.
-//! * `ALL_SURFACES` is derived from [`DistributionSurface::ALL`]'s length — the count of
+//!   [`crate::surface_lattice::concepts`], and would break the least-element law.
+//! * `ALL_SURFACES` is derived from [`crate::formats::DistributionSurface::ALL`]'s length — the count of
 //!   capability-BEARING surfaces (4 formats + console = 5). Sizing it to the whole
 //!   distribution catalog instead would leave `TOP` unreachable by any join, because the
 //!   serialization slugs carry no capability partition and so can never enter an extent.

@@ -446,6 +446,17 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         ci.contains("needs: [producer, rust-archive]"),
         "every test slice must wait for the authenticated archive"
     );
+    let rust_job = ci
+        .split_once("\n  rust:\n")
+        .expect("ci.yml carries the rust shard job")
+        .1
+        .split_once("\n  rust-static:\n")
+        .expect("rust-static follows the rust shard job")
+        .0;
+    assert!(
+        rust_job.contains("fetch-depth: 0"),
+        "archive shards must fetch origin/main so merge-base invariance tests grade a real comparand"
+    );
     assert!(
         ci.contains("--archive-file dist/nextest/ci.tar.zst")
             && ci.contains("--workspace-remap \"$PWD\"")

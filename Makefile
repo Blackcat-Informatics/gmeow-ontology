@@ -630,7 +630,8 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 			fi; \
 		done; \
 		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm (Tier-1 SHACL + the GMN-1 codec validator) build for wasm32 =="; \
-		$(WASM_CARGO) build -p gmeow-validate --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate does not build for wasm32-unknown-unknown"; exit 1; }; \
+		: "Build the Tier-1 library surface, not the package's native-only junit_inventory CI evidence binary."; \
+		$(WASM_CARGO) build -p gmeow-validate --lib --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate library does not build for wasm32-unknown-unknown"; exit 1; }; \
 		: "gmeow-validate-wasm now also carries the GMN-1 validator (gmn_validate: gmn1_read against the embedded codebook). Its build pulls gmeow-lang-bridge's codec + dictionary; the codec path is reasoner-free and its tiktoken-rs glyph-cost analytics are cfg(not(wasm32))-gated off, so this same build proves the GMN path compiles wasm-clean."; \
 		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree (incl. the GMN-1 codec path) =="; \
