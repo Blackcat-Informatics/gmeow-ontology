@@ -19,6 +19,33 @@ use sha2::{Digest, Sha256};
 const SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug)]
+struct PerfError(gmeow_errors::Diag);
+
+impl std::fmt::Display for PerfError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+
+impl std::error::Error for PerfError {}
+
+impl From<String> for PerfError {
+    fn from(message: String) -> Self {
+        Self(gmeow_errors::Diag::of_kind(
+            gmeow_pipeline::error::Transform { message },
+        ))
+    }
+}
+
+impl From<&str> for PerfError {
+    fn from(message: &str) -> Self {
+        message.to_string().into()
+    }
+}
+
+type PerfResult<T> = std::result::Result<T, PerfError>;
+
+#[derive(Debug)]
 struct Args {
     pair_id: String,
     variant: String,
@@ -81,11 +108,11 @@ fn main() {
     }
 }
 
-fn parse_args() -> Result<Args, String> {
+fn parse_args() -> PerfResult<Args> {
     parse_args_from(std::env::args_os().skip(1))
 }
 
-fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> Result<Args, String> {
+fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> PerfResult<Args> {
     let mut pair_id = None;
     let mut variant = None;
     let mut sample_index = None;
@@ -190,9 +217,9 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> Result<Args
                 "--cache-root",
             )?),
             _ => {
-                return Err(format!(
-                    "unknown argument {argument:?}; separate the command with --"
-                ));
+                return Err(
+                    format!("unknown argument {argument:?}; separate the command with --").into(),
+                );
             }
         }
     }
@@ -200,15 +227,15 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> Result<Args
     let pair_id = required(pair_id, "--pair-id")?;
     let variant = required(variant, "--variant")?;
     if !matches!(variant.as_str(), "baseline" | "candidate") {
-        return Err("--variant must be baseline or candidate".to_string());
+        return Err("--variant must be baseline or candidate".into());
     }
     let sample_index = required(sample_index, "--sample-index")?;
     if sample_index == 0 {
-        return Err("--sample-index is one-based".to_string());
+        return Err("--sample-index is one-based".into());
     }
     let cache_state = required(cache_state, "--cache-state")?;
     if !matches!(cache_state.as_str(), "cold" | "warm" | "partial") {
-        return Err("--cache-state must be cold, warm, or partial".to_string());
+        return Err("--cache-state must be cold, warm, or partial".into());
     }
     for (required_class, option) in [
         ("cargo", "--cargo-cache-state"),
@@ -217,7 +244,7 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> Result<Args
         ("fixture", "--fixture-cache-state"),
     ] {
         if !cache_classes.contains_key(required_class) {
-            return Err(format!("missing required {option}"));
+            return Err(format!("missing required {option}").into());
         }
     }
     for (class, state) in &cache_classes {
@@ -227,28 +254,28 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> Result<Args
         ) {
             return Err(format!(
                 "cache class {class} has invalid state {state:?}; expected cold, warm, partial, absent, or not-applicable"
-            ));
+            )
+            .into());
         }
     }
     match (cache_state.as_str(), partial_change.as_ref()) {
         ("partial", None) => {
-            return Err("--cache-state partial requires --partial-change".to_string());
+            return Err("--cache-state partial requires --partial-change".into());
         }
         ("partial", Some(change)) if !valid_partial_change(change) => {
             return Err(
-                "--partial-change must be KIND:PATH:SHA256 with a 64-digit lowercase digest"
-                    .to_string(),
+                "--partial-change must be KIND:PATH:SHA256 with a 64-digit lowercase digest".into(),
             );
         }
         ("cold" | "warm", Some(_)) => {
-            return Err("--partial-change is valid only for a partial sample".to_string());
+            return Err("--partial-change is valid only for a partial sample".into());
         }
         _ => {}
     }
     let node_class = required(node_class, "--node-class")?;
     let output = required(output, "--output")?;
     if command.is_empty() {
-        return Err("a command is required after --".to_string());
+        return Err("a command is required after --".into());
     }
     Ok(Args {
         pair_id,
@@ -268,7 +295,7 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> Result<Args
     })
 }
 
-fn parse_named_path(raw: &str, option: &str) -> Result<(String, PathBuf), String> {
+fn parse_named_path(raw: &str, option: &str) -> PerfResult<(String, PathBuf)> {
     let (name, path) = raw
         .split_once('=')
         .ok_or_else(|| format!("{option} must be NAME=PATH"))?;
@@ -278,9 +305,7 @@ fn parse_named_path(raw: &str, option: &str) -> Result<(String, PathBuf), String
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'))
         || path.is_empty()
     {
-        return Err(format!(
-            "{option} must be NAME=PATH with a portable non-empty name"
-        ));
+        return Err(format!("{option} must be NAME=PATH with a portable non-empty name").into());
     }
     Ok((name.to_string(), PathBuf::from(path)))
 }
@@ -300,11 +325,11 @@ fn valid_partial_change(value: &str) -> bool {
             .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 
-fn required<T>(value: Option<T>, name: &str) -> Result<T, String> {
-    value.ok_or_else(|| format!("missing required {name}"))
+fn required<T>(value: Option<T>, name: &str) -> PerfResult<T> {
+    Ok(value.ok_or_else(|| format!("missing required {name}"))?)
 }
 
-fn run(args: Args) -> Result<i32, String> {
+fn run(args: Args) -> PerfResult<i32> {
     let root =
         PathBuf::from(run_text(Path::new("."), "git", &["rev-parse", "--show-toplevel"])?.trim());
     let status = run_text(
@@ -315,7 +340,8 @@ fn run(args: Args) -> Result<i32, String> {
     if !status.trim().is_empty() {
         return Err(format!(
             "measurement requires a clean worktree so its source identity is exact:\n{status}"
-        ));
+        )
+        .into());
     }
 
     let git_head = run_text(&root, "git", &["rev-parse", "HEAD"])?;
@@ -331,6 +357,8 @@ fn run(args: Args) -> Result<i32, String> {
         let version = std::env::var("ImageVersion").ok();
         Some(version.map_or(os.clone(), |version| format!("{os}@{version}")))
     });
+    // GENERATED-READ-OK: this report-only performance audit hashes the materialized
+    // generated product for sample identity; it never contributes to the carrier.
     let generated_tree = root.join("generated");
     let generated_identity = generated_tree
         .is_dir()
@@ -454,7 +482,7 @@ fn run(args: Args) -> Result<i32, String> {
     Ok(exit_status.code().unwrap_or(1))
 }
 
-fn run_text(root: &Path, program: &str, args: &[&str]) -> Result<String, String> {
+fn run_text(root: &Path, program: &str, args: &[&str]) -> PerfResult<String> {
     let output = Command::new(program)
         .args(args)
         .current_dir(root)
@@ -464,13 +492,14 @@ fn run_text(root: &Path, program: &str, args: &[&str]) -> Result<String, String>
         return Err(format!(
             "{program} {args:?} failed: {}",
             String::from_utf8_lossy(&output.stderr).trim()
-        ));
+        )
+        .into());
     }
-    String::from_utf8(output.stdout)
-        .map_err(|error| format!("{program} output is not UTF-8: {error}"))
+    Ok(String::from_utf8(output.stdout)
+        .map_err(|error| format!("{program} output is not UTF-8: {error}"))?)
 }
 
-fn sha256_file(path: &Path) -> Result<String, String> {
+fn sha256_file(path: &Path) -> PerfResult<String> {
     use std::io::Read as _;
 
     let mut file = fs::File::open(path)
@@ -495,7 +524,7 @@ fn sha256_bytes(bytes: &[u8]) -> String {
     format!("{:x}", hash.finalize())
 }
 
-fn dependency_resolution_digest(root: &Path) -> Result<String, String> {
+fn dependency_resolution_digest(root: &Path) -> PerfResult<String> {
     let output = Command::new("cargo")
         .args(["metadata", "--locked", "--format-version", "1"])
         .current_dir(root)
@@ -505,7 +534,8 @@ fn dependency_resolution_digest(root: &Path) -> Result<String, String> {
         return Err(format!(
             "cargo metadata --locked failed: {}",
             String::from_utf8_lossy(&output.stderr).trim()
-        ));
+        )
+        .into());
     }
     let metadata: serde_json::Value = serde_json::from_slice(&output.stdout)
         .map_err(|error| format!("parse cargo metadata: {error}"))?;
@@ -543,11 +573,11 @@ fn dependency_resolution_digest(root: &Path) -> Result<String, String> {
 fn named_file_receipts(
     root: &Path,
     inputs: &[(String, PathBuf)],
-) -> Result<BTreeMap<String, serde_json::Value>, String> {
+) -> PerfResult<BTreeMap<String, serde_json::Value>> {
     let mut receipts = BTreeMap::new();
     for (name, path) in inputs {
         if receipts.contains_key(name) {
-            return Err(format!("duplicate identity receipt name {name:?}"));
+            return Err(format!("duplicate identity receipt name {name:?}").into());
         }
         let resolved = resolve(root, path);
         let file_bytes = fs::metadata(&resolved)
@@ -572,11 +602,11 @@ fn named_file_receipts(
 fn named_tree_receipts(
     root: &Path,
     inputs: &[(String, PathBuf)],
-) -> Result<BTreeMap<String, serde_json::Value>, String> {
+) -> PerfResult<BTreeMap<String, serde_json::Value>> {
     let mut receipts = BTreeMap::new();
     for (name, path) in inputs {
         if receipts.contains_key(name) {
-            return Err(format!("duplicate cache root name {name:?}"));
+            return Err(format!("duplicate cache root name {name:?}").into());
         }
         let resolved = resolve(root, path);
         let census = if resolved.exists() {
@@ -612,7 +642,7 @@ fn display_path(root: &Path, path: &Path) -> String {
         .to_string()
 }
 
-fn tree_census(root: &Path) -> Result<serde_json::Value, String> {
+fn tree_census(root: &Path) -> PerfResult<serde_json::Value> {
     let mut files = Vec::new();
     collect_tree_files(root, root, &mut files)?;
     files.sort_by(|left, right| left.0.cmp(&right.0));
@@ -643,7 +673,7 @@ fn collect_tree_files(
     root: &Path,
     current: &Path,
     files: &mut Vec<(String, PathBuf)>,
-) -> Result<(), String> {
+) -> PerfResult<()> {
     let mut entries = fs::read_dir(current)
         .map_err(|error| format!("read cache tree {}: {error}", current.display()))?
         .collect::<Result<Vec<_>, _>>()
@@ -655,10 +685,7 @@ fn collect_tree_files(
             .map_err(|error| format!("inspect {}: {error}", entry.path().display()))?;
         let path = entry.path();
         if file_type.is_symlink() {
-            return Err(format!(
-                "tree census refuses symbolic link {}",
-                path.display()
-            ));
+            return Err(format!("tree census refuses symbolic link {}", path.display()).into());
         }
         if file_type.is_dir() {
             collect_tree_files(root, &path, files)?;
@@ -722,7 +749,7 @@ fn exit_observation(status: ExitStatus) -> serde_json::Value {
     })
 }
 
-fn child_usage() -> Result<Usage, String> {
+fn child_usage() -> PerfResult<Usage> {
     let mut raw = std::mem::MaybeUninit::<libc::rusage>::zeroed();
     // SAFETY: raw points to writable storage for exactly one libc::rusage; the
     // kernel initializes it on success, checked by the return value before assume_init.
@@ -731,7 +758,8 @@ fn child_usage() -> Result<Usage, String> {
         return Err(format!(
             "getrusage(RUSAGE_CHILDREN): {}",
             std::io::Error::last_os_error()
-        ));
+        )
+        .into());
     }
     // SAFETY: a zero return from getrusage guarantees the output struct was initialized.
     let raw = unsafe { raw.assume_init() };
@@ -762,7 +790,7 @@ where
     u64::try_from(i128::from(value)).unwrap_or(0)
 }
 
-fn write_json_atomic(path: &Path, value: &serde_json::Value) -> Result<(), String> {
+fn write_json_atomic(path: &Path, value: &serde_json::Value) -> PerfResult<()> {
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
@@ -847,9 +875,12 @@ mod tests {
             .unwrap();
         args.drain(sync_option..=sync_option + 1);
         args.extend([OsString::from("--"), OsString::from("true")]);
-        assert_eq!(
-            parse_args_from(args).unwrap_err(),
-            "missing required --sync-cache-state"
+        let error = parse_args_from(args).unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("missing required --sync-cache-state"),
+            "{error}"
         );
     }
 

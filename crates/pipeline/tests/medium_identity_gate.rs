@@ -51,8 +51,9 @@ use ciborium::value::Value;
 use gmeow_pipeline::gmn_dialect::{self, ModelFacingReport, check_artifact_invariance};
 use gmeow_pipeline::medium::MEDIUM_REGISTRY_GRAPH;
 use gmeow_pipeline::medium::registry::{MediumRegistry, MediumSelection};
+use gmeow_pipeline::node::Stage;
 use gmeow_pipeline::stages::medium_dictionaries::frame_iri;
-use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
 use purrdf::gts::codec::{Codec, ZstdBlockInfo, decode_chain, zstd_block_layout};
 use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
 use purrdf::{RdfQuad, RdfTerm};
@@ -91,6 +92,9 @@ fn run_the_dag(root: &Path) -> BTreeMap<String, gmeow_pipeline::node::StageProdu
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(4);
     let mut ctx = RunContext::open(root, jobs).expect("run context");
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
+    let sink = gmeow_pipeline::stages::gts_sink::GtsSinkStage::new();
+    ctx.retain_carriers(sink.carrier_consumes().iter().cloned());
     run(&graph, &bound, &mut ctx)
         .expect("the production DAG runs end to end")
         .products
@@ -250,8 +254,10 @@ fn canonical_by_graph(bundle: &[u8]) -> BTreeMap<String, String> {
         .map(|(graph, quads)| {
             let frozen =
                 purrdf::flat_dataset_from_quads(&quads).expect("the graph's quad set freezes");
-            let canonical =
-                purrdf::canonical_flat_nquads(&frozen).expect("the graph canonicalizes");
+            // `frozen` is already the UNFOLDED flat statement-layer dataset. Calling
+            // `canonical_flat_nquads` here would flatten and freeze that same graph a
+            // second time before canonicalizing it.
+            let canonical = purrdf::canonicalize(&frozen).nquads;
             (graph, canonical)
         })
         .collect()
@@ -343,6 +349,12 @@ fn medium_identity_gate() {
         &MediumSelection::baseline_profile(),
     )
     .expect("the SAME carrier re-emits through the declared no-dictionary medium");
+    // Both emitted artifacts now own every byte the read-side proof needs. Release the
+    // production carrier frontier before either bundle is folded/canonicalized: keeping
+    // the snapshot + archive/dictionary products beside two independent read-side folds
+    // proves nothing about medium identity and multiplies the whole-carrier live set.
+    drop(carrier);
+    drop(products);
 
     assert!(dist.len() > 1024 && baseline.len() > 1024);
     // Both emissions still satisfy the universal frame profile: one zstd-rsyncable
@@ -382,6 +394,8 @@ fn medium_identity_gate() {
         !dist_dicts.is_empty(),
         "neither emission pins a dictionary — the dist arm is not dictionary-primed at all"
     );
+    drop(baseline_dicts);
+    drop(dist_dicts);
 
     let module = {
         let folded = purrdf::import_gts_events(&dist).expect("the primed bundle folds back");
@@ -393,6 +407,7 @@ fn medium_identity_gate() {
         "the baseline medium must be DECLARED — an undeclared counterfactual would be the \
          legacy no-dict mode wearing a name"
     );
+    drop(module);
 
     // ── (1) the decoded FOLD of both is byte-identical ──
     let dist_graphs = canonical_by_graph(&dist);
@@ -425,6 +440,9 @@ fn medium_identity_gate() {
          construction",
         dist_graphs.len() - 1
     );
+    drop(differing);
+    drop(baseline_graphs);
+    drop(dist_graphs);
 
     // …and the medium-registry difference is EXACTLY the envelope subgraph's medium
     // coordinates. Anything else moving there would be a claim that changed.

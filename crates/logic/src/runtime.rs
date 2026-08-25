@@ -430,6 +430,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "forward reasoning/coherence-certificate surface — pinned via forward_contract_hash, not backward dispatch",
     ),
     (
+        "bundle_import.rs",
+        "content-keyed GTS-to-indexed-dataset import cache for cross-process whole-bundle consumers — it preserves an external EDB input before any engine runs and no file in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it; cache bytes cannot change what dispatch_query decides",
+    ),
+    (
         "term_arena.rs",
         "re-export of the shared term arena's façade plus the math:-graph interning wrapper — the ARENA's own source is pinned in EXTERNAL_BACKWARD_SOURCE and the lowering it calls is pinned as physical/lower.rs; this file itself adds no decision logic and no file in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it",
     ),

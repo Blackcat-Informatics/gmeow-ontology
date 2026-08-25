@@ -40,3 +40,27 @@ msgstr "gmeow:stageImplFunctionality logic:characterizes gmeow:stageImpl ."
 msgctxt "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:stageImpl and nothing else. It is not a definition of gmeow:stageImpl (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:stageImpl 的一项完整性义务，别无其他。它不是 gmeow:stageImpl 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageCacheDisposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Stage Cache Disposition"
+msgstr "阶段缓存处置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StageCacheDisposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The CLOSED persistence disposition of one pipeline stage's output: gmeow:cachePersistentContribution admits an independently bounded contribution to the structural disk cache, while gmeow:cacheRecomputeAggregate rebuilds a large aggregate from its already-live upstream products. The distinction changes storage and hydration only; both paths execute the same semantic stage and every receipt and attach contract remains mandatory. It is not a performance observation, permission to skip a stage, or an alternate semantic profile."
+msgstr "一个流水线阶段输出的封闭持久化处置：gmeow:cachePersistentContribution 允许将独立有界的贡献写入结构化磁盘缓存，而 gmeow:cacheRecomputeAggregate 从仍在内存中的上游产品重建大型聚合。两者的区别只改变存储与载入；两条路径都执行同一语义阶段，且每个收据与附加契约仍为必需。它不是性能观测、跳过阶段的许可或替代语义配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCacheDisposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage cache disposition"
+msgstr "阶段缓存处置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stageCacheDisposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a gmeow:PipelineStage to exactly one cache disposition. The scheduler persists a content-addressed, receipt-bound stage product only for gmeow:cachePersistentContribution; it recomputes gmeow:cacheRecomputeAggregate from live upstream products because serializing and hydrating that aggregate duplicates the carrier. A cache miss always recomputes and never skips the selected stage. This relation is not a success status, duration measurement, or optionality switch."
+msgstr "将一个 gmeow:PipelineStage 关联到且仅关联到一种缓存处置。调度器只为 gmeow:cachePersistentContribution 持久化按内容寻址且绑定收据的阶段产品；对于 gmeow:cacheRecomputeAggregate，则从仍在内存中的上游产品重新计算，因为序列化并载入该聚合会复制载体。缓存未命中总会触发重新计算，绝不会跳过所选阶段。该关系不是成功状态、时长测量或可选性开关。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-verify-attestation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verify attestation"
+msgstr "验证证明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stage-verify-attestation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Evaluate the complete embedded native bad-example query battery as a dedicated downstream transform over the exact object-level EDB and gmeow:stage-reason's already-built typed ReasoningResult. It repeats only the shared transport-independent EDB canonicalization and constructs ZERO additional closures. Its bounded persistent contribution is graph/verify, a normalized generated/diagnostics/verify.json receipt carrying input, reasoning-contract, query-set, work-count, and zero-closure evidence, plus the diagnostics:nodes cache lane. Missing EDB producers or a missing/mistyped Reasoning handle hard-fail; a cache miss recomputes the complete selected battery, never a reduced fallback. It is not a second reasoner, a reduced verification profile, or permission to accept stale verification evidence."
+msgstr "把完整的内置原生反例查询组作为专用下游变换，在精确的对象级 EDB 与 gmeow:stage-reason 已构建的类型化 ReasoningResult 上执行。它只重复共享且与传输无关的 EDB 规范化，并构建零个额外闭包。其有界持久贡献是 graph/verify：规范化的 generated/diagnostics/verify.json 收据，其中携带输入、推理契约、查询集、工作计数与零闭包证据，以及 diagnostics:nodes 缓存通道。EDB 生产者缺失或 Reasoning 句柄缺失、类型错误都会硬性失败；缓存未命中会重新计算完整的所选查询组，绝不退化为缩减的替代路径。它不是第二个推理器、缩减的验证配置，也不是接受陈旧验证证据的许可。"

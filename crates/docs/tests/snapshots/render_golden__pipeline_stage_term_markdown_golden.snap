@@ -87,6 +87,7 @@ This term is a stage of the [build pipeline](../../pipeline/index.md) — a type
 - [`gmeow:stage-snapshot`](../stage-snapshot/index.md)
 - [`gmeow:stage-source-load`](../stage-source-load/index.md)
 - [`gmeow:stage-validate`](../stage-validate/index.md)
+- [`gmeow:stage-verify-attestation`](../stage-verify-attestation/index.md)
 
 ---
 

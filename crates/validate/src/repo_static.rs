@@ -3103,6 +3103,7 @@ const GMEOW_GTS_PRODUCER_DOORS: &[&str] = &[
     "compact_gmeow_gts",
     "dataset_to_gmeow_gts",
     "emit_gmeow_gts",
+    "emit_owned_gmeow_gts_with_medium",
     "emit_gmeow_gts_with_medium",
     "open_store_segment",
     "store_writer",

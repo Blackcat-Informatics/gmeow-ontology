@@ -274,6 +274,11 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             // carrier (R6): a budget-free, proof-carrying coherence artifact the consumer
             // read tool surfaces directly.
             "https://blackcatinformatics.ca/gmeow/graph/attestations",
+            // The code-authored termination-ladder worlds first enter the shipped carrier
+            // here, so repo-free reasoning reconstructs the exact producer EDB.
+            "https://blackcatinformatics.ca/gmeow/graph/demo/jointly-acyclic",
+            "https://blackcatinformatics.ca/gmeow/graph/demo/model-summarizing-acyclic",
+            "https://blackcatinformatics.ca/gmeow/graph/demo/super-weakly-acyclic",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/briefs/authoring-packets.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq",

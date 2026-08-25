@@ -556,6 +556,45 @@ pub fn check_dictionaries_pay_for_themselves(
 /// evidence is about something else.
 ///
 /// # Errors
+/// `MediumCorpusDrift` when this dictionary's recorded corpus identity is not the
+/// resolved one, or the committed table carries no row for it.
+pub fn check_corpus_digest(
+    baseline: &MediumBaseline,
+    id: &str,
+    live: &super::corpus::CorpusResolution,
+) -> Result<(), gmeow_errors::Diag> {
+    let row = baseline.row(id)?;
+    if row.corpus_digest == live.digest {
+        return Ok(());
+    }
+    Err(super::corpus_drift(format!(
+        "the committed sweep evidence describes a corpus this build did not resolve: {id}: the \
+         committed evidence was measured over corpus {} ({} training sample(s), {} held out) but \
+         this build resolved {} ({} training sample(s), {} held out). A \
+         gmeow:DictionaryCorpus is a SELECTOR re-resolved every build, so an archive that gained \
+         or lost a member moves the corpus while {MEDIUM_BASELINE_PATH} sits still — and every \
+         verdict read out of that table would then be about a sweep nobody re-ran. Re-run \
+         `make maint-medium-sweep`. Do NOT weaken this check: stale evidence is not weaker \
+         evidence, it is evidence about a different corpus",
+        if row.corpus_digest.is_empty() {
+            "<none recorded>"
+        } else {
+            row.corpus_digest.as_str()
+        },
+        row.corpus_sample_count,
+        row.held_out_sample_count,
+        live.digest,
+        live.training.len(),
+        live.held_out_count,
+    )))
+}
+
+/// Check every resolved corpus identity at once. Required-path training uses
+/// [`check_corpus_digest`] incrementally so each potentially large resolution can be
+/// released after its dictionary is trained; the sweep/test surface retains this
+/// aggregate form because it reports every drift in one diagnostic.
+///
+/// # Errors
 /// `MediumCorpusDrift` naming every dictionary whose recorded corpus identity is not
 /// the resolved one, or that has no resolved corpus at all.
 pub fn check_corpus_digests(
@@ -1169,7 +1208,7 @@ pub fn run_sweep(root: &Path) -> Result<MediumBaseline, gmeow_errors::Diag> {
         let resolved = corpora.get(&id).ok_or_else(|| {
             undeclared_dictionary(format!("dictionary {id:?} resolved to no training corpus"))
         })?;
-        let corpus: Vec<&[u8]> = resolved.training.iter().map(Vec::as_slice).collect();
+        let corpus: Vec<&[u8]> = resolved.training.iter().map(AsRef::as_ref).collect();
         let inputs = DictionarySweepInputs {
             id: &id,
             declared_strategy: def.strategy,
@@ -1401,7 +1440,9 @@ mod tests {
         let registry = registry();
         let baseline = baseline(&["gmeow-core-v1", "gmeow-terms-v1"]);
         let resolution = |id: &str| CorpusResolution {
-            training: [b"a sample".to_vec()].into_iter().collect(),
+            training: [std::sync::Arc::from(b"a sample".as_slice())]
+                .into_iter()
+                .collect(),
             held_out_count: 2,
             digest: super::super::blake3_digest(id.as_bytes()),
         };
@@ -1416,9 +1457,12 @@ mod tests {
         resolved.insert(
             "gmeow-core-v1".to_string(),
             CorpusResolution {
-                training: [b"a sample".to_vec(), b"a new archive member".to_vec()]
-                    .into_iter()
-                    .collect(),
+                training: [
+                    std::sync::Arc::from(b"a sample".as_slice()),
+                    std::sync::Arc::from(b"a new archive member".as_slice()),
+                ]
+                .into_iter()
+                .collect(),
                 held_out_count: 2,
                 digest: super::super::blake3_digest(b"gmeow-core-v1 plus one member"),
             },

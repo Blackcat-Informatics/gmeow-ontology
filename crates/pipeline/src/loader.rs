@@ -524,6 +524,35 @@ pub fn bind(
             ));
         }
 
+        // `carrier_consumes()` refines an existing logical dependency into a live
+        // carrier-lane read; it never creates a second edge. A duplicate or a producer
+        // absent from the RDF/Rust-agreed consumes set would make carrier release depend
+        // on an unauthored graph, so binding rejects it before scheduling.
+        let mut carrier_seen = std::collections::BTreeSet::new();
+        for producer in stage.carrier_consumes() {
+            if !carrier_seen.insert(producer.as_str()) {
+                return Err(gmeow_errors::Diag::of_kind(
+                    crate::error::InvalidDeclaration {
+                        message: format!(
+                            "stage {} declares duplicate carrier dependency {producer}",
+                            s.id
+                        ),
+                    },
+                ));
+            }
+            if rust.binary_search(producer).is_err() {
+                return Err(gmeow_errors::Diag::of_kind(
+                    crate::error::InvalidDeclaration {
+                        message: format!(
+                            "stage {} carrier dependency {producer} is not present in its \
+                             gmeow:dataflowConsumes set",
+                            s.id
+                        ),
+                    },
+                ));
+            }
+        }
+
         // Resource agreement (both sides sorted+deduped): the executable twin must
         // declare exactly the shared resources the RDF does, or the scheduler's
         // serialization would diverge from the authored model.
@@ -542,21 +571,27 @@ pub fn bind(
 
         if stage.stability() != s.stability {
             return Err(gmeow_errors::Diag::of_kind(
-                crate::error::StagePolicyMismatch {
-                    stage: s.id.clone(),
-                    property: "gmeow:stageStability".to_string(),
-                    rdf: s.stability.iri().to_string(),
-                    rust: stage.stability().iri().to_string(),
+                crate::error::InvalidDeclaration {
+                    message: format!(
+                        "stage {}: RDF gmeow:stageStability {} disagrees with the Rust \
+                         executable twin {}",
+                        s.id,
+                        s.stability.iri(),
+                        stage.stability().iri()
+                    ),
                 },
             ));
         }
         if stage.cache_policy() != s.cache_disposition {
             return Err(gmeow_errors::Diag::of_kind(
-                crate::error::StagePolicyMismatch {
-                    stage: s.id.clone(),
-                    property: "gmeow:stageCacheDisposition".to_string(),
-                    rdf: s.cache_disposition.iri().to_string(),
-                    rust: stage.cache_policy().iri().to_string(),
+                crate::error::InvalidDeclaration {
+                    message: format!(
+                        "stage {}: RDF gmeow:stageCacheDisposition {} disagrees with the Rust \
+                         executable twin {}",
+                        s.id,
+                        s.cache_disposition.iri(),
+                        stage.cache_policy().iri()
+                    ),
                 },
             ));
         }

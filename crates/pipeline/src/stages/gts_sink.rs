@@ -17,7 +17,7 @@
 use std::collections::BTreeMap;
 
 use crate::node::{SINK_CAPABILITY, Stage, StageInput, StageOutput, StageProduct};
-use crate::stages::carrier::SNAPSHOT_PATH;
+use crate::stages::carrier::{PASS_ONE_RECEIPT_PATH, SNAPSHOT_PATH};
 
 /// Committed logical path of the serialized GTS bundle.
 pub const GTS_PATH: &str = SNAPSHOT_PATH;
@@ -27,6 +27,7 @@ pub const GTS_PATH: &str = SNAPSHOT_PATH;
 /// The `gts_sink` pipeline stage — the single serialization exit.
 pub struct GtsSinkStage {
     consumes: Vec<String>,
+    carrier_consumes: Vec<String>,
     capabilities: Vec<String>,
 }
 
@@ -50,13 +51,13 @@ impl GtsSinkStage {
                 // sink after every archive-member producer transitively, so the
                 // JSON-Schema / Pydantic / generated-shape leaves need no direct edge.
                 "stage-archive-blobs".to_string(),
-                // THIS run's SEVEN trained zstd dictionaries and their
+                // THIS run's SIX trained zstd dictionaries and their
                 // gmeow:CompressionDictionaryRealization records. The terminal is the one
                 // point where the whole frame set exists, so it pins the dictionaries in
                 // the pack's in-band "dct" map and seals one gmeow:MediumEnvelope per
                 // frame it authors.
                 //
-                // Seven, not eight: there is no gmeow-math-v1. A dictionary primes a
+                // Six, not seven: there is no gmeow-math-v1. A dictionary primes a
                 // FRAME, and every math: named graph is unioned into the snapshot
                 // payload — one frame, already primed in full by gmeow-core-v1, and
                 // gmeow:payloadSchemaDictionary is maxQualifiedCardinality 1, so a second
@@ -117,6 +118,16 @@ impl GtsSinkStage {
                 // product.
                 "stage-export-projection-ceilings".to_string(),
             ],
+            // The terminal reads every dependency above, but only these three through
+            // carrier lanes. Every other edge contributes committed logical-artifact
+            // bytes to the opaque fanout; those bytes survive carrier release. Keeping
+            // the distinction explicit lets the scheduler release the multi-million-
+            // quad source/mappings/reason products before terminal serialization.
+            carrier_consumes: vec![
+                "stage-archive-blobs".to_string(),
+                "stage-medium-dictionaries".to_string(),
+                "stage-snapshot".to_string(),
+            ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }
     }
@@ -134,6 +145,9 @@ impl Stage for GtsSinkStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn carrier_consumes(&self) -> &[String] {
+        &self.carrier_consumes
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities
@@ -160,7 +174,21 @@ impl Stage for GtsSinkStage {
         // the snapshot builder before its one canonical encode. Emitted bytes stay
         // identical; peak memory no longer includes the builder plus two redundant
         // whole-payload serializations.
-        "gts_sink.v9-owned-single-encode"
+        // v10: declare the exact three carrier-lane inputs independently from the
+        // artifact-only dependency edges. Emitted bytes are unchanged; the scheduler
+        // may release every artifact-only producer's graph/handle/blob carrier at its
+        // true last reader instead of retaining it until this terminal runs.
+        // v11: build the flat RDFC stratum union directly from each source's native
+        // iterators, with one blank scope per source, then canonicalize that one frozen
+        // dataset. This removes two whole-stratum quad vectors and a redundant refreeze;
+        // emitted bytes and the standardize-apart contract are unchanged.
+        // v12: persist a keyed, selection-independent RDFC stratum receipt beside the
+        // terminal artifact. A counterfactual same-carrier emission reuses that exact
+        // digest instead of canonicalizing the multi-million-quad carrier twice.
+        // v13: extend that receipt to the pass-1 snapshot content identity too. Both
+        // canonical preimages are selection-independent; malformed or mismatched
+        // receipts hard-fail and emitted GTS bytes are unchanged.
+        "gts_sink.v13-pass-one-receipt-reuse"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
@@ -171,14 +199,18 @@ impl Stage for GtsSinkStage {
         // by-reference TAR archives are READ off the `stage-archive-blobs` product and
         // stapled alongside it, never re-folded here.
         let carrier = crate::stages::carrier::snapshot_dataset(input.upstream)?;
-        let gts = crate::stages::carrier::serialize_carrier_snapshot(
+        let serialized = crate::stages::carrier::serialize_carrier_snapshot_with_receipt(
             input.root,
             input.upstream,
             carrier.as_ref(),
             &crate::medium::registry::MediumSelection::Authored,
         )?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(GTS_PATH.to_string(), gts);
+        artifacts.insert(GTS_PATH.to_string(), serialized.bytes);
+        artifacts.insert(
+            PASS_ONE_RECEIPT_PATH.to_string(),
+            serialized.pass_one_receipt,
+        );
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
@@ -197,6 +229,36 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
+    }
+
+    #[test]
+    fn sink_declares_only_the_lanes_it_reads_as_carrier_inputs() {
+        let sink = GtsSinkStage::new();
+        assert_eq!(
+            sink.carrier_consumes(),
+            [
+                "stage-archive-blobs",
+                "stage-medium-dictionaries",
+                "stage-snapshot",
+            ]
+        );
+        for artifact_only in [
+            "stage-source-load",
+            "stage-compile-logic",
+            "stage-mappings",
+            "stage-reason",
+            "stage-validate",
+            "stage-verify-attestation",
+        ] {
+            assert!(
+                sink.consumes().iter().any(|id| id == artifact_only),
+                "{artifact_only} remains a declared DAG dependency"
+            );
+            assert!(
+                !sink.carrier_consumes().iter().any(|id| id == artifact_only),
+                "{artifact_only} supplies committed bytes, not a live carrier"
+            );
+        }
     }
 
     #[test]
@@ -541,13 +603,48 @@ mod tests {
         // exercises the thin `run()` wrapper around this call.
         let carrier =
             crate::stages::carrier::snapshot_dataset(&upstream).expect("snapshot carrier");
-        let emitted = crate::stages::carrier::serialize_carrier_snapshot(
+        let serialized = crate::stages::carrier::serialize_carrier_snapshot_with_receipt(
             &root,
             &upstream,
             carrier.as_ref(),
             &crate::medium::registry::MediumSelection::Authored,
         )
         .expect("sink serializes the carrier");
+        let receipt: serde_json::Value = serde_json::from_slice(&serialized.pass_one_receipt)
+            .expect("the sink's pass-one receipt is JSON");
+        assert_eq!(receipt["schema_version"], 1);
+        assert_eq!(
+            receipt["algorithm"], "gts-pass-one-canonical-identities-v1",
+            "the receipt pins the canonical identity algorithms it reuses"
+        );
+        assert!(
+            receipt["snapshot_content_digest"]
+                .as_str()
+                .is_some_and(crate::medium::is_canonical_digest),
+            "the receipt carries the pass-one snapshot content identity"
+        );
+        let emitted = serialized.bytes;
+        let mut sink_artifacts = BTreeMap::new();
+        sink_artifacts.insert(GTS_PATH.to_string(), emitted.clone());
+        sink_artifacts.insert(
+            PASS_ONE_RECEIPT_PATH.to_string(),
+            serialized.pass_one_receipt,
+        );
+        upstream.insert(
+            "stage-gts-sink".to_string(),
+            StageProduct::from_artifacts("stage-gts-sink", sink_artifacts),
+        );
+        let replay = crate::stages::carrier::serialize_carrier_snapshot(
+            &root,
+            &upstream,
+            carrier.as_ref(),
+            &crate::medium::registry::MediumSelection::Authored,
+        )
+        .expect("the same-input terminal receipt replays");
+        assert_eq!(
+            replay, emitted,
+            "reusing both pass-one identities must leave every emitted byte unchanged"
+        );
         assert!(
             emitted.len() > 1024,
             "GTS bundle implausibly small: {} bytes",

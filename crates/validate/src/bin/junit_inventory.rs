@@ -16,6 +16,33 @@ use sha2::{Digest, Sha256};
 
 const SCHEMA_VERSION: u32 = 1;
 
+#[derive(Debug)]
+struct InventoryError(gmeow_errors::Diag);
+
+impl std::fmt::Display for InventoryError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+
+impl std::error::Error for InventoryError {}
+
+impl From<String> for InventoryError {
+    fn from(detail: String) -> Self {
+        Self(gmeow_errors::Diag::of_kind(
+            gmeow_validate::error::Argument { detail },
+        ))
+    }
+}
+
+impl From<&str> for InventoryError {
+    fn from(detail: &str) -> Self {
+        detail.to_string().into()
+    }
+}
+
+type InventoryResult<T> = std::result::Result<T, InventoryError>;
+
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 struct Testcase {
     classname: String,
@@ -34,7 +61,7 @@ fn main() {
     }
 }
 
-fn parse_args() -> Result<(PathBuf, Vec<PathBuf>), String> {
+fn parse_args() -> InventoryResult<(PathBuf, Vec<PathBuf>)> {
     let mut args = std::env::args().skip(1);
     let mut output = None;
     let mut inputs = Vec::new();
@@ -44,19 +71,19 @@ fn parse_args() -> Result<(PathBuf, Vec<PathBuf>), String> {
                 args.next().ok_or("--output requires a path")?,
             ));
         } else if argument.starts_with('-') {
-            return Err(format!("unknown argument {argument:?}"));
+            return Err(format!("unknown argument {argument:?}").into());
         } else {
             inputs.push(PathBuf::from(argument));
         }
     }
     let output = output.ok_or("usage: junit_inventory --output <receipt.json> <junit.xml>...")?;
     if inputs.is_empty() {
-        return Err("at least one JUnit XML input is required".to_string());
+        return Err("at least one JUnit XML input is required".into());
     }
     Ok((output, inputs))
 }
 
-fn run(output: &Path, inputs: &[PathBuf]) -> Result<(), String> {
+fn run(output: &Path, inputs: &[PathBuf]) -> InventoryResult<()> {
     let mut testcases = Vec::new();
     let mut input_receipts = Vec::new();
     for input in inputs {
@@ -80,7 +107,8 @@ fn run(output: &Path, inputs: &[PathBuf]) -> Result<(), String> {
             return Err(format!(
                 "duplicate JUnit testcase identity: {}::{}",
                 testcase.classname, testcase.name
-            ));
+            )
+            .into());
         }
     }
 
@@ -131,7 +159,7 @@ fn run(output: &Path, inputs: &[PathBuf]) -> Result<(), String> {
     Ok(())
 }
 
-fn parse_junit(text: &str, path: &Path) -> Result<Vec<Testcase>, String> {
+fn parse_junit(text: &str, path: &Path) -> InventoryResult<Vec<Testcase>> {
     let document = roxmltree::Document::parse(text)
         .map_err(|error| format!("parse {} as JUnit XML: {error}", path.display()))?;
     let mut testcases = Vec::new();
@@ -165,21 +193,21 @@ fn parse_junit(text: &str, path: &Path) -> Result<Vec<Testcase>, String> {
         });
     }
     if testcases.is_empty() {
-        return Err(format!("{} contains no testcase elements", path.display()));
+        return Err(format!("{} contains no testcase elements", path.display()).into());
     }
     Ok(testcases)
 }
 
-fn parse_duration_micros(value: &str) -> Result<u64, String> {
+fn parse_duration_micros(value: &str) -> InventoryResult<u64> {
     let seconds = value
         .parse::<f64>()
         .map_err(|error| format!("invalid time {value:?}: {error}"))?;
     if !seconds.is_finite() || seconds.is_sign_negative() {
-        return Err(format!("invalid non-finite or negative time {value:?}"));
+        return Err(format!("invalid non-finite or negative time {value:?}").into());
     }
     let micros = seconds * 1_000_000.0;
     if micros > u64::MAX as f64 {
-        return Err(format!("time {value:?} is too large"));
+        return Err(format!("time {value:?} is too large").into());
     }
     Ok(micros.round() as u64)
 }
@@ -202,7 +230,7 @@ fn sha256(bytes: &[u8]) -> String {
     format!("{:x}", digest.finalize())
 }
 
-fn write_json_atomic(path: &Path, value: &serde_json::Value) -> Result<(), String> {
+fn write_json_atomic(path: &Path, value: &serde_json::Value) -> InventoryResult<()> {
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
@@ -234,7 +262,7 @@ fn write_json_atomic(path: &Path, value: &serde_json::Value) -> Result<(), Strin
     if write_result.is_err() {
         let _ = fs::remove_file(&temporary);
     }
-    write_result
+    Ok(write_result?)
 }
 
 #[cfg(test)]

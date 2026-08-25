@@ -147,8 +147,11 @@ serde.workspace = true
 # remains the deterministic human-readable cache index and several export formats.
 bincode = "1.3"
 serde_json.workspace = true
-# Report-only `perf_sample` binary: Unix child CPU/RSS/fault/block-I/O counters.
-# The pipeline library itself contains no libc calls.
+# Report-only `perf_sample` binary: Unix child CPU/RSS/fault/block-I/O counters; the
+# scheduler also uses glibc's thread-safe `malloc_trim` at declarative serialization-
+# resource handoffs and the sole-terminal level boundary to return already-freed cold-
+# wave pages before the next whole-carrier serialization. Non-glibc targets compile
+# that reclamation hint as a no-op.
 libc.workspace = true
 # YAML-LD-star emission: deterministic, anchor-free YAML from the JSON-LD-star lead.
 serde_yaml = "0.9"

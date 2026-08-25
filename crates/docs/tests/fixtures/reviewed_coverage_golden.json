@@ -4456,6 +4456,12 @@
     "https://blackcatinformatics.ca/gmeow/postInFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
   ],
   "slices/core/pipeline/i18n/fr.po": [
+    "https://blackcatinformatics.ca/gmeow/StageCacheDisposition|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/StageCacheDisposition|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/stage-verify-attestation|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/stage-verify-attestation|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/stageCacheDisposition|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/stageCacheDisposition|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#example",
@@ -4465,6 +4471,12 @@
     "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
   ],
   "slices/core/pipeline/i18n/zh.po": [
+    "https://blackcatinformatics.ca/gmeow/StageCacheDisposition|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/StageCacheDisposition|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/stage-verify-attestation|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/stage-verify-attestation|http://www.w3.org/2004/02/skos/core#definition",
+    "https://blackcatinformatics.ca/gmeow/stageCacheDisposition|http://www.w3.org/2000/01/rdf-schema#label",
+    "https://blackcatinformatics.ca/gmeow/stageCacheDisposition|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2000/01/rdf-schema#label",
     "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#definition",
     "https://blackcatinformatics.ca/gmeow/stageImplFunctionality|http://www.w3.org/2004/02/skos/core#example",

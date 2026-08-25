@@ -24,7 +24,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use gmeow_pipeline::node::StageProduct;
-use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
 
 #[path = "../../pipeline/tests/support/medium_tamper.rs"]
 mod tamper;
@@ -46,6 +46,7 @@ fn run_the_dag(root: &Path) -> BTreeMap<String, StageProduct> {
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(4);
     let mut ctx = RunContext::open(root, jobs).expect("run context");
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     run(&graph, &bound, &mut ctx)
         .expect("the production DAG runs end to end")
         .products

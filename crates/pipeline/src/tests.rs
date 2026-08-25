@@ -189,6 +189,7 @@ struct FakeStage {
     id: String,
     capabilities: Vec<String>,
     consumes: Vec<String>,
+    carrier_consumes: Option<Vec<String>>,
     resources: Vec<String>,
 }
 
@@ -198,6 +199,9 @@ impl Stage for FakeStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn carrier_consumes(&self) -> &[String] {
+        self.carrier_consumes.as_deref().unwrap_or(&self.consumes)
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities
@@ -221,6 +225,7 @@ fn fake(id: &str, consumes: &[&str]) -> Arc<dyn Stage> {
         id: id.to_string(),
         capabilities: capabilities_for(id),
         consumes: consumes.iter().map(|s| s.to_string()).collect(),
+        carrier_consumes: None,
         resources: resources_for(id),
     })
 }
@@ -300,6 +305,7 @@ fn bind_rejects_resource_disagreement() {
             id: "r".to_string(),
             capabilities: Vec::new(),
             consumes: vec!["source".to_string()],
+            carrier_consumes: None,
             resources: Vec::new(),
         }) as Arc<dyn Stage>,
     );
@@ -315,6 +321,68 @@ fn bind_rejects_resource_disagreement() {
             assert!(k.rust.is_empty());
         }
     }
+}
+
+#[test]
+fn bind_rejects_carrier_dependency_outside_logical_consumes() {
+    let s = diamond();
+    let g = s.validate().unwrap();
+    let mut reg = StageRegistry::new();
+    reg.register("impl:source".to_string(), fake("source", &[]));
+    reg.register(
+        "impl:a".to_string(),
+        Arc::new(FakeStage {
+            id: "a".to_string(),
+            capabilities: Vec::new(),
+            consumes: vec!["source".to_string()],
+            carrier_consumes: Some(vec!["b".to_string()]),
+            resources: Vec::new(),
+        }),
+    );
+    reg.register("impl:b".to_string(), fake("b", &["source"]));
+    reg.register("impl:sink".to_string(), fake("sink", &["a", "b"]));
+
+    let diag = match bind(&s, &g, &reg) {
+        Ok(_) => panic!("unowned carrier edge must fail binding"),
+        Err(diag) => diag,
+    };
+    assert!(diag.is::<crate::error::InvalidDeclaration>(), "{diag}");
+    assert!(
+        diag.to_string().contains(
+            "stage a carrier dependency b is not present in its gmeow:dataflowConsumes set"
+        ),
+        "{diag}"
+    );
+}
+
+#[test]
+fn live_product_and_authenticated_receipt_build_the_same_action_context() {
+    let dir = tempfile::tempdir().unwrap();
+    let consumer = fake("a", &["source"]);
+    let product = StageProduct::new("source", "source-product-digest");
+    let product_upstream =
+        std::collections::BTreeMap::from([("source".to_string(), product.clone())]);
+    let receipt = PipelineCache::receipt_only(
+        &StageKeyContext::new("source", "source-v1", Vec::new(), Vec::new()),
+        StageStability::StablePrefix.iri(),
+        CachePolicy::Persistent.iri(),
+        &ReceiptOutputSelection::default(),
+        &product,
+    )
+    .expect("source receipt");
+    let receipt_upstream = std::collections::BTreeMap::from([("source".to_string(), receipt)]);
+
+    let live =
+        crate::scheduler::action_key_context(consumer.as_ref(), dir.path(), &product_upstream)
+            .expect("live-product action context");
+    let receipt = crate::scheduler::action_key_context_from_receipts(
+        consumer.as_ref(),
+        dir.path(),
+        &receipt_upstream,
+    )
+    .expect("receipt action context");
+    assert_eq!(live, receipt);
+    assert_eq!(stage_key(&live), stage_key(&receipt));
 }
 
 #[test]
@@ -1448,6 +1516,7 @@ struct CarrierStage {
     empty: Vec<String>,
     capabilities: Vec<String>,
     consumes: Vec<String>,
+    carrier_consumes: Vec<String>,
     attaches: Vec<String>,
     watch: Arc<CarrierWatch>,
 }
@@ -1472,6 +1541,9 @@ impl Stage for CarrierStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn carrier_consumes(&self) -> &[String] {
+        &self.carrier_consumes
     }
     fn capabilities(&self) -> &[String] {
         &self.capabilities
@@ -1504,16 +1576,34 @@ impl Stage for CarrierStage {
                 .upstream
                 .get(dep)
                 .expect("declared upstream product is present");
-            assert!(
-                !up.carrier_released,
-                "stage {} read upstream {dep} whose carrier was already released",
-                self.id
-            );
-            assert_eq!(
-                up.dataset().owned_quads().count(),
-                1,
-                "upstream {dep} still carries its quad when its consumer runs"
-            );
+            if self.carrier_consumes.iter().any(|producer| producer == dep) {
+                assert!(
+                    !up.carrier_released,
+                    "stage {} read upstream {dep} whose carrier was already released",
+                    self.id
+                );
+                assert_eq!(
+                    up.dataset().owned_quads().count(),
+                    1,
+                    "upstream {dep} still carries its quad when its carrier consumer runs"
+                );
+            } else {
+                assert!(
+                    up.carrier_released,
+                    "stage {} expected artifact-only upstream {dep} to be released",
+                    self.id
+                );
+                assert_eq!(
+                    up.bundle().dataset().owned_quads().count(),
+                    0,
+                    "the released product's physical tombstone carries no dataset"
+                );
+                assert_eq!(
+                    up.artifact(&format!("generated/retention/{dep}.txt")),
+                    Some(dep.as_bytes()),
+                    "artifact-only upstream {dep} keeps its committed bytes"
+                );
+            }
         }
         let nq = watch_nquads(&self.id);
         let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)?;
@@ -1579,6 +1669,7 @@ fn retention_registry(spec: &PipelineSpec, watch: &Arc<CarrierWatch>) -> StageRe
                 empty: Vec::new(),
                 capabilities: s.capabilities.clone(),
                 consumes: s.consumes.clone(),
+                carrier_consumes: s.consumes.clone(),
                 attaches: s.attaches_graphs.clone(),
                 watch: Arc::clone(watch),
             }) as Arc<dyn Stage>,
@@ -1625,6 +1716,134 @@ fn last_consumer_level_is_total_over_consumed_stages_and_absent_for_outputs() {
         !levels.contains_key("late"),
         "a stage nothing consumes is a run OUTPUT and has no drop point"
     );
+}
+
+#[test]
+fn artifact_only_dependency_releases_at_the_producers_own_level() {
+    let chain = retention_chain();
+    let source = chain
+        .stages
+        .iter()
+        .find(|stage| stage.id == "source")
+        .unwrap()
+        .clone();
+    let mut late = chain
+        .stages
+        .iter()
+        .find(|stage| stage.id == "late")
+        .unwrap()
+        .clone();
+    late.consumes = vec!["source".to_string()];
+    let spec = PipelineSpec {
+        id: "artifact-only-retention".to_string(),
+        stages: vec![source, late],
+    };
+    let graph = spec.validate().expect("artifact-only graph validates");
+    let watch = Arc::new(CarrierWatch::default());
+    let mut registry = StageRegistry::new();
+    for stage in &spec.stages {
+        registry.register(
+            stage.impl_key.clone(),
+            Arc::new(CarrierStage {
+                id: stage.id.clone(),
+                empty: Vec::new(),
+                capabilities: stage.capabilities.clone(),
+                consumes: stage.consumes.clone(),
+                carrier_consumes: Vec::new(),
+                attaches: stage.attaches_graphs.clone(),
+                watch: Arc::clone(&watch),
+            }),
+        );
+    }
+    let bound = bind(&spec, &graph, &registry).expect("artifact-only graph binds");
+    let by_id: std::collections::BTreeMap<&str, &Arc<dyn Stage>> =
+        bound.iter().map(|stage| (stage.id(), stage)).collect();
+    assert_eq!(
+        crate::scheduler::last_consumer_levels(&graph, &by_id),
+        std::collections::BTreeMap::from([("source".to_string(), 0)]),
+        "an artifact-only dependency can drop after its own production level"
+    );
+
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open_uncached(dir.path(), 2);
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    let result = run(&graph, &bound, &mut ctx).expect("artifact-only graph runs");
+    assert!(result.products["source"].carrier_released);
+    assert_eq!(
+        watch
+            .observed
+            .lock()
+            .unwrap()
+            .get("late")
+            .cloned()
+            .unwrap_or_default(),
+        std::collections::BTreeSet::new(),
+        "the source carrier is already gone when its artifact-only consumer runs"
+    );
+}
+
+#[test]
+fn explicit_keep_set_preserves_only_the_named_intermediate_carrier() {
+    let dir = tempfile::tempdir().unwrap();
+    let spec = retention_chain();
+    let graph = spec.validate().expect("retention chain validates");
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).expect("binds");
+    let mut ctx = RunContext::open_uncached(dir.path(), 4);
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    ctx.retain_carriers(["source"]);
+
+    let result = run(&graph, &bound, &mut ctx).expect("retained-carrier run succeeds");
+    assert!(!result.products["source"].carrier_released);
+    assert!(result.products["a"].carrier_released);
+    assert!(result.products["b"].carrier_released);
+    assert!(!result.products["late"].carrier_released);
+}
+
+#[test]
+fn unknown_retained_carrier_hard_fails_before_execution() {
+    let dir = tempfile::tempdir().unwrap();
+    let spec = retention_chain();
+    let graph = spec.validate().expect("retention chain validates");
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).expect("binds");
+    let mut ctx = RunContext::open_uncached(dir.path(), 4);
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    ctx.retain_carriers(["stage-typo"]);
+
+    let diag = run(&graph, &bound, &mut ctx).expect_err("unknown keep-set id must fail");
+    assert!(
+        diag.to_string()
+            .contains("retained carrier `stage-typo` does not name an executed production stage"),
+        "{diag}"
+    );
+    assert!(watch.published.lock().unwrap().is_empty());
+}
+
+#[test]
+fn skipped_retained_carrier_hard_fails_before_partial_dag_execution() {
+    let dir = tempfile::tempdir().unwrap();
+    let spec = retention_chain();
+    let graph = spec.validate().expect("retention chain validates");
+    let watch = Arc::new(CarrierWatch::default());
+    let bound = bind(&spec, &graph, &retention_registry(&spec, &watch)).expect("binds");
+    let mut ctx = RunContext::open_uncached(dir.path(), 4);
+    ctx.carrier_retention = crate::scheduler::CarrierRetention::DropAfterLastConsumer;
+    ctx.retain_carriers(["late"]);
+
+    let diag = crate::scheduler::run_targets(
+        &graph,
+        &bound,
+        &mut ctx,
+        &std::collections::BTreeSet::from(["source".to_string()]),
+    )
+    .expect_err("a keep-set stage outside the selected closure must fail");
+    assert!(
+        diag.to_string()
+            .contains("retained carrier `late` does not name an executed production stage"),
+        "{diag}"
+    );
+    assert!(watch.published.lock().unwrap().is_empty());
 }
 
 #[test]
@@ -1676,9 +1895,9 @@ fn carrier_retention_is_bounded_by_the_live_frontier() {
     for id in ["source", "a", "b"] {
         let product = &result.products[id];
         assert_eq!(
-            product.dataset().owned_quads().count(),
+            product.bundle().dataset().owned_quads().count(),
             0,
-            "{id}: the frozen dataset is released"
+            "{id}: the released product's physical tombstone has no frozen dataset"
         );
         assert!(
             product.artifact(&format!("pipeline/{id}.nq")).is_none(),

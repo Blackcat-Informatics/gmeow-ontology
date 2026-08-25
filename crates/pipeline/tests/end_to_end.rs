@@ -326,6 +326,8 @@ fn executor_runs_the_spine_end_to_end() {
     let cache_dir = tempfile::tempdir().unwrap();
     let mut ctx = RunContext::open(&root, 4).expect("ctx");
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
+    ctx.carrier_retention = gmeow_pipeline::CarrierRetention::DropAfterLastConsumer;
+    ctx.retain_carriers(["stage-snapshot"]);
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
     assert_eq!(result.products.len(), 22);

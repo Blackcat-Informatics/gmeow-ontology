@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Worked example — a minimal three-stage pipeline showing the spine shape the
+# Worked example — a minimal four-stage pipeline showing the spine shape the
 # gmeow-pipeline loader validates: an authored-source load (holding
 # gmeow:sourceOrigin), a reasoning stage (which requires the exclusive
 # gmeow:engineResource), and the single serialization exit (holding
@@ -12,6 +12,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/pipeline/> .
 
 # A gmeow:Pipeline IS a logic:Plan, so it carries the plan's success criterion: a
@@ -23,7 +24,7 @@ ex:minimalBuild a gmeow:Pipeline ;
     logic:planGoal ex:goalMinimalBundle ;
     logic:planSuccessMode logic:StrongPlanSuccess ;
     logic:executedUnderContract logic:DagWorkflowContract ;
-    gmeow:hasStage ex:load , ex:reason , ex:sink .
+    gmeow:hasStage ex:load , ex:reason , ex:verify , ex:sink .
 
 # Each stage IS a logic:ActionSchema, so it carries the two REQUIRED action-theory
 # facets: logic:precondition (the situation gate — its inputs are available) and
@@ -46,6 +47,21 @@ ex:reason a gmeow:PipelineStage ;
     gmeow:dataflowConsumes ex:load ;
     gmeow:requiresResource gmeow:engineResource .
 
+# The verifier consumes the already-built reason result. Its rdfs:seeAlso coat makes
+# the cache-policy class, property, and production stage discoverable from this worked
+# instance without pretending those vocabulary terms are additional pipeline members.
+ex:verify a gmeow:PipelineStage ;
+    rdfs:seeAlso
+        gmeow:StageCacheDisposition ,
+        gmeow:stageCacheDisposition ,
+        gmeow:stage-verify-attestation ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
+    gmeow:stageImpl "verify_attestation" ;
+    gmeow:dataflowConsumes ex:reason .
+
 ex:sink a gmeow:PipelineStage ;
     gmeow:hasCapability gmeow:sinkCapability ;
     logic:precondition gmeow:stageInputsAvailable ;
@@ -53,5 +69,5 @@ ex:sink a gmeow:PipelineStage ;
     gmeow:stageStability gmeow:stabilityStablePrefix ;
     gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:stageImpl "gts_sink" ;
-    gmeow:dataflowConsumes ex:reason ;
+    gmeow:dataflowConsumes ex:verify ;
     gmeow:producesFormat "gts" .

@@ -15,6 +15,33 @@ use std::path::{Path, PathBuf};
 const SCHEMA_VERSION: u32 = 1;
 
 #[derive(Debug)]
+struct PerfError(gmeow_errors::Diag);
+
+impl std::fmt::Display for PerfError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+
+impl std::error::Error for PerfError {}
+
+impl From<String> for PerfError {
+    fn from(message: String) -> Self {
+        Self(gmeow_errors::Diag::of_kind(
+            gmeow_pipeline::error::Transform { message },
+        ))
+    }
+}
+
+impl From<&str> for PerfError {
+    fn from(message: &str) -> Self {
+        message.to_string().into()
+    }
+}
+
+type PerfResult<T> = std::result::Result<T, PerfError>;
+
+#[derive(Debug)]
 struct Args {
     slow_node_class: String,
     comparison_node_class: String,
@@ -60,7 +87,7 @@ fn main() {
     }
 }
 
-fn parse_args() -> Result<Args, String> {
+fn parse_args() -> PerfResult<Args> {
     let mut slow_node_class = None;
     let mut comparison_node_class = None;
     let mut headline_cache_state = "cold".to_string();
@@ -127,30 +154,30 @@ fn parse_args() -> Result<Args, String> {
             )?),
             "--output" => output = Some(PathBuf::from(value(&mut args, "--output")?)),
             _ if argument.starts_with('-') => {
-                return Err(format!("unknown argument {argument:?}"));
+                return Err(format!("unknown argument {argument:?}").into());
             }
             _ => samples.push(PathBuf::from(argument)),
         }
     }
     if !(3..=5).contains(&min_pairs) {
-        return Err("--min-pairs must be between 3 and 5".to_string());
+        return Err("--min-pairs must be between 3 and 5".into());
     }
     if required_cache_states.is_empty() || !required_cache_states.contains(&headline_cache_state) {
-        return Err("required cache states must include the headline cache state".to_string());
+        return Err("required cache states must include the headline cache state".into());
     }
     if semantic_identities.is_empty() {
-        return Err("at least one --semantic-identity NAME=/json/pointer is required".to_string());
+        return Err("at least one --semantic-identity NAME=/json/pointer is required".into());
     }
     if work_counters.is_empty() {
-        return Err("at least one --work-counter NAME=/json/pointer is required".to_string());
+        return Err("at least one --work-counter NAME=/json/pointer is required".into());
     }
     if samples.is_empty() {
-        return Err("at least one sample JSON path is required".to_string());
+        return Err("at least one sample JSON path is required".into());
     }
     let slow_node_class = slow_node_class.ok_or("missing --slow-node-class")?;
     let comparison_node_class = comparison_node_class.ok_or("missing --comparison-node-class")?;
     if slow_node_class == comparison_node_class {
-        return Err("slow and comparison node classes must be distinct".to_string());
+        return Err("slow and comparison node classes must be distinct".into());
     }
     Ok(Args {
         slow_node_class,
@@ -167,17 +194,17 @@ fn parse_args() -> Result<Args, String> {
     })
 }
 
-fn parse_named_pointer(raw: &str, option: &str) -> Result<(String, String), String> {
+fn parse_named_pointer(raw: &str, option: &str) -> PerfResult<(String, String)> {
     let (name, pointer) = raw
         .split_once('=')
         .ok_or_else(|| format!("{option} must be NAME=/json/pointer"))?;
     if name.is_empty() || !pointer.starts_with('/') {
-        return Err(format!("{option} must be NAME=/json/pointer"));
+        return Err(format!("{option} must be NAME=/json/pointer").into());
     }
     Ok((name.to_string(), pointer.to_string()))
 }
 
-fn run(args: Args) -> Result<bool, String> {
+fn run(args: Args) -> PerfResult<bool> {
     let mut slots: BTreeMap<(String, String, String, u64), BTreeMap<String, Sample>> =
         BTreeMap::new();
     for path in &args.samples {
@@ -197,7 +224,8 @@ fn run(args: Args) -> Result<bool, String> {
             return Err(format!(
                 "duplicate variant in paired sample slot: {}",
                 path.display()
-            ));
+            )
+            .into());
         }
     }
 
@@ -210,7 +238,8 @@ fn run(args: Args) -> Result<bool, String> {
             return Err(format!(
                 "incomplete pair node={} cache={} pair={} index={}",
                 key.0, key.1, key.2, key.3
-            ));
+            )
+            .into());
         }
         let pair = Pair {
             baseline: variants.remove("baseline").expect("checked"),
@@ -233,7 +262,8 @@ fn run(args: Args) -> Result<bool, String> {
                     "node={node} cache={cache} has {} pairs; at least {} are required",
                     pairs.len(),
                     args.min_pairs
-                ));
+                )
+                .into());
             }
             let baseline_median = median(pairs.iter().map(|pair| pair.baseline.wall_ms).collect());
             let candidate_median =
@@ -344,7 +374,7 @@ fn run(args: Args) -> Result<bool, String> {
     Ok(accepted)
 }
 
-fn read_sample(path: &Path, counters: &[(String, String)]) -> Result<Sample, String> {
+fn read_sample(path: &Path, counters: &[(String, String)]) -> PerfResult<Sample> {
     let bytes = fs::read(path).map_err(|error| format!("read {}: {error}", path.display()))?;
     let value: serde_json::Value = serde_json::from_slice(&bytes)
         .map_err(|error| format!("parse {}: {error}", path.display()))?;
@@ -357,17 +387,14 @@ fn read_sample(path: &Path, counters: &[(String, String)]) -> Result<Sample, Str
             .and_then(serde_json::Value::as_str)
             != Some("perf-sample")
     {
-        return Err(format!(
-            "{} is not a perf-sample schema v2 document",
-            path.display()
-        ));
+        return Err(format!("{} is not a perf-sample schema v2 document", path.display()).into());
     }
     if value
         .pointer("/observations/exit/success")
         .and_then(serde_json::Value::as_bool)
         != Some(true)
     {
-        return Err(format!("{} measured a failed command", path.display()));
+        return Err(format!("{} measured a failed command", path.display()).into());
     }
     let mut work = BTreeMap::new();
     for (name, pointer) in counters {
@@ -377,12 +404,12 @@ fn read_sample(path: &Path, counters: &[(String, String)]) -> Result<Sample, Str
                 .map_err(|error| format!("{} work counter {name}: {error}", path.display()))?,
         );
     }
-    let text = |pointer: &str| -> Result<String, String> {
-        value
+    let text = |pointer: &str| -> PerfResult<String> {
+        Ok(value
             .pointer(pointer)
             .and_then(serde_json::Value::as_str)
             .map(ToString::to_string)
-            .ok_or_else(|| format!("{} lacks string {pointer}", path.display()))
+            .ok_or_else(|| format!("{} lacks string {pointer}", path.display()))?)
     };
     let (pair_id, variant, node_class, cache_state) = (
         text("/sample_identity/pair_id")?,
@@ -396,7 +423,7 @@ fn read_sample(path: &Path, counters: &[(String, String)]) -> Result<Sample, Str
         .ok_or_else(|| format!("{} lacks sample index", path.display()))?;
     let wall_ms = number(&value, "/observations/wall_ms")?;
     if wall_ms == 0.0 {
-        return Err(format!("{} records a zero wall time", path.display()));
+        return Err(format!("{} records a zero wall time", path.display()).into());
     }
     Ok(Sample {
         path: path.to_path_buf(),
@@ -411,7 +438,7 @@ fn read_sample(path: &Path, counters: &[(String, String)]) -> Result<Sample, Str
     })
 }
 
-fn verify_pair(pair: &Pair, semantic: &[(String, String)]) -> Result<(), String> {
+fn verify_pair(pair: &Pair, semantic: &[(String, String)]) -> PerfResult<()> {
     for pointer in [
         "/sample_identity/cache_classes",
         "/sample_identity/partial_change",
@@ -431,7 +458,7 @@ fn verify_pair(pair: &Pair, semantic: &[(String, String)]) -> Result<(), String>
     Ok(())
 }
 
-fn equal_pointer(pair: &Pair, pointer: &str, label: &str) -> Result<(), String> {
+fn equal_pointer(pair: &Pair, pointer: &str, label: &str) -> PerfResult<()> {
     let baseline = pair.baseline.value.pointer(pointer).ok_or_else(|| {
         format!(
             "{} lacks paired identity {label}",
@@ -449,7 +476,8 @@ fn equal_pointer(pair: &Pair, pointer: &str, label: &str) -> Result<(), String> 
             "paired identity {label} differs between {} and {}",
             pair.baseline.path.display(),
             pair.candidate.path.display()
-        ));
+        )
+        .into());
     }
     Ok(())
 }
@@ -476,19 +504,19 @@ fn summary<'a>(
     summaries: &'a [serde_json::Value],
     node: &str,
     cache: &str,
-) -> Result<&'a serde_json::Value, String> {
-    summaries
+) -> PerfResult<&'a serde_json::Value> {
+    Ok(summaries
         .iter()
         .find(|summary| summary["node_class"] == node && summary["cache_state"] == cache)
-        .ok_or_else(|| format!("missing summary node={node} cache={cache}"))
+        .ok_or_else(|| format!("missing summary node={node} cache={cache}"))?)
 }
 
-fn number(value: &serde_json::Value, pointer: &str) -> Result<f64, String> {
-    value
+fn number(value: &serde_json::Value, pointer: &str) -> PerfResult<f64> {
+    Ok(value
         .pointer(pointer)
         .and_then(serde_json::Value::as_f64)
         .filter(|number| number.is_finite() && !number.is_sign_negative())
-        .ok_or_else(|| format!("{pointer} is not a finite non-negative number"))
+        .ok_or_else(|| format!("{pointer} is not a finite non-negative number"))?)
 }
 
 fn median(mut values: Vec<f64>) -> f64 {
@@ -501,7 +529,7 @@ fn median(mut values: Vec<f64>) -> f64 {
     }
 }
 
-fn write_json_atomic(path: &Path, value: &serde_json::Value) -> Result<(), String> {
+fn write_json_atomic(path: &Path, value: &serde_json::Value) -> PerfResult<()> {
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())

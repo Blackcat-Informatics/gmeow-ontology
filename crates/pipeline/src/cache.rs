@@ -544,6 +544,19 @@ pub struct CacheHit {
     pub hydrated_bytes: u64,
 }
 
+/// A verified selective cache hit containing only committed logical artifacts.
+///
+/// The enclosing product blob and immutable receipt are authenticated exactly as for
+/// [`CacheHit`], but the packed RDF dataset and typed handles are never reconstructed.
+/// This is for artifact-only consumers such as golden/parity tests; it is not a second
+/// cache namespace or producer.
+#[derive(Debug)]
+pub struct ArtifactCacheHit {
+    pub artifacts: BTreeMap<String, Vec<u8>>,
+    pub receipt: StageReceipt,
+    pub transferred_bytes: u64,
+}
+
 /// The stable arm tag for a [`PipelineHandle`] variant (persisted with each handle).
 fn handle_arm_tag(handle: &PipelineHandle) -> &'static str {
     match handle {
@@ -1124,6 +1137,92 @@ impl CachedBundle {
         product.digest = self.digest;
         Ok(product)
     }
+
+    /// Extract and authenticate the committed artifact lane without restoring the
+    /// packed dataset or rebuilding any typed handle.
+    fn verified_artifacts(
+        &self,
+        receipt: &StageReceipt,
+    ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+        let mut references: BTreeMap<&str, &str> = BTreeMap::new();
+        for resource in &self.lookaside.resources {
+            let (Some(name), Some(digest)) =
+                (resource.name.as_deref(), resource.content_digest.as_deref())
+            else {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!(
+                        "cache: stage {} logical artifact resource lacks name or digest",
+                        self.stage_id
+                    ),
+                }));
+            };
+            if references.insert(name, digest).is_some() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!(
+                        "cache: stage {} carries duplicate logical artifact {name:?}",
+                        self.stage_id
+                    ),
+                }));
+            }
+        }
+
+        let expected_names: BTreeSet<&str> = receipt
+            .logical_artifacts
+            .iter()
+            .map(|entity| entity.identity.as_str())
+            .collect();
+        if expected_names.len() != receipt.logical_artifacts.len() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "cache: stage {} receipt carries duplicate logical-artifact identities",
+                    self.stage_id
+                ),
+            }));
+        }
+        let actual_names: BTreeSet<&str> = references.keys().copied().collect();
+        if actual_names != expected_names {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: format!("logical artifacts {expected_names:?}"),
+                actual: format!("logical artifacts {actual_names:?}"),
+            }));
+        }
+
+        let mut artifacts = BTreeMap::new();
+        for entity in &receipt.logical_artifacts {
+            if entity.structural_count != 1 {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    expected: format!("{} structural-count=1", entity.identity),
+                    actual: format!(
+                        "{} structural-count={}",
+                        entity.identity, entity.structural_count
+                    ),
+                }));
+            }
+            let referenced_digest = references[entity.identity.as_str()];
+            if referenced_digest != entity.digest {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    expected: format!("{}:{}", entity.identity, entity.digest),
+                    actual: format!("{}:{referenced_digest}", entity.identity),
+                }));
+            }
+            let bytes = self.blobs.get(referenced_digest).ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    expected: referenced_digest.to_string(),
+                    actual: format!("<missing artifact blob for {}>", entity.identity),
+                })
+            })?;
+            let actual_digest = ContentDigest::of(bytes).to_hex();
+            let actual_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
+            if actual_digest != entity.digest || actual_bytes != entity.decoded_bytes {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    expected: format!("{}:{}", entity.digest, entity.decoded_bytes),
+                    actual: format!("{actual_digest}:{actual_bytes}"),
+                }));
+            }
+            artifacts.insert(entity.identity.clone(), bytes.clone());
+        }
+        Ok(artifacts)
+    }
 }
 
 /// The pipeline bundle alias the cache reconstitutes (`PipelineBundle<PipelineHandle>`).
@@ -1339,6 +1438,134 @@ impl PipelineCache {
         }))
     }
 
+    /// Authenticate a current receipt and its referenced product blob without
+    /// deserializing or reconstructing the product.
+    ///
+    /// This supplies action identities for a receipt-only dependency walk. A missing
+    /// receipt is an ordinary cache miss; a present but missing/corrupt blob hard-fails.
+    pub fn inspect_receipt(
+        &self,
+        context: &StageKeyContext,
+    ) -> Result<Option<StageReceipt>, gmeow_errors::Diag> {
+        let key = stage_key(context);
+        let _store = self.lock_store(false)?;
+        let _action = self.lock_action(&key, false)?;
+        let receipt_path = self.receipt_path(&key);
+        if !receipt_path.exists() {
+            return Ok(None);
+        }
+        let receipt = self.read_receipt(&receipt_path)?;
+        if receipt.action_key != key || receipt.context != *context {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: key,
+                actual: receipt.action_key,
+            }));
+        }
+        let digest = receipt.product_blob_digest.as_deref().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "persistent receipt {} carries no product blob digest",
+                    receipt.action_key
+                ),
+            })
+        })?;
+        let blob_path = self.dir.join("blobs").join(digest);
+        if !blob_path.exists() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: digest.to_string(),
+                actual: "<missing blob>".to_string(),
+            }));
+        }
+        self.verify_blob(digest, receipt.product_blob_bytes)?;
+        Ok(Some(receipt))
+    }
+
+    /// Load only the committed logical-artifact lane from a verified product blob.
+    ///
+    /// The complete bincode manifest is authenticated and decoded, but its packed RDF
+    /// image is never passed to `restore_pack`; no dataset indexes or typed handles are
+    /// constructed. Every selected path, digest, byte count, and structural count is
+    /// checked against the immutable production receipt before bytes are returned.
+    pub fn get_artifacts(
+        &self,
+        context: &StageKeyContext,
+    ) -> Result<Option<ArtifactCacheHit>, gmeow_errors::Diag> {
+        let key = stage_key(context);
+        let _store = self.lock_store(false)?;
+        let _action = self.lock_action(&key, false)?;
+        let receipt_path = self.receipt_path(&key);
+        if !receipt_path.exists() {
+            return Ok(None);
+        }
+        let receipt = self.read_receipt(&receipt_path)?;
+        if receipt.action_key != key || receipt.context != *context {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: key,
+                actual: receipt.action_key,
+            }));
+        }
+        let digest = receipt.product_blob_digest.as_ref().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "persistent receipt {} carries no product blob digest",
+                    receipt.action_key
+                ),
+            })
+        })?;
+        let blob_path = self.dir.join("blobs").join(digest);
+        if !blob_path.exists() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: digest.clone(),
+                actual: "<missing blob>".to_string(),
+            }));
+        }
+        if receipt.product_blob_bytes > MAX_ENTRY_BYTES
+            || receipt.product_blob_bytes > self.max_bytes
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "cached bundle declares {} bytes, above its configured byte quota \
+                     (store={}, entry-ceiling={MAX_ENTRY_BYTES})",
+                    receipt.product_blob_bytes, self.max_bytes
+                ),
+            }));
+        }
+        let bytes = read_bounded(&blob_path, MAX_ENTRY_BYTES, "pipeline cache product blob")?;
+        let actual_digest = ContentDigest::of(&bytes).to_hex();
+        let transferred_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
+        if actual_digest != *digest || transferred_bytes != receipt.product_blob_bytes {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: format!("{digest}:{}", receipt.product_blob_bytes),
+                actual: format!("{actual_digest}:{transferred_bytes}"),
+            }));
+        }
+        let cached: CachedBundle = bincode::deserialize(&bytes).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("corrupt cached bundle: {error}"),
+            })
+        })?;
+        if cached.version != CACHE_VERSION {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "cached bundle version {} != expected {CACHE_VERSION}",
+                    cached.version
+                ),
+            }));
+        }
+        if cached.stage_id != context.stage_id || cached.digest != receipt.product_digest {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                expected: format!("{}:{}", context.stage_id, receipt.product_digest),
+                actual: format!("{}:{}", cached.stage_id, cached.digest),
+            }));
+        }
+        let artifacts = cached.verified_artifacts(&receipt)?;
+        Ok(Some(ArtifactCacheHit {
+            artifacts,
+            receipt,
+            transferred_bytes,
+        }))
+    }
+
     /// Store a stage product under its typed action context and publish its immutable
     /// receipt. Same-key writers must produce the same receipt; otherwise the action
     /// is nondeterministic and publication hard-fails.
@@ -1545,9 +1772,8 @@ impl PipelineCache {
                 ),
             }));
         }
-        let bytes = read_bounded(&path, MAX_ENTRY_BYTES, "pipeline cache product blob")?;
-        let actual = ContentDigest::of(&bytes).to_hex();
-        let actual_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
+        let (actual, actual_bytes) =
+            digest_bounded(&path, MAX_ENTRY_BYTES, "pipeline cache product blob")?;
         if actual != digest || actual_bytes != expected_bytes {
             return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
                 expected: format!("{digest}:{expected_bytes}"),
@@ -1817,6 +2043,44 @@ fn read_bounded(path: &Path, max_bytes: u64, lane: &str) -> Result<Vec<u8>, gmeo
         }));
     }
     Ok(bytes)
+}
+
+/// Stream-authenticate a bounded cache object without allocating its payload.
+fn digest_bounded(
+    path: &Path,
+    max_bytes: u64,
+    lane: &str,
+) -> Result<(String, u64), gmeow_errors::Diag> {
+    let metadata = fs::metadata(path)?;
+    if !metadata.is_file() || metadata.len() > max_bytes {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+            message: format!(
+                "{lane} {} is not a regular file within the {max_bytes}-byte bound",
+                path.display()
+            ),
+        }));
+    }
+    let mut reader = File::open(path)?.take(max_bytes.saturating_add(1));
+    let mut hasher = Sha256::new();
+    let mut total = 0_u64;
+    let mut buffer = [0_u8; 1024 * 1024];
+    loop {
+        let read = reader.read(&mut buffer)?;
+        if read == 0 {
+            break;
+        }
+        total = total.saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
+        if total > max_bytes {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "{lane} {} grew beyond the {max_bytes}-byte bound while being read",
+                    path.display()
+                ),
+            }));
+        }
+        hasher.update(&buffer[..read]);
+    }
+    Ok((format!("{:x}", hasher.finalize()), total))
 }
 
 /// Write `bytes` to `target` atomically: stage them in a sibling temp file in the
@@ -2184,6 +2448,68 @@ mod tests {
             got.product.digest, product.digest,
             "stage-product digest preserved"
         );
+    }
+
+    #[test]
+    fn selective_artifact_hit_matches_full_hydration_and_receipt() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = PipelineCache::open(dir.path()).unwrap();
+        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+        let context = test_context("stage-rich", "artifact-only-hit");
+        let receipt = persist_test_product(&cache, &context, &product);
+
+        assert_eq!(
+            cache
+                .inspect_receipt(&context)
+                .expect("receipt inspection")
+                .expect("receipt exists"),
+            receipt
+        );
+        let selective = cache
+            .get_artifacts(&context)
+            .expect("selective lookup")
+            .expect("selective hit");
+        let full = cache.get(&context).expect("full lookup").expect("full hit");
+        assert_eq!(selective.receipt, full.receipt);
+        assert_eq!(selective.artifacts, full.product.artifacts());
+        assert_eq!(
+            selective.transferred_bytes, full.hydrated_bytes,
+            "both paths authenticate the same complete product blob"
+        );
+    }
+
+    #[test]
+    fn selective_artifact_hit_rejects_inner_digest_corruption() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = PipelineCache::open(dir.path()).unwrap();
+        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+        let context = test_context("stage-rich", "artifact-inner-corruption");
+        let mut receipt = persist_test_product(&cache, &context, &product);
+        let original_blob = cache
+            .dir
+            .join("blobs")
+            .join(receipt.product_blob_digest.as_ref().unwrap());
+        let mut manifest: CachedBundle =
+            bincode::deserialize(&std::fs::read(original_blob).unwrap()).unwrap();
+        let artifact_digest = manifest.lookaside.resources[0]
+            .content_digest
+            .clone()
+            .expect("artifact digest");
+        manifest.blobs.get_mut(&artifact_digest).unwrap()[0] ^= 0xff;
+
+        // Keep the enclosing product blob self-consistent so the selective reader must
+        // reach and enforce the receipt's artifact-level digest, not merely the outer hash.
+        let corrupted = bincode::serialize(&manifest).unwrap();
+        let corrupted_digest = ContentDigest::of(&corrupted).to_hex();
+        std::fs::write(cache.dir.join("blobs").join(&corrupted_digest), &corrupted).unwrap();
+        receipt.product_blob_digest = Some(corrupted_digest);
+        receipt.product_blob_bytes = u64::try_from(corrupted.len()).unwrap();
+        write_test_receipt(&cache, receipt);
+
+        let error = cache
+            .get_artifacts(&context)
+            .expect_err("artifact digest mismatch must hard-fail");
+        assert!(error.is::<crate::error::CacheMismatch>(), "{error}");
     }
 
     #[test]

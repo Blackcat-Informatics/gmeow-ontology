@@ -279,7 +279,7 @@ fn dist_determinism_mismatches(root: &Path) -> Vec<String> {
 /// Run the pre-schemas full DAG over a fresh ephemeral cache and collect every
 /// `dist/**` artifact (the export leaves' on-disk-only outputs).
 fn run_dist_artifacts(root: &Path) -> BTreeMap<String, Vec<u8>> {
-    use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+    use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
     // The FULL production DAG. The schemas leaf used to be filtered out of the spec
     // here; it cannot be any more — `stage-gts-sink` DECLARES it in `consumes()`, so
     // removing it leaves a dangling dependency and `validate()` HARD-fails. The filter
@@ -289,6 +289,7 @@ fn run_dist_artifacts(root: &Path) -> BTreeMap<String, Vec<u8>> {
     let graph = pre.validate().expect("production DAG validates");
     let bound = bind(&pre, &graph, &default_registry()).expect("binds");
     let mut ctx = RunContext::open_ephemeral(root, 4).expect("ctx");
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     let result = run(&graph, &bound, &mut ctx).expect("runs");
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for product in result.products.values() {
@@ -531,11 +532,12 @@ fn two_cold_generations_are_deterministic() {
 /// independent cold generations from the same on-disk sources — the SAME `full_spec()` +
 /// ephemeral-`run` machinery the full-parity determinism helpers use, not a reimplementation.
 fn run_all_products(root: &Path) -> BTreeMap<String, Vec<u8>> {
-    use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+    use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
     let spec = full_spec();
     let graph = spec.validate().expect("full DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("binds");
     let mut ctx = RunContext::open_ephemeral(root, 4).expect("ctx");
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs");
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     for product in result.products.values() {

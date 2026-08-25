@@ -110,7 +110,7 @@ impl Stage for VerifyAttestationStage {
     }
 
     fn impl_version(&self) -> &str {
-        "verify-attestation.v1-reuse-reasoning-result"
+        "verify-attestation.v2-transport-normalized-receipt"
     }
 
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
@@ -205,7 +205,16 @@ fn build_output_from_report(
 
     let canonical_nquads = purrdf::canonical_flat_nquads(edb)
         .map_err(|e| stage_err(format!("canonicalize verification input digest: {e}")))?;
-    let reasoning_projection = gmeow_logic::result_rdf::project_reasoning_result(reasoning);
+    // The shipped CLI reconstructs the verdict-and-provenance handle from
+    // `graph/reasoning`. That projection deliberately omits EDB payload rows, so grade
+    // the transport-normalized value the consumer can actually recover rather than the
+    // richer in-process handle. Query evaluation is unchanged: it reads only non-EDB
+    // inferred rows, all of which the projection carries.
+    let live_projection = gmeow_logic::result_rdf::project_reasoning_result(reasoning);
+    let transported_reasoning = gmeow_logic::result_rdf::parse_reasoning_graph(&live_projection)
+        .map_err(|error| stage_err(format!("re-read graph/reasoning projection: {error}")))?;
+    let reasoning_projection =
+        gmeow_logic::result_rdf::project_reasoning_result(&transported_reasoning);
     let query_digest = query_set_digest(queries);
     let finding_count = report.findings.len();
     let error_count = report.error_count();
@@ -240,7 +249,7 @@ fn build_output_from_report(
     );
     report.metadata.insert(
         "verifyInferredAxioms".to_string(),
-        serde_json::json!(reasoning.inferred().len()),
+        serde_json::json!(transported_reasoning.inferred().len()),
     );
     report
         .metadata
@@ -310,9 +319,10 @@ pub fn grade_shipped_attestation(
     let expected_record_digest = ContentDigest::of(expected_record).to_hex();
     let shipped_record_digest = ContentDigest::of(shipped_record).to_hex();
     if expected_record != shipped_record {
+        let differences = json_difference_summary(expected_record, shipped_record);
         return Err(stage_err(format!(
             "shipped verify record is stale: expected {expected_record_digest}, found \
-             {shipped_record_digest}"
+             {shipped_record_digest}; {differences}"
         )));
     }
 
@@ -343,6 +353,110 @@ pub fn grade_shipped_attestation(
         query_count: queries.len(),
         closure_constructions: 0,
     })
+}
+
+/// Describe the first deterministic JSON-value differences without dumping a whole
+/// report into a diagnostic. Byte-only drift remains visible as such.
+fn json_difference_summary(expected: &[u8], shipped: &[u8]) -> String {
+    let expected: serde_json::Value = match serde_json::from_slice(expected) {
+        Ok(value) => value,
+        Err(error) => return format!("fresh record is not JSON: {error}"),
+    };
+    let shipped: serde_json::Value = match serde_json::from_slice(shipped) {
+        Ok(value) => value,
+        Err(error) => return format!("shipped record is not JSON: {error}"),
+    };
+    let mut differences = Vec::new();
+    collect_json_differences("", &expected, &shipped, &mut differences, 12);
+    if differences.is_empty() {
+        "JSON values are equal; byte encoding differs".to_string()
+    } else {
+        format!("JSON differences: {}", differences.join("; "))
+    }
+}
+
+fn collect_json_differences(
+    pointer: &str,
+    expected: &serde_json::Value,
+    shipped: &serde_json::Value,
+    differences: &mut Vec<String>,
+    limit: usize,
+) {
+    if differences.len() >= limit || expected == shipped {
+        return;
+    }
+    match (expected, shipped) {
+        (serde_json::Value::Object(expected), serde_json::Value::Object(shipped)) => {
+            let keys: BTreeSet<&str> = expected
+                .keys()
+                .chain(shipped.keys())
+                .map(String::as_str)
+                .collect();
+            for key in keys {
+                if differences.len() >= limit {
+                    break;
+                }
+                let child = format!("{pointer}/{}", json_pointer_token(key));
+                match (expected.get(key), shipped.get(key)) {
+                    (Some(expected), Some(shipped)) => {
+                        collect_json_differences(&child, expected, shipped, differences, limit)
+                    }
+                    (Some(expected), None) => differences.push(format!(
+                        "{child}: expected {}, shipped <missing>",
+                        short_json(expected)
+                    )),
+                    (None, Some(shipped)) => differences.push(format!(
+                        "{child}: expected <missing>, shipped {}",
+                        short_json(shipped)
+                    )),
+                    (None, None) => {}
+                }
+            }
+        }
+        (serde_json::Value::Array(expected), serde_json::Value::Array(shipped)) => {
+            if expected.len() != shipped.len() {
+                differences.push(format!(
+                    "{pointer}/length: expected {}, shipped {}",
+                    expected.len(),
+                    shipped.len()
+                ));
+            }
+            for (index, (expected, shipped)) in expected.iter().zip(shipped).enumerate() {
+                if differences.len() >= limit {
+                    break;
+                }
+                collect_json_differences(
+                    &format!("{pointer}/{index}"),
+                    expected,
+                    shipped,
+                    differences,
+                    limit,
+                );
+            }
+        }
+        _ => differences.push(format!(
+            "{}: expected {}, shipped {}",
+            if pointer.is_empty() { "/" } else { pointer },
+            short_json(expected),
+            short_json(shipped)
+        )),
+    }
+}
+
+fn json_pointer_token(token: &str) -> String {
+    token.replace('~', "~0").replace('/', "~1")
+}
+
+fn short_json(value: &serde_json::Value) -> String {
+    const MAX_CHARS: usize = 160;
+    let rendered = value.to_string();
+    if rendered.chars().count() <= MAX_CHARS {
+        rendered
+    } else {
+        let mut prefix: String = rendered.chars().take(MAX_CHARS).collect();
+        prefix.push('…');
+        prefix
+    }
 }
 
 /// Evaluate every selected bad-example query against the exact EDB/result pair and
@@ -594,6 +708,26 @@ mod tests {
         )
         .expect_err("tampered normalized record must fail");
         assert!(record_error.to_string().contains("verify record is stale"));
+
+        let mut stale_value: serde_json::Value =
+            serde_json::from_slice(record).expect("record JSON");
+        stale_value["metadata"]["verifyQueryCount"] = serde_json::json!(999);
+        let stale_record = serde_json::to_vec_pretty(&stale_value).expect("stale JSON");
+        let value_error = grade_shipped_attestation(
+            snapshot,
+            edb.as_ref(),
+            &reasoning,
+            &queries,
+            &report,
+            &stale_record,
+        )
+        .expect_err("stale JSON value must fail");
+        assert!(
+            value_error
+                .to_string()
+                .contains("/metadata/verifyQueryCount: expected 1, shipped 999"),
+            "{value_error}"
+        );
 
         let empty_snapshot = purrdf::parse_dataset(b"", "application/n-quads", None)
             .expect("empty snapshot dataset");

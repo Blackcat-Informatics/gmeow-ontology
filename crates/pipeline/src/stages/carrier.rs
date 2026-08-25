@@ -52,6 +52,31 @@ use gmeow_ns::GMEOW_NS;
 /// this stage produces and every fold-reading leaf (and the sink) consumes.
 pub const SNAPSHOT_PATH: &str = "generated/dist/gmeow.gts";
 
+/// Internal, content-addressed receipt for the selection-independent pass-1 snapshot
+/// identities computed by the terminal sink. It rides the sink product's `pipeline/`
+/// lane, so it is cached with the exact action but never reconciled into `generated/`
+/// or shipped inside the bundle.
+pub(crate) const PASS_ONE_RECEIPT_PATH: &str = "pipeline/gts-pass-one-receipt.json";
+
+const PASS_ONE_RECEIPT_SCHEMA_VERSION: u32 = 1;
+const PASS_ONE_RECEIPT_ALGORITHM: &str = "gts-pass-one-canonical-identities-v1";
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct PassOneReceipt {
+    schema_version: u32,
+    algorithm: String,
+    input_digest: String,
+    snapshot_content_digest: String,
+    stratum_digest: String,
+}
+
+/// One terminal emission plus the authenticated intermediary evidence a second
+/// declared-medium emission may reuse.
+pub(crate) struct SerializedCarrierSnapshot {
+    pub bytes: Vec<u8>,
+    pub pass_one_receipt: Vec<u8>,
+}
+
 /// The named-graph IRIs (mirror `config.GTS_GRAPH_*`).
 const GRAPH_IMPORTS: &str = gmeow_logic::reasoning_graphs::GRAPH_IMPORTS;
 const GRAPH_METADATA: &str = "https://blackcatinformatics.ca/gmeow/graph/metadata";
@@ -406,7 +431,7 @@ const VALIDATION_SHEX_MEDIA_TYPE: &str = "text/shex";
 /// product's bundle, never re-assembled (the razor: transform transport→form at most
 /// once per pipeline).
 ///
-/// The nine TAR archives (REP_AXIOMS / REP_SCHEMAS / REP_SHAPES / REP_LANG_PROJECTIONS / …) are READ off the
+/// The eleven TAR archives (REP_AXIOMS / REP_SCHEMAS / REP_SHAPES / REP_LANG_PROJECTIONS / …) are READ off the
 /// `stage-archive-blobs` product, which folded them once mid-DAG; the presenter still
 /// folds the channels only it can see — the lang surface blobs, the reasoning reports
 /// from `stage-reason`, the opaque `generated/` fanout archive over THIS run's carrier,
@@ -444,6 +469,18 @@ pub fn serialize_carrier_snapshot(
     carrier: &purrdf::RdfDataset,
     selection: &crate::medium::registry::MediumSelection,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    Ok(serialize_carrier_snapshot_with_receipt(root, upstream, carrier, selection)?.bytes)
+}
+
+/// The terminal's internal form of [`serialize_carrier_snapshot`], returning both the
+/// emitted bytes and the selection-independent pass-one receipt that the sink persists.
+/// Public callers still receive only the bundle; there remains one production writer.
+pub(crate) fn serialize_carrier_snapshot_with_receipt(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
+    selection: &crate::medium::registry::MediumSelection,
+) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
     let frames = snapshot_frames(root, upstream, carrier)?;
     serialize_snapshot(
         carrier,
@@ -1051,6 +1088,11 @@ fn assemble_carrier(
         upstream,
         gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
     )?);
+    // The three code-authored termination-class worlds are direct object-level EDB
+    // inputs to stage-reason. Ship those exact worlds too: the repo-free
+    // `snapshot_reasoning_edb` projection must reconstruct the byte-identical EDB the
+    // producer reasoned over, including the 62 demonstrator quads.
+    datasets.extend(termination_demonstrator_graphs()?);
     datasets.extend(compile_logic_carrier_graphs(upstream)?);
     datasets.push(rooted_in_graph(
         &reason.bundle().dataset().project_named_graph(reasoning_iri),
@@ -1178,6 +1220,17 @@ fn assemble_carrier(
     // reasoning pass (no second reason) and the ONE `build_coherence_outcome` construction
     // the release lane also uses.
     fold_coherence_certificate(composed_final, upstream)
+}
+
+/// Parse the three code-authored termination-class worlds through one shared boundary.
+/// Both the reason-stage EDB and the shipped snapshot call this helper, preventing the
+/// producer and the repo-free EDB reconstruction from drifting apart again.
+fn termination_demonstrator_graphs()
+-> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, gmeow_errors::Diag> {
+    gmeow_logic::termination_demonstrators::termination_ladder_demonstrators()
+        .into_iter()
+        .map(|(graph, turtle)| parse_into_graph(turtle.as_bytes(), "text/turtle", graph))
+        .collect()
 }
 
 /// The INJECTED issue timestamp the terminal coherence certificate carries. The
@@ -1409,11 +1462,7 @@ pub(crate) fn assemble_object_level_edb(
     // broader chase-termination class, each rooted into its own reasoning world so its
     // per-world certificate ships into `gmeow.gts` (the reasoner dogfooding its full
     // termination-certification power into the deliverable).
-    for (graph, turtle) in
-        gmeow_logic::termination_demonstrators::termination_ladder_demonstrators()
-    {
-        datasets.push(parse_into_graph(turtle.as_bytes(), "text/turtle", graph)?);
-    }
+    datasets.extend(termination_demonstrator_graphs()?);
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     without_recovery_case_envelopes(&purrdf::RdfDataset::union(&refs))
 }
@@ -1452,6 +1501,22 @@ pub fn snapshot_reasoning_edb(
 #[cfg(test)]
 mod reasoning_edb_projection_tests {
     use super::*;
+
+    #[test]
+    fn termination_demonstrators_are_complete_object_level_worlds() {
+        let worlds = termination_demonstrator_graphs().expect("parse termination worlds");
+        assert_eq!(worlds.len(), 3);
+        assert_eq!(
+            worlds.iter().map(|world| world.quad_count()).sum::<usize>(),
+            62
+        );
+        for world in worlds {
+            assert!(world.owned_quads().all(|quad| {
+                matches!(quad.graph_name, Some(purrdf::RdfTerm::Iri(ref graph))
+                    if gmeow_logic::reasoning_graphs::is_object_level_named_graph(graph))
+            }));
+        }
+    }
 
     #[test]
     fn recovery_formula_envelope_is_meta_level_but_referenced_terms_remain() {
@@ -1727,7 +1792,7 @@ fn serialize_snapshot(
     report_blobs: Vec<BlobRow>,
     upstream: &BTreeMap<String, StageProduct>,
     selection: &crate::medium::registry::MediumSelection,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
+) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
     use crate::stages::medium_dictionaries as medium;
 
     let registry = medium::registry_from_carrier(upstream)?;
@@ -1814,16 +1879,26 @@ fn serialize_snapshot(
             .add_dataset(graph)
             .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
     }
-    // Bound the terminal's live set.  Both identities are over whole-carrier
-    // representations, but the envelope needs only their digests.  Materialize and
-    // release each preimage in its own scope so canonical CBOR and canonical N-Quads
-    // never coexist.  `snapshot_content_id` is byte-for-byte the digest previously
-    // computed from `canonical(snapshot_payload())`.
-    let snapshot_content_digest = builder.snapshot_content_id();
-    let snapshot_strata_digest = {
-        let stratum = stratum_nquads(carrier, &strata)?;
-        crate::medium::blake3_digest(stratum.as_bytes())
-    };
+    // Bound the terminal's live set. Both identities are over whole-carrier
+    // representations, but the envelope needs only their digests. Materialize each
+    // preimage in its own scope so the canonical buffers are released before envelope
+    // sealing and the terminal writer. Both identities are functions of pass 1, before
+    // the medium selection contributes envelopes; a same-carrier counterfactual can
+    // therefore reuse the terminal's exact keyed receipt instead of allocating either
+    // whole-carrier canonical preimage twice.
+    let pass_one_input_digest = pass_one_receipt_input_digest(upstream, carrier, &strata)?;
+    let (snapshot_content_digest, snapshot_strata_digest) =
+        match reusable_pass_one_receipt(upstream, &pass_one_input_digest)? {
+            Some(receipt) => (receipt.snapshot_content_digest, receipt.stratum_digest),
+            None => {
+                let content_digest = builder.snapshot_content_id();
+                let stratum = stratum_nquads(carrier, &strata)?;
+                (
+                    content_digest,
+                    crate::medium::blake3_digest(stratum.as_bytes()),
+                )
+            }
+        };
 
     let reps: std::collections::BTreeSet<String> =
         frames.iter().map(|row| row.rep.clone()).collect();
@@ -1850,8 +1925,118 @@ fn serialize_snapshot(
     // these full interning tables before the writer canonicalizes/compresses the
     // snapshot; it also skips purrdf's redundant length-probe serialization because
     // this profile selects zstd-rsyncable explicitly, independent of payload size.
-    gmeow_gts_profile::emit_owned_gmeow_gts_with_medium(builder, blobs, report_blobs, &plan)
-        .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+    let bytes =
+        gmeow_gts_profile::emit_owned_gmeow_gts_with_medium(builder, blobs, report_blobs, &plan)
+            .map_err(|e| stage_err(&format!("emit_gts: {e}")))?;
+    let pass_one_receipt = serde_json::to_vec(&PassOneReceipt {
+        schema_version: PASS_ONE_RECEIPT_SCHEMA_VERSION,
+        algorithm: PASS_ONE_RECEIPT_ALGORITHM.to_string(),
+        input_digest: pass_one_input_digest,
+        snapshot_content_digest,
+        stratum_digest: snapshot_strata_digest,
+    })
+    .map_err(|e| stage_err(&format!("serialize the GTS pass-one receipt: {e}")))?;
+    Ok(SerializedCarrierSnapshot {
+        bytes,
+        pass_one_receipt,
+    })
+}
+
+/// Content identity of the selection-independent pass-1 stratum.
+///
+/// The snapshot product digest names the exact whole carrier without serializing it a
+/// second time. Pointer identity binds the caller's borrowed dataset to that product,
+/// while each small carrier-time graph is canonicalized independently and framed by
+/// source position. Equal keys therefore mean equal standardize-apart stratum inputs;
+/// changes may cause a conservative miss but never a false hit.
+fn pass_one_receipt_input_digest(
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+) -> Result<String, gmeow_errors::Diag> {
+    let snapshot = snapshot_product(upstream)?;
+    if snapshot.carrier_released {
+        return Err(stage_err(
+            "cannot key a GTS pass-one receipt from a released stage-snapshot carrier",
+        ));
+    }
+    if !std::ptr::eq(snapshot.bundle().dataset(), carrier) {
+        return Err(stage_err(
+            "the GTS serializer carrier is not the stage-snapshot product's exact dataset",
+        ));
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    hash_receipt_field(&mut hasher, PASS_ONE_RECEIPT_ALGORITHM.as_bytes());
+    hash_receipt_field(&mut hasher, crate::cache::BUILD_FINGERPRINT.as_bytes());
+    hash_receipt_field(&mut hasher, snapshot.digest.as_bytes());
+    for (index, graph) in extra_graphs.iter().enumerate() {
+        hash_receipt_field(&mut hasher, &(index as u64).to_le_bytes());
+        let canonical = purrdf::canonical_flat_nquads(graph.as_ref()).map_err(|e| {
+            stage_err(&format!(
+                "canonicalize GTS pass-one receipt input {index}: {e}"
+            ))
+        })?;
+        hash_receipt_field(&mut hasher, canonical.as_bytes());
+    }
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+fn hash_receipt_field(hasher: &mut blake3::Hasher, bytes: &[u8]) {
+    hasher.update(&(bytes.len() as u64).to_le_bytes());
+    hasher.update(bytes);
+}
+
+/// Read the previous terminal's receipt when an out-of-band proof re-emits the exact
+/// completed run under a second declared medium. Absence of the terminal product is a
+/// normal first-emission miss. Once that product exists, however, its receipt is part
+/// of the typed result: missing, malformed, stale, or non-canonical evidence is a hard
+/// failure rather than an opportunistic recomputation that could hide corruption.
+fn reusable_pass_one_receipt(
+    upstream: &BTreeMap<String, StageProduct>,
+    expected_input_digest: &str,
+) -> Result<Option<PassOneReceipt>, gmeow_errors::Diag> {
+    let Some(sink) = upstream.get("stage-gts-sink") else {
+        return Ok(None);
+    };
+    let bytes = sink.artifact(PASS_ONE_RECEIPT_PATH).ok_or_else(|| {
+        stage_err(&format!(
+            "stage-gts-sink is present but its required `{PASS_ONE_RECEIPT_PATH}` receipt is missing"
+        ))
+    })?;
+    let receipt: PassOneReceipt = serde_json::from_slice(bytes)
+        .map_err(|e| stage_err(&format!("parse `{PASS_ONE_RECEIPT_PATH}`: {e}")))?;
+    if receipt.schema_version != PASS_ONE_RECEIPT_SCHEMA_VERSION {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` schema version {} does not equal required {}",
+            receipt.schema_version, PASS_ONE_RECEIPT_SCHEMA_VERSION
+        )));
+    }
+    if receipt.algorithm != PASS_ONE_RECEIPT_ALGORITHM {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` algorithm `{}` does not equal required `{PASS_ONE_RECEIPT_ALGORITHM}`",
+            receipt.algorithm
+        )));
+    }
+    if receipt.input_digest != expected_input_digest {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` input digest `{}` does not match current `{expected_input_digest}`",
+            receipt.input_digest
+        )));
+    }
+    if !crate::medium::is_canonical_digest(&receipt.snapshot_content_digest) {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` carries non-canonical snapshot content digest `{}`",
+            receipt.snapshot_content_digest
+        )));
+    }
+    if !crate::medium::is_canonical_digest(&receipt.stratum_digest) {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` carries non-canonical stratum digest `{}`",
+            receipt.stratum_digest
+        )));
+    }
+    Ok(Some(receipt))
 }
 
 /// The canonical serialization of the snapshot payload's quad set MINUS the
@@ -1869,15 +2054,189 @@ fn stratum_nquads(
     carrier: &purrdf::RdfDataset,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<String, gmeow_errors::Diag> {
-    let mut sources: Vec<Vec<purrdf::RdfQuad>> = vec![purrdf::flat_rdf_quads_from_dataset(carrier)];
-    for graph in extra_graphs {
-        sources.push(purrdf::flat_rdf_quads_from_dataset(graph));
+    let mut flat = RdfDatasetBuilder::new();
+    push_flat_source(&mut flat, carrier, purrdf::BlankScope::DEFAULT);
+    for (index, graph) in extra_graphs.iter().enumerate() {
+        push_flat_source(
+            &mut flat,
+            graph,
+            purrdf::BlankScope(u32::try_from(index + 1).map_err(|_| {
+                stage_err("too many medium digest strata to assign blank-node scopes")
+            })?),
+        );
     }
-    let borrowed: Vec<&[purrdf::RdfQuad]> = sources.iter().map(Vec::as_slice).collect();
-    let union = purrdf::flat_dataset_from_quad_sources(&borrowed)
+    let flat = flat
+        .freeze()
         .map_err(|e| stage_err(&format!("union the medium digest stratum: {e}")))?;
-    purrdf::canonical_flat_nquads(&union)
-        .map_err(|e| stage_err(&format!("canonicalize the medium digest stratum: {e}")))
+    Ok(purrdf::canonicalize(&flat).nquads)
+}
+
+/// Stream one frozen source into an UNFOLDED flat dataset builder.
+///
+/// This is the allocation-bounded equivalent of
+/// `flat_rdf_quads_from_dataset` followed by `flat_dataset_from_quad_sources`: base
+/// quads flow directly into the destination interner, while RDF 1.2 reifier and
+/// annotation rows are materialized one at a time. A distinct [`purrdf::BlankScope`]
+/// per source preserves the prior standardize-apart contract without retaining an
+/// owned `Vec<RdfQuad>` for every source beside the union.
+fn push_flat_source(
+    builder: &mut RdfDatasetBuilder,
+    source: &purrdf::RdfDataset,
+    scope: purrdf::BlankScope,
+) {
+    const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+    for quad in source.owned_quads() {
+        builder.push_owned_quad_scoped(&quad, scope);
+    }
+    for reifier in source.owned_reifiers() {
+        let quad = RdfQuad::new(
+            reifier.reifier,
+            RDF_REIFIES,
+            RdfTerm::triple(reifier.statement),
+        );
+        builder.push_owned_quad_scoped(&quad, scope);
+    }
+    for annotation in source.owned_annotations() {
+        let quad = RdfQuad::new(annotation.reifier, annotation.predicate, annotation.object);
+        builder.push_owned_quad_scoped(&quad, scope);
+    }
+}
+
+#[cfg(test)]
+mod stratum_canonical_tests {
+    use super::*;
+
+    fn fixture_dataset(object: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+        parse_dataset(
+            format!(
+                "<https://example.org/s> <https://example.org/p> <https://example.org/{object}> ."
+            )
+            .as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .expect("fixture dataset")
+    }
+
+    #[test]
+    fn streamed_flat_union_matches_the_prior_flat_canonical_path() {
+        let first = parse_dataset(
+            br#"@prefix ex: <https://example.org/> .
+                @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                _:same ex:p ex:o .
+                ex:r rdf:reifies <<( _:same ex:q "value" )>> .
+                ex:r ex:confidence "1" ."#,
+            "text/turtle",
+            None,
+        )
+        .expect("first RDF 1.2 source");
+        let second = parse_dataset(
+            br#"@prefix ex: <https://example.org/> .
+                _:same ex:p ex:other ."#,
+            "text/turtle",
+            None,
+        )
+        .expect("second independently parsed source");
+
+        let old_sources = [
+            purrdf::flat_rdf_quads_from_dataset(first.as_ref()),
+            purrdf::flat_rdf_quads_from_dataset(second.as_ref()),
+        ];
+        let old_refs: Vec<&[RdfQuad]> = old_sources.iter().map(Vec::as_slice).collect();
+        let old_union = purrdf::flat_dataset_from_quad_sources(&old_refs).expect("old flat union");
+        let expected = purrdf::canonical_flat_nquads(old_union.as_ref())
+            .expect("old flat union canonicalizes");
+
+        let actual = stratum_nquads(first.as_ref(), &[second]).expect("streamed flat union");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn pass_one_receipt_key_binds_the_exact_snapshot_and_each_extra_graph() {
+        let carrier = fixture_dataset("carrier");
+        let mut upstream = BTreeMap::new();
+        upstream.insert(
+            "stage-snapshot".to_string(),
+            StageProduct::from_artifacts_over(
+                "stage-snapshot",
+                std::sync::Arc::clone(&carrier),
+                BTreeMap::new(),
+            ),
+        );
+        let first_graph = fixture_dataset("first");
+        let second_graph = fixture_dataset("second");
+
+        let key = pass_one_receipt_input_digest(
+            &upstream,
+            carrier.as_ref(),
+            &[std::sync::Arc::clone(&first_graph)],
+        )
+        .expect("receipt key");
+        assert_eq!(
+            key,
+            pass_one_receipt_input_digest(&upstream, carrier.as_ref(), &[first_graph])
+                .expect("stable receipt key")
+        );
+        assert_ne!(
+            key,
+            pass_one_receipt_input_digest(&upstream, carrier.as_ref(), &[second_graph])
+                .expect("changed receipt key"),
+            "an auxiliary stratum-graph change must invalidate the receipt"
+        );
+
+        let unrelated = fixture_dataset("unrelated");
+        assert!(
+            pass_one_receipt_input_digest(&upstream, unrelated.as_ref(), &[]).is_err(),
+            "a lookalike caller cannot key evidence for a dataset other than the exact snapshot"
+        );
+    }
+
+    #[test]
+    fn present_pass_one_receipt_is_typed_and_fail_closed() {
+        let expected_input = crate::medium::blake3_digest(b"input");
+        let expected_content = crate::medium::blake3_digest(b"content");
+        let expected_stratum = crate::medium::blake3_digest(b"stratum");
+        let receipt = PassOneReceipt {
+            schema_version: PASS_ONE_RECEIPT_SCHEMA_VERSION,
+            algorithm: PASS_ONE_RECEIPT_ALGORITHM.to_string(),
+            input_digest: expected_input.clone(),
+            snapshot_content_digest: expected_content.clone(),
+            stratum_digest: expected_stratum.clone(),
+        };
+        let mut artifacts = BTreeMap::new();
+        artifacts.insert(
+            PASS_ONE_RECEIPT_PATH.to_string(),
+            serde_json::to_vec(&receipt).expect("receipt JSON"),
+        );
+        let mut upstream = BTreeMap::new();
+        upstream.insert(
+            "stage-gts-sink".to_string(),
+            StageProduct::from_artifacts("stage-gts-sink", artifacts),
+        );
+
+        assert_eq!(
+            reusable_pass_one_receipt(&upstream, &expected_input)
+                .expect("matching receipt")
+                .expect("receipt is present")
+                .snapshot_content_digest,
+            expected_content
+        );
+        assert!(
+            reusable_pass_one_receipt(&upstream, &crate::medium::blake3_digest(b"changed"))
+                .is_err(),
+            "a stale same-stage receipt must hard-fail"
+        );
+
+        upstream.insert(
+            "stage-gts-sink".to_string(),
+            StageProduct::from_artifacts("stage-gts-sink", BTreeMap::new()),
+        );
+        assert!(
+            reusable_pass_one_receipt(&upstream, &expected_input).is_err(),
+            "a completed terminal without its required receipt must hard-fail"
+        );
+    }
 }
 
 /// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
@@ -1893,8 +2252,7 @@ fn stratum_nquads(
 pub fn snapshot_stratum_nquads(payload: &purrdf::RdfDataset) -> Result<String, gmeow_errors::Diag> {
     let stripped = purrdf::flat_dataset_from_quads(&snapshot_stratum_quads(payload))
         .map_err(|e| stage_err(&format!("strip the medium-envelope subgraph: {e}")))?;
-    purrdf::canonical_flat_nquads(&stripped)
-        .map_err(|e| stage_err(&format!("canonicalize the medium digest stratum: {e}")))
+    Ok(purrdf::canonicalize(&stripped).nquads)
 }
 
 /// The stratum's quad set: every quad of an emitted snapshot payload EXCEPT the
@@ -2046,7 +2404,7 @@ pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 // the dictionary selecting it primed nothing. It is now a real archive folded by
 // [`crate::stages::archive_blobs`] (which owns every by-reference TAR rep) off
 // `stage-statements`' rendered claim-corpus surface, and the sink READS it back with
-// the other nine — one authority for archive membership, no inline sink fold.
+// the other archive representations — one authority for archive membership, no inline sink fold.
 
 /// The archive representation ids, from the crate that OWNS them: `gmeow-bundle-view`
 /// addresses these blobs on the read side, and a second definition here would be a second
@@ -3969,7 +4327,9 @@ impl Stage for SnapshotStage {
         // differs from either line alone, so it needs its own key.
         // v34 reads graph/verify from its dedicated downstream producer rather than
         // treating it as part of stage-reason's cumulative product.
-        "snapshot.v34-dedicated-verify-attestation"
+        // v35 ships the three termination-ladder EDB worlds that stage-reason consumes,
+        // so repo-free object-level projection reconstructs the producer's exact EDB.
+        "snapshot.v35-termination-edb-worlds"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

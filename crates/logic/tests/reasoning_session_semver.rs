@@ -401,8 +401,14 @@ use session_common::*;
 /// stays an honest gap, and the W3C divergence corpus is unchanged
 /// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
 /// class expression, so its reasoning verdict is unchanged.
+/// Re-blessed once more for the process-independent whole-bundle import cache. The shared
+/// term arena's `ContentKey` now derives serde so that exact content identity can cross the
+/// cache boundary; dense arena handles remain non-serializable and every constructor,
+/// interning key, ordering, and decision path is unchanged. `term-arena/src/lib.rs` is an
+/// `EXTERNAL_BACKWARD_SOURCE` member, so the raw-source pin moves even though adding derives
+/// cannot change a reasoning answer. The fixed edge-only input's verdict is unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "498b44c6cdb7bad7d373c9b5ffdcaa6d7ad47d650a169ec60615af791f92d8ca";
+    "2d81bc7664957efcbc29cac4ae4cca2df95d24a05740ba114586b65d0d9e979d";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -595,8 +601,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// and `reason/dl.rs`, so this fixed-input session identity moves with it. The fixed
 /// edge-only input authors no class expression in either spelling, so its reasoning verdict
 /// is unchanged.
+/// Re-blessed once more for the whole-bundle import cache (see the engine-descriptor note
+/// above): the backward-source digest is one of the seven folded identity axes and moves
+/// when `ContentKey` gains serialization derives. Those derives do not change the fixed
+/// edge-only program, its canonical terms, or its reasoning verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "128b4c4648ec46d0261d0325044ae54bf29bfbf76889e5400cbb569415fb1c50";
+    "05e11b1a77f1b67a6ed49775d5f5cce7754b4ed956bc60381625b8f826ae844e";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

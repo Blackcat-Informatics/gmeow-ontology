@@ -1912,9 +1912,30 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     /// surfaces without re-running the producers).
     fn run_mappings_with_real_upstream() -> (StageProduct, BTreeMap<String, StageProduct>) {
         let root = repo_root();
-        let fixture = crate::fixture::mappings_fixture(&root, fixture_jobs())
-            .expect("exact mappings fixture");
-        (fixture.outcome.product, fixture.upstream)
+        let jobs = fixture_jobs();
+        let mappings = crate::fixture::stage_artifacts(&root, jobs, "stage-mappings")
+            .expect("exact mappings artifact fixture");
+        let compile_logic = crate::fixture::stage_artifacts(&root, jobs, "stage-compile-logic")
+            .expect("exact compile-logic artifact fixture");
+        let constraint_shapes =
+            crate::fixture::stage_artifacts(&root, jobs, "stage-export-constraint-shapes")
+                .expect("exact constraint-shapes artifact fixture");
+        (
+            StageProduct::from_artifacts("stage-mappings", mappings),
+            BTreeMap::from([
+                (
+                    "stage-compile-logic".to_string(),
+                    StageProduct::from_artifacts("stage-compile-logic", compile_logic),
+                ),
+                (
+                    "stage-export-constraint-shapes".to_string(),
+                    StageProduct::from_artifacts(
+                        "stage-export-constraint-shapes",
+                        constraint_shapes,
+                    ),
+                ),
+            ]),
+        )
     }
 
     #[test]

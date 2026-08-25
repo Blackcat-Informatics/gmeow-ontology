@@ -24,7 +24,7 @@ use gmeow_pipeline::medium::registry::MediumRegistry;
 use gmeow_pipeline::node::{Stage, StageInput, StageProduct};
 use gmeow_pipeline::stages::medium_dictionaries::frame_iri;
 use gmeow_pipeline::stages::superset::BundleProjection;
-use gmeow_pipeline::{RunContext, bind, default_registry, full_spec, run};
+use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
 use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
 use purrdf::{RdfLookaside, RdfQuad, RdfTerm};
 
@@ -150,6 +150,9 @@ fn run_the_dag(root: &Path) -> BTreeMap<String, StageProduct> {
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(4);
     let mut ctx = RunContext::open(root, jobs).expect("run context");
+    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
+    let sink = gmeow_pipeline::stages::gts_sink::GtsSinkStage::new();
+    ctx.retain_carriers(sink.carrier_consumes().iter().cloned());
     run(&graph, &bound, &mut ctx)
         .expect("the production DAG runs end to end")
         .products
@@ -341,7 +344,9 @@ fn split_envelope_subgraph(payload: &[RdfQuad]) -> (Vec<RdfQuad>, Vec<RdfQuad>) 
 /// digest commits to.
 fn canonical(quads: &[RdfQuad]) -> String {
     let frozen = purrdf::flat_dataset_from_quads(quads).expect("the quad set freezes");
-    purrdf::canonical_flat_nquads(&frozen).expect("the quad set canonicalizes")
+    // The input has already been materialized as the UNFOLDED flat statement layer;
+    // canonicalizing it directly avoids a redundant flatten + refreeze pass.
+    purrdf::canonicalize(&frozen).nquads
 }
 
 fn blake3(bytes: &[u8]) -> String {

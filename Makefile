@@ -607,7 +607,7 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 	@# `Store` is gone. Excludes source-file parsing / the DAG loader (ingestion, not
 	@# transport). The bundled negative-arm unit test proves the detector flags a
 	@# reintroduced accumulation.
-	cargo nextest run -p gmeow-pipeline --test carrier_purity
+	cargo nextest run -p gmeow-pipeline --test carrier_purity --ignore-default-filter
 	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
 
 

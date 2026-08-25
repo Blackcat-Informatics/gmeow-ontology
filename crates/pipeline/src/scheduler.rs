@@ -30,7 +30,10 @@ use crate::cache::{
     StageReceipt, content_digest,
 };
 use crate::graph::StageGraph;
-use crate::node::{CachePolicy, Stage, StageInput, StageProduct, StageRunTiming, StageStability};
+use crate::node::{
+    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, Stage, StageInput, StageProduct,
+    StageRunTiming, StageStability,
+};
 use crate::provenance::register_stage_unit;
 
 /// The process-wide registry of per-resource mutexes. A stage that declares a
@@ -56,8 +59,34 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
     )
 }
 
-/// What the scheduler does with a stage's carrier once its LAST declared consumer
-/// has run.
+/// Return allocator slack from completed DAG waves before the one terminal constructs
+/// its whole-carrier wire value.
+///
+/// Dropping a carrier makes its allocations unreachable, but glibc may retain their
+/// pages in process arenas. A cold run can otherwise carry mapping/dictionary arena
+/// slack into the terminal's necessarily large canonical payload construction and cross
+/// the 16-GiB runner boundary even though the live Rust values fit. `malloc_trim` is
+/// thread-safe; calls occur either while the declarative serialization permit excludes
+/// every other carrier-scale serializer or at the terminal's topological level barrier.
+/// Cheap siblings may still be active at a permit handoff, which is safe under that
+/// process-wide MT-Safe contract. It is only a reclamation hint and cannot change a
+/// product, cache key, or stage order. Allocators without this interface keep the
+/// ordinary drop behavior.
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+fn reclaim_allocator_slack_before_serialization() {
+    // SAFETY: glibc documents `malloc_trim` as MT-Safe. The argument merely requests
+    // release of every wholly free top-level heap page; no Rust allocation is exposed or
+    // accessed through the call.
+    unsafe {
+        libc::malloc_trim(0);
+    }
+}
+
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+fn reclaim_allocator_slack_before_serialization() {}
+
+/// What the scheduler does with a stage's carrier once its LAST declared carrier
+/// consumer has run.
 ///
 /// This is an explicit, first-class profile selection, not a degradation switch: the
 /// run's `combined_digest` and every product's committed byte-artifact lane are
@@ -68,7 +97,7 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
 /// consumer can still read stays resident for the life of the [`RunResult`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CarrierRetention {
-    /// Release each stage's carrier at its drop-after-last-consumer point
+    /// Release each stage's carrier at its drop-after-last-carrier-consumer point
     /// ([`last_consumer_levels`]): the frozen dataset, typed handles, blob records,
     /// provenance, and internal `pipeline/` byte artifacts are freed as soon as no
     /// stage can still read them, bounding peak residency to the live frontier plus
@@ -120,6 +149,14 @@ pub struct RunContext {
     /// [`CarrierRetention::DropAfterLastConsumer`]; that is the only whole-repository
     /// path and the one whose peak residency has to be bounded.
     pub carrier_retention: CarrierRetention,
+    /// Intermediate carriers an explicit out-of-band caller will read after the DAG.
+    ///
+    /// This is a narrow keep-set layered over [`CarrierRetention::DropAfterLastConsumer`],
+    /// not a second scheduling graph: every id must already be an executed production
+    /// stage in the selected run. It lets a whole-bundle proof retain `stage-snapshot`
+    /// (or the terminal's exact carrier inputs) without retaining dozens of unrelated
+    /// cumulative products.
+    pub retained_carriers: BTreeSet<String>,
     /// RAII owner of an ephemeral cache directory, when this context was built by
     /// [`Self::open_ephemeral`]. Holding the [`tempfile::TempDir`] here — rather than
     /// leaking a pid-salted path under the system temp dir — is what makes the cache
@@ -153,6 +190,7 @@ impl RunContext {
             progress: None,
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
+            retained_carriers: BTreeSet::new(),
             // Persistent boundary: the cache lives under the repo's `.cache/`, not a
             // temporary directory, so there is nothing to tear down.
             _ephemeral_cache_dir: None,
@@ -190,6 +228,7 @@ impl RunContext {
             progress: None,
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
+            retained_carriers: BTreeSet::new(),
             _ephemeral_cache_dir: Some(dir),
         })
     }
@@ -209,6 +248,7 @@ impl RunContext {
             progress: None,
             provenance: DatasetProvenance::new(),
             carrier_retention: CarrierRetention::RetainAll,
+            retained_carriers: BTreeSet::new(),
             // Inert boundary: no cache I/O at all, so no temporary directory.
             _ephemeral_cache_dir: None,
         }
@@ -218,6 +258,17 @@ impl RunContext {
     pub fn with_progress(mut self, progress: Arc<dyn Reporter>) -> Self {
         self.progress = Some(progress);
         self
+    }
+
+    /// Preserve selected intermediate carriers for a declared post-run reader while
+    /// releasing every other dead carrier normally.
+    pub fn retain_carriers<I, S>(&mut self, stage_ids: I)
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.retained_carriers
+            .extend(stage_ids.into_iter().map(Into::into));
     }
 }
 
@@ -410,6 +461,16 @@ pub fn run_without(
     skip: &BTreeSet<String>,
 ) -> Result<RunResult, gmeow_errors::Diag> {
     let by_id: BTreeMap<&str, &Arc<dyn Stage>> = bound.iter().map(|s| (s.id(), s)).collect();
+    for retained in &ctx.retained_carriers {
+        if !by_id.contains_key(retained.as_str()) || skip.contains(retained) {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "<scheduler>".to_string(),
+                message: format!(
+                    "retained carrier `{retained}` does not name an executed production stage"
+                ),
+            }));
+        }
+    }
     for stage in bound {
         if skip.contains(stage.id()) {
             continue;
@@ -482,6 +543,19 @@ pub fn run_without(
     let carrier_drop_level = last_consumer_levels(graph, &by_id);
 
     for (level_idx, level) in graph.levels.iter().enumerate() {
+        // The sink is unique by loader contract. Reclaim pages freed by every completed
+        // wave before it builds the one whole-carrier wire payload; doing this at the
+        // level boundary also guarantees no sibling allocation is in flight.
+        if level.iter().any(|id| {
+            by_id.get(id.as_str()).is_some_and(|stage| {
+                stage
+                    .capabilities()
+                    .iter()
+                    .any(|capability| capability == SINK_CAPABILITY)
+            })
+        }) {
+            reclaim_allocator_slack_before_serialization();
+        }
         // Parallel phase: every stage in the level runs concurrently; stages that
         // declare a shared resource serialize internally on that resource's permit.
         // `products` and `cache` are read-only here — siblings in one level never
@@ -617,18 +691,18 @@ pub fn run_without(
             );
         }
 
-        // ── Drop-after-last-consumer, generalized to the WHOLE carrier ──
-        // Every stage whose LAST declared consumer ran in this level is now unreachable
-        // through the dataflow: `exec_stage` hands a stage exactly the products it names
-        // in `consumes()`, so no later stage can observe this one's carrier. Release it —
-        // dataset, typed handles, blob records, provenance, and the internal `pipeline/`
-        // byte artifacts — keeping the COMMITTED byte-artifact lane the post-run reconcile
-        // still owes the caller, and keeping `digest` verbatim so `combined()` is
-        // byte-identical to a retain-all run. Without this, peak residency is the SUM of
-        // every stage's cumulative carrier snapshot over the whole DAG.
+        // ── Drop-after-last-carrier-consumer, generalized to the WHOLE carrier ──
+        // Every stage whose LAST declared carrier reader ran in this level can now shed
+        // the transport lanes: `exec_stage` still hands later artifact-only consumers the
+        // same declared product, but only its COMMITTED byte-artifact residue remains.
+        // Dataset, typed handles, blob records, provenance, and internal `pipeline/`
+        // artifacts are released; `digest` remains verbatim so `combined()` is
+        // byte-identical to a retain-all run. A caller may preserve an exact intermediate
+        // carrier through `retained_carriers` for a post-run proof without retaining the
+        // rest of the DAG.
         if ctx.carrier_retention == CarrierRetention::DropAfterLastConsumer {
             for (stage_id, drop_level) in &carrier_drop_level {
-                if *drop_level != level_idx {
+                if *drop_level != level_idx || ctx.retained_carriers.contains(stage_id) {
                     continue;
                 }
                 let Some(product) = products.remove(stage_id.as_str()) else {
@@ -686,32 +760,53 @@ pub fn run_without(
     })
 }
 
-/// For each stage that ANY other stage consumes, the topological level of its LAST
-/// consumer — the level after whose commit the stage's carrier is provably dead.
+/// For each stage that ANY other stage logically consumes, the topological level of its
+/// LAST carrier consumer — or its own production level when all later consumers are
+/// artifact-only. This is the level after whose commit its carrier is provably dead.
 ///
-/// A stage with NO consumer has no entry: its product is a run OUTPUT, retained for the
-/// life of the [`RunResult`]. The map is total over the consumed stages, so the
-/// retention bound is exact rather than a hand-picked special case: after level `N`, the
-/// stages still holding a live carrier are precisely `{ s : last_consumer_level(s) > N }`
-/// ∪ `{ s : s has no consumer }` — the property
+/// A stage with NO logical consumer has no entry: its product is a run OUTPUT, retained
+/// for the life of the [`RunResult`]. The map is total over logically consumed stages,
+/// including those with no carrier reader, so the retention bound is exact rather than
+/// a hand-picked special case: after level `N`, the stages still holding a live carrier
+/// are precisely `{ s : last_carrier_consumer_level(s) > N }` ∪
+/// `{ s : s has no logical consumer }` — the property
 /// `crate::tests::carrier_retention_is_bounded_by_the_live_frontier` pins.
 ///
-/// Soundness rests on ONE fact: [`exec_stage`] assembles a stage's `StageInput` from
-/// exactly the ids the stage declares in `consumes()`. A stage therefore CANNOT read a
-/// product it did not declare, so "last declarer has run" really is "no reader remains".
-/// A consumer that is not a bound stage is ignored here — [`StageGraph::build`] already
+/// Soundness rests on the loader-checked relation
+/// `carrier_consumes() ⊆ consumes()`: only the former may read transport lanes, while
+/// every later consumer absent from that subset reads committed artifacts only. A
+/// consumer that is not a bound stage is ignored here — [`StageGraph::build`] already
 /// hard-fails on a dangling dependency, so it cannot occur.
 pub(crate) fn last_consumer_levels(
     graph: &StageGraph,
     by_id: &BTreeMap<&str, &Arc<dyn Stage>>,
 ) -> BTreeMap<String, usize> {
+    let level_by_stage: BTreeMap<&str, usize> = graph
+        .levels
+        .iter()
+        .enumerate()
+        .flat_map(|(level_idx, level)| {
+            level
+                .iter()
+                .map(move |stage_id| (stage_id.as_str(), level_idx))
+        })
+        .collect();
+    let logically_consumed: BTreeSet<&str> = by_id
+        .values()
+        .flat_map(|stage| stage.consumes().iter().map(String::as_str))
+        .collect();
     let mut last: BTreeMap<String, usize> = BTreeMap::new();
+    for producer in logically_consumed {
+        if let Some(level_idx) = level_by_stage.get(producer) {
+            last.insert(producer.to_string(), *level_idx);
+        }
+    }
     for (level_idx, level) in graph.levels.iter().enumerate() {
         for consumer in level {
             let Some(stage) = by_id.get(consumer.as_str()) else {
                 continue;
             };
-            for producer in stage.consumes() {
+            for producer in stage.carrier_consumes() {
                 let entry = last.entry(producer.clone()).or_insert(level_idx);
                 *entry = (*entry).max(level_idx);
             }
@@ -814,6 +909,15 @@ fn exec_stage(
                 message: format!("resource lock {resource} poisoned: {e}"),
             })
         })?);
+    }
+    // Carrier-scale serializers share this permit because each owns a whole-document
+    // buffer. Once a sibling releases the permit its Rust temporaries are dead, but a
+    // cold glibc arena may still retain those pages. Reclaim at the handoff before the
+    // next serializer allocates, while the common permit proves no competing serializer
+    // is live. This scales with the declared resource, never a fixed thread cap or stage
+    // name list.
+    if resources.contains(&SERIALIZATION_BUFFER_RESOURCE) {
+        reclaim_allocator_slack_before_serialization();
     }
     let out = stage.run(input)?;
     drop(_guards);
@@ -1038,13 +1142,54 @@ fn check_lane(
     Ok(())
 }
 
-/// Build the scheduler's single typed action-key authority for a stage and its exact
-/// assembled upstream map. Producer and entity identity remain attached to every
+/// The action-key identity available from either a live product or its authenticated
+/// immutable receipt.
+trait ActionIdentity {
+    fn producer_id(&self) -> &str;
+    fn product_digest(&self) -> &str;
+    fn entity_digest(&self, entity: &str) -> Option<String>;
+}
+
+impl ActionIdentity for StageProduct {
+    fn producer_id(&self) -> &str {
+        &self.stage_id
+    }
+
+    fn product_digest(&self) -> &str {
+        &self.digest
+    }
+
+    fn entity_digest(&self, entity: &str) -> Option<String> {
+        product_graphs(self)
+            .contains(entity)
+            .then(|| self.bundle().graph_digest(entity).to_hex())
+    }
+}
+
+impl ActionIdentity for StageReceipt {
+    fn producer_id(&self) -> &str {
+        &self.context.stage_id
+    }
+
+    fn product_digest(&self) -> &str {
+        &self.product_digest
+    }
+
+    fn entity_digest(&self, entity: &str) -> Option<String> {
+        self.graphs
+            .iter()
+            .find(|row| row.identity == entity)
+            .map(|row| row.digest.clone())
+    }
+}
+
+/// Build the scheduler's single typed action-key authority from either live products
+/// or authenticated receipts. Producer and entity identity remain attached to every
 /// digest; raw inputs remain separate path/digest rows.
-pub fn action_key_context(
+fn action_key_context_from_identities<T: ActionIdentity>(
     stage: &dyn Stage,
     root: &Path,
-    upstream: &BTreeMap<String, StageProduct>,
+    upstream: &BTreeMap<String, T>,
 ) -> Result<StageKeyContext, gmeow_errors::Diag> {
     let entities: BTreeMap<&str, &[String]> = stage
         .consumed_entities()
@@ -1052,31 +1197,39 @@ pub fn action_key_context(
         .map(|(producer, entities)| (producer.as_str(), entities.as_slice()))
         .collect();
     let mut upstream_rows = Vec::new();
-    for (producer, product) in upstream {
+    for (producer, identity) in upstream {
+        if identity.producer_id() != producer {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.id().to_string(),
+                message: format!(
+                    "upstream map key {producer} carries identity for {}",
+                    identity.producer_id()
+                ),
+            }));
+        }
         match entities.get(producer.as_str()) {
             Some(selected) if !selected.is_empty() => {
-                let present = product_graphs(product);
                 for entity in *selected {
-                    if !present.contains(entity) {
-                        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    let digest = identity.entity_digest(entity).ok_or_else(|| {
+                        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                             stage: stage.id().to_string(),
                             message: format!(
                                 "declared input entity <{entity}> is absent from producer \
                                  {producer}"
                             ),
-                        }));
-                    }
+                        })
+                    })?;
                     upstream_rows.push(StageInputDigest {
                         producer: producer.clone(),
                         entity: Some(entity.clone()),
-                        digest: product.bundle().graph_digest(entity).to_hex(),
+                        digest,
                     });
                 }
             }
             _ => upstream_rows.push(StageInputDigest {
                 producer: producer.clone(),
                 entity: None,
-                digest: product.digest.clone(),
+                digest: identity.product_digest().to_string(),
             }),
         }
     }
@@ -1088,6 +1241,25 @@ pub fn action_key_context(
         upstream_rows,
         raw_inputs,
     ))
+}
+
+/// Build an action context from the exact live products a stage consumes.
+pub fn action_key_context(
+    stage: &dyn Stage,
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<StageKeyContext, gmeow_errors::Diag> {
+    action_key_context_from_identities(stage, root, upstream)
+}
+
+/// Build the identical action context from authenticated upstream receipts, without
+/// hydrating their datasets or handles.
+pub fn action_key_context_from_receipts(
+    stage: &dyn Stage,
+    root: &Path,
+    upstream: &BTreeMap<String, StageReceipt>,
+) -> Result<StageKeyContext, gmeow_errors::Diag> {
+    action_key_context_from_identities(stage, root, upstream)
 }
 
 /// Each declared raw input as a repo-relative path plus content digest. A missing

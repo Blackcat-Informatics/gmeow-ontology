@@ -654,12 +654,37 @@ pub(crate) fn archive_blobs_from_product(
         .collect()
 }
 
-/// One archive row reconstructed from the product's blob lane: the record's declared
-/// media type + representation and the content-store bytes its digest resolves to.
-fn archive_row(
-    bundle: &PipelineBundle<PipelineHandle>,
+/// Borrow one archive payload directly from the producer's content store.
+///
+/// The dictionary-corpus stage needs only the one or two reps its current corpus
+/// selects. Reconstructing all eleven owned [`BlobRow`] values first duplicated the
+/// complete archive population while the snapshot carrier was also resident.
+///
+/// # Errors
+/// The archive producer is missing/released, or the requested representation's
+/// record/digest/content is incomplete.
+pub(crate) fn archive_blob_bytes_from_product<'a>(
+    upstream: &'a BTreeMap<String, StageProduct>,
     rep: &str,
-) -> Result<BlobRow, gmeow_errors::Diag> {
+) -> Result<&'a [u8], gmeow_errors::Diag> {
+    let product = upstream.get(STAGE_ID).ok_or_else(|| {
+        stage_err(&format!(
+            "missing {STAGE_ID} product for the `{rep}` archive blob"
+        ))
+    })?;
+    if product.carrier_released {
+        return Err(stage_err(&format!(
+            "the {STAGE_ID} carrier was released before `{rep}` was read; the consumer must \
+             declare {STAGE_ID} in carrier_consumes()"
+        )));
+    }
+    archive_bytes(product.bundle(), rep)
+}
+
+fn archive_bytes<'a>(
+    bundle: &'a PipelineBundle<PipelineHandle>,
+    rep: &str,
+) -> Result<&'a [u8], gmeow_errors::Diag> {
     let record = bundle
         .lookaside()
         .blobs
@@ -676,15 +701,34 @@ fn archive_row(
             record.digest
         ))
     })?;
-    let data = bundle
+    bundle
         .blobs()
         .get(&digest)
+        .map(Vec::as_slice)
         .ok_or_else(|| {
             stage_err(&format!(
                 "the {STAGE_ID} product's `{rep}` blob digest resolves to no content-store entry"
             ))
-        })?
-        .clone();
+        })
+}
+
+/// One archive row reconstructed from the product's blob lane: the record's declared
+/// media type + representation and the content-store bytes its digest resolves to.
+fn archive_row(
+    bundle: &PipelineBundle<PipelineHandle>,
+    rep: &str,
+) -> Result<BlobRow, gmeow_errors::Diag> {
+    let record = bundle
+        .lookaside()
+        .blobs
+        .iter()
+        .find(|r| r.representation.as_deref() == Some(rep))
+        .ok_or_else(|| {
+            stage_err(&format!(
+                "the {STAGE_ID} product carries no `{rep}` blob record (fail-closed)"
+            ))
+        })?;
+    let data = archive_bytes(bundle, rep)?.to_vec();
     let media_type = record.media_type.clone().ok_or_else(|| {
         stage_err(&format!(
             "the {STAGE_ID} product's `{rep}` blob record declares no media type"
@@ -1828,6 +1872,17 @@ mod tests {
         let mut with_product: BTreeMap<String, StageProduct> = upstream.clone();
         with_product.insert(STAGE_ID.to_string(), output.product);
         let extracted = archive_blobs_from_product(&with_product).expect("read the archive rows");
+
+        for row in &extracted {
+            assert_eq!(
+                archive_blob_bytes_from_product(&with_product, &row.rep)
+                    .expect("borrow one archive payload"),
+                row.data.as_slice(),
+                "the selective borrowed read for `{}` must expose the exact bytes the owned \
+                 compatibility projection reconstructs",
+                row.rep
+            );
+        }
 
         // Same rows, in the same order (a dropped or reordered ARCHIVE surfaces here).
         let legacy_reps: Vec<&str> = legacy.iter().map(|r| r.rep.as_str()).collect();

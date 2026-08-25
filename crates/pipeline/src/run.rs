@@ -561,16 +561,16 @@ pub fn full_spec() -> PipelineSpec {
         ],
     ));
 
-    // ── the medium axis's producer: train the seven declared zstd dictionaries over
+    // ── the medium axis's producer: train the six declared zstd dictionaries over
     //    their declared corpora, measure each into a
     //    gmeow:CompressionDictionaryRealization, and attach graph/medium-registry.
     //    Its edge set is DERIVED from the shipped corpora, not chosen: the archive
-    //    reps come off `stage-archive-blobs`, the one sink-folded corpus selects the
-    //    `stage-reason` product directly, and the named-graph and
+    //    reps come off `stage-archive-blobs`, the sink-folded proof-trace corpus selects
+    //    the three exact `stage-reason` report artifacts, and the named-graph and
     //    `generated/…` prefix selectors resolve against the assembled carrier
     //    (`stage-snapshot`) and `stage-statements`. A missing edge is a HARD FAIL in
     //    `corpus::assemble`, never a silently smaller training set. ──
-    stages.push(st(
+    stages.push(st_serializing(
         "stage-medium-dictionaries",
         "medium-dictionaries",
         &[
@@ -738,12 +738,11 @@ fn st_compile_logic(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     s
 }
 
-/// A whole-dataset serialization leaf: it requires the exclusive serialization buffer
-/// ([`SERIALIZATION_BUFFER_RESOURCE`]), so the scheduler runs at most one such leaf at a
-/// time while every cheap leaf in the same level keeps full parallelism. Mirrors the
-/// declaring stages' `resources()` ([`crate::stages::export::ExportStage`] /
-/// [`crate::stages::yaml_ld::YamlLdStage`]) so the dag_dogfood parity and the loader's
-/// bind-agreement both hold.
+/// A carrier-scale materializer: it requires the exclusive serialization buffer
+/// ([`SERIALIZATION_BUFFER_RESOURCE`]), so the scheduler runs at most one such stage at
+/// a time while every cheap leaf in the same level keeps full parallelism. Mirrors the
+/// declaring stages' `resources()` (the two whole-dataset exporters and the dictionary
+/// trainer) so the dag_dogfood parity and the loader's bind-agreement both hold.
 fn st_serializing(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
     s.resources = vec![SERIALIZATION_BUFFER_RESOURCE.to_string()];
@@ -872,8 +871,9 @@ pub fn run_full_scoped_with_progress(
     // aggregates recompute from the live frontier. Cache misses still execute every
     // selected stage and all attach/receipt/provenance gates remain mandatory.
     let mut ctx = RunContext::open(root, jobs)?;
-    // Bound peak residency: release each stage's carrier once its last declared consumer
-    // has run. This path is the whole-repository build — roughly 47 contribution and
+    // Bound peak residency: release each stage's carrier once its last declared carrier
+    // consumer has run (or after production when every later edge is artifact-only).
+    // This path is the whole-repository build — roughly 47 contribution and
     // aggregate products — so retaining every product's bundle for the run's life makes
     // peak memory the SUM over the DAG rather than the live frontier, which is what
     // OOM-kills a 16 GB CI runner. Everything the reconcile below reads (each product's
@@ -939,7 +939,7 @@ pub fn run_full_scoped_with_progress(
     let stage_phase_timings = result.stage_phase_timings.clone();
     let level_timings = result.level_timings.clone();
     let stage_receipts = result.stage_receipts.clone();
-    let products: BTreeMap<String, StageProduct> = result.products;
+    let mut products: BTreeMap<String, StageProduct> = result.products;
     // The run-level ledger is the scheduler's FORWARD fold of every producer's
     // diagnostic nodes (their report findings, projected once — the single source). The
     // reconcile phase below attaches its own run-level drift/superset findings to this
@@ -955,6 +955,22 @@ pub fn run_full_scoped_with_progress(
     // is a hard failure in BOTH update and check modes.
     let declared_sink = declared_sink_stage(&spec)?;
     assert_single_gts_writer(&products, declared_sink)?;
+    // Reconcile the declared terminal LAST. Check mode imports the freshly emitted GTS
+    // for the superset proof; retaining every other stage's committed artifact store
+    // beside that import needlessly adds the whole artifact frontier to peak residency.
+    // Consuming each non-terminal product first releases its store immediately after its
+    // bytes have been compared/written. The terminal's GTS bytes are therefore the only
+    // stage product still live when the superset reader opens its independent carrier.
+    // Output order is not semantic (`output_paths` is sorted below), and the single-writer
+    // assertion above proves this removal cannot hide a second terminal.
+    let terminal_product = products.remove(declared_sink).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "pipeline".to_string(),
+            message: format!(
+                "declared sink {declared_sink} produced no product after the single-writer gate"
+            ),
+        })
+    })?;
 
     let mut drifted: Vec<String> = Vec::new();
     let mut produced = 0usize;
@@ -969,8 +985,11 @@ pub fn run_full_scoped_with_progress(
     if let Some(progress) = progress.as_ref() {
         progress.stage_start("pipeline:reconcile");
     }
-    for product in products.values() {
-        for (path, bytes) in &product.artifacts() {
+    for product in products
+        .into_values()
+        .chain(std::iter::once(terminal_product))
+    {
+        for (path, bytes) in product.artifact_refs()? {
             // Internal in-memory dataflow artifacts (under the `pipeline/` logical
             // prefix: base-graph.nq, composed.nq, documentation.nq) are NOT
             // committed outputs — they exist only to pass between stages. Skip.
@@ -979,7 +998,7 @@ pub fn run_full_scoped_with_progress(
             if path.starts_with(crate::bundle::INTERNAL_ARTIFACT_PREFIX) {
                 continue;
             }
-            output_paths.push(path.clone());
+            output_paths.push(path.to_string());
             produced += 1;
 
             // The `gmeow.gts` bundle: in Update mode WRITE the freshly-assembled
@@ -1190,7 +1209,7 @@ pub fn run_full_scoped_with_progress(
             let committed = match std::fs::read(root.join(path)) {
                 Ok(c) => c,
                 Err(e) => {
-                    drifted.push(path.clone());
+                    drifted.push(path.to_string());
                     attach_pipeline_finding(
                         &mut ledger,
                         CODE_MISSING,
@@ -1201,7 +1220,7 @@ pub fn run_full_scoped_with_progress(
                 }
             };
 
-            if committed == *bytes {
+            if committed.as_slice() == bytes {
                 reproduced += 1;
                 continue;
             }
@@ -1217,7 +1236,7 @@ pub fn run_full_scoped_with_progress(
             }
 
             // A genuine drift.
-            drifted.push(path.clone());
+            drifted.push(path.to_string());
             attach_pipeline_finding(
                 &mut ledger,
                 CODE_DRIFT,
@@ -1234,6 +1253,10 @@ pub fn run_full_scoped_with_progress(
     if let Some(progress) = progress.as_ref() {
         progress.stage_end("pipeline:reconcile", reconcile_started.elapsed());
     }
+
+    // The consuming iteration above has released every stage product. Fanout and the
+    // post-update gates operate only on the freshly written terminal bundle; update mode
+    // deliberately re-reads that one canonical disk artifact below.
 
     // ── Fanout (PIPELINE_SPINE §6): the separate post-pipeline projection phase. ──
     // The pipeline has now written `gmeow.gts`; project every committed `generated/`
@@ -1265,20 +1288,23 @@ pub fn run_full_scoped_with_progress(
         // Update is check-while-writing, not a weaker generation lane. Run the
         // strict carrier/syntax gates against the freshly fanned-out tree without
         // executing the pipeline a second time.
-        let gts = products
-            .values()
-            .find_map(|product| product.artifact(GTS_PATH))
-            .ok_or_else(|| {
-                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                    stage: "pipeline".to_string(),
-                    message: format!("no produced {GTS_PATH} available for post-update gates"),
-                })
-            })?;
+        // GENERATED-READ-OK: post-update audit re-reads the terminal just emitted by
+        // this run's fanout; it never folds committed generated bytes into a stage.
+        let gts_path = root.join(GTS_PATH);
+        let gts = std::fs::read(&gts_path).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "pipeline".to_string(),
+                message: format!(
+                    "read freshly emitted {} for post-update gates: {error}",
+                    gts_path.display()
+                ),
+            })
+        })?;
         let gates_started = Instant::now();
         if let Some(progress) = progress.as_ref() {
             progress.stage_start("pipeline:post-update-gates");
         }
-        run_post_update_gates(root, gts, &mut ledger, &mut drifted, &mut timings)?;
+        run_post_update_gates(root, &gts, &mut ledger, &mut drifted, &mut timings)?;
         if let Some(progress) = progress.as_ref() {
             progress.stage_end("pipeline:post-update-gates", gates_started.elapsed());
         }
@@ -2246,14 +2272,36 @@ ex:RequiredShape a sh:NodeShape ;
         let dir = tempfile::tempdir().unwrap();
         let cache = PipelineCache::open(dir.path()).unwrap();
         let context = StageKeyContext::new("stage-validate", "test-v1", Vec::new(), Vec::new());
+        let selection = ReceiptOutputSelection {
+            graphs: out
+                .product
+                .dataset()
+                .owned_named_graphs()
+                .filter_map(|term| match term {
+                    purrdf::RdfTerm::Iri(iri) => Some(iri),
+                    _ => None,
+                })
+                .collect(),
+            blob_representations: out
+                .product
+                .bundle()
+                .lookaside()
+                .blobs
+                .iter()
+                .filter_map(|blob| blob.representation.clone())
+                .collect(),
+            logical_artifacts: out
+                .product
+                .bundle()
+                .lookaside()
+                .resources
+                .iter()
+                .filter_map(|resource| resource.name.clone())
+                .collect(),
+            handles: out.product.bundle().handles().keys().cloned().collect(),
+        };
         cache
-            .put(
-                &context,
-                "stable",
-                "persistent",
-                &ReceiptOutputSelection::default(),
-                &out.product,
-            )
+            .put(&context, "stable", "persistent", &selection, &out.product)
             .unwrap();
         let restored = cache.get(&context).unwrap().expect("cache hit");
         let restored_nodes = restored.product.diag_nodes();
