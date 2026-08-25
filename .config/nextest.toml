@@ -440,9 +440,16 @@ filter = 'package(gmeow-slicetest) & test(/run_conformance_file::grounding\//)'
 threads-required = "num-cpus"
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# These assertions each validate the WHOLE merged ontology against the production
+# SHACL corpus. They already reserve the host, but the consumer-advisory case measured
+# three content-clean 120s terminations on the 4-core hosted runner before completing
+# normally in the local canonical gate. Give this exact whole-corpus class the same
+# 300s runaway backstop as the grounding conformance proofs above; assertions and
+# retries remain unchanged.
 [[profile.default.overrides]]
 filter = 'package(gmeow-validate) & ( (binary(consumer_advisory_shape) & !test(/conformance_support::/)) | (binary(conformance_profiles) & test(/open_value_guard_violates_on_orphan_(dimension|realm)/)) | (binary(conformance_creative_works) & test(frameless_expression_fails_frame_requirement)) )'
 threads-required = "num-cpus"
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'

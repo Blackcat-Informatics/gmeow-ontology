@@ -44,6 +44,13 @@ pub mod i18n;
 // slice-quality translation axis reads the PURE half (`parse_po`,
 // `counts_as_reviewed_coverage`, `LOCALIZABLE_PREDICATES`, `expand_predicate`).
 pub mod i18n_compile;
+// `llms.rs` is source-byte frozen by the model-facing invariance gate because it is
+// the one shared llmstxt.org shape emitter. Its pre-extraction module docs still name
+// the renderer through the old crate-local path, which cannot resolve from this leaf
+// crate without creating the renderer/model dependency cycle this crate exists to
+// break. Keep the lint exception at the module boundary so the frozen emitter remains
+// byte-identical; every other intra-doc link in the crate remains denied by rustdoc.
+#[allow(rustdoc::broken_intra_doc_links)]
 pub mod llms;
 pub mod maturity;
 pub mod model;
