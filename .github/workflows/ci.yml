@@ -529,6 +529,14 @@ jobs:
         with:
           toolchain: nightly
 
+      # `make carrier-purity` depends on `rust-build`, whose single workspace
+      # compile authority is `cargo nextest run --no-run`. Keep the static lane's
+      # tool provisioned and pinned even though it does not run the shared archive.
+      - name: Install cargo-nextest (carrier-purity build prerequisite)
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
+        with:
+          tool: cargo-nextest@0.9.137
+
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 

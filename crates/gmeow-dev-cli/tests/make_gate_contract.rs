@@ -457,6 +457,23 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         rust_job.contains("fetch-depth: 0"),
         "archive shards must fetch origin/main so merge-base invariance tests grade a real comparand"
     );
+    let rust_static_job = ci
+        .split_once("\n  rust-static:\n")
+        .expect("ci.yml carries the static Rust job")
+        .1
+        .split_once("\n  # === ONTOLOGY GATE LANES ===")
+        .expect("ontology gate lanes follow the static Rust job")
+        .0;
+    let nextest_install = rust_static_job
+        .find("cargo-nextest@0.9.137")
+        .expect("rust-static pins cargo-nextest for make carrier-purity's rust-build prerequisite");
+    let carrier_purity = rust_static_job
+        .find("run: make carrier-purity")
+        .expect("rust-static executes the carrier-purity gate");
+    assert!(
+        nextest_install < carrier_purity,
+        "rust-static must install cargo-nextest before make carrier-purity invokes rust-build"
+    );
     assert!(
         ci.contains("--archive-file dist/nextest/ci.tar.zst")
             && ci.contains("--workspace-remap \"$PWD\"")
