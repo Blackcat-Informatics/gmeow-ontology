@@ -2,7 +2,6 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix time: <http://www.w3.org/2006/time#> .
 @prefix unit: <http://qudt.org/vocab/unit/> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
@@ -11,7 +10,7 @@
 
 gmeow:CalendarSystem
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Calendar System"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -25,7 +24,7 @@ gmeow:CalendarSystem
 
 gmeow:DatingMethod
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Dating Method"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ,
@@ -39,7 +38,7 @@ gmeow:DatingMethod
 
 gmeow:DayOfWeek
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Day Of Week"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -59,7 +58,7 @@ gmeow:DayOfWeek
 
 gmeow:Instant
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Instant"@x-gmeow-english ;
     rdfs:subClassOf logic:AbstractIndividual ;
@@ -74,7 +73,7 @@ gmeow:Instant
 
 gmeow:NamedPeriod
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Named Period"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -88,7 +87,7 @@ gmeow:NamedPeriod
 
 gmeow:PeriodType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Period Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -101,7 +100,7 @@ gmeow:PeriodType
 
 gmeow:ReferencePosition
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Reference Position"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -115,25 +114,25 @@ gmeow:ReferencePosition
 
 gmeow:TemporalFrame
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Temporal Frame"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
         gmeow:ReferenceFrame ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:frameTimeScale ;
-            owl:someValuesFrom gmeow:TimeScale ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:frameTimeScale ;
+            logic:someValuesFrom gmeow:TimeScale ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:frameRealm ;
-            owl:someValuesFrom gmeow:FrameRealm ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:frameRealm ;
+            logic:someValuesFrom gmeow:FrameRealm ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:frameKind ;
-            owl:someValuesFrom gmeow:FrameKind ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:frameKind ;
+            logic:someValuesFrom gmeow:FrameKind ;
         ] ;
     skos:definition "A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11)."@x-gmeow-english ;
     skos:example "ex:myFrame a gmeow:TemporalFrame ; gmeow:frameTimeScale gmeow:timeScaleUTC ; gmeow:frameCalendarSystem gmeow:calendarGregorian ."@x-gmeow-english ;
@@ -145,7 +144,7 @@ gmeow:TemporalFrame
 
 gmeow:TemporalMeasurement
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Temporal Measurement"@x-gmeow-english ;
     logic:mediates gmeow:observedFeature ,
@@ -153,14 +152,14 @@ gmeow:TemporalMeasurement
     rdfs:subClassOf logic:Relator ,
         gmeow:Measurement ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:observedFeature ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:observedFeature ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A measured assignment of a date or age to an entity or sample, carrying the method, uncertainty, and determinacy. Now a subclass of gmeow:Measurement (and therefore gmeow:Observation), realising Principle 9: the measurement is a standpoint-indexed claim (vantage + observedFeature + observationResult), not ground truth."@x-gmeow-english ;
     skos:example "ex:charcoalDate a gmeow:TemporalMeasurement ; gmeow:vantage ex:labXYZ ; gmeow:observedFeature ex:hearthSample ; gmeow:measuredAge \"4200\"^^xsd:decimal ; gmeow:unit <http://qudt.org/vocab/unit/YR> ."@x-gmeow-english ;
@@ -172,7 +171,7 @@ gmeow:TemporalMeasurement
 
 gmeow:TimeInterval
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Time Interval"@x-gmeow-english ;
     rdfs:subClassOf logic:AbstractIndividual ;
@@ -187,7 +186,7 @@ gmeow:TimeInterval
 
 gmeow:TimeScale
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Time Scale"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -201,7 +200,7 @@ gmeow:TimeScale
 
 gmeow:TimeScopedRelation
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Time-Scoped Relation"@x-gmeow-english ;
     rdfs:subClassOf logic:Situation ;
@@ -220,7 +219,7 @@ gmeow:agentInternationalCommissionOnStratigraphy
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:assertedAt
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "asserted at"@x-gmeow-english ;
     rdfs:range xsd:dateTime ;
@@ -232,7 +231,7 @@ gmeow:assertedAt
     gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 gmeow:atTime
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "at time"@x-gmeow-english ;
     rdfs:range xsd:dateTime ;
@@ -455,7 +454,7 @@ gmeow:dayWednesday
     gmeow:useWhen "Use for the third day of the ISO week, and for midweek rules stated over the five-day business week — two working days before it, two after."@x-gmeow-english .
 
 gmeow:duringInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeScopedRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "during interval"@x-gmeow-english ;
@@ -468,7 +467,7 @@ gmeow:duringInterval
     gmeow:useWhen "Use to attach a gmeow:TimeScopedRelation to the gmeow:TimeInterval that delimits its validity — the single scope edge of a reified tenure."@x-gmeow-english .
 
 gmeow:edtfValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "EDTF value"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
@@ -480,7 +479,7 @@ gmeow:edtfValue
     gmeow:useWhen "Use when a point or span is approximate, uncertain, seasonal, or open-ended — '1804?', '19XX', '2020-21/2020-09' — and a single crisp xsd:dateTime would lie about the precision."@x-gmeow-english .
 
 gmeow:endedAtTime
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "ended at time"@x-gmeow-english ;
@@ -494,7 +493,7 @@ gmeow:endedAtTime
     gmeow:useWhen "Use to stamp the close of a gmeow:TimeInterval as a single crisp dateTime; omit it entirely to model an interval that is still running."@x-gmeow-english .
 
 gmeow:frameCalendarSystem
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frame calendar system"@x-gmeow-english ;
@@ -507,7 +506,7 @@ gmeow:frameCalendarSystem
     gmeow:useWhen "Use to record the calendar a frame reckons dates in when more than a bare scale is needed — civil and historical frames name one of the co-equal calendars (P9)."@x-gmeow-english .
 
 gmeow:frameReferencePosition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frame reference position"@x-gmeow-english ;
@@ -520,7 +519,7 @@ gmeow:frameReferencePosition
     gmeow:useWhen "Use to wire a frame to the place its time depends on — a timezone for civil offset, an observatory for sidereal time, a planet for an off-Earth calendar."@x-gmeow-english .
 
 gmeow:frameTimeScale
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TemporalFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frame time scale"@x-gmeow-english ;
@@ -602,7 +601,7 @@ gmeow:granularityYear
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hasEndInstant
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "has end instant"@x-gmeow-english ;
@@ -615,7 +614,7 @@ gmeow:hasEndInstant
     gmeow:useWhen "Use to bound an interval's close with a full gmeow:Instant when that endpoint needs its own frame, granularity, determinacy, or EDTF value — the reified counterpart of gmeow:endedAtTime."@x-gmeow-english .
 
 gmeow:hasStartInstant
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "has start instant"@x-gmeow-english ;
@@ -628,7 +627,7 @@ gmeow:hasStartInstant
     gmeow:useWhen "Use to bound an interval's start with a full gmeow:Instant when that endpoint itself needs a frame, granularity, determinacy, or EDTF approximation — the reified counterpart of gmeow:startedAtTime."@x-gmeow-english .
 
 gmeow:hasTemporalFrame
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "has temporal frame"@x-gmeow-english ;
@@ -643,7 +642,7 @@ gmeow:hasTemporalFrame
     gmeow:useWhen "Use to declare the gmeow:TemporalFrame interpreting a gmeow:TimeInterval's bounds — the frame edge that satisfies the interval's frame-relativity requirement (P11)."@x-gmeow-english .
 
 gmeow:hasTemporalMeasurement
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "has temporal measurement"@x-gmeow-english ;
     rdfs:range gmeow:TemporalMeasurement ;
@@ -656,7 +655,7 @@ gmeow:hasTemporalMeasurement
     gmeow:useWhen "Use to attach a gmeow:TemporalMeasurement to the thing it dates — an artifact, sample, place, or named period — making the dating claim discoverable from the dated entity."@x-gmeow-english .
 
 gmeow:inTemporalFrame
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Instant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "in temporal frame"@x-gmeow-english ;
@@ -671,7 +670,7 @@ gmeow:inTemporalFrame
     gmeow:useWhen "Use to declare the gmeow:TemporalFrame interpreting a gmeow:Instant's value — the frame edge for points that satisfies the instant's frame-relativity requirement (P11)."@x-gmeow-english .
 
 gmeow:instantValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Instant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "instant value"@x-gmeow-english ;
@@ -685,13 +684,13 @@ gmeow:instantValue
     gmeow:useWhen "Use to carry the crisp, machine-computable value of a gmeow:Instant — the single xsd:dateTime the solver and renderers read."@x-gmeow-english .
 
 gmeow:intervalAfter
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval after"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
-    owl:inverseOf gmeow:intervalBefore ;
+    logic:inverseOf gmeow:intervalBefore ;
     skos:definition "Allen AFTER: this interval begins strictly after the related interval ends. Transitive inverse of gmeow:intervalBefore. (= time:intervalAfter)"@x-gmeow-english ;
     skos:example "ex:cretaceous gmeow:intervalAfter ex:jurassic ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when gmeow:intervalBefore already states the ordering; prefer one authoritative direction and read this as its inverse."@x-gmeow-english ;
@@ -700,8 +699,8 @@ gmeow:intervalAfter
     gmeow:useWhen "Use in projections rooted on the later interval to state that it begins strictly after another ends — the natural direction when the succeeding span is the subject."@x-gmeow-english .
 
 gmeow:intervalBefore
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval before"@x-gmeow-english ;
@@ -714,23 +713,23 @@ gmeow:intervalBefore
     gmeow:useWhen "Use to assert that one gmeow:TimeInterval ends strictly before another begins with a gap between — the qualitative ordering when exact dateTimes are unknown or beside the point."@x-gmeow-english .
 
 gmeow:intervalCoincidesWith
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval coincides with"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
     skos:definition "Allen EQUALS: this interval and the related interval share the same temporal extent. Symmetric and transitive. TEMPORAL simultaneity only, never identity of the intervals themselves. (= time:intervalEquals)"@x-gmeow-english ;
     skos:example "ex:fiscalYear2024 gmeow:intervalCoincidesWith ex:auditPeriod ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as identity of the intervals — it asserts temporal simultaneity only, never owl:sameAs (Principle 5); two coinciding intervals remain distinct individuals."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as identity of the intervals — it asserts temporal simultaneity only, never OWL sameAs (Principle 5); two coinciding intervals remain distinct individuals."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert between the two co-extensive gmeow:TimeInterval individuals; symmetric and transitive, so the reverse and any chained equalities follow (= time:intervalEquals)."@x-gmeow-english ;
     gmeow:useWhen "Use when two distinct intervals share exactly the same start and end — co-extensive spans such as a fiscal year and an audit window that are temporally simultaneous but ontologically different things."@x-gmeow-english .
 
 gmeow:intervalContains
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval contains"@x-gmeow-english ;
@@ -743,13 +742,13 @@ gmeow:intervalContains
     gmeow:useWhen "Use in projections rooted on the enclosing interval to state it strictly contains a shorter one — the natural direction when the outer span is the subject."@x-gmeow-english .
 
 gmeow:intervalDuring
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval during"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
-    owl:inverseOf gmeow:intervalContains ;
+    logic:inverseOf gmeow:intervalContains ;
     skos:definition "Allen DURING: this interval's extent falls strictly within the related interval's extent. Transitive. Inverse of gmeow:intervalContains. (= time:intervalDuring)"@x-gmeow-english ;
     skos:example "ex:lunchBreak gmeow:intervalDuring ex:workday ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the intervals share a start (use gmeow:intervalStarts) or end (use gmeow:intervalFinishes); DURING requires both endpoints strictly inside. Distinct from gmeow:periodPartOf, which nests NamedPeriods, not intervals."@x-gmeow-english ;
@@ -758,7 +757,7 @@ gmeow:intervalDuring
     gmeow:useWhen "Use when one interval falls strictly inside another with both endpoints interior — a break within a workday, an episode within an era, with no shared boundary."@x-gmeow-english .
 
 gmeow:intervalFinishedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval finished by"@x-gmeow-english ;
@@ -771,12 +770,12 @@ gmeow:intervalFinishedBy
     gmeow:useWhen "Use in projections rooted on the longer interval to state a shorter co-finishing interval ends with it — the inverse view of a shared end."@x-gmeow-english .
 
 gmeow:intervalFinishes
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval finishes"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
-    owl:inverseOf gmeow:intervalFinishedBy ;
+    logic:inverseOf gmeow:intervalFinishedBy ;
     skos:definition "Allen FINISHES: this interval and the related interval end together, and this one began later. NOT transitive. Inverse of gmeow:intervalFinishedBy. (= time:intervalFinishes)"@x-gmeow-english ;
     skos:example "ex:finalSprint gmeow:intervalFinishes ex:project ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the intervals also share their start (use gmeow:intervalStarts) or are fully co-extensive (use gmeow:intervalCoincidesWith); FINISHES is the shared-end-only case and is NOT transitive."@x-gmeow-english ;
@@ -785,12 +784,12 @@ gmeow:intervalFinishes
     gmeow:useWhen "Use when two intervals share an end instant but the subject began later — a closing sub-span (final sprint, last act) that ends with its enclosing span."@x-gmeow-english .
 
 gmeow:intervalMeets
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval meets"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
-    owl:inverseOf gmeow:intervalMetBy ;
+    logic:inverseOf gmeow:intervalMetBy ;
     skos:definition "Allen MEETS: this interval ends exactly when the related interval begins. NOT transitive. Inverse of gmeow:intervalMetBy. (= time:intervalMeets)"@x-gmeow-english ;
     skos:example "ex:pleistocene gmeow:intervalMeets ex:holocene ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when there is a gap (use gmeow:intervalBefore) or any overlap (use gmeow:intervalOverlaps); MEETS is the exact-touch case only, and it is NOT transitive."@x-gmeow-english ;
@@ -799,7 +798,7 @@ gmeow:intervalMeets
     gmeow:useWhen "Use when one interval ends exactly where the next begins with no gap and no overlap — adjacent reigns, consecutive epochs sharing a boundary instant."@x-gmeow-english .
 
 gmeow:intervalMetBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval met by"@x-gmeow-english ;
@@ -812,7 +811,7 @@ gmeow:intervalMetBy
     gmeow:useWhen "Use in projections rooted on the later interval to state it begins exactly where another ends — the inverse view of an exact-touch boundary."@x-gmeow-english .
 
 gmeow:intervalOverlappedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval overlapped by"@x-gmeow-english ;
@@ -825,12 +824,12 @@ gmeow:intervalOverlappedBy
     gmeow:useWhen "Use in projections rooted on the later-starting interval to state it is partially overlapped from before — the inverse view of partial overlap."@x-gmeow-english .
 
 gmeow:intervalOverlaps
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval overlaps"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
-    owl:inverseOf gmeow:intervalOverlappedBy ;
+    logic:inverseOf gmeow:intervalOverlappedBy ;
     skos:definition "Allen OVERLAPS: this interval begins before and ends during the related interval. NOT transitive. Inverse of gmeow:intervalOverlappedBy. (= time:intervalOverlaps)"@x-gmeow-english ;
     skos:example "ex:firstReign gmeow:intervalOverlaps ex:secondReign ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when one interval wholly contains the other (use gmeow:intervalContains/gmeow:intervalDuring) or they merely touch (use gmeow:intervalMeets); OVERLAPS is the proper-partial case and is NOT transitive."@x-gmeow-english ;
@@ -839,7 +838,7 @@ gmeow:intervalOverlaps
     gmeow:useWhen "Use when one interval starts before another and ends partway into it — partial overlap with a shared middle stretch but distinct start and end."@x-gmeow-english .
 
 gmeow:intervalStartedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval started by"@x-gmeow-english ;
@@ -852,12 +851,12 @@ gmeow:intervalStartedBy
     gmeow:useWhen "Use in projections rooted on the longer interval to state a shorter co-starting interval begins with it — the inverse view of a shared start."@x-gmeow-english .
 
 gmeow:intervalStarts
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "interval starts"@x-gmeow-english ;
     rdfs:range gmeow:TimeInterval ;
-    owl:inverseOf gmeow:intervalStartedBy ;
+    logic:inverseOf gmeow:intervalStartedBy ;
     skos:definition "Allen STARTS: this interval and the related interval begin together, and this one ends first. NOT transitive. Inverse of gmeow:intervalStartedBy. (= time:intervalStarts)"@x-gmeow-english ;
     skos:example "ex:probation gmeow:intervalStarts ex:employment ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the intervals also share their end (use gmeow:intervalFinishes) or are fully co-extensive (use gmeow:intervalCoincidesWith); STARTS is the shared-start-only case and is NOT transitive."@x-gmeow-english ;
@@ -866,7 +865,7 @@ gmeow:intervalStarts
     gmeow:useWhen "Use when two intervals share a start instant but the subject ends first — an initial sub-span (probation, trial period) that begins with its enclosing span."@x-gmeow-english .
 
 gmeow:measuredAge
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measured age"@x-gmeow-english ;
@@ -879,7 +878,7 @@ gmeow:measuredAge
     gmeow:useWhen "Use for a measurement that yields an elapsed-time figure (years before present, sample age) rather than an absolute calendar date — the radiocarbon/geologic style of result."@x-gmeow-english .
 
 gmeow:measuredDate
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measured date"@x-gmeow-english ;
@@ -906,7 +905,7 @@ gmeow:measurementCenozoicStart
     gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy .
 
 gmeow:measurementDeterminacy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measurement determinacy"@x-gmeow-english ;
@@ -935,7 +934,7 @@ gmeow:measurementHoloceneStart
     gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy .
 
 gmeow:measurementMethod
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measurement method"@x-gmeow-english ;
@@ -977,7 +976,7 @@ gmeow:measurementQuaternaryStart
     gmeow:vantage gmeow:agentInternationalCommissionOnStratigraphy .
 
 gmeow:measurementUncertainty
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TemporalMeasurement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measurement uncertainty"@x-gmeow-english ;
@@ -990,7 +989,7 @@ gmeow:measurementUncertainty
     gmeow:useWhen "Use to record the spread (e.g. ±1σ) of a temporal measurement's age, in the same unit as gmeow:measuredAge — the quantitative error bar on a dating claim."@x-gmeow-english .
 
 gmeow:observationCutoff
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "observation cutoff"@x-gmeow-english ;
     rdfs:range xsd:dateTime ;
@@ -1003,7 +1002,7 @@ gmeow:observationCutoff
     gmeow:useWhen "Use to REFER to the derived observation-cutoff concept — in documentation, competency questions, or a downstream profile's marker — never to assert a value on a claim."@x-gmeow-english .
 
 gmeow:observationWindowRequired
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "observation window required"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
@@ -1024,14 +1023,14 @@ gmeow:periodCenozoic
     gmeow:periodType gmeow:periodTypeGeologicEra .
 
 gmeow:periodContainsPeriod
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:NamedPeriod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "period contains period"@x-gmeow-english ;
     rdfs:range gmeow:NamedPeriod ;
     rdfs:subPropertyOf gmeow:hasPart ;
-    owl:inverseOf gmeow:periodPartOf ;
+    logic:inverseOf gmeow:periodPartOf ;
     skos:definition "The transitive inverse of gmeow:periodPartOf."@x-gmeow-english ;
     skos:example "ex:quaternary gmeow:periodContainsPeriod ex:holocene ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when gmeow:periodPartOf already states the nesting; prefer the part→whole direction and read this as its inverse to keep one authoritative assertion."@x-gmeow-english ;
@@ -1040,7 +1039,7 @@ gmeow:periodContainsPeriod
     gmeow:useWhen "Use in whole-rooted projections that traverse from a larger period down to its constituents — the natural direction when the enclosing era is the subject."@x-gmeow-english .
 
 gmeow:periodEnd
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NamedPeriod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "period end"@x-gmeow-english ;
@@ -1063,8 +1062,8 @@ gmeow:periodHolocene
     gmeow:periodType gmeow:periodTypeGeologicEpoch .
 
 gmeow:periodPartOf
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:NamedPeriod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "period part of"@x-gmeow-english ;
@@ -1097,12 +1096,12 @@ gmeow:periodQuaternary
     gmeow:periodType gmeow:periodTypeGeologicPeriod .
 
 gmeow:periodStart
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NamedPeriod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "period start"@x-gmeow-english ;
     rdfs:range gmeow:Instant ;
-    owl:propertyChainAxiom ( gmeow:hasTemporalMeasurement gmeow:measuredDate ) ;
+    logic:propertyChainAxiom ( gmeow:hasTemporalMeasurement gmeow:measuredDate ) ;
     skos:definition "The instant at which a named period begins. Functional nature removed because the property chain below makes periodStart non-simple, and OWL 2 DL forbids non-simple properties in functional axioms (Principle 8). Closed-world single-valuedness lives in SHACL (NamedPeriodShape)."@x-gmeow-english ;
     skos:example "ex:holocene gmeow:periodStart ex:holoceneStartInstant ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it as functional in OWL (the chain makes it non-simple, P8 — single-valuedness is a SHACL concern) and avoid pointing it at an age measurement (gmeow:measuredAge needs solver-layer conversion, P12)."@x-gmeow-english ;
@@ -1111,7 +1110,7 @@ gmeow:periodStart
     gmeow:useWhen "Use to state the start boundary of a gmeow:NamedPeriod as a gmeow:Instant, or let it be inferred from a gmeow:hasTemporalMeasurement whose gmeow:measuredDate is an Instant via the property chain."@x-gmeow-english .
 
 gmeow:periodType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NamedPeriod ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "period type"@x-gmeow-english ;
@@ -1180,7 +1179,7 @@ gmeow:periodTypeHistoricalEra
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:recordedNoLaterThan
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "recorded no later than"@x-gmeow-english ;
     rdfs:range xsd:dateTime ;
@@ -1191,7 +1190,7 @@ gmeow:recordedNoLaterThan
     gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 gmeow:startedAtTime
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TimeInterval ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "started at time"@x-gmeow-english ;
@@ -1557,7 +1556,7 @@ gmeow:timeScaleUTC
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:validFrom
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "valid from"@x-gmeow-english ;
     rdfs:range xsd:dateTime ;
@@ -1568,7 +1567,7 @@ gmeow:validFrom
     gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 gmeow:validUntil
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "valid until"@x-gmeow-english ;
     rdfs:range xsd:dateTime ;
@@ -1580,7 +1579,7 @@ gmeow:validUntil
     gmeow:useForConsumer gmeow:consumerIndexProjection .
 
 <https://blackcatinformatics.ca/gmeow/slices/temporal>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Cross-cutting temporal facility (the OWL-Time superset layer): time intervals, instants, temporal reference frames, named periods, temporal measurements, and reified time-scoped relations, reused by every slice for facts that hold over a period (mailbox residence, address/role tenure, etc.). Lighter cases use the validFrom/validUntil RDF-star annotation properties."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
@@ -1593,12 +1592,12 @@ gmeow:validUntil
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both owl:*Cardinality and
-# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# (Principle 17). A restriction carrying both a logic: qualified-cardinality bound and
+# logic:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / value-range / disjunctive
-# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL/DL
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
@@ -1613,16 +1612,16 @@ gmeow:TemporalFrame logic:subClassOf
 # Closed-world cardinality axiom backing the hand-authored core observation
 # method well-formedness shape (a temporal measurement records exactly one method).
 gmeow:TemporalMeasurement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ObservationMethod ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/DatingMethod> ] .
-<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationMethod" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -1631,7 +1630,7 @@ gmeow:TemporalMeasurement rdfs:subClassOf
 # gmeow:TemporalMeasurementShape — exactly one observed feature and one dating method (a
 # gmeow:DatingMethod); at least one vantage (rides the migrated existence closure).
 gmeow:TemporalMeasurement logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DatingMethod ] .
 
 # A TemporalMeasurement carries either a gmeow:measuredAge or a gmeow:measuredDate (or both) —
@@ -1648,9 +1647,9 @@ gmeow:TemporalMeasurementDateOrAgeConstraint
     logic:message "A TemporalMeasurement must have either gmeow:measuredAge or gmeow:measuredDate (or both)." .
 
 # gmeow:CoreObservationMethodShape / gmeow:TemporalMeasurementShape exactly-one method: the plain
-# sh:maxCount 1 (owl:onClass owl:Thing degrades to it) alongside the DatingMethod-qualified bound.
+# sh:maxCount 1 (OWL onClass OWL Thing degrades to it) alongside the DatingMethod-qualified bound.
 gmeow:TemporalMeasurement logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:CoreObservationMethodShape target gmeow:TemporalMeasurement: its method is also an
 # gmeow:ObservationMethod (gmeow:DatingMethod ⊑ gmeow:ObservationMethod), so the value-class the
@@ -1667,18 +1666,18 @@ gmeow:TemporalMeasurement logic:subClassOf
 # temporal-slice logic:Constraint: quantifying over the ABSENCE of a bound annotation-layer
 # clock on every reified claim exceeds the range-restricted guarded fragment the native
 # coherence gate certifies (gmeow:assertedAt / gmeow:recordedNoLaterThan are
-# owl:AnnotationProperty statement-layer clocks, not object/datatype edges the guarded
+# OWL AnnotationProperty statement-layer clocks, not object/datatype edges the guarded
 # existential/counting deciders reach). Improvising an unsupported constraint here would be
 # a fake certification; the honest disclosure is this logic:expressivenessBoundary record,
 # mirroring logic:rdf12-nested-triple-term's retained-withhold idiom exactly
 # (slices/grounding/logic/module.ttl).
 gmeow:ObservationWindowClosedWorldBoundary
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Observation Window Closed-World Boundary"@x-gmeow-english ;
     logic:expressivenessBoundary logic:FirstOrder ;
-    logic:fragmentBoundaryReason "Enforcing 'every claim conforms to a required observation window' as a slice-level closed-world constraint would quantify, for every reified claim (an owl:Axiom), over the ABSENCE of a bound gmeow:assertedAt or gmeow:recordedNoLaterThan value. Those statement-layer clocks are owl:AnnotationProperty annotations, not the object/datatype edges the guarded description-logic fragment's existential and counting deciders reach, so a slice-wide closed-world negation-as-failure rule over them cannot be certified as a native logic:Formula obligation. The requirement is therefore sanctioned only as a downstream-profile pattern (gmeow:observationWindowRequired): the profile that opts in applies the typed exclusion classification itself, at its own enforcement boundary, never as a temporal-slice constraint." ;
+    logic:fragmentBoundaryReason "Enforcing 'every claim conforms to a required observation window' as a slice-level closed-world constraint would quantify, for every reified claim (an OWL Axiom), over the ABSENCE of a bound gmeow:assertedAt or gmeow:recordedNoLaterThan value. Those statement-layer clocks are OWL AnnotationProperty annotations, not the object/datatype edges the guarded description-logic fragment's existential and counting deciders reach, so a slice-wide closed-world negation-as-failure rule over them cannot be certified as a native logic:Formula obligation. The requirement is therefore sanctioned only as a downstream-profile pattern (gmeow:observationWindowRequired): the profile that opts in applies the typed exclusion classification itself, at its own enforcement boundary, never as a temporal-slice constraint." ;
     skos:definition "The retained-withhold record for the temporal slice's observation-window requirement: certifying 'a claim's gmeow:observationCutoff must be bound' as a closed-world logic:Constraint over the statement-layer annotation clocks (gmeow:assertedAt / gmeow:recordedNoLaterThan) exceeds the range-restricted guarded fragment the native coherence gate decides. The requirement is instead sanctioned as a downstream-profile pattern (gmeow:observationWindowRequired) and this honest boundary is recorded here rather than an unsupported constraint being improvised."@x-gmeow-english ;
     skos:example "A profile asserts itself gmeow:observationWindowRequired true and classifies, in its OWN downstream projection, any claim whose gmeow:observationCutoff is unbound as excluded/nonconforming for that profile — the temporal slice never asserts this exclusion itself (cf. logic:rdf12-nested-triple-term for the parallel form of this retained-withhold idiom)."@x-gmeow-english ;
     gmeow:useWhen "Cite it when explaining why the temporal slice ships gmeow:observationWindowRequired as a marker only, with no accompanying closed-world logic:Constraint — the enforcement is a downstream-profile responsibility and this record is the honest disclosure of why it stops there."@x-gmeow-english ;
@@ -1748,7 +1747,7 @@ logic:npbMeasuredBody a logic:Formula ; logic:relation gmeow:hasTemporalMeasurem
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1756,7 +1755,7 @@ logic:npbMeasuredBody a logic:Formula ; logic:relation gmeow:hasTemporalMeasurem
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:duringIntervalFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "duringInterval is functional"@x-gmeow-english ;
@@ -1771,7 +1770,7 @@ gmeow:duringIntervalFunctionality
     skos:example "gmeow:duringIntervalFunctionality logic:characterizes gmeow:duringInterval ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:edtfValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "edtfValue is functional"@x-gmeow-english ;
@@ -1786,7 +1785,7 @@ gmeow:edtfValueFunctionality
     skos:example "gmeow:edtfValueFunctionality logic:characterizes gmeow:edtfValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:endedAtTimeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "endedAtTime is functional"@x-gmeow-english ;
@@ -1801,7 +1800,7 @@ gmeow:endedAtTimeFunctionality
     skos:example "gmeow:endedAtTimeFunctionality logic:characterizes gmeow:endedAtTime ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:frameCalendarSystemFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frameCalendarSystem is functional"@x-gmeow-english ;
@@ -1816,7 +1815,7 @@ gmeow:frameCalendarSystemFunctionality
     skos:example "gmeow:frameCalendarSystemFunctionality logic:characterizes gmeow:frameCalendarSystem ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:frameReferencePositionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frameReferencePosition is functional"@x-gmeow-english ;
@@ -1831,7 +1830,7 @@ gmeow:frameReferencePositionFunctionality
     skos:example "gmeow:frameReferencePositionFunctionality logic:characterizes gmeow:frameReferencePosition ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:frameTimeScaleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "frameTimeScale is functional"@x-gmeow-english ;
@@ -1846,7 +1845,7 @@ gmeow:frameTimeScaleFunctionality
     skos:example "gmeow:frameTimeScaleFunctionality logic:characterizes gmeow:frameTimeScale ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hasEndInstantFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "hasEndInstant is functional"@x-gmeow-english ;
@@ -1861,7 +1860,7 @@ gmeow:hasEndInstantFunctionality
     skos:example "gmeow:hasEndInstantFunctionality logic:characterizes gmeow:hasEndInstant ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hasStartInstantFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "hasStartInstant is functional"@x-gmeow-english ;
@@ -1876,7 +1875,7 @@ gmeow:hasStartInstantFunctionality
     skos:example "gmeow:hasStartInstantFunctionality logic:characterizes gmeow:hasStartInstant ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:instantValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "instantValue is functional"@x-gmeow-english ;
@@ -1891,7 +1890,7 @@ gmeow:instantValueFunctionality
     skos:example "gmeow:instantValueFunctionality logic:characterizes gmeow:instantValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:measuredAgeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measuredAge is functional"@x-gmeow-english ;
@@ -1906,7 +1905,7 @@ gmeow:measuredAgeFunctionality
     skos:example "gmeow:measuredAgeFunctionality logic:characterizes gmeow:measuredAge ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:measuredDateFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measuredDate is functional"@x-gmeow-english ;
@@ -1921,7 +1920,7 @@ gmeow:measuredDateFunctionality
     skos:example "gmeow:measuredDateFunctionality logic:characterizes gmeow:measuredDate ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:measurementMethodFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measurementMethod is functional"@x-gmeow-english ;
@@ -1936,7 +1935,7 @@ gmeow:measurementMethodFunctionality
     skos:example "gmeow:measurementMethodFunctionality logic:characterizes gmeow:measurementMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:measurementUncertaintyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "measurementUncertainty is functional"@x-gmeow-english ;
@@ -1951,7 +1950,7 @@ gmeow:measurementUncertaintyFunctionality
     skos:example "gmeow:measurementUncertaintyFunctionality logic:characterizes gmeow:measurementUncertainty ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:periodEndFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "periodEnd is functional"@x-gmeow-english ;
@@ -1966,7 +1965,7 @@ gmeow:periodEndFunctionality
     skos:example "gmeow:periodEndFunctionality logic:characterizes gmeow:periodEnd ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:startedAtTimeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "startedAtTime is functional"@x-gmeow-english ;

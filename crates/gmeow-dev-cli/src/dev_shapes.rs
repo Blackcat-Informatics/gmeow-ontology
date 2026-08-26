@@ -1925,13 +1925,19 @@ fn collect_module_files(dir: &Path, out: &mut Vec<PathBuf>) {
 /// The set of class IRIs a single authored file DECLARES (`<K> a owl:Class`).
 fn declared_class_iris(ds: &RdfDataset) -> std::collections::BTreeSet<String> {
     let mut out = std::collections::BTreeSet::new();
-    let (Some(ty), Some(cls)) = (
-        ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-        ds.term_id_by_value(&TermValue::iri(OWL_CLASS)),
-    ) else {
+    let Some(ty) = ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
         return out;
     };
-    for q in ds.quads_for_pattern(None, Some(ty), Some(cls), GraphMatch::Any) {
+    // A slice types a class in the canonical `logic:` spelling (`logic:Class`);
+    // lower each `rdf:type` object to its `owl:` view so a `logic:`- or an
+    // `owl:`-authored declaration both count.
+    for q in ds.quads_for_pattern(None, Some(ty), None, GraphMatch::Any) {
+        let TermRef::Iri(o) = ds.resolve(q.o) else {
+            continue;
+        };
+        if gmeow_ns::to_owl_view(o) != OWL_CLASS {
+            continue;
+        }
         if let TermRef::Iri(s) = ds.resolve(q.s) {
             out.insert(s.to_owned());
         }
@@ -2383,13 +2389,19 @@ fn object_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
     let op = "http://www.w3.org/2002/07/owl#ObjectProperty";
     for m in modules {
         let Ok(ds) = parse_ttl_file(&m) else { continue };
-        let (Some(ty), Some(opo)) = (
-            ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-            ds.term_id_by_value(&TermValue::iri(op)),
-        ) else {
+        let Some(ty) = ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
             continue;
         };
-        for q in ds.quads_for_pattern(None, Some(ty), Some(opo), GraphMatch::Any) {
+        // A slice types an object property in the canonical `logic:` spelling
+        // (`logic:ObjectProperty`); lower each `rdf:type` object to its `owl:`
+        // view so both authorings count.
+        for q in ds.quads_for_pattern(None, Some(ty), None, GraphMatch::Any) {
+            let TermRef::Iri(o) = ds.resolve(q.o) else {
+                continue;
+            };
+            if gmeow_ns::to_owl_view(o) != op {
+                continue;
+            }
             if let TermRef::Iri(s) = ds.resolve(q.s) {
                 out.insert(s.to_owned());
             }
@@ -2543,13 +2555,19 @@ fn already_functional(root: &Path) -> std::collections::BTreeSet<String> {
     let fp = "http://www.w3.org/2002/07/owl#FunctionalProperty";
     for m in modules {
         let Ok(ds) = parse_ttl_file(&m) else { continue };
-        let (Some(ty), Some(fpo)) = (
-            ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-            ds.term_id_by_value(&TermValue::iri(fp)),
-        ) else {
+        let Some(ty) = ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
             continue;
         };
-        for q in ds.quads_for_pattern(None, Some(ty), Some(fpo), GraphMatch::Any) {
+        // A slice types a functional property in the canonical `logic:` spelling
+        // (`logic:functionalProperty`); lower each `rdf:type` object to its
+        // `owl:` view so an already-declared characteristic is never re-emitted.
+        for q in ds.quads_for_pattern(None, Some(ty), None, GraphMatch::Any) {
+            let TermRef::Iri(o) = ds.resolve(q.o) else {
+                continue;
+            };
+            if gmeow_ns::to_owl_view(o) != fp {
+                continue;
+            }
             if let TermRef::Iri(s) = ds.resolve(q.s) {
                 out.insert(s.to_owned());
             }

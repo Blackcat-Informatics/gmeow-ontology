@@ -461,14 +461,18 @@ fn build_strong_edges(
         if denied.contains(&denial) {
             continue;
         }
-        let is_class = has_type(onto, subject, OWL_CLASS);
+        // The GMEOW term is authored in the canonical `logic:` typing vocabulary after the
+        // owl:→logic: surface flip, so a `has_type` against the `owl:` marker alone would read
+        // false and silently drop the mapping edge. Recognize BOTH spellings (canonical first).
+        let is_class =
+            has_type(onto, subject, gmeow_ns::LOGIC_CLASS) || has_type(onto, subject, OWL_CLASS);
         let mut is_property = false;
-        for kind in [
-            OWL_OBJECT_PROPERTY,
-            OWL_DATATYPE_PROPERTY,
-            OWL_ANNOTATION_PROPERTY,
+        for (logic_kind, owl_kind) in [
+            (gmeow_ns::LOGIC_OBJECT_PROPERTY, OWL_OBJECT_PROPERTY),
+            (gmeow_ns::LOGIC_DATATYPE_PROPERTY, OWL_DATATYPE_PROPERTY),
+            (gmeow_ns::LOGIC_ANNOTATION_PROPERTY, OWL_ANNOTATION_PROPERTY),
         ] {
-            if has_type(onto, subject, kind) {
+            if has_type(onto, subject, logic_kind) || has_type(onto, subject, owl_kind) {
                 is_property = true;
                 break;
             }

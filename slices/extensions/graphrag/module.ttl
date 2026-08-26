@@ -2,13 +2,12 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:Community
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Community"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -17,21 +16,21 @@ gmeow:Community
 
 gmeow:CommunitySummary
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Community Summary"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Summary ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:summarizesCommunity ;
-            owl:someValuesFrom gmeow:Community ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:summarizesCommunity ;
+            logic:someValuesFrom gmeow:Community ;
         ] ;
     skos:definition "A pre-generated summary of a community — GraphRAG's global-question substrate, gmeow:wasDerivedFrom the community's members and chunks and gmeow:wasGeneratedBy its generating invocation (EXISTING provenance), hence revisable rather than a black box."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Corpus
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Corpus"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -40,35 +39,35 @@ gmeow:Corpus
 
 gmeow:ExtractedEntity
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Extracted Entity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A model-extracted entity DESCRIPTION — an information object about a putative entity, derived from source chunks. Deliberately NOT the entity itself: promotion to a first-class gmeow:Entity (with coreference by reference, never owl:sameAs — P5) is a separate, attributable curation act."@x-gmeow-english ;
+    skos:definition "A model-extracted entity DESCRIPTION — an information object about a putative entity, derived from source chunks. Deliberately NOT the entity itself: promotion to a first-class gmeow:Entity (with coreference by reference, never OWL sameAs — P5) is a separate, attributable curation act."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ExtractedRelationship
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Extracted Relationship"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:relationshipSource ;
-            owl:someValuesFrom gmeow:ExtractedEntity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:relationshipSource ;
+            logic:someValuesFrom gmeow:ExtractedEntity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:relationshipTarget ;
-            owl:someValuesFrom gmeow:ExtractedEntity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:relationshipTarget ;
+            logic:someValuesFrom gmeow:ExtractedEntity ;
         ] ;
     skos:definition "A model-extracted relationship description between extracted-entity descriptions — the GraphRAG edge as a revisable, attributed artifact rather than a black-box triple."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:IndexAlgorithm
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "Index Algorithm"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -76,7 +75,7 @@ gmeow:IndexAlgorithm
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:communityLevel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Community ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "community level"@x-gmeow-english ;
@@ -85,7 +84,7 @@ gmeow:communityLevel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:communityMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Community ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "community member"@x-gmeow-english ;
@@ -95,7 +94,7 @@ gmeow:communityMember
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:corpusMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Corpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "corpus member"@x-gmeow-english ;
@@ -105,7 +104,7 @@ gmeow:corpusMember
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:forQuery
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:RetrievalEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "for query"@x-gmeow-english ;
@@ -114,7 +113,7 @@ gmeow:forQuery
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:indexAlgorithm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "index algorithm"@x-gmeow-english ;
@@ -148,7 +147,7 @@ gmeow:indexAlgorithmIvf
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:indexParameters
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:VectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "index parameters"@x-gmeow-english ;
@@ -157,7 +156,7 @@ gmeow:indexParameters
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:indexesCorpus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VectorIndex ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "indexes corpus"@x-gmeow-english ;
@@ -166,7 +165,7 @@ gmeow:indexesCorpus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relationshipSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ExtractedRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship source"@x-gmeow-english ;
@@ -180,7 +179,7 @@ gmeow:relationshipSource
         gmeow:boxRBox .
 
 gmeow:relationshipTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ExtractedRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationship target"@x-gmeow-english ;
@@ -193,14 +192,14 @@ gmeow:relationshipTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:retrievalScore
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "retrieval score"@x-gmeow-english ;
     skos:definition "Statement-level annotation: the relevance score a retrieval (or re-ranker) assigned to ONE retrievedChunk triple. An annotation property so competing scores coexist attributed (P9) and the OWL downcast stays DL-clean (P3)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:retrievedChunk
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RetrievalEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "retrieved chunk"@x-gmeow-english ;
@@ -209,7 +208,7 @@ gmeow:retrievedChunk
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:summarizesCommunity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CommunitySummary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "summarizes community"@x-gmeow-english ;
@@ -222,7 +221,7 @@ gmeow:summarizesCommunity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:vectorRef
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Embedding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "vector ref"@x-gmeow-english ;
@@ -231,7 +230,7 @@ gmeow:vectorRef
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/graphrag>
-    a owl:Ontology ;
+    a logic:Ontology ;
     rdfs:comment "Per-result epistemics (a retrieval's score for ONE chunk) ride RDF 1.2 statement annotations on the gmeow:retrievedChunk triple (gmeow:retrievalScore) — competing re-ranker scores coexist attributed, never overwritten (P9, P3)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "GMEOW GraphRAG Module"@x-gmeow-english ;
@@ -242,28 +241,28 @@ gmeow:vectorRef
 # =========================================================================== #
 # Declarative constraint axioms (extension slices) — the closed-
 # world cardinality obligations the hand-authored shapes.ttl NodeShapes state
-# (gmeow:ExtractedRelationshipEndsShape), authored here once as OWL restriction
+# (gmeow:ExtractedRelationshipEndsShape), authored here once as a logic:Restriction
 # axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
-# derive_validation_shapes (Principle 17). exact-one -> owl:maxQualifiedCardinality 1
-# (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1. The Embedding/RetrievalEvent
+# derive_validation_shapes (Principle 17). exact-one -> logic:maxQualifiedCardinality 1
+# (logic:onClass logic:Thing) -> sh:minCount 1 + sh:maxCount 1. The Embedding/RetrievalEvent
 # cardinality axioms (gmeow:EmbeddingProvenanceShape, gmeow:RetrievalEventShape)
 # migrated to the ai slice's module.ttl alongside the classes they constrain.
 # =========================================================================== #
 
 gmeow:ExtractedRelationship rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:relationshipSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:relationshipTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:relationshipSource ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:relationshipTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/relationshipSource> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/relationshipTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipSource> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipTarget> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -271,7 +270,7 @@ gmeow:ExtractedRelationship rdfs:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:indexAlgorithmFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "indexAlgorithm is functional"@x-gmeow-english ;
@@ -286,7 +285,7 @@ gmeow:indexAlgorithmFunctionality
     skos:example "gmeow:indexAlgorithmFunctionality logic:characterizes gmeow:indexAlgorithm ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relationshipSourceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationshipSource is functional"@x-gmeow-english ;
@@ -301,7 +300,7 @@ gmeow:relationshipSourceFunctionality
     skos:example "gmeow:relationshipSourceFunctionality logic:characterizes gmeow:relationshipSource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relationshipTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "relationshipTarget is functional"@x-gmeow-english ;
@@ -316,7 +315,7 @@ gmeow:relationshipTargetFunctionality
     skos:example "gmeow:relationshipTargetFunctionality logic:characterizes gmeow:relationshipTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:summarizesCommunityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     rdfs:label "summarizesCommunity is functional"@x-gmeow-english ;

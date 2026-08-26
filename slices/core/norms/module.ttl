@@ -1,15 +1,15 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AuthorityLevel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Authority Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -22,7 +22,7 @@ gmeow:AuthorityLevel
 
 gmeow:ComplianceAssessment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Compliance Assessment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -35,7 +35,7 @@ gmeow:ComplianceAssessment
 
 gmeow:ConditionEvaluation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Evaluation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -48,7 +48,7 @@ gmeow:ConditionEvaluation
 
 gmeow:ConditionExpression
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Expression"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -61,7 +61,7 @@ gmeow:ConditionExpression
 
 gmeow:ConditionGroup
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Group"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Condition ;
@@ -74,7 +74,7 @@ gmeow:ConditionGroup
 
 gmeow:ConditionParameter
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Parameter"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -87,7 +87,7 @@ gmeow:ConditionParameter
 
 gmeow:CriterionDomain
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Criterion Domain"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -100,7 +100,7 @@ gmeow:CriterionDomain
 
 gmeow:CriterionPole
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Criterion Pole"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -113,7 +113,7 @@ gmeow:CriterionPole
 
 gmeow:DeonticModality
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Deontic Modality"@x-gmeow-english ;
     logic:instantiatesFramework logic:DeonticFramework ;
@@ -127,7 +127,7 @@ gmeow:DeonticModality
 
 gmeow:Exemplar
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Exemplar"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CitationAct ;
@@ -140,7 +140,7 @@ gmeow:Exemplar
 
 gmeow:ExemplarPolarity
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Exemplar Polarity"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -153,7 +153,7 @@ gmeow:ExemplarPolarity
 
 gmeow:ExpressionLanguage
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Expression Language"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -166,7 +166,7 @@ gmeow:ExpressionLanguage
 
 gmeow:GroupOperator
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Group Operator"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -179,7 +179,7 @@ gmeow:GroupOperator
 
 gmeow:Norm
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Norm"@x-gmeow-english ;
     logic:instantiatesFramework logic:DeonticFramework ;
@@ -193,7 +193,7 @@ gmeow:Norm
 
 gmeow:NormativeSystem
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Normative System"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -206,7 +206,7 @@ gmeow:NormativeSystem
 
 gmeow:Persona
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Persona"@x-gmeow-english ;
     logic:mediates gmeow:personaBearer ,
@@ -222,7 +222,7 @@ gmeow:Persona
 
 gmeow:PrecedenceTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Precedence Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -248,7 +248,7 @@ gmeow:Rule
 
 gmeow:ScoreAnchor
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Score Anchor"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -261,7 +261,7 @@ gmeow:ScoreAnchor
 
 gmeow:ScoreScale
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Score Scale"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -274,7 +274,7 @@ gmeow:ScoreScale
 
 gmeow:StyleGuide
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Style Guide"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -286,7 +286,7 @@ gmeow:StyleGuide
     gmeow:useWhen "Use for the voice payload of a persona or register — prose whose register IS the content, exemplified byte-perfect by enacting documents."@x-gmeow-english .
 
 gmeow:activatedIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Persona ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "activated in"@x-gmeow-english ;
@@ -298,7 +298,7 @@ gmeow:activatedIn
     gmeow:useWhen "Use on a Persona to name the context that activates it — a gmeow:Condition or a situation type."@x-gmeow-english .
 
 gmeow:anchorExemplar
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchor exemplar"@x-gmeow-english ;
@@ -311,7 +311,7 @@ gmeow:anchorExemplar
     gmeow:useWhen "Use to pin an exemplar to a score anchor's range — concrete calibration evidence for what a score means."@x-gmeow-english .
 
 gmeow:anchorMeaning
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchor meaning"@x-gmeow-english ;
@@ -323,7 +323,7 @@ gmeow:anchorMeaning
     gmeow:useWhen "Use to carry what scores in an anchor's range MEAN — the mandatory calibration prose, one per language tag."@x-gmeow-english .
 
 gmeow:anchorRangeMax
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchor range maximum"@x-gmeow-english ;
@@ -336,7 +336,7 @@ gmeow:anchorRangeMax
     gmeow:useWhen "Use to set the upper bound of a score anchor's range."@x-gmeow-english .
 
 gmeow:anchorRangeMin
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ScoreAnchor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchor range minimum"@x-gmeow-english ;
@@ -349,7 +349,7 @@ gmeow:anchorRangeMin
     gmeow:useWhen "Use to set the lower bound of a score anchor's range."@x-gmeow-english .
 
 gmeow:assessedEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplianceAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessed event"@x-gmeow-english ;
@@ -363,7 +363,7 @@ gmeow:assessedEvent
     gmeow:useWhen "Use on a ComplianceAssessment to name the single event whose compliance is being judged — the observation's feature of interest."@x-gmeow-english .
 
 gmeow:assessedNorm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplianceAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessed norm"@x-gmeow-english ;
@@ -413,7 +413,7 @@ gmeow:authorityMedium
     gmeow:strongerThan gmeow:authorityConditional .
 
 gmeow:complianceVerdict
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ComplianceAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "compliance verdict"@x-gmeow-english ;
@@ -426,7 +426,7 @@ gmeow:complianceVerdict
     gmeow:useWhen "Use on a ComplianceAssessment to carry the assessor's single verdict, reusing the gmeow:EvaluationVerdict vocabulary (held = compliant, not held = violative)."@x-gmeow-english .
 
 gmeow:complies
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "complies with"@x-gmeow-english ;
@@ -440,7 +440,7 @@ gmeow:complies
     gmeow:useWhen "Use for the flat case — recording that an event complies with a norm according to whoever asserts it (the positive twin of gmeow:violates)."@x-gmeow-english .
 
 gmeow:conditionParameter
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Condition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "condition parameter"@x-gmeow-english ;
@@ -453,7 +453,7 @@ gmeow:conditionParameter
     gmeow:useWhen "Use to attach one or more named parameter bindings to a condition template."@x-gmeow-english .
 
 gmeow:conditionText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Condition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "condition text"@x-gmeow-english ;
@@ -466,7 +466,7 @@ gmeow:conditionText
     gmeow:useWhen "Use to carry the canonical natural-language statement of a condition — always present, the form formalizations approximate."@x-gmeow-english .
 
 gmeow:criterionDomain
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "criterion domain"@x-gmeow-english ;
@@ -514,7 +514,7 @@ gmeow:criterionDomainStylistic
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:deonticModality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "deontic modality"@x-gmeow-english ;
@@ -555,7 +555,7 @@ gmeow:deonticRecommendation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:evaluatedCondition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ConditionEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "evaluated condition"@x-gmeow-english ;
@@ -569,7 +569,7 @@ gmeow:evaluatedCondition
     gmeow:useWhen "Use on a ConditionEvaluation to name the single condition it reports on — the observation's feature of interest."@x-gmeow-english .
 
 gmeow:evaluationVerdict
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ConditionEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "evaluation verdict"@x-gmeow-english ;
@@ -582,7 +582,7 @@ gmeow:evaluationVerdict
     gmeow:useWhen "Use on a ConditionEvaluation to carry its single outcome from the gmeow:EvaluationVerdict vocabulary."@x-gmeow-english .
 
 gmeow:exemplarPolarity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Exemplar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "exemplar polarity"@x-gmeow-english ;
@@ -595,7 +595,7 @@ gmeow:exemplarPolarity
     gmeow:useWhen "Use to set an exemplar's single direction from the gmeow:ExemplarPolarity vocabulary."@x-gmeow-english .
 
 gmeow:exemplarRationale
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Exemplar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "exemplar rationale"@x-gmeow-english ;
@@ -607,7 +607,7 @@ gmeow:exemplarRationale
     gmeow:useWhen "Use to carry the judgement prose explaining why a passage or subject is an exemplar — one rationale per language tag."@x-gmeow-english .
 
 gmeow:exemplarRedirect
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Exemplar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "redirects to"@x-gmeow-english ;
@@ -620,7 +620,7 @@ gmeow:exemplarRedirect
     gmeow:useWhen "Use on a cautionary exemplar to name the criterion the passage ACTUALLY evidences — the redirect from the axis it superficially resembles."@x-gmeow-english .
 
 gmeow:exemplarSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Exemplar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "exemplar subject"@x-gmeow-english ;
@@ -632,7 +632,7 @@ gmeow:exemplarSubject
     gmeow:useWhen "Use to name the entity whose pattern an exemplar evidences — a character whose conduct across the cited work is the example, an organization, a person."@x-gmeow-english .
 
 gmeow:voiceExemplifiedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StyleGuide ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "voice exemplified by"@x-gmeow-english ;
@@ -694,7 +694,7 @@ gmeow:exprLangXacml
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:expressesNorm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Persona ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expresses norm"@x-gmeow-english ;
@@ -707,7 +707,7 @@ gmeow:expressesNorm
     gmeow:useWhen "Use on a Persona to name a norm it expresses — making the 'same principia, different registers' invariant queryable across an agent's personas."@x-gmeow-english .
 
 gmeow:expressionLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ConditionExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expression language"@x-gmeow-english ;
@@ -720,7 +720,7 @@ gmeow:expressionLanguage
     gmeow:useWhen "Use to declare the single named language of a condition expression from the gmeow:ExpressionLanguage vocabulary."@x-gmeow-english .
 
 gmeow:expressionText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ConditionExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expression text"@x-gmeow-english ;
@@ -733,7 +733,7 @@ gmeow:expressionText
     gmeow:useWhen "Use to carry the verbatim source of a condition expression in its declared language."@x-gmeow-english .
 
 gmeow:formalizedAs
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Condition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "formalized as"@x-gmeow-english ;
@@ -746,7 +746,7 @@ gmeow:formalizedAs
     gmeow:useWhen "Use to attach a machine formalization to a condition — each attachment a claim that the expression captures the canonical prose."@x-gmeow-english .
 
 gmeow:groupMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ConditionGroup ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "group member"@x-gmeow-english ;
@@ -759,7 +759,7 @@ gmeow:groupMember
     gmeow:useWhen "Use to attach a member condition to a condition group; nest groups as members for arbitrary boolean trees."@x-gmeow-english .
 
 gmeow:groupOperator
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ConditionGroup ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "group operator"@x-gmeow-english ;
@@ -772,7 +772,7 @@ gmeow:groupOperator
     gmeow:useWhen "Use to set a condition group's single combination operator from the gmeow:GroupOperator vocabulary."@x-gmeow-english .
 
 gmeow:hasAuthorityLevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "has authority level"@x-gmeow-english ;
@@ -785,7 +785,7 @@ gmeow:hasAuthorityLevel
     gmeow:useWhen "Use to record the authority grade an issuing system claims for a norm, referencing the ordered gmeow:AuthorityLevel vocabulary."@x-gmeow-english .
 
 gmeow:hasCriterion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Rubric ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "has criterion"@x-gmeow-english ;
@@ -799,7 +799,7 @@ gmeow:hasCriterion
     gmeow:useWhen "Use to attach an evaluative axis to a rubric — rubrics are multi-axis by design."@x-gmeow-english .
 
 gmeow:hasScoreAnchor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "has score anchor"@x-gmeow-english ;
@@ -812,7 +812,7 @@ gmeow:hasScoreAnchor
     gmeow:useWhen "Use to attach a calibration anchor to a criterion — high, medium, and low anchors coexist on one axis."@x-gmeow-english .
 
 gmeow:normBearer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "norm bearer"@x-gmeow-english ;
@@ -825,7 +825,7 @@ gmeow:normBearer
     gmeow:useWhen "Use to name a specific agent a norm binds when the norm targets named bearers rather than everyone in the issuer's scope."@x-gmeow-english .
 
 gmeow:normCondition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "norm condition"@x-gmeow-english ;
@@ -838,7 +838,7 @@ gmeow:normCondition
     gmeow:useWhen "Use to name the condition(s) under which a norm applies."@x-gmeow-english .
 
 gmeow:normIssuer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "norm issuer"@x-gmeow-english ;
     skos:definition "The agent or standpoint according to which this norm holds — the constitutional keystone: there is no ought, only ought-according-to. DOMAIN-FREE on purpose: gmeow:systemIssuer specializes this property for NormativeSystems, and a domain of Norm would leak gmeow:Norm typing onto every system through the subproperty design review; issuance applies to norms, systems, and future deontic carriers alike. The range is intentionally open (a gmeow:Agent or a gmeow:Standpoint individual, the accordingTo convention). normIssuer ⊑ gmeow:accordingTo is documented, not axiomatised (accordingTo is an AnnotationProperty; the vantage precedent). NOT functional: co-issued norms (a treaty, a joint policy) carry several issuers, and those claims coexist (Principle 9)."@x-gmeow-english ;
@@ -870,7 +870,7 @@ gmeow:operatorNone
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:overrides
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "overrides"@x-gmeow-english ;
@@ -884,7 +884,7 @@ gmeow:overrides
     gmeow:useWhen "Use for the flat case — recording that one norm prevails over another when both apply, as a pairwise claim indexed to whoever asserts it."@x-gmeow-english .
 
 gmeow:parameterEntity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter entity"@x-gmeow-english ;
@@ -896,7 +896,7 @@ gmeow:parameterEntity
     gmeow:useWhen "Use to bind a parameter to an entity for IRI-valued bindings — 'jurisdiction = ex:canada'."@x-gmeow-english .
 
 gmeow:parameterName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter name"@x-gmeow-english ;
@@ -909,7 +909,7 @@ gmeow:parameterName
     gmeow:useWhen "Use to name a parameter as it appears in the condition's text or expressions — the binding's key."@x-gmeow-english .
 
 gmeow:parameterValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter value"@x-gmeow-english ;
@@ -921,7 +921,7 @@ gmeow:parameterValue
     gmeow:useWhen "Use to bind a parameter to a literal value."@x-gmeow-english .
 
 gmeow:penaltyPole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penalty pole"@x-gmeow-english ;
@@ -934,7 +934,7 @@ gmeow:penaltyPole
     gmeow:useWhen "Use to name the single pole a criterion penalizes — what its low end is for."@x-gmeow-english .
 
 gmeow:personaBearer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Persona ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "persona bearer"@x-gmeow-english ;
@@ -947,7 +947,7 @@ gmeow:personaBearer
     gmeow:useWhen "Use on a Persona to name the single agent whose expression policy it is."@x-gmeow-english .
 
 gmeow:personaRegister
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Persona ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "persona register"@x-gmeow-english ;
@@ -981,7 +981,7 @@ gmeow:polarityPositive
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:precedenceHigher
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PrecedenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence higher"@x-gmeow-english ;
@@ -994,7 +994,7 @@ gmeow:precedenceHigher
     gmeow:useWhen "Use on a PrecedenceTenure to name the single norm that prevails during the tenure."@x-gmeow-english .
 
 gmeow:precedenceLower
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PrecedenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence lower"@x-gmeow-english ;
@@ -1007,7 +1007,7 @@ gmeow:precedenceLower
     gmeow:useWhen "Use on a PrecedenceTenure to name the single norm that yields during the tenure."@x-gmeow-english .
 
 gmeow:precedenceScope
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PrecedenceTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedence scope"@x-gmeow-english ;
@@ -1020,7 +1020,7 @@ gmeow:precedenceScope
     gmeow:useWhen "Use on a PrecedenceTenure to name the normative system within which the precedence holds — precedence is always scoped to a system."@x-gmeow-english .
 
 gmeow:prescribedConduct
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "prescribed conduct"@x-gmeow-english ;
@@ -1067,7 +1067,7 @@ gmeow:registerPublic
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:rewardPole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "reward pole"@x-gmeow-english ;
@@ -1086,7 +1086,7 @@ gmeow:ruleAssignee
     rdfs:subPropertyOf gmeow:normBearer .
 
 gmeow:scaleMax
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ScoreScale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale maximum"@x-gmeow-english ;
@@ -1099,7 +1099,7 @@ gmeow:scaleMax
     gmeow:useWhen "Use to set the upper bound of a score scale."@x-gmeow-english .
 
 gmeow:scaleMin
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ScoreScale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale minimum"@x-gmeow-english ;
@@ -1112,7 +1112,7 @@ gmeow:scaleMin
     gmeow:useWhen "Use to set the lower bound of a score scale."@x-gmeow-english .
 
 gmeow:scaleStep
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ScoreScale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scale step"@x-gmeow-english ;
@@ -1125,8 +1125,8 @@ gmeow:scaleStep
     gmeow:useWhen "Use to declare the discrete step of a score scale — a five-point scale steps by one."@x-gmeow-english .
 
 gmeow:strongerThan
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:AuthorityLevel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "stronger than"@x-gmeow-english ;
@@ -1139,7 +1139,7 @@ gmeow:strongerThan
     gmeow:useWhen "Use to order two gmeow:AuthorityLevel individuals so that 'at or above an authority grade' is well-defined for solver-side precedence."@x-gmeow-english .
 
 gmeow:styleGuideFor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StyleGuide ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "style guide for"@x-gmeow-english ;
@@ -1151,7 +1151,7 @@ gmeow:styleGuideFor
     gmeow:useWhen "Use on a StyleGuide to name what it voices — a gmeow:Persona or a gmeow:Register."@x-gmeow-english .
 
 gmeow:systemIssuer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NormativeSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "system issuer"@x-gmeow-english ;
@@ -1164,7 +1164,7 @@ gmeow:systemIssuer
     gmeow:useWhen "Use to name the agent or standpoint that issues a whole normative system."@x-gmeow-english .
 
 gmeow:usesScale
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "uses scale"@x-gmeow-english ;
     rdfs:range gmeow:ScoreScale ;
@@ -1190,7 +1190,7 @@ gmeow:gmeowBestPracticeRecommendations
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:violates
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "violates"@x-gmeow-english ;
@@ -1204,7 +1204,7 @@ gmeow:violates
     gmeow:useWhen "Use for the flat case — recording that an event violates a norm according to whoever asserts it."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/norms>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Generalized deontics with indexed authority — the constitutional keystone of the normative stack.
 
@@ -1214,7 +1214,7 @@ DOCTRINE.
   * CONDITIONS ARE STORED, NEVER EXECUTED. A gmeow:Condition is an InformationObject whose canonical form is prose (conditionText); formalizations (SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL) attach as ConditionExpressions, and EACH FORMALIZATION IS A CLAIM of equivalence to the prose, challengeable through the statement layer. Whether a condition held is a gmeow:ConditionEvaluation — a vantage-indexed Observation — never a graph entailment. No CI step, test, or tool may evaluate a ConditionExpression against the graph as part of validation (the Principle 12 boundary made operational; see docs.md).
   * THE RIGHTS GRAFT (rights graft) lands here, norms-side, with ZERO churn in the rights slice: gmeow:Rule ⊑ gmeow:Norm plus subproperty grafts. The deontic trio (Permission / Prohibition / Duty) is NOT an inferior duplicate of Norm + deonticModality — it is a rigid subkind partition (fixed modality per subkind) under the open modality axis, kept for the asset case and its projection affordances. Without the graft, the rights slice behaves exactly as before.
   * Deontic force ranges over teleology: gmeow:prescribedConduct points at event types, goals (teleology design), situations, or rights actions; its range is intentionally open (the tenurePosition precedent) so the graft needs no dual-typing and the generated schema surface keeps a clean property.
-  * ALIGNMENTS DEFERRED to the compiler-arc window (the aboutness-axis precedent): ODRL 2.2 (EDOAL — odrl:Constraint ↔ Condition is structural), LegalRuleML (<Override> ↔ overrides/PrecedenceTenure — the one target where precedence survives round-trip), LKIF-Core, DPV, SUMO normative attributes, UFO-L. Target list is fixed in the alignment ledger."""@x-gmeow-english ;
+  * External normative-alignment targets (the aboutness-axis precedent): ODRL 2.2 (EDOAL — odrl:Constraint ↔ Condition is structural), LegalRuleML (<Override> ↔ overrides/PrecedenceTenure — the one target where precedence survives round-trip), LKIF-Core, DPV, SUMO normative attributes, UFO-L."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "GMEOW Norms Module"@x-gmeow-english ;
     skos:definition "The GMEOW Norms Module — generalized deontics with indexed authority."@x-gmeow-english ;
@@ -1224,53 +1224,53 @@ DOCTRINE.
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes for the norms relators.
 gmeow:Exemplar rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:exemplarPolarity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:citingEntity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:citedEntity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:citationIntent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:exemplarPolarity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:citingEntity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:citedEntity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:citationIntent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:ScoreAnchor rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:anchorMeaning ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:anchorRangeMin ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:anchorRangeMax ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:anchorMeaning ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:anchorRangeMin ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:anchorRangeMax ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 gmeow:Norm rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:deonticModality ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:deonticModality ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Persona rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:personaBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:personaRegister ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:expressesNorm ; owl:allValuesFrom gmeow:Norm ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:personaBearer ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:personaRegister ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:expressesNorm ; logic:allValuesFrom gmeow:Norm ] .
 
 gmeow:StyleGuide rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:styleGuideFor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:styleGuideFor ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:Assessment and every property restricted below are core-owned (observations).
 # This cardinality-restriction axiom is a norms -> observations reference (an extension
 # constraining a core class it consumes, the legal direction); the reverse would not be.
 gmeow:Assessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentScoreValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentCriterion ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Criterion ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentRubric ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Rubric ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:assessmentTarget ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assessmentScoreValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assessmentCriterion ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Criterion ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:assessmentRubric ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Rubric ] .
 
 gmeow:ConditionEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:evaluatedCondition ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:evaluationVerdict ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluatedCondition ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:evaluationVerdict ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # A gmeow:ComplianceAssessment is the reified, assessor-scoped compliance observation: it
 # MUST name its assessor (gmeow:vantage — no global verdict, Principle 9) and the verdict it
 # records. These are authored as logic: closed-world integrity constraints (NOT hand-authored
-# owl:Restriction, which would raise the norms slice's ungrounded-rdfs projection residue past
+# OWL Restriction, which would raise the norms slice's ungrounded-rdfs projection residue past
 # its lower-only ceiling): the frontend derives the SHACL. They mirror the gmeow:Observation-
 # level gmeow:ObservationVantageConstraint pattern, but guard on logic:directType
 # gmeow:ComplianceAssessment so the derived shape targets ComplianceAssessment nodes directly
 # (a ComplianceAssessment is not asserted rdf:type gmeow:Observation, so the Observation-level
 # constraint does not reach it under non-reasoned SHACL). assessedEvent / assessedNorm carry a
 # matching min-1 logic: integrity constraint (below): a ComplianceAssessment assesses exactly one
-# event against exactly one norm (the owl:FunctionalProperty range axioms cap the max at one), so
+# event against exactly one norm (the OWL FunctionalProperty range axioms cap the max at one), so
 # the shipped graph is self-validating for their presence, not merely emitter-guaranteed.
 gmeow:ComplianceAssessmentVantageConstraint
     a logic:Constraint ;
@@ -1321,7 +1321,7 @@ gmeow:ComplianceAssessmentAssessedEventConstraint
     rdfs:label "Compliance-assessment assessed-event constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:ComplianceAssessment names the gmeow:assessedEvent it rules on — the conduct whose compliance with the assessed norm this observation records; exactly one (the owl:FunctionalProperty range axiom caps the max), paired with gmeow:assessedNorm (Principle 9)."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ComplianceAssessment names the gmeow:assessedEvent it rules on — the conduct whose compliance with the assessed norm this observation records; exactly one (the OWL FunctionalProperty range axiom caps the max), paired with gmeow:assessedNorm (Principle 9)."@x-gmeow-english ;
     logic:formalizes gmeow:ComplianceAssessmentShape ;
     logic:severity "Violation" ;
     logic:message "A ComplianceAssessment must name its assessed event (gmeow:assessedEvent)." ;
@@ -1343,7 +1343,7 @@ gmeow:ComplianceAssessmentAssessedNormConstraint
     rdfs:label "Compliance-assessment assessed-norm constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:ComplianceAssessment names the gmeow:assessedNorm it rules against — the prescription the assessed event is judged to comply with or violate; exactly one (the owl:FunctionalProperty range axiom caps the max), paired with gmeow:assessedEvent (Principle 9)."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ComplianceAssessment names the gmeow:assessedNorm it rules against — the prescription the assessed event is judged to comply with or violate; exactly one (the OWL FunctionalProperty range axiom caps the max), paired with gmeow:assessedEvent (Principle 9)."@x-gmeow-english ;
     logic:formalizes gmeow:ComplianceAssessmentShape ;
     logic:severity "Violation" ;
     logic:message "A ComplianceAssessment must name its assessed norm (gmeow:assessedNorm)." ;
@@ -1361,24 +1361,24 @@ logic:caNAtom a logic:Formula ; logic:relation gmeow:assessedNorm ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "n" ] .
 
 gmeow:ConditionGroup rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:groupOperator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:groupMember ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:groupOperator ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:groupMember ; logic:minQualifiedCardinality 2 ; logic:onClass logic:Thing ] .
 
 gmeow:ConditionParameter rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:parameterName ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:parameterName ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:Criterion is core-owned (observations); this restriction axiom stays authored
 # here because both restricted properties (gmeow:rewardPole, gmeow:penaltyPole) range
 # over the norms-domain gmeow:CriterionPole (a norms->observations edge on the
 # Criterion subject, legal; an observations->norms edge would not be).
 gmeow:Criterion rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:rewardPole ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CriterionPole ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:penaltyPole ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CriterionPole ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:rewardPole ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CriterionPole ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:penaltyPole ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CriterionPole ] .
 
 gmeow:ScoreScale rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:scaleMin ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:scaleMax ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:scaleStep ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:scaleMin ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:scaleMax ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:scaleStep ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 # Range + functional axioms backing the authored gmeow:usesScale target shape
 # (at most one scale per holder; every value is a ScoreScale). The range is an
@@ -1389,25 +1389,25 @@ gmeow:usesScale rdfs:range gmeow:ScoreScale .
   logic:closureKey "https://blackcatinformatics.ca/gmeow/usesScale" ;
   logic:closureValue logic:ClosedWorldClosure ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/evaluatedCondition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/evaluationVerdict> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/citingEntity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionGroup> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/groupOperator> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionParameter> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/parameterName> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Criterion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/rewardPole> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
-<https://blackcatinformatics.ca/gmeow/Criterion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/penaltyPole> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreScale> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/scaleMin> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreScale> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/scaleMax> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/citedEntity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/citationIntent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreAnchor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/ScoreAnchor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Persona> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/personaBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/evaluatedCondition> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ConditionEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/evaluationVerdict> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citingEntity> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ConditionGroup> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ConditionParameter> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/parameterName> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Criterion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/rewardPole> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
+<https://blackcatinformatics.ca/gmeow/Criterion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/penaltyPole> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scaleMin> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreScale> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scaleMax> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citedEntity> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citationIntent> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ScoreAnchor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/ScoreAnchor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/Persona> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/personaBearer> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 
 # =========================================================================== #
 # Procedural constraints — compact logic: constraint-sugar records expanded by  #
@@ -1615,7 +1615,7 @@ logic:usfEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 
 # =========================================================================== #
-# Procedural constraint (#1194): a gmeow:ScoreAnchor's range must lie within the  #
+# Procedural constraint: a gmeow:ScoreAnchor's range must lie within the  #
 # scale its criterion (or the criterion's owning rubric, when the criterion       #
 # declares none) advertises. Projected to a sh:SPARQLConstraint keyed onto the    #
 # gmeow:ScoreAnchor source-term. The scale-source disjunction is a UNION (each    #
@@ -1678,7 +1678,7 @@ logic:sarAbove a logic:Formula ; logic:relation logic:termGreater ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "amax" ] , [ logic:termIndex 1 ; logic:termVariable "smax" ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the remaining closed-world norms /    #
+# Closed-world norms / rubrics well-formedness constraints               #
 # rubrics well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).    #
 # =========================================================================== #
 
@@ -1774,7 +1774,7 @@ gmeow:ScoreAnchorMeaningConstraint
     logic:onClass gmeow:ScoreAnchor ;
     logic:anyOf gmeow:anchorMeaning ;
     logic:formalizes gmeow:ScoreAnchor ;
-    logic:message "A ScoreAnchor must carry at least one gmeow:anchorMeaning, at most one per language tag — an anchor without a meaning is just an interval (localizable prose, PR #376 review)." .
+    logic:message "A ScoreAnchor must carry at least one gmeow:anchorMeaning, at most one per language tag — an anchor without a meaning is just an interval (localizable prose)." .
 
 gmeow:ScoreAnchorRangeMinConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -1822,7 +1822,7 @@ gmeow:ExemplarPolarityConstraint
     logic:formalizes gmeow:Exemplar ;
     logic:message "An Exemplar must state exactly one gmeow:exemplarPolarity (positive / negative / cautionary — a CLOSED vocabulary, hence sh:in)." .
 
-# Registers (#355): Persona/StyleGuide presence halves of the closed-world shapes
+# Registers: Persona/StyleGuide presence halves of the closed-world shapes
 # (the nodeKind half is gmeow:PersonaRegisterNodeKindConstraint above).
 gmeow:PersonaBearerConstraint
     a logic:DisjunctiveRequirednessConstraint ;
@@ -1857,7 +1857,7 @@ gmeow:StyleGuideForConstraint
     logic:formalizes gmeow:StyleGuide ;
     logic:message "A StyleGuide must voice at least one gmeow:styleGuideFor target (a Persona or a Register) — a style guide for nothing is just a document." .
 
-# Migrated (#1194): the deontic subkind fixes the modality (#352) — projections
+# The deontic subkind fixes the modality — projections
 # of gmeow:GraftProhibitionModalityShape / gmeow:GraftDutyModalityShape.
 gmeow:ProhibitionModalityConstraint
     a logic:ValueSetMembershipConstraint ;
@@ -1869,7 +1869,7 @@ gmeow:ProhibitionModalityConstraint
     logic:formalizes gmeow:Prohibition ;
     logic:valuePath gmeow:deonticModality ;
     logic:memberValue gmeow:deonticProhibition ;
-    logic:message "A Prohibition's deontic modality, when stated, must be gmeow:deonticProhibition — the subkind fixes the modality (#352)." .
+    logic:message "A Prohibition's deontic modality, when stated, must be gmeow:deonticProhibition — the subkind fixes the modality." .
 
 gmeow:DutyModalityConstraint
     a logic:ValueSetMembershipConstraint ;
@@ -1881,28 +1881,28 @@ gmeow:DutyModalityConstraint
     logic:formalizes gmeow:Duty ;
     logic:valuePath gmeow:deonticModality ;
     logic:memberValue gmeow:deonticObligation ;
-    logic:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality (#352)." .
+    logic:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Criterion> ] .
 <https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentRubric> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Rubric> ] .
 <https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedEvent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedNorm> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/complianceVerdict> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessmentTarget> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Assessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedEvent> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/assessedNorm> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/complianceVerdict> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ComplianceAssessment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Condition> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/conditionText> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/expressionLanguage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupMember> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ConditionExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/expressionLanguage> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupMember> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/ConditionGroup> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/groupOperator> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Criterion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/penaltyPole> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
 <https://blackcatinformatics.ca/gmeow/Criterion> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/rewardPole> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/CriterionPole> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citationIntent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citedEntity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citingEntity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citationIntent> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citedEntity> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/citingEntity> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Exemplar> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/exemplarPolarity> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/PrecedenceTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/precedenceHigher> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
 <https://blackcatinformatics.ca/gmeow/PrecedenceTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/precedenceLower> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Norm> ] .
 <https://blackcatinformatics.ca/gmeow/PrecedenceTenure> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/precedenceScope> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/NormativeSystem> ] .
@@ -2010,7 +2010,7 @@ gmeow:ConditionParameterNameConstraint
 
 # ConditionExpression: gmeow:expressionLanguage is functional per expression (max 1).
 gmeow:ConditionExpression logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:expressionLanguage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionLanguage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ConditionExpression: gmeow:expressionText is a single mandatory literal (min 1, max 1);
 # an rdfs:Literal data-range filler projects the declarative sh:minCount/maxCount without a
@@ -2023,7 +2023,7 @@ gmeow:ConditionExpression logic:subClassOf
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -2032,7 +2032,7 @@ gmeow:ConditionExpression logic:subClassOf
 #   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
 
 gmeow:anchorRangeMaxFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchorRangeMax is functional"@x-gmeow-english ;
@@ -2047,7 +2047,7 @@ gmeow:anchorRangeMaxFunctionality
     skos:example "gmeow:anchorRangeMaxFunctionality logic:characterizes gmeow:anchorRangeMax ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:anchorRangeMinFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "anchorRangeMin is functional"@x-gmeow-english ;
@@ -2062,7 +2062,7 @@ gmeow:anchorRangeMinFunctionality
     skos:example "gmeow:anchorRangeMinFunctionality logic:characterizes gmeow:anchorRangeMin ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assessedEventFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessedEvent is functional"@x-gmeow-english ;
@@ -2077,7 +2077,7 @@ gmeow:assessedEventFunctionality
     skos:example "gmeow:assessedEventFunctionality logic:characterizes gmeow:assessedEvent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assessedNormFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "assessedNorm is functional"@x-gmeow-english ;
@@ -2092,7 +2092,7 @@ gmeow:assessedNormFunctionality
     skos:example "gmeow:assessedNormFunctionality logic:characterizes gmeow:assessedNorm ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:complianceVerdictFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "complianceVerdict is functional"@x-gmeow-english ;
@@ -2107,7 +2107,7 @@ gmeow:complianceVerdictFunctionality
     skos:example "gmeow:complianceVerdictFunctionality logic:characterizes gmeow:complianceVerdict ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:conditionTextFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "conditionText is functional"@x-gmeow-english ;
@@ -2122,7 +2122,7 @@ gmeow:conditionTextFunctionality
     skos:example "gmeow:conditionTextFunctionality logic:characterizes gmeow:conditionText ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:deonticModalityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "deonticModality is functional"@x-gmeow-english ;
@@ -2137,7 +2137,7 @@ gmeow:deonticModalityFunctionality
     skos:example "gmeow:deonticModalityFunctionality logic:characterizes gmeow:deonticModality ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:evaluatedConditionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "evaluatedCondition is functional"@x-gmeow-english ;
@@ -2152,7 +2152,7 @@ gmeow:evaluatedConditionFunctionality
     skos:example "gmeow:evaluatedConditionFunctionality logic:characterizes gmeow:evaluatedCondition ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:evaluationVerdictFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "evaluationVerdict is functional"@x-gmeow-english ;
@@ -2167,7 +2167,7 @@ gmeow:evaluationVerdictFunctionality
     skos:example "gmeow:evaluationVerdictFunctionality logic:characterizes gmeow:evaluationVerdict ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exemplarPolarityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "exemplarPolarity is functional"@x-gmeow-english ;
@@ -2182,7 +2182,7 @@ gmeow:exemplarPolarityFunctionality
     skos:example "gmeow:exemplarPolarityFunctionality logic:characterizes gmeow:exemplarPolarity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:expressionLanguageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expressionLanguage is functional"@x-gmeow-english ;
@@ -2197,7 +2197,7 @@ gmeow:expressionLanguageFunctionality
     skos:example "gmeow:expressionLanguageFunctionality logic:characterizes gmeow:expressionLanguage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:expressionTextFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "expressionText is functional"@x-gmeow-english ;
@@ -2212,7 +2212,7 @@ gmeow:expressionTextFunctionality
     skos:example "gmeow:expressionTextFunctionality logic:characterizes gmeow:expressionText ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:groupOperatorFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "groupOperator is functional"@x-gmeow-english ;
@@ -2227,7 +2227,7 @@ gmeow:groupOperatorFunctionality
     skos:example "gmeow:groupOperatorFunctionality logic:characterizes gmeow:groupOperator ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:parameterEntityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameterEntity is functional"@x-gmeow-english ;
@@ -2242,7 +2242,7 @@ gmeow:parameterEntityFunctionality
     skos:example "gmeow:parameterEntityFunctionality logic:characterizes gmeow:parameterEntity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:parameterNameFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameterName is functional"@x-gmeow-english ;
@@ -2257,7 +2257,7 @@ gmeow:parameterNameFunctionality
     skos:example "gmeow:parameterNameFunctionality logic:characterizes gmeow:parameterName ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:parameterValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameterValue is functional"@x-gmeow-english ;
@@ -2272,7 +2272,7 @@ gmeow:parameterValueFunctionality
     skos:example "gmeow:parameterValueFunctionality logic:characterizes gmeow:parameterValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:penaltyPoleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "penaltyPole is functional"@x-gmeow-english ;
@@ -2287,7 +2287,7 @@ gmeow:penaltyPoleFunctionality
     skos:example "gmeow:penaltyPoleFunctionality logic:characterizes gmeow:penaltyPole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:personaBearerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "personaBearer is functional"@x-gmeow-english ;
@@ -2302,7 +2302,7 @@ gmeow:personaBearerFunctionality
     skos:example "gmeow:personaBearerFunctionality logic:characterizes gmeow:personaBearer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:precedenceHigherFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedenceHigher is functional"@x-gmeow-english ;
@@ -2317,7 +2317,7 @@ gmeow:precedenceHigherFunctionality
     skos:example "gmeow:precedenceHigherFunctionality logic:characterizes gmeow:precedenceHigher ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:precedenceLowerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedenceLower is functional"@x-gmeow-english ;
@@ -2332,7 +2332,7 @@ gmeow:precedenceLowerFunctionality
     skos:example "gmeow:precedenceLowerFunctionality logic:characterizes gmeow:precedenceLower ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:precedenceScopeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "precedenceScope is functional"@x-gmeow-english ;
@@ -2347,7 +2347,7 @@ gmeow:precedenceScopeFunctionality
     skos:example "gmeow:precedenceScopeFunctionality logic:characterizes gmeow:precedenceScope ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:rewardPoleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "rewardPole is functional"@x-gmeow-english ;
@@ -2362,7 +2362,7 @@ gmeow:rewardPoleFunctionality
     skos:example "gmeow:rewardPoleFunctionality logic:characterizes gmeow:rewardPole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:scaleMaxFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scaleMax is functional"@x-gmeow-english ;
@@ -2377,7 +2377,7 @@ gmeow:scaleMaxFunctionality
     skos:example "gmeow:scaleMaxFunctionality logic:characterizes gmeow:scaleMax ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:scaleMinFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scaleMin is functional"@x-gmeow-english ;
@@ -2392,7 +2392,7 @@ gmeow:scaleMinFunctionality
     skos:example "gmeow:scaleMinFunctionality logic:characterizes gmeow:scaleMin ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:scaleStepFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "scaleStep is functional"@x-gmeow-english ;
@@ -2407,7 +2407,7 @@ gmeow:scaleStepFunctionality
     skos:example "gmeow:scaleStepFunctionality logic:characterizes gmeow:scaleStep ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:usesScaleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "usesScale is functional"@x-gmeow-english ;
@@ -2422,7 +2422,7 @@ gmeow:usesScaleFunctionality
     skos:example "gmeow:usesScaleFunctionality logic:characterizes gmeow:usesScale ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:overridesIrreflexivity
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "overrides is irreflexive"@x-gmeow-english ;
@@ -2437,7 +2437,7 @@ gmeow:overridesIrreflexivity
     skos:example "gmeow:overridesIrreflexivity logic:characterizes gmeow:overrides ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:precedenceTenureDistinctness
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "a precedence tenure's higher and lower norms are distinct"@x-gmeow-english ;
@@ -2452,7 +2452,7 @@ gmeow:precedenceTenureDistinctness
     skos:example "gmeow:precedenceTenureDistinctness logic:characterizes gmeow:PrecedenceTenure ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:criterionPoleDistinctness
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "a criterion's reward and penalty poles are distinct"@x-gmeow-english ;

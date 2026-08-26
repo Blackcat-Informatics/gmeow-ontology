@@ -548,7 +548,12 @@ impl NonCouplingPredicates {
             let Object::Named(object) = o else {
                 return;
             };
-            if p == RDF_TYPE && object == OWL_ANNOTATION_PROPERTY {
+            // module.ttl is authored in canonical `logic:` after the owl:→logic: flip, so recognize
+            // the `logic:AnnotationProperty` marker alongside its `owl:` view (canonical first).
+            if p == RDF_TYPE
+                && (object == gmeow_ns::LOGIC_ANNOTATION_PROPERTY
+                    || object == OWL_ANNOTATION_PROPERTY)
+            {
                 self.annotation.insert(subject);
             } else if p == RDFS_RANGE && object == RDFS_RESOURCE {
                 self.open_range.insert(subject);

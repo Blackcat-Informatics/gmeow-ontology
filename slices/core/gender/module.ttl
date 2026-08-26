@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Gender
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -22,14 +21,14 @@ gmeow:Gender
 
 gmeow:GenderExpression
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender Expression"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IdentityFacet ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:expressionValue ;
-            owl:someValuesFrom gmeow:GenderExpressionStyle ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:expressionValue ;
+            logic:someValuesFrom gmeow:GenderExpressionStyle ;
         ] ;
     skos:definition "A person's SELF-ASSERTED gender expression — how they present (a gmeow:GenderExpressionStyle value via gmeow:expressionValue). A distinct axis from gender identity: expression is never inferred from identity (or vice versa), nor from sex or address."@x-gmeow-english ;
     skos:example "ex:ge a gmeow:GenderExpression ; gmeow:expressionValue gmeow:expressionAndrogynous ; gmeow:selfAsserted true ."@x-gmeow-english ;
@@ -44,7 +43,7 @@ gmeow:GenderExpression
 
 gmeow:GenderExpressionStyle
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender Expression Style"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -57,14 +56,14 @@ gmeow:GenderExpressionStyle
 
 gmeow:GenderIdentity
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender Identity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IdentityFacet ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:genderValue ;
-            owl:someValuesFrom gmeow:Gender ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:genderValue ;
+            logic:someValuesFrom gmeow:Gender ;
         ] ;
     skos:definition "A person's SELF-ASSERTED gender identity — what they are — as a reified facet pointing (via gmeow:genderValue) to an open gmeow:Gender value. Independent of pronouns/honorifics (address), of gender expression, and of sex-assigned-at-birth; nothing infers any of these from another. Multiple co-equal GenderIdentity facets express bigender/genderfluid/transition without privileging any."@x-gmeow-english ;
     skos:example "ex:gi a gmeow:GenderIdentity ; gmeow:genderValue gmeow:genderNonBinary ; gmeow:selfAsserted true ; gmeow:hasDeterminacy gmeow:determinacyFuzzy ."@x-gmeow-english ;
@@ -79,7 +78,7 @@ gmeow:GenderIdentity
 
 gmeow:IdentityFacet
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Identity Facet"@x-gmeow-english ;
     logic:mediates gmeow:facetSubject ,
@@ -87,14 +86,14 @@ gmeow:IdentityFacet
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:facetSubject ;
-            owl:someValuesFrom gmeow:Person ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:facetSubject ;
+            logic:someValuesFrom gmeow:Person ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:facetVantage ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:facetVantage ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified, SELF-ASSERTED claim about an aspect of a person's identity — an observation in the universal claim stack (observation-spine bridge): gender identity, gender expression, or (in the sexuality module) sexual/romantic orientation — mediating the person (facetSubject / observedFeature) and an open identity value. A gufo:Relator and a gmeow:Observation, the same idiom as gmeow:NameUsage. A person bears MANY co-equal facets (e.g. bigender); none is privileged, there is no preferred/primary marker, and a superseded facet is kept with gmeow:displayable false rather than deleted. Self-assertion (gmeow:selfAsserted) is the top authority; the optional validity period is carried by gmeow:validFrom/validUntil on the facet."@x-gmeow-english ;
     skos:example "ex:facet a gmeow:IdentityFacet ; gmeow:facetSubject ex:lillith ; gmeow:selfAsserted true ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
@@ -109,7 +108,7 @@ gmeow:IdentityFacet
 
 gmeow:SexAssignedAtBirth
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Sex Assigned at Birth"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -156,7 +155,7 @@ gmeow:expressionNeutral
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:expressionValue
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GenderExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "expression value"@x-gmeow-english ;
@@ -244,7 +243,7 @@ gmeow:genderTwoSpirit
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:genderValue
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GenderIdentity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "gender value"@x-gmeow-english ;
@@ -268,7 +267,7 @@ gmeow:genderWoman
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hasGenderExpression
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "has gender expression"@x-gmeow-english ;
@@ -286,7 +285,7 @@ gmeow:hasGenderExpression
     gmeow:useWhen "Use to link a person to each self-asserted gender-expression facet; non-functional, so several presentation facets (e.g. context-varying) coexist."@x-gmeow-english .
 
 gmeow:hasGenderIdentity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "has gender identity"@x-gmeow-english ;
@@ -304,7 +303,7 @@ gmeow:hasGenderIdentity
     gmeow:useWhen "Use to link a person to each gender-identity facet they hold; assert it once per co-equal identity, leaving it non-functional so multiple facets coexist."@x-gmeow-english .
 
 gmeow:intersexVariation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "intersex variation"@x-gmeow-english ;
@@ -349,7 +348,7 @@ gmeow:saabUnknown
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:selfAsserted
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:domain gmeow:IdentityFacet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "self-asserted"@x-gmeow-english ;
@@ -359,7 +358,7 @@ gmeow:selfAsserted
         gmeow:boxRBox .
 
 gmeow:sexAssignedAtBirth
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "sex assigned at birth"@x-gmeow-english ;
@@ -377,7 +376,7 @@ gmeow:sexAssignedAtBirth
     gmeow:useWhen "Use to record the administrative sex datum captured at a person's birth, as a value distinct from and never equated with their gender identity or expression."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/gender>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "A respectful, inclusive model of a person's gender, grounded on a shared gmeow:IdentityFacet — a reified, SELF-ASSERTED claim (a gufo:Relator, the same idiom as names' NameUsage) that mediates a person and an identity value, carrying an optional validity period and the gmeow:displayable display control. This module covers gender IDENTITY, gender EXPRESSION, and the recorded sex-assigned-at-birth datum; the sibling sexuality module reuses the same IdentityFacet base for sexual/romantic orientation. GOVERNING TENETS: (1) ADDRESS ≠ IDENTITY — pronouns and honorifics (in the names module) are how a person is addressed and carry NO inferential bridge to gender; nothing infers one from the other. (2) SEX ≠ GENDER — gmeow:sexAssignedAtBirth is a recorded administrative datum, NOT an IdentityFacet and never equated with gender identity/expression. (3) SELF-ASSERTION is the top authority (gmeow:selfAsserted). (4) CO-EQUALITY — a person may bear many co-equal identities (e.g. bigender = two facets); there is deliberately NO preferred/primary gender term; only display SUPPRESSION (gmeow:displayable false, the deadname analog for a superseded label) is modelled, never deletion. (5) INCLUSIVE WITHOUT OVERTYPING — gmeow:Gender, gmeow:GenderExpressionStyle and gmeow:SexAssignedAtBirth are OPEN value vocabularies of individuals (never per-value Person subclasses, never a forced enum); an identity not among the seeds is expressed by minting a FRESH value individual carrying rdfs:label, the names' custom-PronounSet idiom — there is deliberately no parallel flat-literal shortcut. Aligns (lossily) to GSSO, Homosaurus, schema.org, Wikidata, FOAF and HL7/FHIR; the reified self-asserted-co-equal machinery is canonical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
@@ -389,30 +388,31 @@ gmeow:sexAssignedAtBirth
 # Named so the SHACL constraint projection can anchor a logic:formalizes back-reference
 # on the generated identity-axis orthogonality shape (a blank axiom node cannot).
 gmeow:identityAxisDisjointness
-    a owl:AllDisjointClasses ;
+    a logic:AllDisjointClasses ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "identity-axis disjointness"@x-gmeow-english ;
     skos:definition "The named carrier of the seven-axis identity-orthogonality axiom: GenderIdentity, GenderExpression, SexAssignedAtBirth, SexualOrientation, RomanticOrientation, PronounSet, and Honorific are mutually disjoint — no individual fills two (Principle 9, anti-overtyping). Named (not a blank axiom node) so the generated SHACL orthogonality shape can carry a logic:formalizes back-reference to it."@x-gmeow-english ;
-    owl:members ( gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth gmeow:SexualOrientation gmeow:RomanticOrientation gmeow:PronounSet gmeow:Honorific ) ;
+    logic:members ( gmeow:GenderIdentity gmeow:GenderExpression gmeow:SexAssignedAtBirth gmeow:SexualOrientation gmeow:RomanticOrientation gmeow:PronounSet gmeow:Honorific ) ;
     logic:formalizes gmeow:GenderIdentity ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 _:b1
-    a owl:AllDisjointClasses ;
-    owl:members ( gmeow:Gender gmeow:GenderExpressionStyle gmeow:SexAssignedAtBirth gmeow:SexualOrientationValue gmeow:RomanticOrientationValue ) .
+    a logic:AllDisjointClasses ;
+    logic:members ( gmeow:Gender gmeow:GenderExpressionStyle gmeow:SexAssignedAtBirth gmeow:SexualOrientationValue gmeow:RomanticOrientationValue ) .
 
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:GenderIdentity rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:genderValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:facetSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:facetVantage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:genderValue ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/GenderIdentity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/genderValue> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GenderIdentity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/facetSubject> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GenderIdentity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/facetVantage> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+gmeow:GenderIdentity rdfs:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:genderValue ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # =========================================================================== #
 # Procedural constraint authored as a raw logic:Formula integrity tree, #
@@ -442,9 +442,9 @@ logic:supGiDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/GenderExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/expressionValue> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GenderExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/facetSubject> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/GenderExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/facetVantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/GenderExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/expressionValue> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/GenderExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/facetSubject> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/GenderExpression> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/facetVantage> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/GenderExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/expressionValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/GenderExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/facetSubject" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/GenderExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/facetVantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -452,37 +452,37 @@ logic:supGiDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # --- Wave B1 shape-drain: identity-facet cardinality + suppression grounding ---
 # gmeow:GenderExpressionFacetShape — a GenderExpression facet mediates exactly one value.
 gmeow:GenderExpression logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:expressionValue ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:expressionValue ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:IdentityFacetShape (multi-target): the abstract gmeow:IdentityFacet base and its four
 # concrete axes each mediate exactly one gmeow:facetSubject and exactly one gmeow:facetVantage.
 # Raw-graph SHACL runs without subclass inference and the derive is syntactic, so the closed-world
 # exactly-one antecedents are authored on every target the retired shape named (gmeow:GenderExpression
-# carries its logic:allValuesFrom owl:Thing + closure siblings above; the max-qualified restoration
+# carries its logic:allValuesFrom OWL Thing + closure siblings above; the max-qualified restoration
 # is added for it here alongside the other axes).
 gmeow:IdentityFacet logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:GenderIdentity logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:GenderExpression logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:SexualOrientation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:RomanticOrientation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:facetVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:IdentityFacet ; logic:closureKey "https://blackcatinformatics.ca/gmeow/facetSubject" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:IdentityFacet ; logic:closureKey "https://blackcatinformatics.ca/gmeow/facetVantage" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:GenderIdentity ; logic:closureKey "https://blackcatinformatics.ca/gmeow/facetSubject" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -496,7 +496,7 @@ gmeow:RomanticOrientation logic:subClassOf
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -504,7 +504,7 @@ gmeow:RomanticOrientation logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:expressionValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "expressionValue is functional"@x-gmeow-english ;
@@ -519,7 +519,7 @@ gmeow:expressionValueFunctionality
     skos:example "gmeow:expressionValueFunctionality logic:characterizes gmeow:expressionValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:genderValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "genderValue is functional"@x-gmeow-english ;

@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Group
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Group"@x-gmeow-english ;
     rdfs:subClassOf logic:Collection ,
@@ -22,7 +21,7 @@ gmeow:Group
 
 gmeow:Organization
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Organization"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agent ;
@@ -35,7 +34,7 @@ gmeow:Organization
 
 gmeow:Person
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Person"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agent ;
@@ -48,7 +47,7 @@ gmeow:Person
 
 gmeow:SoftwareAgent
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Software Agent"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agent ;
@@ -60,7 +59,7 @@ gmeow:SoftwareAgent
     gmeow:useWhen "Use for a non-human actor — a software process, bot, model invocation, or autonomous program — that acts, authors, or bears provenance on behalf of a person or organization."@x-gmeow-english .
 
 gmeow:description
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "description"@x-gmeow-english ;
@@ -73,7 +72,7 @@ gmeow:description
     gmeow:useWhen "Use for an unstructured free-text note about an instance — a biography, remark, or annotation that genuinely has no structure to reify."@x-gmeow-english .
 
 gmeow:hasWebPage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "has web page"@x-gmeow-english ;
@@ -86,7 +85,7 @@ gmeow:hasWebPage
     gmeow:useWhen "Use to link an entity to a web page that represents it — a homepage, profile, or project site — when the page should be a first-class resource that can itself bear a title, language, or rights."@x-gmeow-english .
 
 gmeow:name
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "name"@x-gmeow-english ;
@@ -102,7 +101,7 @@ gmeow:name
     gmeow:useWhen "Use for the simple, flat label of an entity that does not need the structured naming apparatus — an organization, software agent, source, or key — when one plain language-tagged string suffices."@x-gmeow-english .
 
 gmeow:nationality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "nationality"@x-gmeow-english ;
@@ -115,7 +114,7 @@ gmeow:nationality
     gmeow:useWhen "Use to record a person's legal national-identity bond to a country — the schema:nationality relation, pointing at a gmeow:Place."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/entities>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Person, organization, group and software-agent descriptions, plus naming (the FOAF / schema.org superset layer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
@@ -125,8 +124,8 @@ gmeow:nationality
         gmeow:boxTBox .
 
 _:b0
-    a owl:AllDisjointClasses ;
-    owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey gmeow:Appellation gmeow:Language ) .
+    a logic:AllDisjointClasses ;
+    logic:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey gmeow:Appellation gmeow:Language ) .
 
 # --- Wave B1 shape-drain: organization currency-frame grounding ---
 # gmeow:OrganizationCurrencyShape — each gmeow:acceptsCurrency value is a currency reference frame

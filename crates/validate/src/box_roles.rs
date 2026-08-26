@@ -66,15 +66,19 @@ fn is_gmeow_term(iri: &str, ontology_iri: &str, namespace: &str) -> bool {
 
 /// Mirror of `box_roles._term_kind`: assign ONE kind by priority.
 fn term_kind(types: &BTreeSet<String>) -> &'static str {
-    if types.contains(owl::ONTOLOGY) {
+    // A term is typed in the canonical `logic:` spelling; lower each typing marker
+    // to its `owl:` view so the kind test (keyed on the `owl:` constants) sees both
+    // spellings after the `owl:`→`logic:` surface flip.
+    let has = |marker: &str| types.iter().any(|t| gmeow_ns::to_owl_view(t) == marker);
+    if has(owl::ONTOLOGY) {
         "ontology"
-    } else if types.contains(owl::CLASS) {
+    } else if has(owl::CLASS) {
         "class"
-    } else if types.contains(owl::ANNOTATION_PROPERTY) {
+    } else if has(owl::ANNOTATION_PROPERTY) {
         "annotation property"
-    } else if types.contains(owl::OBJECT_PROPERTY) || types.contains(owl::DATATYPE_PROPERTY) {
+    } else if has(owl::OBJECT_PROPERTY) || has(owl::DATATYPE_PROPERTY) {
         "property"
-    } else if types.contains(rdfs::DATATYPE) {
+    } else if has(rdfs::DATATYPE) {
         "datatype"
     } else {
         KIND_INDIVIDUAL

@@ -401,8 +401,42 @@ use session_common::*;
 /// stays an honest gap, and the W3C divergence corpus is unchanged
 /// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
 /// class expression, so its reasoning verdict is unchanged.
+/// Re-blessed once more, EXTENDING the canonical `logic:` lowering from the
+/// restriction body to the full slice-authorable TYPING + class-axiom vocabulary:
+/// `CALCULUS_VOCABULARY` (`reason/mod.rs`) grows from the restriction slots to also carry
+/// `logic:Class`/`ObjectProperty`/`NamedIndividual`/the property-characteristic types/
+/// `disjointWith`/`inverseOf`/`unionOf`/`oneOf`/`sameAs`/`Thing`/`Nothing`/… — every
+/// slice-authorable construct the DL and counting/case-split refuters read by name — and the
+/// raw-dataset object position is now normalized on that table at `raw_resource_facts`,
+/// `quads_by_subject` (all IRI objects, not only `rdf:type`), `scan_coverage`, and RL's
+/// `encode_generic_edb`, so a marker or filler authored as `logic:` (`?P rdf:type
+/// logic:TransitiveProperty`, `logic:someValuesFrom logic:Nothing`) reaches the fixed calculi.
+/// The native contract hash `include_str!`s `reason/mod.rs`, `reason/dl.rs` and `reason/rl.rs`,
+/// so the descriptor moves. This DOES change reasoning verdicts for a slice authored in the
+/// canonical typing vocabulary (previously dark to the DL/EL/RL closure, now read), but every
+/// currently-`owl:`-authored input is untouched (`calculus_term` is identity on an `owl:` IRI),
+/// so the whole shipped corpus and the W3C divergence corpus are unchanged. The fixed edge-only
+/// input carries no typing axiom, so its reasoning verdict is unchanged.
+/// Re-blessed once more when the four fragment-completeness/boundary description strings in
+/// `reason/refute.rs` were aligned from their `owl:`-prefixed spelling to the `OWL X` prose spelling
+/// the slice `logic:fragmentCompletenessBound`/`logic:expressivenessBoundary` mirrors now carry (the
+/// authored surface reached literal zero `owl:` tokens). `native_contract_hash()` `include_str!`s
+/// `reason/refute.rs`, so its byte content moves the descriptor; no reasoning verdict changes.
+/// Re-blessed once more when the reasoner's fixed calculus-vocabulary table was exposed through
+/// a public `reason::calculus_vocabulary()` accessor, so the grounding cross-check reads the
+/// engine's own table instead of a hand-copied 49-row mirror.
+/// `native_contract_hash()` `include_str!`s `reason/mod.rs`, so adding the accessor moves the
+/// descriptor by byte content alone; the `CALCULUS_VOCABULARY` data, every calculus lowering, and
+/// all reasoning verdicts are unchanged.
+/// Re-blessed once more when `CALCULUS_VOCABULARY` gained the two property domain/range anchors
+/// (`logic:domain`→`rdfs:domain`, `logic:range`→`rdfs:range`), so a slice-authored canonical
+/// `logic:domain`/`logic:range` reasoning axiom lowers onto the fixed `rdfs:` spelling the DL/RL
+/// domain-range rules match — previously it passed through unnormalized and went dark. The table
+/// grows 49→51 rows and `native_contract_hash()` `include_str!`s `reason/mod.rs`, so the descriptor
+/// moves; every currently-`rdfs:`-authored domain/range input is untouched (`calculus_term` is
+/// identity on an `rdfs:` IRI), so the shipped corpus's reasoning verdicts are unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "498b44c6cdb7bad7d373c9b5ffdcaa6d7ad47d650a169ec60615af791f92d8ca";
+    "3151c0c72828ebde43c070e493b3bd87dd8cb24846f2b9bb5bea90047553e71f";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -595,8 +629,27 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// and `reason/dl.rs`, so this fixed-input session identity moves with it. The fixed
 /// edge-only input authors no class expression in either spelling, so its reasoning verdict
 /// is unchanged.
+/// Re-blessed once more, extending the canonical `logic:` lowering to the full
+/// typing + class-axiom vocabulary (see the engine-descriptor golden above): the native
+/// contract hash is one of the seven folded identity axes and `native_contract_hash()`
+/// `include_str!`s the whole of `reason/mod.rs`, `reason/dl.rs` and `reason/rl.rs`, so this
+/// fixed-input session identity moves with it. The fixed edge-only input authors no typing
+/// axiom in either spelling, so its reasoning verdict is unchanged. (The engine-descriptor value
+/// also folds the follow-up fix that the seven property-characteristic markers lower from their
+/// canonical LOWER-camel `logic:` spelling — `logic:transitiveProperty` — onto the upper-camel
+/// `owl:TransitiveProperty` the RL characteristic rules match, per
+/// `adapter::OWL_CHARACTERISTIC_TO_LOGIC`.)
+/// Re-blessed once more for the public `reason::calculus_vocabulary()` accessor (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded identity
+/// axes and it `include_str!`s `reason/mod.rs`, so this fixed-input session identity moves with the
+/// added accessor even though the fixed edge-only input's reasoning verdict is unchanged.
+/// Re-blessed once more for the two property domain/range calculus anchors (see the
+/// engine-descriptor golden above): the native contract hash is one of the seven folded identity
+/// axes and it `include_str!`s `reason/mod.rs`, so this fixed-input session identity moves with the
+/// 49→51-row table even though the fixed edge-only input carries no domain/range axiom and its
+/// reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "128b4c4648ec46d0261d0325044ae54bf29bfbf76889e5400cbb569415fb1c50";
+    "a014db827eebe3e2e2b4350816837ee508833801def333eb5c6d1fac7de630d1";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

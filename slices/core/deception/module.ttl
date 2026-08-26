@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ClaimVeridicality
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "Claim Veridicality"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -23,7 +22,7 @@ gmeow:ClaimVeridicality
 
 gmeow:MaximViolationType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "Maxim Violation Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -36,7 +35,7 @@ gmeow:MaximViolationType
     gmeow:useWhen "Use as the value vocabulary behind gmeow:maximViolationType — the four Gricean maxim violations (quality, quantity, relation, manner) a deceptive event may be classified as breaching."@x-gmeow-english .
 
 gmeow:argumentAcceptability
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "argument acceptability"@x-gmeow-english ;
@@ -61,7 +60,7 @@ gmeow:attestationTypeFactCheck
         gmeow:boxCBox .
 
 gmeow:claimVeridicality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:StandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "claim veridicality"@x-gmeow-english ;
@@ -75,7 +74,7 @@ gmeow:claimVeridicality
     gmeow:useWhen "Use to mark a gmeow:StandpointClaim's veridicality — especially to flag licensed falsehood (gmeow:veridicalityLicensedFalsehood) so fiction, satire, and sarcasm are kept distinct from deception (the audience understands the non-truth-asserting frame)."@x-gmeow-english .
 
 gmeow:credibilityScore
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "credibility score"@x-gmeow-english ;
@@ -92,7 +91,7 @@ gmeow:credibilityScore
     gmeow:useWhen "Use to carry a solver-computed credibility figure for an observation or claim — a derived scalar that downstream tooling can rank cues and standpoints by."@x-gmeow-english .
 
 gmeow:deceptionCue
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "deception cue"@x-gmeow-english ;
@@ -106,7 +105,7 @@ gmeow:deceptionCue
     gmeow:useWhen "Use to attach a behavioural, linguistic, or evidential signal — modelled as a gmeow:Observation — that indicates deception in an event, so each cue carries its own vantage and method rather than being asserted as a bare fact."@x-gmeow-english .
 
 gmeow:deceptiveIntentClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "deceptive intent claim"@x-gmeow-english ;
@@ -208,7 +207,7 @@ gmeow:eventTypeSelfDeception
         gmeow:boxCBox .
 
 gmeow:heldStandpoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "held standpoint"@x-gmeow-english ;
@@ -223,7 +222,7 @@ gmeow:heldStandpoint
     gmeow:useWhen "Use to name the private belief a deceiver actually holds in a deception event — the inner half of the held≠projected divergence that IS the deceptive act, modelled as a gmeow:DoxasticStandpointClaim."@x-gmeow-english .
 
 gmeow:implicates
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "implicates"@x-gmeow-english ;
@@ -269,7 +268,7 @@ gmeow:maximViolationRelation
         gmeow:boxCBox .
 
 gmeow:maximViolationType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "maxim violation type"@x-gmeow-english ;
@@ -283,7 +282,7 @@ gmeow:maximViolationType
     gmeow:useWhen "Use to classify which Gricean maxim a deceptive gmeow:Event breaches — naming a gmeow:MaximViolationType individual; non-functional, so an event that violates several maxims carries each."@x-gmeow-english .
 
 gmeow:projectedStandpoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "projected standpoint"@x-gmeow-english ;
@@ -298,7 +297,7 @@ gmeow:projectedStandpoint
     gmeow:useWhen "Use to name the position a deceiver communicates to the victim — the outer half of the held≠projected divergence, modelled as a gmeow:DoxasticStandpointClaim; for paltering the projected claim is literally true yet conversationally misleading (pair with gmeow:implicates)."@x-gmeow-english .
 
 gmeow:propagationMutationDistance
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "propagation mutation distance"@x-gmeow-english ;
@@ -371,7 +370,7 @@ gmeow:veridicalityUntrue
         gmeow:boxCBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/deception>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Cross-cutting deception, falsehood, and misinformation facility. Builds on the standpoint module (standpoint facility) and the event module (event/temporal design) to model deceptive acts as standpoint-indexed divergences between what a party holds true and what they project. Part of the Deception design.
 

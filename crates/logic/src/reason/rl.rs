@@ -296,7 +296,16 @@ fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> TypedFactS
         let Some(subj) = resource_term(&quad.subject, interner) else {
             continue;
         };
-        let Some(obj) = resource_term(&quad.object, interner) else {
+        // Normalize an IRI object onto the fixed RL rules' `owl:`/`rdfs:` spelling, the same
+        // lowering `edb_predicate_spellings` applies to the predicate below: an RL rule body
+        // names its class/characteristic markers (`rdf:type owl:TransitiveProperty`,
+        // `owl:someValuesFrom …`) by the `owl:` constant, so a `logic:`-authored marker in object
+        // position must lower to match. A domain IRI is not in the table and is untouched.
+        let object = match quad.object {
+            RdfTerm::Iri(iri) => RdfTerm::iri(super::calculus_term(&iri)),
+            other => other,
+        };
+        let Some(obj) = resource_term(&object, interner) else {
             continue;
         };
 

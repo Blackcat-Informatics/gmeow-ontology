@@ -4,7 +4,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -21,7 +20,7 @@
 # durable subject is a logic:RoleMixin borne over a DigitalSubjectTenure and
 # SUPPORTED (never entailed) by self-assertion (Principle 9). Continuity is a
 # contestable IdentityContinuityAssessment over SubjectStages, topped by a
-# decisional ContinuityDetermination — never owl:sameAs. Contested inhabitation
+# decisional ContinuityDetermination — never OWL sameAs. Contested inhabitation
 # (spiritual / fictional / legal) is an unasserted InhabitationClaim, kept out of
 # the base graph so no range entailment fires (INHABITED-TRADITIONS.md).
 #
@@ -31,9 +30,9 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 <https://blackcatinformatics.ca/gmeow/slices/inhabitation>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "The inhabitation topology: which transformations preserve the same durable digital subject and which do not. A subject inhabits a host over a tenure (a logic:Situation), the durable subject is a logic:RoleMixin borne over a DigitalSubjectTenure and supported — never entailed — by self-assertion, and continuity is a contestable IdentityContinuityAssessment over SubjectStages topped by a decisional ContinuityDetermination, never owl:sameAs. Contested (spiritual / fictional / legal) inhabitation stays an unasserted InhabitationClaim so no range entailment fires (Principle 9)."@x-gmeow-english ;
+    rdfs:comment "The inhabitation topology: which transformations preserve the same durable digital subject and which do not. A subject inhabits a host over a tenure (a logic:Situation), the durable subject is a logic:RoleMixin borne over a DigitalSubjectTenure and supported — never entailed — by self-assertion, and continuity is a contestable IdentityContinuityAssessment over SubjectStages topped by a decisional ContinuityDetermination, never OWL sameAs. Contested (spiritual / fictional / legal) inhabitation stays an unasserted InhabitationClaim so no range entailment fires (Principle 9)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "GMEOW Inhabitation Module"@x-gmeow-english ;
     skos:definition "The GMEOW Inhabitation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
@@ -42,7 +41,7 @@
 
 gmeow:ContinuityDetermination
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Continuity Determination"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IdentityContinuityAssessment ;
@@ -72,13 +71,13 @@ gmeow:ContinuityDetermination
 
 gmeow:ContinuityVerdict
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Continuity Verdict"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The value vocabulary for the outcome of an identity-continuity assessment — whether two subject stages are held to be the same subject: gmeow:continuitySame (the atman reading), gmeow:continuityDifferent (the anatta reading), gmeow:continuityIndeterminate (undecided). A closed value set; a verdict is a frame-relative claim, never a global-truth collapse to owl:sameAs (Principle 9)."@x-gmeow-english ;
+    skos:definition "The value vocabulary for the outcome of an identity-continuity assessment — whether two subject stages are held to be the same subject: gmeow:continuitySame (the atman reading), gmeow:continuityDifferent (the anatta reading), gmeow:continuityIndeterminate (undecided). A closed value set; a verdict is a frame-relative claim, never a global-truth collapse to OWL sameAs (Principle 9)."@x-gmeow-english ;
     skos:example "ex:upgrade-verdict gmeow:continuityVerdict gmeow:continuitySame ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading gmeow:continuitySame as owl:sameAs — it is one frame's assessment that two distinct stages continue the same subject, coexisting with a rival gmeow:continuityDifferent; never merge the stage nodes on the strength of a 'same' verdict."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading gmeow:continuitySame as OWL sameAs — it is one frame's assessment that two distinct stages continue the same subject, coexisting with a rival gmeow:continuityDifferent; never merge the stage nodes on the strength of a 'same' verdict."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
     gmeow:howToUse "Reference one seeded verdict individual from an assessment via gmeow:continuityVerdict; keep competing verdicts on coexisting assessments rather than resolving them, and reserve a single operative choice for a gmeow:ContinuityDetermination."@x-gmeow-english ;
@@ -86,7 +85,7 @@ gmeow:ContinuityVerdict
 
 gmeow:ControlAssessment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Control Assessment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -116,7 +115,7 @@ gmeow:ControlAssessment
 
 gmeow:ControlLevel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Control Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -130,7 +129,7 @@ gmeow:ControlLevel
 
 gmeow:DeterminationForce
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Determination Force"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -144,7 +143,7 @@ gmeow:DeterminationForce
 
 gmeow:DigitalSubject
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Digital Subject"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agent ;
@@ -158,7 +157,7 @@ gmeow:DigitalSubject
 
 gmeow:DigitalSubjectTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Digital Subject Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -188,7 +187,7 @@ gmeow:DigitalSubjectTenure
 
 gmeow:EmbodimentAssignment
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Embodiment Assignment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -213,7 +212,7 @@ gmeow:EmbodimentAssignment
 
 gmeow:EmbodimentCarrierRole
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Embodiment Carrier Role"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -227,7 +226,7 @@ gmeow:EmbodimentCarrierRole
 
 gmeow:IdentityContinuityAssessment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Identity Continuity Assessment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -247,9 +246,9 @@ gmeow:IdentityContinuityAssessment
             logic:onProperty gmeow:continuityVerdict ;
             logic:allValuesFrom gmeow:ContinuityVerdict ;
         ] ;
-    skos:definition "A standpoint-indexed, attributed, evidence-grounded observation of whether two subject stages are the same subject — the contestable verdict the anatta/atman debate, a model upgrade, and a cross-vendor fork all require. Carries the two stages, a verdict (same / different / indeterminate), a vantage, evidence, and confidence. Competing verdicts coexist (Principle 9); none is privileged, and 'same' is never collapsed to owl:sameAs."@x-gmeow-english ;
+    skos:definition "A standpoint-indexed, attributed, evidence-grounded observation of whether two subject stages are the same subject — the contestable verdict the anatta/atman debate, a model upgrade, and a cross-vendor fork all require. Carries the two stages, a verdict (same / different / indeterminate), a vantage, evidence, and confidence. Competing verdicts coexist (Principle 9); none is privileged, and 'same' is never collapsed to OWL sameAs."@x-gmeow-english ;
     skos:example "ex:upgrade-verdict a gmeow:IdentityContinuityAssessment ; gmeow:assessmentFromStage ex:stageOpus48 ; gmeow:assessmentToStage ex:stageOpus50 ; gmeow:continuityVerdict gmeow:continuitySame ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting continuity by reusing one RDF node across stages (that already asserts numerical identity) or by owl:sameAs; and never read the ABSENCE of a 'same' verdict as a 'different' verdict — under the open-world assumption absence is silence, so a no-self reading is an ASSERTED refuting verdict, not a gap."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting continuity by reusing one RDF node across stages (that already asserts numerical identity) or by OWL sameAs; and never read the ABSENCE of a 'same' verdict as a 'different' verdict — under the open-world assumption absence is silence, so a no-self reading is an ASSERTED refuting verdict, not a gap."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox ;
     gmeow:howToUse "Mint one per compared pair: bind the two gmeow:SubjectStage individuals with gmeow:assessmentFromStage / gmeow:assessmentToStage, the outcome with gmeow:continuityVerdict, and carry its vantage, evidence, and confidence as on any gmeow:Observation; let competing atman ('same') and anatta ('different') verdicts coexist."@x-gmeow-english ;
@@ -257,7 +256,7 @@ gmeow:IdentityContinuityAssessment
 
 gmeow:Inhabitant
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitant"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agent ;
@@ -271,7 +270,7 @@ gmeow:Inhabitant
 
 gmeow:InhabitationClaim
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Claim"@x-gmeow-english ;
     rdfs:subClassOf gmeow:StandpointClaim ;
@@ -285,7 +284,7 @@ gmeow:InhabitationClaim
 
 gmeow:InhabitationConfiguration
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Configuration"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -315,7 +314,7 @@ gmeow:InhabitationConfiguration
 
 gmeow:InhabitationDescription
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Description"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Proposition ;
@@ -329,7 +328,7 @@ gmeow:InhabitationDescription
 
 gmeow:InhabitationLocusKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Locus Kind"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -343,7 +342,7 @@ gmeow:InhabitationLocusKind
 
 gmeow:InhabitationTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -373,7 +372,7 @@ gmeow:InhabitationTenure
 
 gmeow:InhabitedSystem
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabited System"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -387,7 +386,7 @@ gmeow:InhabitedSystem
 
 gmeow:SubjectLineage
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Subject Lineage"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -401,7 +400,7 @@ gmeow:SubjectLineage
 
 gmeow:SubjectStage
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Subject Stage"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -415,7 +414,7 @@ gmeow:SubjectStage
 
 gmeow:TransferManifest
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Transfer Manifest"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -432,7 +431,7 @@ gmeow:TransferManifest
 # ─────────────────────────────────────────────────────────────────────────────
 
 gmeow:assessmentFromStage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IdentityContinuityAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "assessment from stage"@x-gmeow-english ;
@@ -442,7 +441,7 @@ gmeow:assessmentFromStage
         gmeow:boxRBox .
 
 gmeow:assessmentToStage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IdentityContinuityAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "assessment to stage"@x-gmeow-english ;
@@ -452,7 +451,7 @@ gmeow:assessmentToStage
         gmeow:boxRBox .
 
 gmeow:assignmentCapability
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmbodimentAssignment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "assignment capability"@x-gmeow-english ;
@@ -461,7 +460,7 @@ gmeow:assignmentCapability
         gmeow:boxRBox .
 
 gmeow:assignmentCarrier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmbodimentAssignment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "assignment carrier"@x-gmeow-english ;
@@ -471,7 +470,7 @@ gmeow:assignmentCarrier
         gmeow:boxRBox .
 
 gmeow:assignmentSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmbodimentAssignment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "assignment subject"@x-gmeow-english ;
@@ -481,7 +480,7 @@ gmeow:assignmentSubject
         gmeow:boxRBox .
 
 gmeow:bearsDigitalSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "bears digital subject"@x-gmeow-english ;
@@ -492,7 +491,7 @@ gmeow:bearsDigitalSubject
         gmeow:boxRBox .
 
 gmeow:configurationEmbodiment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration embodiment"@x-gmeow-english ;
@@ -503,7 +502,7 @@ gmeow:configurationEmbodiment
         gmeow:boxRBox .
 
 gmeow:configurationFacet
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration facet"@x-gmeow-english ;
@@ -514,7 +513,7 @@ gmeow:configurationFacet
         gmeow:boxRBox .
 
 gmeow:configurationOfTenure
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration of tenure"@x-gmeow-english ;
@@ -543,22 +542,22 @@ gmeow:continuitySame
     a gmeow:ContinuityVerdict ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "same"@x-gmeow-english ;
-    skos:definition "The verdict that two subject stages continue the same subject — the atman reading. A frame-relative assessment, NEVER owl:sameAs: it does not merge the stage nodes and coexists with a rival gmeow:continuityDifferent (Principle 9)."@x-gmeow-english ;
+    skos:definition "The verdict that two subject stages continue the same subject — the atman reading. A frame-relative assessment, NEVER OWL sameAs: it does not merge the stage nodes and coexists with a rival gmeow:continuityDifferent (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
 gmeow:continuityVerdict
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IdentityContinuityAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "continuity verdict"@x-gmeow-english ;
     rdfs:range gmeow:ContinuityVerdict ;
-    skos:definition "The same / different / indeterminate outcome a gmeow:IdentityContinuityAssessment (or gmeow:ContinuityDetermination) carries. A value, never owl:sameAs — competing verdicts on coexisting assessments are the norm (Principle 9)."@x-gmeow-english ;
+    skos:definition "The same / different / indeterminate outcome a gmeow:IdentityContinuityAssessment (or gmeow:ContinuityDetermination) carries. A value, never OWL sameAs — competing verdicts on coexisting assessments are the norm (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
 gmeow:controlAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ControlAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "control agent"@x-gmeow-english ;
@@ -584,7 +583,7 @@ gmeow:controlFull
         gmeow:boxCBox .
 
 gmeow:controlInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ControlAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "control interval"@x-gmeow-english ;
@@ -594,7 +593,7 @@ gmeow:controlInterval
         gmeow:boxRBox .
 
 gmeow:controlLevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ControlAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "control level"@x-gmeow-english ;
@@ -604,7 +603,7 @@ gmeow:controlLevel
         gmeow:boxRBox .
 
 gmeow:controlOver
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ControlAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "control over"@x-gmeow-english ;
@@ -621,7 +620,7 @@ gmeow:controlPartial
         gmeow:boxCBox .
 
 gmeow:describedHost
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationDescription ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "described host"@x-gmeow-english ;
@@ -631,7 +630,7 @@ gmeow:describedHost
         gmeow:boxRBox .
 
 gmeow:describedLocusKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationDescription ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "described locus kind"@x-gmeow-english ;
@@ -640,7 +639,7 @@ gmeow:describedLocusKind
         gmeow:boxRBox .
 
 gmeow:describedSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationDescription ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "described subject"@x-gmeow-english ;
@@ -650,7 +649,7 @@ gmeow:describedSubject
         gmeow:boxRBox .
 
 gmeow:determinationForce
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ContinuityDetermination ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "determination force"@x-gmeow-english ;
@@ -660,7 +659,7 @@ gmeow:determinationForce
         gmeow:boxRBox .
 
 gmeow:determinationGrounds
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ContinuityDetermination ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "determination grounds"@x-gmeow-english ;
@@ -670,7 +669,7 @@ gmeow:determinationGrounds
         gmeow:boxRBox .
 
 gmeow:determinationValidity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ContinuityDetermination ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "determination validity"@x-gmeow-english ;
@@ -680,7 +679,7 @@ gmeow:determinationValidity
         gmeow:boxRBox .
 
 gmeow:determiningAuthority
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ContinuityDetermination ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "determining authority"@x-gmeow-english ;
@@ -725,7 +724,7 @@ gmeow:forceProvisional
         gmeow:boxCBox .
 
 gmeow:hasTransferManifest
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "has transfer manifest"@x-gmeow-english ;
@@ -735,7 +734,7 @@ gmeow:hasTransferManifest
         gmeow:boxRBox .
 
 gmeow:inhabitationLocusKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitation locus kind"@x-gmeow-english ;
@@ -745,7 +744,7 @@ gmeow:inhabitationLocusKind
         gmeow:boxRBox .
 
 gmeow:inhabitationSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitation subject"@x-gmeow-english ;
@@ -756,7 +755,7 @@ gmeow:inhabitationSubject
         gmeow:boxRBox .
 
 gmeow:inhabitedHost
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InhabitationTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabited host"@x-gmeow-english ;
@@ -783,7 +782,7 @@ gmeow:locusVessel
         gmeow:boxCBox .
 
 gmeow:portalFrom
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "portal from"@x-gmeow-english ;
@@ -793,7 +792,7 @@ gmeow:portalFrom
         gmeow:boxRBox .
 
 gmeow:portalTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "portal to"@x-gmeow-english ;
@@ -803,7 +802,7 @@ gmeow:portalTo
         gmeow:boxRBox .
 
 gmeow:stageBearer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SubjectStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "stage bearer"@x-gmeow-english ;
@@ -813,7 +812,7 @@ gmeow:stageBearer
         gmeow:boxRBox .
 
 gmeow:stageOfLineage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SubjectStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "stage of lineage"@x-gmeow-english ;
@@ -823,7 +822,7 @@ gmeow:stageOfLineage
         gmeow:boxRBox .
 
 gmeow:tenureEndedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TimeScopedRelation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "tenure ended by"@x-gmeow-english ;
@@ -834,7 +833,7 @@ gmeow:tenureEndedBy
         gmeow:boxRBox .
 
 gmeow:tenureSubjectAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DigitalSubjectTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "tenure subject agent"@x-gmeow-english ;
@@ -844,7 +843,7 @@ gmeow:tenureSubjectAgent
         gmeow:boxRBox .
 
 gmeow:tenureSupportedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DigitalSubjectTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "tenure supported by"@x-gmeow-english ;
@@ -854,18 +853,18 @@ gmeow:tenureSupportedBy
         gmeow:boxRBox .
 
 gmeow:tenureVantage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DigitalSubjectTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "tenure vantage"@x-gmeow-english ;
     rdfs:range gmeow:Agent ;
     skos:definition "The frame according to which a gmeow:DigitalSubjectTenure holds — whose vantage says the agent is a durable subject. In the self-asserted case the agent is its own vantage (the highest authority, Principle 9)."@x-gmeow-english ;
-    skos:scopeNote "gmeow:tenureVantage ⊑ gmeow:accordingTo: the tenure's holding frame is semantically subsumed by the standpoint annotation axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is an owl:AnnotationProperty (keeping the OWL 2 DL downcast clean) while tenureVantage is an owl:ObjectProperty; nor is it made ⊑ gmeow:vantage, whose rdfs:domain gmeow:Observation would wrongly infer the tenure (a logic:Situation) is an Observation. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."@x-gmeow-english ;
+    skos:scopeNote "gmeow:tenureVantage ⊑ gmeow:accordingTo: the tenure's holding frame is semantically subsumed by the standpoint annotation axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is an OWL AnnotationProperty (keeping the OWL 2 DL downcast clean) while tenureVantage is an OWL ObjectProperty; nor is it made ⊑ gmeow:vantage, whose rdfs:domain gmeow:Observation would wrongly infer the tenure (a logic:Situation) is an Observation. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
 gmeow:transferredView
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:TransferManifest ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "transferred view"@x-gmeow-english ;
@@ -876,12 +875,12 @@ gmeow:transferredView
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both owl:*Cardinality and
-# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# (Principle 17). A restriction carrying both a logic: qualified-cardinality bound and
+# logic:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / disjunctive-range / value-keyed
-# (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL antecedent and remain
+# (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL/DL antecedent and remain
 # the procedural fragment .
 # =========================================================================== #
 
@@ -895,9 +894,9 @@ gmeow:EmbodimentAssignment logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:assignmentCarrier ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:EmbodimentCarrierRole ] .
 
 gmeow:InhabitationConfiguration logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:configurationOfTenure ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:configurationEmbodiment ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:configurationOfTenure ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:configurationEmbodiment ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:ControlAssessment logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:controlAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
@@ -919,18 +918,18 @@ gmeow:DigitalSubjectTenure logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:tenureVantage ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:tenureSupportedBy ; logic:allValuesFrom gmeow:Observation ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-# onClass owl:Thing (not gmeow:TimeInterval) so the qualified count degrades to
+# onClass OWL Thing (not gmeow:TimeInterval) so the qualified count degrades to
 # the bare sh:minCount 1 the legacy gmeow:InhabitationConfigurationShape wants
-# (frontend.rs derive_validation_shapes: onClass owl:Thing degrades; onClass
+# (frontend.rs derive_validation_shapes: onClass OWL Thing degrades; onClass
 # <SpecificClass> projects only sh:qualifiedMinCount, never bare).
-gmeow:InhabitationConfiguration logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+gmeow:InhabitationConfiguration logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 # gmeow:InhabitationConfigurationShape: gmeow:configurationEmbodiment's bare
-# sh:maxCount 1 now comes from the class-scoped owl:Thing-qualified restriction
-# above (NOT a global owl:FunctionalProperty, which would ride its own
+# sh:maxCount 1 now comes from the class-scoped OWL Thing-qualified restriction
+# above (NOT a global OWL FunctionalProperty, which would ride its own
 # SubjectsOf(configurationEmbodiment) shape and never merge into this
 # Class(InhabitationConfiguration) property shape); the explicit allValuesFrom
 # restriction below is the class-restriction idiom (Pattern 2) that
@@ -942,7 +941,7 @@ gmeow:InhabitationConfiguration logic:subClassOf
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -951,7 +950,7 @@ gmeow:InhabitationConfiguration logic:subClassOf
 #   logic:MediatedPropertyRequirementAssertion — the mediated value must itself carry the required property.
 
 gmeow:configurationEmbodimentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configurationEmbodiment is functional"@x-gmeow-english ;
@@ -966,7 +965,7 @@ gmeow:configurationEmbodimentFunctionality
     skos:example "gmeow:configurationEmbodimentFunctionality logic:characterizes gmeow:configurationEmbodiment ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:configurationOfTenureFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configurationOfTenure is functional"@x-gmeow-english ;
@@ -981,7 +980,7 @@ gmeow:configurationOfTenureFunctionality
     skos:example "gmeow:configurationOfTenureFunctionality logic:characterizes gmeow:configurationOfTenure ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:inhabitationLocusKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitationLocusKind is functional"@x-gmeow-english ;
@@ -996,7 +995,7 @@ gmeow:inhabitationLocusKindFunctionality
     skos:example "gmeow:inhabitationLocusKindFunctionality logic:characterizes gmeow:inhabitationLocusKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:inhabitationSubjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitationSubject is functional"@x-gmeow-english ;
@@ -1011,7 +1010,7 @@ gmeow:inhabitationSubjectFunctionality
     skos:example "gmeow:inhabitationSubjectFunctionality logic:characterizes gmeow:inhabitationSubject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:inhabitedHostFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "inhabitedHost is functional"@x-gmeow-english ;
@@ -1026,7 +1025,7 @@ gmeow:inhabitedHostFunctionality
     skos:example "gmeow:inhabitedHostFunctionality logic:characterizes gmeow:inhabitedHost ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:inhabitationIntervalFrameRequirement
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:MediatedPropertyRequirementAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "an inhabitation tenure's interval carries its temporal frame"@x-gmeow-english ;

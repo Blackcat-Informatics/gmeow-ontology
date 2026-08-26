@@ -1,8 +1,8 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix math: <https://blackcatinformatics.ca/math/> .
@@ -11,7 +11,7 @@
 
 gmeow:Assessment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Assessment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -24,7 +24,7 @@ gmeow:Assessment
 
 gmeow:Condition
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Condition"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -37,7 +37,7 @@ gmeow:Condition
 
 gmeow:Criterion
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Criterion"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -50,7 +50,7 @@ gmeow:Criterion
 
 gmeow:EvaluationVerdict
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Evaluation Verdict"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -63,7 +63,7 @@ gmeow:EvaluationVerdict
 
 gmeow:GenericQuality
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Generic Quality"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -76,7 +76,7 @@ gmeow:GenericQuality
 
 gmeow:Magnitude
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Magnitude"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -90,7 +90,7 @@ gmeow:Magnitude
 
 gmeow:Measurement
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Measurement"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -103,14 +103,14 @@ gmeow:Measurement
 
 gmeow:MonetaryAmount
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Monetary Amount"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:currency ;
-            owl:someValuesFrom gmeow:ReferenceFrame ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:currency ;
+            logic:someValuesFrom gmeow:ReferenceFrame ;
         ] ;
     skos:definition "A quantity of money expressed as a decimal value in an explicit currency reference frame. The canonical superset of schema:MonetaryAmount and FIBO fibo-fnd-acc-cur:MonetaryAmount. Frame-relative (Principle 11): a value without its currency frame is ill-formed."@x-gmeow-english ;
     skos:example "ex:price a gmeow:MonetaryAmount ; gmeow:monetaryValue 19.99 ; gmeow:currency ex:usd ."@x-gmeow-english ;
@@ -122,7 +122,7 @@ gmeow:MonetaryAmount
 
 gmeow:Observation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Observation"@x-gmeow-english ;
     logic:mediates gmeow:observedFeature ,
@@ -130,14 +130,14 @@ gmeow:Observation
     logic:instantiatesFramework logic:EpistemicFramework ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:observedFeature ;
-            owl:someValuesFrom owl:Thing ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:observedFeature ;
+            logic:someValuesFrom logic:Thing ;
         ] ;
     skos:definition "A reified act of observing, measuring, or asserting a feature of interest — the universal claim construct unifying spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims. Mediates between an observer (vantage), a feature (observedFeature), and a result (observationResult). Every observation carries at least a vantage and an observedFeature (EL open-world); closed-world cardinality is SHACL's concern."@x-gmeow-english ;
     skos:example "ex:reading a gmeow:Observation ; gmeow:vantage ex:sensor ; gmeow:observedFeature ex:room ; gmeow:observationResult ex:temp22 ."@x-gmeow-english ;
@@ -148,7 +148,7 @@ gmeow:Observation
 
 gmeow:ObservationMethod
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Observation Method"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -161,7 +161,7 @@ gmeow:ObservationMethod
 
 gmeow:ObservationType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Observation Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -174,7 +174,7 @@ gmeow:ObservationType
 
 gmeow:Quality
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Quality"@x-gmeow-english ;
     rdfs:subClassOf logic:Quality ,
@@ -188,7 +188,7 @@ gmeow:Quality
 
 gmeow:Rubric
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Rubric"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -201,7 +201,7 @@ gmeow:Rubric
 
 gmeow:SensoryObservation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Sensory Observation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -214,7 +214,7 @@ gmeow:SensoryObservation
 
 gmeow:StandpointClaim
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Standpoint Claim"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -228,15 +228,15 @@ gmeow:StandpointClaim
 
 gmeow:Stream
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Stream"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:streamOf ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:streamOf ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A time-ordered sequence of observations or samples produced by a sensor or platform over a time interval. The ordering of samples is implicit via their individual timestamps, not asserted as a list structure (Principle 12). A stream is the canonical source from which a continuous trajectory may be derived by the solver layer."@x-gmeow-english ;
     skos:example "ex:roverTrack a gmeow:Stream ; gmeow:streamOf ex:rover ; gmeow:streamSample ex:fix1 ."@x-gmeow-english ;
@@ -246,7 +246,7 @@ gmeow:Stream
     gmeow:useWhen "Use to group a time-ordered run of observations or samples about one entity from a sensor or platform — the canonical source a solver derives a continuous trajectory from (no list structure is asserted)."@x-gmeow-english .
 
 gmeow:assessmentCriterion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessment criterion"@x-gmeow-english ;
@@ -259,7 +259,7 @@ gmeow:assessmentCriterion
     gmeow:useWhen "Use on an Assessment to name the single criterion applied — one Assessment per criterion, zeros included."@x-gmeow-english .
 
 gmeow:assessmentRubric
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessment rubric"@x-gmeow-english ;
@@ -272,7 +272,7 @@ gmeow:assessmentRubric
     gmeow:useWhen "Use on an Assessment to name the rubric under which it was made — version-pinning context for the score."@x-gmeow-english .
 
 gmeow:assessmentScoreValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessment score value"@x-gmeow-english ;
@@ -285,7 +285,7 @@ gmeow:assessmentScoreValue
     gmeow:useWhen "Use to carry an Assessment's numeric score on the scale its criterion or rubric declares."@x-gmeow-english .
 
 gmeow:assessmentTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Assessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessment target"@x-gmeow-english ;
@@ -298,7 +298,7 @@ gmeow:assessmentTarget
     gmeow:useWhen "Use on an Assessment to name what is being scored — a work, expression, content segment, or chunk — the observation's feature of interest."@x-gmeow-english .
 
 gmeow:bearer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Quality ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "bearer"@x-gmeow-english ;
@@ -311,7 +311,7 @@ gmeow:bearer
     gmeow:useWhen "Use to name the entity a persistent quality belongs to — the inherence anchor of the quality stratification, so the quality and its value-history travel with their bearer."@x-gmeow-english .
 
 gmeow:currency
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MonetaryAmount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "currency"@x-gmeow-english ;
@@ -325,7 +325,7 @@ gmeow:currency
     gmeow:useWhen "Use to name the currency reference frame of a gmeow:MonetaryAmount — the frame that makes its magnitude meaningful, the money-specific specialization of gmeow:hasReferenceFrame (Principle 11)."@x-gmeow-english .
 
 gmeow:dimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Magnitude ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "dimension"@x-gmeow-english ;
@@ -337,7 +337,7 @@ gmeow:dimension
     gmeow:useWhen "Use to declare the physical dimension / generic quality of a frame-independent gmeow:Magnitude, so a true quantity carries its kind without committing to a unit or frame."@x-gmeow-english .
 
 gmeow:facetSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "facet subject"@x-gmeow-english ;
@@ -351,7 +351,7 @@ gmeow:facetSubject
     gmeow:useWhen "Use to name the person an identity-facet claim (gender identity, gender expression, sexual or romantic orientation) is about — the IdentityFacet specialization of gmeow:observedFeature."@x-gmeow-english .
 
 gmeow:facetVantage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "facet vantage"@x-gmeow-english ;
@@ -366,15 +366,15 @@ gmeow:facetVantage
 
 gmeow:hasReferenceFrame
     rdfs:subPropertyOf logic:referenceFrame ;
-    owl:propertyChainAxiom ( gmeow:isResultOf gmeow:hasReferenceFrame ) .
+    logic:propertyChainAxiom ( gmeow:isResultOf gmeow:hasReferenceFrame ) .
 
 gmeow:hasStream
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "has stream"@x-gmeow-english ;
     rdfs:range gmeow:Stream ;
-    owl:inverseOf gmeow:streamOf ;
+    logic:inverseOf gmeow:streamOf ;
     skos:definition "Links an entity to a stream of observations or samples about it. Non-functional: an entity may have multiple co-existing streams from different platforms or sensors (Principle 9), and no stream is privileged."@x-gmeow-english ;
     skos:example "ex:rover gmeow:hasStream ex:roverTrack ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when you can state gmeow:streamOf instead (prefer the stream-rooted, functional direction and read this as its inverse), and avoid treating one stream as canonical — multiple coexist (Principle 9)."@x-gmeow-english ;
@@ -383,12 +383,12 @@ gmeow:hasStream
     gmeow:useWhen "Use from an entity to reach the streams of observations about it — the entity-rooted inverse of gmeow:streamOf, when traversing from the tracked thing to its sample runs."@x-gmeow-english .
 
 gmeow:isResultOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:Individual ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "is result of"@x-gmeow-english ;
     rdfs:range gmeow:Observation ;
-    owl:inverseOf gmeow:observationResult ;
+    logic:inverseOf gmeow:observationResult ;
     skos:definition "Relates an individual result (such as a math:Quantity, coordinate set, instant, or quality value) back to the Observation that produced it — the explicit provenance axis qualifying the result. Domain is logic:Individual, matching the broad observationResult range across concrete endurants and abstract values. Non-functional: a result may be produced by multiple observations (for example a consensus value derived from several readings), and those claims coexist rather than collapse."@x-gmeow-english ;
     skos:example "ex:temp22 gmeow:isResultOf ex:reading ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it where you can state gmeow:observationResult instead (prefer the observation-rooted direction and read this as its inverse), and avoid forcing one producer — a consensus value legitimately is the result of several observations."@x-gmeow-english ;
@@ -449,7 +449,7 @@ gmeow:methodSurvey
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:monetaryValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MonetaryAmount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "monetary value"@x-gmeow-english ;
@@ -462,7 +462,7 @@ gmeow:monetaryValue
     gmeow:useWhen "Use to carry the bare numeric magnitude of a gmeow:MonetaryAmount — the decimal that, paired with gmeow:currency, is a well-formed money value."@x-gmeow-english .
 
 gmeow:observationEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation event"@x-gmeow-english ;
@@ -475,7 +475,7 @@ gmeow:observationEvent
     gmeow:useWhen "Use to link an Observation to the gufo:Event during which it was made — the survey, census, excavation, or trial — when the lightweight 'when did it happen' perspective is enough."@x-gmeow-english .
 
 gmeow:observationMethod
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation method"@x-gmeow-english ;
@@ -488,7 +488,7 @@ gmeow:observationMethod
     gmeow:useWhen "Use to record HOW an observation was produced — the protocol, technique, or instrument — naming a gmeow:ObservationMethod individual so consumers can filter by method and weigh readings accordingly."@x-gmeow-english .
 
 gmeow:observationOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation of"@x-gmeow-english ;
@@ -502,7 +502,7 @@ gmeow:observationOf
     gmeow:useWhen "Use to attach a dated observation to the enduring quality it reads, so a vital sign or monitored property accumulates a queryable value-history instead of disconnected results."@x-gmeow-english .
 
 gmeow:observationResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation result"@x-gmeow-english ;
@@ -515,7 +515,7 @@ gmeow:observationResult
     gmeow:useWhen "Use to name the value an Observation produces — a coordinate set, instant, quality value, modality, appellation, or a math:Quantity wrapping a literal reading."@x-gmeow-english .
 
 gmeow:observationType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation type"@x-gmeow-english ;
@@ -599,7 +599,7 @@ gmeow:observationTypeStreaming
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:observedAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observed at"@x-gmeow-english ;
@@ -612,11 +612,11 @@ gmeow:observedAt
     gmeow:useWhen "Use to date one observation in a persistent quality's value-history, so 'how did this value change over time?' resolves to an ordered series of dated results."@x-gmeow-english .
 
 gmeow:observedFeature
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observed feature"@x-gmeow-english ;
-    skos:definition "The individual whose property or state is being observed — the feature of interest. The range is intentionally open (owl:Thing) because anything can be observed: a place, a person, an event, a document, a quality value, or a situation. SHACL shapes enforce closed-world constraints per observation kind."@x-gmeow-english ;
+    skos:definition "The individual whose property or state is being observed — the feature of interest. The range is intentionally open (logic:Thing — the OWL/RDFS projection renders it as the W3C OWL Thing top type) because anything can be observed: a place, a person, an event, a document, a quality value, or a situation. SHACL shapes enforce closed-world constraints per observation kind."@x-gmeow-english ;
     skos:example "ex:reading gmeow:observedFeature ex:room ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for the produced value (that is gmeow:observationResult) or the observer (gmeow:vantage); and prefer the domain subproperty when one exists rather than asserting the bare super-role, so the feature keeps its local range."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -631,7 +631,7 @@ gmeow:pressure
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:quantityUncertainty
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "quantity uncertainty"@x-gmeow-english ;
@@ -647,7 +647,7 @@ gmeow:statementAbout
     rdfs:subPropertyOf gmeow:observedFeature .
 
 gmeow:streamInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Stream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "stream interval"@x-gmeow-english ;
@@ -660,7 +660,7 @@ gmeow:streamInterval
     gmeow:useWhen "Use to bound a stream in time — the gmeow:TimeInterval over which its samples were produced — when the temporal extent is constitutive of which stream this is."@x-gmeow-english .
 
 gmeow:streamOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Stream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "stream of"@x-gmeow-english ;
@@ -673,7 +673,7 @@ gmeow:streamOf
     gmeow:useWhen "Use to name the single entity a stream tracks — the moving feature, device, or thing whose samples it collects."@x-gmeow-english .
 
 gmeow:streamPlatform
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Stream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "stream platform"@x-gmeow-english ;
@@ -686,7 +686,7 @@ gmeow:streamPlatform
     gmeow:useWhen "Use to name the platform hosting the sensor(s) of a stream — a vehicle, vessel, aircraft, buoy, or fixed station."@x-gmeow-english .
 
 gmeow:streamSample
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Stream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "stream sample"@x-gmeow-english ;
@@ -699,7 +699,7 @@ gmeow:streamSample
     gmeow:useWhen "Use to attach each individual sample — an observation, location state, or reading — to the stream it composes; a stream typically carries many."@x-gmeow-english .
 
 gmeow:streamSensor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Stream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "stream sensor"@x-gmeow-english ;
@@ -712,7 +712,7 @@ gmeow:streamSensor
     gmeow:useWhen "Use to name the specific sensor or agent that reads the samples of a stream — the device doing the measuring."@x-gmeow-english .
 
 gmeow:trueQuantity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "true quantity"@x-gmeow-english ;
@@ -726,7 +726,7 @@ gmeow:trueQuantity
     gmeow:useWhen "Use to link a framed reading to the unit-independent magnitude it measures, so the true quantity round-trips across unit systems and the value-vs-quantity seam (Principle 11) is explicit."@x-gmeow-english .
 
 gmeow:unit
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "unit"@x-gmeow-english ;
     rdfs:range qudt:Unit ;
@@ -749,14 +749,14 @@ gmeow:usageNamer
     rdfs:subPropertyOf gmeow:vantage .
 
 gmeow:vantage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "vantage"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
     skos:definition "The agent or standpoint from which the observation is made — the reified-object-property counterpart of gmeow:accordingTo. Semantically, gmeow:vantage ⊑ gmeow:accordingTo: when an annotated statement is promoted to a reified Observation, its gmeow:accordingTo becomes the gmeow:vantage of the relator. The agent in the vantage role — an observer, a sensor, a perceiver — IS a standpoint (Principle 9): no frame is privileged, and every vantage is a co-equal facet from which the claim is held. Range is gmeow:Entity (encompassing both gmeow:Agent and gmeow:Standpoint) because a vantage may be a bare agent (person, organization, software agent, sensor) or a gmeow:Standpoint individual when the frame needs its own identity. Non-functional: joint observations (a reading co-authored by two agencies) are valid."@x-gmeow-english ;
     skos:example "ex:reading gmeow:vantage ex:sensor ."@x-gmeow-english ;
-    skos:scopeNote "gmeow:vantage ⊑ gmeow:accordingTo: the reified relator edge is semantically subsumed by the annotation-property axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is an owl:AnnotationProperty (keeping the OWL 2 DL downcast clean, Principle 3) while vantage is an owl:ObjectProperty. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."@x-gmeow-english ;
+    skos:scopeNote "gmeow:vantage ⊑ gmeow:accordingTo: the reified relator edge is semantically subsumed by the annotation-property axis. This is NOT asserted as rdfs:subPropertyOf because gmeow:accordingTo is authored as a logic:AnnotationProperty (its generated OWL/RDFS projection is the W3C OWL AnnotationProperty) while vantage is a logic:ObjectProperty — keeping the OWL 2 DL downcast clean on that projection, Principle 3. The subsumption is documented here and realised in the projection layer, not axiomatised in the reasoned core."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the method (gmeow:observationMethod is HOW, vantage is WHO) and for the subject (gmeow:observedFeature); avoid implying the vantage is privileged — every vantage is one co-equal standpoint (Principle 9), so joint and competing vantages coexist."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Bind a gmeow:Agent (person, organization, sensor, software agent) or a gmeow:Standpoint individual when the frame needs its own identity; for typed claims assert the bridging subproperty (gmeow:facetVantage, gmeow:usageNamer, gmeow:membershipAuthority) and read gmeow:vantage by inheritance. On the annotation side the same standpoint appears as gmeow:accordingTo."@x-gmeow-english ;
@@ -787,7 +787,7 @@ gmeow:versionMember
     rdfs:subPropertyOf gmeow:observedFeature .
 
 <https://blackcatinformatics.ca/gmeow/slices/observations>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The universal observation stack: a reified gufo:Relator that unifies spatial measurement, temporal dating, sensory reading, standpoint claims, identity claims, naming claims, rights claims, and kinship claims into one structure — realising Governing Principle 9 (Observation ≡ Measurement ≡ Standpoint ≡ IdentityFacet ≡ NameUsage ≡ RightsStatement ≡ KinRelationship). Sits in the foundational provenance/standpoint layer and is consumed by every slice. Aligns SOSA/SSN, PROV-O, and CIDOC E13 by reference.
 
@@ -801,15 +801,15 @@ The universal dimensioned quantity and its numeric value are owned by the ground
 # Closed-world cardinality axioms backing the hand-authored core observation
 # method well-formedness shape (a core observation records exactly one method).
 gmeow:Measurement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ObservationMethod ] .
 
 gmeow:SensoryObservation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ObservationMethod ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/SensoryObservation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
-<https://blackcatinformatics.ca/gmeow/Measurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+<https://blackcatinformatics.ca/gmeow/SensoryObservation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+<https://blackcatinformatics.ca/gmeow/Measurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 
 # A unit-bearing math:Quantity is a concrete measured value and therefore carries
 # its numeric magnitude. Reference-frame completeness is already owned by the
@@ -1030,20 +1030,21 @@ gmeow:StandpointClaim logic:subClassOf
 
 # gmeow:CoreObservationMethodShape multi-target exactly-one: the plain sh:maxCount 1 the retired
 # shape carried on gmeow:observationMethod (the max-qualified onClass gmeow:ObservationMethod
-# antecedents project a qualified count; owl:onClass owl:Thing degrades to the plain sh:maxCount 1
+# antecedents project a qualified count; a max-qualified count whose onClass is the universal
+# logic:Thing degrades to the plain sh:maxCount 1
 # the oracle compares). One per concrete method-bearing observation kind the shape targeted.
 gmeow:Measurement logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:SensoryObservation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 gmeow:StandpointClaim logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1051,7 +1052,7 @@ gmeow:StandpointClaim logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:bearerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "bearer is functional"@x-gmeow-english ;
@@ -1066,7 +1067,7 @@ gmeow:bearerFunctionality
     skos:example "gmeow:bearerFunctionality logic:characterizes gmeow:bearer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:currencyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "currency is functional"@x-gmeow-english ;
@@ -1081,7 +1082,7 @@ gmeow:currencyFunctionality
     skos:example "gmeow:currencyFunctionality logic:characterizes gmeow:currency ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:dimensionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "dimension is functional"@x-gmeow-english ;
@@ -1096,7 +1097,7 @@ gmeow:dimensionFunctionality
     skos:example "gmeow:dimensionFunctionality logic:characterizes gmeow:dimension ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:monetaryValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "monetaryValue is functional"@x-gmeow-english ;
@@ -1111,7 +1112,7 @@ gmeow:monetaryValueFunctionality
     skos:example "gmeow:monetaryValueFunctionality logic:characterizes gmeow:monetaryValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:observationMethodFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observationMethod is functional"@x-gmeow-english ;
@@ -1126,7 +1127,7 @@ gmeow:observationMethodFunctionality
     skos:example "gmeow:observationMethodFunctionality logic:characterizes gmeow:observationMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:observedAtFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observedAt is functional"@x-gmeow-english ;
@@ -1141,7 +1142,7 @@ gmeow:observedAtFunctionality
     skos:example "gmeow:observedAtFunctionality logic:characterizes gmeow:observedAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:observedFeatureFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observedFeature is functional"@x-gmeow-english ;
@@ -1156,7 +1157,7 @@ gmeow:observedFeatureFunctionality
     skos:example "gmeow:observedFeatureFunctionality logic:characterizes gmeow:observedFeature ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:quantityUncertaintyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "quantityUncertainty is functional"@x-gmeow-english ;
@@ -1171,7 +1172,7 @@ gmeow:quantityUncertaintyFunctionality
     skos:example "gmeow:quantityUncertaintyFunctionality logic:characterizes gmeow:quantityUncertainty ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:streamIntervalFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "streamInterval is functional"@x-gmeow-english ;
@@ -1186,7 +1187,7 @@ gmeow:streamIntervalFunctionality
     skos:example "gmeow:streamIntervalFunctionality logic:characterizes gmeow:streamInterval ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:streamOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "streamOf is functional"@x-gmeow-english ;
@@ -1201,7 +1202,7 @@ gmeow:streamOfFunctionality
     skos:example "gmeow:streamOfFunctionality logic:characterizes gmeow:streamOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:trueQuantityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "trueQuantity is functional"@x-gmeow-english ;
@@ -1216,7 +1217,7 @@ gmeow:trueQuantityFunctionality
     skos:example "gmeow:trueQuantityFunctionality logic:characterizes gmeow:trueQuantity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:unitFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "unit is functional"@x-gmeow-english ;
@@ -1231,7 +1232,7 @@ gmeow:unitFunctionality
     skos:example "gmeow:unitFunctionality logic:characterizes gmeow:unit ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assessmentCriterionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessmentCriterion is functional"@x-gmeow-english ;
@@ -1246,7 +1247,7 @@ gmeow:assessmentCriterionFunctionality
     skos:example "gmeow:assessmentCriterionFunctionality logic:characterizes gmeow:assessmentCriterion ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assessmentRubricFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessmentRubric is functional"@x-gmeow-english ;
@@ -1261,7 +1262,7 @@ gmeow:assessmentRubricFunctionality
     skos:example "gmeow:assessmentRubricFunctionality logic:characterizes gmeow:assessmentRubric ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assessmentScoreValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessmentScoreValue is functional"@x-gmeow-english ;
@@ -1276,7 +1277,7 @@ gmeow:assessmentScoreValueFunctionality
     skos:example "gmeow:assessmentScoreValueFunctionality logic:characterizes gmeow:assessmentScoreValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assessmentTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "assessmentTarget is functional"@x-gmeow-english ;

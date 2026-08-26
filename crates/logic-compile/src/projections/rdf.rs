@@ -134,33 +134,55 @@ fn owl_for_char(obj: &str) -> Option<String> {
     })
 }
 
-/// The object properties a `logic:PropertyCharacteristicAssertion` names functional, joining
-/// `logic:characterizes ?P` with `logic:characteristicSort logic:functionalProperty` on the
-/// record IRI. This central record is the CANONICAL carrier of the functional characteristic;
-/// the `owl:FunctionalProperty` rdf:type marker is its lossy projection and is no longer an
-/// authored slice source. The OWL grounding view re-emits `owl:FunctionalProperty` from this
-/// record (a valid lossy down-projection of the canonical characteristic), so functionality
-/// survives the removal of the direct `?P rdf:type owl:FunctionalProperty` marker — exactly as
-/// each carrier record's prose promises. Returned sorted (BTreeSet) for a deterministic view.
-fn functional_carrier_properties(program: &LogicProgram) -> std::collections::BTreeSet<String> {
+/// The characteristic sort local names an OWL grounding view re-emits from a canonical
+/// `logic:PropertyCharacteristicAssertion` carrier. These are exactly the sorts that OWL 2 DL
+/// admits on a GENERAL object property: `functionalProperty` and `inverseFunctionalProperty`
+/// (single-carrier since the direct marker was retired at source), and `transitiveProperty` /
+/// `symmetricProperty` (the marker was flipped to its `logic:` spelling but the canonical
+/// carrier is the record). `asymmetricProperty` and `irreflexiveProperty` are DELIBERATELY
+/// absent: OWL 2 DL forbids them on a non-simple property, so — exactly as `logic:properPartOf`
+/// keeps only `owl:TransitiveProperty` (see the holon-loss note) — they stay `logic:`-only and
+/// are never projected. `owl_for_char` maps each of these to its OWL characteristic class.
+const DL_PROJECTABLE_CHARACTERISTIC_SORTS: [&str; 4] = [
+    "functionalProperty",
+    "inverseFunctionalProperty",
+    "transitiveProperty",
+    "symmetricProperty",
+];
+
+/// The object properties a `logic:PropertyCharacteristicAssertion` characterises with a
+/// DL-PROJECTABLE sort, each paired with that sort's local name, joining `logic:characterizes ?P`
+/// with `logic:characteristicSort logic:<sort>` on the record IRI. This central record is the
+/// CANONICAL carrier of the characteristic; the `owl:{…}Property` rdf:type marker is its lossy
+/// projection and is no longer an authored slice source. The OWL grounding view re-emits the
+/// matching `owl:{…}Property` from this record (a valid lossy down-projection of the canonical
+/// characteristic), so the characteristic survives the removal of the direct
+/// `?P rdf:type owl:{…}Property` marker — exactly as each carrier record's prose promises, and
+/// mirroring the direct-marker `owl_for_char` emission (the OWL type + `owl:ObjectProperty`).
+/// Returned as a sorted (property, sort-local) BTreeSet for a deterministic, idempotent view.
+fn dl_projectable_carrier_characteristics(
+    program: &LogicProgram,
+) -> std::collections::BTreeSet<(String, String)> {
     let characterizes = logic("characterizes");
     let characteristic_sort = logic("characteristicSort");
-    let functional_sort = logic("functionalProperty");
     let mut rec_prop: BTreeMap<String, String> = BTreeMap::new();
-    let mut functional_recs: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut rec_sort: BTreeMap<String, String> = BTreeMap::new();
     for ax in &program.axioms {
-        if ax.predicate == characterizes && !ax.obj_is_literal {
+        if ax.obj_is_literal {
+            continue;
+        }
+        if ax.predicate == characterizes {
             rec_prop.insert(ax.subject.clone(), ax.obj.clone());
         } else if ax.predicate == characteristic_sort
-            && !ax.obj_is_literal
-            && ax.obj == functional_sort
+            && let Some(local) = ax.obj.strip_prefix(LOGIC_NS)
+            && DL_PROJECTABLE_CHARACTERISTIC_SORTS.contains(&local)
         {
-            functional_recs.insert(ax.subject.clone());
+            rec_sort.insert(ax.subject.clone(), local.to_owned());
         }
     }
-    functional_recs
+    rec_prop
         .iter()
-        .filter_map(|rec| rec_prop.get(rec).cloned())
+        .filter_map(|(rec, prop)| rec_sort.get(rec).map(|sort| (prop.clone(), sort.clone())))
         .collect()
 }
 
@@ -622,6 +644,16 @@ pub fn project_owl_dl(
                 g.add_iri(&axiom.subject, RDF_TYPE, &owl("ObjectProperty"));
                 continue;
             }
+            // A canonical `logic:` bare typing / header marker (`logic:Class`,
+            // `logic:ObjectProperty`, `logic:Ontology`, …) is projected exactly as its
+            // `owl:` spelling was: OMITTED from the grounding view. A bare `owl:Class` /
+            // `owl:Ontology` declaration never reached this projection (the frontend lifts
+            // only the structural edges + the gUFO sort, and each class earns its
+            // `owl:Class` from that sort), so the canonical marker is dropped in lockstep
+            // rather than leaking through as a `logic:`-namespaced type.
+            if crate::typing_vocab::is_logic_typing_marker(obj) {
+                continue;
+            }
             if !axiom.obj_is_literal {
                 g.add_iri(&axiom.subject, RDF_TYPE, obj);
             }
@@ -697,17 +729,21 @@ pub fn project_owl_dl(
         actual_drops.push(note);
     }
 
-    // Re-emit the deprecated `owl:FunctionalProperty` marker from the canonical functional
-    // carrier record. The direct `?P rdf:type owl:FunctionalProperty` marker is no longer an
-    // authored source, so the ONLY thing carrying functionality into this OWL grounding view is
-    // the `logic:PropertyCharacteristicAssertion` record; projecting `owl:FunctionalProperty` from
-    // it (a lossy down-projection of the canonical characteristic) is exactly what each carrier
-    // record's prose promises, and mirrors the `owl_for_char` emission for a direct marker
-    // (owl:FunctionalProperty + owl:ObjectProperty). The triple set is a set, so this is
-    // idempotent with any direct marker a raw-OWL corpus might still carry.
-    for prop in functional_carrier_properties(program) {
-        g.add_iri(&prop, RDF_TYPE, &owl("FunctionalProperty"));
-        g.add_iri(&prop, RDF_TYPE, &owl("ObjectProperty"));
+    // Re-emit each DL-projectable characteristic marker from its canonical carrier record. The
+    // direct `?P rdf:type owl:{…}Property` marker is no longer an authored source (functionality /
+    // inverse-functionality were retired to a carrier-only record; transitivity / symmetry were
+    // flipped to their `logic:` spelling), so the ONLY thing carrying the characteristic into this
+    // OWL grounding view is the `logic:PropertyCharacteristicAssertion` record. Projecting the
+    // matching `owl:{…}Property` from it (a lossy down-projection of the canonical characteristic)
+    // is exactly what each carrier record's prose promises, and mirrors the `owl_for_char`
+    // emission for a direct marker (the OWL type + owl:ObjectProperty). The triple set is a set,
+    // so this is idempotent with any surviving direct marker. Asymmetric / irreflexive sorts are
+    // excluded by the projectable set — OWL 2 DL cannot carry them on a non-simple property.
+    for (prop, sort_local) in dl_projectable_carrier_characteristics(program) {
+        if let Some(owl_char) = owl_for_char(&logic(&sort_local)) {
+            g.add_iri(&prop, RDF_TYPE, &owl_char);
+            g.add_iri(&prop, RDF_TYPE, &owl("ObjectProperty"));
+        }
     }
 
     project_formulas_owl_dl(&mut g, program);
@@ -845,6 +881,12 @@ pub fn project_owl_el(
                 ));
                 continue;
             }
+            // A canonical `logic:` bare typing / header marker is OMITTED from the OWL 2 EL
+            // grounding view exactly as its `owl:` spelling was (see the OWL-DL twin) — it is
+            // dropped in lockstep rather than leaking through as a `logic:`-namespaced type.
+            if crate::typing_vocab::is_logic_typing_marker(obj) {
+                continue;
+            }
             if !axiom.obj_is_literal {
                 g.add_iri(&axiom.subject, RDF_TYPE, obj);
             }
@@ -875,6 +917,21 @@ pub fn project_owl_el(
                     axiom.subject
                 ));
             }
+        }
+    }
+
+    // Re-emit the EL-safe characteristic markers from their canonical carrier records, mirroring
+    // the OWL-DL twin but confined to the sorts OWL 2 EL admits — only `owl:TransitiveProperty`
+    // (`is_el_safe_char`). Symmetry, functionality, and inverse-functionality are NOT EL-safe, so
+    // their carriers are the documented EL loss and never projected here. Set-idempotent with any
+    // surviving direct marker the axiom loop above already lowered.
+    for (prop, sort_local) in dl_projectable_carrier_characteristics(program) {
+        let sort_iri = logic(&sort_local);
+        if is_el_safe_char(&sort_iri)
+            && let Some(owl_char) = owl_for_char(&sort_iri)
+        {
+            g.add_iri(&prop, RDF_TYPE, &owl_char);
+            g.add_iri(&prop, RDF_TYPE, &owl("ObjectProperty"));
         }
     }
 

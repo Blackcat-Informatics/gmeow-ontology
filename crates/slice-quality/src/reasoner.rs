@@ -75,6 +75,10 @@ fn closure_contains_iri(
 /// `rdfs:` projection are counted (gmeow_ns::SUB_CLASS_OF / SUB_PROPERTY_OF
 /// doctrine; crates/ns/src/lib.rs:106-166) — a re-authored subsumption axiom must
 /// stay in the axis's own denominator, not silently leave it.
+// The relational TBox axioms are authored in the canonical `logic:` spelling
+// (`logic:disjointWith`, `logic:inverseOf`, …); each is listed alongside its
+// generated `owl:` view so a re-authored axiom stays in the axis's denominator
+// (mirrors the `logic:`/`rdfs:` subsumption doctrine already applied above).
 const INFERENTIAL_PREDS: &[&str] = &[
     gmeow_ns::LOGIC_SUB_CLASS_OF,
     gmeow_ns::LOGIC_SUB_PROPERTY_OF,
@@ -82,15 +86,27 @@ const INFERENTIAL_PREDS: &[&str] = &[
     gmeow_ns::RDFS_SUB_PROPERTY_OF,
     "http://www.w3.org/2000/01/rdf-schema#domain",
     "http://www.w3.org/2000/01/rdf-schema#range",
+    "https://blackcatinformatics.ca/logic/disjointWith",
+    "https://blackcatinformatics.ca/logic/equivalentClass",
+    "https://blackcatinformatics.ca/logic/equivalentProperty",
+    "https://blackcatinformatics.ca/logic/inverseOf",
     "http://www.w3.org/2002/07/owl#disjointWith",
     "http://www.w3.org/2002/07/owl#equivalentClass",
     "http://www.w3.org/2002/07/owl#equivalentProperty",
     "http://www.w3.org/2002/07/owl#inverseOf",
 ];
 
-/// The `rdf:type` objects that assert an OWL property characteristic (also authored
-/// TBox axioms).
+/// The `rdf:type` objects that assert a property characteristic (also authored
+/// TBox axioms). Each canonical `logic:` spelling (lower-camel) is paired with its
+/// generated `owl:` view (upper-camel), so both authored spellings are counted.
 const CHARACTERISTICS: &[&str] = &[
+    "https://blackcatinformatics.ca/logic/transitiveProperty",
+    "https://blackcatinformatics.ca/logic/symmetricProperty",
+    "https://blackcatinformatics.ca/logic/asymmetricProperty",
+    "https://blackcatinformatics.ca/logic/reflexiveProperty",
+    "https://blackcatinformatics.ca/logic/irreflexiveProperty",
+    "https://blackcatinformatics.ca/logic/functionalProperty",
+    "https://blackcatinformatics.ca/logic/inverseFunctionalProperty",
     "http://www.w3.org/2002/07/owl#TransitiveProperty",
     "http://www.w3.org/2002/07/owl#SymmetricProperty",
     "http://www.w3.org/2002/07/owl#AsymmetricProperty",

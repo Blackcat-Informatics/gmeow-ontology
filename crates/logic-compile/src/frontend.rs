@@ -523,6 +523,40 @@ fn extract_annotation_axioms(
     axioms
 }
 
+/// Collect the blank-node labels of anonymous boolean class expressions — a blank node
+/// carrying a `logic:` boolean class constructor (`unionOf` / `intersectionOf` /
+/// `disjointUnionOf` / `complementOf`). These are anonymous OWL-style class expressions
+/// consumed directly off the store by the shape-derivation / OWL grounding readers (which
+/// read both the `owl:` and `logic:` spellings), never domain facts. Like the restriction /
+/// enumeration / datarange skolemizer nodes, their internal constructor triple and their
+/// `rdf:type logic:Class` typing must be kept OUT of the flat axiom set: their blank
+/// subject / object would otherwise leak into the canonical RDF 1.2 projection as an invalid
+/// relative IRI (`<c14n…>`), breaking the round-trip (the projection's triple sink only
+/// carries IRIs — anonymous class expressions reach it only after skolemization to stable
+/// IRIs). `logic:oneOf` is deliberately excluded: it is a first-class `logic:Enumeration`
+/// skolemized into stable list-cell IRIs by `skolemize_enumerations`, not a bare leak.
+fn anonymous_boolean_class_expr_labels(store: &RdfDataset) -> BTreeSet<String> {
+    const BOOLEAN_CLASS_CONSTRUCTORS: [&str; 4] = [
+        "unionOf",
+        "intersectionOf",
+        "disjointUnionOf",
+        "complementOf",
+    ];
+    let ctor_iris: Vec<String> = BOOLEAN_CLASS_CONSTRUCTORS
+        .iter()
+        .map(|local| logic_iri(local))
+        .collect();
+    let mut labels = BTreeSet::new();
+    for quad in default_graph_quads(store) {
+        if subject_is_blank(&quad.subject)
+            && ctor_iris.iter().any(|iri| quad.predicate.as_str() == iri)
+        {
+            labels.insert(subject_str(&quad.subject));
+        }
+    }
+    labels
+}
+
 fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
 
@@ -545,6 +579,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
     let mut rnodes = restriction::restriction_node_labels(store, &logic_vocab);
     rnodes.extend(restriction::enumeration_node_labels(store, &logic_vocab));
     rnodes.extend(restriction::datarange_node_labels(store, &logic_vocab));
+    rnodes.extend(anonymous_boolean_class_expr_labels(store));
     let mut lifted_class_exprs =
         restriction::skolemize_restrictions(store, &logic_vocab, diagnostics);
     lifted_class_exprs.extend(restriction::skolemize_enumerations(
@@ -1600,11 +1635,15 @@ pub fn derive_validation_shapes(
     // for a property a `ClosedWorldClosure` closure entry explicitly closes. See FAMILY 3.
     let closed_optins = closure_validation_closed_optins(store);
     let closed_requirements = closure_validation_closed_requirements(store);
-    let owl = "http://www.w3.org/2002/07/owl#";
+    let owl = gmeow_ns::OWL_NS;
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
-    let owl_class = Node::iri(format!("{owl}Class"));
     let owl_thing = format!("{owl}Thing");
+    // The canonical `logic:Thing` is the same individual-domain top as its `owl:Thing` view, so the
+    // universal-top guards below (open node-kind, unqualified-cardinality collapse) must fire for
+    // EITHER spelling — a slice authors `logic:onClass logic:Thing` after the surface flip.
+    let logic_thing = logic_iri("Thing");
+    let is_top_thing = |iri: &str| iri == owl_thing || iri == logic_thing;
     let rdfs_datatype = Node::iri(format!("{rdfs}Datatype"));
     let rdfs_literal = format!("{rdfs}Literal");
     let rdfs_resource = format!("{rdfs}Resource");
@@ -1646,6 +1685,17 @@ pub fn derive_validation_shapes(
     let p_domain = nn(&format!("{rdfs}domain"));
     let p_range = nn(&format!("{rdfs}range"));
     let owl_alldisjoint = Node::iri(format!("{owl}AllDisjointClasses"));
+    // Canonical `logic:` twins of the class-/property-axiom predicates. Each is read alongside its
+    // legacy `owl:`/`rdfs:` spelling (via `restriction_value`/`restriction_objects`) so an
+    // `owl:`-authored and a `logic:`-authored corpus derive identical shapes across the surface
+    // flip — the same dual-read the restriction-body slots above already use.
+    // (`p_logic_oneof` / `p_logic_complement` are already bound below for the filler-classifier and
+    // are reused by the class-axiom walk; only the remaining twins are introduced here.)
+    let p_logic_disjoint = nn(&logic_iri("disjointWith"));
+    let p_logic_members = nn(&logic_iri("members"));
+    let p_logic_domain = nn(&logic_iri("domain"));
+    let p_logic_range = nn(&logic_iri("range"));
+    let logic_alldisjoint = Node::iri(logic_iri("AllDisjointClasses"));
 
     let restriction_value = |subject: &Subject, owl_predicate: &Iri, logic_predicate: &Iri| {
         value(store, subject, owl_predicate).or_else(|| value(store, subject, logic_predicate))
@@ -1688,7 +1738,7 @@ pub fn derive_validation_shapes(
     let classify = |iri: &str| -> Option<ConstraintComponent> {
         if iri == rdfs_resource {
             None
-        } else if iri == owl_thing {
+        } else if is_top_thing(iri) {
             Some(ConstraintComponent::NodeKindShacl(
                 ShaclNodeKind::BlankNodeOrIri,
             ))
@@ -1701,14 +1751,24 @@ pub fn derive_validation_shapes(
         }
     };
 
-    // Whether `p` is a DECLARED `owl:DatatypeProperty` (and not also an object property — a
+    // Whether `p` is a DECLARED datatype property (and not also an object property — a
     // corpus that declares both is contradictory OWL and gets the conservative object reading,
-    // never a silently narrowed one).
-    let owl_datatype_property = Node::iri(format!("{owl}DatatypeProperty"));
-    let owl_object_property = Node::iri(format!("{owl}ObjectProperty"));
+    // never a silently narrowed one). The declaration is read under EITHER spelling: the
+    // canonical `logic:DatatypeProperty`/`logic:ObjectProperty` (Principle 17) or its legacy
+    // `owl:` view, so the object/data divide is classified identically across the surface flip.
+    let datatype_property_markers: Vec<Node> =
+        crate::typing_vocab::both_spellings("DatatypeProperty")
+            .into_iter()
+            .map(Node::iri)
+            .collect();
+    let object_property_markers: Vec<Node> = crate::typing_vocab::both_spellings("ObjectProperty")
+        .into_iter()
+        .map(Node::iri)
+        .collect();
     let is_datatype_property = |p: &str| -> bool {
         let types = objects(store, &Subject::Iri(p.to_owned()), &nn(RDF_TYPE));
-        types.contains(&owl_datatype_property) && !types.contains(&owl_object_property)
+        datatype_property_markers.iter().any(|m| types.contains(m))
+            && !object_property_markers.iter().any(|m| types.contains(m))
     };
 
     // `classify`, resolved against the property the filler is a filler FOR.
@@ -1725,7 +1785,7 @@ pub fn derive_validation_shapes(
     // `gmeow:Chunk` are the corpus witness). The redirect is keyed on the property's own
     // declaration, so it can never narrow an object-valued or undeclared path.
     let classify_on = |on: &str, iri: &str| -> Option<ConstraintComponent> {
-        if iri == owl_thing && is_datatype_property(on) {
+        if is_top_thing(iri) && is_datatype_property(on) {
             classify(&rdfs_literal)
         } else {
             classify(iri)
@@ -2053,7 +2113,22 @@ pub fn derive_validation_shapes(
     }
 
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
-    let classes = subjects_with(store, &nn(RDF_TYPE), &owl_class);
+    // A shape-target class is found by its typing marker under EITHER spelling: the canonical
+    // `logic:Class` (Principle 17) or its legacy `owl:Class` view. Reading both keeps the derived
+    // shapes byte-identical across the authoring-surface flip (the restriction/enumeration slots
+    // below are already dual-read the same way).
+    let classes: Vec<Subject> = {
+        let mut seen: HashSet<String> = HashSet::new();
+        let mut out: Vec<Subject> = Vec::new();
+        for marker in crate::typing_vocab::both_spellings("Class") {
+            for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(marker)) {
+                if seen.insert(subject_str(&s)) {
+                    out.push(s);
+                }
+            }
+        }
+        out
+    };
     for class in &classes {
         // An anonymous class expression (blank node) is not a shape target — skip it.
         if subject_is_blank(class) {
@@ -2084,7 +2159,7 @@ pub fn derive_validation_shapes(
                     let filler = restriction_value(m, &p_some, &p_logic_some);
                     match (on_p, filler) {
                         (Some(Node::Iri(p)), Some(Node::Iri(f)))
-                            if f == owl_thing && !optouts.contains(&p) =>
+                            if is_top_thing(&f) && !optouts.contains(&p) =>
                         {
                             paths.push(p);
                         }
@@ -2319,8 +2394,9 @@ pub fn derive_validation_shapes(
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
                     Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
-                    Some(Node::Iri(q)) if q == owl_thing => {
-                        // `owl:onClass owl:Thing` qualifies over "any individual" — the qualified
+                    Some(Node::Iri(q)) if is_top_thing(&q) => {
+                        // `logic:onClass logic:Thing` (canonical; `owl:onClass owl:Thing` is its
+                        // generated projection) qualifies over "any individual" — the qualified
                         // count degrades to an unqualified `sh:minCount`/`sh:maxCount` rather than
                         // a vacuous inner shape.
                         let pc = PropertyConstraintIr::new(
@@ -2349,9 +2425,13 @@ pub fn derive_validation_shapes(
                         // same `ClosedWorldClosure` opt-in that gates the property-level range
                         // shape). With neither universal, only the qualified shape is emitted.
                         let range_backed = closed_optins.contains(&on)
-                            && objects(store, &Subject::Iri(on.clone()), &p_range)
-                                .into_iter()
-                                .any(|c| matches!(c, Node::Iri(r) if r == q));
+                            && restriction_objects(
+                                &Subject::Iri(on.clone()),
+                                &p_range,
+                                &p_logic_range,
+                            )
+                            .into_iter()
+                            .any(|c| matches!(c, Node::Iri(r) if r == q));
                         let mut comps = Vec::new();
                         if range_backed {
                             comps.push(ConstraintComponent::Class(q.clone()));
@@ -2404,8 +2484,8 @@ pub fn derive_validation_shapes(
         if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) {
             continue;
         }
-        // owl:disjointWith D → sh:not [ sh:class D ]. Blank operand → skip.
-        for d in objects(store, class, &p_disjoint) {
+        // {owl,logic}:disjointWith D → sh:not [ sh:class D ]. Blank operand → skip.
+        for d in restriction_objects(class, &p_disjoint, &p_logic_disjoint) {
             if let Node::Iri(d) = d {
                 entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                     .1
@@ -2414,8 +2494,8 @@ pub fn derive_validation_shapes(
                     )));
             }
         }
-        // owl:complementOf D → sh:not [ sh:class D ]. Blank operand → skip.
-        for d in objects(store, class, &p_complement) {
+        // {owl,logic}:complementOf D → sh:not [ sh:class D ]. Blank operand → skip.
+        for d in restriction_objects(class, &p_complement, &p_logic_complement) {
             if let Node::Iri(d) = d {
                 entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                     .1
@@ -2424,8 +2504,8 @@ pub fn derive_validation_shapes(
                     )));
             }
         }
-        // owl:oneOf ( a b … ) → sh:in ( a b … ). An empty / malformed list contributes nothing.
-        if let Some(head) = value(store, class, &p_oneof) {
+        // {owl,logic}:oneOf ( a b … ) → sh:in ( a b … ). Empty / malformed list contributes nothing.
+        if let Some(head) = restriction_value(class, &p_oneof, &p_logic_oneof) {
             let members = read_iri_list(store, &head);
             if !members.is_empty() {
                 let vals = members.into_iter().map(ShapeValue::Iri).collect();
@@ -2436,10 +2516,22 @@ pub fn derive_validation_shapes(
         }
     }
 
-    // Named owl:AllDisjointClasses ( c1 … cn ): each ordered pair (ci, cj), i≠j, contributes
+    // Named {owl,logic}:AllDisjointClasses ( c1 … cn ): each ordered pair (ci, cj), i≠j, contributes
     // sh:not [ sh:class cj ] to ci's shape (when ci is GMEOW-NS and not opted out).
-    for adc in subjects_with(store, &nn(RDF_TYPE), &owl_alldisjoint) {
-        let Some(head) = value(store, &adc, &p_members) else {
+    let all_disjoint_nodes: Vec<Subject> = {
+        let mut seen: HashSet<String> = HashSet::new();
+        let mut out: Vec<Subject> = Vec::new();
+        for marker in [&owl_alldisjoint, &logic_alldisjoint] {
+            for s in subjects_with(store, &nn(RDF_TYPE), marker) {
+                if seen.insert(subject_str(&s)) {
+                    out.push(s);
+                }
+            }
+        }
+        out
+    };
+    for adc in &all_disjoint_nodes {
+        let Some(head) = restriction_value(adc, &p_members, &p_logic_members) else {
             continue;
         };
         let members = read_iri_list(store, &head);
@@ -2466,18 +2558,25 @@ pub fn derive_validation_shapes(
     // not from a property-type marker).
     let mut props: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     for ty in ["ObjectProperty", "DatatypeProperty"] {
-        for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(format!("{owl}{ty}"))) {
-            if let Subject::Iri(iri) = &s
-                && is_authoring_ns(iri)
-            {
-                props.insert(iri.clone());
+        // Seed under EITHER spelling — the canonical `logic:ObjectProperty`/`logic:DatatypeProperty`
+        // (Principle 17) or its legacy `owl:` view — so the property set is identical across the flip.
+        for marker in crate::typing_vocab::both_spellings(ty) {
+            for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(marker)) {
+                if let Subject::Iri(iri) = &s
+                    && is_authoring_ns(iri)
+                {
+                    props.insert(iri.clone());
+                }
             }
         }
     }
     const DOMAIN_IRI: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
     const RANGE_IRI: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+    const LOGIC_DOMAIN_IRI: &str = "https://blackcatinformatics.ca/logic/domain";
+    const LOGIC_RANGE_IRI: &str = "https://blackcatinformatics.ca/logic/range";
     for q in default_graph_quads(store) {
-        if (q.predicate.as_str() == DOMAIN_IRI || q.predicate.as_str() == RANGE_IRI)
+        let qp = q.predicate.as_str();
+        if (qp == DOMAIN_IRI || qp == RANGE_IRI || qp == LOGIC_DOMAIN_IRI || qp == LOGIC_RANGE_IRI)
             && let Subject::Iri(iri) = &q.subject
             && is_authoring_ns(iri)
         {
@@ -2499,8 +2598,8 @@ pub fn derive_validation_shapes(
         // IN via a `logic:ClosedWorldClosure` closure entry (the inverse polarity of the
         // `OpenWorldClosure` opt-out, reusing the same closure vocabulary — no new shape DSL).
         if closed_optins.contains(p) {
-            // rdfs:domain C → a SubjectsOf(P) node condition (every subject of P satisfies it).
-            for c in objects(store, &p_subj, &p_domain) {
+            // {rdfs,logic}:domain C → a SubjectsOf(P) node condition (every subject of P satisfies it).
+            for c in restriction_objects(&p_subj, &p_domain, &p_logic_domain) {
                 if let Node::Iri(c) = c
                     && let Some(cc) = classify(&c)
                 {
@@ -2509,14 +2608,14 @@ pub fn derive_validation_shapes(
                         .push(cc);
                 }
             }
-            // rdfs:domain [ owl:Restriction on Q ] → a SubjectsOf(P) PROPERTY condition: every
+            // {rdfs,logic}:domain [ owl:Restriction on Q ] → a SubjectsOf(P) PROPERTY condition: every
             // subject of P belongs to the anonymous restriction class, i.e. satisfies the
             // restriction on Q (the required-companion pattern: "a node lowered through P must
             // also declare Q"). Read closed-world only under the same explicit ClosedWorldClosure
             // opt-in that gates the named-domain shape, with unqualified cardinality and
             // named-class/datatype fillers — any other anonymous domain expression stays in the
             // canon.
-            for c in objects(store, &p_subj, &p_domain) {
+            for c in restriction_objects(&p_subj, &p_domain, &p_logic_domain) {
                 let Some(domain_subj) = term_as_subject(&c) else {
                     continue;
                 };
@@ -2556,8 +2655,8 @@ pub fn derive_validation_shapes(
                     .2
                     .push(pc);
             }
-            // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
-            for c in objects(store, &p_subj, &p_range) {
+            // {rdfs,logic}:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
+            for c in restriction_objects(&p_subj, &p_range, &p_logic_range) {
                 if let Node::Iri(c) = c
                     && let Some(cc) = classify_on(p, &c)
                 {
@@ -2608,9 +2707,9 @@ pub fn derive_validation_shapes(
             entry_for(&mut acc, ShapeTarget::SubjectsOf(prop.clone()))
                 .2
                 .push(pc);
-            // Class-scoped cap: the same maxCount-1 on each rdfs:domain class node shape, so the
-            // class-node reader narrows the Python field to scalar.
-            for c in objects(store, &prop_subj, &p_domain) {
+            // Class-scoped cap: the same maxCount-1 on each {rdfs,logic}:domain class node shape, so
+            // the class-node reader narrows the Python field to scalar.
+            for c in restriction_objects(&prop_subj, &p_domain, &p_logic_domain) {
                 if let Node::Iri(c) = c
                     && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
                 {
@@ -2639,7 +2738,7 @@ pub fn derive_validation_shapes(
             entry_for(&mut acc, ShapeTarget::ObjectsOf(prop.clone()))
                 .2
                 .push(pc);
-            for c in objects(store, &prop_subj, &p_range) {
+            for c in restriction_objects(&prop_subj, &p_range, &p_logic_range) {
                 if let Node::Iri(c) = c
                     && matches!(classify(&c), Some(ConstraintComponent::Class(_)))
                 {
@@ -3083,12 +3182,16 @@ fn functional_carrier_ledger() -> std::collections::BTreeSet<String> {
         .collect()
 }
 
-/// The RDF/OWL types whose subject "exists as a declared property" for the orphan check: an
-/// `rdf:Property` or any of its OWL sub-kinds. This is the property-declaration reading the
-/// validation-shape derivation uses (`owl:ObjectProperty` / `owl:DatatypeProperty`), widened to
-/// the full property-declaration vocabulary so a carrier target declared with ANY property type is
-/// recognised, and a merely misspelled / never-declared target is not.
-const PROPERTY_DECLARATION_TYPES: [&str; 11] = [
+/// The RDF/OWL/`logic:` types whose subject "exists as a declared property" for the orphan check:
+/// an `rdf:Property` or any of its OWL/`logic:` sub-kinds. This is the property-declaration reading
+/// the validation-shape derivation uses (`{owl,logic}:ObjectProperty` / `…DatatypeProperty`),
+/// widened to the full property-declaration vocabulary so a carrier target declared with ANY
+/// property type is recognised, and a merely misspelled / never-declared target is not. Both the
+/// canonical `logic:` declaration/characteristic spellings (Principle 17) and their legacy `owl:`
+/// views are listed, so the check bites identically across the authoring-surface flip. (The
+/// canonical characteristic locals are lower-camel — `logic:transitiveProperty` — mirroring
+/// the OWL projection's `owl_for_char` map.)
+const PROPERTY_DECLARATION_TYPES: [&str; 21] = [
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
     "http://www.w3.org/2002/07/owl#ObjectProperty",
     "http://www.w3.org/2002/07/owl#DatatypeProperty",
@@ -3100,6 +3203,16 @@ const PROPERTY_DECLARATION_TYPES: [&str; 11] = [
     "http://www.w3.org/2002/07/owl#AsymmetricProperty",
     "http://www.w3.org/2002/07/owl#ReflexiveProperty",
     "http://www.w3.org/2002/07/owl#IrreflexiveProperty",
+    "https://blackcatinformatics.ca/logic/ObjectProperty",
+    "https://blackcatinformatics.ca/logic/DatatypeProperty",
+    "https://blackcatinformatics.ca/logic/AnnotationProperty",
+    "https://blackcatinformatics.ca/logic/functionalProperty",
+    "https://blackcatinformatics.ca/logic/inverseFunctionalProperty",
+    "https://blackcatinformatics.ca/logic/transitiveProperty",
+    "https://blackcatinformatics.ca/logic/symmetricProperty",
+    "https://blackcatinformatics.ca/logic/asymmetricProperty",
+    "https://blackcatinformatics.ca/logic/reflexiveProperty",
+    "https://blackcatinformatics.ca/logic/irreflexiveProperty",
 ];
 
 /// Every functional carrier record's `logic:characterizes` target, as a property → carrier-count

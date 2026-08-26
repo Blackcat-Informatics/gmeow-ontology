@@ -549,3 +549,110 @@ fn envelope_named_class_fields_reject_a_blank_node_value() {
          {flagged:?}"
     );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// Part C — gmeow:RightsStatement statementAbout Entity range (Principle 17)
+//
+// gmeow:statementAbout carries an Entity value range: every asset a RightsStatement governs is a
+// gmeow:Entity, exactly one, an IRI/blank node. It is authored as logic:someValuesFrom
+// gmeow:Entity which, under the exact-one (min1/max1, onClass logic:Thing) cardinality declared
+// on the class, derives exactly the universal sh:class gmeow:Entity plus bare exact-one counts a
+// closed-world allValuesFrom would — so the existential authoring already closes the range and no
+// separate logic:ClosureEntry is needed. These tests pin the derived obligation and prove it is
+// ENFORCED, so a future edit that drops the restriction reds here.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+
+const RIGHTS_MODULE: &str = "slices/core/rights/module.ttl";
+
+/// The pipeline single-outcome axes are FUNCTIONAL: a gmeow:StageExecution ends in at most
+/// one gmeow:StageDisposition, and a gmeow:PipelineStage carries at most one
+/// gmeow:StageObligation and one gmeow:StageStability. The max-qualified restrictions derive
+/// the sh:qualifiedMaxCount 1 bound over the value class, alongside the sh:in value closure.
+#[test]
+fn pipeline_stage_outcome_axes_are_functional() {
+    let shapes = derived("slices/core/pipeline/module.ttl");
+    let exec = class_shape(&shapes, &g("StageExecution"));
+    // stageDisposition is exactly-one (a run ends in one disposition; none is incomplete) —
+    // the min and max ride separate qualified components, so assert each.
+    assert_qualified(
+        exec,
+        &g("stageDisposition"),
+        &g("StageDisposition"),
+        Some(1),
+        None,
+    );
+    assert_qualified(
+        exec,
+        &g("stageDisposition"),
+        &g("StageDisposition"),
+        None,
+        Some(1),
+    );
+    let stage = class_shape(&shapes, &g("PipelineStage"));
+    assert_qualified(
+        stage,
+        &g("stageObligation"),
+        &g("StageObligation"),
+        None,
+        Some(1),
+    );
+    assert_qualified(
+        stage,
+        &g("stageStability"),
+        &g("StageStability"),
+        None,
+        Some(1),
+    );
+}
+
+/// A minimal RightsStatement governing `ex:asset`. Only gmeow:statementAbout is set; every
+/// other RightsStatement property is optional, so a well-typed target validates clean and the
+/// only obligation under test is the closed-world gmeow:Entity range. `target_type` is the
+/// asset's `rdf:type` local, or `None` to leave it untyped (a non-Entity value).
+fn rights_statement_fixture(target_type: Option<&str>) -> String {
+    let decl = target_type
+        .map(|t| format!("ex:asset a gmeow:{t} .\n"))
+        .unwrap_or_default();
+    format!(
+        "@prefix gmeow: <{GMEOW}> .\n\
+         @prefix ex: <http://example.org/rights/> .\n\
+         {decl}\
+         ex:governingStatement a gmeow:RightsStatement ;\n\
+             gmeow:statementAbout ex:asset .\n"
+    )
+}
+
+/// The derived RightsStatement shape carries the closed-world range obligation on
+/// gmeow:statementAbout: universal sh:class gmeow:Entity plus bare exact-one counts.
+#[test]
+fn rights_statement_about_derives_closed_world_entity_range() {
+    let shapes = derived(RIGHTS_MODULE);
+    let s = class_shape(&shapes, &g("RightsStatement"));
+    let path = g("statementAbout");
+    // The universal value typing — the Entity range (logic:someValuesFrom under exact-one).
+    assert_class(s, &path, &g("Entity"));
+    // Presence + functionality: exactly one governed asset (the onClass logic:Thing exact-one).
+    assert_min_count(s, &path, 1);
+    assert_max_count(s, &path, 1);
+}
+
+/// The range is ENFORCED, not merely declared: a gmeow:Entity target validates clean while a
+/// non-Entity (untyped) target is rejected by the closed-world sh:class gmeow:Entity.
+#[test]
+fn rights_statement_about_rejects_a_non_entity_target() {
+    let shapes = derived(RIGHTS_MODULE);
+    let s = class_shape(&shapes, &g("RightsStatement"));
+
+    let good = flag_with_shape(s, &rights_statement_fixture(Some("Entity")));
+    assert!(
+        good.is_empty(),
+        "a RightsStatement governing a gmeow:Entity must validate clean; flagged: {good:?}"
+    );
+
+    let bad = flag_with_shape(s, &rights_statement_fixture(None));
+    assert!(
+        bad.iter().any(|f| f.contains("governingStatement")),
+        "a RightsStatement whose gmeow:statementAbout value is not a gmeow:Entity must be \
+         REJECTED by the closed-world range; flagged: {bad:?}"
+    );
+}

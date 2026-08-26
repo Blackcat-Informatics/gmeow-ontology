@@ -131,6 +131,327 @@ pub const SUB_CLASS_OF: [&str; 2] = [LOGIC_SUB_CLASS_OF, RDFS_SUB_CLASS_OF];
 /// Both spellings of the PROPERTY-subsumption edge, canonical first.
 pub const SUB_PROPERTY_OF: [&str; 2] = [LOGIC_SUB_PROPERTY_OF, RDFS_SUB_PROPERTY_OF];
 
+// ── Property domain/range edges ─────────────────────────────────────────────
+
+/// `logic:domain` — **the** canonical property-domain edge (declared in the
+/// `logic:` slice; the reasoner lowers it to [`RDFS_DOMAIN`], exactly as
+/// [`LOGIC_SUB_CLASS_OF`] lowers to [`RDFS_SUB_CLASS_OF`]).
+pub const LOGIC_DOMAIN: &str = "https://blackcatinformatics.ca/logic/domain";
+
+/// `logic:range` — **the** canonical property-range edge.
+pub const LOGIC_RANGE: &str = "https://blackcatinformatics.ca/logic/range";
+
+/// `rdfs:domain` — the RDFS projection of [`LOGIC_DOMAIN`].
+pub const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+
+/// `rdfs:range` — the RDFS projection of [`LOGIC_RANGE`].
+pub const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+
+// ── Canonical construct typing markers ──────────────────────────────────────
+//
+// The rdf:type objects a reader recognizes a term's kind by. Each pairs the
+// canonical `logic:` spelling with its generated W3C OWL projection (Principle
+// 17), exactly as [`LOGIC_SUB_CLASS_OF`] pairs with [`RDFS_SUB_CLASS_OF`]. The
+// grounding correspondence law backing each pair ships in the `logic:` slice's
+// `graph/correspondence-laws` corpus, and the reasoner's calculus-vocabulary
+// lowering carries the same map at the EDB boundary.
+
+/// `owl:` — the W3C OWL namespace. Every `OWL_*` projection constant below is
+/// [`OWL_NS`] concatenated with the term's local name; a reader lowering a
+/// canonical `logic:` marker to its OWL view reuses this rather than re-spelling
+/// the literal (Principle 17: OWL is a generated projection, never authored, so
+/// it is deliberately NOT one of the [`TERM_NAMESPACES`] a slice may mint into).
+pub const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
+
+/// `logic:Class` — the canonical class typing marker.
+pub const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
+/// `owl:Class` — the generated OWL projection of [`LOGIC_CLASS`].
+pub const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+
+/// `logic:ObjectProperty` — the canonical object-property typing marker.
+pub const LOGIC_OBJECT_PROPERTY: &str = "https://blackcatinformatics.ca/logic/ObjectProperty";
+/// `owl:ObjectProperty` — the generated OWL projection of [`LOGIC_OBJECT_PROPERTY`].
+pub const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
+
+/// `logic:DatatypeProperty` — the canonical datatype-property typing marker.
+pub const LOGIC_DATATYPE_PROPERTY: &str = "https://blackcatinformatics.ca/logic/DatatypeProperty";
+/// `owl:DatatypeProperty` — the generated OWL projection of [`LOGIC_DATATYPE_PROPERTY`].
+pub const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+
+/// `logic:AnnotationProperty` — the canonical annotation-property typing marker.
+pub const LOGIC_ANNOTATION_PROPERTY: &str =
+    "https://blackcatinformatics.ca/logic/AnnotationProperty";
+/// `owl:AnnotationProperty` — the generated OWL projection of [`LOGIC_ANNOTATION_PROPERTY`].
+pub const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
+
+/// `logic:NamedIndividual` — the canonical named-individual typing marker.
+pub const LOGIC_NAMED_INDIVIDUAL: &str = "https://blackcatinformatics.ca/logic/NamedIndividual";
+/// `owl:NamedIndividual` — the generated OWL projection of [`LOGIC_NAMED_INDIVIDUAL`].
+pub const OWL_NAMED_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#NamedIndividual";
+
+/// `logic:Ontology` — the canonical ontology-header typing marker.
+pub const LOGIC_ONTOLOGY: &str = "https://blackcatinformatics.ca/logic/Ontology";
+/// `owl:Ontology` — the generated OWL projection of [`LOGIC_ONTOLOGY`].
+pub const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
+
+/// `logic:Thing` — the canonical universal (top) class.
+pub const LOGIC_THING: &str = "https://blackcatinformatics.ca/logic/Thing";
+/// `owl:Thing` — the generated OWL projection of [`LOGIC_THING`].
+pub const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
+
+/// `logic:Nothing` — the canonical empty (bottom) class.
+pub const LOGIC_NOTHING: &str = "https://blackcatinformatics.ca/logic/Nothing";
+/// `owl:Nothing` — the generated OWL projection of [`LOGIC_NOTHING`].
+pub const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+
+/// `logic:Restriction` — the canonical class-expression restriction marker.
+pub const LOGIC_RESTRICTION: &str = "https://blackcatinformatics.ca/logic/Restriction";
+/// `owl:Restriction` — the generated OWL projection of [`LOGIC_RESTRICTION`].
+pub const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
+
+// ── Canonical header / annotation predicates ─────────────────────────────────
+//
+// The ontology-header and per-term lifecycle predicates. Each pairs the canonical
+// `logic:` spelling authored in a slice `module.ttl` header with its generated W3C
+// OWL projection, exactly as the typing markers above. A reader that scans the
+// AUTHORED / canonical store (a slice header, the compiled `gmeow.gts` canonical
+// graph) sees the `logic:` spelling; the generated OWL view uses the `owl:` one.
+// Recognizing both is a canonical-plus-projection read, never a compat shim.
+
+/// `logic:versionInfo` — the canonical version-annotation predicate.
+pub const LOGIC_VERSION_INFO: &str = "https://blackcatinformatics.ca/logic/versionInfo";
+/// `owl:versionInfo` — the generated OWL projection of [`LOGIC_VERSION_INFO`].
+pub const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
+/// Both spellings of the version-annotation predicate, canonical first.
+pub const VERSION_INFO: [&str; 2] = [LOGIC_VERSION_INFO, OWL_VERSION_INFO];
+
+/// `logic:imports` — the canonical ontology-import predicate.
+pub const LOGIC_IMPORTS: &str = "https://blackcatinformatics.ca/logic/imports";
+/// `owl:imports` — the generated OWL projection of [`LOGIC_IMPORTS`].
+pub const OWL_IMPORTS: &str = "http://www.w3.org/2002/07/owl#imports";
+/// Both spellings of the ontology-import predicate, canonical first.
+pub const IMPORTS: [&str; 2] = [LOGIC_IMPORTS, OWL_IMPORTS];
+
+/// `logic:deprecated` — the canonical term-deprecation predicate.
+pub const LOGIC_DEPRECATED: &str = "https://blackcatinformatics.ca/logic/deprecated";
+/// `owl:deprecated` — the generated OWL projection of [`LOGIC_DEPRECATED`].
+pub const OWL_DEPRECATED: &str = "http://www.w3.org/2002/07/owl#deprecated";
+/// Both spellings of the term-deprecation predicate, canonical first.
+pub const DEPRECATED: [&str; 2] = [LOGIC_DEPRECATED, OWL_DEPRECATED];
+
+/// The `owl:` view spelling of a canonical `logic:` `rdf:type` marker — a typing marker OR a
+/// property-characteristic type — or `None` when `iri` is neither.
+///
+/// This is the read-side counterpart of the constant pairs above: a consumer that classifies a
+/// term's kind by scanning its AUTHORED `rdf:type` sees the canonical `logic:` spelling after the
+/// `owl:`→`logic:` surface flip, but every such classifier (EDOAL entity-kind, correspondence
+/// soundness, the mapping transform, slice peerage, …) matches against the `owl:` constants the
+/// generated view uses. Without lowering the authored type first the term's kind reads as
+/// indeterminate — a hard fail in the mapping lowering, a silent inert check elsewhere.
+///
+/// The property characteristics are NOT a pure namespace swap: the canonical spelling is lower-camel
+/// (`logic:transitiveProperty`) and the `owl:` view upper-camel (`owl:TransitiveProperty`).
+#[must_use]
+pub fn owl_view_of_type_marker(iri: &str) -> Option<&'static str> {
+    Some(match iri {
+        LOGIC_CLASS => OWL_CLASS,
+        LOGIC_OBJECT_PROPERTY => OWL_OBJECT_PROPERTY,
+        LOGIC_DATATYPE_PROPERTY => OWL_DATATYPE_PROPERTY,
+        LOGIC_ANNOTATION_PROPERTY => OWL_ANNOTATION_PROPERTY,
+        LOGIC_NAMED_INDIVIDUAL => OWL_NAMED_INDIVIDUAL,
+        LOGIC_ONTOLOGY => OWL_ONTOLOGY,
+        LOGIC_THING => OWL_THING,
+        LOGIC_NOTHING => OWL_NOTHING,
+        LOGIC_RESTRICTION => OWL_RESTRICTION,
+        "https://blackcatinformatics.ca/logic/transitiveProperty" => {
+            "http://www.w3.org/2002/07/owl#TransitiveProperty"
+        }
+        "https://blackcatinformatics.ca/logic/symmetricProperty" => {
+            "http://www.w3.org/2002/07/owl#SymmetricProperty"
+        }
+        "https://blackcatinformatics.ca/logic/functionalProperty" => {
+            "http://www.w3.org/2002/07/owl#FunctionalProperty"
+        }
+        "https://blackcatinformatics.ca/logic/inverseFunctionalProperty" => {
+            "http://www.w3.org/2002/07/owl#InverseFunctionalProperty"
+        }
+        "https://blackcatinformatics.ca/logic/reflexiveProperty" => {
+            "http://www.w3.org/2002/07/owl#ReflexiveProperty"
+        }
+        "https://blackcatinformatics.ca/logic/asymmetricProperty" => {
+            "http://www.w3.org/2002/07/owl#AsymmetricProperty"
+        }
+        "https://blackcatinformatics.ca/logic/irreflexiveProperty" => {
+            "http://www.w3.org/2002/07/owl#IrreflexiveProperty"
+        }
+        // Axiom-annotation and disjointness AXIOM types (used in `rdf:type` object
+        // position, exactly like the markers above). Their grounding-correspondence
+        // laws ship in the `logic:` slice's `graph/correspondence-laws` corpus
+        // (`logic:corrAllDisjointClassesGrounding` / `…Properties…` / `…AxiomGrounding`),
+        // each an exact structural rename (logic:Isomorphism / ExactPreservation).
+        "https://blackcatinformatics.ca/logic/AllDisjointClasses" => {
+            "http://www.w3.org/2002/07/owl#AllDisjointClasses"
+        }
+        "https://blackcatinformatics.ca/logic/AllDisjointProperties" => {
+            "http://www.w3.org/2002/07/owl#AllDisjointProperties"
+        }
+        "https://blackcatinformatics.ca/logic/Axiom" => "http://www.w3.org/2002/07/owl#Axiom",
+        _ => return None,
+    })
+}
+
+/// `true` when `iri` is a predicate whose OBJECT is a CLASS (a subsumption edge, a
+/// domain/range, or a class-expression restriction filler), in EITHER the canonical
+/// `logic:` spelling OR its already-projected `owl:`/`rdfs:` spelling.
+///
+/// A consume-time OWL/RDFS view lowers the universal class-identity markers
+/// `logic:Thing` / `logic:Nothing` to `owl:Thing` / `owl:Nothing` ONLY when they sit in
+/// one of these class-valued object positions. The both-spelling coverage matters
+/// because a slice may author the edge in the projected surface already
+/// (`rdfs:range logic:Thing`) — a mixed spelling whose `logic:Thing` filler still needs
+/// the `owl:Thing` view. A NON-class predicate (a `logic:GroundingCorrespondence`'s
+/// `logic:sourceEndpoint logic:Thing`, which NAMES the term as data) is deliberately
+/// excluded, so the view never mints a second endpoint value.
+#[must_use]
+pub fn is_class_position_predicate(iri: &str) -> bool {
+    matches!(
+        iri,
+        LOGIC_SUB_CLASS_OF
+            | RDFS_SUB_CLASS_OF
+            | LOGIC_DOMAIN
+            | RDFS_DOMAIN
+            | LOGIC_RANGE
+            | RDFS_RANGE
+            | "https://blackcatinformatics.ca/logic/onClass"
+            | "http://www.w3.org/2002/07/owl#onClass"
+            | "https://blackcatinformatics.ca/logic/someValuesFrom"
+            | "http://www.w3.org/2002/07/owl#someValuesFrom"
+            | "https://blackcatinformatics.ca/logic/allValuesFrom"
+            | "http://www.w3.org/2002/07/owl#allValuesFrom"
+            | "https://blackcatinformatics.ca/logic/equivalentClass"
+            | "http://www.w3.org/2002/07/owl#equivalentClass"
+            | "https://blackcatinformatics.ca/logic/disjointWith"
+            | "http://www.w3.org/2002/07/owl#disjointWith"
+    )
+}
+
+/// The OWL/RDFS **view** spelling of a canonical `logic:` PREDICATE (an axiom,
+/// class-expression, restriction, cardinality, individual-identity, or
+/// ontology-header edge), or `None` when `iri` is not a projected `logic:`
+/// predicate.
+///
+/// This is the predicate-position counterpart of [`owl_view_of_type_marker`]
+/// (which lowers `rdf:type` OBJECTS). Every entry here mirrors ONE
+/// `logic:GroundingCorrespondence` in the `logic:` slice's
+/// `graph/correspondence-laws` corpus (`logic:sourceEndpoint` → `logic:targetEndpoint`),
+/// each an exact structural rename under a `logic:InstitutionMorphism` carrying
+/// `logic:ExactPreservation`. The subsumption and domain/range edges project onto
+/// the **RDFS** surface (`rdfs:subClassOf`, `rdfs:domain`, …) per their
+/// correspondence laws; every other edge projects onto the **OWL** surface.
+///
+/// Like the subsumption projection, a consumer that materializes this view KEEPS
+/// the canonical `logic:` edge and ADDS the projected one — it never rewrites the
+/// authored edge away (Principle 17: the OWL/RDFS surface is a generated view of
+/// the canonical `logic:` truth, not a replacement for it).
+#[must_use]
+pub fn owl_view_of_predicate(iri: &str) -> Option<&'static str> {
+    Some(match iri {
+        // Subsumption + domain/range → RDFS surface.
+        LOGIC_SUB_CLASS_OF => RDFS_SUB_CLASS_OF,
+        LOGIC_SUB_PROPERTY_OF => RDFS_SUB_PROPERTY_OF,
+        LOGIC_DOMAIN => RDFS_DOMAIN,
+        LOGIC_RANGE => RDFS_RANGE,
+        // Ontology-header / lifecycle → OWL surface (constants already paired above).
+        LOGIC_VERSION_INFO => OWL_VERSION_INFO,
+        LOGIC_IMPORTS => OWL_IMPORTS,
+        LOGIC_DEPRECATED => OWL_DEPRECATED,
+        // Class-expression / axiom edges → OWL surface.
+        "https://blackcatinformatics.ca/logic/equivalentClass" => {
+            "http://www.w3.org/2002/07/owl#equivalentClass"
+        }
+        "https://blackcatinformatics.ca/logic/equivalentProperty" => {
+            "http://www.w3.org/2002/07/owl#equivalentProperty"
+        }
+        "https://blackcatinformatics.ca/logic/disjointWith" => {
+            "http://www.w3.org/2002/07/owl#disjointWith"
+        }
+        "https://blackcatinformatics.ca/logic/propertyDisjointWith" => {
+            "http://www.w3.org/2002/07/owl#propertyDisjointWith"
+        }
+        "https://blackcatinformatics.ca/logic/disjointUnionOf" => {
+            "http://www.w3.org/2002/07/owl#disjointUnionOf"
+        }
+        "https://blackcatinformatics.ca/logic/inverseOf" => {
+            "http://www.w3.org/2002/07/owl#inverseOf"
+        }
+        "https://blackcatinformatics.ca/logic/unionOf" => "http://www.w3.org/2002/07/owl#unionOf",
+        "https://blackcatinformatics.ca/logic/intersectionOf" => {
+            "http://www.w3.org/2002/07/owl#intersectionOf"
+        }
+        "https://blackcatinformatics.ca/logic/oneOf" => "http://www.w3.org/2002/07/owl#oneOf",
+        "https://blackcatinformatics.ca/logic/members" => "http://www.w3.org/2002/07/owl#members",
+        "https://blackcatinformatics.ca/logic/hasKey" => "http://www.w3.org/2002/07/owl#hasKey",
+        "https://blackcatinformatics.ca/logic/propertyChainAxiom" => {
+            "http://www.w3.org/2002/07/owl#propertyChainAxiom"
+        }
+        // Individual identity → OWL surface.
+        "https://blackcatinformatics.ca/logic/sameAs" => "http://www.w3.org/2002/07/owl#sameAs",
+        "https://blackcatinformatics.ca/logic/differentFrom" => {
+            "http://www.w3.org/2002/07/owl#differentFrom"
+        }
+        // Property-restriction edges → OWL surface.
+        "https://blackcatinformatics.ca/logic/onProperty" => {
+            "http://www.w3.org/2002/07/owl#onProperty"
+        }
+        "https://blackcatinformatics.ca/logic/onClass" => "http://www.w3.org/2002/07/owl#onClass",
+        "https://blackcatinformatics.ca/logic/onDataRange" => {
+            "http://www.w3.org/2002/07/owl#onDataRange"
+        }
+        "https://blackcatinformatics.ca/logic/onDatatype" => {
+            "http://www.w3.org/2002/07/owl#onDatatype"
+        }
+        "https://blackcatinformatics.ca/logic/withRestrictions" => {
+            "http://www.w3.org/2002/07/owl#withRestrictions"
+        }
+        "https://blackcatinformatics.ca/logic/someValuesFrom" => {
+            "http://www.w3.org/2002/07/owl#someValuesFrom"
+        }
+        "https://blackcatinformatics.ca/logic/allValuesFrom" => {
+            "http://www.w3.org/2002/07/owl#allValuesFrom"
+        }
+        "https://blackcatinformatics.ca/logic/hasValue" => "http://www.w3.org/2002/07/owl#hasValue",
+        "https://blackcatinformatics.ca/logic/hasSelf" => "http://www.w3.org/2002/07/owl#hasSelf",
+        // Cardinality family → OWL surface.
+        "https://blackcatinformatics.ca/logic/cardinality" => {
+            "http://www.w3.org/2002/07/owl#cardinality"
+        }
+        "https://blackcatinformatics.ca/logic/minCardinality" => {
+            "http://www.w3.org/2002/07/owl#minCardinality"
+        }
+        "https://blackcatinformatics.ca/logic/maxCardinality" => {
+            "http://www.w3.org/2002/07/owl#maxCardinality"
+        }
+        "https://blackcatinformatics.ca/logic/qualifiedCardinality" => {
+            "http://www.w3.org/2002/07/owl#qualifiedCardinality"
+        }
+        "https://blackcatinformatics.ca/logic/minQualifiedCardinality" => {
+            "http://www.w3.org/2002/07/owl#minQualifiedCardinality"
+        }
+        "https://blackcatinformatics.ca/logic/maxQualifiedCardinality" => {
+            "http://www.w3.org/2002/07/owl#maxQualifiedCardinality"
+        }
+        _ => return None,
+    })
+}
+
+/// [`owl_view_of_type_marker`] as a total function: the `owl:` view spelling of a canonical
+/// `logic:` `rdf:type` marker, or `iri` returned unchanged (an already-`owl:` term, a domain
+/// class, or a gUFO sort passes through).
+#[must_use]
+pub fn to_owl_view(iri: &str) -> &str {
+    owl_view_of_type_marker(iri).unwrap_or(iri)
+}
+
 /// **The** definition of "this triple asserts a subsumption edge": every predicate
 /// a reader must scan to see the whole authored taxonomy, in a fixed order —
 /// canonical class, projected class, canonical property, projected property.
@@ -361,5 +682,106 @@ mod tests {
                 "prefix {prefix} must expand to {namespace}"
             );
         }
+    }
+
+    #[test]
+    fn owl_view_of_type_marker_lowers_the_axiom_types() {
+        // These three type markers are used in `rdf:type` object position,
+        // each grounded by a `logic:corr…Grounding` law (exact structural rename).
+        assert_eq!(
+            owl_view_of_type_marker("https://blackcatinformatics.ca/logic/AllDisjointClasses"),
+            Some("http://www.w3.org/2002/07/owl#AllDisjointClasses")
+        );
+        assert_eq!(
+            owl_view_of_type_marker("https://blackcatinformatics.ca/logic/AllDisjointProperties"),
+            Some("http://www.w3.org/2002/07/owl#AllDisjointProperties")
+        );
+        assert_eq!(
+            owl_view_of_type_marker("https://blackcatinformatics.ca/logic/Axiom"),
+            Some("http://www.w3.org/2002/07/owl#Axiom")
+        );
+        // A non-marker still passes through as None (no false lowering).
+        assert_eq!(
+            owl_view_of_type_marker("https://blackcatinformatics.ca/gmeow/Cat"),
+            None
+        );
+    }
+
+    #[test]
+    fn owl_view_of_predicate_covers_the_axiom_restriction_vocab() {
+        // Subsumption + domain/range project onto the RDFS surface.
+        assert_eq!(
+            owl_view_of_predicate(LOGIC_SUB_CLASS_OF),
+            Some(RDFS_SUB_CLASS_OF)
+        );
+        assert_eq!(owl_view_of_predicate(LOGIC_DOMAIN), Some(RDFS_DOMAIN));
+        assert_eq!(owl_view_of_predicate(LOGIC_RANGE), Some(RDFS_RANGE));
+        // A representative spread of the OWL-surface edges (namespace swaps).
+        for (logic_local, owl_local) in [
+            ("members", "members"),
+            ("unionOf", "unionOf"),
+            ("intersectionOf", "intersectionOf"),
+            ("disjointWith", "disjointWith"),
+            ("onProperty", "onProperty"),
+            ("someValuesFrom", "someValuesFrom"),
+            ("allValuesFrom", "allValuesFrom"),
+            ("onClass", "onClass"),
+            ("hasValue", "hasValue"),
+            ("oneOf", "oneOf"),
+            ("inverseOf", "inverseOf"),
+            ("equivalentClass", "equivalentClass"),
+            ("equivalentProperty", "equivalentProperty"),
+            ("sameAs", "sameAs"),
+            ("differentFrom", "differentFrom"),
+            ("propertyChainAxiom", "propertyChainAxiom"),
+            ("hasKey", "hasKey"),
+            ("qualifiedCardinality", "qualifiedCardinality"),
+            ("minQualifiedCardinality", "minQualifiedCardinality"),
+        ] {
+            assert_eq!(
+                owl_view_of_predicate(&format!(
+                    "https://blackcatinformatics.ca/logic/{logic_local}"
+                )),
+                Some(format!("http://www.w3.org/2002/07/owl#{owl_local}").as_str())
+            );
+        }
+        // A canonical typing marker is NOT a predicate — the predicate accessor
+        // returns None so the two accessors stay disjoint.
+        assert_eq!(owl_view_of_predicate(LOGIC_CLASS), None);
+        assert_eq!(
+            owl_view_of_predicate("https://blackcatinformatics.ca/gmeow/name"),
+            None
+        );
+    }
+
+    #[test]
+    fn class_position_predicate_spans_both_spellings_but_excludes_endpoints() {
+        // Class-valued positions where a `logic:Thing` / `logic:Nothing` filler must lower —
+        // canonical AND already-projected spellings both count.
+        for p in [
+            LOGIC_SUB_CLASS_OF,
+            RDFS_SUB_CLASS_OF,
+            LOGIC_DOMAIN,
+            RDFS_DOMAIN,
+            LOGIC_RANGE,
+            RDFS_RANGE,
+            "https://blackcatinformatics.ca/logic/onClass",
+            "http://www.w3.org/2002/07/owl#onClass",
+            "https://blackcatinformatics.ca/logic/someValuesFrom",
+            "http://www.w3.org/2002/07/owl#allValuesFrom",
+        ] {
+            assert!(is_class_position_predicate(p), "{p} must be class-valued");
+        }
+        // A GroundingCorrespondence endpoint NAMES a term as data — it is NOT a class
+        // position, so a `logic:Thing` object under it must be left untouched.
+        assert!(!is_class_position_predicate(
+            "https://blackcatinformatics.ca/logic/sourceEndpoint"
+        ));
+        assert!(!is_class_position_predicate(
+            "https://blackcatinformatics.ca/logic/members"
+        ));
+        assert!(!is_class_position_predicate(
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        ));
     }
 }

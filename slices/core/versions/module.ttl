@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:VersionMembership
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Membership"@x-gmeow-english ;
     logic:mediates gmeow:versionMember ,
@@ -17,19 +16,19 @@ gmeow:VersionMembership
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:versionMember ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:versionMember ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:versionSet ;
-            owl:someValuesFrom gmeow:VersionSet ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:versionSet ;
+            logic:someValuesFrom gmeow:VersionSet ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:membershipAuthority ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:membershipAuthority ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified, standpoint-scoped claim that a concrete entity belongs to a version set with a particular role and/or scale — an observation in the universal claim stack (observation-spine bridge). Mediates between an entity (versionMember), a version set (versionSet), and an optional role/scale asserted by an authority (membershipAuthority / vantage). Mint one VersionMembership per (entity, versionSet, role, authority) tuple; when a role changes over time, close the old membership's interval or mint a fresh one — never overwrite (Principle 10). Inherits confidence, displayable, and temporal scope from Observation."@x-gmeow-english ;
     skos:example "ex:m1 a gmeow:VersionMembership ; gmeow:versionMember ex:v2 ; gmeow:versionSet ex:gmeowLineage ; gmeow:versionRole gmeow:roleLatest ; gmeow:membershipAuthority ex:pypi ."@x-gmeow-english ;
@@ -40,7 +39,7 @@ gmeow:VersionMembership
 
 gmeow:VersionRole
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Role"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -53,7 +52,7 @@ gmeow:VersionRole
 
 gmeow:VersionScale
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Scale"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -66,7 +65,7 @@ gmeow:VersionScale
 
 gmeow:VersionSet
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Set"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -78,7 +77,7 @@ gmeow:VersionSet
     gmeow:useWhen "Use to name the stable concept-level lineage that concrete versions belong to — the family any individual release, edition, or snapshot is a version of — so memberships can hang off it rather than off a privileged 'latest'."@x-gmeow-english .
 
 gmeow:membershipAuthority
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "membership authority"@x-gmeow-english ;
@@ -91,7 +90,7 @@ gmeow:membershipAuthority
     gmeow:useWhen "Use to name the agent or standpoint that vouches for a membership and its role — the registry, maintainer, publisher, or curator whose claim it is, so that rival authorities can be told apart."@x-gmeow-english .
 
 gmeow:membershipInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "membership interval"@x-gmeow-english ;
@@ -209,7 +208,7 @@ gmeow:scaleTrivial
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:versionFingerprint
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version fingerprint"@x-gmeow-english ;
@@ -222,7 +221,7 @@ gmeow:versionFingerprint
     gmeow:useWhen "Use to fingerprint a versioned entity where the identity criterion is semantic rather than byte-exact — a SWHID, a normalized-form hash, a canonicalized-serialization digest."@x-gmeow-english .
 
 gmeow:versionLabel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version label"@x-gmeow-english ;
@@ -235,7 +234,7 @@ gmeow:versionLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:versionMember
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version member"@x-gmeow-english ;
@@ -248,7 +247,7 @@ gmeow:versionMember
     gmeow:useWhen "Use to name the one concrete version an individual VersionMembership is about — the artifact (release, edition, snapshot) being placed in the lineage."@x-gmeow-english .
 
 gmeow:versionRole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version role"@x-gmeow-english ;
@@ -261,7 +260,7 @@ gmeow:versionRole
     gmeow:useWhen "Use to record the role or status a membership asserts for its member — latest, stable, deprecated, yanked, and so on — as a standpoint-scoped value rather than an essential type."@x-gmeow-english .
 
 gmeow:versionScale
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version scale"@x-gmeow-english ;
@@ -274,7 +273,7 @@ gmeow:versionScale
     gmeow:useWhen "Use to classify the magnitude of a version change — trivial, minor, major — for SemVer-style schemes and their non-software analogues."@x-gmeow-english .
 
 gmeow:versionSet
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "version set"@x-gmeow-english ;
@@ -289,14 +288,14 @@ gmeow:versionSet
 # ── Per-term lifecycle metadata ──────────────────────────────────────────────────
 # Maturity and changelog signals about a VOCABULARY TERM (a class or property in
 # the TBox), distinct from the standpoint-scoped instance-level version roles
-# above. Asserted with owl:AnnotationProperty (the gmeow:accordingTo pattern,
+# above. Asserted with OWL AnnotationProperty (the gmeow:accordingTo pattern,
 # Principle 3) so that annotating a class keeps the generated OWL downcast in
 # OWL 2 DL — a term's own maturity/history is metadata ABOUT the term, never an
 # essential type. Surfaced on every term page by the ontology-docs generator.
 
 gmeow:TermStability
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     rdfs:label "Term Stability"@x-gmeow-english ;
@@ -312,7 +311,7 @@ gmeow:stabilityStable
     a gmeow:TermStability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "stable"@x-gmeow-english ;
-    skos:definition "The stable term-stability status — the term is mature and its meaning is committed; adopters may rely on it. The default for core-tier terms unless an explicit gmeow:termStability or owl:deprecated overrides it."@x-gmeow-english ;
+    skos:definition "The stable term-stability status — the term is mature and its meaning is committed; adopters may rely on it. The default for core-tier terms unless an explicit gmeow:termStability or OWL deprecated overrides it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:stabilityExperimental
@@ -326,15 +325,15 @@ gmeow:stabilityDeprecated
     a gmeow:TermStability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "deprecated"@x-gmeow-english ;
-    skos:definition "The deprecated term-stability status — the term is retained for continuity but should no longer be used; a replacement is expected. Implied by owl:deprecated true on the term, or asserted explicitly via gmeow:termStability."@x-gmeow-english ;
+    skos:definition "The deprecated term-stability status — the term is retained for continuity but should no longer be used; a replacement is expected. Implied by OWL deprecated true on the term, or asserted explicitly via gmeow:termStability."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:termStability
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     rdfs:label "term stability"@x-gmeow-english ;
-    skos:definition "Annotates a vocabulary term with its maturity status — a gmeow:TermStability individual (stable, experimental, deprecated). An owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) because it is asserted ABOUT a class or property, keeping the generated OWL in OWL 2 DL. When absent, the docs generator derives a default from the owner slice's tier (core → stable, extension → experimental) and from owl:deprecated; an explicit assertion overrides the default."@x-gmeow-english ;
+    skos:definition "Annotates a vocabulary term with its maturity status — a gmeow:TermStability individual (stable, experimental, deprecated). An OWL AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) because it is asserted ABOUT a class or property, keeping the generated OWL in OWL 2 DL. When absent, the docs generator derives a default from the owner slice's tier (core → stable, extension → experimental) and from OWL deprecated; an explicit assertion overrides the default."@x-gmeow-english ;
     skos:example "gmeow:SomeTerm gmeow:termStability gmeow:stabilityExperimental ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it on instances or using it for a concrete version's lifecycle role (that is gmeow:versionRole through a gmeow:VersionMembership); reserve it for the maturity of a TBox term."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -342,12 +341,12 @@ gmeow:termStability
     gmeow:useWhen "Use to override a term's derived maturity badge — to mark a core term experimental while it settles, or to flag any term deprecated ahead of removal."@x-gmeow-english .
 
 gmeow:addedInVersion
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "added in version"@x-gmeow-english ;
-    skos:definition "The ontology release version in which a vocabulary term first appeared — a literal version string (e.g. \"1.0.2\"). An owl:AnnotationProperty asserted about a class or property. The seed for the per-term changelog; eventually populated automatically from release-as-evidence content-address diffs (CONSTITUTION §18)."@x-gmeow-english ;
+    skos:definition "The ontology release version in which a vocabulary term first appeared — a literal version string (e.g. \"1.0.2\"). An OWL AnnotationProperty asserted about a class or property. The seed for the per-term changelog; eventually populated automatically from release-as-evidence content-address diffs (CONSTITUTION §18)."@x-gmeow-english ;
     skos:example "gmeow:SomeTerm gmeow:addedInVersion \"1.0.2\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for a concrete artifact's version (that is gmeow:versionMember / gmeow:versionFingerprint on a gmeow:VersionMembership); reserve it for the release a TBox term debuted in."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -356,7 +355,7 @@ gmeow:addedInVersion
 
 gmeow:ChangelogEntry
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -375,7 +374,7 @@ gmeow:ChangelogEntry
     gmeow:useWhen "Use to narrate a single per-release change to a term — what changed and in which version — building the term's changelog block in the docs."@x-gmeow-english .
 
 gmeow:hasChangelogEntry
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -385,7 +384,7 @@ gmeow:hasChangelogEntry
         gmeow:entryNote "Introduced the per-term changelog annotation — attaches gmeow:ChangelogEntry records to a vocabulary term."@x-gmeow-english ;
     ] ;
     rdfs:label "has changelog entry"@x-gmeow-english ;
-    skos:definition "Attaches a gmeow:ChangelogEntry to the vocabulary term it describes. An owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) so a class or property can carry per-release history while the generated OWL stays in OWL 2 DL. Non-functional: a term accrues one entry per release."@x-gmeow-english ;
+    skos:definition "Attaches a gmeow:ChangelogEntry to the vocabulary term it describes. An OWL AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) so a class or property can carry per-release history while the generated OWL stays in OWL 2 DL. Non-functional: a term accrues one entry per release."@x-gmeow-english ;
     skos:example "gmeow:SomeTerm gmeow:hasChangelogEntry [ a gmeow:ChangelogEntry ; gmeow:entryVersion \"1.0.2\" ] ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid collapsing several releases into one entry; mint one gmeow:ChangelogEntry per release so the history stays ordered and auditable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -393,7 +392,7 @@ gmeow:hasChangelogEntry
     gmeow:useWhen "Use to give a term a per-release changelog — the ordered list of versioned changes shown on its docs page."@x-gmeow-english .
 
 gmeow:entryVersion
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -406,7 +405,7 @@ gmeow:entryVersion
     gmeow:useWhen "Use to stamp a changelog entry with the release it describes, so the per-term changelog can be ordered and rendered."@x-gmeow-english .
 
 gmeow:entryNote
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
@@ -419,12 +418,12 @@ gmeow:entryNote
     gmeow:useWhen "Use to say in words what changed about a term in a given release, beyond the bare version string."@x-gmeow-english .
 
 gmeow:definitionDigest
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "definition digest"@x-gmeow-english ;
-    skos:definition "The RDFC-1.0-canonical content digest (blake3) of a vocabulary term's DEFINING triples — its content-address. Computed over the term's concise bounded description with the per-term provenance predicates (this digest, gmeow:versionFingerprint, gmeow:addedInVersion, gmeow:hasChangelogEntry and its parts, gmeow:termStability) excluded, so recording provenance never perturbs the digest that generated it. An owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) because it is asserted ABOUT a class or property, keeping the generated OWL in OWL 2 DL. Drives the computed per-term changelog (a definition whose digest differs from the prior release records a change) and serves as a stable citation permalink for the term's meaning."@x-gmeow-english ;
+    skos:definition "The RDFC-1.0-canonical content digest (blake3) of a vocabulary term's DEFINING triples — its content-address. Computed over the term's concise bounded description with the per-term provenance predicates (this digest, gmeow:versionFingerprint, gmeow:addedInVersion, gmeow:hasChangelogEntry and its parts, gmeow:termStability) excluded, so recording provenance never perturbs the digest that generated it. An OWL AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) because it is asserted ABOUT a class or property, keeping the generated OWL in OWL 2 DL. Drives the computed per-term changelog (a definition whose digest differs from the prior release records a change) and serves as a stable citation permalink for the term's meaning."@x-gmeow-english ;
     skos:example "gmeow:SomeTerm gmeow:definitionDigest \"blake3:1a2b3c…\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a concrete artifact's byte-exact hash (use gmeow:contentDigest) or a semantic artifact fingerprint (use gmeow:versionFingerprint); reserve it for the canonical digest of a TBox term's defining triples, and never author it by hand — it is computed from the term's definition."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -432,7 +431,7 @@ gmeow:definitionDigest
     gmeow:useWhen "Use to content-address a vocabulary term's meaning — to detect when its definition changed across releases (driving the computed changelog) or to cite the exact definition by digest."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/versions>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Cross-cutting version-set and version-membership facility for information-object lineages. Reuses the universal claim stack (Observation / Relator) so that version roles — canonical, variant, latest, stable, LTS, deprecated, yanked, etc. — are standpoint-scoped claims coexisting without privilege (Principle 9), never hard-coded as essential types. Suppressed versions remain first-class with gmeow:displayable false (Principle 10). Attestation evidence (signatures, SLSA, DOI assertions) belongs in attestation layer and composes with this layer; it is not embedded here."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
@@ -445,7 +444,7 @@ gmeow:definitionDigest
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -453,7 +452,7 @@ gmeow:definitionDigest
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:versionMemberFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "versionMember is functional"@x-gmeow-english ;
@@ -468,7 +467,7 @@ gmeow:versionMemberFunctionality
     skos:example "gmeow:versionMemberFunctionality logic:characterizes gmeow:versionMember ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:versionSetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "versionSet is functional"@x-gmeow-english ;

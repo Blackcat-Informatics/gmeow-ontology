@@ -62,6 +62,23 @@ pub mod owl {
     pub const MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 }
 
+/// Canonical `logic:` grounding-namespace constants
+/// (`https://blackcatinformatics.ca/logic/`) — the spelling a slice `module.ttl`
+/// authors after the `owl:`→`logic:` surface flip (Principle 17). Each is the
+/// canonical source of the correspondingly-named [`owl`] view, and a reader of the
+/// authored store must accept BOTH.
+pub mod logic {
+
+    /// `logic:sameAs` — canonical view of [`super::owl::SAME_AS`].
+    pub const SAME_AS: &str = "https://blackcatinformatics.ca/logic/sameAs";
+    /// `logic:AllDisjointClasses` — canonical view of
+    /// [`super::owl::ALL_DISJOINT_CLASSES`].
+    pub const ALL_DISJOINT_CLASSES: &str =
+        "https://blackcatinformatics.ca/logic/AllDisjointClasses";
+    /// `logic:members` — canonical view of [`super::owl::MEMBERS`].
+    pub const MEMBERS: &str = "https://blackcatinformatics.ca/logic/members";
+}
+
 /// SKOS namespace constants (`http://www.w3.org/2004/02/skos/core#`).
 pub mod skos {
 

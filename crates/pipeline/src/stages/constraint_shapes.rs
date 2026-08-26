@@ -39,6 +39,11 @@ use gmeow_ns::LOGIC_NS;
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+// The class-disjointness set is authored in the canonical `logic:` spelling
+// (`logic:AllDisjointClasses` / `logic:members`); `owl:` is its generated projection, so it is
+// read canonical-first with the `owl:` spelling kept only as a fallback for an external corpus.
+const LOGIC_ALL_DISJOINT: &str = "https://blackcatinformatics.ca/logic/AllDisjointClasses";
+const LOGIC_MEMBERS: &str = "https://blackcatinformatics.ca/logic/members";
 const OWL_ALL_DISJOINT: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
 const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 const CHAR_ASSERTION: &str = "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion";
@@ -253,9 +258,18 @@ pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Dia
         shapes.push(ShapeBlock { iri, block });
     }
 
-    // ── Class-disjointness (named owl:AllDisjointClasses carrying logic:formalizes) ──
+    // ── Class-disjointness (named logic:AllDisjointClasses carrying logic:formalizes) ──
     let list_edges = ListEdges::collect(&ds);
-    for disjoint in ds.subjects_of_type(OWL_ALL_DISJOINT).map_err(q)? {
+    let mut seen_disjoint: BTreeSet<String> = BTreeSet::new();
+    let mut disjoint_subjects = Vec::new();
+    for ty in [LOGIC_ALL_DISJOINT, OWL_ALL_DISJOINT] {
+        for subj in ds.subjects_of_type(ty).map_err(q)? {
+            if seen_disjoint.insert(subj.to_string()) {
+                disjoint_subjects.push(subj);
+            }
+        }
+    }
+    for disjoint in disjoint_subjects {
         // Only the NAMED, projection-anchored sets (blank ones are DL-gate only).
         if ds
             .first_object_iri(&disjoint, &format!("{LOGIC_NS}formalizes"))
@@ -264,12 +278,20 @@ pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Dia
         {
             continue;
         }
-        let Some(head) = ds
-            .objects(&disjoint, OWL_MEMBERS)
+        let head = match ds
+            .objects(&disjoint, LOGIC_MEMBERS)
             .map_err(q)?
             .into_iter()
             .next()
-        else {
+        {
+            Some(h) => Some(h),
+            None => ds
+                .objects(&disjoint, OWL_MEMBERS)
+                .map_err(q)?
+                .into_iter()
+                .next(),
+        };
+        let Some(head) = head else {
             continue;
         };
         let members = list_edges.members(&head);
