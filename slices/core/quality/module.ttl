@@ -1,21 +1,20 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:QualityAssessment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
     rdfs:label "Quality Assessment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assessedEntity ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:assessedEntity ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A reified assessment of the quality of an entity or dataset, expressed as an observation about one or more quality dimensions. The result is typically a scalar quantity (accuracy in metres, a normalized dimensionless completeness ratio, etc.) or a categorical conformance statement, carrying its dimension, any applicable unit and reference frame, determinacy, and provenance in the same bundle as every other GMEOW measurement (Principle 11)."@x-gmeow-english ;
     skos:example "ex:posAcc a gmeow:QualityAssessment ; gmeow:assessedEntity ex:roadLayer ; gmeow:qualityDimension gmeow:qualityDimensionPositionalAccuracy ; gmeow:observationResult ex:fiveMetres ."@x-gmeow-english ;
@@ -26,7 +25,7 @@ gmeow:QualityAssessment
 
 gmeow:QualityDimension
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
     rdfs:label "Quality Dimension"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -38,7 +37,7 @@ gmeow:QualityDimension
     gmeow:useWhen "Use as the value vocabulary for the data-quality axis — the seeded ISO 19157 dimensions plus lineage, referenced from a QualityAssessment via gmeow:qualityDimension."@x-gmeow-english .
 
 gmeow:assessedEntity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:QualityAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
     rdfs:label "assessed entity"@x-gmeow-english ;
@@ -52,7 +51,7 @@ gmeow:assessedEntity
     gmeow:useWhen "Use on a QualityAssessment to name the entity or dataset whose quality is under evaluation — the quality observation's feature of interest."@x-gmeow-english .
 
 gmeow:qualityDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:QualityAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
     rdfs:label "quality dimension"@x-gmeow-english ;
@@ -115,7 +114,7 @@ gmeow:qualityDimensionTopologicalConsistency
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/quality>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Cross-cutting data-quality layer refining confidence and provenance across every realm. Quality assessments are reified observations about ISO 19157 dimensions (positional accuracy, temporal accuracy, thematic accuracy, completeness, logical consistency, topological consistency) plus lineage. Aligns W3C DQV and GeoDCAT-AP by reference; quality-metric computation lives in the solver layer (Principle 12).
 

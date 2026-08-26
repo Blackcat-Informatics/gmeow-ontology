@@ -1081,7 +1081,9 @@ fn collect_ontology_terms(root: &Path) -> gmeow_errors::Result<OntologyTerms> {
             continue;
         };
         let iri = subject.to_owned();
-        match object {
+        // A term is typed in the canonical `logic:` spelling; lower it to its `owl:`
+        // view so the classification bites for both spellings after the flip.
+        match gmeow_ns::to_owl_view(object) {
             value if value == owl::CLASS => {
                 terms.classes.insert(iri);
             }

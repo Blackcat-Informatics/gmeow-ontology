@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AcquaintanceRelationship
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Acquaintance Relationship"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
@@ -21,7 +20,7 @@ gmeow:AcquaintanceRelationship
 
 gmeow:AddressTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Address Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -34,7 +33,7 @@ gmeow:AddressTenure
 
 gmeow:ContactPoint
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Contact Point"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -53,7 +52,7 @@ gmeow:ContactPoint
 
 gmeow:ContactPointType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Contact Point Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -66,7 +65,7 @@ gmeow:ContactPointType
 
 gmeow:EmailAddress
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Email Address"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ContactPoint ;
@@ -83,7 +82,7 @@ gmeow:EmailAddress
 
 gmeow:InstantMessageAddress
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Instant Message Address"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ContactPoint ;
@@ -101,16 +100,16 @@ gmeow:InstantMessageAddress
 
 gmeow:InterpersonalRelationship
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Interpersonal Relationship"@x-gmeow-english ;
     logic:mediates gmeow:relationshipParty ,
         gmeow:relationshipInterval ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:relationshipParty ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:relationshipParty ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified standing relationship between agents (acquaintance, collaboration, …), able to bear its own time interval, confidence, and source evidence."@x-gmeow-english ;
     skos:example "ex:tie a gmeow:InterpersonalRelationship ; gmeow:relationshipParty ex:lillith, ex:morgan ."@x-gmeow-english ;
@@ -121,7 +120,7 @@ gmeow:InterpersonalRelationship
 
 gmeow:PostalAddress
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Postal Address"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ContactPoint ;
@@ -139,7 +138,7 @@ gmeow:PostalAddress
 
 gmeow:ProfessionalRelationship
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Professional Relationship"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InterpersonalRelationship ;
@@ -152,7 +151,7 @@ gmeow:ProfessionalRelationship
 
 gmeow:TelephoneNumber
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "Telephone Number"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ContactPoint ;
@@ -168,7 +167,7 @@ gmeow:TelephoneNumber
     gmeow:useWhen "Use for a telephone contact point modelled as a first-class node — when its usage role, provider, or tenure must be recorded — rather than a bare number string."@x-gmeow-english .
 
 gmeow:addressHolder
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AddressTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "address holder"@x-gmeow-english ;
@@ -181,7 +180,7 @@ gmeow:addressHolder
     gmeow:useWhen "Use to name the agent who held a contact point over a gmeow:AddressTenure's interval."@x-gmeow-english .
 
 gmeow:addressLocality
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "address locality"@x-gmeow-english ;
@@ -194,7 +193,7 @@ gmeow:addressLocality
     gmeow:useWhen "Use for the city or town line of an address — the level a precise home address is typically coarsened to for public disclosure."@x-gmeow-english .
 
 gmeow:addressPlace
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "address place"@x-gmeow-english ;
@@ -209,7 +208,7 @@ gmeow:addressPlace
     gmeow:useWhen "Use to cross from the as-written surface form of an address to the resolved, identifier-bearing geographic place — the point at which coordinates, geometry, and external place IDs become available."@x-gmeow-english .
 
 gmeow:addressRegion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "address region"@x-gmeow-english ;
@@ -222,7 +221,7 @@ gmeow:addressRegion
     gmeow:useWhen "Use for the state, province, or territory line of an address — a coarse, low-sensitivity component safe for broad projection."@x-gmeow-english .
 
 gmeow:addressValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "address value"@x-gmeow-english ;
@@ -239,7 +238,7 @@ gmeow:addressValue
     gmeow:useWhen "Use for the single normalized addr-spec of a first-class gmeow:EmailAddress — the canonical whole, distinct from its parsed local and domain parts."@x-gmeow-english .
 
 gmeow:contactPointProvider
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ContactPoint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "contact point provider"@x-gmeow-english ;
@@ -252,7 +251,7 @@ gmeow:contactPointProvider
     gmeow:useWhen "Use to name the organization (or agent) that issues or scopes a contact point — the context that distinguishes a work channel from a personal one."@x-gmeow-english .
 
 gmeow:contactPointType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ContactPoint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "contact point type"@x-gmeow-english ;
@@ -293,7 +292,7 @@ gmeow:contactPointTypeWork
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:countryCode
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "country code"@x-gmeow-english ;
@@ -306,7 +305,7 @@ gmeow:countryCode
     gmeow:useWhen "Use for the country line of an address — the coarsest component, low-sensitivity and safe to project broadly."@x-gmeow-english .
 
 gmeow:deliversToAccount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "delivers to account"@x-gmeow-english ;
@@ -319,7 +318,7 @@ gmeow:deliversToAccount
     gmeow:useWhen "Use to cross from an email address (held by an agent) to the gmeow:OnlineAccount whose mailbox receives its messages — the contacts→accounts seam."@x-gmeow-english .
 
 gmeow:domainPart
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "domain part"@x-gmeow-english ;
@@ -332,7 +331,7 @@ gmeow:domainPart
     gmeow:useWhen "Use for the parsed domain part (after the @) of a first-class gmeow:EmailAddress — the component that reveals the provider and underlies the personal-domain usage role."@x-gmeow-english .
 
 gmeow:email
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "email"@x-gmeow-english ;
@@ -350,7 +349,7 @@ gmeow:email
     gmeow:useWhen "Use as the flat shortcut for an agent's email when only the string is needed and no role, structure, provider, or tenure must be carried."@x-gmeow-english .
 
 gmeow:extendedAddress
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "extended address"@x-gmeow-english ;
@@ -365,7 +364,7 @@ gmeow:extendedAddress
     gmeow:useWhen "Use for the secondary address line — suite, unit, apartment, or floor — that refines the street line within the same premises."@x-gmeow-english .
 
 gmeow:hasAgreement
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "has agreement"@x-gmeow-english ;
@@ -378,7 +377,7 @@ gmeow:hasAgreement
     gmeow:useWhen "Use to record that an agent is a party to an agreement, when the party-ship can be carried as a flat edge with its own validity period on the statement."@x-gmeow-english .
 
 gmeow:hasContactPoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "has contact point"@x-gmeow-english ;
@@ -395,8 +394,8 @@ gmeow:hasContactPoint
     gmeow:useWhen "Use to attach a first-class contact point (email, telephone, postal address) to the agent that owns it, when the channel carries its own role, provider, structure, or tenure."@x-gmeow-english .
 
 gmeow:hasMet
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "has met"@x-gmeow-english ;
@@ -409,7 +408,7 @@ gmeow:hasMet
     gmeow:useWhen "Use as the flat shortcut to record that two agents have met, when the bare symmetric fact (optionally with a period on the statement) is all that is needed."@x-gmeow-english .
 
 gmeow:hasUsed
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "has used"@x-gmeow-english ;
@@ -422,8 +421,8 @@ gmeow:hasUsed
     gmeow:useWhen "Use as the flat shortcut to record that an agent has used a tool, service, or work, when the bare directed fact (optionally with a period on the statement) is enough."@x-gmeow-english .
 
 gmeow:hasWorkedWith
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "has worked with"@x-gmeow-english ;
@@ -436,7 +435,7 @@ gmeow:hasWorkedWith
     gmeow:useWhen "Use as the flat shortcut to record that two agents have worked together, when the bare symmetric fact (optionally with a period on the statement) suffices."@x-gmeow-english .
 
 gmeow:localPart
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "local part"@x-gmeow-english ;
@@ -451,7 +450,7 @@ gmeow:localPart
     gmeow:useWhen "Use for the parsed local part (before the @) of a first-class gmeow:EmailAddress when address structure must be queried separately from the whole."@x-gmeow-english .
 
 gmeow:postOfficeBox
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "post office box"@x-gmeow-english ;
@@ -466,7 +465,7 @@ gmeow:postOfficeBox
     gmeow:useWhen "Use for a post-office-box designation that stands in place of, or alongside, a street line in the surface form of an address."@x-gmeow-english .
 
 gmeow:postalAddressFrame
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "postal address frame"@x-gmeow-english ;
@@ -480,7 +479,7 @@ gmeow:postalAddressFrame
     gmeow:useWhen "Use to declare which postal/administrative frame an address's coordinate values are read against — required because a value asserted without its frame is ill-formed (CONSTITUTION P11)."@x-gmeow-english .
 
 gmeow:postalCode
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "postal code"@x-gmeow-english ;
@@ -495,7 +494,7 @@ gmeow:postalCode
     gmeow:useWhen "Use for the postal or ZIP code line of an address; note that a full code can be premises-identifying and so carries the same personal sensitivity as the street line."@x-gmeow-english .
 
 gmeow:relationshipInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InterpersonalRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "relationship interval"@x-gmeow-english ;
@@ -508,7 +507,7 @@ gmeow:relationshipInterval
     gmeow:useWhen "Use to scope an interpersonal-relationship relator in time — the span over which the tie held — as a first-class gmeow:TimeInterval."@x-gmeow-english .
 
 gmeow:relationshipParty
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InterpersonalRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "relationship party"@x-gmeow-english ;
@@ -521,7 +520,7 @@ gmeow:relationshipParty
     gmeow:useWhen "Use to bind each agent that takes part in an interpersonal-relationship relator; at least one party is required by axiom."@x-gmeow-english .
 
 gmeow:streetAddress
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PostalAddress ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "street address"@x-gmeow-english ;
@@ -536,7 +535,7 @@ gmeow:streetAddress
     gmeow:useWhen "Use for the as-written street line of an address — the most precise, premises-identifying component, and the one disclosure control most needs to coarsen away."@x-gmeow-english .
 
 gmeow:telephone
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "telephone"@x-gmeow-english ;
@@ -554,7 +553,7 @@ gmeow:telephone
     gmeow:useWhen "Use as the flat shortcut for an agent's telephone number when only the string is needed and no role, provider, or tenure must be carried."@x-gmeow-english .
 
 gmeow:tenuredContactPoint
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AddressTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "tenured contact point"@x-gmeow-english ;
@@ -567,7 +566,7 @@ gmeow:tenuredContactPoint
     gmeow:useWhen "Use to name the contact point a gmeow:AddressTenure is about — the channel held over the tenure's interval."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/contacts>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Contact points and channels (email, telephone, postal address), temporally-scoped contact relationships, and the reified interpersonal-relationship relator (the schema.org / vCard / REL superset layer). Identity trust between contacts (keys, certifications, owner-trust) lives in the cross-cutting trust module."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
@@ -580,7 +579,7 @@ gmeow:tenuredContactPoint
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -588,7 +587,7 @@ gmeow:tenuredContactPoint
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:addressHolderFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "addressHolder is functional"@x-gmeow-english ;
@@ -603,7 +602,7 @@ gmeow:addressHolderFunctionality
     skos:example "gmeow:addressHolderFunctionality logic:characterizes gmeow:addressHolder ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:addressValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "addressValue is functional"@x-gmeow-english ;
@@ -618,7 +617,7 @@ gmeow:addressValueFunctionality
     skos:example "gmeow:addressValueFunctionality logic:characterizes gmeow:addressValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:domainPartFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "domainPart is functional"@x-gmeow-english ;
@@ -633,7 +632,7 @@ gmeow:domainPartFunctionality
     skos:example "gmeow:domainPartFunctionality logic:characterizes gmeow:domainPart ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:localPartFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "localPart is functional"@x-gmeow-english ;
@@ -648,7 +647,7 @@ gmeow:localPartFunctionality
     skos:example "gmeow:localPartFunctionality logic:characterizes gmeow:localPart ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:postalAddressFrameFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "postalAddressFrame is functional"@x-gmeow-english ;
@@ -663,7 +662,7 @@ gmeow:postalAddressFrameFunctionality
     skos:example "gmeow:postalAddressFrameFunctionality logic:characterizes gmeow:postalAddressFrame ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tenuredContactPointFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/contacts> ;
     rdfs:label "tenuredContactPoint is functional"@x-gmeow-english ;

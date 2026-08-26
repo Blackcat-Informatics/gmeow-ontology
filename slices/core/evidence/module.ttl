@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CoverageDepth
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Coverage Depth"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -23,7 +22,7 @@ gmeow:CoverageDepth
 
 gmeow:EvidenceClass
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Evidence Class"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -37,7 +36,7 @@ gmeow:EvidenceClass
 
 gmeow:EvidenceSpan
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Evidence Span"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -51,7 +50,7 @@ gmeow:EvidenceSpan
 
 gmeow:SourceIndependence
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Source Independence"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -65,7 +64,7 @@ gmeow:SourceIndependence
 
 gmeow:SourceTier
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Source Tier"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -78,7 +77,7 @@ gmeow:SourceTier
     gmeow:useWhen "Use as the value vocabulary behind gmeow:sourceTier — the standard primary/secondary/tertiary bibliographic axis — when classifying a cited source for notability assessment."@x-gmeow-english .
 
 gmeow:coverageDepth
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "coverage depth"@x-gmeow-english ;
@@ -252,7 +251,7 @@ gmeow:evidenceVERIFIED
         gmeow:boxCBox .
 
 gmeow:hasEvidenceClass
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "has evidence class"@x-gmeow-english ;
@@ -266,7 +265,7 @@ gmeow:hasEvidenceClass
     gmeow:useWhen "Use to record HOW WELL a citation supports the claim it backs — its evidential warrant — naming one or more gmeow:EvidenceClass individuals on the citation rather than on the asserted fact, so the warrant travels with the evidence link (Axis A)."@x-gmeow-english .
 
 gmeow:sourceIndependence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "source independence"@x-gmeow-english ;
@@ -296,7 +295,7 @@ gmeow:sourceIndependenceSelfOrIssuerOriginated
         gmeow:boxCBox .
 
 gmeow:sourceTier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "source tier"@x-gmeow-english ;
@@ -335,7 +334,7 @@ gmeow:sourceTierTertiary
         gmeow:boxCBox .
 
 gmeow:supportsNotability
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CitationAct ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "supports notability"@x-gmeow-english ;
@@ -350,7 +349,7 @@ gmeow:supportsNotability
     gmeow:useWhen "Use to assert the standpoint judgement that a citation contributes to a subject's notability — encyclopedic significance — the summary flag the independence, tier, and coverage-depth axes feed into (Axis B)."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/evidence>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Evidential warrant and source-typing substrate: two orthogonal axes that travel with the evidence link (CitationAct / EvidenceSpan) rather than the asserted fact.
 

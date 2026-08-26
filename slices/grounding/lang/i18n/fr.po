@@ -554,8 +554,8 @@ msgid "glossary slice"
 msgstr "slice de glossaire"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySlice|skos:definition"
-msgid "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's owl:Ontology IRI."
-msgstr "La slice dont un gmeow:Glossary rassemble la terminologie. Fonctionnel : exactement une slice par glossaire. Domaine gmeow:Glossary, portée l'IRI owl:Ontology de la slice."
+msgid "The slice whose terminology a gmeow:Glossary gathers. Functional: exactly one slice per glossary. Domain gmeow:Glossary, range the slice's OWL Ontology IRI."
+msgstr "La slice dont un gmeow:Glossary rassemble la terminologie. Fonctionnel : exactement une slice par glossaire. Domaine gmeow:Glossary, portée l'IRI OWL Ontology de la slice."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|rdfs:label"
 msgid "glossary language"
@@ -936,8 +936,8 @@ msgid "Asserts on the canonical carrier that gmeow:glossarySense is functional: 
 msgstr "Affirme sur le porteur canonique que gmeow:glossarySense est fonctionnelle : chaque entrée porte exactement un lang:Sense — le sommet médian de son triangle de Frege OntoLex, créé une seule fois à partir de la paire (terme, squelette-source) indépendamment de la langue cible — de sorte qu'un second sens fracturerait l'unique mode de signification de l'entrée. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySliceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:glossarySlice is functional: a glossary gathers the terminology of exactly one slice, the single owl:Ontology whose i18n/*.po catalog it projects, so an unscoped or dual-scoped glossary would belong to no coherent catalog. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:glossarySlice est fonctionnelle : un glossaire rassemble la terminologie d'exactement une tranche, l'unique owl:Ontology dont il projette le catalogue i18n/*.po, de sorte qu'un glossaire non délimité ou à double portée n'appartiendrait à aucun catalogue cohérent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+msgid "Asserts on the canonical carrier that gmeow:glossarySlice is functional: a glossary gathers the terminology of exactly one slice, the single OWL Ontology whose i18n/*.po catalog it projects, so an unscoped or dual-scoped glossary would belong to no coherent catalog. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Affirme sur le porteur canonique que gmeow:glossarySlice est fonctionnelle : un glossaire rassemble la terminologie d'exactement une tranche, l'unique OWL Ontology dont il projette le catalogue i18n/*.po, de sorte qu'un glossaire non délimité ou à double portée n'appartiendrait à aucun catalogue cohérent. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySourceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:glossarySource is functional: each entry renders exactly one English source literal — the single @x-gmeow-english value the catalog msgid carries — from which the projection mints the entry's one concept. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
@@ -1914,8 +1914,8 @@ msgid "denotation of GMN class equivalence"
 msgstr "dénotation de l'équivalence de classes GMN"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicEquivalent|skos:definition"
-msgid "The executable scoped meaning assignment from the GMN ≡ form to canonical logic:equivalentClass. Its grounding correspondence lowers the relation to owl:equivalentClass without reversing semantic ownership."
-msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ≡ vers le logic:equivalentClass canonique. Sa correspondance d'ancrage abaisse la relation vers owl:equivalentClass sans inverser la propriété sémantique."
+msgid "The executable scoped meaning assignment from the GMN ≡ form to canonical logic:equivalentClass. Its grounding correspondence lowers the relation to OWL equivalentClass without reversing semantic ownership."
+msgstr "L'assignation de sens exécutable et à portée restreinte de la forme GMN ≡ vers le logic:equivalentClass canonique. Sa correspondance d'ancrage abaisse la relation vers OWL equivalentClass sans inverser la propriété sémantique."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/gmnDenLogicImplies|rdfs:label"
 msgid "denotation of GMN implication"

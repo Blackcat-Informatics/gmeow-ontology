@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AccountStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Account Status"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -22,7 +21,7 @@ gmeow:AccountStatus
 
 gmeow:OnlineAccount
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Online Account"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -35,7 +34,7 @@ gmeow:OnlineAccount
 
 gmeow:OnlineService
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Online Service"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
@@ -48,7 +47,7 @@ gmeow:OnlineService
 
 gmeow:PaymentMethod
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Payment Method"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -61,7 +60,7 @@ gmeow:PaymentMethod
 
 gmeow:ServiceStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Service Status"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -73,7 +72,7 @@ gmeow:ServiceStatus
     gmeow:useWhen "Use as the value vocabulary for a service's liveness — the open set of statuses (live, shut down, …) an OnlineService declares through gmeow:serviceStatus."@x-gmeow-english .
 
 gmeow:accountName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "account name"@x-gmeow-english ;
@@ -86,7 +85,7 @@ gmeow:accountName
     gmeow:useWhen "Use for the human-readable handle or user name an account is known by on its service — the screen name a reader would type or recognize."@x-gmeow-english .
 
 gmeow:accountService
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "account service"@x-gmeow-english ;
@@ -99,7 +98,7 @@ gmeow:accountService
     gmeow:useWhen "Use to link an account to the single service or platform it is held with — the account-to-service edge that places a handle on its network, forge, or federated instance."@x-gmeow-english .
 
 gmeow:accountServiceHomepage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "account service homepage"@x-gmeow-english ;
@@ -112,14 +111,14 @@ gmeow:accountServiceHomepage
     gmeow:useWhen "Use to record the homepage of the service an account is held with — the FOAF accountServiceHomepage idiom — when exporting to FOAF or when the service is not modelled as a full gmeow:OnlineService object."@x-gmeow-english .
 
 gmeow:accountStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "account status"@x-gmeow-english ;
     rdfs:range gmeow:AccountStatus ;
     skos:definition "The holder's usage status of an account — a gmeow:AccountStatus value (active / dormant / historical). A retired account is status 'historical' with validUntil in the past, never deleted (P10)."@x-gmeow-english ;
     skos:example "ex:lillithMastodon gmeow:accountStatus gmeow:accountStatusActive ."@x-gmeow-english ;
-    skos:scopeNote "Source-variable observation, deliberately NOT functional: competing source- or standpoint-asserted statuses coexist (P9). A functional object property would force the distinct AccountStatus values to be owl:sameAs and could drive a global OWL inconsistency that halts reasoning."@x-gmeow-english ;
+    skos:scopeNote "Source-variable observation, deliberately NOT functional: competing source- or standpoint-asserted statuses coexist (P9). A functional object property would force the distinct AccountStatus values to be OWL sameAs and could drive a global OWL inconsistency that halts reasoning."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the service's liveness (use gmeow:serviceStatus) and avoid forcing one value in a merge — competing source- or standpoint-asserted statuses coexist, so never make it functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the OnlineAccount at a gmeow:AccountStatus individual; mark a retired account historical with a past validity period, and carry conflicting observers' statuses on the statement layer rather than collapsing them."@x-gmeow-english ;
@@ -147,7 +146,7 @@ gmeow:accountStatusHistorical
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:activityPubActor
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "ActivityPub actor"@x-gmeow-english ;
@@ -160,7 +159,7 @@ gmeow:activityPubActor
     gmeow:useWhen "Use for the ActivityPub actor IRI that addresses a federated-social account (Mastodon, Lemmy, PeerTube) across the fediverse — the protocol identifier other servers resolve to interact with it."@x-gmeow-english .
 
 gmeow:holdsAccount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "holds account"@x-gmeow-english ;
@@ -173,7 +172,7 @@ gmeow:holdsAccount
     gmeow:useWhen "Use to attach an online account to the agent who holds it — the holder-to-account link that anchors handles, profiles, and decentralized identities to a person, organization, or software agent."@x-gmeow-english .
 
 gmeow:nip05
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "NIP-05 identifier"@x-gmeow-english ;
@@ -186,7 +185,7 @@ gmeow:nip05
     gmeow:useWhen "Use for the NIP-05 identifier (user@domain) that ties a Nostr account to a controlled domain — the human-friendly, domain-verified name backing a Nostr pubkey."@x-gmeow-english .
 
 gmeow:nostrPubkey
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OnlineAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "Nostr public key"@x-gmeow-english ;
@@ -254,7 +253,7 @@ gmeow:paymentMethodCrypto
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:serviceShutdownDate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:OnlineService ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "service shutdown date"@x-gmeow-english ;
@@ -267,14 +266,14 @@ gmeow:serviceShutdownDate
     gmeow:useWhen "Use to record when a historical online service ceased operation — the flat shutdown date that keeps a defunct service (Yahoo 360, Google+) first-class with its end recorded rather than deleted (P10)."@x-gmeow-english .
 
 gmeow:serviceStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:OnlineService ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "service status"@x-gmeow-english ;
     rdfs:range gmeow:ServiceStatus ;
     skos:definition "The liveness status of a service — a gmeow:ServiceStatus value (live / shut-down)."@x-gmeow-english ;
     skos:example "ex:fosstodon gmeow:serviceStatus gmeow:serviceStatusLive ."@x-gmeow-english ;
-    skos:scopeNote "Source-variable observation, deliberately NOT functional: competing source- or standpoint-asserted statuses coexist (P9). A functional object property would force the distinct ServiceStatus values to be owl:sameAs and could drive a global OWL inconsistency that halts reasoning."@x-gmeow-english ;
+    skos:scopeNote "Source-variable observation, deliberately NOT functional: competing source- or standpoint-asserted statuses coexist (P9). A functional object property would force the distinct ServiceStatus values to be OWL sameAs and could drive a global OWL inconsistency that halts reasoning."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an account's own usage state (use gmeow:accountStatus) and avoid forcing a single value in a merge — competing source statuses coexist, so never make it functional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the OnlineService at a gmeow:ServiceStatus individual; pair the shut-down value with gmeow:serviceShutdownDate, and carry conflicting source observations on the statement layer rather than collapsing them."@x-gmeow-english ;
@@ -295,7 +294,7 @@ gmeow:serviceStatusShutDown
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/accounts>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Online accounts and decentralized identity (the FOAF OnlineAccount + decentralized-identity layer)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
@@ -308,7 +307,7 @@ gmeow:serviceStatusShutDown
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -316,7 +315,7 @@ gmeow:serviceStatusShutDown
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:accountServiceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "accountService is functional"@x-gmeow-english ;
@@ -331,7 +330,7 @@ gmeow:accountServiceFunctionality
     skos:example "gmeow:accountServiceFunctionality logic:characterizes gmeow:accountService ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:accountServiceHomepageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "accountServiceHomepage is functional"@x-gmeow-english ;
@@ -346,7 +345,7 @@ gmeow:accountServiceHomepageFunctionality
     skos:example "gmeow:accountServiceHomepageFunctionality logic:characterizes gmeow:accountServiceHomepage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:serviceShutdownDateFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accounts> ;
     rdfs:label "serviceShutdownDate is functional"@x-gmeow-english ;

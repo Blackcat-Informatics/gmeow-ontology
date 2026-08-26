@@ -67,37 +67,13 @@ const GMN_CODEBOOK_TTL: &[u8] = include_bytes!("../../../slices/grounding/lang/m
 /// `gmn_codebook_digest_is_pinned` host test recomputes it over the embedded bytes and
 /// hard-fails if the two drift, so this constant can never silently fall out of date.
 ///
-/// Re-blessed for the `logic:`-only validation migration (retiring hand-authored shapes):
-/// `module.ttl`'s TBox restriction blocks for `lang:inSignSystem`, `lang:analysisLevel`,
-/// `lang:featureKey`, `lang:denotationKind`, `lang:renderingKind`, `lang:translationCorrespondence`,
-/// `lang:paraphraseSamenessKind`, `gmeow:gmnSecurityRing`, and `gmeow:gmnRingLevel` drop their
-/// redundant hand-paired `maxQualifiedCardinality 1` (or, for `gmnSecurityRing`, both min/max)
-/// restriction, replaced by an `owl:FunctionalProperty` typing (or, for `gmeow:gmnSecurityRing`
-/// / `gmeow:gmnEnvelopeCorrespondence` / `gmeow:gmnRingLevel`, a new `logic:ClosureEntry` closed-world
-/// record) that reasons the same exactly-one/exactly-one-typed obligation instead of restating it
-/// as a shape-shaped restriction pair. None of this touches the GMN dictionary/glyph predicates
-/// [`GmnDictionary::from_dataset`] and [`gmn1_read`] actually resolve (`gmeow:gmnDictV3` and the
-/// glyph/prefix tables are untouched), so the codebook this wasm image validates against is
-/// unchanged in every way [`gmn_validate`] observes — only the raw carrier bytes moved.
-///
-/// Re-blessed again when the eight "exactly one" upper bounds that migration had left
-/// unenforced were restored. The `owl:FunctionalProperty` typing it introduced on
-/// `lang:inSignSystem`, `lang:analysisLevel`, `lang:featureKey`, `lang:denotationKind`,
-/// `lang:renderingKind`, `lang:translationCorrespondence` and `lang:paraphraseSamenessKind`
-/// is an object-property characteristic OUTSIDE the EL profile the slice's own
-/// `ex:saNoForbiddenCharacteristics` structural assertion protects, and the pipeline projects
-/// no `sh:maxCount` from it — so the marker silently dropped the upper half of the obligation.
-/// The seven markers are removed and, together with `gmeow:gmnSecurityRing`, each property now
-/// carries a class-scoped `logic:Restriction` with `logic:maxQualifiedCardinality 1` and
-/// `logic:onClass owl:Thing` (the `owl:Thing` qualifier is what degrades the qualified bound to
-/// the BARE `sh:maxCount 1` the retired shapes had). The whole diff is those seven `a
-/// owl:ObjectProperty , owl:FunctionalProperty` lines, eight added restriction bodies, and the
-/// note that explains them: 31 lines added, 10 removed, no other subject touched. Once more it
-/// leaves `gmeow:gmnDictV3`, `gmeow:gmnCodebookCurrent`, the `gmeow:references` inventory and
-/// the grapheme/prefix tables — everything [`GmnDictionary::from_dataset`] and [`gmn1_read`]
-/// resolve — untouched, so only the carrier bytes moved.
+/// The full canonical `slices/grounding/lang/module.ttl` is embedded verbatim, and the GMN
+/// dictionary / glyph / prefix tables that [`GmnDictionary::from_dataset`] and [`gmn1_read`]
+/// resolve (`gmeow:gmnDictV3`, `gmeow:gmnCodebookCurrent`, and the grapheme/prefix inventories)
+/// retain their semantics. Any change to this digest is therefore a raw-carrier-byte change that
+/// the host test catches; when it does, re-pin this constant to the new blake3.
 pub const GMN_CODEBOOK_DIGEST: &str =
-    "61e3ed6a134534feffa606448f59cfc20e0327651fa101ca3d7ef2c3d023cf28";
+    "3d89c98bb1bf9a59f1e5e815f57d6059d9b93f8c4a77063fa9b3fb9d42c5f9bb";
 
 /// The graph-derived dictionary, built ONCE from the embedded codebook and memoized.
 ///

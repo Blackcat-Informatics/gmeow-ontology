@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:LanguageChangeEvent
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Change Event"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -17,7 +16,7 @@ gmeow:LanguageChangeEvent
 
 gmeow:LanguageChangeType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Change Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -26,7 +25,7 @@ gmeow:LanguageChangeType
 
 gmeow:LanguageCreation
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Creation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -35,7 +34,7 @@ gmeow:LanguageCreation
 
 gmeow:LanguageModality
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Modality"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -44,7 +43,7 @@ gmeow:LanguageModality
 
 gmeow:LanguageOrigin
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Origin"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -53,7 +52,7 @@ gmeow:LanguageOrigin
 
 gmeow:LanguageProficiency
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Proficiency"@x-gmeow-english ;
     logic:mediates gmeow:proficiencyAgent ,
@@ -64,7 +63,7 @@ gmeow:LanguageProficiency
 
 gmeow:LanguageState
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language State"@x-gmeow-english ;
     logic:mediates gmeow:stateLanguage ,
@@ -72,21 +71,21 @@ gmeow:LanguageState
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:stateLanguage ;
-            owl:someValuesFrom gmeow:Language ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:stateLanguage ;
+            logic:someValuesFrom gmeow:Language ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:stateAuthority ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:stateAuthority ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A reified, standpoint-scoped claim about the status of a language, variety, or version during a specific interval — the analytic/historical slice of a language at a time/period, often reconstructed and standpointed. Follows the VersionMembership pattern: a relator binding {language} × {status} × {authority} × {interval}. Differs from LanguageVersion, which is a named/released artifact; a version can have states, and a state can describe a version, but neither is defined as the other."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -95,7 +94,7 @@ gmeow:LanguageStatus
 
 gmeow:LanguageVariety
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Variety"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Language ;
@@ -104,7 +103,7 @@ gmeow:LanguageVariety
 
 gmeow:LanguageVarietyKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Variety Kind"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -113,7 +112,7 @@ gmeow:LanguageVarietyKind
 
 gmeow:LanguageVersion
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Version"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Language ;
@@ -121,7 +120,7 @@ gmeow:LanguageVersion
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:affectedLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageChangeEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "affected language"@x-gmeow-english ;
@@ -293,7 +292,7 @@ gmeow:changeStandardization
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:changeType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageChangeEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "change type"@x-gmeow-english ;
@@ -302,7 +301,7 @@ gmeow:changeType
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:designGoal
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Language ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "design goal"@x-gmeow-english ;
@@ -403,7 +402,7 @@ gmeow:kindStandard
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:knowsLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "knows language"@x-gmeow-english ;
@@ -412,7 +411,7 @@ gmeow:knowsLanguage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:languageModality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Language ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "language modality"@x-gmeow-english ;
@@ -421,7 +420,7 @@ gmeow:languageModality
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:languageOrigin
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Language ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "language origin"@x-gmeow-english ;
@@ -430,7 +429,7 @@ gmeow:languageOrigin
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:languageStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Language ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "language status"@x-gmeow-english ;
@@ -502,7 +501,7 @@ gmeow:modalityWritten
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:nativeLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "native language"@x-gmeow-english ;
@@ -691,7 +690,7 @@ gmeow:profModalityWriting
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:proficiencyAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency agent"@x-gmeow-english ;
@@ -700,7 +699,7 @@ gmeow:proficiencyAgent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency interval"@x-gmeow-english ;
@@ -709,7 +708,7 @@ gmeow:proficiencyInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency language"@x-gmeow-english ;
@@ -718,7 +717,7 @@ gmeow:proficiencyLanguage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyLevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency level"@x-gmeow-english ;
@@ -727,7 +726,7 @@ gmeow:proficiencyLevel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyModality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency modality"@x-gmeow-english ;
@@ -736,7 +735,7 @@ gmeow:proficiencyModality
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:proficiencyScale
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageProficiency ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiency scale"@x-gmeow-english ;
@@ -871,7 +870,7 @@ gmeow:schemeWadeGiles
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:stateAuthority
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "state authority"@x-gmeow-english ;
@@ -881,7 +880,7 @@ gmeow:stateAuthority
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stateInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "state interval"@x-gmeow-english ;
@@ -890,7 +889,7 @@ gmeow:stateInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stateLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "state language"@x-gmeow-english ;
@@ -900,7 +899,7 @@ gmeow:stateLanguage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stateStatusValue
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "state status value"@x-gmeow-english ;
@@ -965,7 +964,7 @@ gmeow:statusRevived
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:varietyKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageVariety ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "variety kind"@x-gmeow-english ;
@@ -974,7 +973,7 @@ gmeow:varietyKind
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:varietyOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LanguageVariety ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "variety of"@x-gmeow-english ;
@@ -983,7 +982,7 @@ gmeow:varietyOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/languages>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Languages and writing systems as first-class, registry-INDEPENDENT information objects (the BCP-47 / ISO 639 / Glottolog / Wikidata / schema.org superset layer). A gmeow:Language has a self-minted IRI; codes (gmeow:languageCode, gmeow:authorityLink, skos:exactMatch) are OPTIONAL alignments, never identity — so a code-less conlang (Ithkuil), a fast-versioning AI-minted interlingua, an under-coded sign/minority language, and a programming language are all co-equal first-class languages. Covers natural, constructed (auxiliary/engineered/artistic/ritual), AI-generated, historical/reconstructed, sign/whistled/tactile, and formal/programming/markup languages. Writing systems are grounded in the lang: layer: a script is a lang:Script (character repertoire) and the convention binding a language to a script is a lang:Orthography (lang:orthographyFor + lang:usesScript), so a language CO-MINGLES many co-equal scripts (Japanese = kanji/Hani + hiragana/Hira + katakana/Kana + rōmaji/Latn) as several co-equal orthographies. Versions form a first-class lineage (gmeow:versionOf / supersedes). Endonym/exonym names reuse the names module's gmeow:Appellation; transliteration schemes that produce a gmeow:romanization are named by gmeow:transliterationScheme and catalogued as FnO functions in the projection layer."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
@@ -996,7 +995,7 @@ gmeow:varietyOf
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1004,7 +1003,7 @@ gmeow:varietyOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:proficiencyAgentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyAgent is functional"@x-gmeow-english ;
@@ -1019,7 +1018,7 @@ gmeow:proficiencyAgentFunctionality
     skos:example "gmeow:proficiencyAgentFunctionality logic:characterizes gmeow:proficiencyAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:proficiencyLanguageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyLanguage is functional"@x-gmeow-english ;
@@ -1034,7 +1033,7 @@ gmeow:proficiencyLanguageFunctionality
     skos:example "gmeow:proficiencyLanguageFunctionality logic:characterizes gmeow:proficiencyLanguage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:proficiencyLevelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyLevel is functional"@x-gmeow-english ;
@@ -1049,7 +1048,7 @@ gmeow:proficiencyLevelFunctionality
     skos:example "gmeow:proficiencyLevelFunctionality logic:characterizes gmeow:proficiencyLevel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:proficiencyModalityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyModality is functional"@x-gmeow-english ;
@@ -1064,7 +1063,7 @@ gmeow:proficiencyModalityFunctionality
     skos:example "gmeow:proficiencyModalityFunctionality logic:characterizes gmeow:proficiencyModality ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:proficiencyScaleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "proficiencyScale is functional"@x-gmeow-english ;
@@ -1079,7 +1078,7 @@ gmeow:proficiencyScaleFunctionality
     skos:example "gmeow:proficiencyScaleFunctionality logic:characterizes gmeow:proficiencyScale ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:stateLanguageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "stateLanguage is functional"@x-gmeow-english ;

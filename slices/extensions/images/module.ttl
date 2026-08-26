@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DepictionContext
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Depiction Context"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -19,7 +18,7 @@ gmeow:DepictionContext
 
 gmeow:DepictionUsage
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Depiction Usage"@x-gmeow-english ;
     logic:mediates gmeow:depictionSubject ,
@@ -27,21 +26,21 @@ gmeow:DepictionUsage
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:depictionSubject ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:depictionSubject ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:depictionImage ;
-            owl:someValuesFrom gmeow:MediaObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:depictionImage ;
+            logic:someValuesFrom gmeow:MediaObject ;
         ] ;
     skos:definition "A reified, context-dependent depiction of an entity by an image — an observation in the universal claim stack (observation-spine bridge): an entity (depictionSubject) is shown in a given image (depictionImage), in a particular context (depictionContext), by or among a particular audience (depictionAudience), over a period (depictionInterval), asserted by an authority (depictionAuthority). Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical depiction. Mint one DepictionUsage per (entity, image, context) tuple; its period is carried by gmeow:depictionInterval or by validFrom/validUntil on the statement."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ExifTag
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF Tag"@x-gmeow-english ;
     rdfs:subClassOf logic:FunctionalComplex ;
@@ -50,21 +49,21 @@ gmeow:ExifTag
 
 gmeow:ImageRegion
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Image Region"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:regionOf ;
-            owl:someValuesFrom gmeow:MediaObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:regionOf ;
+            logic:someValuesFrom gmeow:MediaObject ;
         ] ;
     skos:definition "A region within an image — a structural part of a gmeow:MediaObject, described by a gmeow:RegionSelector that encodes its boundaries. The counterpart of ContentSegment for visual media: a face, an object bounding box, a polygon, or a pixel mask. Carries a human-readable gmeow:regionLabel."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RegionSelector
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Region Selector"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -73,28 +72,28 @@ gmeow:RegionSelector
 
 gmeow:SceneGraphEdge
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Scene Graph Edge"@x-gmeow-english ;
     logic:mediates gmeow:sceneSubject ,
         gmeow:sceneObject ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:sceneSubject ;
-            owl:someValuesFrom gmeow:ImageRegion ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:sceneSubject ;
+            logic:someValuesFrom gmeow:ImageRegion ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:sceneObject ;
-            owl:someValuesFrom gmeow:ImageRegion ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:sceneObject ;
+            logic:someValuesFrom gmeow:ImageRegion ;
         ] ;
     skos:definition "A reified spatial or semantic relationship between two image regions — a gufo:Relator mediating a subject region, an object region, a relation type, and a confidence. The canonical form for scene-graph assertions; aligns by reference to Visual Genome and OVSR relation strings."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SceneRelationType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Scene Relation Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -103,7 +102,7 @@ gmeow:SceneRelationType
 
 gmeow:SelectorType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Selector Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -111,7 +110,7 @@ gmeow:SelectorType
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:depictionAudience
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction audience"@x-gmeow-english ;
@@ -120,7 +119,7 @@ gmeow:depictionAudience
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionAuthority
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction authority"@x-gmeow-english ;
@@ -129,7 +128,7 @@ gmeow:depictionAuthority
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionContext
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction context"@x-gmeow-english ;
@@ -235,7 +234,7 @@ gmeow:depictionContextWork
         gmeow:boxCBox .
 
 gmeow:depictionImage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction image"@x-gmeow-english ;
@@ -244,7 +243,7 @@ gmeow:depictionImage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction interval"@x-gmeow-english ;
@@ -253,7 +252,7 @@ gmeow:depictionInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:depictionSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DepictionUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depiction subject"@x-gmeow-english ;
@@ -265,7 +264,7 @@ gmeow:depicts
     gmeow:pairsWith gmeow:DepictionUsage .
 
 gmeow:exifTagId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ExifTag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF tag id"@x-gmeow-english ;
@@ -274,7 +273,7 @@ gmeow:exifTagId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:exifTagValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ExifTag ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF tag value"@x-gmeow-english ;
@@ -283,7 +282,7 @@ gmeow:exifTagValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasExifTag
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "has EXIF tag"@x-gmeow-english ;
@@ -292,7 +291,7 @@ gmeow:hasExifTag
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasLogo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "has logo"@x-gmeow-english ;
@@ -302,7 +301,7 @@ gmeow:hasLogo
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasRegion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MediaObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "has region"@x-gmeow-english ;
@@ -311,7 +310,7 @@ gmeow:hasRegion
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:regionLabel
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ImageRegion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "region label"@x-gmeow-english ;
@@ -320,17 +319,17 @@ gmeow:regionLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:regionOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ImageRegion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "region of"@x-gmeow-english ;
     rdfs:range gmeow:MediaObject ;
-    owl:inverseOf gmeow:hasRegion ;
+    logic:inverseOf gmeow:hasRegion ;
     skos:definition "A region is part of exactly one image. Functional per region: one containing image per ImageRegion. Inverse of gmeow:hasRegion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:regionSelector
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ImageRegion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "region selector"@x-gmeow-english ;
@@ -339,7 +338,7 @@ gmeow:regionSelector
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sceneConfidence
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene confidence"@x-gmeow-english ;
@@ -349,7 +348,7 @@ gmeow:sceneConfidence
         gmeow:boxRBox .
 
 gmeow:sceneObject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene object"@x-gmeow-english ;
@@ -358,7 +357,7 @@ gmeow:sceneObject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sceneRelation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene relation"@x-gmeow-english ;
@@ -472,7 +471,7 @@ gmeow:sceneRelationWearing
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:sceneSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SceneGraphEdge ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "scene subject"@x-gmeow-english ;
@@ -481,7 +480,7 @@ gmeow:sceneSubject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:selectorType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RegionSelector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "selector type"@x-gmeow-english ;
@@ -553,7 +552,7 @@ gmeow:selectorTypeWebAnnotationFragment
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:selectorValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:RegionSelector ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "selector value"@x-gmeow-english ;
@@ -562,7 +561,7 @@ gmeow:selectorValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/images>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The Images super-ontology — a layered model for contextual depiction, region encoding, scene graphs, and technical metadata. Builds on the WEMI spine: a visual work is a gmeow:Work with workTypeVisual / workTypePhotographic; the digital file is a gmeow:Manifestation (gmeow:MediaObject) plus gmeow:Item / hasCarrier. Colourspace is carried via gmeow:hasReferenceFrame (temporal-frame design). Rights reuse the rights facility directly.
 
@@ -629,28 +628,28 @@ GOVERNING TENETS.
 # redundant explicit gmeow:Entity the guidance forbids), so only the exactly-one cardinality is
 # closed-world here; the range stays the open-world rdfs:range on gmeow:depictionSubject.
 gmeow:DepictionUsage logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:depictionImage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:depictionContext ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:depictionSubject ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:depictionSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionImage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionContext ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionSubject ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:depictionSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:ImageRegionShape — a region of exactly one MediaObject with exactly one selector.
 gmeow:ImageRegion logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:regionOf ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:regionSelector ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:regionOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:regionSelector ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:RegionSelectorShape — exactly one selector type and exactly one literal selector value.
 gmeow:RegionSelector logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:selectorType ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:selectorValue ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:selectorType ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:selectorValue ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:SceneGraphEdgeShape — exactly one subject region, object region, and relation; at most one
 # confidence in [0.0, 1.0]. The bounded numeric range is validation-only (no OWL faceted-datatype
 # axiom the native reasoner can decide once a literal is asserted).
 gmeow:SceneGraphEdge logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:sceneSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:sceneObject ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:sceneRelation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:sceneSubject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:sceneObject ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:sceneRelation ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:sceneConfidence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 gmeow:SceneGraphEdgeConfidenceRangeConstraint
@@ -670,7 +669,7 @@ gmeow:SceneGraphEdgeConfidenceRangeConstraint
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -678,7 +677,7 @@ gmeow:SceneGraphEdgeConfidenceRangeConstraint
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:depictionContextFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depictionContext is functional"@x-gmeow-english ;
@@ -693,7 +692,7 @@ gmeow:depictionContextFunctionality
     skos:example "gmeow:depictionContextFunctionality logic:characterizes gmeow:depictionContext ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:depictionImageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depictionImage is functional"@x-gmeow-english ;
@@ -708,7 +707,7 @@ gmeow:depictionImageFunctionality
     skos:example "gmeow:depictionImageFunctionality logic:characterizes gmeow:depictionImage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:depictionSubjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "depictionSubject is functional"@x-gmeow-english ;
@@ -723,7 +722,7 @@ gmeow:depictionSubjectFunctionality
     skos:example "gmeow:depictionSubjectFunctionality logic:characterizes gmeow:depictionSubject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exifTagIdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "exifTagId is functional"@x-gmeow-english ;
@@ -738,7 +737,7 @@ gmeow:exifTagIdFunctionality
     skos:example "gmeow:exifTagIdFunctionality logic:characterizes gmeow:exifTagId ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exifTagValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "exifTagValue is functional"@x-gmeow-english ;
@@ -753,7 +752,7 @@ gmeow:exifTagValueFunctionality
     skos:example "gmeow:exifTagValueFunctionality logic:characterizes gmeow:exifTagValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:regionOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "regionOf is functional"@x-gmeow-english ;
@@ -768,7 +767,7 @@ gmeow:regionOfFunctionality
     skos:example "gmeow:regionOfFunctionality logic:characterizes gmeow:regionOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:regionSelectorFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "regionSelector is functional"@x-gmeow-english ;
@@ -783,7 +782,7 @@ gmeow:regionSelectorFunctionality
     skos:example "gmeow:regionSelectorFunctionality logic:characterizes gmeow:regionSelector ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sceneConfidenceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneConfidence is functional"@x-gmeow-english ;
@@ -798,7 +797,7 @@ gmeow:sceneConfidenceFunctionality
     skos:example "gmeow:sceneConfidenceFunctionality logic:characterizes gmeow:sceneConfidence ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sceneObjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneObject is functional"@x-gmeow-english ;
@@ -813,7 +812,7 @@ gmeow:sceneObjectFunctionality
     skos:example "gmeow:sceneObjectFunctionality logic:characterizes gmeow:sceneObject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sceneRelationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneRelation is functional"@x-gmeow-english ;
@@ -828,7 +827,7 @@ gmeow:sceneRelationFunctionality
     skos:example "gmeow:sceneRelationFunctionality logic:characterizes gmeow:sceneRelation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sceneSubjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "sceneSubject is functional"@x-gmeow-english ;
@@ -843,7 +842,7 @@ gmeow:sceneSubjectFunctionality
     skos:example "gmeow:sceneSubjectFunctionality logic:characterizes gmeow:sceneSubject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:selectorTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "selectorType is functional"@x-gmeow-english ;

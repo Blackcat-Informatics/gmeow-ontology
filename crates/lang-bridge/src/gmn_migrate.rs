@@ -70,7 +70,7 @@ pub const PRED_GMN_SCHEMA_VERSION: &str = "https://blackcatinformatics.ca/gmeow/
 pub enum GmnMigrateError {
     /// The authored `logic:Correspondence` migration leg is structurally incomplete — a
     /// missing/duplicate `gmeow:gmnMigratesFrom`/`gmnMigratesTo`, a version entity with
-    /// no/many `owl:versionInfo`, an absent/unknown `logic:preservationKind`, or a
+    /// no/many `logic:versionInfo`, an absent/unknown `logic:preservationKind`, or a
     /// `gmeow:GmnMigrationRewrite` lacking its term or either glyph. Detail names the defect.
     MalformedLeg(String),
     /// `lang:GmnUnbridgedGlyphDrop` — an operator `term` (source glyph `glyph`) present in the
@@ -173,7 +173,7 @@ pub struct GmnMigration {
 impl GmnMigration {
     /// Read the migration leg named by `correspondence` off `ds`. The correspondence must
     /// carry exactly one `gmeow:gmnMigratesFrom` and one `gmeow:gmnMigratesTo` (each pointing
-    /// at a version entity with exactly one `owl:versionInfo`), exactly one
+    /// at a version entity with exactly one `logic:versionInfo`), exactly one
     /// `logic:preservationKind`, and zero or more well-formed `gmeow:GmnMigrationRewrite`
     /// legs. `logic:mnemomorphic` defaults `false` when absent (as in the IR).
     ///
@@ -230,7 +230,11 @@ impl GmnMigration {
                 }
             }
             match pred {
-                PRED_OWL_VERSION_INFO => {
+                // A version entity spells its version in the canonical
+                // `logic:versionInfo`; its generated OWL view uses
+                // `owl:versionInfo`. Read both so a re-authored migration leg is
+                // never seen as missing its version.
+                PRED_OWL_VERSION_INFO | gmeow_ns::LOGIC_VERSION_INFO => {
                     if let RdfTerm::Literal(l) = &quad.object {
                         version_infos
                             .entry(subject.clone())
@@ -281,13 +285,10 @@ impl GmnMigration {
 
         let from_entity = exactly_one(&migrates_from, correspondence, "gmeow:gmnMigratesFrom")?;
         let to_entity = exactly_one(&migrates_to, correspondence, "gmeow:gmnMigratesTo")?;
-        let from_version = exactly_one_owned(
-            version_infos.get(&from_entity),
-            &from_entity,
-            "owl:versionInfo",
-        )?;
+        let from_version =
+            exactly_one_owned(version_infos.get(&from_entity), &from_entity, "versionInfo")?;
         let to_version =
-            exactly_one_owned(version_infos.get(&to_entity), &to_entity, "owl:versionInfo")?;
+            exactly_one_owned(version_infos.get(&to_entity), &to_entity, "versionInfo")?;
         let preservation_iri =
             exactly_one(&preservation_iris, correspondence, "logic:preservationKind")?;
         let preservation = preservation_iri
@@ -367,13 +368,13 @@ impl GmnMigration {
         &self.correspondence
     }
 
-    /// The source major (`owl:versionInfo` of the `gmeow:gmnMigratesFrom` entity).
+    /// The source major (`logic:versionInfo` of the `gmeow:gmnMigratesFrom` entity).
     #[must_use]
     pub fn from_version(&self) -> &str {
         &self.from_version
     }
 
-    /// The target major (`owl:versionInfo` of the `gmeow:gmnMigratesTo` entity).
+    /// The target major (`logic:versionInfo` of the `gmeow:gmnMigratesTo` entity).
     #[must_use]
     pub fn to_version(&self) -> &str {
         &self.to_version

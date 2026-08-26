@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AdequacyAssessment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Adequacy Assessment"@x-gmeow-english ;
     logic:mediates gmeow:adequacyUnderStandard ,
@@ -21,7 +20,7 @@ gmeow:AdequacyAssessment
 
 gmeow:AdequacyVerdict
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Adequacy Verdict"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -33,7 +32,7 @@ gmeow:Attestation
 
 gmeow:ClaimEvaluation
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Claim Evaluation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ClaimToken ;
@@ -47,7 +46,7 @@ gmeow:ClaimEvaluation
 
 gmeow:ClaimToken
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Claim Token"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -61,20 +60,20 @@ gmeow:ClaimToken
 
 gmeow:Defeater
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Defeater"@x-gmeow-english ;
-    rdfs:subClassOf owl:Thing ;
-    owl:equivalentClass [
-        a owl:Class ;
-        owl:unionOf ( gmeow:Argument gmeow:StandpointClaim gmeow:EvidenceSpan ) ;
+    rdfs:subClassOf logic:Thing ;
+    logic:equivalentClass [
+        a logic:Class ;
+        logic:unionOf ( gmeow:Argument gmeow:StandpointClaim gmeow:EvidenceSpan ) ;
     ] ;
-    skos:definition "The class of things that can DEFEAT a justification — an gmeow:Argument (the inference-slice argumentation node), a gmeow:StandpointClaim (a defeating consideration), or a gmeow:EvidenceSpan (defeating evidence). The structural defeater that gmeow:defeatedBy points at, distinct from the solver-set verdict FLAG gmeow:hasDefeatStatus -> gmeow:JustificationStatus. Introduced as a named superclass so that schema projections can assign a single range to gmeow:defeatedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:definition "The class of things that can DEFEAT a justification — an gmeow:Argument (the inference-slice argumentation node), a gmeow:StandpointClaim (a defeating consideration), or a gmeow:EvidenceSpan (defeating evidence). The structural defeater that gmeow:defeatedBy points at, distinct from the solver-set verdict FLAG gmeow:hasDefeatStatus -> gmeow:JustificationStatus. Introduced as a named superclass so that schema projections can assign a single range to gmeow:defeatedBy instead of losing a blank-node OWL unionOf."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DoxasticStandpointClaim
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxastic standpoint claim"@x-gmeow-english ;
     rdfs:subClassOf gmeow:StandpointClaim ;
@@ -87,26 +86,26 @@ gmeow:DoxasticStandpointClaim
 
 gmeow:DoxasticState
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Doxastic State"@x-gmeow-english ;
     rdfs:subClassOf gmeow:JustificationGround ,
         gmeow:JustificationSubject ,
         gmeow:MentalMoment ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:epistemicAgent ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:epistemicAgent ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:doxasticContent ;
-            owl:someValuesFrom gmeow:Proposition ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:doxasticContent ;
+            logic:someValuesFrom gmeow:Proposition ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:doxasticClaim ;
-            owl:someValuesFrom gmeow:StandpointClaim ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:doxasticClaim ;
+            logic:someValuesFrom gmeow:StandpointClaim ;
         ] ;
     skos:definition "An agent's intrinsic believing mode toward a proposition — the reified, first-class mental moment that grounds the flat doxastic spine (gmeow:believes, gmeow:knowsThat). A sibling of cognition:CognitiveState (knowing) and teleology:IntentionalMode (desiring/intending) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family (Principle 15). Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim (doxasticClaim → claimModality), and its graded strength by credence [0,1]. Never instantiated directly when the flat spine suffices (Principle 4)."@x-gmeow-english ;
     skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence \"0.92\"^^xsd:decimal ."@x-gmeow-english ;
@@ -119,19 +118,19 @@ gmeow:DoxasticState
 
 gmeow:DoxasticTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Doxastic Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureOfDoxasticState ;
-            owl:someValuesFrom gmeow:DoxasticState ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:tenureOfDoxasticState ;
+            logic:someValuesFrom gmeow:DoxasticState ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:duringInterval ;
-            owl:someValuesFrom gmeow:TimeInterval ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:duringInterval ;
+            logic:someValuesFrom gmeow:TimeInterval ;
         ] ;
     skos:definition "The reified, time-scoped fact that a DoxasticState was held over an interval — the belief-revision history construct. Opened when the belief is adopted; closed (endedAtTime on the duringInterval) and suppressed with displayable false when the belief is revised or retracted. The old DoxasticState is retained as audit, never deleted (Principle 10). Carries its interval via gmeow:duringInterval (temporal module) and links to the scoped DoxasticState via tenureOfDoxasticState."@x-gmeow-english ;
     skos:example "ex:aliceRoundTenure a gmeow:DoxasticTenure ; gmeow:tenureOfDoxasticState ex:aliceBelievesRound ; gmeow:duringInterval ex:2019to2024 ."@x-gmeow-english ;
@@ -142,7 +141,7 @@ gmeow:DoxasticTenure
 
 gmeow:EpistemicContext
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Epistemic Context"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -155,7 +154,7 @@ gmeow:EpistemicContext
 
 gmeow:EpistemicStandard
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Epistemic Standard"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -167,24 +166,24 @@ gmeow:EvidenceSpan
 
 gmeow:JustificationGround
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Justification Ground"@x-gmeow-english ;
-    rdfs:subClassOf owl:Thing ;
-    owl:equivalentClass [
-        a owl:Class ;
-        owl:unionOf ( gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState ) ;
+    rdfs:subClassOf logic:Thing ;
+    logic:equivalentClass [
+        a logic:Class ;
+        logic:unionOf ( gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState ) ;
     ] ;
-    skos:definition "The class of things that can serve as a justification basis — an evidence span, an attestation, or a further doxastic state. Introduced as a named superclass so that schema projections can assign a single range to the justification edges (gmeow:hasAvailableEvidence, gmeow:basesBeliefOn) instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:definition "The class of things that can serve as a justification basis — an evidence span, an attestation, or a further doxastic state. Introduced as a named superclass so that schema projections can assign a single range to the justification edges (gmeow:hasAvailableEvidence, gmeow:basesBeliefOn) instead of losing a blank-node OWL unionOf."@x-gmeow-english ;
     skos:example "ex:aliceBelievesRound gmeow:hasAvailableEvidence ex:photoEvidence , ex:expertAttestation , ex:bobBelievesRound ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always EvidenceSpans, Attestations, or DoxasticStates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Let instances be typed as gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState; the explicit subClassOf axioms make them gmeow:JustificationGrounds for downstream schemas."@x-gmeow-english ;
-    gmeow:useWhen "Use as the range of gmeow:hasAvailableEvidence and gmeow:basesBeliefOn when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
+    gmeow:useWhen "Use as the range of gmeow:hasAvailableEvidence and gmeow:basesBeliefOn when projecting the ontology into schema languages that cannot consume a blank-node OWL unionOf."@x-gmeow-english .
 
 gmeow:JustificationStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Justification Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -197,24 +196,24 @@ gmeow:JustificationStatus
 
 gmeow:JustificationSubject
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Justification Subject"@x-gmeow-english ;
-    rdfs:subClassOf owl:Thing ;
-    owl:equivalentClass [
-        a owl:Class ;
-        owl:unionOf ( gmeow:DoxasticState gmeow:StandpointClaim ) ;
+    rdfs:subClassOf logic:Thing ;
+    logic:equivalentClass [
+        a logic:Class ;
+        logic:unionOf ( gmeow:DoxasticState gmeow:StandpointClaim ) ;
     ] ;
-    skos:definition "The class of things that can carry justification or defeat relations — a doxastic state or a standpoint claim. Introduced as a named superclass so that schema projections (LinkML, TypeScript, GraphQL) can assign a single domain to the justification edges (gmeow:hasAvailableEvidence, gmeow:basesBeliefOn, gmeow:supportsUnder, gmeow:adequateUnder, gmeow:defeatedBy, gmeow:hasDefeatStatus) instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:definition "The class of things that can carry justification or defeat relations — a doxastic state or a standpoint claim. Introduced as a named superclass so that schema projections (LinkML, TypeScript, GraphQL) can assign a single domain to the justification edges (gmeow:hasAvailableEvidence, gmeow:basesBeliefOn, gmeow:supportsUnder, gmeow:adequateUnder, gmeow:defeatedBy, gmeow:hasDefeatStatus) instead of losing a blank-node OWL unionOf."@x-gmeow-english ;
     skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:hasAvailableEvidence ex:photoEvidence . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:hasDefeatStatus gmeow:justificationStatusGettier ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always DoxasticStates or StandpointClaims."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Let instances be typed as gmeow:DoxasticState or gmeow:StandpointClaim; the explicit subClassOf axioms make them gmeow:JustificationSubjects for downstream schemas."@x-gmeow-english ;
-    gmeow:useWhen "Use as the domain of the justification and defeat edges when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
+    gmeow:useWhen "Use as the domain of the justification and defeat edges when projecting the ontology into schema languages that cannot consume a blank-node OWL unionOf."@x-gmeow-english .
 
 gmeow:KnowledgeAttribution
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Knowledge Attribution"@x-gmeow-english ;
     logic:mediates gmeow:attributedKnower ,
@@ -226,7 +225,7 @@ gmeow:KnowledgeAttribution
 
 gmeow:KnowledgeClaim
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Knowledge Claim"@x-gmeow-english ;
     logic:mediates gmeow:knowerAgent ,
@@ -239,7 +238,7 @@ gmeow:KnowledgeClaim
 
 gmeow:Proposition
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Proposition"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -256,7 +255,7 @@ gmeow:StandpointClaim
 
 gmeow:SupportAssessment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Support Assessment"@x-gmeow-english ;
     logic:mediates gmeow:supportGround ,
@@ -267,7 +266,7 @@ gmeow:SupportAssessment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:accepts
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "accepts"@x-gmeow-english ;
@@ -287,7 +286,7 @@ gmeow:adequacyMet
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:adequacyUnderStandard
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AdequacyAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "adequacy under standard"@x-gmeow-english ;
@@ -310,7 +309,7 @@ gmeow:adequacyUnmet
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:adequateUnder
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:JustificationSubject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "adequate under"@x-gmeow-english ;
@@ -319,7 +318,7 @@ gmeow:adequateUnder
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attacksClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attacks claim"@x-gmeow-english ;
@@ -333,7 +332,7 @@ gmeow:attacksClaim
     gmeow:useWhen "Use to record that an gmeow:Argument attacks a claim token — the coarse flat attack pole of bipolar argumentation; reify with gmeow:Attack for the typed form."@x-gmeow-english .
 
 gmeow:attributedKnower
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attributed knower"@x-gmeow-english ;
@@ -342,7 +341,7 @@ gmeow:attributedKnower
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributedProposition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attributed proposition"@x-gmeow-english ;
@@ -351,7 +350,7 @@ gmeow:attributedProposition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributingAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attributing agent"@x-gmeow-english ;
@@ -360,7 +359,7 @@ gmeow:attributingAgent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:basesBeliefOn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:JustificationSubject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "bases belief on"@x-gmeow-english ;
@@ -373,13 +372,13 @@ gmeow:basesBeliefOn
     gmeow:useWhen "Use to record which available ground a belief is actually based on — the basing relation, distinct from mere availability."@x-gmeow-english .
 
 gmeow:believes
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "believes"@x-gmeow-english ;
     skos:definition "An agent holds a proposition to be true — the base doxastic attitude. Range is intentionally OPEN: the object may be a gmeow:Proposition, a reified statement, or any claim the agent holds (the five-minute-gate shortcut, Principle 13); the typed content link arrives at the reified doxastic state (DoxasticState). Non-functional — an agent holds many beliefs, and contested beliefs coexist (Principle 9). How strongly, and from whose vantage, rides gmeow:standpointModality and gmeow:accordingTo on the statement, never a truth bit here."@x-gmeow-english ;
     skos:example "ex:alice gmeow:believes ex:earthIsRound ."@x-gmeow-english ;
-    skos:scopeNote "believes is documented — not axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot rdfs:subPropertyOf an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). Realised in the projection layer."@x-gmeow-english ;
+    skos:scopeNote "believes is documented — not axiomatised — as riding gmeow:accordingTo on the statement (an OWL ObjectProperty cannot rdfs:subPropertyOf an OWL AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). Realised in the projection layer."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as a global truth claim — believing is one agent's held attitude, never a factive knowledge verdict; for a merely entertained premise use gmeow:accepts (no belief), for the justified case use gmeow:knowsThat, and never force one belief to win in a merge (it is non-functional)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the agent at a gmeow:Proposition or reified statement; carry strength and frame on gmeow:standpointModality / gmeow:accordingTo of the statement, and promote to the reified doxastic state (DoxasticState) only when credence, justification, or the mental moment must be first-class."@x-gmeow-english ;
@@ -387,7 +386,7 @@ gmeow:believes
     gmeow:useWhen "Use to record that an agent holds a proposition (or any reified statement / claim) to be true — the base doxastic attitude and the cheap 80% surface; how strongly and from whose vantage ride gmeow:standpointModality and gmeow:accordingTo on the holding statement."@x-gmeow-english .
 
 gmeow:claimOfBelief
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DoxasticStandpointClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "claim of belief"@x-gmeow-english ;
@@ -400,7 +399,7 @@ gmeow:claimOfBelief
     gmeow:useWhen "Use to bind a DoxasticStandpointClaim to the reified DoxasticState whose belief it reports."@x-gmeow-english .
 
 gmeow:claimsToKnowThat
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "claims to know that"@x-gmeow-english ;
@@ -413,7 +412,7 @@ gmeow:claimsToKnowThat
     gmeow:useWhen "Use to record that an agent claims (takes itself) to know a proposition — a non-factive reported attitude, kept strictly separate from the locally-factive knowledge relation."@x-gmeow-english .
 
 gmeow:credence
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:DoxasticState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "credence"@x-gmeow-english ;
@@ -426,7 +425,7 @@ gmeow:credence
     gmeow:useWhen "Use to record a numeric degree-of-belief on a reified DoxasticState when graded strength is itself first-class."@x-gmeow-english .
 
 gmeow:defeatedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:JustificationSubject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "defeated by"@x-gmeow-english ;
@@ -439,7 +438,7 @@ gmeow:defeatedBy
     gmeow:useWhen "Use to record the structural defeater(s) bearing on a reified gmeow:DoxasticState or gmeow:StandpointClaim — what does the defeating — keeping the solver's verdict flag on gmeow:hasDefeatStatus."@x-gmeow-english .
 
 gmeow:doubts
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doubts"@x-gmeow-english ;
@@ -451,7 +450,7 @@ gmeow:doubts
     gmeow:useWhen "Use to record an agent's low-credence, unsettled leaning against a proposition — weaker than belief and not yet settled disbelief — when the wavering itself is what you want to capture."@x-gmeow-english .
 
 gmeow:doxasticClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DoxasticState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxastic claim"@x-gmeow-english ;
@@ -465,7 +464,7 @@ gmeow:doxasticClaim
     gmeow:useWhen "Use when the reified doxastic state needs a qualitative standpoint modality; the linked StandpointClaim carries claimModality."@x-gmeow-english .
 
 gmeow:doxasticContent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DoxasticState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxastic content"@x-gmeow-english ;
@@ -478,7 +477,7 @@ gmeow:doxasticContent
     gmeow:useWhen "Use to bind a DoxasticState to the truth-apt proposition it is about."@x-gmeow-english .
 
 gmeow:epistemicAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DoxasticState ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "epistemic agent"@x-gmeow-english ;
@@ -491,7 +490,7 @@ gmeow:epistemicAgent
     gmeow:useWhen "Use to bind a DoxasticState to the agent whose believing mode it is."@x-gmeow-english .
 
 gmeow:evaluates
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ClaimEvaluation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "evaluates"@x-gmeow-english ;
@@ -504,7 +503,7 @@ gmeow:evaluates
     gmeow:useWhen "Use to bind a gmeow:ClaimEvaluation to the single claim token it assesses."@x-gmeow-english .
 
 gmeow:expresses
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ClaimToken ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "expresses"@x-gmeow-english ;
@@ -517,7 +516,7 @@ gmeow:expresses
     gmeow:useWhen "Use to name the truth-apt proposition(s) a claim token asserts, denies, entertains, or assumes — the content axis of the four-way separation, kept distinct from the act, the attitude, and the evaluation."@x-gmeow-english .
 
 gmeow:groundsClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MentalMoment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "grounds claim"@x-gmeow-english ;
@@ -530,7 +529,7 @@ gmeow:groundsClaim
     gmeow:useWhen "Use from a held attitude to reach the claim token(s) it grounds — the attitude-rooted direction of the attitude↔token link."@x-gmeow-english .
 
 gmeow:hasAvailableEvidence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:JustificationSubject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "has available evidence"@x-gmeow-english ;
@@ -543,7 +542,7 @@ gmeow:hasAvailableEvidence
     gmeow:useWhen "Use to record the evidence available to an agent as a potential basis — the accessible set, distinct from what the belief is actually based on."@x-gmeow-english .
 
 gmeow:hasDefeatStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:JustificationSubject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "has defeat status"@x-gmeow-english ;
@@ -556,12 +555,12 @@ gmeow:hasDefeatStatus
     gmeow:useWhen "Use to flag that a reified gmeow:DoxasticState or gmeow:StandpointClaim has a known justification problem (Gettier case, defeated, undermined, undercut, rebutted) as determined by the solver layer."@x-gmeow-english .
 
 gmeow:heldByAttitude
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ClaimToken ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "held by attitude"@x-gmeow-english ;
     rdfs:range gmeow:MentalMoment ;
-    owl:inverseOf gmeow:groundsClaim ;
+    logic:inverseOf gmeow:groundsClaim ;
     skos:definition "The held attitude a claim token reports — a gmeow:DoxasticState (belief) or a teleology gmeow:IntentionalMode (desire / intention), the kernel gmeow:MentalMoment parent covering both without re-minting per attitude family (Principle 6). The token-rooted inverse of gmeow:groundsClaim. OPTIONAL by design: a token with no attitude is one asserted without a reported private attitude, and a proposition held as an attitude with NO token is one merely entertained or assumed without being put forward (the canon 'an attitude need not be expressed by any token')."@x-gmeow-english ;
     skos:example "ex:tok1 gmeow:heldByAttitude ex:aliceBelievesRound ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the propositional content (gmeow:expresses) or the asserting agent (gmeow:wasAssociatedWith); leave it absent to model a merely entertained or assumed token, or a sincerity gap where the projected token diverges from the held attitude."@x-gmeow-english ;
@@ -605,7 +604,7 @@ gmeow:justificationStatusUndermined
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:knowerAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knower agent"@x-gmeow-english ;
@@ -614,7 +613,7 @@ gmeow:knowerAgent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:knownInWorld
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "known in world"@x-gmeow-english ;
@@ -623,7 +622,7 @@ gmeow:knownInWorld
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:knownProposition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "known proposition"@x-gmeow-english ;
@@ -632,7 +631,7 @@ gmeow:knownProposition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:knowsThat
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knows that"@x-gmeow-english ;
@@ -646,7 +645,7 @@ gmeow:knowsThat
     gmeow:useWhen "Use to record justified, standpoint-true belief held from a vantage — the keystone knowledge-that attitude; asserting it materialises gmeow:believes (knowledge entails belief), so reach for it only when the holding is justified, not merely held."@x-gmeow-english .
 
 gmeow:knowsThatIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knows that in"@x-gmeow-english ;
@@ -660,7 +659,7 @@ gmeow:knowsThatIn
     gmeow:useWhen "Use to record locally-factive knowledge — that an agent knows P holds in a particular belief-world — distinct from the non-factive gmeow:knowsThat; the world and standard ride the reified gmeow:KnowledgeClaim."@x-gmeow-english .
 
 gmeow:meetsThreshold
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AdequacyAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "meets threshold"@x-gmeow-english ;
@@ -669,7 +668,7 @@ gmeow:meetsThreshold
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:producesClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "produces claim"@x-gmeow-english ;
@@ -717,7 +716,7 @@ gmeow:standardScientific
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:supportGround
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SupportAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "support ground"@x-gmeow-english ;
@@ -726,7 +725,7 @@ gmeow:supportGround
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:supportStrength
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:SupportAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "support strength"@x-gmeow-english ;
@@ -735,7 +734,7 @@ gmeow:supportStrength
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:supportUnderStandard
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SupportAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "support under standard"@x-gmeow-english ;
@@ -744,7 +743,7 @@ gmeow:supportUnderStandard
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:supportsClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Argument ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supports claim"@x-gmeow-english ;
@@ -758,7 +757,7 @@ gmeow:supportsClaim
     gmeow:useWhen "Use to record that an gmeow:Argument supports a claim token — the coarse flat support pole of bipolar argumentation; reify with gmeow:Support for accrual."@x-gmeow-english .
 
 gmeow:supportsUnder
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:JustificationSubject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supports under"@x-gmeow-english ;
@@ -767,7 +766,7 @@ gmeow:supportsUnder
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:suspendsJudgementOn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "suspends judgement on"@x-gmeow-english ;
@@ -779,7 +778,7 @@ gmeow:suspendsJudgementOn
     gmeow:useWhen "Use to record an explicit agnostic stance — the agent has considered the proposition and withholds, neither believing nor disbelieving it — so suspension is distinguishable from mere silence (no recorded attitude)."@x-gmeow-english .
 
 gmeow:takesAsKnown
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "takes as known"@x-gmeow-english ;
@@ -792,7 +791,7 @@ gmeow:takesAsKnown
     gmeow:useWhen "Use to record that an agent takes a proposition as known for reasoning or action WITHOUT thereby knowing or believing it — the knowledge analogue of pragmatic acceptance."@x-gmeow-english .
 
 gmeow:tenureOfDoxasticState
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DoxasticTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "tenure of doxastic state"@x-gmeow-english ;
@@ -805,7 +804,7 @@ gmeow:tenureOfDoxasticState
     gmeow:useWhen "Use to bind a DoxasticTenure to the DoxasticState it time-scopes."@x-gmeow-english .
 
 gmeow:underStandard
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KnowledgeClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "under standard"@x-gmeow-english ;
@@ -814,7 +813,7 @@ gmeow:underStandard
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/epistemics>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The propositional companion to the cognition slice (objectual, agent to entity): epistemics relates an agent to a PROPOSITION, not to an entity.
 
@@ -824,7 +823,7 @@ DOCTRINE.
   * Locally-factive knowledge (design/LOGIC-FOUNDATION.md): the non-factive gmeow:knowsThat has a SIBLING gmeow:knowsThatIn — knowing P in a belief-world W entails P holds IN W, never globally. The reified gmeow:KnowledgeClaim carries the world (gmeow:knownInWorld -> gmeow:EpistemicContext) and the standard (gmeow:underStandard -> gmeow:EpistemicStandard); it is a CLAIM apparatus (logic:Relator), deliberately NOT a kernel:MentalMoment (the attitude stays gmeow:DoxasticState). Local factivity is recorded by PROSE only — no gmeow:isTrue, no factivity axiom, no asserted logic: triple; the world-indexed rule stays central in the logic slice. NON-FACTIVE knowledge-attribution ('they take themselves to know') is kept strictly separate: gmeow:claimsToKnowThat / gmeow:takesAsKnown (flat) and gmeow:KnowledgeAttribution (reified), none a subproperty of the factive or doxastic spine.
   * Flat-first (Principle 4 / Principle 13): the believes / doubts / suspendsJudgementOn / accepts / knowsThat spine is the cheap 80% surface with an OPEN range (point at any reified statement or claim). The reified tier (DoxasticState, credence, doxasticClaim, DoxasticTenure) and the mental-moment grounding live in this module as the promotion target when credence, temporal scope, or standpoint modality must be first-class.
   * Factored justification (five components, design/LOGIC-FOUNDATION.md): available-evidence (gmeow:hasAvailableEvidence), basing (gmeow:basesBeliefOn — available != used), support-under-a-standard (gmeow:supportsUnder -> gmeow:SupportAssessment), adequacy (gmeow:adequateUnder -> gmeow:AdequacyAssessment, meeting a gmeow:EpistemicStandard threshold), and defeat — split into the structural defeater (gmeow:defeatedBy -> gmeow:Defeater) and the solver-set verdict flag (gmeow:hasDefeatStatus -> gmeow:JustificationStatus). All are solver judgements (Principle 12); full inferential argumentation lives in the inference slice.
-  * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot subproperty an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
+  * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an OWL ObjectProperty cannot subproperty an OWL AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
   * Acceptance is not belief: gmeow:accepts is pragmatic (a premise taken on for argument) and entails neither belief nor truth (Principle 1)."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "GMEOW Epistemics Module"@x-gmeow-english ;
@@ -835,20 +834,20 @@ DOCTRINE.
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
 # (Principle 17). Cross-node / value-keyed (sh:sparql, SPARQLTarget) conditions
-# have no OWL antecedent and remain the procedural fragment .
+# have no OWL/DL antecedent and remain the procedural fragment .
 # =========================================================================== #
 
 gmeow:DoxasticStandpointClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:claimOfBelief ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DoxasticState ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasAvailableEvidence ; owl:allValuesFrom gmeow:JustificationGround ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:basesBeliefOn ; owl:allValuesFrom gmeow:JustificationGround ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasDefeatStatus ; owl:allValuesFrom gmeow:JustificationStatus ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:defeatedBy ; owl:allValuesFrom gmeow:Defeater ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:claimOfBelief ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DoxasticState ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasAvailableEvidence ; logic:allValuesFrom gmeow:JustificationGround ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:basesBeliefOn ; logic:allValuesFrom gmeow:JustificationGround ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasDefeatStatus ; logic:allValuesFrom gmeow:JustificationStatus ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:defeatedBy ; logic:allValuesFrom gmeow:Defeater ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:supportsUnder ; logic:allValuesFrom gmeow:SupportAssessment ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:adequateUnder ; logic:allValuesFrom gmeow:AdequacyAssessment ] .
 
 gmeow:DoxasticState logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:epistemicAgent ; logic:allValuesFrom gmeow:Agent ] ,
@@ -856,18 +855,18 @@ gmeow:DoxasticState logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:doxasticClaim ; logic:allValuesFrom gmeow:StandpointClaim ] .
 
 gmeow:DoxasticState rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:credence ; owl:allValuesFrom xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasAvailableEvidence ; owl:allValuesFrom gmeow:JustificationGround ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:basesBeliefOn ; owl:allValuesFrom gmeow:JustificationGround ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasDefeatStatus ; owl:allValuesFrom gmeow:JustificationStatus ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:defeatedBy ; owl:allValuesFrom gmeow:Defeater ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:credence ; logic:allValuesFrom xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasAvailableEvidence ; logic:allValuesFrom gmeow:JustificationGround ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:basesBeliefOn ; logic:allValuesFrom gmeow:JustificationGround ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasDefeatStatus ; logic:allValuesFrom gmeow:JustificationStatus ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:defeatedBy ; logic:allValuesFrom gmeow:Defeater ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:supportsUnder ; logic:allValuesFrom gmeow:SupportAssessment ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:adequateUnder ; logic:allValuesFrom gmeow:AdequacyAssessment ] .
 
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:StandpointClaim rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ObservationMethod ] .
 
 # Bare min1+class backing for the properties whose legacy sh:minCount 1 the
 # qualified-onClass restorations above never satisfied (a min/maxQualifiedCardinality
@@ -938,7 +937,7 @@ gmeow:DoxasticStateCredenceRangeConstraint
     logic:minInclusiveBound 0.0 ;
     logic:maxInclusiveBound 1.0 .
 
-<https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+<https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationMethod> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 
 # =========================================================================== #
 # Advisory justifier-type constraint — projection of
@@ -996,7 +995,7 @@ logic:dsjBgDox a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rd
     logic:argument [ logic:termIndex 0 ; logic:termVariable "bg" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticState ] .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of WithdrawnDoxasticTenureSuppressionShape.
+# Suppression constraint — projection of WithdrawnDoxasticTenureSuppressionShape.
 # A withdrawn belief (a DoxasticTenure whose gmeow:duringInterval has ended,     #
 # i.e. carries gmeow:endedAtTime) that is not suppressed (gmeow:displayable      #
 # false) is a Warning — a source may lag the flag.                              #
@@ -1032,20 +1031,20 @@ logic:supDxDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/adequateUnder> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/AdequacyAssessment> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/basesBeliefOn> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/claimOfBelief> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/DoxasticState> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/defeatedBy> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Defeater> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasAvailableEvidence> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDefeatStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationStatus> ] .
-<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportsUnder> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/SupportAssessment> ] .
-<https://blackcatinformatics.ca/gmeow/SupportAssessment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/supportStrength> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
+<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/adequateUnder> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/AdequacyAssessment> ] .
+<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/basesBeliefOn> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
+<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/claimOfBelief> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/DoxasticState> ] .
+<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/defeatedBy> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Defeater> ] .
+<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasAvailableEvidence> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationGround> ] .
+<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/hasDefeatStatus> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/JustificationStatus> ] .
+<https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/supportsUnder> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/SupportAssessment> ] .
+<https://blackcatinformatics.ca/gmeow/SupportAssessment> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/supportStrength> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1053,7 +1052,7 @@ logic:supDxDisp a logic:Formula ; logic:relation gmeow:displayable ;
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:adequacyUnderStandardFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "adequacyUnderStandard is functional"@x-gmeow-english ;
@@ -1068,7 +1067,7 @@ gmeow:adequacyUnderStandardFunctionality
     skos:example "gmeow:adequacyUnderStandardFunctionality logic:characterizes gmeow:adequacyUnderStandard ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attributedKnowerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attributedKnower is functional"@x-gmeow-english ;
@@ -1083,7 +1082,7 @@ gmeow:attributedKnowerFunctionality
     skos:example "gmeow:attributedKnowerFunctionality logic:characterizes gmeow:attributedKnower ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attributedPropositionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attributedProposition is functional"@x-gmeow-english ;
@@ -1098,7 +1097,7 @@ gmeow:attributedPropositionFunctionality
     skos:example "gmeow:attributedPropositionFunctionality logic:characterizes gmeow:attributedProposition ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attributingAgentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "attributingAgent is functional"@x-gmeow-english ;
@@ -1113,7 +1112,7 @@ gmeow:attributingAgentFunctionality
     skos:example "gmeow:attributingAgentFunctionality logic:characterizes gmeow:attributingAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:claimOfBeliefFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "claimOfBelief is functional"@x-gmeow-english ;
@@ -1128,7 +1127,7 @@ gmeow:claimOfBeliefFunctionality
     skos:example "gmeow:claimOfBeliefFunctionality logic:characterizes gmeow:claimOfBelief ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:doxasticClaimFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxasticClaim is functional"@x-gmeow-english ;
@@ -1143,7 +1142,7 @@ gmeow:doxasticClaimFunctionality
     skos:example "gmeow:doxasticClaimFunctionality logic:characterizes gmeow:doxasticClaim ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:doxasticContentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxasticContent is functional"@x-gmeow-english ;
@@ -1158,7 +1157,7 @@ gmeow:doxasticContentFunctionality
     skos:example "gmeow:doxasticContentFunctionality logic:characterizes gmeow:doxasticContent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:epistemicAgentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "epistemicAgent is functional"@x-gmeow-english ;
@@ -1173,7 +1172,7 @@ gmeow:epistemicAgentFunctionality
     skos:example "gmeow:epistemicAgentFunctionality logic:characterizes gmeow:epistemicAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:evaluatesFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "evaluates is functional"@x-gmeow-english ;
@@ -1188,7 +1187,7 @@ gmeow:evaluatesFunctionality
     skos:example "gmeow:evaluatesFunctionality logic:characterizes gmeow:evaluates ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:knowerAgentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knowerAgent is functional"@x-gmeow-english ;
@@ -1203,7 +1202,7 @@ gmeow:knowerAgentFunctionality
     skos:example "gmeow:knowerAgentFunctionality logic:characterizes gmeow:knowerAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:knownInWorldFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knownInWorld is functional"@x-gmeow-english ;
@@ -1218,7 +1217,7 @@ gmeow:knownInWorldFunctionality
     skos:example "gmeow:knownInWorldFunctionality logic:characterizes gmeow:knownInWorld ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:knownPropositionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "knownProposition is functional"@x-gmeow-english ;
@@ -1233,7 +1232,7 @@ gmeow:knownPropositionFunctionality
     skos:example "gmeow:knownPropositionFunctionality logic:characterizes gmeow:knownProposition ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:meetsThresholdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "meetsThreshold is functional"@x-gmeow-english ;
@@ -1248,7 +1247,7 @@ gmeow:meetsThresholdFunctionality
     skos:example "gmeow:meetsThresholdFunctionality logic:characterizes gmeow:meetsThreshold ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:supportGroundFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supportGround is functional"@x-gmeow-english ;
@@ -1263,7 +1262,7 @@ gmeow:supportGroundFunctionality
     skos:example "gmeow:supportGroundFunctionality logic:characterizes gmeow:supportGround ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:supportUnderStandardFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "supportUnderStandard is functional"@x-gmeow-english ;
@@ -1278,7 +1277,7 @@ gmeow:supportUnderStandardFunctionality
     skos:example "gmeow:supportUnderStandardFunctionality logic:characterizes gmeow:supportUnderStandard ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tenureOfDoxasticStateFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "tenureOfDoxasticState is functional"@x-gmeow-english ;
@@ -1293,7 +1292,7 @@ gmeow:tenureOfDoxasticStateFunctionality
     skos:example "gmeow:tenureOfDoxasticStateFunctionality logic:characterizes gmeow:tenureOfDoxasticState ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:underStandardFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "underStandard is functional"@x-gmeow-english ;

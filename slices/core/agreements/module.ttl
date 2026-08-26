@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Agreement
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Agreement"@x-gmeow-english ;
     logic:mediates gmeow:hasParty ;
@@ -22,7 +21,7 @@ gmeow:Agreement
 
 gmeow:AgreementName
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Agreement Name"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Appellation ;
@@ -35,7 +34,7 @@ gmeow:AgreementName
 
 gmeow:Contract
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Contract"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agreement ;
@@ -47,7 +46,7 @@ gmeow:Contract
     gmeow:useWhen "Use when an agreement's obligations are backed by a legal order and enforceability is the distinguishing fact — a supply contract, a licence, an employment agreement."@x-gmeow-english .
 
 gmeow:foundedOn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:Relator ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "founded on"@x-gmeow-english ;
@@ -60,7 +59,7 @@ gmeow:foundedOn
     gmeow:useWhen "Use to record the UFO commitment-grounding of any relator — the agreement or contract whose commitments bring a Membership, KinRelationship, or other relator into being."@x-gmeow-english .
 
 gmeow:hasParty
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agreement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "has party"@x-gmeow-english ;
@@ -73,7 +72,7 @@ gmeow:hasParty
     gmeow:useWhen "Use to attach each agent bound by an agreement or contract — the parties the relator mediates, repeated once per party."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/agreements>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Legal agreements and contracts, modeled as relators binding their parties."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;

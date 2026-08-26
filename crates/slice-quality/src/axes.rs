@@ -100,13 +100,19 @@ fn grounding_axis(ctx: &ScoreContext) -> AxisScore {
     let Some(type_p) = id(ds, graph::RDF_TYPE) else {
         return AxisScore::clean(0.0);
     };
-    let owl_class = id(ds, "http://www.w3.org/2002/07/owl#Class");
+    // A class is typed in the canonical `logic:Class`; its generated OWL view uses
+    // `owl:Class`. Recognize both so a re-authored slice is not read as class-less
+    // (which would silently score a vacuous 1.0).
+    let class_markers: Vec<purrdf::TermId> = [gmeow_ns::LOGIC_CLASS, gmeow_ns::OWL_CLASS]
+        .into_iter()
+        .filter_map(|c| id(ds, c))
+        .collect();
 
     let classes: Vec<&String> = ctx
         .terms
         .iter()
         .filter(|iri| {
-            id(ds, iri).is_some_and(|s| owl_class.is_some_and(|c| graph::has(ds, s, type_p, c)))
+            id(ds, iri).is_some_and(|s| class_markers.iter().any(|&c| graph::has(ds, s, type_p, c)))
         })
         .collect();
     if classes.is_empty() {
@@ -182,7 +188,10 @@ fn is_tbox_term(ctx: &ScoreContext, iri: &str) -> bool {
     ds.quads_for_pattern(Some(sid), Some(type_p), None, GraphMatch::Any)
         .any(|q| match ds.resolve(q.o) {
             TermRef::Iri(t) => {
-                t == "http://www.w3.org/2002/07/owl#Class"
+                // A term is typed in the canonical `logic:` spelling; lower it to
+                // its `owl:` view so the TBox test sees both spellings.
+                let t = gmeow_ns::to_owl_view(t);
+                t == gmeow_ns::OWL_CLASS
                     || t.starts_with("http://www.w3.org/2002/07/owl#") && t.ends_with("Property")
             }
             _ => false,
@@ -464,8 +473,13 @@ const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
 /// lossy `skos:closeMatch`/`relatedMatch`/`broadMatch`/`narrowMatch` is by construction
 /// outside the calculus's remit, so it is never a migration target and never enters the
 /// adoption population.
+// An authored `gmeow:alignPredicate` value is spelled in the canonical `logic:`
+// (`logic:equivalentClass`); its generated OWL view uses `owl:`. Both spellings
+// (plus `skos:exactMatch`) are identity-strength, so both are listed here.
 const IDENTITY_ALIGN_PREDICATES: &[&str] = &[
     "http://www.w3.org/2004/02/skos/core#exactMatch",
+    "https://blackcatinformatics.ca/logic/equivalentClass",
+    "https://blackcatinformatics.ca/logic/equivalentProperty",
     "http://www.w3.org/2002/07/owl#equivalentClass",
     "http://www.w3.org/2002/07/owl#equivalentProperty",
 ];
@@ -752,10 +766,19 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     // shapes.ttl has not projected its validation and scores a shortfall here (the debt finding
     // above names the file). This keeps the term falsifiable and aligns it with migration —
     // retiring shapes.ttl is the ONLY way to earn the credit, and can never lose it.
-    let has_constraints = id(ds, "http://www.w3.org/2002/07/owl#Restriction")
-        .is_some_and(|c| id(ds, graph::RDF_TYPE).is_some_and(|t| graph::has_any_object(ds, t, c)))
-        || id(ds, "http://www.w3.org/2002/07/owl#disjointWith")
-            .is_some_and(|p| graph::predicate_used(ds, p));
+    // Constraints are authored in the canonical `logic:` spelling (`logic:Restriction`,
+    // `logic:disjointWith`); recognize both those and their `owl:` views so a
+    // re-authored constraint-bearing slice still earns its projectable-source bar.
+    let restriction_typed = |marker: &str| {
+        id(ds, marker).is_some_and(|c| {
+            id(ds, graph::RDF_TYPE).is_some_and(|t| graph::has_any_object(ds, t, c))
+        })
+    };
+    let disjoint_used = |pred: &str| id(ds, pred).is_some_and(|p| graph::predicate_used(ds, p));
+    let has_constraints = restriction_typed(gmeow_ns::LOGIC_RESTRICTION)
+        || restriction_typed(gmeow_ns::OWL_RESTRICTION)
+        || disjoint_used("https://blackcatinformatics.ca/logic/disjointWith")
+        || disjoint_used("http://www.w3.org/2002/07/owl#disjointWith");
     if has_constraints {
         expected += 1;
         if !ctx.has("shapes.ttl") {

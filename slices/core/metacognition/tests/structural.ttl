@@ -34,10 +34,10 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:MetacognitiveState a owl:Class , logic:Kind ;
+    gmeow:MetacognitiveState a owl:Class , logic:Class , logic:Kind ;
         rdfs:subClassOf gmeow:MentalMoment .
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:MentalMoment — the reflexive mode sibling." .
+    gmeow:saRationale "MetacognitiveState MUST be a canonical logic:Class (the class-declaration marker authored after the owl:→logic: flip; owl:Class is its retained generated projection, Principle 17), a logic:Kind, and a subClassOf gmeow:MentalMoment — the reflexive mode sibling. Asserting owl:Class AND logic:Class together keeps the projection load-bearing while pinning the canonical surface." .
 
 # --- 1b. MetacognitiveState carries exactly one logic metaclass (MUST-NOT) ----
 ex:saMetacognitiveStateNoExtraLogicMetaclass a gmeow:StructuralAssertion ;
@@ -48,9 +48,9 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     gmeow:MetacognitiveState rdf:type ?t .
-    FILTER(STRSTARTS(STR(?t), "https://blackcatinformatics.ca/logic/") && ?t != logic:Kind)
+    FILTER(STRSTARTS(STR(?t), "https://blackcatinformatics.ca/logic/") && ?t != logic:Kind && ?t != logic:Class)
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST carry NO logic-namespace type other than logic:Kind — this dynamic ASK mirrors the ORIGINAL set-equality invariant (the logic-type set must equal {logic:Kind} exactly, for ANY logic metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts logic:Kind IS present." .
+    gmeow:saRationale "MetacognitiveState MUST carry NO logic-namespace type other than logic:Kind (its gUFO stereotype) and logic:Class (the canonical class-declaration marker mandated by the owl:→logic: authoring flip; before the flip this was the owl:Class it earned from its Kind sort). This dynamic ASK mirrors the set-equality invariant: the logic-metaclass set must equal {logic:Kind, logic:Class} EXACTLY, for ANY logic metaclass — a THIRD logic type (e.g. an accidental logic:AbstractIndividualType or logic:Category over-typing) still trips it, so coverage stays non-vacuous. Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts both logic:Kind and logic:Class ARE present." .
 
 # --- 2. MetacognitiveState is sibling not a sub-mode (MUST-NOT hold) ----------
 ex:saMetacognitiveStateSiblingNotSubMode a gmeow:StructuralAssertion ;

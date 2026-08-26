@@ -20,7 +20,6 @@
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix logic:   <https://blackcatinformatics.ca/logic/> .
 @prefix math:    <https://blackcatinformatics.ca/math/> .
@@ -28,7 +27,7 @@
 
 gmeow:WorkCluster
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:SocialObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "Work Cluster"@x-gmeow-english ;
@@ -41,7 +40,7 @@ gmeow:WorkCluster
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:clusterGoal
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range gmeow:Goal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -55,7 +54,7 @@ gmeow:clusterGoal
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:clusterPolicy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -69,7 +68,7 @@ gmeow:clusterPolicy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:clusterSchedule
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range gmeow:EventSchedule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -83,7 +82,7 @@ gmeow:clusterSchedule
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:clusterOccurrenceSeries
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range gmeow:EventSeries ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -97,7 +96,7 @@ gmeow:clusterOccurrenceSeries
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:clusterActivePrescription
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range logic:PrescriptionVersion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -111,7 +110,7 @@ gmeow:clusterActivePrescription
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:clusterEnactment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range logic:Enactment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -125,7 +124,7 @@ gmeow:clusterEnactment
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:clusterNote
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range gmeow:Note ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -140,7 +139,7 @@ gmeow:clusterNote
 
 gmeow:GuidanceSet
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "Guidance Set"@x-gmeow-english ;
@@ -153,7 +152,7 @@ gmeow:GuidanceSet
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:clusterGuidanceSet
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkCluster ;
     rdfs:range gmeow:GuidanceSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -167,7 +166,7 @@ gmeow:clusterGuidanceSet
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:guidanceRubric
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GuidanceSet ;
     rdfs:range gmeow:Rubric ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -181,7 +180,7 @@ gmeow:guidanceRubric
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:guidanceChecklist
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GuidanceSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "guidance checklist"@x-gmeow-english ;
@@ -194,7 +193,7 @@ gmeow:guidanceChecklist
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:guidanceVersionMembership
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:GuidanceSet ;
     rdfs:range gmeow:VersionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -208,7 +207,7 @@ gmeow:guidanceVersionMembership
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:enactmentContextAssembly
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:Enactment ;
     rdfs:range logic:ContextAssembly ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -222,7 +221,7 @@ gmeow:enactmentContextAssembly
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:preparationActivity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     logic:subPropertyOf logic:preparationOf ;
     rdfs:domain logic:PreparationStep ;
     rdfs:range gmeow:Activity ;
@@ -237,7 +236,7 @@ gmeow:preparationActivity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:frontierCandidateSet
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:ActionableFrontier ;
     rdfs:range gmeow:CandidateSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -251,7 +250,7 @@ gmeow:frontierCandidateSet
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:frontierComparisonContext
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:ActionableFrontier ;
     rdfs:range gmeow:ComparisonContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -265,7 +264,7 @@ gmeow:frontierComparisonContext
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:entryHardFailure
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:FrontierEntry ;
     rdfs:range gmeow:VerifierVerdict ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -279,7 +278,7 @@ gmeow:entryHardFailure
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:approvalGoverningNorm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     logic:subPropertyOf logic:approvalPolicy ;
     rdfs:domain logic:ApprovalCommitment ;
     rdfs:range gmeow:Norm ;
@@ -295,7 +294,7 @@ gmeow:approvalGoverningNorm
 
 gmeow:ContributionKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf logic:QualityValue ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "Contribution Kind"@x-gmeow-english ;
@@ -307,7 +306,7 @@ gmeow:ContributionKind
     skos:scopeNote "Closed and mandatory, so there is no unclassified contribution and no room to add a fourth kind locally. The three values differ in authority rather than in quality, so a contribution is never promoted from one kind to another by being good."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:contributionModel a owl:NamedIndividual , gmeow:ContributionKind ;
+gmeow:contributionModel a logic:NamedIndividual , gmeow:ContributionKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "model contribution"@x-gmeow-english ;
     skos:definition "Generated by a model. Always advice: it may inform a decision and may never be one, and it may never authorize an effect."@x-gmeow-english ;
@@ -318,7 +317,7 @@ gmeow:contributionModel a owl:NamedIndividual , gmeow:ContributionKind ;
     gmeow:howToUse "Attach it with gmeow:contributionKind on the contribution record, and leave the record out of every approval commitment: an authorization names an operator contribution, so a model contribution that appears in one is exactly the laundering the kernel forbids."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:contributionOperator a owl:NamedIndividual , gmeow:ContributionKind ;
+gmeow:contributionOperator a logic:NamedIndividual , gmeow:ContributionKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "operator contribution"@x-gmeow-english ;
     skos:definition "Made by a human operator. The only kind that may carry a decision, and the kind an approval commitment names. It records that a person authored the contribution and not that the person was entitled to decide: entitlement is the governing norm on the commitment, so this kind is a necessary and never a sufficient condition for authorization."@x-gmeow-english ;
@@ -329,7 +328,7 @@ gmeow:contributionOperator a owl:NamedIndividual , gmeow:ContributionKind ;
     gmeow:howToUse "Attach it with gmeow:contributionKind, and pair it with gmeow:approvalGoverningNorm on the commitment so a reader can see both that a human decided and under which norm they were entitled to."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:contributionTool a owl:NamedIndividual , gmeow:ContributionKind ;
+gmeow:contributionTool a logic:NamedIndividual , gmeow:ContributionKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "tool contribution"@x-gmeow-english ;
     skos:definition "Produced by a deterministic tool. An observation rather than advice or decision: it reports what a tool found, and its authority is the tool's correctness."@x-gmeow-english ;
@@ -341,7 +340,7 @@ gmeow:contributionTool a owl:NamedIndividual , gmeow:ContributionKind ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:contributionKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:range gmeow:ContributionKind ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "contribution kind"@x-gmeow-english ;
@@ -355,7 +354,7 @@ gmeow:contributionKind
 
 gmeow:WorkReviewProjection
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "Work Review Projection"@x-gmeow-english ;
@@ -368,7 +367,7 @@ gmeow:WorkReviewProjection
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:reviewOfCluster
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:range gmeow:WorkCluster ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -382,7 +381,7 @@ gmeow:reviewOfCluster
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewReceipt
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:range gmeow:ProjectionReceipt ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -396,7 +395,7 @@ gmeow:reviewReceipt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewGoalAndRecurrence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "review goal and recurrence"@x-gmeow-english ;
@@ -409,7 +408,7 @@ gmeow:reviewGoalAndRecurrence
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewPrescriptionLineage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "review prescription lineage"@x-gmeow-english ;
@@ -422,7 +421,7 @@ gmeow:reviewPrescriptionLineage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewCurrentEnactment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:range logic:Enactment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -436,7 +435,7 @@ gmeow:reviewCurrentEnactment
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewFrontier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:range logic:ActionableFrontier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -450,7 +449,7 @@ gmeow:reviewFrontier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewApprovalsAndPending
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "review approvals and pending inputs"@x-gmeow-english ;
@@ -463,7 +462,7 @@ gmeow:reviewApprovalsAndPending
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewEffectStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "review effect status"@x-gmeow-english ;
@@ -476,7 +475,7 @@ gmeow:reviewEffectStatus
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewAccumulatedRecord
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "review accumulated record"@x-gmeow-english ;
@@ -489,7 +488,7 @@ gmeow:reviewAccumulatedRecord
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:reviewTimelineRepresentation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:WorkReviewProjection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "review timeline representation"@x-gmeow-english ;
@@ -503,7 +502,7 @@ gmeow:reviewTimelineRepresentation
 
 gmeow:FrontierExplanation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "Frontier Explanation"@x-gmeow-english ;
@@ -516,7 +515,7 @@ gmeow:FrontierExplanation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:explainsEntry
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FrontierExplanation ;
     rdfs:range logic:FrontierEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -530,7 +529,7 @@ gmeow:explainsEntry
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explanationProof
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FrontierExplanation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation proof"@x-gmeow-english ;
@@ -543,7 +542,7 @@ gmeow:explanationProof
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explanationEvidence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FrontierExplanation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation evidence"@x-gmeow-english ;
@@ -556,7 +555,7 @@ gmeow:explanationEvidence
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explanationPolicy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FrontierExplanation ;
     rdfs:range gmeow:Norm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -570,7 +569,7 @@ gmeow:explanationPolicy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explanationCriterion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FrontierExplanation ;
     rdfs:range gmeow:Criterion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
@@ -584,7 +583,7 @@ gmeow:explanationCriterion
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:explanationDissent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FrontierExplanation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "explanation dissent"@x-gmeow-english ;
@@ -597,7 +596,7 @@ gmeow:explanationDissent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:criterionMagnitude
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:range math:Quantity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "criterion magnitude"@x-gmeow-english ;
@@ -610,7 +609,7 @@ gmeow:criterionMagnitude
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:guidanceRendering
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/work-orchestration> ;
     rdfs:label "guidance rendering"@x-gmeow-english ;
     skos:definition "The lang:-grounded textual surface of a guidance item, note, dissent or review rendering — the seam through which this slice's prose content gets a linguistic form rather than floating as an untyped literal. Range a lang: rendering (stated in prose). Domain any item carrying authored prose (stated in prose)."@x-gmeow-english ;
@@ -734,7 +733,7 @@ logic:gvrCons a logic:Formula ; logic:relation logic:assemblyGuidanceVersion ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "version" ] .
 
 <https://blackcatinformatics.ca/gmeow/slices/work-orchestration>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The domain binding of the general prescription/enactment/commitment kernel onto continuing work.
 

@@ -300,8 +300,94 @@ pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
         let merged = builder
             .freeze()
             .expect("merged ontology dataset must freeze");
-        flatten_to_default_graph(&merged)
+        // The generated SHACL shapes and the conformance tests' `has`/`subjects_of_type`
+        // assertions are written against the OWL/RDFS surface (`owl:ObjectProperty`,
+        // `owl:unionOf`, `owl:AllDisjointClasses`, `rdfs:subClassOf`, …); the merged
+        // modules author the CANONICAL `logic:` vocabulary (Principle 17). Materialize
+        // the complete `owl:`/`rdfs:` projection of the merged graph so both surfaces
+        // are present — the projection is dual-write (the canonical `logic:` quads are
+        // kept), so a query on either surface sees its answer.
+        let projected = with_owl_rdfs_projection(&merged);
+        flatten_to_default_graph(&projected)
     })
+}
+
+/// `dataset` with the complete OWL/RDFS **projection** of its canonical `logic:`
+/// vocabulary materialized — the surface the generated SHACL shapes and the
+/// conformance fixtures' `owl:`/`rdfs:` assertions are written against.
+///
+/// The projection map is single-sourced in `gmeow_ns` (mirroring the `logic:`
+/// slice's `graph/correspondence-laws` corpus): every `rdf:type` OBJECT that names
+/// a canonical typing / property-characteristic / axiom marker gets an OWL-view
+/// twin ([`gmeow_ns::owl_view_of_type_marker`]), and every canonical axiom /
+/// class-expression / restriction / cardinality / identity / header PREDICATE gets
+/// its `owl:`/`rdfs:` twin ([`gmeow_ns::owl_view_of_predicate`]). The canonical
+/// `logic:` quads are KEPT — the projection ADDS the view, it never rewrites the
+/// authored quad away.
+fn with_owl_rdfs_projection(dataset: &RdfDataset) -> Arc<RdfDataset> {
+    let base = flat_rdf_quads_from_dataset(dataset);
+    let mut out: Vec<purrdf::RdfQuad> = Vec::with_capacity(base.len());
+    for quad in base {
+        let pred_view = gmeow_ns::owl_view_of_predicate(&quad.predicate);
+        let obj_view = object_marker_view(&quad.predicate, &quad.object);
+        // Emit every surface combination of {canonical, projected} for the predicate
+        // and object so a shape or assertion written in any spelling matches (a
+        // restriction reads `logic:onClass owl:Thing`; a property reads `rdfs:range
+        // owl:Thing`). The canonical quad is always kept; the projection only ADDS.
+        match (pred_view, obj_view) {
+            (None, None) => {}
+            (Some(p), None) => {
+                let mut lowered = quad.clone();
+                lowered.predicate = p.to_owned();
+                out.push(lowered);
+            }
+            (None, Some(o)) => {
+                let mut lowered = quad.clone();
+                lowered.object = purrdf::RdfTerm::iri(o);
+                out.push(lowered);
+            }
+            (Some(p), Some(o)) => {
+                let mut both = quad.clone();
+                both.predicate = p.to_owned();
+                both.object = purrdf::RdfTerm::iri(o);
+                out.push(both);
+                let mut pred_only = quad.clone();
+                pred_only.predicate = p.to_owned();
+                out.push(pred_only);
+                let mut obj_only = quad.clone();
+                obj_only.object = purrdf::RdfTerm::iri(o);
+                out.push(obj_only);
+            }
+        }
+        out.push(quad);
+    }
+    flat_dataset_from_quads(&out).expect("projected ontology dataset must freeze")
+}
+
+/// The OWL-view spelling of a quad's OBJECT when it names a canonical `logic:` marker,
+/// or `None`. Mirrors the slicetest harness's `object_marker_view`: every marker lowers
+/// in `rdf:type` position, but the universal class-identity markers `logic:Thing` /
+/// `logic:Nothing` lower ONLY under a class-position predicate
+/// ([`gmeow_ns::is_class_position_predicate`], e.g. `rdfs:range` / `owl:onClass`). A
+/// marker object under a non-class predicate (a `logic:GroundingCorrespondence`'s
+/// `logic:sourceEndpoint logic:Thing`) is left untouched, so the projection never mints
+/// a second endpoint value that trips maxCount.
+fn object_marker_view(predicate: &str, object: &purrdf::RdfTerm) -> Option<&'static str> {
+    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let purrdf::RdfTerm::Iri(object_iri) = object else {
+        return None;
+    };
+    if predicate == RDF_TYPE_IRI {
+        gmeow_ns::owl_view_of_type_marker(object_iri)
+    } else if gmeow_ns::is_class_position_predicate(predicate) {
+        match object_iri.as_str() {
+            gmeow_ns::LOGIC_THING => Some(gmeow_ns::OWL_THING),
+            gmeow_ns::LOGIC_NOTHING => Some(gmeow_ns::OWL_NOTHING),
+            _ => None,
+        }
+    } else {
+        None
+    }
 }
 
 /// Parsed SHACL shape model for the whole conformance corpus.
