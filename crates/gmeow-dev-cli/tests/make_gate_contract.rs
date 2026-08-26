@@ -601,6 +601,10 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             .expect("read producer receipt verifier");
     let ci_receipt_script = std::fs::read_to_string(repo_root().join("scripts/ci-run-receipt.sh"))
         .expect("read hosted critical-path receipt collector");
+    let console_producer_spec = std::fs::read_to_string(
+        repo_root().join("crates/docs/assets/console/smoke/specs/14-producer.spec.mjs"),
+    )
+    .expect("read browser producer contract");
 
     assert!(
         ci.contains("  rust-archive:"),
@@ -845,6 +849,14 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         ci.matches("      GMEOW_DEV: ./dist/bin/gmeow-dev").count(),
         5,
         "all four ontology lanes and every heavy branch must use the authenticated producer binary"
+    );
+    assert!(
+        console_producer_spec
+            .contains("const PRODUCER = [\"--no-print-directory\", \"console-assemble\"]")
+            && console_producer_spec.contains("execFileSync(\"make\"")
+            && console_producer_spec.contains("`CONSOLE_OUT=${out}`")
+            && !console_producer_spec.contains("execFileSync(\"cargo\""),
+        "the browser reproducibility proof must reuse the authenticated producer through the canonical Make target instead of creating a second Cargo build authority"
     );
     assert!(
         target_recipe(&makefile, "nextest-evidence-tools")
