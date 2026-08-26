@@ -33,7 +33,8 @@ repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 junit_inventory=$repo_root/dist/nextest/junit_inventory
 perf_sample=$repo_root/dist/nextest/perf_sample
-for evidence_tool in "$junit_inventory" "$perf_sample"; do
+perf_accept=$repo_root/dist/nextest/perf_accept
+for evidence_tool in "$junit_inventory" "$perf_sample" "$perf_accept"; do
   [[ -x "$evidence_tool" ]] || {
     echo "nextest evidence tool does not exist or is not executable: $evidence_tool" >&2
     exit 1
@@ -56,21 +57,58 @@ tree_digest() {
     echo "tree does not exist: $root" >&2
     return 1
   }
+  local paths
+  local manifest
+  paths=$(mktemp "$tmp_dir/tree-paths.XXXXXX")
+  manifest=$(mktemp "$tmp_dir/tree-manifest.XXXXXX")
   (
     cd "$root"
+    find . \( -type f -o -type l \) -print0 | LC_ALL=C sort -z > "$paths"
+    : > "$manifest"
     while IFS= read -r -d '' path; do
       local_path=${path#./}
-      file_digest=$(sha256sum -- "$local_path" | cut -d' ' -f1)
-      printf '%s\0%s\0' "$local_path" "$file_digest"
-    done < <(find . -type f -print0 | LC_ALL=C sort -z)
-  ) | sha256sum | cut -d' ' -f1
+      if [[ -L "$local_path" ]]; then
+        link_target=$(readlink -- "$local_path")
+        printf 'symlink\0%s\0%s\0' "$local_path" "$link_target" >> "$manifest"
+      elif [[ -f "$local_path" ]]; then
+        file_digest=$(sha256sum -- "$local_path" | cut -d' ' -f1)
+        printf 'file\0%s\0%s\0' "$local_path" "$file_digest" >> "$manifest"
+      else
+        echo "tree entry disappeared or changed type while hashing: $root/$local_path" >&2
+        return 1
+      fi
+    done < "$paths"
+  )
+  sha256sum "$manifest" | cut -d' ' -f1
 }
 
 tracked_tree_digest() {
+  local paths
+  local manifest
+  paths=$(mktemp "$tmp_dir/source-paths.XXXXXX")
+  manifest=$(mktemp "$tmp_dir/source-manifest.XXXXXX")
+  git ls-files --cached --others --exclude-standard -z | LC_ALL=C sort -z > "$paths"
+  : > "$manifest"
   while IFS= read -r -d '' path; do
-    file_digest=$(sha256sum -- "$path" | cut -d' ' -f1)
-    printf '%s\0%s\0' "$path" "$file_digest"
-  done < <(git ls-files -z | LC_ALL=C sort -z) | sha256sum | cut -d' ' -f1
+    if [[ -L "$path" ]]; then
+      link_target=$(readlink -- "$path")
+      file_mode=$(stat -c '%a' -- "$path")
+      printf 'symlink\0%s\0%s\0%s\0' "$path" "$file_mode" "$link_target" >> "$manifest"
+    elif [[ -f "$path" ]]; then
+      file_mode=$(stat -c '%a' -- "$path")
+      file_digest=$(sha256sum -- "$path" | cut -d' ' -f1)
+      printf 'file\0%s\0%s\0%s\0' "$path" "$file_mode" "$file_digest" >> "$manifest"
+    elif [[ ! -e "$path" ]]; then
+      # A tracked deletion is a real working-tree input while an issue branch is
+      # being validated before commit. Bind the absence instead of silently
+      # authenticating the index's former bytes.
+      printf 'missing\0%s\0' "$path" >> "$manifest"
+    else
+      echo "source entry has unsupported type: $path" >&2
+      return 1
+    fi
+  done < "$paths"
+  sha256sum "$manifest" | cut -d' ' -f1
 }
 
 inventory() {
@@ -141,6 +179,8 @@ write_candidate() {
   junit_inventory_bytes=$(stat -c '%s' "$junit_inventory")
   perf_sample_sha256=$(sha256sum "$perf_sample" | cut -d' ' -f1)
   perf_sample_bytes=$(stat -c '%s' "$perf_sample")
+  perf_accept_sha256=$(sha256sum "$perf_accept" | cut -d' ' -f1)
+  perf_accept_bytes=$(stat -c '%s' "$perf_accept")
   inventory_sha256=$(sha256sum "$canonical" | cut -d' ' -f1)
   inventory_count=$(wc -l < "$canonical" | tr -d ' ')
   build_config_sha256=$(
@@ -173,6 +213,9 @@ write_candidate() {
     --arg perf_sample_file "$(basename "$perf_sample")" \
     --arg perf_sample_sha256 "$perf_sample_sha256" \
     --argjson perf_sample_bytes "$perf_sample_bytes" \
+    --arg perf_accept_file "$(basename "$perf_accept")" \
+    --arg perf_accept_sha256 "$perf_accept_sha256" \
+    --argjson perf_accept_bytes "$perf_accept_bytes" \
     --arg profile ci \
     --arg partition_scheme slice \
     --argjson partition_count "$shards" \
@@ -202,6 +245,11 @@ write_candidate() {
           file: $perf_sample_file,
           sha256: $perf_sample_sha256,
           bytes: $perf_sample_bytes
+        },
+        perf_accept: {
+          file: $perf_accept_file,
+          sha256: $perf_accept_sha256,
+          bytes: $perf_accept_bytes
         }
       },
       execution: {

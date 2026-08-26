@@ -31,14 +31,29 @@ tree_digest() {
     echo "tree does not exist: $root" >&2
     return 1
   }
+  local paths
+  local manifest
+  paths=$(mktemp "$tmp_dir/tree-paths.XXXXXX")
+  manifest=$(mktemp "$tmp_dir/tree-manifest.XXXXXX")
   (
     cd "$root"
+    find . \( -type f -o -type l \) -print0 | LC_ALL=C sort -z > "$paths"
+    : > "$manifest"
     while IFS= read -r -d '' path; do
       local_path=${path#./}
-      file_digest=$(sha256sum -- "$local_path" | cut -d' ' -f1)
-      printf '%s\0%s\0' "$local_path" "$file_digest"
-    done < <(find . -type f -print0 | LC_ALL=C sort -z)
-  ) | sha256sum | cut -d' ' -f1
+      if [[ -L "$local_path" ]]; then
+        link_target=$(readlink -- "$local_path")
+        printf 'symlink\0%s\0%s\0' "$local_path" "$link_target" >> "$manifest"
+      elif [[ -f "$local_path" ]]; then
+        file_digest=$(sha256sum -- "$local_path" | cut -d' ' -f1)
+        printf 'file\0%s\0%s\0' "$local_path" "$file_digest" >> "$manifest"
+      else
+        echo "tree entry disappeared or changed type while hashing: $root/$local_path" >&2
+        return 1
+      fi
+    done < "$paths"
+  )
+  sha256sum "$manifest" | cut -d' ' -f1
 }
 
 tree_bytes() {
@@ -48,10 +63,29 @@ tree_bytes() {
 }
 
 tracked_tree_digest() {
+  local paths
+  local manifest
+  paths=$(mktemp "$tmp_dir/source-paths.XXXXXX")
+  manifest=$(mktemp "$tmp_dir/source-manifest.XXXXXX")
+  git ls-files --cached --others --exclude-standard -z | LC_ALL=C sort -z > "$paths"
+  : > "$manifest"
   while IFS= read -r -d '' path; do
-    file_digest=$(sha256sum -- "$path" | cut -d' ' -f1)
-    printf '%s\0%s\0' "$path" "$file_digest"
-  done < <(git ls-files -z | LC_ALL=C sort -z) | sha256sum | cut -d' ' -f1
+    if [[ -L "$path" ]]; then
+      link_target=$(readlink -- "$path")
+      file_mode=$(stat -c '%a' -- "$path")
+      printf 'symlink\0%s\0%s\0%s\0' "$path" "$file_mode" "$link_target" >> "$manifest"
+    elif [[ -f "$path" ]]; then
+      file_mode=$(stat -c '%a' -- "$path")
+      file_digest=$(sha256sum -- "$path" | cut -d' ' -f1)
+      printf 'file\0%s\0%s\0%s\0' "$path" "$file_mode" "$file_digest" >> "$manifest"
+    elif [[ ! -e "$path" ]]; then
+      printf 'missing\0%s\0' "$path" >> "$manifest"
+    else
+      echo "source entry has unsupported type: $path" >&2
+      return 1
+    fi
+  done < "$paths"
+  sha256sum "$manifest" | cut -d' ' -f1
 }
 
 normalized_manifest() {
@@ -77,6 +111,8 @@ verify_manifest_tree() {
   local manifest=$2
   local expected=$tmp_dir/expected-generated.tsv
   local actual=$tmp_dir/actual-generated.tsv
+  local paths
+  paths=$(mktemp "$tmp_dir/generated-paths.XXXXXX")
   jq -r '
     .files[] |
     select(.path == "generated" or (.path | startswith("generated/"))) |
@@ -85,12 +121,13 @@ verify_manifest_tree() {
   (
     cd "$(dirname "$generated")"
     tree_name=$(basename "$generated")
+    find "$tree_name" -type f -print0 | LC_ALL=C sort -z > "$paths"
     while IFS= read -r -d '' path; do
       relative=${path#./}
       bytes=$(stat -c '%s' "$relative")
       digest=$(sha256sum "$relative" | cut -d' ' -f1)
       printf 'generated/%s\t%s\t%s\n' "${relative#"$tree_name/"}" "$bytes" "$digest"
-    done < <(find "$tree_name" -type f -print0 | LC_ALL=C sort -z)
+    done < "$paths"
   ) > "$actual"
   if ! cmp -s "$expected" "$actual"; then
     echo "generated tree differs from its sync manifest" >&2

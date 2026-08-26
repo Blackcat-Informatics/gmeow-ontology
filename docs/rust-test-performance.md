@@ -52,9 +52,20 @@ A repository-wide optimization claim uses paired production-path samples; a fast
 mechanism test is not closure evidence. Record five baseline and five candidate
 samples when the runner population is available, and never report a conclusion from
 fewer than three complete pairs. Each pair must use the same node class, command,
-nextest inventory, job graph, build profile, toolchain, dependency lock, and selected
-feature/output profile. Alternate baseline and candidate runs where the platform
-allows it so a time-of-day load shift does not all land on one variant.
+required logical proof inventory, build profile, toolchain, dependency lock, and selected
+feature/output profile. The authored CI dependency graph is retained in every receipt;
+scheduler optimization may change that graph, but the candidate proof inventory must be
+a superset of the baseline inventory. Alternate baseline and candidate runs where the
+platform allows it so a time-of-day load shift does not all land on one variant.
+
+Every receipt names exactly the Cargo, sync-manifest, pipeline, fixture, bundle-import,
+and nextest-archive cache classes. A class that does not exist on one history is recorded
+as `absent` or `not-applicable`; it is never relabelled as warm or cold to make the pair
+look symmetric. Shared applicable mechanisms must have identical states within a pair.
+This permits an optimization to introduce a cache while keeping the comparison honest,
+without allowing a cold baseline to be paired with a warm candidate for a cache both
+histories possess. Each cold, warm, or partial receipt must contain at least one class
+that witnesses that aggregate protocol.
 
 The three cache protocols answer different questions and must not be pooled:
 
@@ -69,6 +80,22 @@ The three cache protocols answer different questions and must not be pooled:
   point. Record the changed path and digest. This measures invalidation precision,
   not a dirty-worktree shortcut.
 
+The partial protocol is predeclared, rather than chosen after seeing a fast result:
+
+| Witness | Exact authority | Expected effect |
+|---|---|---|
+| End-to-end paired sample | On a retained measurement branch for each variant, add exactly `# perf-protocol: raw-source-only-change-v1` after the SPDX header of `slices/core/contacts/module.ttl`, commit it, and record that file's SHA-256 as `raw-source:<path>:<digest>` | `stage-source-load` observes a changed raw-file key; its semantic product stays equal, so only consumers whose declared input identity changed may execute |
+| Irrelevant versus consumed entity | `artifact_level_invalidation_reruns_only_the_changed_graphs_consumer` | An entity consumer reruns only for its declared graph; an unrelated graph change remains reusable |
+| Raw-file invalidation | `input_files_content_busts_the_cache` | Changing declared raw bytes always changes the owning action key |
+| Code, dependency, toolchain, target, features, and profile | `stage_key_is_deterministic_and_structurally_sensitive`, the transitive build-fingerprint tests, and bundle-import build-input tests | Every executable identity input changes the key; feature ordering alone is canonicalized |
+| Language | `language_is_a_first_class_render_action_dimension` | Only the selected docs render action changes; another language cannot share its receipt |
+| Output scope/profile | `RunOutputScope` remains outside stage keys while it controls only reconciliation; render artifact/profile identity is part of the consuming action name/codec | A selector invalidates at its actual consumer and never creates undeclared stage-key noise |
+
+The ontology comment is intentionally semantic-neutral but not byte-neutral: it measures
+raw-source invalidation without changing the required output inventory. The other rows
+are the complete focused invalidation matrix and run on both histories; they are not
+substitutes for the end-to-end partial sample.
+
 Use the median critical path for the headline comparison and retain every raw sample.
 For issue-driven 2x work, acceptance means the candidate median is at most half the
 baseline median on the specified slow-node population, with the same deterministic
@@ -81,7 +108,8 @@ external event; exclude and replace both members of that pair.
 It identifies the commit/tree, resolved external dependency set, Cargo.lock, pipeline
 build fingerprint, Rust/Cargo/nextest versions, runner image, host, explicit node class,
 pair/index, exact command, generated-tree identity, named immutable receipts, and a
-separate census for the Cargo, sync-manifest, pipeline, and fixture cache classes. A
+separate census for the Cargo, sync-manifest, pipeline, fixture, bundle-import, and
+nextest-archive cache classes. A
 partial sample additionally requires `KIND:PATH:SHA256`, so "partial" cannot hide an
 unspecified dirty-tree perturbation. Observations carry queue/wall time, aggregate and
 host-normalized CPU utilization, RSS, faults, block I/O, context switches, load averages,
@@ -89,15 +117,15 @@ and optional command telemetry. For example:
 
 ```bash
 make perf-sample PERF_SAMPLE_ARGS="\
-  --pair-id issue-1700-warm --variant candidate --sample-index 1 \
+  --pair-id required-lane-warm --variant candidate --sample-index 1 \
   --cache-state warm --node-class gh-ubuntu-x64-16 \
   --cargo-cache-state warm --sync-cache-state warm \
   --pipeline-cache-state warm --fixture-cache-state warm \
+  --bundle-import-cache-state warm --nextest-archive-cache-state warm \
   --output dist/perf/candidate-warm-1.json \
   --work-telemetry dist/perf/gate-timings.json \
   --identity-receipt nextest=dist/nextest/receipt.json \
-  --cache-root pipeline=.cache/gmeow-sync/pipeline \
-  --cache-root fixture=.cache/docs-fixture \
+  --cache-root actions=.cache/gmeow-sync/actions \
   -- make perf-gate"
 ```
 
@@ -105,26 +133,52 @@ make perf-sample PERF_SAMPLE_ARGS="\
 cache protocol, pair ID, and one-based index; rejects missing or duplicate variants;
 requires three to five complete pairs for cold, warm, and partial protocols on both node
 classes; and verifies the declared semantic/inventory JSON pointers before comparing
-time. Callers must name at least one causal-work counter rather than letting the tool
-guess which semantic row or output-size count should fall. The emitted JSON retains every
-pair and median. Acceptance requires the slow-node headline median to reach 2.0x, the
-comparison-node median to stay within 5%, no declared work counter to rise, and at least
-one to fall. This tool is intentionally not a `make check` prerequisite.
+time. Equality identities use `--semantic-identity`; proof inventories use
+`--proof-inventory` and permit additions while hard-failing a baseline member dropped by
+the candidate. Callers must name at least one causal-work counter rather than letting the
+tool guess which semantic row or output-size count should fall. The emitted JSON retains
+every pair and median. Acceptance requires the slow-node headline median to reach 2.0x,
+the comparison-node median to stay within 5%, no declared work counter to rise, and at
+least one to fall. This tool is intentionally not a `make check` prerequisite.
 
 For hosted critical-path samples, `scripts/ci-run-receipt.sh` reads one completed,
 successful Actions run through the GitHub CLI. It binds the exact head/workflow digest,
 extracts the authored `needs` graph, groups matrix instances by job, computes the longest
 dependency path from actual execution durations, and keeps workflow queue/wall time,
-runner identities, step timings, and artifact transfer sizes as observations. It refuses
+runner identities, step timings, and artifact transfer sizes as observations. The
+collector also authenticates the exact resolved Rust identity and hosted image from the
+producer-build log, normalizes matrix instances into a logical proof inventory, and
+counts required job groups that would fall back to rebuilding the source producer. Its
+schema-v3 output additionally downloads only the compact, authenticated generation,
+fixture, archive, reasoning, and JUnit receipts; it aggregates actual stage executions
+and hydrations, cache bytes, fixture builders, imports, closures, indexed RDF rows,
+archive bytes, Cargo compilation units, and test-build authorities while preserving every
+source receipt below the aggregate. The large generated tree and nextest archive are
+never downloaded by the collector because their immutable receipts already bind them.
+The output is consumed directly by `make perf-accept` alongside local
+`perf-sample` receipts. It refuses
 unknown job names, multiline/unknown dependencies, incomplete jobs, failed runs, or an
 API response that exceeds its explicit pagination bound. The raw run URL and every job
 and artifact row remain in the receipt; the calculated critical path is never reconstructed
 from a hand-written diagram.
 
+```bash
+make perf-ci-receipt CI_RUN_RECEIPT_ARGS="\
+  --run-id 123456 --variant candidate --sample-index 1 \
+  --node-class github-ubuntu-latest-x64 --pair-id required-lane-cold \
+  --cache-state cold --cargo-cache-state cold --sync-cache-state cold \
+  --pipeline-cache-state cold --fixture-cache-state cold \
+  --bundle-import-cache-state cold --nextest-archive-cache-state cold \
+  --output dist/perf/ci-candidate-cold-1.json"
+```
+
 The embedded command telemetry keeps deterministic work counters separate from
 observations. `sync` schema v2 carries the exact immutable receipt for every stage,
 per-entity rows/bytes, executed-versus-hydrated stages, transfer bytes, internal
-phase work, and scheduler-level critical path. `validate`, `reason`, `verify`, and
+phase work, and scheduler-level critical path. A cache hit also records its signed
+process-RSS delta. Run the admission census at `--jobs 1` to isolate each hydrated
+stage; parallel-wave deltas remain observations and can include sibling allocation, so
+they never enter an immutable receipt or deterministic counter. `validate`, `reason`, `verify`, and
 `reason-verify` similarly record input rows, GTS imports, closure constructions,
 query/inference counts, and budget use. `perf-gate` merges those records into a
 versioned envelope without flattening the two evidence classes.

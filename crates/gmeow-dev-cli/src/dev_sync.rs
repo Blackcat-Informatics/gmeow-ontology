@@ -551,6 +551,7 @@ pub fn sync(
                     "cache_outcome": stage.cache_outcome,
                     "cache_read_bytes": stage.cache_read_bytes,
                     "cache_write_bytes": stage.cache_write_bytes,
+                    "cache_hydration_rss_delta_kib": stage.cache_hydration_rss_delta_kib,
                 })
             })
             .collect::<Vec<_>>();
