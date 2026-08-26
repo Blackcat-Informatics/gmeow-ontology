@@ -325,36 +325,38 @@ jobs:
         with:
           tool: cargo-nextest@0.9.137
 
-      - name: Resolve exact Rust prebuild cache identity
+      - name: Resolve exact Rust toolchain cache identity
         id: rust-prebuild-identity
         run: |
           set -euo pipefail
           echo "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
-          echo "runner=$(printf '%s\0%s\0' "${ImageOS:-unknown}" "${ImageVersion:-unknown}" | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       # The run/attempt suffix makes every producer save a fresh, complete cache rather
       # than restoring an immutable exact key that can never be advanced. Restore prefixes
       # admit exact-source first, then compatible-source Cargo reuse; Cargo itself validates
-      # every unit against source, dependency, flags, and compiler fingerprints.
+      # every unit against source, dependency, flags, and compiler fingerprints. The key
+      # deliberately binds runner OS + architecture, not the rolling image patch revision:
+      # same-run jobs can land on adjacent ubuntu-latest revisions, and the authenticated
+      # archive is itself replayed across that same ABI-compatible runner family.
       - name: Restore producer-independent Rust build products
         id: rust-prebuild-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: target
-          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
+            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
+            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
 
       - name: Restore producer-independent typed fixtures
         id: fixture-prebuild-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/gmeow-sync/actions
-          key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-
+            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-
+            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-
 
       - name: Compile producer-independent CI tests and fixture primers
         run: make rust-prebuild
@@ -395,22 +397,29 @@ jobs:
         with:
           cache-targets: false
 
-      - name: Resolve exact Rust prebuild cache identity
+      # The transfer accelerator may miss; provision the runner before the fallback
+      # so a miss always recomputes the complete requested build rather than failing
+      # on an absent Cargo subcommand.
+      - name: Install cargo-nextest (pinned archive format and partition semantics)
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
+        with:
+          tool: cargo-nextest@0.9.137
+
+      - name: Resolve exact Rust toolchain cache identity
         id: rust-prebuild-identity
         run: |
           set -euo pipefail
           echo "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
-          echo "runner=$(printf '%s\0%s\0' "${ImageOS:-unknown}" "${ImageVersion:-unknown}" | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Restore same-run producer-independent Rust build products
         id: rust-prebuild-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: target
-          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
+            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
+            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
 
       - name: Rebuild producer-independent products on transfer miss
         if: steps.rust-prebuild-cache.outputs.cache-hit != 'true'
@@ -438,11 +447,6 @@ jobs:
       - name: Verify source, complete generated tree, bundle, and receipt envelope
         run: ./scripts/producer-receipt.sh verify generated dist/producer-receipt.json
 
-      - name: Install cargo-nextest (pinned archive format and partition semantics)
-        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
-        with:
-          tool: cargo-nextest@0.9.137
-
       - name: Download producer-independent fixture evidence
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -458,19 +462,19 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/gmeow-sync/actions
-          key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-
+            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-
+            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-
 
       - name: Restore exact generated-bundle import products
         id: bundle-import-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/gmeow-bundle-import
-          key: bundle-import-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/bundle-import/**', 'crates/errors/**', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ hashFiles('generated/dist/gmeow.gts') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: bundle-import-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/bundle-import/**', 'crates/errors/**', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ hashFiles('generated/dist/gmeow.gts') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            bundle-import-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.runner }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/bundle-import/**', 'crates/errors/**', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ hashFiles('generated/dist/gmeow.gts') }}-
+            bundle-import-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/bundle-import/**', 'crates/errors/**', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ hashFiles('generated/dist/gmeow.gts') }}-
 
       - name: Rehydrate and verify every producer-independent fixture receipt
         run: >-

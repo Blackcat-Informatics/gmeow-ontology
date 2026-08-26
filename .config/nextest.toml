@@ -315,9 +315,13 @@ threads-required = "num-cpus"
 # alpha-scopes examples in parallel before one shared validation, its maintainer parity twin
 # computes every isolated reference union in parallel, and `logic_flagship_discharge` runs
 # four simultaneous merged-module SHACL validations. Reserve the runner so nextest does not
-# multiply their internal parallelism. The assertions and timeout remain unchanged.
+# multiply their internal parallelism. The isolated reference sweep crossed the 120-second
+# unit-test backstop on all three attempts of a four-CPU hosted run while completing on a
+# wider local host, so use the existing whole-corpus 300-second repeated-progress backstop;
+# this remains a runaway detector, not a performance acceptance threshold.
 [[profile.default.overrides]]
 filter = '(package(gmeow-validate) & binary(example_sweep) & test(/(example_corpus_validates_against_closed_world_schema|batched_shacl_matches_isolated_reference_heavy_offgate)/)) | (package(gmeow-pipeline) & binary(logic_flagship_discharge) & test(every_flagship_is_discharged_by_execution))'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 threads-required = "num-cpus"
 
 # The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree

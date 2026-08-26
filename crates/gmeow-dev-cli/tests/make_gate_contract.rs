@@ -645,6 +645,21 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         "prebuild producer and archive consumer must name the same exact cache lineage"
     );
     assert!(
+        ci.contains("rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-")
+            && !ci.contains("steps.rust-prebuild-identity.outputs.runner"),
+        "same-OS/architecture jobs must share the prebuild lineage across rolling image patch revisions while retaining exact rustc identity"
+    );
+    let nextest_install = archive_job
+        .find("Install cargo-nextest (pinned archive format and partition semantics)")
+        .expect("archive job provisions its pinned nextest runner");
+    let transfer_fallback = archive_job
+        .find("Rebuild producer-independent products on transfer miss")
+        .expect("archive job carries a complete cache-miss fallback");
+    assert!(
+        nextest_install < transfer_fallback,
+        "the archive cache-miss fallback must provision nextest before invoking make rust-prebuild"
+    );
+    assert!(
         ci.matches("${{ github.run_id }}-${{ github.run_attempt }}")
             .count()
             >= 2
