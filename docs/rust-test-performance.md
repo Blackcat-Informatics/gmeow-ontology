@@ -129,6 +129,16 @@ make perf-sample PERF_SAMPLE_ARGS="\
   -- make perf-gate"
 ```
 
+For a cold baseline whose history predates the producer-receipt envelope, pass its
+retained exact sync manifest as `--identity-receipt producer=PATH`. The sampler accepts
+the manifest's recorded build fingerprint without placing it at the live
+`.cache/gmeow-sync/manifests/` path, so identity evidence cannot accidentally turn the
+cold sample into a manifest hit. When the measured command is `perf-gate`, the sampler
+also normalizes `pipeline_stage_executions`: current telemetry supplies the explicit
+executed-stage count, while legacy telemetry contributes exactly its unique top-level
+`stage:stage-*` execution rows. Nested phase timings and elapsed time never enter this
+causal counter.
+
 `make perf-accept` is the report-only outcome grader. It pairs samples by node class,
 cache protocol, pair ID, and one-based index; rejects missing or duplicate variants;
 requires three to five complete pairs for cold, warm, and partial protocols on both node

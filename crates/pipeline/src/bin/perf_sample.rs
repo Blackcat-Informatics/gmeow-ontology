@@ -355,7 +355,7 @@ fn run(args: Args) -> PerfResult<i32> {
     let git_tree = run_text(&root, "git", &["rev-parse", "HEAD^{tree}"])?;
     let cargo_lock_sha256 = sha256_file(&root.join("Cargo.lock"))?;
     let dependency_resolution_sha256 = dependency_resolution_digest(&root)?;
-    let pipeline_build_fingerprint = pipeline_build_fingerprint(&root)?;
+    let pipeline_build_fingerprint = pipeline_build_fingerprint(&root, &args.identity_receipts)?;
     let rustc = run_text(&root, "rustc", &["-Vv"])?;
     let cargo = run_text(&root, "cargo", &["--version", "--verbose"])?;
     let nextest = run_text(&root, "cargo", &["nextest", "--version"])?;
@@ -417,6 +417,7 @@ fn run(args: Args) -> PerfResult<i32> {
     // parent directory is measured.
     let output_census = named_tree_receipts(&root, &args.output_roots)?;
     let proof_inventory = proof_inventory(work_telemetry.as_ref(), &args.command);
+    let causal_counters = causal_counters(work_telemetry.as_ref());
 
     let resource_usage = usage_after.delta(usage_before);
     let cpu_ms = resource_usage
@@ -482,12 +483,7 @@ fn run(args: Args) -> PerfResult<i32> {
             "command_telemetry": work_telemetry,
             "output_census": output_census,
             "proof_inventory": proof_inventory,
-            "causal_counters": {
-                // A direct host command has no CI job group that can fall back to
-                // compiling the source producer independently. Hosted run receipts
-                // populate the same counter from the authored workflow.
-                "source_producer_fallback_job_groups": 0,
-            },
+            "causal_counters": causal_counters,
         },
         "observations": {
             "wall_ms": wall_ms,
@@ -520,6 +516,77 @@ fn proof_inventory(work_telemetry: Option<&serde_json::Value>, command: &[String
     inventory.sort();
     inventory.dedup();
     inventory
+}
+
+/// Project counters shared by the legacy and current perf-gate telemetry schemas.
+///
+/// The baseline predates explicit `executed_stage_count`, but its sync record still
+/// carries one top-level `stage:stage-*` timing per executed production stage. Count
+/// only those top-level rows (never nested phase timings), while current telemetry uses
+/// the producer's explicit count. This makes the comparison an observation of actual
+/// work from each run rather than a source-version lookup or hand-written estimate.
+fn causal_counters(work_telemetry: Option<&serde_json::Value>) -> serde_json::Value {
+    let mut counters = serde_json::Map::new();
+    // A direct host command has no CI job group that can fall back to compiling the
+    // source producer independently. Hosted run receipts populate the same counter
+    // from the authored workflow.
+    counters.insert(
+        "source_producer_fallback_job_groups".to_string(),
+        serde_json::Value::from(0_u64),
+    );
+
+    let Some(payload) = work_telemetry.and_then(|receipt| receipt.get("payload")) else {
+        return serde_json::Value::Object(counters);
+    };
+    let Some(sync) = payload
+        .get("commands")
+        .and_then(serde_json::Value::as_array)
+        .and_then(|commands| {
+            commands.iter().find(|command| {
+                command.get("command").and_then(serde_json::Value::as_str) == Some("sync")
+            })
+        })
+    else {
+        return serde_json::Value::Object(counters);
+    };
+
+    let pipeline_runs = sync
+        .pointer("/observations/pipeline_runs")
+        .or_else(|| sync.get("pipeline_runs"))
+        .and_then(serde_json::Value::as_u64);
+    if let Some(pipeline_runs) = pipeline_runs {
+        counters.insert(
+            "pipeline_runs".to_string(),
+            serde_json::Value::from(pipeline_runs),
+        );
+    }
+
+    let explicit_stage_count = sync
+        .pointer("/observations/executed_stage_count")
+        .or_else(|| sync.get("executed_stage_count"))
+        .and_then(serde_json::Value::as_u64);
+    let stage_count = explicit_stage_count
+        .or_else(|| (pipeline_runs == Some(0)).then_some(0))
+        .or_else(|| legacy_executed_stage_count(sync));
+    if let Some(stage_count) = stage_count {
+        counters.insert(
+            "pipeline_stage_executions".to_string(),
+            serde_json::Value::from(stage_count),
+        );
+    }
+
+    serde_json::Value::Object(counters)
+}
+
+fn legacy_executed_stage_count(sync: &serde_json::Value) -> Option<u64> {
+    let timings = sync.get("timings")?.as_array()?;
+    let stages = timings
+        .iter()
+        .filter_map(|timing| timing.get("phase").and_then(serde_json::Value::as_str))
+        .filter_map(|phase| phase.strip_prefix("stage:"))
+        .filter(|stage_and_phase| !stage_and_phase.contains('/'))
+        .collect::<std::collections::BTreeSet<_>>();
+    (!stages.is_empty()).then(|| u64::try_from(stages.len()).unwrap_or(u64::MAX))
 }
 
 fn run_text(root: &Path, program: &str, args: &[&str]) -> PerfResult<String> {
@@ -567,10 +634,37 @@ fn sha256_bytes(bytes: &[u8]) -> String {
 /// Resolve the producer build identity from an immutable generation receipt.
 ///
 /// CI carries the authenticated producer receipt into every measured shard. Local
-/// source-backed measurements use the sync manifest written by that same producer.
-/// A cold cache miss must still provide the producer receipt; guessing an identity
-/// from the sampler's own build would bind the observation to the wrong executable.
-fn pipeline_build_fingerprint(root: &Path) -> PerfResult<String> {
+/// source-backed measurements use the sync manifest written by that same producer. A
+/// retained baseline manifest can be named explicitly as the `producer` identity so it
+/// remains outside the live sync-cache path. A cold cache miss must still provide one
+/// of those authorities; guessing from the sampler's own build would bind the
+/// observation to the wrong executable.
+fn pipeline_build_fingerprint(
+    root: &Path,
+    identity_receipts: &[(String, PathBuf)],
+) -> PerfResult<String> {
+    if let Some((_, path)) = identity_receipts
+        .iter()
+        .find(|(name, _)| name == "producer")
+    {
+        let path = resolve(root, path);
+        return build_fingerprint_from(
+            &path,
+            &[
+                "/payload/build_identity/fingerprint",
+                "/build_identity/fingerprint",
+                "/build_fingerprint",
+            ],
+        )?
+        .ok_or_else(|| {
+            format!(
+                "explicit producer identity {} lacks a supported build fingerprint",
+                path.display()
+            )
+            .into()
+        });
+    }
+
     let candidates = [
         (
             root.join("dist/producer-receipt.json"),
@@ -582,36 +676,39 @@ fn pipeline_build_fingerprint(root: &Path) -> PerfResult<String> {
         ),
     ];
     for (path, pointer) in candidates {
-        if !path.is_file() {
-            continue;
+        if let Some(fingerprint) = build_fingerprint_from(&path, &[pointer])? {
+            return Ok(fingerprint);
         }
-        let bytes = fs::read(&path)
-            .map_err(|error| format!("read producer identity {}: {error}", path.display()))?;
-        let receipt: serde_json::Value = serde_json::from_slice(&bytes)
-            .map_err(|error| format!("parse producer identity {}: {error}", path.display()))?;
-        let fingerprint = receipt
-            .pointer(pointer)
-            .and_then(serde_json::Value::as_str)
-            .ok_or_else(|| {
-                format!(
-                    "producer identity {} lacks string {pointer}",
-                    path.display()
-                )
-            })?;
-        if fingerprint.len() != 64
-            || !fingerprint
-                .bytes()
-                .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
-        {
-            return Err(format!(
-                "producer identity {} has malformed build fingerprint {fingerprint:?}",
-                path.display()
-            )
-            .into());
-        }
-        return Ok(fingerprint.to_string());
     }
-    Err("no producer build identity found; provide dist/producer-receipt.json or materialize the exact generated sync manifest before sampling".into())
+    Err("no producer build identity found; pass --identity-receipt producer=PATH, provide dist/producer-receipt.json, or materialize the exact generated sync manifest before sampling".into())
+}
+
+fn build_fingerprint_from(path: &Path, pointers: &[&str]) -> PerfResult<Option<String>> {
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let bytes = fs::read(path)
+        .map_err(|error| format!("read producer identity {}: {error}", path.display()))?;
+    let receipt: serde_json::Value = serde_json::from_slice(&bytes)
+        .map_err(|error| format!("parse producer identity {}: {error}", path.display()))?;
+    let Some(fingerprint) = pointers
+        .iter()
+        .find_map(|pointer| receipt.pointer(pointer).and_then(serde_json::Value::as_str))
+    else {
+        return Ok(None);
+    };
+    if fingerprint.len() != 64
+        || !fingerprint
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    {
+        return Err(format!(
+            "producer identity {} has malformed build fingerprint {fingerprint:?}",
+            path.display()
+        )
+        .into());
+    }
+    Ok(Some(fingerprint.to_string()))
 }
 
 fn dependency_resolution_digest(root: &Path) -> PerfResult<String> {
@@ -1018,15 +1115,97 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            pipeline_build_fingerprint(root.path()).unwrap(),
+            pipeline_build_fingerprint(root.path(), &[]).unwrap(),
             "a".repeat(64)
+        );
+    }
+
+    #[test]
+    fn explicit_legacy_producer_manifest_supplies_cold_identity_outside_the_cache() {
+        let root = tempfile::tempdir().unwrap();
+        let authority = root.path().join("dist/baseline-generation-a.json");
+        fs::create_dir_all(authority.parent().unwrap()).unwrap();
+        fs::write(
+            &authority,
+            serde_json::to_vec(&serde_json::json!({
+                "version": 3,
+                "build_fingerprint": "c".repeat(64)
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            pipeline_build_fingerprint(
+                root.path(),
+                &[(
+                    "producer".to_string(),
+                    PathBuf::from("dist/baseline-generation-a.json")
+                )]
+            )
+            .unwrap(),
+            "c".repeat(64)
+        );
+        assert!(
+            !root
+                .path()
+                .join(".cache/gmeow-sync/manifests/generated-default.json")
+                .exists(),
+            "producer identity must not warm the live sync-manifest cache"
+        );
+    }
+
+    #[test]
+    fn stage_execution_counter_normalizes_legacy_and_current_sync_telemetry() {
+        let legacy = serde_json::json!({
+            "payload": {
+                "commands": [{
+                    "command": "sync",
+                    "pipeline_runs": 1,
+                    "timings": [
+                        {"phase": "stage:stage-source-load"},
+                        {"phase": "stage:stage-source-load/parse"},
+                        {"phase": "stage:stage-reason"},
+                        {"phase": "pipeline-total"}
+                    ]
+                }]
+            }
+        });
+        let current = serde_json::json!({
+            "payload": {
+                "commands": [{
+                    "command": "sync",
+                    "observations": {
+                        "pipeline_runs": 1,
+                        "executed_stage_count": 1
+                    }
+                }]
+            }
+        });
+        let fixed_point = serde_json::json!({
+            "payload": {
+                "commands": [{"command": "sync", "pipeline_runs": 0}]
+            }
+        });
+
+        assert_eq!(
+            causal_counters(Some(&legacy))["pipeline_stage_executions"],
+            2
+        );
+        assert_eq!(
+            causal_counters(Some(&current))["pipeline_stage_executions"],
+            1
+        );
+        assert_eq!(
+            causal_counters(Some(&fixed_point))["pipeline_stage_executions"],
+            0
         );
     }
 
     #[test]
     fn producer_identity_is_required_and_structurally_validated() {
         let root = tempfile::tempdir().unwrap();
-        assert!(pipeline_build_fingerprint(root.path()).is_err());
+        assert!(pipeline_build_fingerprint(root.path(), &[]).is_err());
         fs::create_dir_all(root.path().join(".cache/gmeow-sync/manifests")).unwrap();
         fs::write(
             root.path()
@@ -1034,6 +1213,6 @@ mod tests {
             br#"{"build_fingerprint":"NOT-A-DIGEST"}"#,
         )
         .unwrap();
-        assert!(pipeline_build_fingerprint(root.path()).is_err());
+        assert!(pipeline_build_fingerprint(root.path(), &[]).is_err());
     }
 }
