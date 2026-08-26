@@ -325,17 +325,22 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # existential restriction on `math:withRespectTo`, so the chase invents dimension read-set
 # edges no asserted read can see, and the surface-leak half needs the same closure.
 #
-# Those closures — one per on-disk counter-example — are independent, so they run in parallel and the per-fixture results are
-# folded in the fixtures' own sorted order — ~235s on the bounded pool it uses (a quarter of
-# the host's parallelism, eight threads on a 32-core machine), down from ~720s sequential,
-# which had overrun even a 2400s ceiling under concurrent gate load. The pool is bounded on
-# purpose: nextest already runs tests in parallel, and seizing
-# every core starved two sibling pipeline tests into timing out. A test that reds on machine
-# load is broken rather than flaky, so the work got cheaper instead of the ceiling higher;
-# this budget is the sibling bundle-proof one, not a special case.
+# Those closures — one per on-disk counter-example — are independent, so they run in parallel on
+# the test's own rayon pool. An earlier revision bounded that pool to a QUARTER of the host and
+# left the test co-scheduled with its siblings, on the theory that seizing every core would starve
+# them: ~235s on eight threads of a 32-core dev box, down from ~720s sequential. That holds on a
+# 32-core box but INVERTS on the 4-core hosted CI runner, where a quarter is one thread, the fold
+# degrades to near-sequential, and it overran even the 600s backstop on all three retries (CI run
+# 32810868826, rust shard 2). The real fix is the one the whole-DAG medium and slice-quality lanes
+# above already use: RESERVE THE HOST, so the test's full-width pool is a property of the pipeline
+# rather than of the runner's core count or what else nextest scheduled — the pool then takes all
+# reserved cores (~350s on four CI cores, ~235s on eight). Reserving cures the sibling starvation
+# too: a host-reserved test never co-schedules with them. The work is made to fit the machine's
+# cores, not the ceiling raised; the 600s backstop still bounds a genuine runaway.
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & binary(math_conformance_discharge)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
 
 # The whole-bundle superset proof reconstructs the ENTIRE committed generated/ tree
 # from gmeow.gts twice — once directly for the projection assertions, once more inside
@@ -485,6 +490,22 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & ( test(/docs_distribution::tests::/) | test(/scoreboards::tests::/) | test(/stages::slice_brief::tests::/) | test(/stages::lang_docs_rendering::tests::/) | test(/stages::mappings::tests::/) )'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+# The slice-brief determinism proof executes the WHOLE SliceBrief stage TWICE over one shared
+# upstream (~170s per run) — an inherent 2x that proves run() is a pure function and cannot be
+# halved without weakening the assertion. Co-scheduled with the rest of the bundle-builders on the
+# 4-core hosted runner it starved past even the 600s backstop on all three retries (CI run
+# 32810868826, rust shard 2). Its sibling translation roll-up in the same class was the OTHER
+# overrun in that run; THAT one had a real redundancy and was cured structurally instead — its
+# cross-check discovered the whole slice tree twice, and now discovers it ONCE and shares it (see
+# `stages::lang_docs_rendering::build_corpus_from_catalog`), so it needs no reservation and stays
+# in the shared, unreserved override above. This proof has no equivalent redundancy to remove, so
+# per this file's doctrine it gets the same host reservation the whole-DAG lanes use: it runs
+# uncontended at full width, not on a raised ceiling. Same 600s backstop; only the reservation.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & test(/stages::slice_brief::tests::run_is_deterministic/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
 
 # The two translated-tree proofs render the WHOLE site a second time in another
 # language and then compare the two trees path-for-path — a full render plus a full

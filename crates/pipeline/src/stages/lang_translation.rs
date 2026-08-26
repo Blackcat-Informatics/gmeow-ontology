@@ -102,7 +102,18 @@ pub fn build_corpus(root: &Path) -> Result<LangTranslationCorpus, gmeow_errors::
                 message: format!("lang-translation slice catalog: {e}"),
             })
         })?;
+    build_corpus_from_catalog(&catalog)
+}
 
+/// Build the live translation corpus from an ALREADY-DISCOVERED slice catalog.
+///
+/// Split from [`build_corpus`] so the rollup cross-check, which also builds the docs-rendering
+/// corpus over the same tree, discovers and parses the whole slice tree ONCE and shares it
+/// rather than paying the full-corpus discovery twice. The body is unchanged; only the catalog
+/// now arrives by reference.
+pub fn build_corpus_from_catalog(
+    catalog: &SliceCatalog,
+) -> Result<LangTranslationCorpus, gmeow_errors::Diag> {
     let mut units: Vec<Unit> = Vec::new();
     for record in catalog.records() {
         for artifact in &record.artifacts {

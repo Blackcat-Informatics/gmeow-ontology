@@ -103,7 +103,18 @@ pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, g
                 message: format!("lang-docs-rendering slice catalog: {e}"),
             })
         })?;
+    build_corpus_from_catalog(&catalog)
+}
 
+/// Build the docs-rendering corpus from an ALREADY-DISCOVERED slice catalog.
+///
+/// Split from [`build_corpus`] so a caller that ALSO builds the sibling translation corpus over
+/// the same tree (the rollup cross-check) discovers and parses the whole slice tree ONCE and
+/// shares it, instead of paying the full-corpus discovery twice. The body is unchanged; only the
+/// catalog now arrives by reference.
+pub fn build_corpus_from_catalog(
+    catalog: &SliceCatalog,
+) -> Result<LangDocsRenderingCorpus, gmeow_errors::Diag> {
     // (lang, term-page IRI) -> the entries that render that page in that language. A
     // BTreeMap keeps the grouping deterministic independent of catalog discovery order.
     let mut pages: BTreeMap<(String, String), Vec<EntryRef>> = BTreeMap::new();
@@ -776,8 +787,19 @@ mod tests {
         // Every lang:rollsUpFrom target the docs re-typing emits is a real lang:TranslationUnit
         // in the lang_translation corpus — the roll-up references live units by identity, never
         // a re-derived scheme that could drift.
-        let docs = build_corpus(&repo_root()).expect("docs corpus");
-        let trans = crate::stages::lang_translation::build_corpus(&repo_root())
+        // Discover the whole slice tree ONCE and build both corpora from it. The docs-rendering
+        // corpus and the sibling translation corpus read the SAME slice catalog, so building each
+        // via `build_corpus(root)` re-discovered and re-parsed the entire tree — pure redundant
+        // full-corpus I/O that dominated this cross-check's wall time. Sharing the catalog removes
+        // exactly that duplicate; the assertions below are unchanged.
+        let root = repo_root();
+        let catalog = purrdf::slice::SliceCatalog::discover(
+            &root.join("slices"),
+            gmeow_ns::gmeow_slice_vocab(),
+        )
+        .expect("slice catalog");
+        let docs = build_corpus_from_catalog(&catalog).expect("docs corpus");
+        let trans = crate::stages::lang_translation::build_corpus_from_catalog(&catalog)
             .expect("translation corpus");
         let docs_nt = String::from_utf8(docs.ntriples).expect("utf8");
         let trans_nt = String::from_utf8(trans.ntriples).expect("utf8");

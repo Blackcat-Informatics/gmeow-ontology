@@ -1668,16 +1668,18 @@ fn total_math_conformance_matrix_is_discharged() {
     // exceeded even a 2400s backstop under concurrent gate load, which the doctrine calls a
     // broken test rather than a flaky one; the work itself is what had to get cheaper.
     // On a BOUNDED pool, not the global one. nextest already runs tests in parallel, so a
-    // test that quietly seizes every core starves its siblings — which is how two heavy
-    // pipeline tests started timing out the moment this loop went parallel. A QUARTER of the
-    // host's parallelism keeps most of the win (the cost is one DL closure per fixture, not
-    // per core: ~700s sequential, ~350s on four threads, ~235s on eight) while leaving the
-    // rest of the suite room to run. Derived rather than hardcoded so the fraction is true on
-    // every host: a fixed count is a quarter of one developer's machine and oversubscription
-    // on a small CI runner, which is precisely the starvation this bound exists to prevent.
-    // Floored at two so the parallel fold is still exercised on a uniprocessor.
+    // This binary is host-reserved on gate (`threads-required = "num-cpus"` in
+    // .config/nextest.toml), so it never co-schedules with sibling pipeline tests and can take
+    // EVERY reserved core without oversubscribing anything. An earlier revision bounded this pool
+    // to a QUARTER of the host to leave siblings room while co-scheduled (~700s sequential, ~350s
+    // on four threads, ~235s on eight — one DL closure per fixture, not per core). That keeps the
+    // win on a 32-core dev box, but INVERTS on a 4-core hosted runner, where a quarter is one
+    // thread and the fold degrades to near-sequential, overrunning even the 600s backstop on all
+    // retries. With the host reserved the correct width is all of it: ~350s on four CI cores,
+    // ~235s on eight, both inside the ceiling. Floored at two so the parallel fold is still
+    // exercised on a uniprocessor.
     let pool_threads = std::thread::available_parallelism()
-        .map(|n| (n.get() / 4).max(2))
+        .map(|n| n.get().max(2))
         .unwrap_or(2);
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(pool_threads)
