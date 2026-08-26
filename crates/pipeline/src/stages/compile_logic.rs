@@ -1220,6 +1220,12 @@ mod tests {
                 .filter_map(|resource| resource.name.clone())
                 .collect(),
             handles: out.product.bundle().handles().keys().cloned().collect(),
+            default_graph: crate::cache::default_graph_commitment(&out.product)
+                .expect("commit default graph"),
+            provenance: crate::cache::provenance_commitment(&out.product)
+                .expect("commit provenance"),
+            content_store: crate::cache::content_store_commitment(&out.product)
+                .expect("commit content store"),
         };
         let cold = cache
             .put(

@@ -10,6 +10,23 @@ license.workspace = true
 repository.workspace = true
 readme = "README.md"
 keywords = ["pipeline", "dag", "build", "rdf", "gmeow"]
+autobins = false
+
+[[bin]]
+name = "bench-compare"
+path = "src/bin/bench-compare.rs"
+
+[[bin]]
+name = "gmn-dialect-paths"
+path = "src/bin/gmn-dialect-paths.rs"
+
+[[bin]]
+name = "medium-sweep"
+path = "src/bin/medium-sweep.rs"
+
+[[bin]]
+name = "perf_gate_merge"
+path = "src/bin/perf_gate_merge.rs"
 
 [lib]
 # rlib-only: a pure-Rust engine crate consumed by the workspace.
@@ -20,6 +37,7 @@ path = "src/lib.rs"
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
 purrdf.workspace = true
+gmeow-action-cache = { path = "../action-cache" }
 # The native, zero-dependency XSD value space: the snapshot carrier
 # canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
 # `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
@@ -186,6 +204,7 @@ ed25519-dalek = "2"
 sha2.workspace = true
 
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 # The consumer MCP engine, TEST-ONLY: the medium gate drives the runtime-store lane
 # (`store_medium` + the memory dictionaries) that moved out of this crate into the
 # `gmeow-mcp` leaf. A normal dependency would invert the layering — gmeow-mcp is a leaf

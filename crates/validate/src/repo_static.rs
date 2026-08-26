@@ -6795,6 +6795,7 @@ mod tests {
         assert_eq!(
             bound.keys().copied().collect::<Vec<_>>(),
             vec![
+                "bundle-import.cache",
                 "bundle-view.export",
                 "bundle-view.io",
                 "bundle-view.rdf.parse",

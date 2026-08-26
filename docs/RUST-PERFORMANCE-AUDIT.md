@@ -114,8 +114,9 @@ Wall time is now bought by scheduling instead. `sync` is a prerequisite of a tas
 only when that task genuinely reads a `generated/` artifact, and the monolithic
 `rust-gate` node is split into four concurrent siblings (`carrier-purity`, `clippy`,
 `nextest`, `doctests`) under one `rust-build`. The breadth-dominated lanes
-(`wasm-parity`, `acceptance`, `bench-soak`) moved to the CI-only `make heavy`, which
-still runs on every PR.
+(`wasm-parity`, `acceptance`, `bench-soak`, `example-sweep-parity`, and
+`medium-consumer-surface`) moved to the CI-only `make heavy`, which still runs on
+every PR.
 
 The local `make check` entry point also owns update-mode synchronization. This
 removes the developer-visible regenerate-then-gate boundary without adding

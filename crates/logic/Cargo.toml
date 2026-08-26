@@ -116,13 +116,11 @@ sha2.workspace = true
 # parser (weeks/days/hours/minutes/seconds), not chrono.
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
-[build-dependencies]
-# Content identity for the graph-preserving GTS -> PURRPCK import product. The build
-# fingerprint covers every workspace crate, the dependency lock, toolchain, target, and
-# profile so a cache entry cannot cross an importer/transitive implementation identity.
-sha2.workspace = true
-
 [dev-dependencies]
+# The whole-bundle coherence integration test imports the shipped snapshot through
+# the native cross-process transport cache. It is deliberately test-only: the
+# reasoning core and its browser consumers must not inherit filesystem/locking code.
+gmeow-bundle-import = { path = "../bundle-import" }
 # Also a dev-dependency so the integration tests (tests/never_panic.rs,
 # proptest_invariants.rs) can `use gmeow_logic_compile::` directly.
 gmeow-logic-compile = { path = "../logic-compile" }

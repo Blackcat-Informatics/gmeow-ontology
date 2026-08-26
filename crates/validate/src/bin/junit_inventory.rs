@@ -17,7 +17,7 @@ use sha2::{Digest, Sha256};
 const SCHEMA_VERSION: u32 = 1;
 
 #[derive(Debug)]
-struct InventoryError(gmeow_errors::Diag);
+struct InventoryError(String);
 
 impl std::fmt::Display for InventoryError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -29,9 +29,7 @@ impl std::error::Error for InventoryError {}
 
 impl From<String> for InventoryError {
     fn from(detail: String) -> Self {
-        Self(gmeow_errors::Diag::of_kind(
-            gmeow_validate::error::Argument { detail },
-        ))
+        Self(detail)
     }
 }
 

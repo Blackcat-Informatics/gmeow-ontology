@@ -27,7 +27,8 @@ use rayon::prelude::*;
 use crate::bundle::set_bundle_provenance;
 use crate::cache::{
     PipelineCache, RawInputDigest, ReceiptOutputSelection, StageInputDigest, StageKeyContext,
-    StageReceipt, content_digest,
+    StageReceipt, content_digest, content_store_commitment, content_store_keys,
+    default_graph_commitment, default_graph_keys, provenance_commitment, provenance_keys,
 };
 use crate::graph::StageGraph;
 use crate::node::{
@@ -168,19 +169,13 @@ pub struct RunContext {
 
 impl RunContext {
     /// Construct a run context rooted at `root` with `jobs` parallelism, opening the
-    /// persistent cache under `.cache/gmeow-sync/pipeline/<build-fingerprint>/`.
-    ///
-    /// The cache is namespaced by [`crate::cache::BUILD_FINGERPRINT`]. Opening it keeps
-    /// the current and newest prior namespace and reaps only older IDLE siblings; a
-    /// shared namespace lease protects concurrent work. Every action key also embeds
-    /// the fingerprint, so code/dependency/toolchain changes cannot serve an older
-    /// executable's product.
+    /// persistent cache under the shared `.cache/gmeow-sync/actions/` authority.
+    /// Every action key embeds the producer fingerprint, so code/dependency/toolchain
+    /// changes cannot serve an older executable's product; the common store owns the
+    /// bounded receipt/blob quota across pipeline and documentation actions.
     pub fn open(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, gmeow_errors::Diag> {
         let root = root.into();
-        let base = PipelineCache::default_dir(&root);
-        let fp = &crate::cache::BUILD_FINGERPRINT[..16];
-        let cache = PipelineCache::open(base.join(fp))?;
-        PipelineCache::prune_namespaces(&base, fp, 2)?;
+        let cache = PipelineCache::open_default(&root)?;
         Ok(Self {
             root,
             jobs: jobs.max(1),
@@ -198,7 +193,7 @@ impl RunContext {
     }
 
     /// Construct a run context whose cache lives in a FRESH, run-unique temp
-    /// directory rather than the persistent `.cache/gmeow-sync/pipeline/`.
+    /// directory rather than the persistent `.cache/gmeow-sync/actions/`.
     ///
     /// Used by tests that want a clean, isolated cache per run (no cross-test or
     /// cross-invocation reuse). The full build ([`crate::run::run_full`]) uses the
@@ -322,6 +317,12 @@ pub struct StageTiming {
     pub cache_read_bytes: u64,
     /// Serialized bytes published for a cold persistent result.
     pub cache_write_bytes: u64,
+    /// Change in this process's resident set across a verified cache hydration.
+    ///
+    /// This is observational and absent on an execution/miss. A `jobs=1` census gives
+    /// the isolated per-stage value used for admission economics; in a parallel wave it
+    /// remains useful context but may include concurrent sibling allocation.
+    pub cache_hydration_rss_delta_kib: Option<i64>,
 }
 
 /// One internal phase timing qualified by its producing stage.
@@ -368,6 +369,7 @@ struct StageRun {
     cache_outcome: String,
     cache_read_bytes: u64,
     cache_write_bytes: u64,
+    cache_hydration_rss_delta_kib: Option<i64>,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -655,6 +657,7 @@ pub fn run_without(
                 cache_outcome: r.cache_outcome,
                 cache_read_bytes: r.cache_read_bytes,
                 cache_write_bytes: r.cache_write_bytes,
+                cache_hydration_rss_delta_kib: r.cache_hydration_rss_delta_kib,
             });
             stage_phase_timings.extend(r.timings.drain(..).map(|timing| StagePhaseTiming {
                 stage_id: r.id.clone(),
@@ -852,6 +855,7 @@ fn exec_stage(
     // the loader's DataFlow agreement is what guarantees the declaration is honest.
     let key_context = action_key_context(stage, root, &upstream)?;
     let started = std::time::Instant::now();
+    let rss_before_kib = current_rss_kib();
 
     if stage_cache_enabled
         && stage.stability() == StageStability::StablePrefix
@@ -886,6 +890,7 @@ fn exec_stage(
             cache_outcome: "hit".to_string(),
             cache_read_bytes: hit.hydrated_bytes,
             cache_write_bytes: 0,
+            cache_hydration_rss_delta_kib: rss_delta_kib(rss_before_kib, current_rss_kib()),
         });
     }
 
@@ -950,7 +955,27 @@ fn exec_stage(
         cache_outcome: cache_outcome.to_string(),
         cache_read_bytes: 0,
         cache_write_bytes: 0,
+        cache_hydration_rss_delta_kib: None,
     })
+}
+
+fn current_rss_kib() -> Option<u64> {
+    std::fs::read_to_string("/proc/self/status")
+        .ok()?
+        .lines()
+        .find_map(|line| {
+            line.strip_prefix("VmRSS:")?
+                .split_whitespace()
+                .next()?
+                .parse::<u64>()
+                .ok()
+        })
+}
+
+fn rss_delta_kib(before: Option<u64>, after: Option<u64>) -> Option<i64> {
+    let before = i128::from(before?);
+    let after = i128::from(after?);
+    i64::try_from(after - before).ok()
 }
 
 /// The set of named-graph IRIs a product's carrier bundle carries.
@@ -1044,6 +1069,14 @@ pub(crate) fn verify_attach_drift(
     let mut input_blob_records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut input_artifacts: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut input_handles: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut input_default_graph = BTreeSet::new();
+    let mut input_provenance = BTreeSet::new();
+    let mut input_content_store = BTreeSet::new();
+    let carrier_inputs: BTreeSet<&str> = stage
+        .carrier_consumes()
+        .iter()
+        .map(String::as_str)
+        .collect();
     for (producer, up) in upstream {
         let upstream_graphs = product_graphs(up);
         match entities.get(producer.as_str()) {
@@ -1065,6 +1098,54 @@ pub(crate) fn verify_attach_drift(
         }
         for (graph, digest) in product_handle_records(up) {
             input_handles.entry(graph).or_default().insert(digest);
+        }
+        // Only declared carrier inputs can contribute transport lanes. An
+        // artifact-only dependency may already have had its dataset/provenance/store
+        // released; inspecting those lanes here would violate the same transport
+        // boundary this verifier is meant to enforce.
+        if stage.cache_policy() == CachePolicy::Persistent
+            && carrier_inputs.contains(producer.as_str())
+        {
+            input_default_graph.extend(default_graph_keys(up));
+            input_provenance.extend(provenance_keys(up)?);
+            input_content_store.extend(content_store_keys(up)?);
+        }
+    }
+
+    if stage.cache_policy() == CachePolicy::Persistent {
+        for (lane, inherited) in [
+            (
+                "default graph",
+                default_graph_keys(product)
+                    .intersection(&input_default_graph)
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            ),
+            (
+                "provenance",
+                provenance_keys(product)?
+                    .intersection(&input_provenance)
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            ),
+            (
+                "content store",
+                content_store_keys(product)?
+                    .intersection(&input_content_store)
+                    .cloned()
+                    .collect::<Vec<_>>(),
+            ),
+        ] {
+            if !inherited.is_empty() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: stage.id().to_string(),
+                    message: format!(
+                        "persistent contribution inherits {lane} carrier state from its \
+                         effective upstream ({inherited:?}); independently bounded units must \
+                         emit only their delta or declare cacheRecomputeAggregate"
+                    ),
+                }));
+            }
         }
     }
 
@@ -1117,6 +1198,9 @@ pub(crate) fn verify_attach_drift(
         blob_representations: delta_blob_reps.into_iter().collect(),
         logical_artifacts: delta_artifacts,
         handles: delta_handles,
+        default_graph: default_graph_commitment(product)?,
+        provenance: provenance_commitment(product)?,
+        content_store: content_store_commitment(product)?,
     })
 }
 

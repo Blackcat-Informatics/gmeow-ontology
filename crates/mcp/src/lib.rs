@@ -85,6 +85,10 @@
 //! * `purrdf` — the RDF 1.2 kernel: the snapshot imports to an `RdfDataset`, every
 //!   query surface evaluates SPARQL over one, and the memory / conjecture / candidate
 //!   libraries are GTS segment files written with its writer.
+//! * `gmeow-bundle-import` — the native-only, content-keyed snapshot importer used
+//!   when a producer-bound fixture explicitly selects the exact shipped bundle. It
+//!   verifies and restores the shared packed dataset; synthetic and tampered snapshots
+//!   continue through the direct importer so cached bytes can never mask a test input.
 //! * `gmeow-errors` — the diagnostic substrate: every tool defect is a typed
 //!   `DiagKind` raised as a `Diag`, and `explain_finding` rehydrates `Finding`s.
 //! * `gmeow-ns` — the registered term namespaces (`GMEOW_NS`, `LOGIC_NS`, `MATH_NS`)
@@ -2685,6 +2689,66 @@ pub struct McpServer {
     startup_requested: Vec<String>,
 }
 
+/// Optional native cross-process fixture authority for the exact shipped snapshot.
+///
+/// Both variables are required together. The digest selector keeps synthetic and
+/// deliberately tampered snapshots on the direct importer: the shared product is an
+/// acceleration for one authenticated input, never a fallback that can mask a changed
+/// test fixture. A selected cache miss recomputes through the normal importer; corrupt
+/// selected material hard-fails in `gmeow_bundle_import`.
+#[cfg(not(target_arch = "wasm32"))]
+fn import_snapshot_dataset(snapshot: &[u8]) -> gmeow_errors::Result<Arc<purrdf::RdfDataset>> {
+    const CACHE_ROOT_ENV: &str = "GMEOW_BUNDLE_IMPORT_CACHE";
+    const SOURCE_DIGEST_ENV: &str = "GMEOW_BUNDLE_IMPORT_SOURCE_SHA256";
+
+    let cache_root = storage().env_var(CACHE_ROOT_ENV);
+    let selected_digest = storage().env_var(SOURCE_DIGEST_ENV);
+    match (cache_root, selected_digest) {
+        (None, None) => {}
+        (Some(cache_root), Some(selected_digest)) => {
+            let valid_digest = selected_digest.len() == 64
+                && selected_digest
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte));
+            if !valid_digest {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "{SOURCE_DIGEST_ENV} must be exactly 64 lowercase hexadecimal \
+                         characters"
+                    ),
+                }));
+            }
+            let actual_digest = purrdf::ContentDigest::of(snapshot).to_hex();
+            if actual_digest == selected_digest {
+                return gmeow_bundle_import::import_graph_preserving_cached(
+                    std::path::Path::new(&cache_root),
+                    snapshot,
+                )
+                .map(|outcome| outcome.dataset);
+            }
+        }
+        _ => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "{CACHE_ROOT_ENV} and {SOURCE_DIGEST_ENV} must be configured together"
+                ),
+            }));
+        }
+    }
+
+    purrdf::import_gts_events(snapshot)
+        .with_ctx(|| "read snapshot gmeow.gts".to_string())
+        .map(|bundle| bundle.dataset)
+}
+
+/// Browser and explicitly core-only builds carry no filesystem cache dependency.
+#[cfg(target_arch = "wasm32")]
+fn import_snapshot_dataset(snapshot: &[u8]) -> gmeow_errors::Result<Arc<purrdf::RdfDataset>> {
+    purrdf::import_gts_events(snapshot)
+        .with_ctx(|| "read snapshot gmeow.gts".to_string())
+        .map(|bundle| bundle.dataset)
+}
+
 impl McpServer {
     /// Build the CONSUMER MCP server over the bundled `gmeow.gts` snapshot bytes —
     /// the shippable `gmeow mcp` surface, which reads nothing but the bundle.
@@ -2750,9 +2814,7 @@ impl McpServer {
         segments: SegmentSet,
         extension: Extension,
     ) -> gmeow_errors::Result<Self> {
-        let bundle = purrdf::import_gts_events(snapshot)
-            .with_ctx(|| "read snapshot gmeow.gts".to_string())?;
-        let dataset = bundle.dataset;
+        let dataset = import_snapshot_dataset(snapshot)?;
         let tag_map = language_tag_map(dataset.as_ref());
         let mut available: BTreeSet<String> =
             tag_map.values().map(|v| v.to_ascii_lowercase()).collect();
@@ -8679,6 +8741,69 @@ mod tests {
     fn snapshot() -> Vec<u8> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         fs::read(root.join("generated/dist/gmeow.gts")).expect("read committed snapshot")
+    }
+
+    fn tiny_header_snapshot() -> Vec<u8> {
+        let dataset = dataset_of(
+            "<https://blackcatinformatics.ca/gmeow> \
+             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+             <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> \
+             <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> \
+             <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n",
+        );
+        gmeow_gts_profile::dataset_to_gmeow_gts(dataset.as_ref())
+            .expect("emit tiny header snapshot")
+    }
+
+    #[test]
+    fn selected_bundle_import_cache_is_used_and_corruption_fails_closed() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&[
+            "GMEOW_LANG",
+            "GMEOW_BUNDLE_IMPORT_CACHE",
+            "GMEOW_BUNDLE_IMPORT_SOURCE_SHA256",
+        ]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let cache = tempfile::tempdir().expect("cache root");
+        let snapshot = tiny_header_snapshot();
+        let source_digest = purrdf::ContentDigest::of(&snapshot).to_hex();
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::set_var("GMEOW_BUNDLE_IMPORT_CACHE", cache.path());
+            env::set_var("GMEOW_BUNDLE_IMPORT_SOURCE_SHA256", &source_digest);
+        }
+
+        let server = McpServer::from_snapshot(&snapshot).expect("selected miss builds normally");
+        assert_eq!(server.view.gts_bytes(), snapshot);
+        drop(server);
+
+        let blob_dir = cache
+            .path()
+            .join(gmeow_bundle_import::BUILD_FINGERPRINT)
+            .join("v1/blobs");
+        let blob = fs::read_dir(&blob_dir)
+            .expect("bundle import blob directory")
+            .next()
+            .expect("one published pack")
+            .expect("published pack entry")
+            .path();
+        let mut corrupt = fs::read(&blob).expect("read published pack");
+        corrupt[0] ^= 0xff;
+        fs::write(&blob, corrupt).expect("tamper published pack");
+
+        let error = match McpServer::from_snapshot(&snapshot) {
+            Ok(_) => panic!("a corrupt selected bundle-import product must hard-fail"),
+            Err(error) => error,
+        };
+        assert!(
+            error.to_string().contains("pack digest/size mismatch"),
+            "the refusal must name the cache integrity defect: {error}"
+        );
     }
 
     fn text_payload(value: Value) -> Value {

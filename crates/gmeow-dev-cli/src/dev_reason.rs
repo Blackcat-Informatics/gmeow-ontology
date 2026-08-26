@@ -28,9 +28,9 @@ const TELEMETRY_SCHEMA_VERSION: u32 = 1;
 /// Import the committed snapshot through the content-keyed graph-preserving dataset
 /// product. The original bytes remain available to the independent frame/profile gates;
 /// this boundary only eliminates repeated container decode/freeze/index work.
-fn snapshot_import(root: &Path) -> Result<gmeow_logic::bundle_import::ImportOutcome, i32> {
+fn snapshot_import(root: &Path) -> Result<gmeow_bundle_import::ImportOutcome, i32> {
     let bytes = snapshot_bytes(root)?;
-    gmeow_logic::bundle_import::import_graph_preserving_cached(
+    gmeow_bundle_import::import_graph_preserving_cached(
         &root.join(".cache/gmeow-bundle-import"),
         &bytes,
     )

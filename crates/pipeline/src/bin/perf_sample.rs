@@ -19,7 +19,7 @@ use sha2::{Digest, Sha256};
 const SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug)]
-struct PerfError(gmeow_errors::Diag);
+struct PerfError(String);
 
 impl std::fmt::Display for PerfError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -31,9 +31,7 @@ impl std::error::Error for PerfError {}
 
 impl From<String> for PerfError {
     fn from(message: String) -> Self {
-        Self(gmeow_errors::Diag::of_kind(
-            gmeow_pipeline::error::Transform { message },
-        ))
+        Self(message)
     }
 }
 
@@ -60,6 +58,7 @@ struct Args {
     work_telemetry: Option<PathBuf>,
     identity_receipts: Vec<(String, PathBuf)>,
     cache_roots: Vec<(String, PathBuf)>,
+    output_roots: Vec<(String, PathBuf)>,
     command: Vec<String>,
 }
 
@@ -126,6 +125,7 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> PerfResult<
     let mut work_telemetry = None;
     let mut identity_receipts = Vec::new();
     let mut cache_roots = Vec::new();
+    let mut output_roots = Vec::new();
     let mut command = Vec::new();
     let mut args = arguments
         .into_iter()
@@ -216,6 +216,10 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> PerfResult<
                 &value(&mut args, "--cache-root")?,
                 "--cache-root",
             )?),
+            "--output-root" => output_roots.push(parse_named_path(
+                &value(&mut args, "--output-root")?,
+                "--output-root",
+            )?),
             _ => {
                 return Err(
                     format!("unknown argument {argument:?}; separate the command with --").into(),
@@ -242,6 +246,8 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> PerfResult<
         ("sync_manifest", "--sync-cache-state"),
         ("pipeline", "--pipeline-cache-state"),
         ("fixture", "--fixture-cache-state"),
+        ("bundle_import", "--bundle-import-cache-state"),
+        ("nextest_archive", "--nextest-archive-cache-state"),
     ] {
         if !cache_classes.contains_key(required_class) {
             return Err(format!("missing required {option}").into());
@@ -291,6 +297,7 @@ fn parse_args_from(arguments: impl IntoIterator<Item = OsString>) -> PerfResult<
         work_telemetry,
         identity_receipts,
         cache_roots,
+        output_roots,
         command,
     })
 }
@@ -348,6 +355,7 @@ fn run(args: Args) -> PerfResult<i32> {
     let git_tree = run_text(&root, "git", &["rev-parse", "HEAD^{tree}"])?;
     let cargo_lock_sha256 = sha256_file(&root.join("Cargo.lock"))?;
     let dependency_resolution_sha256 = dependency_resolution_digest(&root)?;
+    let pipeline_build_fingerprint = pipeline_build_fingerprint(&root)?;
     let rustc = run_text(&root, "rustc", &["-Vv"])?;
     let cargo = run_text(&root, "cargo", &["--version", "--verbose"])?;
     let nextest = run_text(&root, "cargo", &["nextest", "--version"])?;
@@ -402,6 +410,13 @@ fn run(args: Args) -> PerfResult<i32> {
             }))
         })
         .transpose()?;
+    // Cache roots above bind pre-command warmth. Explicit output roots bind bytes
+    // created by the measured operation (notably nextest archive compression) without
+    // re-hashing every large input cache a second time. The sample file itself is
+    // written only after this census, avoiding a self-referential tree digest when its
+    // parent directory is measured.
+    let output_census = named_tree_receipts(&root, &args.output_roots)?;
+    let proof_inventory = proof_inventory(work_telemetry.as_ref(), &args.command);
 
     let resource_usage = usage_after.delta(usage_before);
     let cpu_ms = resource_usage
@@ -448,7 +463,7 @@ fn run(args: Args) -> PerfResult<i32> {
             "git_tree": git_tree.trim(),
             "cargo_lock_sha256": cargo_lock_sha256,
             "dependency_resolution_sha256": dependency_resolution_sha256,
-            "pipeline_build_fingerprint": gmeow_pipeline::cache::BUILD_FINGERPRINT,
+            "pipeline_build_fingerprint": pipeline_build_fingerprint,
             "rustc_vv": rustc.trim(),
             "cargo_version": cargo.trim(),
             "nextest_version": nextest.trim(),
@@ -465,6 +480,14 @@ fn run(args: Args) -> PerfResult<i32> {
         },
         "deterministic_work": {
             "command_telemetry": work_telemetry,
+            "output_census": output_census,
+            "proof_inventory": proof_inventory,
+            "causal_counters": {
+                // A direct host command has no CI job group that can fall back to
+                // compiling the source producer independently. Hosted run receipts
+                // populate the same counter from the authored workflow.
+                "source_producer_fallback_job_groups": 0,
+            },
         },
         "observations": {
             "wall_ms": wall_ms,
@@ -480,6 +503,23 @@ fn run(args: Args) -> PerfResult<i32> {
     write_json_atomic(&args.output, &payload)?;
     println!("{}", args.output.display());
     Ok(exit_status.code().unwrap_or(1))
+}
+
+fn proof_inventory(work_telemetry: Option<&serde_json::Value>, command: &[String]) -> Vec<String> {
+    let mut inventory = work_telemetry
+        .and_then(|receipt| receipt.pointer("/payload/commands"))
+        .and_then(serde_json::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| entry.get("command").and_then(serde_json::Value::as_str))
+        .map(ToString::to_string)
+        .collect::<Vec<_>>();
+    if inventory.is_empty() {
+        inventory.push(command.join(" "));
+    }
+    inventory.sort();
+    inventory.dedup();
+    inventory
 }
 
 fn run_text(root: &Path, program: &str, args: &[&str]) -> PerfResult<String> {
@@ -522,6 +562,56 @@ fn sha256_bytes(bytes: &[u8]) -> String {
     let mut hash = Sha256::new();
     hash.update(bytes);
     format!("{:x}", hash.finalize())
+}
+
+/// Resolve the producer build identity from an immutable generation receipt.
+///
+/// CI carries the authenticated producer receipt into every measured shard. Local
+/// source-backed measurements use the sync manifest written by that same producer.
+/// A cold cache miss must still provide the producer receipt; guessing an identity
+/// from the sampler's own build would bind the observation to the wrong executable.
+fn pipeline_build_fingerprint(root: &Path) -> PerfResult<String> {
+    let candidates = [
+        (
+            root.join("dist/producer-receipt.json"),
+            "/payload/build_identity/fingerprint",
+        ),
+        (
+            root.join(".cache/gmeow-sync/manifests/generated-default.json"),
+            "/build_fingerprint",
+        ),
+    ];
+    for (path, pointer) in candidates {
+        if !path.is_file() {
+            continue;
+        }
+        let bytes = fs::read(&path)
+            .map_err(|error| format!("read producer identity {}: {error}", path.display()))?;
+        let receipt: serde_json::Value = serde_json::from_slice(&bytes)
+            .map_err(|error| format!("parse producer identity {}: {error}", path.display()))?;
+        let fingerprint = receipt
+            .pointer(pointer)
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| {
+                format!(
+                    "producer identity {} lacks string {pointer}",
+                    path.display()
+                )
+            })?;
+        if fingerprint.len() != 64
+            || !fingerprint
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+        {
+            return Err(format!(
+                "producer identity {} has malformed build fingerprint {fingerprint:?}",
+                path.display()
+            )
+            .into());
+        }
+        return Ok(fingerprint.to_string());
+    }
+    Err("no producer build identity found; provide dist/producer-receipt.json or materialize the exact generated sync manifest before sampling".into())
 }
 
 fn dependency_resolution_digest(root: &Path) -> PerfResult<String> {
@@ -838,6 +928,10 @@ mod tests {
             cache_state,
             "--fixture-cache-state",
             cache_state,
+            "--bundle-import-cache-state",
+            cache_state,
+            "--nextest-archive-cache-state",
+            cache_state,
             "--node-class",
             "node",
             "--output",
@@ -858,16 +952,22 @@ mod tests {
         complete.extend([
             OsString::from("--partial-change"),
             OsString::from(format!("irrelevant:slices/example.ttl:{}", "a".repeat(64))),
+            OsString::from("--output-root"),
+            OsString::from("archive=dist/nextest"),
             OsString::from("--"),
             OsString::from("true"),
         ]);
         let parsed = parse_args_from(complete).unwrap();
         assert_eq!(parsed.cache_state, "partial");
         assert_eq!(parsed.cache_classes["pipeline"], "partial");
+        assert_eq!(
+            parsed.output_roots,
+            vec![("archive".to_string(), PathBuf::from("dist/nextest"))]
+        );
     }
 
     #[test]
-    fn the_four_cache_classes_are_not_collapsed_into_one_label() {
+    fn the_six_cache_classes_are_not_collapsed_into_one_label() {
         let mut args = base_args("warm");
         let sync_option = args
             .iter()
@@ -896,5 +996,44 @@ mod tests {
         assert_eq!(first["file_count"], 2);
         assert_eq!(first["bytes"], 6);
         assert_ne!(first["sha256"], second["sha256"]);
+    }
+
+    #[test]
+    fn producer_receipt_identity_precedes_the_local_sync_manifest() {
+        let root = tempfile::tempdir().unwrap();
+        fs::create_dir_all(root.path().join("dist")).unwrap();
+        fs::create_dir_all(root.path().join(".cache/gmeow-sync/manifests")).unwrap();
+        fs::write(
+            root.path().join("dist/producer-receipt.json"),
+            serde_json::to_vec(&serde_json::json!({
+                "payload": {"build_identity": {"fingerprint": "a".repeat(64)}}
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        fs::write(
+            root.path()
+                .join(".cache/gmeow-sync/manifests/generated-default.json"),
+            serde_json::to_vec(&serde_json::json!({"build_fingerprint": "b".repeat(64)})).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            pipeline_build_fingerprint(root.path()).unwrap(),
+            "a".repeat(64)
+        );
+    }
+
+    #[test]
+    fn producer_identity_is_required_and_structurally_validated() {
+        let root = tempfile::tempdir().unwrap();
+        assert!(pipeline_build_fingerprint(root.path()).is_err());
+        fs::create_dir_all(root.path().join(".cache/gmeow-sync/manifests")).unwrap();
+        fs::write(
+            root.path()
+                .join(".cache/gmeow-sync/manifests/generated-default.json"),
+            br#"{"build_fingerprint":"NOT-A-DIGEST"}"#,
+        )
+        .unwrap();
+        assert!(pipeline_build_fingerprint(root.path()).is_err());
     }
 }

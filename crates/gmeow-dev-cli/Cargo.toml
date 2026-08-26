@@ -32,6 +32,7 @@ gmeow-mcp-dev = { path = "../mcp-dev" }
 # real `McpServer`, which is the surface a consumer actually sees.
 gmeow-mcp = { path = "../mcp" }
 gmeow-logic = { path = "../logic" }
+gmeow-bundle-import = { path = "../bundle-import" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
 gmeow-docs = { path = "../docs" }
@@ -45,7 +46,7 @@ gmeow-gts-profile = { path = "../gts-profile" }
 # `check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs.
 tempfile.workspace = true
 # The docs MODEL, direct: `doc-lint` loads the model from the content-addressed
-# `.cache/docs-fixture` store, whose model half + shared cache key live in this crate
+# shared `.cache/gmeow-sync/actions/` store, whose model half + action key live in this crate
 # (`gmeow_docs_model::fixture`) so that every model consumer — `gmeow-slice-quality`
 # included — can reach the cache without an edge to the renderer. The renderer-side
 # site loader still comes from `gmeow-docs` above.

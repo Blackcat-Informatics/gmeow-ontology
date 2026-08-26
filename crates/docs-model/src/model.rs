@@ -2897,7 +2897,7 @@ fn is_competency_query_path(rel: &str) -> bool {
 /// competency harness and the docs model would disagree about where the query
 /// lives), and it is outside the content-addressed input set
 /// `crate::fixture::cache_key` folds — a query whose TEXT changed under an
-/// unhashed path would be served stale from `.cache/docs-fixture` forever. Making
+/// unhashed path could be served stale from `.cache/gmeow-sync/actions/`. Making
 /// the boundary an error keeps the cache sound BY CONSTRUCTION rather than by the
 /// authoring convention that today's values all happen to satisfy.
 fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {

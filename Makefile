@@ -44,7 +44,7 @@ PERF_DIR ?= dist/perf
 PERF_SAMPLE_ARGS ?=
 # Exact arguments and sample paths for the report-only paired acceptance grader.
 PERF_ACCEPT_ARGS ?=
-# Arguments for scripts/ci-run-receipt.sh (run, variant, index, node class, output).
+# Named protocol/identity/cache arguments for scripts/ci-run-receipt.sh.
 CI_RUN_RECEIPT_ARGS ?=
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
@@ -149,31 +149,49 @@ CHECK_ARGS ?=
 NEXTEST_VERSION := 0.9.137
 NEXTEST_ARCHIVE ?= dist/nextest/ci.tar.zst
 NEXTEST_ARCHIVE_RECEIPT ?= dist/nextest/receipt.json
+NEXTEST_ARCHIVE_INPUT ?=
+NEXTEST_ARCHIVE_REPLAY_ARGS = $(if $(NEXTEST_ARCHIVE_INPUT),--archive-file "$(NEXTEST_ARCHIVE_INPUT)" --workspace-remap "$(abspath .)",)
 NEXTEST_SHARDS ?= 3
 NEXTEST_JUNIT_INVENTORY ?= dist/nextest/junit_inventory
 NEXTEST_PERF_SAMPLE ?= dist/nextest/perf_sample
+NEXTEST_PERF_ACCEPT ?= dist/nextest/perf_accept
+NEXTEST_FIXTURE_PRIME_TARGET ?= prime-test-fixtures
+RUST_PREBUILD_WORKSPACE_ARGS := --workspace --exclude gmeow-cli --exclude gmeow-lsp
+FIXTURE_PRIMER_BUILD_ARGS := --profile test --package gmeow-docs --package gmeow-pipeline --example prime-docs-fixture --example prime-pipeline-test-fixtures
 FIXTURE_TIMINGS_JSON ?=
 FIXTURE_TIMINGS_ARG := $(if $(FIXTURE_TIMINGS_JSON),--timings-json $(FIXTURE_TIMINGS_JSON),)
+REASON_VERIFY_TIMINGS_JSON ?=
+REASON_VERIFY_TIMINGS_ARG := $(if $(REASON_VERIFY_TIMINGS_JSON),--timings-json $(REASON_VERIFY_TIMINGS_JSON),)
+BUNDLE_IMPORT_CACHE_ROOT ?= $(abspath .cache/gmeow-bundle-import)
+# The root and exact source identity form one explicit PRODUCER-BOUND fixture selection.
+# Use it for the primer and host-reserved whole-bundle consumer suites. Never export it
+# across a general nextest run: nextest isolates tests into processes, so dozens of tests
+# would hydrate the same large pack concurrently and turn a cache hit into a thundering
+# herd. Synthetic and tamper cases deliberately use the raw importer in every lane.
+BUNDLE_IMPORT_CACHE_ENV = GMEOW_BUNDLE_IMPORT_CACHE="$(BUNDLE_IMPORT_CACHE_ROOT)" GMEOW_BUNDLE_IMPORT_SOURCE_SHA256="$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
+BUNDLE_IMPORT_CACHE_ARGS = --bundle-import-cache-root "$(BUNDLE_IMPORT_CACHE_ROOT)" --expected-source-digest "$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
 
 # The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
 # because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
 # than by the change under test; each remains individually runnable by name.
-HEAVY_TASKS := wasm-parity acceptance bench-soak medium-consumer-surface
+HEAVY_TASKS := wasm-parity acceptance bench-soak example-sweep-parity medium-consumer-surface
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
-RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
+RUST_INPUTS := Makefile Cargo.toml Cargo.lock .cargo/config.toml .config/nextest.toml rust-toolchain.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
+DOCS_FIXTURE_PRIMER := $(CARGO_TARGET_DIR)/debug/examples/prime-docs-fixture
+PIPELINE_FIXTURE_PRIMER := $(CARGO_TARGET_DIR)/debug/examples/prime-pipeline-test-fixtures
 
 print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
 	@echo "$(BINARYEN_VER)"
 
 .PHONY: help print-binaryen-ver \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
+	validate gts-frame-profile-gate medium-gate medium-consumer-surface example-sweep-parity reason verify reason-verify rust-prebuild rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate prime-test-fixtures nextest nextest-evidence-tools nextest-archive nextest-archive-verify doctests coherence-gate-teeth clippy carrier-purity wasm \
+	constitution-check crate-check lint-alignment doc-lint rust-gate prime-test-fixtures prime-producer-independent-test-fixtures prime-producer-bound-test-fixtures nextest nextest-evidence-tools nextest-archive nextest-archive-verify doctests coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test query-wasm-pkg query-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
 	console-test console console-smoke console-assemble npm-publish-dry npm-consumable \
@@ -233,9 +251,13 @@ verify: ## Run native reasoned-graph negative tests.
 	$(GMEOW_DEV) verify --mode native
 
 reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
-	$(GMEOW_DEV) reason-verify
+	$(GMEOW_DEV) reason-verify $(REASON_VERIFY_TIMINGS_ARG)
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
+
+rust-prebuild: ## Compile every producer-independent CI test unit and both fixture primers (CI handoff; generated/ not required).
+	cargo nextest run --no-run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS)
+	cargo build $(FIXTURE_PRIMER_BUILD_ARGS)
 
 rust-test: carrier-purity nextest doctests ## Run the Rust workspace tests, dedicated carrier proof, and doctests.
 
@@ -245,13 +267,11 @@ gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized
 medium-gate: ## Audit the whole medium axis of the materialized bundle: every frame decoded, every envelope re-derived, every dictionary paid for, and the declared reader contract matched.
 	$(GMEOW_DEV) medium-gate generated/dist/gmeow.gts
 
-medium-consumer-surface: rust-build ## HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites: the `gmeow medium` verbs and `gmeow-dev medium-gate`, each over a bundle a whole in-memory DAG run emitted.
+medium-consumer-surface: ## HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites over the authenticated producer-materialized bundle.
 	@# Lifted off `make check` under P6 criterion 2 (docs/GATE-AND-PIPELINE.md): each of
-	@# these two suites runs the WHOLE production DAG in memory and then drives a shipped
-	@# CLI over its output plus a real runtime store and five tampered breach fixtures, so
-	@# its runtime is set by the breadth of the pipeline rather than by the edit under
-	@# test. Both reserve the host (`threads-required = "num-cpus"`), so on the local gate
-	@# they also serialize everything else behind them.
+	@# these suites drives a shipped CLI over the whole producer bundle plus a real runtime
+	@# store and five tampered breach fixtures. The producer job already authenticates
+	@# those bytes; launching the production DAG again inside each test added no contract.
 	@#
 	@# What they prove is a CONSUMER-verb contract over shipped bytes; the axis's own
 	@# razor — the emission is the same claim under a second declared medium, and the
@@ -259,9 +279,16 @@ medium-consumer-surface: rust-build ## HEAVY (CI-only lane, `make heavy`) the tw
 	@# and `medium_bundle`, which are change-dominated. The default nextest filter
 	@# excludes exactly these two binaries, so `maint-heavy` is the profile that can see
 	@# them.
-	$(MAKE) prime-test-fixtures
-	cargo nextest run --profile maint-heavy \
+	@if [ -z "$(strip $(NEXTEST_ARCHIVE_INPUT))" ]; then \
+	  echo "medium consumer source check: verify the local generated fixed point"; \
+	  $(MAKE) check-sync; \
+	fi
+	$(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run $(NEXTEST_ARCHIVE_REPLAY_ARGS) --profile maint-heavy \
 	  -E '(package(gmeow-cli) & binary(medium_cli)) | (package(gmeow-dev-cli) & binary(medium_gate))'
+
+example-sweep-parity: ## HEAVY: prove batched SHACL validation is identical to the isolated reference over the full example corpus.
+	cargo nextest run --profile maint-heavy -p gmeow-validate --test example_sweep \
+	  -E 'test(batched_shacl_matches_isolated_reference_heavy_offgate)'
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
@@ -560,11 +587,20 @@ doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 rust-gate: rust-build carrier-purity clippy nextest doctests ## Aggregate alias: the whole Rust surface (carrier purity, clippy, nextest, doctests). `make check` schedules the four parts concurrently instead.
 	@echo "rust-gate: carrier-purity, clippy, nextest, and doctests all passed"
 
-prime-test-fixtures: ## Prime exact content-addressed fixtures shared by nextest processes.
+prime-test-fixtures: rust-build ## Prime exact content-addressed fixtures shared by nextest processes.
 	@# These examples run the real producers through their typed action/receipt laws.
+	@# rust-build materializes these exact test-profile executables. Running them directly
+	@# avoids a Cargo build lock after the Rust DAG has fanned out into concurrent siblings.
 	# A miss recomputes; a hit is structurally verified. No fixture is a substitute producer.
-	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo run -q --package gmeow-pipeline --example prime-pipeline-test-fixtures -- $(FIXTURE_TIMINGS_ARG)
+	$(DOCS_FIXTURE_PRIMER)
+	$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope all $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+
+prime-producer-independent-test-fixtures: ## Prime/verify docs plus DAG-stage fixtures that do not consume generated/ (prebuilt primer binaries required).
+	$(DOCS_FIXTURE_PRIMER)
+	$(PIPELINE_FIXTURE_PRIMER) --scope producer-independent $(FIXTURE_TIMINGS_ARG)
+
+prime-producer-bound-test-fixtures: ## Prime/verify only the exact generated-bundle import (prebuilt primer binary and generated/ required).
+	$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
 nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
 	$(MAKE) prime-test-fixtures
@@ -572,13 +608,13 @@ nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
 
 nextest-evidence-tools: ## Build the exact report-only resource/JUnit tools shipped beside the test archive.
 	mkdir -p $(dir $(NEXTEST_ARCHIVE))
-	cargo build --profile test -p gmeow-validate --bin junit_inventory
-	cargo build --profile test -p gmeow-pipeline --bin perf_sample
+	cargo build --profile test -p gmeow-perf-evidence --bins
 	cp $(CARGO_TARGET_DIR)/debug/junit_inventory $(NEXTEST_JUNIT_INVENTORY)
 	cp $(CARGO_TARGET_DIR)/debug/perf_sample $(NEXTEST_PERF_SAMPLE)
+	cp $(CARGO_TARGET_DIR)/debug/perf_accept $(NEXTEST_PERF_ACCEPT)
 
 nextest-archive: rust-build nextest-evidence-tools ## Build one authenticated CI-profile nextest archive and prove its slice partitions.
-	$(MAKE) prime-test-fixtures
+	$(MAKE) $(NEXTEST_FIXTURE_PRIME_TARGET)
 	mkdir -p $(dir $(NEXTEST_ARCHIVE))
 	cargo nextest archive --profile ci --workspace --archive-file $(NEXTEST_ARCHIVE)
 	./scripts/nextest-archive-receipt.sh write $(NEXTEST_ARCHIVE) $(NEXTEST_ARCHIVE_RECEIPT) $(NEXTEST_SHARDS) $(NEXTEST_VERSION)
@@ -998,7 +1034,7 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	fi
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
-	cargo run -q --package gmeow-docs --example prime-docs-fixture
+	$(MAKE) prime-test-fixtures
 	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
 	$(MAKE) maint-dev-cli-heavy
 
@@ -1049,10 +1085,10 @@ perf-gate: ## Report-only timings for validate, generated drift, reason, and ver
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
 
 perf-sample: ## Record one exact paired wall/CPU/RSS/I/O sample (PERF_SAMPLE_ARGS required).
-	cargo run -q -p gmeow-pipeline --bin perf_sample -- $(PERF_SAMPLE_ARGS)
+	cargo run -q -p gmeow-perf-evidence --bin perf_sample -- $(PERF_SAMPLE_ARGS)
 
 perf-accept: ## Grade 3-5 paired cold/warm/partial samples against the predeclared 2x contract.
-	cargo run -q -p gmeow-pipeline --bin perf_accept -- $(PERF_ACCEPT_ARGS)
+	cargo run -q -p gmeow-perf-evidence --bin perf_accept -- $(PERF_ACCEPT_ARGS)
 
 perf-ci-receipt: ## Capture one successful Actions run's actual job graph and critical path.
 	./scripts/ci-run-receipt.sh $(CI_RUN_RECEIPT_ARGS)
@@ -1506,5 +1542,10 @@ maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix ov
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)
-	cargo nextest run --no-run $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+	@# Match the exact nextest profile consumed by the required suite and CI archive. A
+	@# default-profile prebuild is a different inventory and makes both consumers rebuild.
+	cargo nextest run --no-run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+	@# Fixture priming runs after the Rust DAG fans out. Publish stable runnable example
+	@# binaries here so the primer never invokes Cargo or contends on its build lock.
+	cargo build $(FIXTURE_PRIMER_BUILD_ARGS)
 	@touch $@

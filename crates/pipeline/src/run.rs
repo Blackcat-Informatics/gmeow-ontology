@@ -908,12 +908,15 @@ pub fn run_full_scoped_with_progress(
             phase: format!("stage:{}", timing.stage_id),
             elapsed_ms: timing.elapsed_ms,
             metadata: Some(format!(
-                "level={};cached={};cache-outcome={};cache-read-bytes={};cache-write-bytes={}",
+                "level={};cached={};cache-outcome={};cache-read-bytes={};cache-write-bytes={};cache-hydration-rss-delta-kib={}",
                 timing.level,
                 timing.cached,
                 timing.cache_outcome,
                 timing.cache_read_bytes,
-                timing.cache_write_bytes
+                timing.cache_write_bytes,
+                timing
+                    .cache_hydration_rss_delta_kib
+                    .map_or_else(|| "not-applicable".to_string(), |value| value.to_string())
             )),
         });
     }
@@ -2299,6 +2302,9 @@ ex:RequiredShape a sh:NodeShape ;
                 .filter_map(|resource| resource.name.clone())
                 .collect(),
             handles: out.product.bundle().handles().keys().cloned().collect(),
+            default_graph: crate::cache::default_graph_commitment(&out.product).unwrap(),
+            provenance: crate::cache::provenance_commitment(&out.product).unwrap(),
+            content_store: crate::cache::content_store_commitment(&out.product).unwrap(),
         };
         cache
             .put(&context, "stable", "persistent", &selection, &out.product)

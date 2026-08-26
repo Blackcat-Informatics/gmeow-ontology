@@ -1,19 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Once-per-run, content-addressed disk cache for the RENDERED documentation
+//! Once-per-run action cache for the rendered documentation
 //! artifacts — the per-language static site and the default mdBook source tree.
 //!
-//! The MODEL half of this fixture lives in [`gmeow_docs_model::fixture`]: the cache
-//! key, the payload digest, the atomic writer, and [`gmeow_docs_model::fixture::load`]
+//! The model half of this fixture lives in [`gmeow_docs_model::fixture`]: its
+//! authenticated receipt and [`gmeow_docs_model::fixture::load`]
 //! itself. It sits there because it must be reachable from every model consumer
 //! without linking the renderer — `gmeow-slice-quality`'s `DocMaturity` axis reads it,
 //! and an edge from that crate to this one would close a first-party dependency cycle
 //! (`gmeow-docs` dev-depends on `gmeow-mcp`, which depends on `gmeow-slice-quality`).
 //! What stays here is exactly what needs [`Site`], [`render_site_lang`] and
-//! [`render_book`]. Both halves share ONE key, ONE digest function and ONE writer, all
-//! exported by the model crate — a second copy of any of them would be the
-//! two-sources-of-truth defect the digest exists to catch.
+//! [`render_book`]. Model, site, book, and pipeline stages all use the same bounded
+//! immutable receipt/blob store and per-action process election.
 //!
 //! A [`DocsModel`] build is a ~12 s repo-wide walk, and rendering the site on top of it
 //! is more; the gmeow-docs integration suite has ~40 tests that each need one or both,
@@ -35,9 +34,12 @@
 //! step) still works.
 
 use std::collections::BTreeMap;
-use std::fs;
 use std::path::{Path, PathBuf};
 
+use gmeow_action_cache::{
+    ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, ProducerIdentity,
+    STORE_FORMAT_VERSION, StoreLimits,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::mdbook::render_book;
@@ -49,10 +51,86 @@ use gmeow_docs_model::exec::ExecutableDocsData;
 // renderer should not have to name a second crate to get the model.
 pub use gmeow_docs_model::fixture::load;
 use gmeow_docs_model::fixture::{
-    cache_key, cache_path, payload_digest, verify_payload, write_cache,
+    FixtureIdentity, cache_key, load_with_identity, model_identity, payload_digest, verify_payload,
 };
 use gmeow_docs_model::i18n::ENGLISH;
-use gmeow_docs_model::model::DocsModel;
+
+const SITE_CODEC: &str = "docs-site-json-2";
+const BOOK_CODEC: &str = "docs-book-json-2";
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+struct RenderActionPayload {
+    schema_version: u32,
+    artifact: String,
+    language: Option<String>,
+    model_receipt_digest: String,
+}
+
+fn action_store(root: &Path) -> ActionStore {
+    ActionStore::open(
+        ActionStore::default_root(root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap_or_else(|error| panic!("open bounded docs-render action cache: {error}"))
+}
+
+fn render_context(
+    root: &Path,
+    artifact: &str,
+    language: Option<&str>,
+    model: &FixtureIdentity,
+) -> ActionContext {
+    let mut context = ActionContext::new(
+        "docs-fixture",
+        format!("render-{artifact}"),
+        ProducerIdentity::new(cache_key(root)),
+        if artifact == "site" {
+            SITE_CODEC
+        } else {
+            BOOK_CODEC
+        },
+        vec![ActionInput::Upstream {
+            producer: "docs-model".to_string(),
+            entity: None,
+            receipt_digest: Some(model.receipt_digest.clone()),
+            product_digest: model.product_digest.clone(),
+        }],
+    );
+    if let Some(language) = language {
+        context = context.with_dimension("language", language);
+    }
+    context
+}
+
+fn render_payload(
+    artifact: &str,
+    language: Option<&str>,
+    model: &FixtureIdentity,
+) -> RenderActionPayload {
+    RenderActionPayload {
+        schema_version: 1,
+        artifact: artifact.to_string(),
+        language: language.map(str::to_string),
+        model_receipt_digest: model.receipt_digest.clone(),
+    }
+}
+
+fn validate_render_receipt(
+    artifact: &str,
+    language: Option<&str>,
+    model: &FixtureIdentity,
+    receipt: &ActionReceipt<RenderActionPayload>,
+) -> Result<(), ActionCacheError> {
+    let expected = render_payload(artifact, language, model);
+    if receipt.payload != expected {
+        return Err(ActionCacheError::message(format!(
+            "docs render receipt payload mismatch: expected {expected:?}, actual {:?}",
+            receipt.payload
+        )));
+    }
+    Ok(())
+}
 
 /// Load the rendered English static site rooted at `root` — a thin wrapper over
 /// [`load_site_lang`] for the English carrier (`render_site` ≡
@@ -78,9 +156,8 @@ pub fn load_site(root: &Path) -> Site {
 /// absence falls through to a fresh render (so a plain `cargo test` still works).
 #[must_use]
 pub fn load_site_lang(root: &Path, lang: &str) -> Site {
-    // Reuse the warm model cache (built first by `prime`, or built-and-cached on a
-    // plain `cargo test` miss) rather than re-walking the slices.
-    load_cached_site(&site_cache_path(root, lang), "site", || {
+    let model = model_identity(root);
+    load_cached_site(root, "site", Some(lang), &model, || {
         render_site_lang(&load(root), lang)
     })
 }
@@ -101,7 +178,8 @@ pub fn load_site_lang(root: &Path, lang: &str) -> Site {
 /// falls through to a fresh render (so a plain `cargo test` still works).
 #[must_use]
 pub fn load_book(root: &Path) -> Site {
-    load_cached_site(&book_cache_path(root), "book", || {
+    let model = model_identity(root);
+    load_cached_site(root, "book", None, &model, || {
         render_book(&load(root), &ExecutableDocsData::default())
     })
 }
@@ -113,28 +191,52 @@ pub fn load_book(root: &Path) -> Site {
 /// silently rebuilding and masking it; only a genuine absence (`NotFound`) is a
 /// legitimate miss that falls through to `build`. This is the single authority for
 /// the site/book integrity contract — do not reintroduce a per-artifact copy.
-fn load_cached_site(cache_path: &Path, label: &str, build: impl FnOnce() -> Site) -> Site {
-    match fs::read(cache_path) {
-        Ok(bytes) => {
-            let cached: CachedSite = serde_json::from_slice(&bytes).unwrap_or_else(|e| {
-                panic!(
-                    "corrupt docs-fixture {label} cache at {}: {e}\n\
-                     delete the file (or run `rm -rf .cache/docs-fixture`) to rebuild",
-                    cache_path.display()
-                )
-            });
-            cached.into_site(cache_path)
-        }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+fn load_cached_site(
+    root: &Path,
+    artifact: &str,
+    language: Option<&str>,
+    model: &FixtureIdentity,
+    build: impl FnOnce() -> Site,
+) -> Site {
+    let store = action_store(root);
+    let context = render_context(root, artifact, language, model);
+    let key = context.key();
+    let cache_path = render_cache_path(root, &context);
+    let outcome = store.coordinate::<_, ActionCacheError, _, _>(
+        &key,
+        || {
+            let Some(entry) = store.get::<RenderActionPayload>(&context)? else {
+                return Ok(None);
+            };
+            validate_render_receipt(artifact, language, model, &entry.receipt)?;
+            let cached: CachedSite = serde_json::from_slice(&entry.bytes).map_err(|error| {
+                ActionCacheError::message(format!(
+                    "docs {artifact} payload JSON is corrupt: {error}"
+                ))
+            })?;
+            Ok(Some(cached.into_site(&cache_path)))
+        },
+        || {
             let site = build();
-            write_cache(cache_path, &CachedSite::from_site(&site));
-            site
-        }
-        Err(e) => panic!(
-            "cannot read docs-fixture {label} cache at {}: {e}",
-            cache_path.display()
-        ),
-    }
+            let cached = CachedSite::from_site(&site);
+            let bytes = serde_json::to_vec(&cached)?;
+            store.publish(
+                &context,
+                cached.digest.clone(),
+                render_payload(artifact, language, model),
+                &bytes,
+            )?;
+            Ok(site)
+        },
+    );
+    outcome
+        .unwrap_or_else(|error| {
+            panic!(
+                "corrupt docs-fixture {artifact} action cache at {}: {error}",
+                cache_path.display()
+            )
+        })
+        .value
 }
 
 /// Build the model, the rendered site for every available language, and the
@@ -142,77 +244,40 @@ fn load_cached_site(cache_path: &Path, label: &str, build: impl FnOnce() -> Site
 /// once before a batch of tests so none of them pays the (contended) model build
 /// or any render.
 ///
-/// The fully-warm path is a pure stat-check (a few `exists()` calls, no model
-/// deserialize and no render): the English site is written LAST, so its presence
-/// is the sentinel that the whole per-language set AND the book for this cache key
-/// are on disk. Only a cold or interrupted-partial cache loads the model — once —
-/// to enumerate `available_languages` and render the missing artifacts.
+/// Every warm action is authenticated before the primer returns. A missing action
+/// recomputes; a present corrupt action hard-fails rather than being hidden by a
+/// sentinel file.
 pub fn prime(root: &Path) {
-    // English is rendered last below, so an existing English site means every
-    // translation AND the book for this key are already warm — return without
-    // loading the model. The book check makes a pre-book-cache warm directory
-    // (English present, book absent) correctly re-prime the book.
-    if cache_path(root).exists()
-        && site_cache_path(root, ENGLISH).exists()
-        && book_cache_path(root).exists()
-    {
-        return;
+    let (model, identity) = load_with_identity(root);
+    let mut languages = model.available_languages.clone();
+    languages.push(ENGLISH.to_string());
+    languages.sort();
+    languages.dedup();
+    for lang in &languages {
+        let _ = load_cached_site(root, "site", Some(lang), &identity, || {
+            render_site_lang(&model, lang)
+        });
     }
-    // Cold, or interrupted-partial: `load` builds-and-caches the model on a genuine
-    // miss and deserializes the warm entry otherwise — one authority for both.
-    let model: DocsModel = load(root);
-
-    // Render every translation first, then the book, then the English carrier last
-    // so the sentinel above only becomes true once the complete set is on disk.
-    for lang in &model.available_languages {
-        if lang == ENGLISH {
-            continue;
-        }
-        let path = site_cache_path(root, lang);
-        if !path.exists() {
-            let site = render_site_lang(&model, lang);
-            write_cache(&path, &CachedSite::from_site(&site));
-        }
-    }
-    // The book cache is written BEFORE the English-site sentinel below, so
-    // English-site-present ⇒ book-present. Do not reorder these two writes.
-    let book_path = book_cache_path(root);
-    if !book_path.exists() {
-        let book = render_book(&model, &ExecutableDocsData::default());
-        write_cache(&book_path, &CachedSite::from_site(&book));
-    }
-    let english_path = site_cache_path(root, ENGLISH);
-    let english = render_site_lang(&model, ENGLISH);
-    write_cache(&english_path, &CachedSite::from_site(&english));
+    let _ = load_cached_site(root, "book", None, &identity, || {
+        render_book(&model, &ExecutableDocsData::default())
+    });
 }
 
-/// The on-disk cache path for a language's rendered site. Shares the model cache
-/// key (the site is a pure function of the model, and a render-logic change is
-/// covered by the crate-version salt and by the `crates/docs` implementation closure
-/// [`cache_key`] folds), with a per-language suffix. The English carrier keeps the
-/// bare `.site.json` suffix; every translation is tagged (`.site.fr.json`,
-/// `.site.zh.json`, …) so the languages never collide.
-fn site_cache_path(root: &Path, lang: &str) -> PathBuf {
-    let key = cache_key(root);
-    let name = if lang == ENGLISH {
-        format!("{key}.site.json")
-    } else {
-        format!("{key}.site.{lang}.json")
-    };
-    root.join(".cache").join("docs-fixture").join(name)
+fn render_cache_path(root: &Path, context: &ActionContext) -> PathBuf {
+    ActionStore::default_root(root)
+        .join(format!("v{STORE_FORMAT_VERSION}"))
+        .join("receipts")
+        .join(format!("{}.json", context.key()))
 }
 
-/// The on-disk cache path for the default mdBook render. Shares the model cache
-/// key (the book is a pure function of the model, and a render-logic change is
-/// covered by the crate-version salt and the hashed `crates/docs/src` tree). The
-/// `.book.json` suffix keeps it distinct from the model (`.json`) and the site
-/// (`.site.json` / `.site.<lang>.json`) caches. The default book render is
-/// language-agnostic, so there is no per-language component.
-fn book_cache_path(root: &Path) -> PathBuf {
-    let key = cache_key(root);
-    root.join(".cache")
-        .join("docs-fixture")
-        .join(format!("{key}.book.json"))
+#[cfg(test)]
+fn site_cache_path(root: &Path, lang: &str, model: &FixtureIdentity) -> PathBuf {
+    render_cache_path(root, &render_context(root, "site", Some(lang), model))
+}
+
+#[cfg(test)]
+fn book_cache_path(root: &Path, model: &FixtureIdentity) -> PathBuf {
+    render_cache_path(root, &render_context(root, "book", None, model))
 }
 
 /// The serialized rendered-site envelope. Every emitted file is UTF-8 text (each
@@ -267,6 +332,14 @@ mod tests {
     //! panics. The model envelope, the cache key and the derived implementation
     //! closure are pinned beside them in `gmeow_docs_model::fixture`.
     use super::*;
+    use std::fs;
+
+    fn model_identity() -> FixtureIdentity {
+        FixtureIdentity {
+            receipt_digest: "model-receipt".to_string(),
+            product_digest: "model-product".to_string(),
+        }
+    }
 
     /// A fresh, empty temp root (cache_key over absent discovery roots = salt
     /// only, so these stay cheap). The root is owned by the returned
@@ -318,7 +391,7 @@ mod tests {
     }
 
     /// **The write→read proof, across the real serde boundary.** An envelope written by
-    /// [`write_cache`] and read back by the loader that serves warm hits must VERIFY.
+    /// [`ActionStore`] and read back by the loader that serves warm hits must VERIFY.
     ///
     /// The in-memory `from_site(..).into_site(..)` round trip above cannot see this
     /// class: the digest is folded over a re-serialization of the payload, so a payload
@@ -334,8 +407,8 @@ mod tests {
     fn a_site_envelope_written_to_disk_verifies_when_read_back() {
         let (_tmp, root) = temp_root("disk-round-trip");
 
-        // The loader writes on the miss, then serves — and verifies — the warm hit.
-        let path = root.join(".cache/docs-fixture/site.json");
+        let identity = model_identity();
+        let path = site_cache_path(&root, ENGLISH, &identity);
         let mut files = BTreeMap::new();
         files.insert("index.html".to_string(), b"<h1>hi</h1>".to_vec());
         files.insert(
@@ -343,10 +416,10 @@ mod tests {
             "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
         );
         let built = Site { files };
-        let cold = load_cached_site(&path, "site", || built.clone());
+        let cold = load_cached_site(&root, "site", Some(ENGLISH), &identity, || built.clone());
         assert_eq!(cold, built, "the cold miss returns the built site");
         assert!(path.is_file(), "the miss wrote the envelope");
-        let warm = load_cached_site(&path, "site", || {
+        let warm = load_cached_site(&root, "site", Some(ENGLISH), &identity, || {
             panic!("the warm hit must be served from disk, not rebuilt")
         });
         assert_eq!(
@@ -364,80 +437,57 @@ mod tests {
     }
 
     #[test]
-    fn model_and_site_cache_paths_share_the_key_with_distinct_suffix() {
+    fn model_site_and_book_share_the_store_without_key_aliases() {
         let (_tmp, root) = temp_root("paths");
-        let key = cache_key(&root);
-        assert_eq!(
-            cache_path(&root).file_name().unwrap().to_string_lossy(),
-            format!("{key}.json")
-        );
-        assert_eq!(
-            site_cache_path(&root, ENGLISH)
-                .file_name()
-                .unwrap()
-                .to_string_lossy(),
-            format!("{key}.site.json")
-        );
-        // The book cache shares the key with its own `.book.json` suffix.
-        assert_eq!(
-            book_cache_path(&root)
-                .file_name()
-                .unwrap()
-                .to_string_lossy(),
-            format!("{key}.book.json")
-        );
-        // A hypothetical language literally named "book" renders `.site.book.json`,
-        // which must NOT alias the book cache's `.book.json`.
-        assert_ne!(
-            book_cache_path(&root),
-            site_cache_path(&root, "book"),
-            "the book cache must not collide with a site named \"book\""
-        );
+        let identity = model_identity();
+        let model = gmeow_docs_model::fixture::cache_path(&root);
+        let site = site_cache_path(&root, ENGLISH, &identity);
+        let book = book_cache_path(&root, &identity);
+        assert_eq!(model.parent(), site.parent());
+        assert_eq!(site.parent(), book.parent());
+        assert_ne!(model, site);
+        assert_ne!(site, book);
+        assert_ne!(book, site_cache_path(&root, "book", &identity));
     }
 
     #[test]
-    fn per_language_site_paths_are_tagged_and_distinct() {
+    fn language_is_a_first_class_render_action_dimension() {
         let (_tmp, root) = temp_root("lang-paths");
-        let key = cache_key(&root);
-        // English keeps the bare suffix; translations are tagged by language.
-        assert_eq!(
-            site_cache_path(&root, ENGLISH)
-                .file_name()
-                .unwrap()
-                .to_string_lossy(),
-            format!("{key}.site.json")
-        );
-        assert_eq!(
-            site_cache_path(&root, "fr")
-                .file_name()
-                .unwrap()
-                .to_string_lossy(),
-            format!("{key}.site.fr.json")
-        );
+        let identity = model_identity();
         assert_ne!(
-            site_cache_path(&root, "fr"),
-            site_cache_path(&root, "zh"),
+            site_cache_path(&root, "fr", &identity),
+            site_cache_path(&root, "zh", &identity),
             "distinct languages must not share a site cache path"
         );
+        assert_ne!(
+            site_cache_path(&root, ENGLISH, &identity),
+            site_cache_path(&root, "fr", &identity)
+        );
     }
 
     #[test]
-    #[should_panic(expected = "corrupt docs-fixture site cache")]
+    #[should_panic(expected = "corrupt docs-fixture site action cache")]
     fn present_but_corrupt_site_cache_panics() {
         let (_tmp, root) = temp_root("corrupt-site");
-        let sp = site_cache_path(&root, ENGLISH);
+        let identity = model_identity();
+        let sp = site_cache_path(&root, ENGLISH, &identity);
         fs::create_dir_all(sp.parent().unwrap()).unwrap();
         fs::write(&sp, b"{ not valid json").unwrap();
-        let _ = load_site(&root);
+        let _ = load_cached_site(&root, "site", Some(ENGLISH), &identity, || {
+            panic!("a present corrupt action must not rebuild")
+        });
     }
 
     #[test]
-    #[should_panic(expected = "corrupt docs-fixture book cache")]
+    #[should_panic(expected = "corrupt docs-fixture book action cache")]
     fn present_but_corrupt_book_cache_panics() {
         let (_tmp, root) = temp_root("corrupt-book");
-        let bp = book_cache_path(&root);
+        let identity = model_identity();
+        let bp = book_cache_path(&root, &identity);
         fs::create_dir_all(bp.parent().unwrap()).unwrap();
         fs::write(&bp, b"{ not valid json").unwrap();
-        let _ = load_book(&root);
+        let _ = load_cached_site(&root, "book", None, &identity, || {
+            panic!("a present corrupt action must not rebuild")
+        });
     }
 }

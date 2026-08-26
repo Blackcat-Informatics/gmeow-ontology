@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-perf-evidence"
+description = "Leaf report-only performance and JUnit evidence tools for GMEOW CI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+# Keep the reviewed implementations beside the owning receipt/test contracts while
+# assigning their sole Cargo binary ownership to this dependency-light CI package.
+# `autobins = false` in the pipeline and validate packages prevents those heavyweight
+# crates from compiling duplicate units from these paths.
+[[bin]]
+name = "perf_sample"
+path = "../pipeline/src/bin/perf_sample.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "perf_accept"
+path = "../pipeline/src/bin/perf_accept.rs"
+
+[[bin]]
+name = "junit_inventory"
+path = "../validate/src/bin/junit_inventory.rs"
+test = false
+bench = false
+
+[dependencies]
+libc.workspace = true
+roxmltree.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tempfile.workspace = true

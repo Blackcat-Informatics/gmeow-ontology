@@ -33,7 +33,7 @@ purrdf.workspace = true
 # it keeps this crate oxigraph-free and wasm-buildable. The XCL reader parses through
 # it rather than a hand-rolled scanner so the meta carrier decodes losslessly (the
 # Exact round-trip guarantee); the writer emits XML directly (roxmltree is parse-only).
-roxmltree = "0.20"
+roxmltree.workspace = true
 # gmeow-errors: the diagnostics substrate. Loss unification (Phase 4) grades
 # PreservationKind as a BoundedLattice (worst-preservation-wins) and collapses the
 # projection-loss accumulators onto one DiagLedger of FindingCategory::ProjectionLoss

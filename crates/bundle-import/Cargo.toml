@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-bundle-import"
+description = "Content-keyed, self-verifying, graph-preserving GTS dataset import shared across native processes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["rdf", "gts", "cache", "content-addressed"]
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+gmeow-errors = { path = "../errors" }
+purrdf.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+
+[build-dependencies]
+sha2.workspace = true
+
+[dev-dependencies]
+gmeow-gts-profile = { path = "../gts-profile" }
+tempfile.workspace = true

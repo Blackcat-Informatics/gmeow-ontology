@@ -17,6 +17,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+gmeow-action-cache = { path = "../action-cache" }
 serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true

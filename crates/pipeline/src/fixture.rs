@@ -13,8 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use crate::cache::{
-    BUILD_FINGERPRINT, FixtureCoordinator, FixtureOutcome, PipelineCache, StageKeyContext,
-    StageReceipt,
+    FixtureCoordinator, FixtureOutcome, PipelineCache, StageKeyContext, StageReceipt,
 };
 use crate::loader::bind;
 use crate::node::{CachePolicy, StageInput, StageProduct, StageStability};
@@ -195,9 +194,11 @@ pub fn stage_artifacts(
             message: format!("production DAG does not bind {stage_id}"),
         }));
     }
-    let base = PipelineCache::default_dir(root);
-    let fingerprint = &BUILD_FINGERPRINT[..16];
-    let cache = PipelineCache::open(base.join(fingerprint))?;
+    // The producer fingerprint is already a typed action-key field. Opening a
+    // fingerprint-suffixed directory here would create a reader-only namespace,
+    // miss every receipt written by the scheduler/primer, and force full product
+    // hydration on every artifact-only fixture request.
+    let cache = PipelineCache::open_default(root)?;
     if let Some((context, resolved_receipt)) =
         current_stage_receipt(root, &bound, &cache, stage_id)?
         && let Some(hit) = cache.get_artifacts(&context)?

@@ -1,30 +1,24 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `gmeow-dev medium-gate`, driven against a bundle the REAL DAG emitted and against a
-//! REAL runtime store written through the production `Memory::store` path.
+//! `gmeow-dev medium-gate`, driven against the producer-materialized bundle and a REAL
+//! runtime store written through the production `Memory::store` path.
 //!
-//! The subject is emitted here rather than read off `generated/dist/gmeow.gts` for the
-//! same reason the consumer suite does it: that file is a git-ignored local product, so a
-//! checkout that has not re-materialized it since the medium axis landed would make this
-//! suite assert something weaker (or fail for a reason unrelated to the gate). Emitting it
-//! in memory keeps the subject the SAME emitter's output while making the suite
-//! independent of what happens to be on disk. Bounded intermediary products reuse the
-//! exact persistent receipts primed before test fanout; aggregate stages still execute.
+//! The subject is the mandatory `generated/dist/gmeow.gts` producer output. `make check`
+//! materializes the exact fixed point before the Rust DAG; CI downloads the independently
+//! reproduced tree and verifies its producer receipt before compiling or running tests.
+//! Reusing those authenticated bytes avoids a redundant whole-repository DAG execution.
+//! Missing bytes or missing medium capabilities hard-fail; there is no weaker fallback.
 //!
 //! The runtime-store leg is the one this gate exists for. A `~/.gmeow/*.gts` agent memory
 //! is not a build artifact, so no `generated/` gate ever reaches it — and it is written
 //! through a declared medium, primed with a dictionary the shipped bundle owns, and is
 //! exactly as capable of silently losing that priming as anything the build emits.
 //!
-//! A whole-pipeline execution is minutes, so every clause lives in one test function.
+//! Every clause lives in one test function so corpus-wide bundle setup is not repeated.
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-
-use gmeow_pipeline::node::StageProduct;
-use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
 
 #[path = "../../pipeline/tests/support/medium_tamper.rs"]
 mod tamper;
@@ -37,19 +31,9 @@ fn repo_root() -> PathBuf {
         .expect("workspace root")
 }
 
-/// Run the REAL production DAG once, reusing only verified bounded contributions.
-fn run_the_dag(root: &Path) -> BTreeMap<String, StageProduct> {
-    let spec = full_spec();
-    let graph = spec.validate().expect("the production DAG validates");
-    let bound = bind(&spec, &graph, &default_registry()).expect("every production stage binds");
-    let jobs = std::thread::available_parallelism()
-        .map(std::num::NonZeroUsize::get)
-        .unwrap_or(4);
-    let mut ctx = RunContext::open(root, jobs).expect("run context");
-    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
-    run(&graph, &bound, &mut ctx)
-        .expect("the production DAG runs end to end")
-        .products
+fn materialized_bundle(root: &Path) -> Vec<u8> {
+    std::fs::read(root.join("generated/dist/gmeow.gts"))
+        .expect("the mandatory producer-materialized generated/dist/gmeow.gts")
 }
 
 /// One `gmeow-dev medium-gate` invocation's `(exit code, stdout, stderr)`.
@@ -86,24 +70,18 @@ fn assert_breach(dir: &Path, name: &str, bytes: &[u8], code: &str) {
 }
 
 #[test]
-fn the_medium_gate_passes_the_emitted_bundle_and_a_real_runtime_store_and_reds_every_breach() {
+fn the_medium_gate_passes_the_materialized_bundle_and_a_real_runtime_store_and_reds_every_breach() {
     let root = repo_root();
-    let products = run_the_dag(&root);
-    let bundle = products
-        .get("stage-gts-sink")
-        .expect("the terminal sink produced a product")
-        .artifact(gmeow_pipeline::stages::gts_sink::GTS_PATH)
-        .expect("the sink product carries the gmeow.gts artifact")
-        .to_vec();
+    let bundle = materialized_bundle(&root);
 
     let home = tempfile::tempdir().expect("tempdir");
     let bundle_path = home.path().join("gmeow.gts");
-    std::fs::write(&bundle_path, &bundle).expect("stage the emitted bundle");
+    std::fs::write(&bundle_path, &bundle).expect("stage the materialized bundle");
     let bundle_arg = bundle_path.to_str().expect("utf-8").to_string();
 
-    // ── the freshly emitted bundle passes every clause ───────────────────────
+    // ── the producer-materialized bundle passes every clause ────────────────
     let (status, stdout, stderr) = medium_gate(&[&bundle_arg]);
-    assert_eq!(status, 0, "the emitted bundle must pass:\n{stderr}");
+    assert_eq!(status, 0, "the materialized bundle must pass:\n{stderr}");
     assert!(stdout.contains("medium gate passed"), "{stdout}");
     assert!(
         stdout.contains("SelfDescribing"),
@@ -302,7 +280,7 @@ fn assert_medium_resource(server: &gmeow_mcp::McpServer) {
 }
 
 /// Write a runtime store through the PRODUCTION `Memory::store` path, primed from the
-/// freshly emitted bundle.
+/// producer-materialized bundle.
 fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
     use gmeow_mcp::McpServer;
 
@@ -318,7 +296,7 @@ fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
     // build executor, so the host that owns the reader registers the surface. Asserting against
     // the bare leaf would assert a capability no leaf can have.
     let server = McpServer::from_snapshot_with(bundle, gmeow_mcp_dev::medium_extension())
-        .expect("the freshly emitted bundle serves an MCP session");
+        .expect("the materialized bundle serves an MCP session");
     assert_medium_resource(&server);
     for text in [
         "a claim stored through the production memory path",

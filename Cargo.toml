@@ -23,6 +23,9 @@ members = [
     # NEVER by gmeow-cli, since its #[global_allocator] is process-global.
     "crates/cost-measure",
     "crates/errors",
+    # Dependency-leaf action cache: canonical keys, immutable receipts/blobs,
+    # cross-process election, and bounded reachability GC shared by pipeline/docs.
+    "crates/action-cache",
     # Rust-owned typed documentation model built from the slice catalog.
     "crates/docs",
     # Deterministic Typst-source renderer + in-memory byte-reproducible PDF
@@ -45,6 +48,14 @@ members = [
     # on (the pipeline depends on math), so math and music called the writer directly
     # and the single-entry claim was false.
     "crates/gts-profile",
+    # Native cross-process GTS -> indexed-dataset acceleration. A small leaf so
+    # core-only and reasoning consumers share one self-verifying content-keyed pack
+    # without either importing the other's runtime.
+    "crates/bundle-import",
+    # Report-only CI/performance evidence binaries. This LEAF intentionally depends
+    # only on small third-party codecs/accounting crates so producing the binaries
+    # beside an already-built nextest archive never relinks pipeline or validation.
+    "crates/perf-evidence",
     # The consumer/wheel-only `gmeow` command surface (runs without the repo).
     "crates/gmeow-cli",
     # The repo-maintenance `gmeow-dev` command surface (needs the working tree).
@@ -229,6 +240,9 @@ pretty_assertions = "1"
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 # Regular expressions for the text-shaped lints and renderers.
 regex = "1"
+# Read-only XML DOM parser shared by ontology inputs and the report-only JUnit
+# inventory authenticator.
+roxmltree = "0.20"
 # Derive-based (de)serialization. `derive` is in the shared fact because every
 # consumer here uses `#[derive(Serialize/Deserialize)]` rather than hand impls.
 serde = { version = "1", features = ["derive"] }

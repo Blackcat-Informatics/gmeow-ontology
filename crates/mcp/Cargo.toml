@@ -155,6 +155,10 @@ sha2.workspace = true
 # no temp file to be atomic.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tempfile.workspace = true
+# The native test/CLI surface shares one authenticated, graph-preserving import across
+# process boundaries. Kept target-specific so neither browser image links filesystem or
+# locking code; core-only native witnesses still receive the same acceleration.
+gmeow-bundle-import = { path = "../bundle-import" }
 
 [dev-dependencies]
 # The `doc_card` JSON projection is asserted against the hand-authored

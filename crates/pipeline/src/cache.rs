@@ -5,8 +5,8 @@
 //!
 //! The cache key hashes a typed [`StageKeyContext`] containing build/toolchain
 //! identity, stage/codec identity, producer-qualified whole/entity inputs, and raw
-//! path/digest rows. `.cache/gmeow-sync/pipeline/<fingerprint>/<version>/`
-//! (gitignored) stores immutable per-key receipts and content-addressed
+//! path/digest rows. The shared `.cache/gmeow-sync/actions/v<STORE_FORMAT_VERSION>/`
+//! store (gitignored) holds immutable per-key receipts and content-addressed
 //! [`CachedBundle`] blobs. It is self-verifying: a
 //! digest recheck on load HARD-fails on mismatch and never silently repairs
 //! (no-optionality).
@@ -38,16 +38,14 @@
 //!   serde, so the mirror lives here in the pipeline crate.
 //! * **blobs** — the [`ContentStore`] contents (digest hex → bytes), rebuilt with
 //!   [`ContentStore::insert_checked`] so a corrupt blob HARD-fails on load.
-//! * **provenance** — the S0.5-safe PUBLIC projection only (unit names+kinds,
-//!   artifact paths, locations). Runtime `UnitId`/`ArtifactId`/`OriginSetId` are
-//!   NEVER persisted; on load we re-register units/artifacts/occurrences from the
-//!   persisted public rows so the reconstituted prov's `public_projection()` equals
-//!   the persisted one (and thus the bundle digest is preserved). Each occurrence's
-//!   asserted-quad ordinal IS restored from its persisted public row so the
-//!   reconstituted public projection — which carries that ordinal — matches exactly;
-//!   the full quad content is not rebound (the output-relevant provenance is also
-//!   projected into the dataset and round-trips via the dataset bytes). The sidecar
-//!   is a runtime accumulator and only its public projection feeds the digest.
+//! * **provenance** — the S0.5-safe PUBLIC projection only (stable asserted-quad
+//!   content key, unit names+kinds, artifact paths, locations). Runtime
+//!   `UnitId`/`ArtifactId`/`OriginSetId` and unstable quad ordinals are NEVER
+//!   persisted; on load each content key is resolved against the restored dataset,
+//!   then units/artifacts/occurrences are re-registered so the reconstituted prov's
+//!   `public_projection()` equals the persisted one (and thus the bundle digest is
+//!   preserved). The sidecar is a runtime accumulator and only its public projection
+//!   feeds the digest.
 //! * **handles** — each `(graph_iri, HandleEntry)` persists its graph IRI, arm tag,
 //!   and semantic digest. Graph-lossless arms are re-derived from the restored named
 //!   graph. The Logic arm additionally persists its complete typed IR because its RDF
@@ -56,13 +54,13 @@
 //!
 //! # GREENFIELD cache version
 //!
-//! [`CACHE_VERSION`] is folded into BOTH the on-disk subdirectory and the manifest.
-//! A version bump makes every prior cache (including the C4-spine byte-only
-//! stand-in) a clean MISS — there is no migration path (greenfield).
+//! [`CACHE_VERSION`] is folded into BOTH the action key and the manifest. A version
+//! bump makes every prior pipeline action (including the C4-spine byte-only stand-in)
+//! a clean MISS inside the shared store — there is no migration path (greenfield).
 //!
 //! # On-disk layout
 //!
-//! `.cache/gmeow-sync/pipeline/<fingerprint>/<version>/` holds
+//! `.cache/gmeow-sync/actions/v<STORE_FORMAT_VERSION>/` holds
 //! `receipts/<action-key>.json` roots and `blobs/<digest>` bincode products. The
 //! binary encoding keeps the manifest's large `Vec<u8>` lanes
 //! byte-dense instead of expanding every byte into a JSON number. On load the blob
@@ -70,11 +68,13 @@
 //! never a silent repair (no-optionality).
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs::{self, File, OpenOptions, TryLockError};
-use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_action_cache::{
+    ActionContext, ActionInput, ActionKey, ActionStore, BlobRef, FileKind, ProducerIdentity,
+    STORE_FORMAT_VERSION, StoreLimits,
+};
 use purrdf::provenance::{DatasetProvenance, OriginKind};
 use purrdf::{
     ContentDigest, ContentStore, PackBuilder, QuadHandle, RdfBlobOrigin, RdfBlobRecord,
@@ -82,7 +82,8 @@ use purrdf::{
     SerializeGraph, canonicalize, restore_pack, serialize_dataset,
 };
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
+
+pub use gmeow_action_cache::content_digest;
 
 use crate::bundle::PipelineHandle;
 use crate::node::StageProduct;
@@ -91,15 +92,15 @@ use crate::node::StageProduct;
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 9;
+pub const CACHE_VERSION: u32 = 10;
 
 /// Schema revision for the canonical action-key rows and immutable stage receipt.
-pub const RECEIPT_SCHEMA_VERSION: u32 = 1;
+pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
 
 /// The structural codec identity. This is explicit in every action key rather than
 /// relying only on [`CACHE_VERSION`], because a receipt must name the representation
 /// it authenticates without knowing its storage path.
-pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+logic-ir1+receipt-json-1";
+pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+logic-ir1+receipt-json-2";
 
 /// No independently reusable contribution may serialize above 256 MiB. The measured
 /// useful persistent units are at most ~138 MiB; whole-document leaves at 1.5--2.5 GiB
@@ -117,27 +118,11 @@ const MAX_RECEIPT_BYTES: u64 = 4 * 1024 * 1024;
 /// Default bounded-store quotas. They are storage economics, never correctness
 /// switches: eviction turns a future lookup into ordinary recomputation.
 const MAX_CACHE_ENTRIES: usize = 512;
-const MAX_CACHE_BYTES: u64 = 24 * 1024 * 1024 * 1024;
+const MAX_CACHE_BYTES: u64 = 8 * 1024 * 1024 * 1024;
 
 /// The text projection used only by the Reasoning handle's legacy reverse parser.
 /// Dataset persistence itself uses `PURRPCK1` and never passes through this codec.
 const DATASET_MEDIA_TYPE: &str = "application/n-quads";
-
-/// Compute a hex SHA-256 over a sequence of byte fields, each length-free but
-/// unit-separated, so the digest is unambiguous and order-sensitive.
-pub fn content_digest(fields: &[&[u8]]) -> String {
-    let mut hasher = Sha256::new();
-    for field in fields {
-        hasher.update(field);
-        hasher.update(b"\x1f");
-    }
-    let bytes = hasher.finalize();
-    let mut s = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        s.push_str(&format!("{b:02x}"));
-    }
-    s
-}
 
 /// The build fingerprint folded into every [`stage_key`]: workspace Rust sources and
 /// Cargo manifests, lock/config/toolchain files, full compiler identity, target,
@@ -239,6 +224,46 @@ impl StageKeyContext {
         self.dimensions.insert(name.into(), value.into());
         self
     }
+
+    fn action_context(&self) -> ActionContext {
+        let mut implementation = ProducerIdentity::new(self.build.fingerprint.clone());
+        implementation.toolchain = Some(self.build.toolchain.clone());
+        implementation.target = Some(self.build.target.clone());
+        implementation.profile = Some(self.build.profile.clone());
+        implementation.features = self.build.features.clone();
+        let mut inputs = self
+            .upstream
+            .iter()
+            .map(|input| ActionInput::Upstream {
+                producer: input.producer.clone(),
+                entity: input.entity.clone(),
+                receipt_digest: None,
+                product_digest: input.digest.clone(),
+            })
+            .chain(self.raw_inputs.iter().map(|input| ActionInput::Raw {
+                logical_path: input.path.clone(),
+                file_kind: FileKind::File,
+                executable: false,
+                digest: input.digest.clone(),
+            }))
+            .collect::<Vec<_>>();
+        inputs.sort();
+        inputs.dedup();
+        let mut context = ActionContext::new(
+            "pipeline",
+            self.stage_id.clone(),
+            implementation,
+            self.codec.clone(),
+            inputs,
+        )
+        .with_dimension("impl-version", self.impl_version.clone())
+        .with_dimension("pipeline-receipt-schema", self.schema_version.to_string())
+        .with_dimension("pipeline-cache-version", CACHE_VERSION.to_string());
+        for (name, value) in &self.dimensions {
+            context.dimensions.insert(name.clone(), value.clone());
+        }
+        context
+    }
 }
 
 /// The per-stage action key over the complete typed context. Rows sort canonically in
@@ -249,11 +274,7 @@ impl StageKeyContext {
 /// workspace crate it calls, e.g. `gmeow-logic`) gets a fresh key and recomputes,
 /// so a persistent cache can never serve a stale pre-change product.
 pub fn stage_key(context: &StageKeyContext) -> String {
-    // `StageKeyContext` contains only deterministic maps/vectors. JSON is used here
-    // because it is also the human-inspectable receipt projection; serialization of
-    // this closed string/integer shape cannot fail.
-    let bytes = serde_json::to_vec(context).expect("StageKeyContext JSON serialization");
-    content_digest(&[b"gmeow:pipeline-action-key:v1", &bytes])
+    context.action_context().key().to_string()
 }
 
 // ── The serde bundle manifest ────────────────────────────────────────────────
@@ -325,13 +346,11 @@ struct CachedBlobRecord {
     origin_segments: Option<Vec<String>>,
 }
 
-/// One public-projection provenance row
-/// `(quad_index, unit_name, kind, artifact_path, location)`. `quad_index` is the
-/// asserted quad's frozen ordinal, preserved so the reconstituted projection
-/// carries the same per-occurrence quad identity (not collapsed to a placeholder).
+/// One public-projection provenance row keyed by the asserted quad's complete
+/// length-delimited RDF content rather than a process-local numeric ordinal.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct CachedProvRow {
-    quad_index: usize,
+    quad_key: String,
     unit: String,
     kind: String,
     artifact: String,
@@ -365,6 +384,9 @@ pub struct ReceiptOutputSelection {
     pub blob_representations: Vec<String>,
     pub logical_artifacts: Vec<String>,
     pub handles: Vec<String>,
+    pub default_graph: Option<ReceiptEntity>,
+    pub provenance: Option<ReceiptEntity>,
+    pub content_store: Option<ReceiptEntity>,
 }
 
 /// One content-addressed output entity authenticated by a receipt.
@@ -389,6 +411,9 @@ pub struct StageReceipt {
     pub product_blob_digest: Option<String>,
     pub product_blob_bytes: u64,
     pub dataset_quads: u64,
+    pub default_graph: Option<ReceiptEntity>,
+    pub provenance: Option<ReceiptEntity>,
+    pub content_store: Option<ReceiptEntity>,
     pub graphs: Vec<ReceiptEntity>,
     pub blob_representations: Vec<ReceiptEntity>,
     pub logical_artifacts: Vec<ReceiptEntity>,
@@ -399,7 +424,7 @@ impl StageReceipt {
     /// Digest of the canonical receipt payload (the envelope stores and verifies it).
     pub fn digest(&self) -> String {
         let bytes = serde_json::to_vec(self).expect("StageReceipt JSON serialization");
-        content_digest(&[b"gmeow:stage-receipt:v1", &bytes])
+        content_digest(&[b"gmeow:stage-receipt:v2", &bytes])
     }
 
     fn from_product(
@@ -512,6 +537,10 @@ impl StageReceipt {
         }
         typed_handles.sort_by(|left, right| left.identity.cmp(&right.identity));
 
+        let default_graph = default_graph_commitment(product)?;
+        let provenance = provenance_commitment(product)?;
+        let content_store = content_store_commitment(product)?;
+
         Ok(Self {
             schema_version: RECEIPT_SCHEMA_VERSION,
             action_key,
@@ -522,6 +551,9 @@ impl StageReceipt {
             product_blob_digest,
             product_blob_bytes,
             dataset_quads: u64::try_from(bundle.dataset().quad_count()).unwrap_or(u64::MAX),
+            default_graph,
+            provenance,
+            content_store,
             graphs,
             blob_representations,
             logical_artifacts,
@@ -530,10 +562,278 @@ impl StageReceipt {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct ReceiptEnvelope {
-    receipt_digest: String,
-    receipt: StageReceipt,
+fn lane_commitment(
+    identity: &str,
+    rows: impl IntoIterator<Item = String>,
+) -> Option<ReceiptEntity> {
+    let rows = rows.into_iter().collect::<Vec<_>>();
+    if rows.is_empty() {
+        return None;
+    }
+    let mut canonical = Vec::new();
+    let mut decoded_bytes = 0_u64;
+    for row in &rows {
+        let bytes = row.as_bytes();
+        decoded_bytes =
+            decoded_bytes.saturating_add(u64::try_from(bytes.len()).unwrap_or(u64::MAX));
+        canonical.extend_from_slice(&u64::try_from(bytes.len()).unwrap_or(u64::MAX).to_le_bytes());
+        canonical.extend_from_slice(bytes);
+    }
+    Some(ReceiptEntity {
+        identity: identity.to_string(),
+        digest: gmeow_action_cache::bytes_digest(&canonical),
+        structural_count: u64::try_from(rows.len()).unwrap_or(u64::MAX),
+        decoded_bytes,
+    })
+}
+
+fn append_field(out: &mut String, tag: &str, value: &str) {
+    use std::fmt::Write as _;
+    let _ = write!(out, "{tag}{}:{value};", value.len());
+}
+
+fn term_content_key(term: &purrdf::RdfTerm) -> String {
+    let mut out = String::new();
+    match term {
+        purrdf::RdfTerm::Iri(iri) => append_field(&mut out, "i", iri),
+        purrdf::RdfTerm::BlankNode(label) => append_field(&mut out, "b", label),
+        purrdf::RdfTerm::Literal(literal) => {
+            append_field(&mut out, "l", &literal.lexical_form);
+            append_field(&mut out, "d", literal.datatype.as_deref().unwrap_or(""));
+            append_field(&mut out, "g", literal.language.as_deref().unwrap_or(""));
+            append_field(
+                &mut out,
+                "r",
+                literal
+                    .direction
+                    .map_or("", purrdf::RdfTextDirection::as_str),
+            );
+        }
+        purrdf::RdfTerm::Triple(triple) => {
+            append_field(&mut out, "s", &term_content_key(&triple.subject));
+            append_field(&mut out, "p", &triple.predicate);
+            append_field(&mut out, "o", &term_content_key(&triple.object));
+        }
+    }
+    out
+}
+
+fn quad_content_key(quad: &purrdf::RdfQuad) -> String {
+    let mut out = String::new();
+    append_field(&mut out, "s", &term_content_key(&quad.subject));
+    append_field(&mut out, "p", &quad.predicate);
+    append_field(&mut out, "o", &term_content_key(&quad.object));
+    append_field(
+        &mut out,
+        "g",
+        &quad
+            .graph_name
+            .as_ref()
+            .map_or_else(String::new, term_content_key),
+    );
+    out
+}
+
+fn triple_content_key(triple: &purrdf::RdfTriple) -> String {
+    let mut out = String::new();
+    append_field(&mut out, "s", &term_content_key(&triple.subject));
+    append_field(&mut out, "p", &triple.predicate);
+    append_field(&mut out, "o", &term_content_key(&triple.object));
+    out
+}
+
+fn reifier_content_key(reifier: &purrdf::RdfReifier) -> String {
+    let mut out = String::new();
+    append_field(&mut out, "r", &term_content_key(&reifier.reifier));
+    append_field(&mut out, "t", &triple_content_key(&reifier.statement));
+    append_field(
+        &mut out,
+        "g",
+        &reifier
+            .graph
+            .as_ref()
+            .map_or_else(String::new, term_content_key),
+    );
+    out
+}
+
+fn annotation_content_key(annotation: &purrdf::RdfAnnotation) -> String {
+    let mut out = String::new();
+    append_field(&mut out, "r", &term_content_key(&annotation.reifier));
+    append_field(&mut out, "p", &annotation.predicate);
+    append_field(&mut out, "o", &term_content_key(&annotation.object));
+    append_field(
+        &mut out,
+        "g",
+        &annotation
+            .graph
+            .as_ref()
+            .map_or_else(String::new, term_content_key),
+    );
+    out
+}
+
+pub(crate) fn default_graph_keys(product: &StageProduct) -> BTreeSet<String> {
+    let dataset = product.dataset();
+    let mut rows = BTreeSet::new();
+    rows.extend(
+        dataset
+            .owned_quads()
+            .filter(|quad| quad.graph_name.is_none())
+            .map(|quad| format!("quad:{}", quad_content_key(&quad))),
+    );
+    rows.extend(
+        dataset
+            .owned_reifiers()
+            .filter(|reifier| reifier.graph.is_none())
+            .map(|reifier| format!("reifier:{}", reifier_content_key(&reifier))),
+    );
+    rows.extend(
+        dataset
+            .owned_annotations()
+            .filter(|annotation| annotation.graph.is_none())
+            .map(|annotation| format!("annotation:{}", annotation_content_key(&annotation))),
+    );
+    rows
+}
+
+pub(crate) fn default_graph_commitment(
+    product: &StageProduct,
+) -> Result<Option<ReceiptEntity>, gmeow_errors::Diag> {
+    Ok(lane_commitment(
+        "default-graph",
+        default_graph_keys(product),
+    ))
+}
+
+pub(crate) fn provenance_keys(
+    product: &StageProduct,
+) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+    let quads = product.dataset().owned_quads().collect::<Vec<_>>();
+    product
+        .bundle()
+        .provenance()
+        .public_projection()
+        .into_iter()
+        .map(|(quad_index, unit, kind, artifact, location)| {
+            let quad = quads.get(quad_index).ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: product.stage_id.clone(),
+                    message: format!(
+                        "provenance row references absent quad index {quad_index} of {}",
+                        quads.len()
+                    ),
+                })
+            })?;
+            serde_json::to_string(&(quad_content_key(quad), unit, kind, artifact, location))
+                .map_err(|error| {
+                    gmeow_errors::Diag::of_kind(crate::error::Decode {
+                        message: format!("encode stable provenance commitment: {error}"),
+                    })
+                })
+        })
+        .collect()
+}
+
+pub(crate) fn provenance_commitment(
+    product: &StageProduct,
+) -> Result<Option<ReceiptEntity>, gmeow_errors::Diag> {
+    Ok(lane_commitment("provenance", provenance_keys(product)?))
+}
+
+pub(crate) fn content_store_keys(
+    product: &StageProduct,
+) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+    let bundle = product.bundle();
+    bundle.blobs().verify_all().map_err(|error| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: product.stage_id.clone(),
+            message: format!("content store digest verification failed: {error}"),
+        })
+    })?;
+    let actual = bundle
+        .blobs()
+        .iter()
+        .map(|(digest, _)| digest.to_hex())
+        .collect::<BTreeSet<_>>();
+    let mut referenced = BTreeSet::new();
+    for record in &bundle.lookaside().blobs {
+        let digest = ContentDigest::from_hex(&record.digest).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: product.stage_id.clone(),
+                message: format!("blob record carries malformed digest {:?}", record.digest),
+            })
+        })?;
+        let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: product.stage_id.clone(),
+                message: format!("blob record references missing content {}", record.digest),
+            })
+        })?;
+        if record
+            .decoded_len
+            .is_some_and(|declared| declared != bytes.len())
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: product.stage_id.clone(),
+                message: format!(
+                    "blob record {} decoded_len {:?} != stored bytes {}",
+                    record.digest,
+                    record.decoded_len,
+                    bytes.len()
+                ),
+            }));
+        }
+        referenced.insert(record.digest.clone());
+    }
+    for resource in &bundle.lookaside().resources {
+        if let Some(digest_hex) = &resource.content_digest {
+            let digest = ContentDigest::from_hex(digest_hex).ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: product.stage_id.clone(),
+                    message: format!("resource carries malformed content digest {digest_hex:?}"),
+                })
+            })?;
+            if bundle.blobs().get(&digest).is_none() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: product.stage_id.clone(),
+                    message: format!("resource references missing content {digest_hex}"),
+                }));
+            }
+            referenced.insert(digest_hex.clone());
+        }
+    }
+    if actual != referenced {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: product.stage_id.clone(),
+            message: format!(
+                "persistent content store is not closed over lookaside references: orphan={:?}, missing={:?}",
+                actual.difference(&referenced).collect::<Vec<_>>(),
+                referenced.difference(&actual).collect::<Vec<_>>()
+            ),
+        }));
+    }
+    Ok(actual)
+}
+
+pub(crate) fn content_store_commitment(
+    product: &StageProduct,
+) -> Result<Option<ReceiptEntity>, gmeow_errors::Diag> {
+    let keys = content_store_keys(product)?;
+    let rows = keys
+        .into_iter()
+        .map(|digest_hex| {
+            let digest = ContentDigest::from_hex(&digest_hex).expect("validated digest");
+            let len = product
+                .bundle()
+                .blobs()
+                .get(&digest)
+                .map(Vec::len)
+                .expect("validated content-store key");
+            format!("{digest_hex}:{len}")
+        })
+        .collect::<Vec<_>>();
+    Ok(lane_commitment("content-store", rows))
 }
 
 /// A verified cache hit plus deterministic receipt and observational hydration size.
@@ -851,9 +1151,9 @@ impl CachedBundle {
     /// blob, artifact, or handle merely because its implementation retained a
     /// cumulative carrier: any such lane is absent from `selection` and hard-fails.
     ///
-    /// The default graph is the stage's native contribution surface and is bound by
-    /// the product digest/dataset structural count. Named side lanes are the places a
-    /// cumulative carrier can hide, so they require exact set equality here.
+    /// Every lane is explicit, including the default graph, stable provenance rows,
+    /// and the exact closed ContentStore. No cumulative carrier can hide behind an
+    /// aggregate product digest.
     fn validate_bounded_contribution(
         product: &StageProduct,
         selection: &ReceiptOutputSelection,
@@ -880,6 +1180,25 @@ impl CachedBundle {
             }))
         }
 
+        fn exact_commitment(
+            stage: &str,
+            lane: &str,
+            actual: Option<ReceiptEntity>,
+            selected: &Option<ReceiptEntity>,
+        ) -> Result<(), gmeow_errors::Diag> {
+            if actual == *selected {
+                return Ok(());
+            }
+            Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: stage.to_string(),
+                message: format!(
+                    "persistent cache unit commitment mismatch on {lane}: product={actual:?}, \
+                     scheduler-selection={selected:?}; cumulative carriers must use \
+                     cacheRecomputeAggregate"
+                ),
+            }))
+        }
+
         let bundle = product.bundle();
         let graphs = bundle
             .dataset()
@@ -895,6 +1214,25 @@ impl CachedBundle {
             })
             .collect::<Result<BTreeSet<_>, _>>()?;
         exact_lane(&product.stage_id, "named graphs", graphs, &selection.graphs)?;
+
+        exact_commitment(
+            &product.stage_id,
+            "default graph",
+            default_graph_commitment(product)?,
+            &selection.default_graph,
+        )?;
+        exact_commitment(
+            &product.stage_id,
+            "provenance",
+            provenance_commitment(product)?,
+            &selection.provenance,
+        )?;
+        exact_commitment(
+            &product.stage_id,
+            "content store",
+            content_store_commitment(product)?,
+            &selection.content_store,
+        )?;
 
         let mut blob_representations = BTreeSet::new();
         for record in &bundle.lookaside().blobs {
@@ -973,20 +1311,30 @@ impl CachedBundle {
         }
 
         // provenance → PUBLIC projection rows only.
+        let quads = bundle.dataset().owned_quads().collect::<Vec<_>>();
         let provenance = bundle
             .provenance()
             .public_projection()
             .into_iter()
-            .map(
-                |(quad_index, unit, kind, artifact, location)| CachedProvRow {
-                    quad_index,
+            .map(|(quad_index, unit, kind, artifact, location)| {
+                let quad = quads.get(quad_index).ok_or_else(|| {
+                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: product.stage_id.clone(),
+                        message: format!(
+                            "provenance row references absent quad index {quad_index} of {}",
+                            quads.len()
+                        ),
+                    })
+                })?;
+                Ok(CachedProvRow {
+                    quad_key: quad_content_key(quad),
                     unit,
                     kind,
                     artifact,
                     location,
-                },
-            )
-            .collect();
+                })
+            })
+            .collect::<Result<Vec<_>, gmeow_errors::Diag>>()?;
 
         // handles → graph IRI + arm tag, sorted by graph IRI (BTreeMap iteration is
         // already sorted). The graph data itself is already present once in the
@@ -1081,21 +1429,32 @@ impl CachedBundle {
             })?;
         }
 
-        // provenance: re-register units/artifacts/occurrences so the reconstituted
-        // public projection equals the persisted one. Each occurrence is rebound to
-        // its persisted asserted-quad ordinal so the projection's per-occurrence quad
-        // identity round-trips (the public projection carries the quad index).
+        // Provenance: resolve every stable asserted-quad content key against the
+        // restored dataset, then re-register units/artifacts/occurrences. Numeric
+        // ordinals are deliberately derived here rather than persisted.
+        let mut quad_indices = BTreeMap::new();
+        for (index, quad) in dataset.owned_quads().enumerate() {
+            let key = quad_content_key(&quad);
+            if quad_indices.insert(key.clone(), index).is_some() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                    message: format!("cache: duplicate stable quad content key {key:?}"),
+                }));
+            }
+        }
         let mut provenance = DatasetProvenance::new();
         for row in &self.provenance {
             let kind = origin_kind_from_str(&row.kind)?;
             let unit = provenance.register_unit(row.unit.clone(), kind);
             let artifact = provenance.register_artifact(row.artifact.clone());
-            let quad_ordinal = u32::try_from(row.quad_index).map_err(|_| {
+            let quad_index = *quad_indices.get(&row.quad_key).ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+                    expected: format!("restored asserted quad {}", row.quad_key),
+                    actual: "no matching quad in restored dataset".to_string(),
+                })
+            })?;
+            let quad_ordinal = u32::try_from(quad_index).map_err(|_| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!(
-                        "cache: provenance quad ordinal {} exceeds u32",
-                        row.quad_index
-                    ),
+                    message: format!("cache: provenance quad ordinal {quad_index} exceeds u32"),
                 })
             })?;
             provenance.record_occurrence(
@@ -1230,30 +1589,18 @@ type PipelineBundleAlias = purrdf::PipelineBundle<PipelineHandle>;
 
 // ── On-disk content-addressed cache ──────────────────────────────────────────
 
-/// The persistent per-stage cache under `.cache/gmeow-sync/pipeline/<version>/`
-/// (gitignored and worktree-local).
+/// The persistent per-stage domain in the shared
+/// `.cache/gmeow-sync/actions/v<version>/` store (gitignored and worktree-local).
 ///
 /// `receipts/<action-key>.json` is the immutable root for one action and
 /// `blobs/<content-digest>` holds the bincode-serialized [`CachedBundle`]. There is
 /// no mutable global index: writers of different keys cannot erase one another and
 /// writers of the same key must agree byte-for-byte.
 pub struct PipelineCache {
+    #[cfg(test)]
     dir: PathBuf,
-    max_entries: usize,
+    store: ActionStore,
     max_bytes: u64,
-    /// Shared lease on the build-fingerprint namespace for this handle's lifetime.
-    /// Namespace GC must win the corresponding exclusive lock before removal.
-    _namespace_lease: Option<File>,
-}
-
-struct CacheLock {
-    file: File,
-}
-
-impl Drop for CacheLock {
-    fn drop(&mut self) {
-        let _ = self.file.unlock();
-    }
 }
 
 impl PipelineCache {
@@ -1264,91 +1611,62 @@ impl PipelineCache {
     /// path is never read.
     pub fn inert() -> Self {
         Self {
+            #[cfg(test)]
             dir: PathBuf::new(),
-            max_entries: 0,
+            store: ActionStore::inert(),
             max_bytes: 0,
-            _namespace_lease: None,
         }
     }
 
     /// The conventional cache base directory under a repo root. [`open`](Self::open)
     /// appends the version segment, so this is the un-segmented base.
     pub fn default_dir(root: &Path) -> PathBuf {
-        root.join(".cache").join("gmeow-sync").join("pipeline")
+        ActionStore::default_root(root)
+    }
+
+    /// Open the one worktree-local action-store namespace shared by scheduler
+    /// stages and cross-process fixtures.
+    ///
+    /// Keeping the composition of [`default_dir`](Self::default_dir) and
+    /// [`open`](Self::open) here prevents a fixture reader from accidentally adding
+    /// a second namespace component that no producer writes. Executable identity is
+    /// already part of every action key; it must not also partition the store path.
+    pub fn open_default(root: &Path) -> Result<Self, gmeow_errors::Diag> {
+        Self::open(Self::default_dir(root))
     }
 
     /// Open (or create) the cache rooted at `dir`. The on-disk
-    /// store lives under a `v<CACHE_VERSION>` leaf of `dir` so a prior cache-shape
-    /// rev is isolated — a shape bump makes every older cache a clean miss
-    /// (greenfield, no migration).
+    /// store lives under a `v<STORE_FORMAT_VERSION>` leaf of `dir`. Pipeline product
+    /// shape is an action-key dimension, so a [`CACHE_VERSION`] bump makes every older
+    /// pipeline action a clean miss without forcing unrelated action domains to move.
     pub fn open(dir: impl Into<PathBuf>) -> Result<Self, gmeow_errors::Diag> {
-        let namespace = dir.into();
-        fs::create_dir_all(&namespace)?;
-        let parent = namespace.parent().unwrap_or(&namespace);
-        let namespace_guard = open_lock(&parent.join(".pipeline-cache-namespaces.lock"))?;
-        namespace_guard.lock_shared()?;
-        let lease = open_lock(&namespace.join(".lease.lock"))?;
-        lease.lock_shared()?;
-        let dir = namespace.join(format!("v{CACHE_VERSION}"));
-        fs::create_dir_all(dir.join("blobs"))?;
-        fs::create_dir_all(dir.join("receipts"))?;
-        fs::create_dir_all(dir.join("locks"))?;
-        namespace_guard.unlock()?;
-        Ok(Self {
-            dir,
+        let limits = StoreLimits {
+            max_entry_bytes: MAX_ENTRY_BYTES,
+            max_receipt_bytes: MAX_RECEIPT_BYTES,
             max_entries: MAX_CACHE_ENTRIES,
+            max_total_bytes: MAX_CACHE_BYTES,
+        };
+        let store =
+            ActionStore::open(dir, STORE_FORMAT_VERSION, limits).map_err(action_cache_diag)?;
+        #[cfg(test)]
+        let dir = store.root().to_path_buf();
+        Ok(Self {
+            #[cfg(test)]
+            dir,
+            store,
             max_bytes: MAX_CACHE_BYTES,
-            _namespace_lease: Some(lease),
         })
-    }
-
-    /// Bound build-fingerprint namespaces while protecting every live cache handle.
-    /// The current namespace and the newest prior namespace are retained; older idle
-    /// namespaces are removed. A live sibling is skipped, never reaped by age.
-    pub fn prune_namespaces(
-        base: &Path,
-        current: &str,
-        max_namespaces: usize,
-    ) -> Result<(), gmeow_errors::Diag> {
-        fs::create_dir_all(base)?;
-        let guard = open_lock(&base.join(".pipeline-cache-namespaces.lock"))?;
-        guard.lock()?;
-        let mut namespaces: Vec<(PathBuf, std::time::SystemTime)> = fs::read_dir(base)?
-            .filter_map(|entry| entry.ok())
-            .filter(|entry| entry.path().is_dir())
-            .filter_map(|entry| {
-                let modified = entry.metadata().ok()?.modified().ok()?;
-                Some((entry.path(), modified))
-            })
-            .collect();
-        namespaces.sort_by(|left, right| (&left.1, &left.0).cmp(&(&right.1, &right.0)));
-        let mut retained = namespaces.len();
-        for (namespace, _) in namespaces {
-            if retained <= max_namespaces.max(1) {
-                break;
-            }
-            if namespace.file_name().is_some_and(|name| name == current) {
-                continue;
-            }
-            let lease = open_lock(&namespace.join(".lease.lock"))?;
-            match lease.try_lock() {
-                Ok(()) => {
-                    fs::remove_dir_all(&namespace)?;
-                    retained = retained.saturating_sub(1);
-                    let _ = lease.unlock();
-                }
-                Err(TryLockError::WouldBlock) => continue,
-                Err(TryLockError::Error(error)) => return Err(error.into()),
-            }
-        }
-        guard.unlock()?;
-        Ok(())
     }
 
     #[cfg(test)]
     fn with_limits(mut self, max_entries: usize, max_bytes: u64) -> Self {
-        self.max_entries = max_entries;
         self.max_bytes = max_bytes;
+        self.store = self.store.with_limits(StoreLimits {
+            max_entry_bytes: MAX_ENTRY_BYTES,
+            max_receipt_bytes: MAX_RECEIPT_BYTES,
+            max_entries,
+            max_total_bytes: max_bytes,
+        });
         self
     }
 
@@ -1356,54 +1674,24 @@ impl PipelineCache {
     /// (`CacheMismatch`) if the blob exists but its re-hashed digest disagrees
     /// with the index — the cache is never silently repaired.
     pub fn get(&self, context: &StageKeyContext) -> Result<Option<CacheHit>, gmeow_errors::Diag> {
-        let key = stage_key(context);
-        let _store = self.lock_store(false)?;
-        let _action = self.lock_action(&key, false)?;
-        let receipt_path = self.receipt_path(&key);
-        if !receipt_path.exists() {
+        let Some(entry) = self
+            .store
+            .get::<StageReceipt>(&context.action_context())
+            .map_err(action_cache_diag)?
+        else {
             return Ok(None);
-        }
-        let receipt = self.read_receipt(&receipt_path)?;
-        if receipt.action_key != key || receipt.context != *context {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: key,
-                actual: receipt.action_key,
-            }));
-        }
-        let digest_hex = receipt.product_blob_digest.as_ref().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "persistent receipt {} carries no product blob digest",
-                    receipt.action_key
-                ),
-            })
-        })?;
-        let blob_path = self.dir.join("blobs").join(digest_hex);
-        if !blob_path.exists() {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: digest_hex.clone(),
-                actual: "<missing blob>".to_string(),
-            }));
-        }
-        if receipt.product_blob_bytes > MAX_ENTRY_BYTES
-            || receipt.product_blob_bytes > self.max_bytes
-        {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "cached bundle declares {} bytes, above its configured byte quota \
-                     (store={}, entry-ceiling={MAX_ENTRY_BYTES})",
-                    receipt.product_blob_bytes, self.max_bytes
-                ),
-            }));
-        }
-        let bytes = read_bounded(&blob_path, MAX_ENTRY_BYTES, "pipeline cache product blob")?;
-        let actual = ContentDigest::of(&bytes).to_hex();
-        if actual != *digest_hex {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: digest_hex.clone(),
-                actual,
-            }));
-        }
+        };
+        let common = entry.receipt;
+        let bytes = entry.bytes;
+        validate_common_receipt(
+            context,
+            &common.action_key,
+            &common.product_digest,
+            &common.product_blob,
+            &common.payload,
+        )?;
+        let hydrated_bytes = common.product_blob.bytes;
+        let receipt = common.payload;
         let cached: CachedBundle = bincode::deserialize(&bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("corrupt cached bundle: {e}"),
@@ -1424,13 +1712,6 @@ impl PipelineCache {
                 actual: format!("{}:{}", product.stage_id, product.digest),
             }));
         }
-        let hydrated_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
-        if hydrated_bytes != receipt.product_blob_bytes {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: receipt.product_blob_bytes.to_string(),
-                actual: hydrated_bytes.to_string(),
-            }));
-        }
         Ok(Some(CacheHit {
             product,
             receipt,
@@ -1447,37 +1728,21 @@ impl PipelineCache {
         &self,
         context: &StageKeyContext,
     ) -> Result<Option<StageReceipt>, gmeow_errors::Diag> {
-        let key = stage_key(context);
-        let _store = self.lock_store(false)?;
-        let _action = self.lock_action(&key, false)?;
-        let receipt_path = self.receipt_path(&key);
-        if !receipt_path.exists() {
+        let Some(common) = self
+            .store
+            .inspect::<StageReceipt>(&context.action_context())
+            .map_err(action_cache_diag)?
+        else {
             return Ok(None);
-        }
-        let receipt = self.read_receipt(&receipt_path)?;
-        if receipt.action_key != key || receipt.context != *context {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: key,
-                actual: receipt.action_key,
-            }));
-        }
-        let digest = receipt.product_blob_digest.as_deref().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "persistent receipt {} carries no product blob digest",
-                    receipt.action_key
-                ),
-            })
-        })?;
-        let blob_path = self.dir.join("blobs").join(digest);
-        if !blob_path.exists() {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: digest.to_string(),
-                actual: "<missing blob>".to_string(),
-            }));
-        }
-        self.verify_blob(digest, receipt.product_blob_bytes)?;
-        Ok(Some(receipt))
+        };
+        validate_common_receipt(
+            context,
+            &common.action_key,
+            &common.product_digest,
+            &common.product_blob,
+            &common.payload,
+        )?;
+        Ok(Some(common.payload))
     }
 
     /// Load only the committed logical-artifact lane from a verified product blob.
@@ -1490,55 +1755,24 @@ impl PipelineCache {
         &self,
         context: &StageKeyContext,
     ) -> Result<Option<ArtifactCacheHit>, gmeow_errors::Diag> {
-        let key = stage_key(context);
-        let _store = self.lock_store(false)?;
-        let _action = self.lock_action(&key, false)?;
-        let receipt_path = self.receipt_path(&key);
-        if !receipt_path.exists() {
+        let Some(entry) = self
+            .store
+            .get::<StageReceipt>(&context.action_context())
+            .map_err(action_cache_diag)?
+        else {
             return Ok(None);
-        }
-        let receipt = self.read_receipt(&receipt_path)?;
-        if receipt.action_key != key || receipt.context != *context {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: key,
-                actual: receipt.action_key,
-            }));
-        }
-        let digest = receipt.product_blob_digest.as_ref().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "persistent receipt {} carries no product blob digest",
-                    receipt.action_key
-                ),
-            })
-        })?;
-        let blob_path = self.dir.join("blobs").join(digest);
-        if !blob_path.exists() {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: digest.clone(),
-                actual: "<missing blob>".to_string(),
-            }));
-        }
-        if receipt.product_blob_bytes > MAX_ENTRY_BYTES
-            || receipt.product_blob_bytes > self.max_bytes
-        {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "cached bundle declares {} bytes, above its configured byte quota \
-                     (store={}, entry-ceiling={MAX_ENTRY_BYTES})",
-                    receipt.product_blob_bytes, self.max_bytes
-                ),
-            }));
-        }
-        let bytes = read_bounded(&blob_path, MAX_ENTRY_BYTES, "pipeline cache product blob")?;
-        let actual_digest = ContentDigest::of(&bytes).to_hex();
-        let transferred_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
-        if actual_digest != *digest || transferred_bytes != receipt.product_blob_bytes {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: format!("{digest}:{}", receipt.product_blob_bytes),
-                actual: format!("{actual_digest}:{transferred_bytes}"),
-            }));
-        }
+        };
+        let common = entry.receipt;
+        validate_common_receipt(
+            context,
+            &common.action_key,
+            &common.product_digest,
+            &common.product_blob,
+            &common.payload,
+        )?;
+        let transferred_bytes = common.product_blob.bytes;
+        let receipt = common.payload;
+        let bytes = entry.bytes;
         let cached: CachedBundle = bincode::deserialize(&bytes).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::Decode {
                 message: format!("corrupt cached bundle: {error}"),
@@ -1594,7 +1828,7 @@ impl PipelineCache {
                 ),
             }));
         }
-        let digest_hex = ContentDigest::of(&bytes).to_hex();
+        let digest_hex = gmeow_action_cache::bytes_digest(&bytes);
         let receipt = StageReceipt::from_product(
             context.clone(),
             stability,
@@ -1604,38 +1838,23 @@ impl PipelineCache {
             Some(digest_hex.clone()),
             serialized_bytes,
         )?;
-        let key = receipt.action_key.clone();
-        let envelope = ReceiptEnvelope {
-            receipt_digest: receipt.digest(),
-            receipt: receipt.clone(),
-        };
-        let receipt_bytes = serde_json::to_vec_pretty(&envelope).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("cannot serialize stage receipt: {e}"),
-            })
-        })?;
-
-        {
-            let _store = self.lock_store(false)?;
-            let _action = self.lock_action(&key, true)?;
-            let receipt_path = self.receipt_path(&key);
-            if receipt_path.exists() {
-                let existing = self.read_receipt(&receipt_path)?;
-                if existing != receipt {
-                    return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                        expected: existing.digest(),
-                        actual: receipt.digest(),
-                    }));
-                }
-                // An identical receipt must still have an intact reachable product.
-                self.verify_blob(&digest_hex, serialized_bytes)?;
-                return Ok(existing);
-            }
-            write_content_addressed(&self.dir.join("blobs").join(&digest_hex), &bytes)?;
-            write_atomic(&receipt_path, &receipt_bytes)?;
-        }
-        self.prune(Some(&key))?;
-        Ok(receipt)
+        let common = self
+            .store
+            .publish(
+                &context.action_context(),
+                product.digest.clone(),
+                receipt.clone(),
+                &bytes,
+            )
+            .map_err(action_cache_diag)?;
+        validate_common_receipt(
+            context,
+            &common.action_key,
+            &common.product_digest,
+            &common.product_blob,
+            &common.payload,
+        )?;
+        Ok(common.payload)
     }
 
     /// Build a deterministic non-persisted receipt for a recomputed aggregate.
@@ -1687,14 +1906,7 @@ impl PipelineCache {
 
     /// Number of cached entries.
     pub fn len(&self) -> usize {
-        fs::read_dir(self.dir.join("receipts"))
-            .map(|entries| {
-                entries
-                    .flatten()
-                    .filter(|entry| receipt_key(&entry.path()).is_some())
-                    .count()
-            })
-            .unwrap_or(0)
+        self.store.len()
     }
 
     /// Whether the cache is empty.
@@ -1702,183 +1914,51 @@ impl PipelineCache {
         self.len() == 0
     }
 
+    #[cfg(test)]
     fn receipt_path(&self, key: &str) -> PathBuf {
-        self.dir.join("receipts").join(format!("{key}.json"))
+        let key = ActionKey::from_hex(key).expect("pipeline stage keys are SHA-256 hex");
+        self.store.receipt_path(&key)
     }
+}
 
-    fn lock_store(&self, exclusive: bool) -> Result<CacheLock, gmeow_errors::Diag> {
-        self.lock_path(&self.dir.join("locks").join("store.lock"), exclusive)
+fn action_cache_diag(error: gmeow_action_cache::ActionCacheError) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+        expected: "a verified immutable action-cache entry".to_string(),
+        actual: error.to_string(),
+    })
+}
+
+fn validate_common_receipt(
+    context: &StageKeyContext,
+    action_key: &ActionKey,
+    common_product_digest: &str,
+    common_blob: &BlobRef,
+    receipt: &StageReceipt,
+) -> Result<(), gmeow_errors::Diag> {
+    let expected_key = stage_key(context);
+    let stage_blob_digest = receipt
+        .product_blob_digest
+        .as_deref()
+        .unwrap_or("<missing>");
+    if action_key.as_str() != expected_key
+        || receipt.action_key != expected_key
+        || receipt.context != *context
+        || common_product_digest != receipt.product_digest
+        || common_blob.digest != stage_blob_digest
+        || common_blob.bytes != receipt.product_blob_bytes
+    {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
+            expected: format!(
+                "key={expected_key};product={};blob={stage_blob_digest}:{}",
+                receipt.product_digest, receipt.product_blob_bytes
+            ),
+            actual: format!(
+                "key={action_key};product={common_product_digest};blob={}:{}",
+                common_blob.digest, common_blob.bytes
+            ),
+        }));
     }
-
-    fn lock_action(&self, key: &str, exclusive: bool) -> Result<CacheLock, gmeow_errors::Diag> {
-        // Fixed 256-way lock striping bounds sidecar growth without sacrificing the
-        // same-key exclusion law. Unrelated keys sharing a stripe may serialize only
-        // during their short publish/read boundary; stage compute remains parallel.
-        let stripe = key.get(..2).unwrap_or("00");
-        self.lock_path(
-            &self.dir.join("locks").join(format!("action-{stripe}.lock")),
-            exclusive,
-        )
-    }
-
-    fn lock_path(&self, path: &Path, exclusive: bool) -> Result<CacheLock, gmeow_errors::Diag> {
-        let file = OpenOptions::new()
-            .create(true)
-            .truncate(false)
-            .read(true)
-            .write(true)
-            .open(path)?;
-        if exclusive {
-            file.lock()?;
-        } else {
-            file.lock_shared()?;
-        }
-        Ok(CacheLock { file })
-    }
-
-    fn read_receipt(&self, path: &Path) -> Result<StageReceipt, gmeow_errors::Diag> {
-        let bytes = read_bounded(path, MAX_RECEIPT_BYTES, "pipeline cache receipt")?;
-        let envelope: ReceiptEnvelope = serde_json::from_slice(&bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("corrupt pipeline cache receipt {}: {e}", path.display()),
-            })
-        })?;
-        if envelope.receipt.schema_version != RECEIPT_SCHEMA_VERSION {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "receipt schema {} != expected {RECEIPT_SCHEMA_VERSION}",
-                    envelope.receipt.schema_version
-                ),
-            }));
-        }
-        let actual = envelope.receipt.digest();
-        if actual != envelope.receipt_digest {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: envelope.receipt_digest,
-                actual,
-            }));
-        }
-        Ok(envelope.receipt)
-    }
-
-    fn verify_blob(&self, digest: &str, expected_bytes: u64) -> Result<(), gmeow_errors::Diag> {
-        let path = self.dir.join("blobs").join(digest);
-        if expected_bytes > MAX_ENTRY_BYTES || expected_bytes > self.max_bytes {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "cached bundle declares {expected_bytes} bytes, above its configured byte \
-                     quota (store={}, entry-ceiling={MAX_ENTRY_BYTES})",
-                    self.max_bytes
-                ),
-            }));
-        }
-        let (actual, actual_bytes) =
-            digest_bounded(&path, MAX_ENTRY_BYTES, "pipeline cache product blob")?;
-        if actual != digest || actual_bytes != expected_bytes {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: format!("{digest}:{expected_bytes}"),
-                actual: format!("{actual}:{actual_bytes}"),
-            }));
-        }
-        Ok(())
-    }
-
-    /// Enforce entry/byte quotas by removing oldest immutable receipt roots, then
-    /// deleting only blobs unreachable from every remaining root. Active readers hold
-    /// the store's shared lock, so the exclusive lock protects the whole reachability
-    /// scan and deletion transaction.
-    fn prune(&self, protected_key: Option<&str>) -> Result<(), gmeow_errors::Diag> {
-        let _store = self.lock_store(true)?;
-        let receipts_dir = self.dir.join("receipts");
-        let mut roots: Vec<(PathBuf, std::time::SystemTime, StageReceipt)> = Vec::new();
-        for entry in fs::read_dir(&receipts_dir)? {
-            let entry = entry?;
-            if !entry.path().is_file() {
-                continue;
-            }
-            if receipt_key(&entry.path()).is_none() {
-                fs::remove_file(entry.path())?;
-                continue;
-            }
-            let modified = entry
-                .metadata()?
-                .modified()
-                .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
-            roots.push((entry.path(), modified, self.read_receipt(&entry.path())?));
-        }
-        roots.sort_by(|left, right| (&left.1, &left.0).cmp(&(&right.1, &right.0)));
-
-        let mut blob_ref_counts: BTreeMap<String, usize> = BTreeMap::new();
-        for digest in roots
-            .iter()
-            .filter_map(|(_, _, receipt)| receipt.product_blob_digest.clone())
-        {
-            *blob_ref_counts.entry(digest).or_default() += 1;
-        }
-        let mut rooted_blobs: BTreeSet<String> = blob_ref_counts.keys().cloned().collect();
-        let mut bytes = rooted_blobs.iter().try_fold(0_u64, |sum, digest| {
-            let len = fs::metadata(self.dir.join("blobs").join(digest))?.len();
-            Ok::<u64, std::io::Error>(sum.saturating_add(len))
-        })?;
-        let mut retained = roots.len();
-        for (path, _, receipt) in &roots {
-            if retained <= self.max_entries && bytes <= self.max_bytes {
-                break;
-            }
-            let Some(key) = receipt_key(path) else {
-                continue;
-            };
-            if protected_key.is_some_and(|protected| protected == key) {
-                continue;
-            }
-            let stripe = key.get(..2).unwrap_or("00");
-            let action_file = OpenOptions::new()
-                .create(true)
-                .truncate(false)
-                .read(true)
-                .write(true)
-                .open(self.dir.join("locks").join(format!("action-{stripe}.lock")))?;
-            match action_file.try_lock() {
-                Ok(()) => {
-                    fs::remove_file(path)?;
-                    retained = retained.saturating_sub(1);
-                    if let Some(digest) = &receipt.product_blob_digest
-                        && let Some(count) = blob_ref_counts.get_mut(digest)
-                    {
-                        *count = count.saturating_sub(1);
-                        if *count == 0 {
-                            bytes = bytes.saturating_sub(receipt.product_blob_bytes);
-                            rooted_blobs.remove(digest);
-                        }
-                    }
-                    let _ = action_file.unlock();
-                }
-                Err(TryLockError::WouldBlock) => continue,
-                Err(TryLockError::Error(error)) => return Err(error.into()),
-            }
-        }
-
-        // Re-read the retained roots rather than trusting the pre-prune set; this also
-        // makes an externally removed receipt a conservative blob deletion candidate.
-        rooted_blobs.clear();
-        for entry in fs::read_dir(&receipts_dir)? {
-            let entry = entry?;
-            if receipt_key(&entry.path()).is_some()
-                && let Some(digest) = self.read_receipt(&entry.path())?.product_blob_digest
-            {
-                rooted_blobs.insert(digest);
-            }
-        }
-        for entry in fs::read_dir(self.dir.join("blobs"))? {
-            let entry = entry?;
-            if entry.path().is_file()
-                && !rooted_blobs.contains(entry.file_name().to_string_lossy().as_ref())
-            {
-                fs::remove_file(entry.path())?;
-            }
-        }
-        Ok(())
-    }
+    Ok(())
 }
 
 /// Result of one cross-process fixture action. `built` is observational telemetry;
@@ -1904,7 +1984,17 @@ pub struct FixtureOutcome {
 /// declared action requires; a dead builder releases the kernel lock automatically.
 pub struct FixtureCoordinator {
     cache: PipelineCache,
-    lock_dir: PathBuf,
+}
+
+enum FixtureCoordinateError {
+    Cache(gmeow_action_cache::ActionCacheError),
+    Pipeline(gmeow_errors::Diag),
+}
+
+impl From<gmeow_action_cache::ActionCacheError> for FixtureCoordinateError {
+    fn from(error: gmeow_action_cache::ActionCacheError) -> Self {
+        Self::Cache(error)
+    }
 }
 
 impl FixtureCoordinator {
@@ -1914,16 +2004,8 @@ impl FixtureCoordinator {
         // receipt/blob authority. Priming a fixture therefore warms the exact stage
         // action a later full DAG run probes; there is no shadow fixture producer or
         // duplicate cache namespace.
-        let base = PipelineCache::default_dir(root);
-        let fingerprint = &BUILD_FINGERPRINT[..16];
-        let cache = PipelineCache::open(base.join(fingerprint))?;
-        PipelineCache::prune_namespaces(&base, fingerprint, 2)?;
-        let lock_dir = root
-            .join(".cache")
-            .join("gmeow-sync")
-            .join("pipeline-fixture-locks");
-        fs::create_dir_all(&lock_dir)?;
-        Ok(Self { cache, lock_dir })
+        let cache = PipelineCache::open_default(root)?;
+        Ok(Self { cache })
     }
 
     /// Load or build exactly one fixture action.
@@ -1944,236 +2026,68 @@ impl FixtureCoordinator {
         B: FnOnce() -> Result<StageProduct, gmeow_errors::Diag>,
         S: Fn(&StageProduct) -> Result<ReceiptOutputSelection, gmeow_errors::Diag>,
     {
-        if let Some(hit) = self.cache.get(context)? {
-            let selection = select(&hit.product)?;
-            PipelineCache::validate_hit_receipt(
-                context,
-                stability,
-                cache_disposition,
-                &selection,
-                &hit,
-            )?;
-            return Ok(FixtureOutcome {
-                product: hit.product,
-                receipt: hit.receipt,
-                built: false,
-                transferred_bytes: hit.hydrated_bytes,
-            });
-        }
-
-        let key = stage_key(context);
-        let action_file = open_lock(&self.lock_dir.join(format!("{key}.lock")))?;
-        action_file.lock()?;
-        let _election = CacheLock { file: action_file };
-
-        // Another process may have published while this process waited for election.
-        if let Some(hit) = self.cache.get(context)? {
-            let selection = select(&hit.product)?;
-            PipelineCache::validate_hit_receipt(
-                context,
-                stability,
-                cache_disposition,
-                &selection,
-                &hit,
-            )?;
-            return Ok(FixtureOutcome {
-                product: hit.product,
-                receipt: hit.receipt,
-                built: false,
-                transferred_bytes: hit.hydrated_bytes,
-            });
-        }
-
-        let product = build()?;
-        let selection = select(&product)?;
-        let receipt =
-            self.cache
-                .put(context, stability, cache_disposition, &selection, &product)?;
-        let transferred_bytes = receipt.product_blob_bytes;
-        Ok(FixtureOutcome {
-            product,
-            receipt,
-            built: true,
-            transferred_bytes,
-        })
+        let action_context = context.action_context();
+        let key = action_context.key();
+        let coordinated = self
+            .cache
+            .store
+            .coordinate::<_, FixtureCoordinateError, _, _>(
+                &key,
+                || {
+                    self.fixture_hit(context, stability, cache_disposition, &select)
+                        .map_err(FixtureCoordinateError::Pipeline)
+                },
+                || {
+                    let product = build().map_err(FixtureCoordinateError::Pipeline)?;
+                    let selection = select(&product).map_err(FixtureCoordinateError::Pipeline)?;
+                    let receipt = self
+                        .cache
+                        .put(context, stability, cache_disposition, &selection, &product)
+                        .map_err(FixtureCoordinateError::Pipeline)?;
+                    Ok(FixtureOutcome {
+                        transferred_bytes: receipt.product_blob_bytes,
+                        product,
+                        receipt,
+                        built: true,
+                    })
+                },
+            )
+            .map_err(|error| match error {
+                FixtureCoordinateError::Cache(error) => action_cache_diag(error),
+                FixtureCoordinateError::Pipeline(error) => error,
+            })?;
+        let mut outcome = coordinated.value;
+        outcome.built = coordinated.built;
+        Ok(outcome)
     }
-}
 
-fn receipt_key(path: &Path) -> Option<String> {
-    if path.extension()?.to_str()? != "json" {
-        return None;
-    }
-    let key = path.file_stem()?.to_str()?;
-    (key.len() == 64 && key.chars().all(|character| character.is_ascii_hexdigit()))
-        .then(|| key.to_string())
-}
-
-fn open_lock(path: &Path) -> Result<File, gmeow_errors::Diag> {
-    Ok(OpenOptions::new()
-        .create(true)
-        .truncate(false)
-        .read(true)
-        .write(true)
-        .open(path)?)
-}
-
-/// Read one cache object without ever allocating past its lane's admission bound.
-/// Metadata is an early rejection only; `take(max + 1)` closes the growth race between
-/// `metadata` and `read_to_end`, and the final length check rejects that extra byte.
-fn read_bounded(path: &Path, max_bytes: u64, lane: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let metadata = fs::metadata(path)?;
-    if !metadata.is_file() || metadata.len() > max_bytes {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-            message: format!(
-                "{lane} {} is not a regular file within the {max_bytes}-byte bound",
-                path.display()
-            ),
-        }));
-    }
-    let mut bytes = Vec::with_capacity(usize::try_from(metadata.len()).unwrap_or(0));
-    File::open(path)?
-        .take(max_bytes.saturating_add(1))
-        .read_to_end(&mut bytes)?;
-    if u64::try_from(bytes.len()).unwrap_or(u64::MAX) > max_bytes {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-            message: format!(
-                "{lane} {} grew beyond the {max_bytes}-byte bound while being read",
-                path.display()
-            ),
-        }));
-    }
-    Ok(bytes)
-}
-
-/// Stream-authenticate a bounded cache object without allocating its payload.
-fn digest_bounded(
-    path: &Path,
-    max_bytes: u64,
-    lane: &str,
-) -> Result<(String, u64), gmeow_errors::Diag> {
-    let metadata = fs::metadata(path)?;
-    if !metadata.is_file() || metadata.len() > max_bytes {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-            message: format!(
-                "{lane} {} is not a regular file within the {max_bytes}-byte bound",
-                path.display()
-            ),
-        }));
-    }
-    let mut reader = File::open(path)?.take(max_bytes.saturating_add(1));
-    let mut hasher = Sha256::new();
-    let mut total = 0_u64;
-    let mut buffer = [0_u8; 1024 * 1024];
-    loop {
-        let read = reader.read(&mut buffer)?;
-        if read == 0 {
-            break;
-        }
-        total = total.saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
-        if total > max_bytes {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!(
-                    "{lane} {} grew beyond the {max_bytes}-byte bound while being read",
-                    path.display()
-                ),
-            }));
-        }
-        hasher.update(&buffer[..read]);
-    }
-    Ok((format!("{:x}", hasher.finalize()), total))
-}
-
-/// Write `bytes` to `target` atomically: stage them in a sibling temp file in the
-/// SAME directory (so the final `rename` stays on one filesystem, where POSIX
-/// guarantees atomicity), then rename over the target. An interrupted write can
-/// only ever leave a stray temp file, never a half-written `target` — so the
-/// cache is never bricked mid-write (no-optionality P2).
-fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
-    // Idempotency policy: an equal output is already the desired state. Avoiding
-    // the temp write + rename preserves the target's mtime/inode and eliminates
-    // filesystem churn for warm sync/check runs.
-    let expected_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
-    if let Ok(existing) = read_bounded(target, expected_bytes, "pipeline cache publication")
-        && existing == bytes
+    fn fixture_hit<S>(
+        &self,
+        context: &StageKeyContext,
+        stability: &str,
+        cache_disposition: &str,
+        select: &S,
+    ) -> Result<Option<FixtureOutcome>, gmeow_errors::Diag>
+    where
+        S: Fn(&StageProduct) -> Result<ReceiptOutputSelection, gmeow_errors::Diag>,
     {
-        return Ok(());
-    }
-
-    let dir = target.parent().ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            message: (std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                format!("cache path {} has no parent directory", target.display()),
-            ))
-            .to_string(),
-        })
-    })?;
-    let mut tmp = tempfile::Builder::new()
-        .prefix(".pipeline-cache-")
-        .suffix(".tmp")
-        .tempfile_in(dir)?;
-    tmp.write_all(bytes)?;
-    tmp.as_file().sync_all()?;
-    tmp.persist(target).map_err(|error| error.error)?;
-    File::open(dir)?.sync_all()?;
-    Ok(())
-}
-
-/// Publish immutable content-addressed bytes. An existing equal blob is reused; an
-/// existing unequal blob under the same digest is corruption and hard-fails rather
-/// than being silently repaired.
-fn write_content_addressed(target: &Path, bytes: &[u8]) -> Result<(), gmeow_errors::Diag> {
-    let expected_bytes = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
-    match read_bounded(
-        target,
-        expected_bytes,
-        "pipeline content-addressed publication",
-    ) {
-        Ok(existing) if existing == bytes => return Ok(()),
-        Ok(existing) => {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                expected: ContentDigest::of(bytes).to_hex(),
-                actual: ContentDigest::of(&existing).to_hex(),
-            }));
-        }
-        Err(error) => match target.try_exists() {
-            Ok(false) => {}
-            Ok(true) => return Err(error),
-            Err(io_error) => return Err(io_error.into()),
-        },
-    }
-    let dir = target.parent().ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Io {
-            message: format!("cache blob path {} has no parent", target.display()),
-        })
-    })?;
-    let mut tmp = tempfile::Builder::new()
-        .prefix(".pipeline-blob-")
-        .suffix(".tmp")
-        .tempfile_in(dir)?;
-    tmp.write_all(bytes)?;
-    tmp.as_file().sync_all()?;
-    match tmp.persist_noclobber(target) {
-        Ok(_) => {
-            File::open(dir)?.sync_all()?;
-            Ok(())
-        }
-        Err(error) if error.error.kind() == std::io::ErrorKind::AlreadyExists => {
-            let existing = read_bounded(
-                target,
-                expected_bytes,
-                "concurrent pipeline content-addressed publication",
-            )?;
-            if existing == bytes {
-                Ok(())
-            } else {
-                Err(gmeow_errors::Diag::of_kind(crate::error::CacheMismatch {
-                    expected: ContentDigest::of(bytes).to_hex(),
-                    actual: ContentDigest::of(&existing).to_hex(),
-                }))
-            }
-        }
-        Err(error) => Err(error.error.into()),
+        let Some(hit) = self.cache.get(context)? else {
+            return Ok(None);
+        };
+        let selection = select(&hit.product)?;
+        PipelineCache::validate_hit_receipt(
+            context,
+            stability,
+            cache_disposition,
+            &selection,
+            &hit,
+        )?;
+        Ok(Some(FixtureOutcome {
+            product: hit.product,
+            receipt: hit.receipt,
+            built: false,
+            transferred_bytes: hit.hydrated_bytes,
+        }))
     }
 }
 
@@ -2181,6 +2095,10 @@ fn write_content_addressed(target: &Path, bytes: &[u8]) -> Result<(), gmeow_erro
 mod tests {
     use super::*;
 
+    use std::fs::OpenOptions;
+    use std::io::Write as _;
+
+    use gmeow_action_cache::ActionReceipt;
     use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram};
     use purrdf::{PipelineBundle, RdfDatasetBuilder, RdfTerm, TermId, parse_dataset};
 
@@ -2198,6 +2116,11 @@ mod tests {
     #[test]
     fn selected_dimension_is_a_first_class_action_key_input() {
         let base = StageKeyContext::new("stage", "test-v1", Vec::new(), Vec::new());
+        assert_eq!(
+            base.action_context().dimensions["pipeline-cache-version"],
+            CACHE_VERSION.to_string(),
+            "the product shape revision must move every pipeline action key",
+        );
         let english = base.clone().with_dimension("language", "en");
         let french = base.clone().with_dimension("language", "fr");
         let docs = base.with_dimension("output", "docs");
@@ -2211,6 +2134,52 @@ mod tests {
             ),
             "identical explicit feature selections must be cache-stable",
         );
+    }
+
+    #[test]
+    fn default_graph_commitment_covers_rdf12_reifiers_and_annotations() {
+        fn product(with_annotation: bool) -> StageProduct {
+            let mut builder = RdfDatasetBuilder::new();
+            let reifier_term = RdfTerm::iri("http://example.org/reifier");
+            let reifier = purrdf::RdfReifier::new(
+                reifier_term.clone(),
+                purrdf::RdfTriple::new(
+                    RdfTerm::iri("http://example.org/s"),
+                    "http://example.org/p",
+                    RdfTerm::iri("http://example.org/o"),
+                ),
+            );
+            builder.push_owned_reifier(&reifier);
+            if with_annotation {
+                builder.push_owned_annotation(&purrdf::RdfAnnotation::new(
+                    reifier_term,
+                    "http://example.org/confidence",
+                    RdfTerm::iri("http://example.org/high"),
+                ));
+            }
+            let dataset = builder
+                .freeze()
+                .expect("valid RDF 1.2 overlay-only dataset");
+            StageProduct::from_bundle(
+                "default-overlay",
+                Arc::new(PipelineBundle::new(
+                    dataset,
+                    RdfLookaside::default(),
+                    Arc::new(ContentStore::new()),
+                    DatasetProvenance::new(),
+                )),
+            )
+        }
+
+        let complete = default_graph_commitment(&product(true))
+            .unwrap()
+            .expect("overlay-only default graph is a committed lane");
+        let reifier_only = default_graph_commitment(&product(false))
+            .unwrap()
+            .expect("default-graph reifier is a committed lane");
+        assert_eq!(complete.structural_count, 2);
+        assert_eq!(reifier_only.structural_count, 1);
+        assert_ne!(complete.digest, reifier_only.digest);
     }
 
     fn full_selection(product: &StageProduct) -> ReceiptOutputSelection {
@@ -2231,6 +2200,9 @@ mod tests {
                 .filter_map(|resource| resource.name.clone())
                 .collect(),
             handles: product.bundle().handles().keys().cloned().collect(),
+            default_graph: default_graph_commitment(product).unwrap(),
+            provenance: provenance_commitment(product).unwrap(),
+            content_store: content_store_commitment(product).unwrap(),
         }
     }
 
@@ -2261,16 +2233,35 @@ mod tests {
             .unwrap()
     }
 
+    fn rewrite_test_receipt(
+        cache: &PipelineCache,
+        action_key: &str,
+        mutate: impl FnOnce(&mut ActionReceipt<StageReceipt>),
+    ) {
+        let path = cache.receipt_path(action_key);
+        let envelope: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        let mut receipt: ActionReceipt<StageReceipt> =
+            serde_json::from_value(envelope["receipt"].clone()).unwrap();
+        mutate(&mut receipt);
+        let envelope = serde_json::json!({
+            "receipt_digest": receipt.digest(),
+            "receipt": receipt,
+        });
+        std::fs::write(path, serde_json::to_vec_pretty(&envelope).unwrap()).unwrap();
+    }
+
     fn write_test_receipt(cache: &PipelineCache, receipt: StageReceipt) {
-        let envelope = ReceiptEnvelope {
-            receipt_digest: receipt.digest(),
-            receipt,
-        };
-        std::fs::write(
-            cache.receipt_path(&envelope.receipt.action_key),
-            serde_json::to_vec_pretty(&envelope).unwrap(),
-        )
-        .unwrap();
+        let action_key = receipt.action_key.clone();
+        rewrite_test_receipt(cache, &action_key, |common| {
+            if let Some(digest) = &receipt.product_blob_digest {
+                common.product_blob = BlobRef {
+                    digest: digest.clone(),
+                    bytes: receipt.product_blob_bytes,
+                };
+            }
+            common.payload = receipt;
+        });
     }
 
     /// A tiny but real [`LogicProgram`] whose canonical RDF-1.2 projection backs the
@@ -2577,7 +2568,96 @@ mod tests {
             .expect_err("an unselected artifact is cumulative carrier residue");
         assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
 
+        let mut missing_default_graph = full_selection(&product);
+        missing_default_graph.default_graph = None;
+        let err = cache
+            .put(
+                &context,
+                "stable",
+                "persistent",
+                &missing_default_graph,
+                &product,
+            )
+            .expect_err("an uncommitted default graph is cumulative carrier residue");
+        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
+
+        let mut missing_provenance = full_selection(&product);
+        missing_provenance.provenance = None;
+        let err = cache
+            .put(
+                &context,
+                "stable",
+                "persistent",
+                &missing_provenance,
+                &product,
+            )
+            .expect_err("uncommitted provenance is cumulative carrier residue");
+        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
+
+        let mut missing_content_store = full_selection(&product);
+        missing_content_store.content_store = None;
+        let err = cache
+            .put(
+                &context,
+                "stable",
+                "persistent",
+                &missing_content_store,
+                &product,
+            )
+            .expect_err("an uncommitted content store is cumulative carrier residue");
+        assert!(err.is::<crate::error::StageFailed>(), "got {err:?}");
+
         assert_eq!(cache.len(), 0, "a rejected unit publishes no receipt");
+    }
+
+    #[test]
+    fn content_store_commitment_rejects_orphans_missing_bytes_and_length_drift() {
+        fn product(lookaside: RdfLookaside, blobs: ContentStore, salt: &str) -> StageProduct {
+            let dataset = parse_dataset(b"", "application/n-quads", None).unwrap();
+            StageProduct::from_bundle(
+                format!("content-store-{salt}"),
+                Arc::new(PipelineBundle::new(
+                    dataset,
+                    lookaside,
+                    Arc::new(blobs),
+                    DatasetProvenance::new(),
+                )),
+            )
+        }
+
+        let mut orphan_store = ContentStore::new();
+        orphan_store.insert(b"orphan".to_vec());
+        assert!(
+            content_store_commitment(&product(RdfLookaside::default(), orphan_store, "orphan",))
+                .is_err()
+        );
+
+        let missing_digest = ContentDigest::of(b"missing").to_hex();
+        let mut missing_lookaside = RdfLookaside::default();
+        missing_lookaside.resources.push(
+            RdfLookasideResource::new(RdfLookasideKind::Blob)
+                .with_name("generated/missing.bin")
+                .with_digest(missing_digest),
+        );
+        assert!(
+            content_store_commitment(&product(missing_lookaside, ContentStore::new(), "missing",))
+                .is_err()
+        );
+
+        let mut length_store = ContentStore::new();
+        let length_digest = length_store.insert(b"bytes".to_vec());
+        let mut length_lookaside = RdfLookaside::default();
+        length_lookaside.blobs.push(RdfBlobRecord {
+            digest: length_digest.to_hex(),
+            media_type: Some("application/octet-stream".to_string()),
+            representation: Some("test:length-drift".to_string()),
+            decoded_len: Some(99),
+            metadata: BTreeMap::new(),
+            origin: None,
+        });
+        assert!(
+            content_store_commitment(&product(length_lookaside, length_store, "length",)).is_err()
+        );
     }
 
     #[test]
@@ -2606,17 +2686,16 @@ mod tests {
         let new_bytes = bincode::serialize(&manifest).unwrap();
         let new_hex = ContentDigest::of(&new_bytes).to_hex();
         std::fs::write(blobs_dir.join(&new_hex), &new_bytes).unwrap();
-        receipt.product_blob_digest = Some(new_hex);
-        receipt.product_blob_bytes = u64::try_from(new_bytes.len()).unwrap();
-        let envelope = ReceiptEnvelope {
-            receipt_digest: receipt.digest(),
-            receipt,
-        };
-        std::fs::write(
-            cache.receipt_path(&stage_key(&context)),
-            serde_json::to_vec_pretty(&envelope).unwrap(),
-        )
-        .unwrap();
+        let new_bytes_len = u64::try_from(new_bytes.len()).unwrap();
+        receipt.product_blob_digest = Some(new_hex.clone());
+        receipt.product_blob_bytes = new_bytes_len;
+        rewrite_test_receipt(&cache, &stage_key(&context), |common| {
+            common.product_blob = BlobRef {
+                digest: new_hex,
+                bytes: new_bytes_len,
+            };
+            common.payload = receipt;
+        });
         let reopened = PipelineCache::open(dir.path()).unwrap();
 
         let err = reopened
@@ -2626,6 +2705,41 @@ mod tests {
             err.is::<crate::error::Decode>(),
             "tampered handle manifest hard-fails, got {err:?}"
         );
+    }
+
+    #[test]
+    fn tampered_provenance_quad_key_hard_fails_on_reload() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = PipelineCache::open(dir.path()).unwrap();
+        let product = StageProduct::from_bundle("stage-rich", Arc::new(rich_bundle()));
+        let context = test_context("stage-rich", "tampered-provenance");
+        let mut receipt = persist_test_product(&cache, &context, &product);
+
+        let original_blob = cache
+            .dir
+            .join("blobs")
+            .join(receipt.product_blob_digest.as_ref().unwrap());
+        let mut manifest: CachedBundle =
+            bincode::deserialize(&std::fs::read(original_blob).unwrap()).unwrap();
+        manifest.provenance[0].quad_key = "absent-asserted-quad".to_string();
+        let forged = bincode::serialize(&manifest).unwrap();
+        let forged_digest = ContentDigest::of(&forged).to_hex();
+        std::fs::write(cache.dir.join("blobs").join(&forged_digest), &forged).unwrap();
+        let forged_bytes = u64::try_from(forged.len()).unwrap();
+        receipt.product_blob_digest = Some(forged_digest.clone());
+        receipt.product_blob_bytes = forged_bytes;
+        rewrite_test_receipt(&cache, &stage_key(&context), |common| {
+            common.product_blob = BlobRef {
+                digest: forged_digest,
+                bytes: forged_bytes,
+            };
+            common.payload = receipt;
+        });
+
+        let error = cache
+            .get(&context)
+            .expect_err("an unresolvable stable provenance key must hard-fail");
+        assert!(error.is::<crate::error::CacheMismatch>(), "{error:?}");
     }
 
     #[test]
@@ -2677,7 +2791,7 @@ mod tests {
             cache
                 .get(&context)
                 .unwrap_err()
-                .is::<crate::error::Decode>()
+                .is::<crate::error::CacheMismatch>()
         );
 
         // Referenced missing blob.
@@ -2733,7 +2847,7 @@ mod tests {
             cache
                 .get(&context)
                 .unwrap_err()
-                .is::<crate::error::Decode>()
+                .is::<crate::error::CacheMismatch>()
         );
 
         // Oversized referenced blob: the same sparse-file attack is rejected before
@@ -2756,7 +2870,7 @@ mod tests {
             cache
                 .get(&context)
                 .unwrap_err()
-                .is::<crate::error::Decode>()
+                .is::<crate::error::CacheMismatch>()
         );
     }
 
@@ -2877,6 +2991,29 @@ mod tests {
         assert_eq!(outcomes.iter().filter(|outcome| outcome.built).count(), 1);
         assert_eq!(outcomes[0].receipt, outcomes[1].receipt);
         assert_eq!(outcomes[0].product.digest, outcomes[1].product.digest);
+    }
+
+    #[test]
+    fn fixture_coordinator_preserves_the_producer_diagnostic_kind() {
+        let root = tempfile::tempdir().unwrap();
+        let context = test_context("fixture-failure", "typed-error");
+        let coordinator = FixtureCoordinator::open(root.path()).unwrap();
+        let error = coordinator
+            .get_or_build(
+                &context,
+                "stable",
+                "persistent",
+                |_| Ok(ReceiptOutputSelection::default()),
+                || {
+                    Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                        stage: "fixture-failure".to_string(),
+                        message: "intentional producer refusal".to_string(),
+                    }))
+                },
+            )
+            .expect_err("a producer refusal must escape the cache coordinator");
+        assert!(error.is::<crate::error::StageFailed>(), "{error}");
+        assert!(!error.is::<crate::error::CacheMismatch>(), "{error}");
     }
 
     const FIXTURE_PROCESS_ROOT: &str = "GMEOW_FIXTURE_PROCESS_TEST_ROOT";
@@ -3013,28 +3150,6 @@ mod tests {
                 .is::<crate::error::StageFailed>()
         );
         assert!(cache.is_empty());
-    }
-
-    #[test]
-    fn namespace_gc_never_removes_a_live_reader() {
-        let dir = tempfile::tempdir().unwrap();
-        let base = dir.path().join("pipeline");
-        let live = PipelineCache::open(base.join("a")).unwrap();
-        drop(PipelineCache::open(base.join("b")).unwrap());
-        let current = PipelineCache::open(base.join("c")).unwrap();
-
-        PipelineCache::prune_namespaces(&base, "c", 1).unwrap();
-        assert!(base.join("a").exists(), "live namespace is protected");
-        assert!(!base.join("b").exists(), "idle old namespace is collected");
-        assert!(base.join("c").exists(), "current namespace is retained");
-
-        drop(live);
-        PipelineCache::prune_namespaces(&base, "c", 1).unwrap();
-        assert!(
-            !base.join("a").exists(),
-            "released namespace becomes collectible"
-        );
-        assert!(current.dir.exists());
     }
 
     /// A `ReasoningResult` whose `graph/reasoning` projection backs a cache handle, so

@@ -1,19 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Emit the exact producer identity for the graph-preserving bundle-import product.
+//! Embed the complete authored reasoned-graph verification query set.
 //!
-//! The content key already binds the exact GTS bytes. The producer identity additionally
-//! covers every workspace crate source/compile-time asset, dependency resolution and
-//! configuration, and the compiler unit. An ontology edit which emits byte-identical GTS
-//! therefore remains warm; any importer, transitive implementation, purrdf pin, toolchain,
-//! target, profile, feature, or codegen change must invalidate the packed product.
+//! Bundle-import producer identity belongs to the dependency-light
+//! `gmeow-bundle-import` leaf. Keeping that fingerprint here made every unrelated
+//! workspace source edit rebuild the reasoning core and invalidate the shared pack.
 
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
-
-use sha2::{Digest, Sha256};
 
 fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
@@ -22,75 +18,6 @@ fn main() {
         .canonicalize()
         .expect("workspace root");
     embed_verify_queries(&workspace);
-    let mut inputs = BTreeMap::<String, Vec<u8>>::new();
-    collect_workspace_inputs(&workspace.join("crates"), &workspace, &mut inputs);
-    for relative in [
-        "Cargo.toml",
-        "Cargo.lock",
-        "rust-toolchain",
-        "rust-toolchain.toml",
-        ".cargo/config",
-        ".cargo/config.toml",
-    ] {
-        let path = workspace.join(relative);
-        if let Ok(bytes) = std::fs::read(&path) {
-            println!("cargo:rerun-if-changed={}", path.display());
-            inputs.insert(relative.to_string(), bytes);
-        }
-    }
-
-    let mut hash = Sha256::new();
-    hash.update(b"gmeow:bundle-import-build:v1\x1f");
-    for (path, bytes) in inputs {
-        hash.update(path.as_bytes());
-        hash.update([0x1f]);
-        hash.update(bytes);
-        hash.update([0x1e]);
-    }
-    let rustc = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".to_string());
-    let rustc_vv = command_identity(&rustc, &["-Vv"]);
-    hash.update(b"rustc-vv\x1f");
-    hash.update(rustc_vv.as_bytes());
-
-    let mut unit = BTreeMap::new();
-    for name in [
-        "HOST",
-        "TARGET",
-        "PROFILE",
-        "OPT_LEVEL",
-        "DEBUG",
-        "CARGO_BUILD_TARGET",
-        "CARGO_ENCODED_RUSTFLAGS",
-        "RUSTFLAGS",
-        "RUSTDOCFLAGS",
-    ] {
-        if let Ok(value) = std::env::var(name) {
-            unit.insert(name.to_string(), value);
-        }
-    }
-    for (name, value) in std::env::vars().filter(|(name, _)| name.starts_with("CARGO_CFG_")) {
-        unit.insert(name, value);
-    }
-    let mut features: Vec<String> = std::env::vars()
-        .filter_map(|(name, value)| {
-            name.strip_prefix("CARGO_FEATURE_")
-                .filter(|_| value == "1")
-                .map(str::to_owned)
-        })
-        .collect();
-    features.sort();
-    features.dedup();
-    unit.insert("FEATURES".to_string(), features.join(","));
-    for (name, value) in unit {
-        hash.update(name.as_bytes());
-        hash.update([0x1f]);
-        hash.update(value.as_bytes());
-        hash.update([0x1e]);
-    }
-    println!(
-        "cargo:rustc-env=GMEOW_BUNDLE_IMPORT_BUILD_FINGERPRINT={}",
-        hex(&hash.finalize())
-    );
 }
 
 /// Preserve the pre-existing build-script authority that embeds every authored
@@ -171,51 +98,4 @@ fn collect_slice_verify(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
         }
         collect_slice_verify(&path, by_stem);
     }
-}
-
-fn collect_workspace_inputs(dir: &Path, workspace: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return;
-    };
-    let mut paths: Vec<PathBuf> = entries
-        .filter_map(|entry| entry.ok().map(|e| e.path()))
-        .collect();
-    paths.sort();
-    for path in paths {
-        if path.is_dir() {
-            if path.file_name().is_some_and(|name| name == "target") {
-                continue;
-            }
-            collect_workspace_inputs(&path, workspace, out);
-        } else if path.is_file()
-            && let Ok(bytes) = std::fs::read(&path)
-        {
-            println!("cargo:rerun-if-changed={}", path.display());
-            let relative = path
-                .strip_prefix(workspace)
-                .unwrap_or(&path)
-                .to_string_lossy()
-                .into_owned();
-            out.insert(relative, bytes);
-        }
-    }
-}
-
-fn command_identity(program: &str, args: &[&str]) -> String {
-    match std::process::Command::new(program).args(args).output() {
-        Ok(output) if output.status.success() => {
-            String::from_utf8_lossy(&output.stdout).into_owned()
-        }
-        Ok(output) => format!(
-            "status={};stdout={};stderr={}",
-            output.status,
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
-        ),
-        Err(error) => format!("unavailable:{error}"),
-    }
-}
-
-fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }

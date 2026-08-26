@@ -1,34 +1,24 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The consumer `gmeow medium` verbs, driven against a bundle the REAL DAG emitted.
+//! The consumer `gmeow medium` verbs, driven against the producer-materialized bundle.
 //!
-//! # Why the bundle is emitted here rather than read off disk
+//! # Why the materialized bundle is authoritative
 //!
 //! `crates/gmeow-cli/build.rs` embeds `generated/dist/gmeow.gts`, which is a git-ignored
-//! LOCAL product: in any checkout that has not re-run `make regen` since the medium axis
-//! landed, the embedded bundle predates the axis entirely and carries no
-//! `graph/medium-registry` at all. A test that read the embedded bytes would therefore
-//! either fail for a reason that is not about the code under test, or — much worse —
-//! quietly assert something weaker.
+//! producer output required before this test can compile. `make check` materializes the
+//! exact fixed point before the Rust DAG; CI downloads and verifies the producer receipt
+//! before building or running tests. Reading that mandatory artifact exercises the same
+//! shipped bytes without launching a second whole-repository DAG inside the test. A
+//! missing or stale-capability bundle hard-fails the assertions; there is no fallback.
 //!
-//! So this suite runs the production DAG once, in memory, over the exact persistent
-//! stage cache primed before test fanout, writes the
-//! bundle the terminal sink emits to a temp path, and passes that path as the verb's
-//! `FILE` argument. That is the SAME emitter, the SAME terminal, and the real CLI binary
-//! reading a real file — not a hand-built fixture, and not a skip-if-absent branch.
+//! # One whole-bundle audit, one test
 //!
-//! # One DAG run, one test
-//!
-//! A whole-pipeline execution is minutes, so every clause lives in one test function
-//! rather than multiplying that cost by the number of things being asserted.
+//! Every clause lives in one test function so the bundle is folded only once per CLI
+//! operation family rather than multiplying corpus-wide setup across tiny tests.
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-
-use gmeow_pipeline::node::StageProduct;
-use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
 
 #[path = "../../pipeline/tests/support/medium_tamper.rs"]
 mod tamper;
@@ -52,20 +42,9 @@ fn repo_root() -> PathBuf {
         .expect("workspace root")
 }
 
-/// Run the REAL production DAG (`full_spec`, the same spec `make regen` executes) once,
-/// in memory, reusing only receipt-verified bounded stage contributions.
-fn run_the_dag(root: &Path) -> BTreeMap<String, StageProduct> {
-    let spec = full_spec();
-    let graph = spec.validate().expect("the production DAG validates");
-    let bound = bind(&spec, &graph, &default_registry()).expect("every production stage binds");
-    let jobs = std::thread::available_parallelism()
-        .map(std::num::NonZeroUsize::get)
-        .unwrap_or(4);
-    let mut ctx = RunContext::open(root, jobs).expect("run context");
-    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
-    run(&graph, &bound, &mut ctx)
-        .expect("the production DAG runs end to end")
-        .products
+fn materialized_bundle(root: &Path) -> Vec<u8> {
+    std::fs::read(root.join("generated/dist/gmeow.gts"))
+        .expect("the mandatory producer-materialized generated/dist/gmeow.gts")
 }
 
 /// The `gmeow` consumer binary under test.
@@ -123,24 +102,18 @@ fn assert_breach(dir: &Path, name: &str, bytes: &[u8], code: &str) {
 }
 
 #[test]
-fn the_medium_verbs_read_verify_and_explain_a_freshly_emitted_bundle() {
+fn the_medium_verbs_read_verify_and_explain_the_materialized_bundle() {
     let root = repo_root();
-    let products = run_the_dag(&root);
-    let bundle = products
-        .get("stage-gts-sink")
-        .expect("the terminal sink produced a product")
-        .artifact(gmeow_pipeline::stages::gts_sink::GTS_PATH)
-        .expect("the sink product carries the gmeow.gts artifact")
-        .to_vec();
+    let bundle = materialized_bundle(&root);
     assert!(
         bundle.len() > 1024,
-        "the emitted bundle is implausibly small: {} bytes",
+        "the materialized bundle is implausibly small: {} bytes",
         bundle.len()
     );
 
     let home = tempfile::tempdir().expect("tempdir");
     let bundle_path = home.path().join("gmeow.gts");
-    std::fs::write(&bundle_path, &bundle).expect("stage the emitted bundle");
+    std::fs::write(&bundle_path, &bundle).expect("stage the materialized bundle");
     let bundle_arg = bundle_path.to_str().expect("utf-8");
 
     // ── (a) `gmeow medium list` ──────────────────────────────────────────────
@@ -274,7 +247,10 @@ fn the_medium_verbs_read_verify_and_explain_a_freshly_emitted_bundle() {
 
     // ── the healthy bundle verifies, and the harness itself is inert ─────────
     let (status, stdout, stderr) = invoke(&["medium", "verify", bundle_arg]);
-    assert_eq!(status, 0, "verifying the emitted bundle failed:\n{stderr}");
+    assert_eq!(
+        status, 0,
+        "verifying the materialized bundle failed:\n{stderr}"
+    );
     assert!(stdout.contains("SelfDescribing"), "{stdout}");
     assert!(stdout.contains("verified:"), "{stdout}");
 
@@ -325,7 +301,7 @@ fn the_medium_verbs_read_verify_and_explain_a_freshly_emitted_bundle() {
 }
 
 /// Write a runtime store through the PRODUCTION `Memory::store` path, primed from the
-/// freshly emitted bundle.
+/// producer-materialized bundle.
 ///
 /// Driven through `McpServer`'s `store_claim` tool rather than by calling purrdf's
 /// `Memory` directly: the medium wiring lives on the production store path, and a test
@@ -342,7 +318,7 @@ fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
         std::env::remove_var("GMEOW_LANG");
     }
     let server =
-        McpServer::from_snapshot(bundle).expect("the freshly emitted bundle serves an MCP session");
+        McpServer::from_snapshot(bundle).expect("the materialized bundle serves an MCP session");
     for text in [
         "a claim stored through the production memory path",
         "a second claim, so the store carries more than one record",

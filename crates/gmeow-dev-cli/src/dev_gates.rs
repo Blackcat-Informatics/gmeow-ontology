@@ -576,7 +576,8 @@ fn seam_registry_drift_over_rendered_site(
 pub fn doc_lint() -> i32 {
     let root = project_root();
     // The model and the English site come from the content-addressed
-    // `.cache/docs-fixture` store, NOT a fresh ~12 s `DocsModel::discover` + render.
+    // shared `.cache/gmeow-sync/actions/` store, NOT a fresh ~12 s
+    // `DocsModel::discover` + render.
     // This is the identical artifact by construction: `fixture::try_load` is
     // byte-identical to `discover()` (its envelope carries the three `#[serde(skip)]`
     // i18n fields explicitly) and `fixture::load_site` is byte-identical to

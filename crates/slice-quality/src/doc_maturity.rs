@@ -19,7 +19,7 @@
 //! [`DocsModel::discover`] is a ~12 s repo-wide sweep, so it is built ONCE per repo
 //! root and memoized: every slice the quality sweep scores reads the same in-memory
 //! documentation model. The disk-sourced arm goes further and reads the
-//! content-addressed `.cache/docs-fixture` store
+//! bounded content-addressed `.cache/gmeow-sync/actions/` store
 //! ([`gmeow_docs_model::fixture::try_load`]), so the sweep shares ONE build with the
 //! docs pipeline and `gmeow-dev doc-lint` instead of paying a third. `try_load` is
 //! byte-identical to `discover()`, and a cache miss runs the real sweep — the score is
@@ -389,7 +389,7 @@ fn build_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) -> RepoFacts {
         // and must not serve it.
         Some(bytes) => DocsModel::discover_with_catalog(root, bytes),
         // Post-pipeline / CLI over a materialized tree: build the model from disk,
-        // through the content-addressed `.cache/docs-fixture` store.
+        // through the bounded content-addressed `.cache/gmeow-sync/actions/` store.
         //
         // `try_load` is byte-identical to `DocsModel::discover` and Result-preserving:
         // its envelope carries the three `#[serde(skip)]` i18n fields explicitly, so a

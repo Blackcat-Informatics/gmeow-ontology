@@ -123,28 +123,23 @@ slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s"
 # second emission and must not be nested beside another full-width worker pool.
 threads-required = "num-cpus"
 
-# The two CONSUMER-SURFACE medium suites. `crates/gmeow-cli/build.rs` embeds
-# `generated/dist/gmeow.gts`, which is a git-ignored LOCAL product, so a suite that read
-# the embedded bytes would assert against whatever happened to be on disk. Both suites
-# therefore run the production DAG once, in memory, write the emitted bundle to a temp
-# path, and drive the real `gmeow` / `gmeow-dev` binaries against THAT file — plus a real
-# runtime store and five tampered breach fixtures.
+# The two CONSUMER-SURFACE medium suites drive the real `gmeow` / `gmeow-dev`
+# binaries against the producer-materialized bundle plus a real runtime store and five
+# tampered breach fixtures. `make check` materializes that exact fixed point before the
+# Rust DAG; CI downloads and verifies the producer receipt before compilation.
 #
 # They are OFF the local gate: the default filter above excludes both binaries, and
 # `make medium-consumer-surface` (a `HEAVY_TASKS` member, so it runs on every PR) drives
 # them on the `maint-heavy` profile. The reason is P6 criterion 2 in
-# docs/GATE-AND-PIPELINE.md — a whole-DAG execution plus a real store plus five breach
-# fixtures is priced by the breadth of the pipeline, not by the edit under test, and
-# reserving the host for each doubles that cost onto everything else queued behind them.
+# docs/GATE-AND-PIPELINE.md — auditing the whole shipped bundle plus a real store and five
+# breach fixtures is priced by corpus breadth, not by the edit under test.
 # The axis's razor stays on `make check`: `medium_identity_gate` and `medium_bundle` are
 # change-dominated and are the two proofs about the SHIPPED artifact itself.
 #
 # The budget below still applies (the `maint-heavy` profile inherits these overrides).
-# `threads-required` reserves the host for each of them. It is not a scheduling nicety:
-# the DAG run inside creates its own full-width worker pool, so two of these executing
-# concurrently halve each other's parallelism and BOTH drift past the backstop — which is
-# a timeout that says nothing about the code. Reserving the host makes each run's wall
-# clock a property of the pipeline rather than of what else nextest happened to schedule.
+# Bundle folds and runtime-store compaction use the host's natural worker width, so each
+# suite keeps a `num-cpus` reservation. This scales with the runner rather than imposing a
+# fixed ceiling and avoids nested oversubscription during the corpus-wide audit.
 [[profile.default.overrides]]
 filter = 'package(gmeow-cli) & binary(medium_cli)'
 slow-timeout = { period = "1800s", "terminate-after" = 2, "grace-period" = "30s" }

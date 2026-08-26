@@ -282,7 +282,7 @@ const CHECK_DAG: &[Task] = &[
         dependencies: AFTER_SYNC,
     },
     // The documentation model and the rendered English site come from the
-    // content-addressed `.cache/docs-fixture` store (the model half in
+    // bounded content-addressed `.cache/gmeow-sync/actions/` store (the model half in
     // `gmeow_docs_model::fixture`, the rendered half in `gmeow_docs::fixture`), whose key
     // folds `generated/catalog/constraint-catalog.nq` and
     // `generated/catalog/term-content-manifest.nq` — the same two files

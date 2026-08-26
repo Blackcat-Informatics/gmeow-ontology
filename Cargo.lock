@@ -1517,6 +1517,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
+name = "gmeow-action-cache"
+version = "0.2.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "gmeow-affect"
 version = "0.2.0"
 dependencies = [
@@ -1548,6 +1558,19 @@ dependencies = [
  "purrdf",
  "rayon",
  "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "gmeow-bundle-import"
+version = "0.2.0"
+dependencies = [
+ "gmeow-errors",
+ "gmeow-gts-profile",
+ "purrdf",
+ "serde",
+ "serde_json",
+ "sha2",
  "tempfile",
 ]
 
@@ -1644,6 +1667,7 @@ dependencies = [
  "ciborium",
  "clap",
  "docs-print",
+ "gmeow-bundle-import",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-docs-model",
@@ -1676,6 +1700,7 @@ name = "gmeow-docs"
 version = "0.2.0"
 dependencies = [
  "blake3",
+ "gmeow-action-cache",
  "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
@@ -1710,6 +1735,7 @@ name = "gmeow-docs-model"
 version = "0.2.0"
 dependencies = [
  "blake3",
+ "gmeow-action-cache",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-logic-compile",
@@ -1820,6 +1846,7 @@ dependencies = [
  "csv",
  "flate2",
  "foldhash 0.1.5",
+ "gmeow-bundle-import",
  "gmeow-cost-measure",
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -1902,6 +1929,7 @@ name = "gmeow-mcp"
 version = "0.2.0"
 dependencies = [
  "ed25519-dalek",
+ "gmeow-bundle-import",
  "gmeow-bundle-view",
  "gmeow-docs-catalog",
  "gmeow-docs-model",
@@ -1968,6 +1996,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-perf-evidence"
+version = "0.2.0"
+dependencies = [
+ "libc",
+ "roxmltree",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "gmeow-pipeline"
 version = "0.2.0"
 dependencies = [
@@ -1978,7 +2017,9 @@ dependencies = [
  "docs-print",
  "ed25519-dalek",
  "fastrand",
+ "gmeow-action-cache",
  "gmeow-affect",
+ "gmeow-bundle-import",
  "gmeow-bundle-view",
  "gmeow-cli-core",
  "gmeow-conformance",

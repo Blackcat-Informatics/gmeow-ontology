@@ -127,7 +127,7 @@ fn shipped_dataset() -> std::sync::Arc<purrdf::RdfDataset> {
     let gts_path = root.join("generated/dist/gmeow.gts");
     let bytes = std::fs::read(&gts_path)
         .unwrap_or_else(|error| panic!("read committed bundle {}: {error}", gts_path.display()));
-    gmeow_logic::bundle_import::import_graph_preserving_cached(
+    gmeow_bundle_import::import_graph_preserving_cached(
         &root.join(".cache/gmeow-bundle-import"),
         &bytes,
     )

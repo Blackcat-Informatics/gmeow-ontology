@@ -559,6 +559,48 @@ fn stage_key_is_deterministic_and_structurally_sensitive() {
         }],
     ));
     assert_ne!(k1, k5, "source digest changes the key");
+
+    let mut changed = c1.clone();
+    changed.schema_version += 1;
+    assert_ne!(k1, stage_key(&changed), "receipt schema changes the key");
+
+    let mut changed = c1.clone();
+    changed.codec.push_str("-changed");
+    assert_ne!(k1, stage_key(&changed), "codec changes the key");
+
+    let mut changed = c1.clone();
+    changed.build.fingerprint.push_str("-changed");
+    assert_ne!(
+        k1,
+        stage_key(&changed),
+        "implementation fingerprint changes the key"
+    );
+
+    let mut changed = c1.clone();
+    changed.build.toolchain.push_str("-changed");
+    assert_ne!(k1, stage_key(&changed), "toolchain changes the key");
+
+    let mut changed = c1.clone();
+    changed.build.target.push_str("-changed");
+    assert_ne!(k1, stage_key(&changed), "target changes the key");
+
+    let mut changed = c1.clone();
+    changed.build.profile.push_str("-changed");
+    assert_ne!(k1, stage_key(&changed), "profile changes the key");
+
+    let mut changed = c1.clone();
+    changed.build.features.push("new-feature".to_string());
+    assert_ne!(k1, stage_key(&changed), "feature set changes the key");
+
+    let mut reordered_features = c1.clone();
+    reordered_features.build.features = vec!["z".to_string(), "a".to_string()];
+    let mut canonical_features = c1.clone();
+    canonical_features.build.features = vec!["a".to_string(), "z".to_string()];
+    assert_eq!(
+        stage_key(&reordered_features),
+        stage_key(&canonical_features),
+        "feature order is canonical"
+    );
 }
 
 // ── P2: content-addressed self-verifying cache ───────────────────────────────
@@ -612,9 +654,10 @@ fn cache_hard_fails_on_corruption() {
     .unwrap();
 
     // Corrupt the blob: append a byte so its re-hash no longer matches the index.
-    // The on-disk store lives under the version-segmented `v<CACHE_VERSION>` leaf.
+    // Every action domain shares the action-store layout version; the pipeline's
+    // product codec version is carried in its key and serialized manifest instead.
     let blobs = cdir
-        .join(format!("v{}", crate::cache::CACHE_VERSION))
+        .join(format!("v{}", gmeow_action_cache::STORE_FORMAT_VERSION))
         .join("blobs");
     for entry in std::fs::read_dir(&blobs).unwrap() {
         let path = entry.unwrap().path();
@@ -1212,6 +1255,138 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
 }
 
 // ── Attach-drift verification (gmeow:attachesGraph run-time contract) ─────────
+
+fn lane_test_stage(id: &str, consumes: &[&str]) -> FakeStage {
+    FakeStage {
+        id: id.to_string(),
+        capabilities: Vec::new(),
+        consumes: consumes.iter().map(|value| (*value).to_string()).collect(),
+        carrier_consumes: None,
+        resources: Vec::new(),
+    }
+}
+
+fn lane_product(
+    stage_id: &str,
+    nquads: &[u8],
+    with_provenance: bool,
+    with_content: bool,
+) -> StageProduct {
+    use purrdf::provenance::{DatasetProvenance, OriginKind};
+    use purrdf::{
+        ContentStore, PipelineBundle, QuadHandle, RdfLookaside, RdfLookasideKind,
+        RdfLookasideResource,
+    };
+
+    let dataset = purrdf::parse_dataset(nquads, "application/n-quads", None).unwrap();
+    let mut provenance = DatasetProvenance::new();
+    if with_provenance {
+        let unit = provenance.register_unit("lane-source", OriginKind::Source);
+        let artifact = provenance.register_artifact("lane-source.ttl");
+        provenance.record_occurrence(QuadHandle::from_index(0), unit, artifact, Some("1".into()));
+    }
+    let mut lookaside = RdfLookaside::default();
+    let mut store = ContentStore::new();
+    if with_content {
+        let digest = store.insert(b"lane-content".to_vec());
+        lookaside.resources.push(
+            RdfLookasideResource::new(RdfLookasideKind::Blob)
+                .with_name("generated/lane.bin")
+                .with_digest(digest.to_hex()),
+        );
+    }
+    StageProduct::from_bundle(
+        stage_id,
+        Arc::new(PipelineBundle::new(
+            dataset,
+            lookaside,
+            Arc::new(store),
+            provenance,
+        )),
+    )
+}
+
+#[test]
+fn persistent_source_root_may_own_every_bounded_lane() {
+    let source = lane_test_stage("source", &[]);
+    let product = lane_product(
+        "source",
+        b"<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
+        true,
+        true,
+    );
+    let selection = crate::scheduler::verify_attach_drift(
+        &source,
+        &std::collections::BTreeMap::new(),
+        &product,
+    )
+    .expect("an empty-upstream source owns its complete bounded contribution");
+    assert!(selection.default_graph.is_some());
+    assert!(selection.provenance.is_some());
+    assert!(selection.content_store.is_some());
+}
+
+#[test]
+fn persistent_stage_does_not_inspect_released_artifact_only_carriers() {
+    let stage = FakeStage {
+        id: "consumer".to_string(),
+        capabilities: Vec::new(),
+        consumes: vec!["source".to_string()],
+        carrier_consumes: Some(Vec::new()),
+        resources: Vec::new(),
+    };
+    let released = lane_product(
+        "source",
+        b"<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n",
+        true,
+        true,
+    )
+    .into_carrier_released()
+    .expect("release artifact-only upstream carrier");
+    assert!(released.carrier_released);
+
+    let upstream = std::collections::BTreeMap::from([("source".to_string(), released)]);
+    crate::scheduler::verify_attach_drift(
+        &stage,
+        &upstream,
+        &StageProduct::new("consumer", "empty"),
+    )
+    .expect("artifact-only inputs contribute no transport lane to bounded-unit verification");
+}
+
+#[test]
+fn persistent_stage_rejects_inherited_default_provenance_and_content_lanes() {
+    fn rejects_lane(lane: &str, source: StageProduct, product: StageProduct) {
+        let stage = lane_test_stage("consumer", &["source"]);
+        let upstream = std::collections::BTreeMap::from([("source".to_string(), source)]);
+        let error = crate::scheduler::verify_attach_drift(&stage, &upstream, &product)
+            .expect_err("a persistent non-root stage cannot retain an upstream carrier lane");
+        assert!(error.is::<crate::error::StageFailed>(), "{error}");
+        assert!(error.to_string().contains(lane), "{error}");
+    }
+
+    const DEFAULT: &[u8] =
+        b"<https://example.org/s> <https://example.org/p> <https://example.org/o> .\n";
+    rejects_lane(
+        "default graph",
+        lane_product("source", DEFAULT, false, false),
+        lane_product("consumer", DEFAULT, false, false),
+    );
+
+    const NAMED: &[u8] = b"<https://example.org/s> <https://example.org/p> \
+        <https://example.org/o> <https://example.org/g> .\n";
+    rejects_lane(
+        "provenance",
+        lane_product("source", NAMED, true, false),
+        lane_product("consumer", NAMED, true, false),
+    );
+
+    rejects_lane(
+        "content store",
+        lane_product("source", b"", false, true),
+        lane_product("consumer", b"", false, true),
+    );
+}
 
 /// A synthetic stage that ATTACHES `attach_graph` (a real named graph in its product)
 /// when `Some`, and DECLARES `declared` via `attaches_graphs()`. The scheduler compares
