@@ -496,14 +496,25 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # halved without weakening the assertion. Co-scheduled with the rest of the bundle-builders on the
 # 4-core hosted runner it starved past even the 600s backstop on all three retries (CI run
 # 32810868826, rust shard 2). Its sibling translation roll-up in the same class was the OTHER
-# overrun in that run; THAT one had a real redundancy and was cured structurally instead — its
-# cross-check discovered the whole slice tree twice, and now discovers it ONCE and shares it (see
-# `stages::lang_docs_rendering::build_corpus_from_catalog`), so it needs no reservation and stays
-# in the shared, unreserved override above. This proof has no equivalent redundancy to remove, so
-# per this file's doctrine it gets the same host reservation the whole-DAG lanes use: it runs
-# uncontended at full width, not on a raised ceiling. Same 600s backstop; only the reservation.
+# overrun in that run and is handled just below. Neither gets a raised ceiling; both get the same
+# host reservation the whole-DAG lanes use, so they run uncontended at full width. Same 600s
+# backstop; only the reservation.
 [[profile.default.overrides]]
 filter = 'package(gmeow-pipeline) & test(/stages::slice_brief::tests::run_is_deterministic/)'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+threads-required = "num-cpus"
+
+# The translation roll-up cross-check was the sibling overrun. Unlike the slice-brief proof it had
+# a REAL redundancy, which was cured structurally first: its cross-check built the docs-rendering
+# corpus and the translation corpus by re-discovering and re-parsing the WHOLE slice tree twice,
+# and now discovers it ONCE and shares the catalog between the two corpora (see
+# `stages::lang_docs_rendering::build_corpus_from_catalog`). That cure is the primary fix and does
+# not touch the assertion. It alone brought the lane from the 583s backstop to ~534s under a full
+# 32-core local gate, but ~66s of margin under contention is too thin to trust on the 4-core hosted
+# runner, so — exactly like its sibling — it additionally takes the whole-host reservation to run
+# uncontended. Structural reduction plus reservation, not a raised ceiling; same 600s backstop.
+[[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & test(/stages::lang_docs_rendering::tests::rollup_targets_are_real_translation_units/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 threads-required = "num-cpus"
 
