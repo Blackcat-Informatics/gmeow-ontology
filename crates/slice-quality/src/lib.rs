@@ -717,6 +717,7 @@ pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String
 /// exactly the argument that makes such a list wrong, which is why the test below is what
 /// owns this list's contents.
 const SCORER_CRATE_ROOTS: &[&str] = &[
+    "action-cache",
     "affect-ingest",
     "bundle-import",
     "cost-measure",
