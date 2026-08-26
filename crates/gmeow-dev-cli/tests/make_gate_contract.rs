@@ -1081,6 +1081,11 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         .and_then(|(_, tail)| tail.split_once("\n  producer:"))
         .map(|(job, _)| job)
         .expect("generation job is bounded by the producer job");
+    let producer = source
+        .split_once("\n  producer:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  lint:\n"))
+        .map(|(job, _)| job)
+        .expect("producer job is bounded by the lint job");
 
     assert!(
         source.contains("generation: [a, b]"),
@@ -1103,8 +1108,28 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         "CI must never invoke the poisoned regen lane"
     );
     assert!(
-        source.contains("diff --recursive --brief --no-dereference generated-a generated-b"),
+        producer.contains("diff --recursive --brief --no-dereference")
+            && producer.contains("\"${RUNNER_TEMP}/generated-a\" \"${RUNNER_TEMP}/generated-b\""),
         "the authority job must compare the complete independent trees byte-for-byte"
+    );
+    for staging_dir in ["generated-a", "generated-b", "evidence-a", "evidence-b"] {
+        let temp_path = format!("path: ${{{{ runner.temp }}}}/{staging_dir}");
+        let checkout_path = format!("\n          path: {staging_dir}\n");
+        assert!(
+            producer.contains(&temp_path),
+            "producer download {staging_dir} must be staged outside the checkout"
+        );
+        assert!(
+            !producer.contains(&checkout_path),
+            "producer download {staging_dir} must not enter the authenticated source census"
+        );
+    }
+    assert!(
+        producer.contains("\"${RUNNER_TEMP}/generated-a/dist/gmeow.gts\"")
+            && producer.contains("\"${RUNNER_TEMP}/evidence-a/manifest.json\"")
+            && producer.contains("\"${RUNNER_TEMP}/evidence-b/manifest.json\"")
+            && producer.contains("path: ${{ runner.temp }}/generated-a"),
+        "the producer must compare, receipt, digest, and republish only the isolated authority tree"
     );
     assert!(
         source.contains("SYNC_TIMINGS_JSON=dist/sync/update-timings.json")
