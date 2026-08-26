@@ -18,18 +18,21 @@
 //!
 //! [`DocsModel::discover`] is a ~12 s repo-wide sweep, so it is built ONCE per repo
 //! root and memoized: every slice the quality sweep scores reads the same in-memory
-//! documentation model. The disk-sourced arm goes further and reads the
-//! bounded content-addressed `.cache/gmeow-sync/actions/` store
+//! documentation model. On native targets, the disk-sourced arm goes further and
+//! reads the bounded content-addressed `.cache/gmeow-sync/actions/` store
 //! ([`gmeow_docs_model::fixture::try_load`]), so the sweep shares ONE build with the
 //! docs pipeline and `gmeow-dev doc-lint` instead of paying a third. `try_load` is
 //! byte-identical to `discover()`, and a cache miss runs the real sweep — the score is
-//! the same either way. The live-catalog arm cannot use it (this run's freshly-rendered
-//! constraint catalog is not part of the on-disk key) and builds directly.
+//! the same either way. Wasm has no native disk-cache authority and runs that same full
+//! `discover()` operation directly. The live-catalog arm cannot use the disk cache on
+//! any target (this run's freshly-rendered constraint catalog is not part of the
+//! on-disk key) and builds directly.
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, LazyLock, Mutex};
 
+#[cfg(not(target_arch = "wasm32"))]
 use gmeow_docs_model::fixture;
 use gmeow_docs_model::maturity::{Dimension, MaturityAnchor};
 use gmeow_docs_model::model::DocsModel;
@@ -405,7 +408,19 @@ fn build_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) -> RepoFacts {
         // unmoved. What this saves is the repeated ~12 s repo-wide sweep: `make check`
         // builds the same model for the docs pipeline, `gmeow-dev doc-lint`, and this
         // axis, and they now all read one cached build.
-        None => fixture::try_load(root),
+        None => {
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                fixture::try_load(root)
+            }
+            #[cfg(target_arch = "wasm32")]
+            {
+                // The browser has no native disk-cache authority. Preserve the full
+                // model contract by running the same discovery operation directly;
+                // this is an explicit target selection, not a weaker fallback.
+                DocsModel::discover(root)
+            }
+        }
     };
     match built {
         Ok(model) => {

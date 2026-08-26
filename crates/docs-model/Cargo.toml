@@ -20,7 +20,6 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-gmeow-action-cache = { path = "../action-cache" }
 purrdf.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 # `describe`, `i18n_compile` and `model` bind the slice vocabulary through it.
@@ -42,6 +41,12 @@ regex.workspace = true
 sha1.workspace = true
 blake3.workspace = true
 pulldown-cmark.workspace = true
+
+# The fixture is a native on-disk action cache. Browser/Wasm consumers use the
+# complete in-memory documentation model and must not inherit filesystem cache
+# machinery (or its native-only atomic-publication dependencies).
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+gmeow-action-cache = { path = "../action-cache" }
 
 [dev-dependencies]
 # RAII temp directories/files for tests. Every scratch path a test creates is

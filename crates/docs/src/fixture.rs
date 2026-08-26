@@ -14,8 +14,9 @@
 //! [`render_book`]. Model, site, book, and pipeline stages all use the same bounded
 //! immutable receipt/blob store and per-action process election.
 //!
-//! A [`DocsModel`] build is a ~12 s repo-wide walk, and rendering the site on top of it
-//! is more; the gmeow-docs integration suite has ~40 tests that each need one or both,
+//! A [`gmeow_docs_model::model::DocsModel`] build is a ~12 s repo-wide walk, and
+//! rendering the site on top of it is more; the gmeow-docs integration suite has
+//! ~40 tests that each need one or both,
 //! and the test runner executes every test in its own process — so a fresh build and
 //! render per test is paid dozens of times, and when many start at once the concurrent
 //! builds contend and each takes far longer than a single build would.

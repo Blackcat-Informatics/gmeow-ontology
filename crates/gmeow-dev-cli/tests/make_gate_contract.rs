@@ -455,16 +455,17 @@ fn fixture_priming_runs_prebuilt_test_profile_binaries() {
     let independent = target_recipe(&makefile, "prime-producer-independent-test-fixtures");
     let producer_bound = target_recipe(&makefile, "prime-producer-bound-test-fixtures");
     assert!(
-        independent.contains("$(DOCS_FIXTURE_PRIMER)")
-            && independent.contains("$(PIPELINE_FIXTURE_PRIMER) --scope producer-independent")
+        independent.contains("$(PIPELINE_FIXTURE_PRIMER) --scope producer-independent")
+            && !independent.contains("$(DOCS_FIXTURE_PRIMER)")
             && !independent.contains("BUNDLE_IMPORT_CACHE_ENV"),
-        "the parallel fixture profile must be complete without consuming generated/"
+        "the parallel fixture profile must contain only actions whose complete inputs are producer-independent"
     );
     assert!(
-        producer_bound.contains(
-            "$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope producer-bound"
-        ) && !producer_bound.contains("$(DOCS_FIXTURE_PRIMER)"),
-        "the joined fixture profile must consume only the producer bundle"
+        producer_bound.contains("$(DOCS_FIXTURE_PRIMER)")
+            && producer_bound.contains(
+                "$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope producer-bound"
+            ),
+        "the joined fixture profile must consume both generated-dependent docs and bundle actions"
     );
     assert!(
         target_recipe(&makefile, "nextest-archive")
@@ -539,6 +540,11 @@ fn the_heavy_lane_still_runs_on_every_pr() {
     assert!(
         ci.contains("run: make ${{ matrix.task }}"),
         "each heavy matrix branch must invoke its selected task"
+    );
+    assert!(
+        ci.contains("if: ${{ matrix.task == 'example-sweep-parity' }}")
+            && ci.contains("tool: cargo-nextest@0.9.137"),
+        "the example-sweep heavy branch must install the pinned nextest runner its Make target invokes"
     );
     assert!(
         !ci_make_targets(&ci).contains("heavy"),

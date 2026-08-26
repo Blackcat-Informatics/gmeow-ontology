@@ -595,11 +595,11 @@ prime-test-fixtures: rust-build ## Prime exact content-addressed fixtures shared
 	$(DOCS_FIXTURE_PRIMER)
 	$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope all $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
-prime-producer-independent-test-fixtures: ## Prime/verify docs plus DAG-stage fixtures that do not consume generated/ (prebuilt primer binaries required).
-	$(DOCS_FIXTURE_PRIMER)
+prime-producer-independent-test-fixtures: ## Prime/verify DAG-stage fixtures that do not consume generated/ (prebuilt primer binaries required).
 	$(PIPELINE_FIXTURE_PRIMER) --scope producer-independent $(FIXTURE_TIMINGS_ARG)
 
-prime-producer-bound-test-fixtures: ## Prime/verify only the exact generated-bundle import (prebuilt primer binary and generated/ required).
+prime-producer-bound-test-fixtures: ## Prime/verify docs plus the exact generated-bundle import (prebuilt primer binaries and generated/ required).
+	$(DOCS_FIXTURE_PRIMER)
 	$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
 nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
