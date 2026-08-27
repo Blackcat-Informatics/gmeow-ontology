@@ -17,18 +17,13 @@
 //!   clash is forced SOLELY by the foundational-partition disjointness the bundle itself
 //!   ships — binding the PRODUCTION edge to the gate's teeth (drop the kernel assertion
 //!   and this test goes green→red). The clean-bundle regression guard is the explicit
-//!   `reason-verify` prerequisite of the dedicated `make coherence-gate-teeth` target, so
-//!   the poisoned test does not repeat that clean chase. This is the literal
+//!   production reason gate, so the poisoned test does not repeat that clean chase. This is the literal
 //!   whole-ontology teeth proof and it RUNS ON-GATE. It recovers the SAME object-level
 //!   reasoning EDB as production before injecting the clash: documentation, mappings,
 //!   correspondence, reports, and SHACL/ShEx validation-shape sidecars remain shipped
 //!   but reasoner-invisible. The poisoned chase is still a whole-ontology operation, so
-//!   it stays in the exhaustive architectural lane
-//!   selected outside the default nextest profile. That separation is not gate exemption:
-//!   `coherence-gate-teeth` invokes it explicitly with `--ignore-default-filter` and an
-//!   `-E` selector and is wired into `make check` via `CHECK_TARGETS`. The minimal
-//!   test above remains a fast,
-//!   deterministic companion.
+//!   it now remains in the single default nextest inventory, avoiding a separately compiled
+//!   selector invocation. The minimal test above remains a fast, deterministic companion.
 
 use gmeow_logic::foundation::{
     AntiRigidityPolicy, FoundationQuad, evaluate as foundation_evaluate,
@@ -123,16 +118,9 @@ fn repo_root() -> PathBuf {
 /// nextest processes that execute the whole-bundle coherence teeth. The cache key binds
 /// the exact GTS bytes and importer/dependency/toolchain unit; corruption hard-fails.
 fn shipped_dataset() -> std::sync::Arc<purrdf::RdfDataset> {
-    let root = repo_root();
-    let gts_path = root.join("generated/dist/gmeow.gts");
-    let bytes = std::fs::read(&gts_path)
-        .unwrap_or_else(|error| panic!("read committed bundle {}: {error}", gts_path.display()));
-    gmeow_bundle_import::import_graph_preserving_cached(
-        &root.join(".cache/gmeow-bundle-import"),
-        &bytes,
-    )
-    .expect("import the committed gmeow.gts bundle")
-    .dataset
+    gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
+        .expect("load the selected authenticated gmeow.gts product without rebuilding it")
+        .dataset
 }
 
 fn admitted_reasoning_graph(graph: &Option<RdfTerm>) -> bool {
@@ -303,9 +291,8 @@ fn relcomp_offenders(nquads: &str) -> Vec<String> {
 /// violations. A degenerate relator injected on top (a single functional role) must fire,
 /// proving the gate has teeth.
 ///
-/// Named `whole_bundle_..._gate` and matched by the `coherence-gate-teeth` selector;
-/// the whole-bundle chase is an exhaustive architectural proof selected explicitly
-/// outside the default nextest profile.
+/// The whole-bundle chase is an exhaustive architectural proof in the single default
+/// nextest inventory.
 #[test]
 fn whole_bundle_relcomp_gate_holds_and_has_teeth() {
     let dataset = shipped_dataset();
@@ -433,9 +420,7 @@ fn characteristic_violations(quads: &[FoundationQuad]) -> Vec<(String, String)> 
 /// injected on top must each fire; and gmeow:counterpartOf — symmetric but deliberately not
 /// transitive — is mirrored but never closed.
 ///
-/// Named `whole_bundle_..._gate` and matched by the `coherence-gate-teeth` selector; the
-/// whole-bundle chase is carved out of the budget-gated nextest profile by `default-filter`
-/// (budget-exempt, not gate-exempt).
+/// The whole-bundle chase remains part of the single default nextest inventory.
 #[test]
 fn whole_bundle_characteristic_gate_holds_and_has_teeth() {
     let dataset = shipped_dataset();

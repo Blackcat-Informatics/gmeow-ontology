@@ -28,8 +28,8 @@ unicode-normalization = "0.1"
 
 [dev-dependencies]
 tempfile.workspace = true
-# Acceptance-spine parity test: whole-ontology native SHACL + native SPARQL
-# over the imported foundation.ttl — OXIGRAPH-FREE. The fixture parses
+sha2.workspace = true
+# Acceptance-spine parity tests use native SPARQL over the authenticated,
+# already-produced foundation.ttl. The fixture parses
 # through the canonical native codec (`purrdf::parse_dataset`) into a frozen
-# `RdfDataset` (`purrdf`), validated IR-natively via `validate_dataset_graphs`
-# and queried through the native `NativeSparqlEngine` (`purrdf::sparql`).
+# `RdfDataset` and is queried through the native `NativeSparqlEngine`.

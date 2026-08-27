@@ -4371,6 +4371,7 @@ mod tests {
     #[test]
     fn gts_chokepoint_rejects_a_direct_production_emit_gts_call() {
         let tmp = tempfile::tempdir().unwrap();
+        // gmeow-test-input: synthetic-only
         write(
             &tmp.path().join("crates/rogue/src/lib.rs"),
             "pub fn ship(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
@@ -4391,11 +4392,13 @@ mod tests {
     fn gts_chokepoint_permits_the_profile_crate_and_test_code() {
         let tmp = tempfile::tempdir().unwrap();
         // The permitted entry itself.
+        // gmeow-test-input: synthetic-only
         write(
             &tmp.path().join("crates/gts-profile/src/lib.rs"),
             "pub fn emit(x: &purrdf::gts_compose::Snapshot) -> Vec<u8> {\n    purrdf::gts_compose::emit_gts(x)\n}\n",
         );
         // An integration-test crate driving the writer deliberately.
+        // gmeow-test-input: synthetic-only
         write(
             &tmp.path().join("crates/consumer/tests/audit.rs"),
             "fn nonconforming() { let _ = purrdf::gts_compose::emit_gts(&x); }\n",
@@ -5951,6 +5954,7 @@ mod tests {
             root,
             "gts-profile",
             "lib.rs",
+            // gmeow-test-input: synthetic-only
             "pub fn emit_gmeow_gts(b: &SnapshotBuilder) -> Result<Vec<u8>, Diag> {\n\
              \x20   purrdf::gts_compose::emit_gts(b, \"dist\", Some(chain()))\n}\n",
         );
@@ -5984,6 +5988,7 @@ mod tests {
                 root,
                 &format!("gmeow-p{i}"),
                 file,
+                // gmeow-test-input: synthetic-only
                 "fn go() { let _ = emit_gmeow_gts(&b, v, v, None, None, None); }\n",
             );
         }
@@ -6314,6 +6319,7 @@ mod tests {
             root,
             "gmeow-music",
             "lib.rs",
+            // gmeow-test-input: synthetic-only
             "pub fn piece_to_gts_bytes() -> Vec<u8> {\n\
              \x20   purrdf::gts_compose::emit_gts(&b, \"dist\", None).unwrap()\n}\n",
         );
@@ -6371,6 +6377,7 @@ mod tests {
             root,
             "gmeow-pipeline",
             "exit.rs",
+            // gmeow-test-input: synthetic-only
             "pub fn a(ds: &RdfDataset) -> Vec<u8> {\n\
              \x20   purrdf::gts_write::to_gts(ds, &look, \"p\").unwrap()\n}\n\
              pub fn b(e: &[FileEntry]) -> Vec<u8> {\n\
@@ -6381,6 +6388,7 @@ mod tests {
         let errs = gts_seal_errors(root);
         assert_eq!(errs.len(), 1, "{errs:?}");
         assert!(errs[0].contains("3 production call(s)"), "{errs:?}");
+        // gmeow-test-input: synthetic-only
         assert!(errs[0].contains("gts_write::to_gts("), "{errs:?}");
         assert!(errs[0].contains("files::pack_entries_v2("), "{errs:?}");
         assert!(errs[0].contains("from_tar::from_tar_bytes("), "{errs:?}");
@@ -6439,12 +6447,14 @@ mod tests {
             root,
             "gmeow-pipeline",
             "clean.rs",
+            // gmeow-test-input: synthetic-only
             "//! This used to call purrdf::gts_compose::emit_gts(&b) directly.\n\
              // let _ = purrdf::gts_write::to_gts(ds, &look, \"p\");\n\
              pub const HINT: &str = \"route through emit_gts( instead of Writer::new(\";\n\
              pub fn ok() {}\n\
              #[cfg(test)]\n\
              mod tests {\n\
+             // gmeow-test-input: synthetic-only
              \x20   fn t() {\n\
              \x20       let _ = purrdf::gts_compose::emit_gts(&b, \"dist\", None);\n\
              \x20       let mut w = purrdf::gts::writer::Writer::new(\"generic\");\n\
@@ -6539,6 +6549,7 @@ mod tests {
     /// production code to every gate built on this view.
     #[test]
     fn blank_pass_blanks_a_composed_cfg_test_module_body() {
+        // gmeow-test-input: synthetic-only
         let text = "fn prod() {}\n\
                     #[cfg(all(test, not(target_arch = \"wasm32\")))]\n\
                     mod tests {\n    fn t() { purrdf::gts_write::to_gts(x); }\n}\n";

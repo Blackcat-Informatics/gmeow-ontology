@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The whole-bundle MEDIUM gate: the real DAG runs once, in memory, and the bundle
-//! it emits is audited against the medium axis `slices/core/gts/module.ttl` declares.
+//! The whole-bundle MEDIUM gate over the producer-materialized, authenticated bundle.
+//! Tests inspect the artifact and never execute the corpus producer.
 //!
 //! Every assertion here is about the SHIPPED artifact rather than about a component:
 //! the declared dictionaries are pinned in the segment header a consumer
@@ -12,21 +12,19 @@
 //! FROM the emitted bytes rather than trusted. A unit test over the sealing code could
 //! pass with none of that true.
 //!
-//! The DAG is run ONCE, so every clause lives in one test function. Splitting them
-//! would multiply a whole-pipeline execution by the number of clauses.
+//! Every clause lives in one test function so the shipped bundle is decoded once.
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use std::path::{Path, PathBuf};
 
 use ciborium::value::Value;
 use gmeow_pipeline::medium::MEDIUM_REGISTRY_GRAPH;
 use gmeow_pipeline::medium::registry::MediumRegistry;
-use gmeow_pipeline::node::{Stage, StageInput, StageProduct};
 use gmeow_pipeline::stages::medium_dictionaries::frame_iri;
-use gmeow_pipeline::stages::superset::BundleProjection;
-use gmeow_pipeline::{CarrierRetention, RunContext, bind, default_registry, full_spec, run};
 use purrdf::gts::wire::{iter_items, map_get, unwrap_header};
 use purrdf::{RdfLookaside, RdfQuad, RdfTerm};
+
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -130,50 +128,6 @@ const LANG_GLOSSARY_MEMBERS: [&str; 2] = [
 /// bound by a `gmeow:mediumSourceHeaderDict` medium and named by no bundle rep, which is
 /// the legitimate second home the registry-level totality check recognizes.
 const RUNTIME_STORE_DICTIONARIES: [&str; 2] = ["gmeow-memory-compact-v1", "gmeow-memory-hot-v1"];
-
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .expect("workspace root")
-}
-
-/// Run the REAL production DAG (`full_spec`, the same spec `make regen` executes)
-/// once, in memory, reusing only receipt-verified bounded contributions, and return
-/// every stage product. Aggregate stages still execute and remain the subject of this gate.
-fn run_the_dag(root: &Path) -> BTreeMap<String, StageProduct> {
-    let spec = full_spec();
-    let graph = spec.validate().expect("the production DAG validates");
-    let bound = bind(&spec, &graph, &default_registry()).expect("every production stage binds");
-    let jobs = std::thread::available_parallelism()
-        .map(std::num::NonZeroUsize::get)
-        .unwrap_or(4);
-    let mut ctx = RunContext::open(root, jobs).expect("run context");
-    ctx.carrier_retention = CarrierRetention::DropAfterLastConsumer;
-    let sink = gmeow_pipeline::stages::gts_sink::GtsSinkStage::new();
-    ctx.retain_carriers(sink.carrier_consumes().iter().cloned());
-    run(&graph, &bound, &mut ctx)
-        .expect("the production DAG runs end to end")
-        .products
-}
-
-/// Whether `item` is a segment header rather than a frame.
-///
-/// `unwrap_header` unwraps ANY map, so it cannot be used as the discriminator: a
-/// payload frame is a map too, and treating one as a header would read a catalog
-/// that is not there. A header is either the self-describe-tagged map the writer
-/// mints by default or a bare map carrying the `"gts": "GTS1"` magic; a frame never
-/// carries `"gts"`.
-fn is_segment_header(item: &Value) -> bool {
-    match item {
-        Value::Tag(tag, _) => *tag == 55799,
-        Value::Map(entries) => {
-            matches!(map_get(entries, "gts"), Some(Value::Text(magic)) if magic == "GTS1")
-        }
-        _ => false,
-    }
-}
 
 /// The segment header of `bundle` — the map a consumer reads the codec catalog and
 /// the in-band `"dct"` dictionary table out of.
@@ -355,15 +309,7 @@ fn blake3(bytes: &[u8]) -> String {
 
 #[test]
 fn the_emitted_bundle_ships_its_declared_medium() {
-    let root = repo_root();
-    let products = run_the_dag(&root);
-
-    let bundle = products
-        .get("stage-gts-sink")
-        .expect("the terminal sink produced a product")
-        .artifact(gmeow_pipeline::stages::gts_sink::GTS_PATH)
-        .expect("the sink product carries the gmeow.gts artifact")
-        .to_vec();
+    let bundle = authenticated_bundle::source_bytes().to_vec();
     assert!(
         bundle.len() > 1024,
         "the emitted bundle is implausibly small: {} bytes",
@@ -373,34 +319,6 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     // every frame: one zstd-rsyncable transform, at the declared level.
     gmeow_pipeline::validate_mandated_frames(&bundle)
         .expect("the dictionary-primed bundle still uses the mandated frame profile");
-
-    // ── (d) convergence: re-emit while the upstream products are still required,
-    // then release the whole DAG before decoding/indexing the emitted artifact. Keeping
-    // both carrier generations plus the independent read-side folds resident together
-    // added no proof and could exceed the required 16-GiB runner contract.
-    let again = gmeow_pipeline::stages::gts_sink::GtsSinkStage::new()
-        .run(StageInput {
-            root: &root,
-            upstream: &products,
-        })
-        .expect("the terminal re-emits")
-        .product
-        .artifact(gmeow_pipeline::stages::gts_sink::GTS_PATH)
-        .expect("the re-emission carries the bundle")
-        .to_vec();
-    drop(products);
-    assert_eq!(
-        blake3(&again),
-        blake3(&bundle),
-        "a further pass over the same carrier must reproduce the bundle byte for byte — the \
-         envelopes are derived from a stratum that excludes them, so adding them cannot move it"
-    );
-    assert!(
-        again == bundle,
-        "a further pass over the same carrier must reproduce every bundle byte, not merely its \
-         logical payload"
-    );
-    drop(again);
 
     let head = header(&bundle);
 
@@ -660,48 +578,24 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     // ── the dictionary-EFFECT measurement, on the shipped artifact ──
     the_shipped_bundle_proves_every_dictionary_pays_for_itself(&payload, &module);
     drop(payload);
-    the_runtime_store_dictionary_pays_for_itself(dataset, &pinned);
 
-    // …and specifically the MEASUREMENT artifact, named rather than left implied by the
-    // whole-bundle digest above: a measurement whose numbers moved between two passes
-    // over one carrier would drift the committed generated/ tree on every build.
-    let projection = gmeow_pipeline::stages::superset::project_decoded_bundle(&decoded)
-        .expect("the already-decoded bundle projects");
-    let first_effect = projection
-        .files
-        .get(gmeow_pipeline::medium::measure::MEDIUM_EFFECT_PATH)
-        .unwrap_or_else(|| {
-            panic!(
-                "the bundle projects no {}",
-                gmeow_pipeline::medium::measure::MEDIUM_EFFECT_PATH
-            )
-        });
-    assert!(
-        !first_effect.is_empty(),
-        "the dictionary-effect projection is empty"
-    );
-    // `again == bundle` above is the stronger byte-level statement: because the
-    // measurement is present in this independently reconstructed projection, those
-    // identical emitted byte streams necessarily carry its identical bytes too. A
-    // second parse/projection of the same bytes would add work, not evidence.
-
-    // ── (g) the dictionaries project onto generated/medium/*.zdict, EXACTLY ONCE ──
-    the_dictionaries_project_exactly_once(
-        &projection,
+    // ── (g) every dictionary is carried in-band EXACTLY ONCE ──
+    // Inspect the authenticated carrier directly. Reconstructing the repository fanout
+    // here would turn a test into a corpus producer, which is forbidden.
+    the_dictionaries_are_carried_exactly_once(
         decoded.graph(),
         decoded.lookaside(),
         &pinned,
         &registry_quads,
         &module,
     );
-    no_rep_is_primed_by_a_retired_dictionary(&projection, &module, &pinned);
-    drop(projection);
+    no_rep_is_primed_by_a_retired_dictionary(&module, &pinned);
 
     let emitted = emitted_reps(decoded.lookaside());
 
     // ── (h) the lang: and claim: reps are real, emitted frames primed by the
     //        dictionaries named for them, each member is carried by exactly one rep,
-    //        and NO rep, header entry or projected file is primed by a retired
+    //        and NO rep or header entry is primed by a retired
     //        dictionary id ──
     the_lang_reps_are_real_frames_primed_by_lang_ast(
         decoded.graph(),
@@ -721,11 +615,8 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     );
     drop(decoded);
 
-    // ── (e)/(f) the runtime stores, primed from THIS bundle ──
-    let runtime = runtime_stores_are_primed_from(&bundle);
-
     // ── (i) the generalization both (h) clauses are instances of ──
-    every_declared_dictionary_primes_an_emitted_frame(&emitted, &module, &pinned, &runtime);
+    every_declared_dictionary_primes_an_emitted_frame(&emitted, &module, &pinned);
 }
 
 /// The generated-opaque archive representation label. Spelled out because it is a WIRE
@@ -734,18 +625,15 @@ fn the_emitted_bundle_ships_its_declared_medium() {
 /// and the shipped bytes agree.
 const REP_GENERATED: &str = "generated-opaque-archive";
 
-/// The fourth fanout family, proved on the SHIPPED artifact: each declared
-/// dictionary reconstructs from the segment header's in-band `"dct"` map onto
-/// `generated/medium/<dict-id>.zdict`, its bytes are byte-equal to both the header entry
-/// and the recorded `gmeow:dictionaryContentDigest`, and NO generated-opaque archive
-/// member carries the same bytes a second time.
+/// Each declared dictionary is present in the segment header's in-band `"dct"` map,
+/// its bytes match the recorded `gmeow:dictionaryContentDigest`, and NO
+/// generated-opaque archive member carries the same bytes a second time.
 ///
 /// The last clause is the load-bearing one. Routing a `.zdict` through the archive as
 /// well would satisfy every other assertion here while shipping the same high-entropy
 /// bytes twice — re-folding a blob the snapshot already carries (Constitution §18) and
 /// inflating the archive it rode in.
-fn the_dictionaries_project_exactly_once(
-    projection: &BundleProjection,
+fn the_dictionaries_are_carried_exactly_once(
     graph: &purrdf::gts::model::Graph,
     lookaside: &RdfLookaside,
     pinned: &BTreeMap<String, Vec<u8>>,
@@ -773,55 +661,23 @@ fn the_dictionaries_project_exactly_once(
     })
     .collect();
 
+    let pinned_ids = pinned.keys().map(String::as_str).collect::<BTreeSet<_>>();
+    let expected_ids = SHIPPED_DICTIONARIES.into_iter().collect::<BTreeSet<_>>();
+    assert_eq!(
+        pinned_ids, expected_ids,
+        "the in-band dictionary table must carry exactly the declared shipped dictionaries"
+    );
+
     for id in SHIPPED_DICTIONARIES {
-        let path = format!("generated/medium/{id}.zdict");
-        let projected = projection
-            .files
-            .get(&path)
-            .unwrap_or_else(|| panic!("the bundle projects no {path}"));
         let in_band = pinned
             .get(id)
             .unwrap_or_else(|| panic!("the header pins no {id:?} dictionary"));
         assert_eq!(
-            projected, in_band,
-            "{path} must be the header \"dct\" entry byte for byte"
-        );
-        assert_eq!(
             digest_by_id.get(id).map(String::as_str),
-            Some(blake3(projected).as_str()),
-            "{path} must match the gmeow:dictionaryContentDigest its realization records"
+            Some(blake3(in_band).as_str()),
+            "the in-band {id} dictionary must match its recorded content digest"
         );
     }
-    // EXACTLY ONE `.zdict` per declared dictionary — no more (a stale projection for a
-    // RETIRED dictionary would land here) and no fewer.
-    let projected_dicts: BTreeSet<&String> = projection
-        .files
-        .keys()
-        .filter(|p| p.starts_with("generated/medium/") && p.ends_with(".zdict"))
-        .collect();
-    assert_eq!(
-        projected_dicts.len(),
-        SHIPPED_DICTIONARIES.len(),
-        "the projection carries exactly one generated/medium/*.zdict per declared dictionary; \
-         got {projected_dicts:?}"
-    );
-    // …and the rest of the `generated/medium/` family is exactly the ONE measurement
-    // projection, named rather than tolerated: it is RDF and travels as RDF (the
-    // `rdf-fanout` family), which is why the header-dict family keys on the `.zdict`
-    // suffix. An unnamed extra member here would be an unaccounted-for reconstruction.
-    let non_dicts: BTreeSet<&String> = projection
-        .files
-        .keys()
-        .filter(|p| p.starts_with("generated/medium/") && !p.ends_with(".zdict"))
-        .collect();
-    assert_eq!(
-        non_dicts,
-        [&gmeow_pipeline::medium::measure::MEDIUM_EFFECT_PATH.to_string()]
-            .into_iter()
-            .collect::<BTreeSet<&String>>(),
-        "the only non-dictionary member of the generated/medium/ family is the measurement \
-         projection"
-    );
 
     // EXACTLY ONCE: no generated-opaque archive member is a dictionary.
     let mut archives_seen = 0usize;
@@ -1128,11 +984,11 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(
 }
 
 /// NO artifact of the shipped bundle is primed by a RETIRED dictionary id, in any of the
-/// four directions a retired id could survive in.
+/// three carrier directions a retired id could survive in.
 ///
 /// Retiring a dictionary is the one operation in this axis that can leave something
 /// ORPHANED — an artifact primed with bytes the bundle no longer trains, ships or
-/// projects. The declaration, the header, the projection and the envelope stratum each
+/// projects. The declaration, the header and the envelope stratum each
 /// carry the id independently, so each is checked independently rather than inferred from
 /// the registry alone:
 ///
@@ -1141,9 +997,7 @@ fn the_claim_reps_are_real_frames_and_ride_unprimed(
 ///   retired id" means at the declaration);
 /// * the segment header's in-band `"dct"` map PINS none, so a consumer cannot even obtain
 ///   one;
-/// * the header-dict fanout projects no `generated/medium/<retired-id>.zdict`.
 fn no_rep_is_primed_by_a_retired_dictionary(
-    projection: &BundleProjection,
     module: &MediumRegistry,
     pinned: &BTreeMap<String, Vec<u8>>,
 ) {
@@ -1168,13 +1022,6 @@ fn no_rep_is_primed_by_a_retired_dictionary(
             !pinned.contains_key(id),
             "the segment header still pins the RETIRED dictionary {id} in its in-band \"dct\" \
              map — dead high-entropy bytes every consumer downloads"
-        );
-        assert!(
-            !projection
-                .files
-                .contains_key(&format!("generated/medium/{id}.zdict")),
-            "the header-dict fanout still projects generated/medium/{id}.zdict for a retired \
-             dictionary"
         );
     }
 
@@ -1233,42 +1080,23 @@ fn no_rep_is_primed_by_a_retired_dictionary(
     }
 }
 
-/// EVERY declared dictionary primes at least one EMITTED frame — the invariant
-/// [`RETIRED_DICTIONARIES`] is the standing counterexample to, stated once so the next
-/// unprimed draft is caught by the gate instead of by a person measuring.
-///
-/// A dictionary has exactly two ways to satisfy it, matching the two legitimate homes the
-/// registry-level check recognizes:
-///
-/// * a registered `gmeow:PayloadSchema` selects it AND the bundle emits that rep, so a
-///   frame of THIS emission is primed with it; or
-/// * it is a runtime-store dictionary ([`RUNTIME_STORE_DICTIONARIES`]) whose frames a
-///   CONSUMER writes, in which case the frames it primes are in the runtime artifact —
-///   and the bytes doing the priming must be the ones the bundle SHIPPED, or the shipped
-///   copy is still dead weight and the runtime merely happens to use the same id.
-///
-/// # No exceptions: both runtime dictionaries prime with the SHIPPED bytes
-///
-/// The hot lane always did — [`gmeow_mcp::store_medium`] reads the bundle's
-/// in-band `"dct"` entry and hands it to the writer. The compaction lane now does too:
-/// [`gmeow_mcp::compact_store`] takes the resolved
-/// [`gmeow_mcp::StoreMedium`] and passes
-/// `purrdf::gts::compact::DictStrategy::Pinned`, which uses those bytes verbatim — no
-/// training, no corpus derivation, no truncation. So `gmeow-memory-compact-v1` names
-/// exactly ONE byte sequence everywhere it appears: the bundle header, the projected
-/// `generated/medium/gmeow-memory-compact-v1.zdict`, and the header of every compacted
-/// store. Both are asserted below as byte equalities, because "pinned something under
-/// that id" is satisfied by a re-derivation and is therefore not the claim.
+/// Every bundle-owned dictionary primes at least one emitted frame. Runtime-store
+/// dictionaries are distribution inputs: this consumer test proves only that the
+/// authenticated bundle carries them and that no bundle rep selects them. Exercising
+/// their store writers here would produce a derived corpus from inside nextest.
 fn every_declared_dictionary_primes_an_emitted_frame(
     emitted: &BTreeSet<String>,
     module: &MediumRegistry,
     pinned: &BTreeMap<String, Vec<u8>>,
-    runtime: &RuntimePriming,
 ) {
     let primed = primed_reps_by_dictionary(module);
 
     for id in SHIPPED_DICTIONARIES {
         if RUNTIME_STORE_DICTIONARIES.contains(&id) {
+            assert!(
+                pinned.contains_key(id),
+                "runtime-store dictionary {id} must be distributed in the authenticated header"
+            );
             assert!(
                 !primed.contains_key(id),
                 "{id} is a runtime-store dictionary, so no BUNDLE rep may select it — if one \
@@ -1291,33 +1119,6 @@ fn every_declared_dictionary_primes_an_emitted_frame(
              tightened to catch. Emitted: {emitted:?}"
         );
     }
-
-    // The runtime half: `gmeow-memory-hot-v1` primes a consumer's store with the bundle's
-    // OWN header entry, which is the whole reason the bundle is that dictionary's
-    // distribution channel.
-    let shipped_hot = pinned
-        .get("gmeow-memory-hot-v1")
-        .expect("the header pins gmeow-memory-hot-v1");
-    assert_eq!(
-        &runtime.hot, shipped_hot,
-        "the runtime store must be primed with the SHIPPED gmeow-memory-hot-v1 bytes, not \
-         with a re-derivation that merely reuses the id"
-    );
-
-    // The compaction half: `gmeow-memory-compact-v1` repacks a store with the bundle's
-    // OWN header entry too, so one gmeow:dictionaryId resolves to exactly one byte
-    // sequence — the property a derived dictionary cannot have, because it would label
-    // pack-local bytes with the shipped id.
-    let shipped_compact = pinned
-        .get("gmeow-memory-compact-v1")
-        .expect("the header pins gmeow-memory-compact-v1");
-    assert_eq!(
-        &runtime.compact, shipped_compact,
-        "the compacted store must pin the SHIPPED gmeow-memory-compact-v1 bytes, not a \
-         pack-local re-derivation that merely reuses the id — that is what \
-         DictStrategy::Pinned buys, and without it one dictionary id names several byte \
-         sequences"
-    );
 }
 
 /// The members of ONE tar archive rep of the emitted bundle, by member name.
@@ -1479,251 +1280,6 @@ fn the_split_out_archive_members_are_carried_by_exactly_one_rep(
         );
     }
 }
-
-/// The store lane, driven through the PRODUCTION paths over the freshly emitted
-/// bundle: a claim stored through `Memory::store`, an audit segment written beside
-/// it, a conjecture appended to its own library, and the compaction lane over a
-/// store that already held a dictionary-less segment.
-///
-/// "Recall still succeeds" would prove nothing — it succeeds with the medium wiring
-/// deleted. What is asserted instead is that the store's HEADER pins the declared
-/// dictionary and that the frames the write actually appended reference the catalog
-/// entry bound to it: the record is dict-primed, not merely still readable.
-///
-/// It RETURNS the dictionary bytes the two runtime artifacts actually pinned, because
-/// "pinned an entry under that id" and "pinned the bytes this bundle shipped" are
-/// different claims and only the second one makes the shipped copy load-bearing.
-/// [`every_declared_dictionary_primes_an_emitted_frame`] is where they are compared.
-fn runtime_stores_are_primed_from(bundle: &[u8]) -> RuntimePriming {
-    use gmeow_mcp::{MEMORY_COMPACT_DICTIONARY, MEMORY_HOT_DICTIONARY, McpServer};
-
-    let home = tempfile::tempdir().expect("tempdir");
-    let memory_path = home.path().join("memory.gts");
-    let conjecture_path = home.path().join("conjectures.gts");
-    // SAFETY: this test binary runs one test, single-threaded, and restores nothing
-    // because the process exits with it.
-    unsafe {
-        std::env::set_var("GMEOW_MEMORY_PATH", &memory_path);
-        std::env::set_var("GMEOW_CONJECTURE_PATH", &conjecture_path);
-        std::env::remove_var("GMEOW_LANG");
-    }
-
-    // A PRE-EXISTING dictionary-less store: the state every store upgraded from an
-    // earlier build is in. It is written through purrdf's own default `Memory`, so
-    // this is genuinely the shape produced before the medium axis existed.
-    let legacy = purrdf::gts::examples::agent_memory::Memory::with_options(
-        &memory_path,
-        purrdf::gts::examples::agent_memory::MemoryOptions::default(),
-    );
-    legacy
-        .store(
-            "a claim written before the store had a medium",
-            purrdf::gts::examples::agent_memory::StoreOptions::default(),
-        )
-        .expect("the legacy store accepts a claim");
-    let legacy_len = std::fs::metadata(&memory_path).expect("legacy store").len();
-    assert!(
-        gmeow_gts_profile::segment_dictionaries(
-            &std::fs::read(&memory_path).expect("read the legacy store")
-        )
-        .expect("the legacy store reads back")
-        .is_empty(),
-        "the pre-existing segment must genuinely be dictionary-less, or (f) is vacuous"
-    );
-
-    let server =
-        McpServer::from_snapshot(bundle).expect("the freshly emitted bundle serves an MCP session");
-
-    // (e) a claim through the PRODUCTION `Memory::store` path.
-    let stored = server
-        .call_tool_result("store_claim", &serde_json::json!({"text": "primed claim"}))
-        .to_string();
-    assert!(
-        stored.contains("\\\"ok\\\":true") || stored.contains("\"ok\":true"),
-        "store_claim must commit: {stored}"
-    );
-    let store_bytes = std::fs::read(&memory_path).expect("read the store");
-    assert!(
-        store_bytes.len() as u64 > legacy_len,
-        "the store grew by the appended record"
-    );
-    assert_primed(&store_bytes, MEMORY_HOT_DICTIONARY, 2);
-
-    // Every claim — the pre-existing dictionary-less one AND the new dict-primed one
-    // — is still recalled from the mixed file: each segment decodes under its own
-    // declared medium.
-    let recalled = server
-        .call_tool_result(
-            "recall",
-            &serde_json::json!({"query": "claim", "limit": 10}),
-        )
-        .to_string();
-    assert!(
-        recalled.contains("primed claim"),
-        "the dict-primed claim recalls: {recalled}"
-    );
-    assert!(
-        recalled.contains("before the store had a medium"),
-        "the pre-existing dictionary-less claim still recalls from the mixed file: {recalled}"
-    );
-
-    // (e) a conjecture append: its own append-only library, its own header.
-    let conjecture = server.call_tool_result(
-        "store_conjecture",
-        &serde_json::json!({
-            "formula": CONJECTURE_FORMULA,
-            "kb": CONJECTURE_KB,
-            "standpoint": "https://blackcatinformatics.ca/gmeow/standpoint/medium-gate",
-        }),
-    );
-    assert!(
-        conjecture.to_string().contains("\"ok\":true")
-            || conjecture.to_string().contains("\\\"ok\\\":true"),
-        "store_conjecture must commit: {conjecture}"
-    );
-    let library = std::fs::read(&conjecture_path).expect("read the conjecture library");
-    assert_primed(&library, MEMORY_HOT_DICTIONARY, 2);
-
-    // (f) the compaction lane repacks a PRE-EXISTING BASELINE pack under the compact
-    // dictionary. The subject is a pack authored through the unprimed door — the exact
-    // shape everything produced before the medium axis has — and compaction moves it
-    // onto a declared medium without touching a content claim.
-    let baseline_pack = {
-        let dataset = purrdf::parse_dataset(
-            b"<https://e/claim> <https://e/text> \"a claim written before the medium\" .\n",
-            "application/n-triples",
-            None,
-        )
-        .expect("the baseline pack's graph parses");
-        let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
-        builder
-            .add_dataset(&dataset)
-            .expect("fold the baseline graph");
-        gmeow_gts_profile::emit_gmeow_gts(
-            &builder,
-            vec![purrdf::gts_compose::BlobRow {
-                data: b"a content blob carried across the repack unchanged".repeat(64),
-                media_type: "text/plain".to_string(),
-                rep: "compaction-fixture".to_string(),
-            }],
-            Vec::new(),
-            None,
-            None,
-            None,
-        )
-        .expect("the baseline pack emits through the unprimed door")
-    };
-    assert!(
-        gmeow_gts_profile::segment_dictionaries(&baseline_pack)
-            .expect("the baseline pack reads back")
-            .is_empty(),
-        "the subject of compaction must genuinely be an unprimed pack, or (f) is vacuous"
-    );
-    let pack_path = home.path().join("baseline-pack.gts");
-    std::fs::write(&pack_path, &baseline_pack).expect("write the baseline pack");
-    let signer = (
-        ed25519_dalek::SigningKey::from_bytes(&[7u8; 32]),
-        "medium-gate".to_string(),
-    );
-    // The compaction medium is resolved out of the SHIPPED bundle exactly as the hot
-    // one is, and its bytes are what the repack pins — the id → bytes function this
-    // gate then checks is single-valued.
-    let compact_medium =
-        gmeow_mcp::store_medium(bundle, MEMORY_COMPACT_DICTIONARY).unwrap_or_else(|err| {
-            panic!("the emitted bundle must pin {MEMORY_COMPACT_DICTIONARY} in band: {err}")
-        });
-    gmeow_mcp::compact_store(&pack_path, "1970-01-01T00:00:00Z", &compact_medium, signer)
-        .expect("the compaction lane repacks the baseline pack");
-    let compacted = std::fs::read(&pack_path).expect("read the compacted pack");
-    let pinned =
-        gmeow_gts_profile::segment_dictionaries(&compacted).expect("the compacted pack reads back");
-    assert!(
-        pinned.contains_key(MEMORY_COMPACT_DICTIONARY),
-        "the compacted pack pins {MEMORY_COMPACT_DICTIONARY}; got {:?}",
-        pinned.keys().collect::<Vec<_>>()
-    );
-    assert_primed(&compacted, MEMORY_COMPACT_DICTIONARY, 1);
-
-    let hot = gmeow_gts_profile::segment_dictionaries(&store_bytes)
-        .expect("the primed store reads back")
-        .remove(MEMORY_HOT_DICTIONARY)
-        .expect("the primed store pins the hot dictionary");
-    let compact = pinned
-        .get(MEMORY_COMPACT_DICTIONARY)
-        .expect("checked just above")
-        .clone();
-    RuntimePriming { hot, compact }
-}
-
-/// The dictionary bytes the RUNTIME artifacts pinned, returned by
-/// [`runtime_stores_are_primed_from`] for the shipped-bytes comparison in
-/// [`every_declared_dictionary_primes_an_emitted_frame`].
-struct RuntimePriming {
-    /// What the freshly written memory store pinned under `gmeow-memory-hot-v1`.
-    hot: Vec<u8>,
-    /// What the compaction lane pinned under `gmeow-memory-compact-v1`.
-    compact: Vec<u8>,
-}
-
-/// Assert that `store` pins `dictionary` in a segment header AND that at least
-/// `frames` payload frames reference the catalog entry bound to it.
-///
-/// The second half is the load-bearing one: a header that pins a dictionary no frame
-/// names would satisfy "the file carries the dictionary" while every record stayed
-/// unprimed.
-fn assert_primed(store: &[u8], dictionary: &str, frames: usize) {
-    let (items, torn) = iter_items(store);
-    assert!(torn.is_none(), "the store is a torn CBOR sequence");
-    let mut primed_ids: BTreeSet<i128> = BTreeSet::new();
-    let mut pinned_anywhere = false;
-    let mut primed_frames = 0usize;
-    for (_, item) in &items {
-        if is_segment_header(item) {
-            // A new segment resets the catalog; only the ids of a header that pins
-            // this dictionary count as primed.
-            let head = unwrap_header(item).expect("a segment header unwraps");
-            primed_ids = catalog_dictionaries(head)
-                .into_iter()
-                .filter(|(_, name)| name == dictionary)
-                .map(|(id, _)| id)
-                .collect();
-            pinned_anywhere |= !primed_ids.is_empty();
-            continue;
-        }
-        let Value::Map(entries) = item else { continue };
-        if map_get(entries, "d").is_none() {
-            continue;
-        }
-        if let Some(Value::Array(chain)) = map_get(entries, "x")
-            && let Some(Value::Integer(id)) = chain.first()
-            && primed_ids.contains(&i128::from(*id))
-        {
-            primed_frames += 1;
-        }
-    }
-    assert!(
-        pinned_anywhere,
-        "no segment header pins {dictionary:?} in its \"dct\" map"
-    );
-    assert!(
-        primed_frames >= frames,
-        "expected at least {frames} payload frame(s) primed with {dictionary:?}; found \
-         {primed_frames} — a pinned-but-unused dictionary is dead weight, not priming"
-    );
-}
-
-/// A minimal `logic:` candidate: a ground atom the KB below entails, so the
-/// conjecture is corroborated and the library append actually happens.
-const CONJECTURE_FORMULA: &str = concat!(
-    "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
-    "@prefix ex: <https://example.org/> .\n",
-    "ex:cand a logic:Formula ; logic:relation ex:p ;\n",
-    "    logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] .\n",
-);
-
-/// The KB the candidate is tested against: it asserts the atom, so the isolated
-/// world entails it.
-const CONJECTURE_KB: &str = "@prefix ex: <https://example.org/> .\nex:a ex:p ex:a .\n";
 
 /// The medium MEASUREMENT graph, proved on the SHIPPED artifact: every dictionary the
 /// bundle primes publishes a reading, and every reading says the dictionary paid for
@@ -1887,88 +1443,4 @@ fn the_shipped_bundle_proves_every_dictionary_pays_for_itself(
         );
         assert_eq!(medium.zstd_level, 12);
     }
-}
-
-/// `gmeow-memory-hot-v1` pays for itself too — measured LIVE, over the bytes the bundle
-/// actually shipped and a corpus derived from the bundle itself.
-///
-/// It is the one measurable dictionary whose population no bundle frame belongs to: its
-/// frames are the ones a CONSUMER writes into a runtime store out of the shipped header.
-/// So the reading cannot be published in the bundle (a store's records carry a wall
-/// clock, and a bundle asserting numbers about a file it never saw would be speaking
-/// past its evidence) — the committed table holds it, and THIS is where it is measured
-/// against reality: real store files, written through the real `Memory::store` path,
-/// primed with the header entry the pack ships, over a declared corpus taken from the
-/// pack's own statement layer.
-fn the_runtime_store_dictionary_pays_for_itself(
-    dataset: &purrdf::RdfDataset,
-    pinned: &BTreeMap<String, Vec<u8>>,
-) {
-    use gmeow_pipeline::medium::{measure, sweep};
-
-    let corpus = sweep::replay_corpus(dataset).expect("the bundle-derived replay corpus resolves");
-    // The replay extent is part of the claim — whether a store dictionary wins is a pure
-    // function of the record count — so it is pinned in BOTH directions rather than
-    // merely bounded. [`sweep::REPLAY_RECORD_COUNT`] is the declared CEILING; the bundle's
-    // own statement layer is shorter than it, so the operative number is the one the
-    // committed evidence recorded, and the live corpus must be exactly that. Pinning it to
-    // the ceiling instead would assert a corpus this bundle cannot produce; pinning it to
-    // nothing would let the live and committed readings silently price different
-    // populations.
-    let committed = sweep::load(&repo_root()).expect("the committed winner table is readable");
-    let recorded = committed
-        .row("gmeow-memory-hot-v1")
-        .expect("the committed table carries the runtime-store row")
-        .evaluated_frame_count;
-    assert!(
-        corpus.len() as u64 <= sweep::REPLAY_RECORD_COUNT as u64,
-        "the replay corpus ({}) exceeds the DECLARED ceiling {}",
-        corpus.len(),
-        sweep::REPLAY_RECORD_COUNT
-    );
-    assert_eq!(
-        corpus.len() as u64,
-        recorded,
-        "the LIVE replay corpus and the COMMITTED runtime-store reading must price the SAME \
-         population — a divergence means the committed evidence describes a corpus this bundle \
-         does not produce"
-    );
-    assert!(
-        corpus.len() >= 64,
-        "a replay corpus of {} record(s) is too thin for the measurement to mean anything",
-        corpus.len()
-    );
-
-    let dict = pinned
-        .get("gmeow-memory-hot-v1")
-        .expect("the header pins gmeow-memory-hot-v1");
-    let dir = tempfile::tempdir().expect("tempdir");
-    let (primed, baseline) =
-        sweep::replay_runtime_store(dir.path(), "gmeow-memory-hot-v1", dict, &corpus)
-            .expect("the replay writes both arms through the real store path");
-
-    let effect = measure::population_b(
-        "gmeow-memory-hot-v1",
-        &primed,
-        &baseline,
-        corpus.len() as u64,
-        corpus.len() as u64,
-    )
-    .expect("the replayed stores measure");
-    assert_eq!(
-        effect.dictionary_in_band_bytes,
-        dict.len() as u64,
-        "an append-only store pins the dictionary exactly ONCE — if this ever becomes a multiple, \
-         the store stopped continuing its tail segment and the dictionary is being paid for per \
-         record"
-    );
-    println!(
-        "gmeow-memory-hot-v1 population B: {} records, two-part {} B vs baseline {} B (gain {})",
-        corpus.len(),
-        effect.two_part_code_bytes(),
-        effect.bytes_on_disk_baseline,
-        effect.gain_fraction_lexical()
-    );
-    measure::check(&[effect], &BTreeSet::new())
-        .expect("the shipped gmeow-memory-hot-v1 must pay for itself on a real runtime store");
 }

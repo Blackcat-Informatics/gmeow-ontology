@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-slicetest"
-description = "GMEOW native slice-test harness: discovers and executes the slice-resident declarative test-DSL specs (competency questions, structural assertions, example-conformance) under cargo-nextest, off rdflib."
+description = "GMEOW native slice-validation engine: executes slice-resident declarative test-DSL specs once at the explicit cached producer boundary, off rdflib."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -40,22 +40,28 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # default (reasoningNone) and reasoningRdfs lanes stay lightweight (native SPARQL / CONSTRUCT
 # fixpoint), so only questions that opt into gmeow:reasoningLogic pay the native chase.
 gmeow-logic = { path = "../logic" }
+# The declarative repository sweep is no longer a nextest harness. The explicit
+# pre-test producer publishes independently reusable task receipts plus one immutable
+# aggregate verdict; test runners authenticate that verdict and have no producer callback.
+gmeow-action-cache = { path = "../action-cache" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+
+[build-dependencies]
+# Slice-spec action receipts bind this crate's exact local implementation closure,
+# independently of the wider pipeline producer identity.
+sha2.workspace = true
 
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 # RAII temp directories/files for tests. Every scratch path a test creates is
 # removed on drop — including on panic and early return — so a gate run never
 # leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path
 # under `std::env::temp_dir()` is banned by the repo-static guard
 # (`check_no_unmanaged_temp_dir` in crates/validate/src/repo_static.rs).
 tempfile = "3"
-# File-driven test harness: one nextest case per discovered tests/*.ttl spec
-# file, run in parallel. The headline speed win of the native harness (T3).
-datatest-stable = "0.3"
 # The flagship acceptance-manifest cross-check names the frozen dataset and
 # term types directly to walk the manifest ⋈ competency union; the same native codec
 # the harness already depends on.
 purrdf.workspace = true
-
-[[test]]
-name = "slice_specs"
-harness = false

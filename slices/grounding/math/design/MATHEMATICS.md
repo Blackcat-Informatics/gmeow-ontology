@@ -359,9 +359,10 @@ raises (`gmeow:enforcesFailureClass`). Three static surfaces enforce the wiring 
 `gmeow:FlagshipScenarioShape` (SHACL cardinality) and thin slice `math:FlagshipScenarioShape`
 (failure-range), a structural assertion, and a native cross-check that resolves each competency
 reference into the tests dataset and confirms it is a registered, green (`cqExpectRow`) question —
-**plus execution**: the discharge harness runs each counter-example, worked example, and native
-producer, asserting exactly the declared failure class fires, the example is clean, and the producer
-emits its pinned output. So an unwired scenario is the typed failure `math:UnwiredFlagshipScenario`,
+**plus execution**: the cached slice-spec producer runs each counter-example and worked example,
+while `stage-math-producers` runs the native producers once and graph-compares every pinned fixture.
+The read-only authenticated-bundle conformance checks cover all emitted producer graphs. So an
+unwired scenario is the typed failure `math:UnwiredFlagshipScenario`,
 and the depth bar cannot silently regress (see
 [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md), "Flagship acceptance-manifest rules").
 

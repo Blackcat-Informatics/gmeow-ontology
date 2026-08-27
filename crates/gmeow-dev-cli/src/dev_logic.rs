@@ -350,64 +350,13 @@ mod query_tests {
 
 #[cfg(test)]
 mod compile_tests {
-    use std::sync::Mutex;
-
-    use super::compile;
-
-    // These drive the REAL `compile()` entry point (which runs the whole
-    // pipeline via `run_full`) over the committed repository tree, so
-    // `project_root()`'s CARGO_MANIFEST_DIR fallback resolves the workspace
-    // root regardless of the test harness's current working directory.
-    // They are the discriminating proof that `--mode M` narrows the single
-    // committed pipeline output rather than re-running a private, thinner
-    // in-process compile whose bytes (and whose `report`) could diverge.
-    //
-    // `run_full` is a whole-repo, single-writer pipeline pass; two instances
-    // racing inside the same test binary (cargo's default parallel test
-    // runner) observably corrupt each other's transient state, so this
-    // module-local lock serializes them regardless of `--test-threads`.
-    static PIPELINE_LOCK: Mutex<()> = Mutex::new(());
-
-    // The three drift tests below run the whole pipeline (~800s each) and so
-    // exceed the on-gate 25s per-test budget; they are `#[ignore]`d off the
-    // default/ci profile and run in the off-gate `make maint-dev-cli-heavy`
-    // lane (`GMEOW_DEV_CLI_HEAVY=1 cargo nextest run -p gmeow-dev-cli
-    // --run-ignored ignored-only`), matching the convention in
-    // `crates/gmeow-dev-cli/tests/cli_parity.rs`. The fast `mode_path` mapping
-    // test stays on-gate as the wiring proof.
-    #[test]
-    #[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
-    fn mode_owl_dl_matches_the_committed_pipeline_artifact() {
-        let _guard = PIPELINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        assert_eq!(compile(true, Some("owl-dl")), 0);
-    }
-
-    #[test]
-    #[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
-    fn mode_datalog_matches_the_committed_pipeline_artifact() {
-        let _guard = PIPELINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        assert_eq!(compile(true, Some("datalog")), 0);
-    }
-
-    /// The discriminating test: the OLD `compile_one_mode` returned the
-    /// compiler's private, base-only `a.report`, which would DRIFT against
-    /// the committed union report (base + audit) that the `stage-mappings`
-    /// pipeline stage assembles. If `--mode report` were ever rewired back
-    /// to an in-process compile, this test fails.
-    #[test]
-    #[ignore = "off-gate: runs the whole pipeline; exceeds the 25s budget"]
-    fn mode_report_matches_the_committed_union_report() {
-        let _guard = PIPELINE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-        assert_eq!(compile(true, Some("report")), 0);
-    }
-
     /// On-gate wiring proof (instant, no pipeline run): every `--mode` name
     /// maps to the committed pipeline artifact path — in particular `report`
     /// maps to the committed UNION report `PROJECTION_REPORT_PATH`
     /// (`stage-mappings`' output), never a compiler-private path. Together
     /// with the deletion of the in-process `compile_one_mode`, this pins that
-    /// `--mode M` can only ever narrow the real pipeline output. The heavy
-    /// tests above prove the committed bytes actually match end-to-end.
+    /// `--mode M` can only ever narrow the real pipeline output. No test calls
+    /// `compile()`, because that entry point runs the corpus producer.
     #[test]
     fn every_mode_maps_to_its_committed_pipeline_path() {
         use super::{LOGIC_MODES, mode_path};

@@ -20,7 +20,7 @@
 //! root and memoized: every slice the quality sweep scores reads the same in-memory
 //! documentation model. On native targets, the disk-sourced arm goes further and
 //! reads the bounded content-addressed `.cache/gmeow-sync/actions/` store
-//! ([`gmeow_docs_model::fixture::try_load`]), so the sweep shares ONE build with the
+//! ([`gmeow_docs_model::fixture::try_load_or_build`]), so the sweep shares ONE build with the
 //! docs pipeline and `gmeow-dev doc-lint` instead of paying a third. `try_load` is
 //! byte-identical to `discover()`, and a cache miss runs the real sweep — the score is
 //! the same either way. Wasm has no native disk-cache authority and runs that same full
@@ -382,7 +382,7 @@ pub(crate) fn prime_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) {
 ///
 /// `catalog_bytes` selects the constraint-catalog source: the live in-pipeline bytes
 /// ([`DocsModel::discover_with_catalog`]) when supplied, else the committed on-disk
-/// catalog ([`fixture::try_load`], which is [`DocsModel::discover`] behind a
+/// catalog ([`fixture::try_load_or_build`], which is [`DocsModel::discover`] behind a
 /// content-addressed cache). The catalog content does not feed the coverage fraction;
 /// supplying live bytes only guarantees the model BUILDS on a cold tree.
 fn build_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) -> RepoFacts {
@@ -411,7 +411,7 @@ fn build_repo_facts(root: &Path, catalog_bytes: Option<&[u8]>) -> RepoFacts {
         None => {
             #[cfg(not(target_arch = "wasm32"))]
             {
-                fixture::try_load(root)
+                fixture::try_load_or_build(root)
             }
             #[cfg(target_arch = "wasm32")]
             {

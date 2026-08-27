@@ -830,8 +830,8 @@ fn st_goal_directed(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// `jobs` is the per-level parallelism budget. Returns a [`RunReport`]; in check
 /// mode `report.is_clean()` is the cutover gate (zero drift across every
 /// committed artifact). RDF artifacts compare by bytes (they are byte
-/// deterministic); the `gmeow.gts` bundle is compared by the FOLD (see
-/// `tests/full_parity.rs`) because CBOR has encoding skew.
+/// deterministic); the `gmeow.gts` bundle is compared by the production superset
+/// fold because CBOR has encoding skew.
 pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gmeow_errors::Diag> {
     run_full_scoped(root, jobs, mode, RunOutputScope::All)
 }
@@ -1009,10 +1009,9 @@ pub fn run_full_scoped_with_progress(
             // local bundle survives an `integrate-main` + update, the exact trap
             // CLAUDE.md warns about). The bundle is a git-ignored local product with
             // no committed copy to fall back on, so it must be regenerated, never
-            // trusted stale. In Check mode it is compared by the FOLD
-            // (per-named-graph quad set + reifier/annotation counts) elsewhere — CBOR
-            // has encoding skew — so it is only counted here; the fold gate is
-            // `tests/full_parity.rs`.
+            // trusted stale. In Check mode the production superset gate compares its
+            // semantic projection (per-named-graph quad set plus declared carried-file
+            // inventory) because CBOR has encoding skew, so it is only counted here.
             if path == GTS_PATH {
                 if mode == RunMode::Update {
                     if write_artifact(root, path, bytes)? {
@@ -1173,8 +1172,9 @@ pub fn run_full_scoped_with_progress(
             // `dist/*` artifacts are gitignored runtime outputs with NO committed
             // authority: a fresh checkout (CI strict sync) has no `dist/` tree,
             // so they can never be drift-compared. They are WRITTEN in Update but
-            // SKIPPED in Check (their reproducibility is covered by the second-run
-            // determinism check in `tests/full_parity.rs`).
+            // SKIPPED in Check. Their producer actions and emitted digests are
+            // deterministic and content-addressed; no test reruns the DAG merely to
+            // compare a second emission.
             if path.starts_with("dist/") {
                 if mode == RunMode::Update && output_scope == RunOutputScope::All {
                     if write_artifact(root, path, bytes)? {

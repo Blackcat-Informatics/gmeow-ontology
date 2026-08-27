@@ -548,12 +548,38 @@ impl Stage for TermManifestStage {
 mod tests {
     use super::*;
 
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
+    fn synthetic_manifest_dataset() -> Dataset {
+        Dataset::parse_turtle(
+            br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<https://blackcatinformatics.ca/gmeow> owl:versionInfo "9.9.9" .
+gmeow:SyntheticClass a owl:Class ; rdfs:label "Synthetic class" .
+logic:syntheticProperty a owl:ObjectProperty ; rdfs:label "Synthetic property" .
+"#,
+            "synthetic term manifest graph",
+        )
+        .expect("parse synthetic term manifest graph")
+    }
+
+    fn digest_for(turtle: &[u8], term: &str) -> String {
+        let dataset = Dataset::parse_turtle(turtle, "synthetic digest graph")
+            .expect("parse synthetic digest graph");
+        let quads: Vec<RdfQuad> = dataset
+            .inner()
+            .owned_quads()
+            .filter(|quad| quad.graph_name.is_none())
+            .collect();
+        let mut index: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+        for (position, quad) in quads.iter().enumerate() {
+            if let Some(key) = subject_key(&quad.subject) {
+                index.entry(key).or_default().push(position);
+            }
+        }
+        definition_digest(&quads, &index, term).expect("definition digest")
     }
 
     #[test]
@@ -567,21 +593,12 @@ mod tests {
     }
 
     #[test]
-    fn render_is_deterministic() {
-        let root = repo_root();
-        let a = render_term_manifest(&root).expect("render a");
-        let b = render_term_manifest(&root).expect("render b");
-        assert_eq!(a, b, "term manifest render must be byte-deterministic");
-    }
-
-    #[test]
     fn every_gmeow_typed_term_gets_a_digest() {
-        let root = repo_root();
-        let dataset = load_authored_no_imports(&root).expect("load authored");
+        let dataset = synthetic_manifest_dataset();
         let terms = documented_terms(&dataset).expect("documented terms");
-        assert!(!terms.is_empty(), "expected some documented terms");
-        let bytes = render_term_manifest(&root).expect("render manifest");
-        let text = String::from_utf8(bytes).expect("utf8");
+        assert_eq!(terms.len(), 2, "the synthetic graph declares two terms");
+        let root = tempfile::tempdir().expect("temporary manifest root");
+        let text = build_manifest_nquads(root.path(), &dataset).expect("build synthetic manifest");
         for term in &terms {
             assert!(
                 text.contains(&format!("<{term}> <{DEFINITION_DIGEST}>")),
@@ -597,26 +614,28 @@ mod tests {
     fn digest_excludes_provenance_predicates() {
         // A term's digest is over its defining triples only; adding a provenance
         // predicate (e.g. addedInVersion) must not change it.
-        let root = repo_root();
-        let dataset = load_authored_no_imports(&root).expect("load authored");
-        let quads: Vec<RdfQuad> = dataset
-            .inner()
-            .owned_quads()
-            .filter(|q| q.graph_name.is_none())
-            .collect();
-        let mut index: BTreeMap<String, Vec<usize>> = BTreeMap::new();
-        for (i, quad) in quads.iter().enumerate() {
-            if let Some(key) = subject_key(&quad.subject) {
-                index.entry(key).or_default().push(i);
-            }
-        }
-        // gmeow:addedInVersion is an authored owl:AnnotationProperty that itself
-        // carries a gmeow:addedInVersion provenance quad; its digest must still be a
-        // valid blake3 and stable across two computations.
-        let term = "https://blackcatinformatics.ca/gmeow/addedInVersion";
-        let d1 = definition_digest(&quads, &index, term).expect("digest");
-        let d2 = definition_digest(&quads, &index, term).expect("digest");
-        assert_eq!(d1, d2);
-        assert!(d1.starts_with("blake3:"));
+        let term = "https://blackcatinformatics.ca/gmeow/SyntheticTerm";
+        let base = br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+gmeow:SyntheticTerm a owl:Class ; rdfs:label "Stable definition" .
+"#;
+        let with_provenance = br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+gmeow:SyntheticTerm a owl:Class ;
+    rdfs:label "Stable definition" ;
+    gmeow:addedInVersion "9.9.9" ;
+    gmeow:definitionDigest "blake3:prior" .
+"#;
+        let without = digest_for(base, term);
+        let with = digest_for(with_provenance, term);
+        assert_eq!(
+            without, with,
+            "provenance must not perturb definition identity"
+        );
+        assert!(without.starts_with("blake3:"));
     }
 }

@@ -107,14 +107,11 @@ tracing.workspace = true
 roxmltree.workspace = true
 
 [dev-dependencies]
+# Read-only access to the exact producer-selected corpus and extracted shape-union
+# fixture. Tests never fall back to rebuilding either product.
+gmeow-bundle-import = { path = "../bundle-import" }
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.
 purrdf.workspace = true
-# `tests/witness_explore.rs` computes the bundle-explorer DESCRIBE witness by calling
-# `gmeow_query_wasm::Dataset::query` — the EXACT function `#[wasm_bindgen]` exposes to
-# the browser — rather than a hand-rolled quad filter, so the native witness and the
-# browser's DESCRIBE genuinely run the same code (this crate compiles natively too;
-# only the `cdylib` wasm-bindgen artifact ships to the browser).
-gmeow-query-wasm = { path = "../query-wasm" }
 # The classifier-ingestion producers under test: the conformance twin runs each
 # real captured classifier output through the unmodified whole-ontology SHACL
 # corpus and asserts the blind round-trip end-to-end.
@@ -129,9 +126,12 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 tempfile.workspace = true
 # Snapshot goldens for the constitution parity regression test.
 insta = { workspace = true, features = ["json"] }
-# Parameterized #[case] rows for the conformance_*.rs SHACL twins. rstest
-# subsumes test-case; test-case is deliberately NOT a dependency.
-rstest = "0.26"
+# Parameterized case tables execute as one libtest per suite, so authenticated corpus
+# state is imported and parsed once per binary instead of once per case process.
+gmeow-test-batch-macros = { path = "../test-batch-macros" }
+# Link-time registration lets one conformance runner retain every named contract
+# while importing and parsing the authenticated corpus only once.
+inventory = "0.3"
 # Deterministic retired-instruction backend for the whole-ontology-union conformance
 # cost-partition bench. Pin MUST equal crates/logic/Cargo.toml (the out-of-tree
 # iai-callgrind-runner is version-locked to it). MAINT-ONLY: needs valgrind + the

@@ -3,7 +3,7 @@
 #
 # The e8Symmetry flagship's worked example: the exact output of the native producer
 # math::producers::e8_weyl_order (dogfooded — the worked example IS what the producer emits;
-# the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# the explicit `stage-math-producers` boundary asserts this fixture is graph-isomorphic to the
 # producer's Turtle, so neither can silently drift). A math:RootSystem carrying the E8
 # fingerprint (240 roots in rank 8) whose math:weylGroup, modelled as the automorphism group
 # preserving the root system, declares the true order of W(E8) = 696,729,600. Conforms to

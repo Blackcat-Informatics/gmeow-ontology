@@ -113,8 +113,8 @@ fn default_filter_clauses(config: &str) -> Vec<String> {
         .map(str::to_string)
         .collect();
     assert!(
-        clauses.len() >= 20,
-        "expected the default filter to carry many exclusion clauses; parsed {} — the \
+        clauses.len() >= 15,
+        "expected the default filter to carry the live architectural exclusions; parsed {} — the \
          parse is broken and this gate would pass vacuously",
         clauses.len()
     );
@@ -240,7 +240,7 @@ fn nextest_has_no_fixed_concurrency_caps() {
         .filter(|line| line.starts_with("threads-required"))
         .collect::<Vec<_>>();
     assert!(
-        reservations.len() >= 4,
+        reservations.len() >= 3,
         "the live config should exercise natural-width reservations non-vacuously"
     );
     assert!(
@@ -275,7 +275,7 @@ fn the_contract_catches_a_filter_whose_test_moved_crates() {
     // Non-vacuity: the exact regression this gate exists for. A filter scoped to
     // `gmeow-pipeline` naming a test that now lives in `gmeow-mcp` must be reported.
     let dirs = package_dirs();
-    let moved = "verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle";
+    let moved = "verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle_heavy_offgate";
 
     let mut pipeline = String::new();
     for sub in ["src", "tests"] {

@@ -331,9 +331,9 @@ pub(crate) struct AuthoredSourceInvocation {
 /// Wires the committed central-DSL SHACL surfaces (mapping/statement/test) resolved
 /// by [`gmeow_validate::dsl_coverage::authored_dsl_shacl_inputs`]; a missing DSL
 /// input is a HARD FAIL there (no-optionality), never a silent skip. `slices_dir` is
-/// deliberately left UNSET so per-example SHACL (owned by the `example_sweep`
-/// rust-test) and slice-local test DSL (owned by `slicetest`) are not re-run as a
-/// duplicate whole-corpus pass — see `docs/DSL-VALIDATION-COVERAGE.md` and the
+/// deliberately left UNSET so the legacy per-example corpus materializer is unreachable
+/// from tests and slice-local test DSL (owned by `slicetest`) is not re-run as a duplicate
+/// corpus pass — see `docs/DSL-VALIDATION-COVERAGE.md` and the
 /// `VALIDATE_PHASE_COVERAGE` registry.
 ///
 /// `merged_shacl` is a PARAMETER (not resolved here) so this assembly — and its

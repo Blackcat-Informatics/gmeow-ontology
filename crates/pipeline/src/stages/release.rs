@@ -910,6 +910,7 @@ mod tests {
         let nq = "<https://e/s> <https://e/p> <https://e/o> .\n\
                   <https://e/s> <https://e/q> \"hello\" .\n";
         let b = builder_from(nq, NativeRdfFormat::NTriples.media_type());
+        // gmeow-test-input: synthetic-only
         emit_gts(
             &b,
             "dist",
@@ -950,6 +951,7 @@ mod tests {
         let kid = "release-test-kid";
         let armor = fake_public_armor(&signing.verifying_key().to_bytes());
         fold_release_bundle(
+            // gmeow-test-input: synthetic-only
             snapshot,
             evidence,
             "https://blackcatinformatics.ca/gmeow/agent/release-lane",
@@ -965,7 +967,7 @@ mod tests {
     #[test]
     fn build_coherence_evidence_emits_a_coherence_artifact() {
         let snapshot = tiny_snapshot();
-        let evidence = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z")
+        let evidence = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z") // gmeow-test-input: synthetic-only
             .expect("a consistent snapshot must yield a coherence artifact");
         assert_eq!(evidence.rep, "coherence");
         assert!(
@@ -989,7 +991,7 @@ mod tests {
         assert!(nq.contains("<https://blackcatinformatics.ca/logic/summarizesResult>"));
         assert!(nq.contains("<https://blackcatinformatics.ca/logic/axiomHash>"));
         // Deterministic with the injected timestamp.
-        let again = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap();
+        let again = build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap(); // gmeow-test-input: synthetic-only
         assert_eq!(evidence.data, again.data);
     }
 
@@ -1001,7 +1003,7 @@ mod tests {
         let snapshot = tiny_snapshot();
         let with_cert = || {
             let mut evidence = evidence_inputs();
-            evidence.push(build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap());
+            evidence.push(build_coherence_evidence(&snapshot, "2026-06-28T00:00:00Z").unwrap()); // gmeow-test-input: synthetic-only
             fold(&snapshot, evidence, "2026-06-28T00:00:00Z")
         };
         let a = with_cert();
@@ -1205,6 +1207,7 @@ mod tests {
     fn snapshot_with_report_blob(data: &[u8], rep: &str) -> Vec<u8> {
         let nq = "<https://e/s> <https://e/p> <https://e/o> .\n";
         let b = builder_from(nq, NativeRdfFormat::NTriples.media_type());
+        // gmeow-test-input: synthetic-only
         emit_gts(
             &b,
             "dist",
@@ -1310,6 +1313,7 @@ mod tests {
     /// stand-in for the determinism fixtures).
     fn snapshot_from_nquads(nq: &str) -> Vec<u8> {
         let b = builder_from(nq, NativeRdfFormat::NQuads.media_type());
+        // gmeow-test-input: synthetic-only
         emit_gts(
             &b,
             "dist",
@@ -1477,6 +1481,7 @@ mod tests {
         let nq = "<https://e/s> <https://e/p> <https://e/o> \
                   <https://blackcatinformatics.ca/gmeow/graph/metadata> .\n";
         let b = builder_from(nq, NativeRdfFormat::NQuads.media_type());
+        // gmeow-test-input: synthetic-only
         let snapshot = emit_gts(
             &b,
             "dist",
@@ -1543,6 +1548,7 @@ mod tests {
             ),
         ])
         .expect("build docs-print tar fixture");
+        // gmeow-test-input: synthetic-only
         emit_gts(
             &b,
             "dist",
@@ -1673,6 +1679,7 @@ mod tests {
         // Sign the bundle but DELIBERATELY do not fold the phantom's bytes as a blob.
         let signing = deterministic_signing_key(7);
         let armor = fake_public_armor(&signing.verifying_key().to_bytes());
+        // gmeow-test-input: synthetic-only
         let bundle = emit_gts(
             &builder,
             "dist",

@@ -658,7 +658,12 @@ impl Stage for SourceLoadStage {
         // v8: graph/verify leaves this root stage; the dedicated downstream verify
         // stage projects it from stage-reason's already-built ReasoningResult instead
         // of launching a second native chase here.
-        "source_load.v8-verify-after-reason"
+        // v9: the source-load key includes the exact authored source closure consumed
+        // by the slice-quality assessment. That assessment reads tests, queries,
+        // docs.md, and translation catalogs beyond the carrier's ontology inputs; a
+        // change to any of them must invalidate graph/quality-assessment rather than
+        // serving a stale cached grade.
+        "source_load.v9-quality-input-closure"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -669,9 +674,13 @@ impl Stage for SourceLoadStage {
         // ship a stale bundle). `build_self_description_dataset` is the single authority
         // for what is read; this mirrors its source closure. The `examples/*.ttl` corpus is
         // a genuine disk read of this stage's, so it joins that closure: editing any
-        // slice's demonstrator must re-run the loader.
+        // slice's demonstrator must re-run the loader. The quality assessment reads a
+        // wider authored surface (including slice tests, queries, docs.md, and i18n);
+        // use its own single discovery authority so the cache key cannot drift from
+        // the scorer's actual reads.
         let mut files = crate::stages::carrier::self_description_source_files(root)?;
         files.extend(example_files(root)?);
+        files.extend(gmeow_slice_quality::scored_source_files(root));
         files.sort();
         files.dedup();
         Ok(files)
@@ -821,22 +830,6 @@ mod tests {
     }
 
     #[test]
-    fn source_load_parses_the_whole_ontology() {
-        let root = repo_root();
-        let dataset = load_authored_dataset(&root).expect("load");
-        // The merged authored graph is substantial (50+ slices); sanity-floor it.
-        assert!(
-            dataset.quad_count() > 5_000,
-            "authored base graph unexpectedly small: {} quads",
-            dataset.quad_count()
-        );
-        // Round-trips through the in-memory N-Quads hand-off.
-        let nq = dataset_to_sorted_nquads(&dataset).expect("serialize");
-        let back = parse_base_graph(&nq).expect("reparse");
-        assert_eq!(dataset.quad_count(), back.quad_count());
-    }
-
-    #[test]
     fn authored_files_includes_root_and_modules() {
         let root = repo_root();
         let files = authored_files(&root).unwrap();
@@ -969,37 +962,6 @@ mod tests {
                     .iter()
                     .any(|path| path.to_string_lossy().contains(witness)),
                 "the corpus must reach {witness}"
-            );
-        }
-    }
-
-    /// The corpus lands in ONE named graph, carrying witnesses from slices that had no path to
-    /// the object-level bundle at all before: a `core/` and an `extensions/` demonstrator
-    /// alongside the `grounding/math` one.
-    #[test]
-    fn examples_graph_carries_every_group_in_one_named_world() {
-        let root = repo_root();
-        let files = example_files(&root).expect("list examples");
-        let graph = examples_graph(&files).expect("union the corpus");
-        let projected = graph.project_named_graph(gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES);
-        assert_eq!(
-            projected.quad_count(),
-            graph.quad_count(),
-            "every corpus quad belongs to graph/examples — nothing leaks to the default graph, \
-             where it would be mistaken for an authored slice TBox"
-        );
-        let nquads = purrdf::canonical_flat_nquads(&projected).expect("canon the corpus");
-        for witness in [
-            // grounding/math: the α-twins the identity gate decides over.
-            "alpha-twins/firstProduct",
-            // core/: a demonstrator whose slice ships no producer stage at all.
-            "modeDeduction",
-            // extensions/: likewise.
-            "/finance/",
-        ] {
-            assert!(
-                nquads.contains(witness),
-                "graph/examples must carry the {witness} witness"
             );
         }
     }

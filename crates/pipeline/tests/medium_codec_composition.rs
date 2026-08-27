@@ -4,11 +4,10 @@
 //! The COMPOSITIONAL identity law of the medium: for every DECLARED chain,
 //! `decode ∘ encode = id`.
 //!
-//! `tests/medium_identity_gate.rs` proves the identity on ONE build's carrier — the real
-//! bytes, twice, under two declared media. That is a proof about an artifact. This is the
-//! proof about the MEDIUM: the law holds for every chain the registry declares, over an
-//! input space chosen to cross every boundary the chain has, so a future rep, dictionary
-//! or medium inherits the guarantee instead of waiting for a bundle to demonstrate it.
+//! `medium_bundle` audits the ONE producer-authenticated shipped artifact read-only.
+//! This suite proves the complementary law about the MEDIUM without rerunning the DAG:
+//! every chain the registry declares round-trips over an input space chosen to cross
+//! every codec boundary, so a future rep, dictionary, or medium inherits the guarantee.
 //!
 //! # What "declared" means here
 //!

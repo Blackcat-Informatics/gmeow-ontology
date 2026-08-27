@@ -15,7 +15,6 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use gmeow_docs::Translations;
-use gmeow_docs::render::render_site_lang;
 
 mod common;
 
@@ -55,12 +54,9 @@ fn chinese_tree_shares_the_english_path_graph() {
 }
 
 #[test]
-fn english_carrier_tree_matches_render_site() {
-    // `render_site_lang(model, "english")` is exactly `render_site(model)` — the
-    // carrier needs no rewrite, so the extracted English tree is the canonical one.
-    // Compared against the shared cached render (which IS `render_site`).
-    let model = common::cached_model();
-    assert_eq!(render_site_lang(&model, "english"), common::cached_site());
+fn english_carrier_tree_uses_the_authenticated_site_product() {
+    let expected = common::cached_site().files.into_keys().collect();
+    assert_eq!(cached_path_graph("english"), expected);
 }
 
 #[test]

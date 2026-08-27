@@ -3,7 +3,7 @@
 #
 # Declarative competency questions for the narrative slice, executed by the native
 # Rust slice-test harness (crates/slicetest). Migrated from
-# test_competency_myths_query in crates/validate/tests/conformance_competency.rs.
+# test_competency_myths_query in crates/validate/tests/conformance_cases/conformance_competency.rs.
 #
 # TBox vocabulary question over the asserted merged ontology; rows are the SUBSET
 # the pytest asserted present (cqExactRows omitted → contains-check). No

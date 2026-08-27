@@ -333,34 +333,3 @@ impl Stage for ProfilesStage {
         )))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn profiles_are_byte_identical_to_committed() {
-        let root = repo_root();
-        let docs = render_profiles(&root).expect("render");
-        assert!(docs.contains_key("full.ttl"));
-        let mut checked = 0usize;
-        for (name, text) in &docs {
-            let committed = std::fs::read_to_string(root.join(PROFILES_DIR).join(name))
-                .unwrap_or_else(|_| panic!("committed profile missing: {name}"));
-            assert_eq!(text, &committed, "profile {name} drifted from committed");
-            checked += 1;
-        }
-        assert!(
-            checked >= 5,
-            "expected full + named profiles, got {checked}"
-        );
-    }
-}

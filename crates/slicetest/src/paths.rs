@@ -46,8 +46,8 @@ pub fn slice_dir(test_file: &Path) -> PathBuf {
     let dir = test_file
         .parent() // .../<name>/tests
         .and_then(Path::parent); // .../<name>
-    // The datatest-stable harness only ever feeds paths matching
-    // `.../tests/<file>.ttl`, so a missing grandparent means a caller bug.
+    // Repository discovery only feeds paths matching `.../tests/<file>.ttl`, so
+    // a missing grandparent means a caller bug.
     debug_assert!(
         dir.is_some(),
         "slice_dir expects .../<name>/tests/<file>.ttl, got {}",
@@ -71,9 +71,9 @@ pub fn module_file(slice_dir: &Path) -> PathBuf {
 /// the enforcing shapes to the tested slice's authority.
 pub fn conformance_module_files(slice_dir: &Path) -> Vec<PathBuf> {
     let grounding = slices_root().join("grounding");
-    // datatest-stable passes repository-relative paths, while unit callers often
-    // use absolute paths. Normalize the existing slice directory before testing
-    // membership so both routes receive the same grounding-kernel scope.
+    // The repository producer passes absolute paths, while focused callers may use
+    // relative paths. Normalize the existing slice directory before testing membership
+    // so both routes receive the same grounding-kernel scope.
     let canonical_slice = slice_dir
         .canonicalize()
         .unwrap_or_else(|_| slice_dir.to_path_buf());

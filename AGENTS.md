@@ -104,7 +104,7 @@ When adding a command, ask the razor first. If it needs a repo path that the bin
 make help            # Show the grouped task plan
 make install         # Source-first bootstrap: build the producer, sync generated/, build the consumer CLIs
 make fmt             # Auto-format Rust sources with cargo fmt
-make lint            # Run the issue-ref lint and the pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets)
+make lint            # Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, source-policy seals)
 make clean           # Remove ephemeral build artifacts and native build stamps
 ```
 
@@ -247,6 +247,50 @@ second reasoner on-gate.
 
 ### Testing & Verification
 
+#### Corpus rebuilds from tests are malicious and forbidden
+
+**No test may ever rebuild, regenerate, materialize, compile, or otherwise
+produce the corpus. There are no exceptions.** This prohibition applies both
+to work performed inside the test and to work triggered indirectly through
+library or production code, fixtures, setup hooks, subprocesses, CLIs, Make
+targets, helper scripts, build scripts, or any other code or tool.
+
+Tests may only consume an already-produced, authenticated corpus whose exact
+identity is supplied to the test. If that corpus is absent, stale, corrupt, or
+has the wrong identity, the test must fail closed; a cache miss, retry, or
+fallback must never trigger corpus construction. Corpus production belongs in
+an explicit producer stage that completes before the test process starts, and
+the test runner may not invoke that stage. Any test path that attempts to
+produce the corpus, directly or indirectly, is to be treated as malicious code
+and blocks review, commit, and merge.
+
+`make produce-test-fixtures` is the explicit local producer boundary. It writes
+the selected stable-stage action receipts to
+`.cache/gmeow-sync/test-fixture-manifest-v2.json`; the runner supplies that
+manifest's exact SHA-256 to each test process. Loaders use those recorded action
+contexts directly, so a nonpersistent upstream never causes a dependency walk,
+and a test cannot turn a cache miss into DAG execution. `make nextest` verifies
+the selector read-only before starting the suite. CI transfers the selector and
+action store from the producer job and binds the selector digest into the
+authenticated nextest-archive receipt.
+
+The same selector carries the exact producer-profile bundle-import receipt and
+every bundle-derived corpus-artifact action. A test binary may be compiled under
+a different Cargo profile, but it must load the producer-selected action rather
+than derive a new key from its own profile. Nextest performs no automatic retry:
+a failed whole-bundle consumer is terminal instead of silently multiplying the
+dominant work.
+
+The 143 repository slice specifications and three grounding flagship manifests
+are also producer work, not nextest cases. Each declarative spec is an
+independently content-addressed DAG node; the aggregate verdict records every
+exact task receipt. A competency miss wave shares its merged and closed stores
+inside one isolated worker, while structural and conformance misses run in
+memory-reclaiming child processes. A completed task is published immediately,
+so later failure never discards its reusable result. The test runner may only
+verify the aggregate verdict read-only; slice tests may not call the repository
+sweep, its private worker, or its corpus stores directly.
+
 ```bash
 make check           # Synchronize outputs, then run the local gate DAG (every task)
 make heavy           # CI-ONLY breadth lane (wasm parity, transpile acceptance, golden soak)
@@ -266,9 +310,10 @@ it.
 selection profile. What it does own is an *accurate* dependency graph: a task
 declares `sync` as a prerequisite if and only if it reads a `generated/` artifact,
 so the lint, crate-layering, and translation gates start in the first scheduling
-wave rather than queueing behind synchronization, and the Rust surface runs as four
-concurrent siblings (`carrier-purity`, `clippy`, `nextest`, `doctests`) under one
-`rust-build`. Use `make check CHECK_ARGS="--explain"` to print the wave plan
+wave rather than queueing behind synchronization, and the Rust surface runs as three
+concurrent siblings (`clippy`, `nextest`, `doctests`) under one `rust-build`.
+Carrier-purity and coherence-teeth proofs are part of that single nextest inventory,
+so neither triggers a second workspace build. Use `make check CHECK_ARGS="--explain"` to print the wave plan
 without running anything or taking the host gate lock, and
 `CHECK_ARGS="--timings-json dist/check-timings.json"` to record per-task wall time.
 
@@ -278,8 +323,13 @@ execution lanes) or by a repeat-for-confidence soak. It refuses to run unless bo
 `CI=true` and a CI-vendor marker are set. Nothing was dropped — CI runs `make heavy`
 on every PR — and each task stays runnable by name (`make wasm-parity`).
 
-The entire toolchain is native Rust; there is no Python test suite. To run a
-single crate's tests, use `cargo nextest run -p <crate>`.
+The entire toolchain is native Rust; there is no Python test suite. A direct
+package-scoped Cargo invocation can create a second feature/build lineage after
+the workspace inventory is already compiled. Prefer `make nextest
+NEXTEST_FILTER='package(<crate>)'`, which filters the authenticated workspace
+inventory without changing its Cargo graph. A corpus-backed test must run after
+the explicit fixture producer and receive the producer-selected manifest
+identity; it must never synthesize that identity or run the producer itself.
 
 Generic RDF 1.2 / RDF\* and SPARQL compliance belongs to PurRDF's own test
 suite. GMEOW does not duplicate that authority with queries that merely prove

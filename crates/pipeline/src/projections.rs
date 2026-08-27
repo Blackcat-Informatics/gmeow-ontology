@@ -1024,7 +1024,7 @@ mod tests {
     #[test]
     fn transpile_graph_fans_out_without_x_gmeow_leak() {
         // The on-gate, fixture-scale twin of the off-gate CLI process test
-        // (`gmeow-cli/tests/self_sufficiency.rs::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`),
+        // (`gmeow-cli/tests/self_sufficiency.rs::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak_heavy_offgate`),
         // driven through the REAL production chain (`up_project` → `transform_nt`, via
         // `transpile_graph`) — no CLI process, no bundle load. Proves the two halves
         // together, through the FULL chain (not `transform_nt` alone):
@@ -1199,16 +1199,12 @@ mod tests {
         t
     }
 
-    /// The committed shipped bundle (`generated/dist/gmeow.gts`) — the exact snapshot the real
-    /// `gmeow-dev up-project` folds.
+    /// The authenticated shipped bundle — the exact snapshot the real `gmeow-dev
+    /// up-project` folds. A missing or mismatched producer identity fails closed.
     fn committed_gts() -> Vec<u8> {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("generated")
-            .join("dist")
-            .join("gmeow.gts");
-        std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        gmeow_bundle_import::load_authenticated_source_bytes(&root)
+            .expect("load authenticated producer bundle without rebuilding it")
     }
 
     /// The lifted SIOC image plus the bundle ontology it reasoned against — cached across AC4/AC5.
@@ -1389,6 +1385,7 @@ mod tests {
         let dataset = purrdf::parse_dataset(nt.as_bytes(), NT_MEDIA_TYPE, None).unwrap();
         let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
         builder.add_dataset(&dataset).unwrap();
+        // gmeow-test-input: synthetic-only
         purrdf::gts_compose::emit_gts(
             &builder,
             "dist",

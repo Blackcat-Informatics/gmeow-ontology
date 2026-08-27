@@ -832,7 +832,7 @@ fn target_run_executes_exactly_the_declared_dependency_closure() {
 
     let dir = tempfile::tempdir().unwrap();
     let mut ctx = RunContext::open(dir.path(), 4).unwrap();
-    let result = run_targets(&graph, &bound, &mut ctx, &targets).unwrap();
+    let result = run_targets(&graph, &bound, &mut ctx, &targets).unwrap(); // gmeow-test-input: synthetic-only
     assert_eq!(
         result.products.keys().cloned().collect::<BTreeSet<_>>(),
         dependency_closure(&bound, &targets).unwrap()
@@ -2007,6 +2007,7 @@ fn skipped_retained_carrier_hard_fails_before_partial_dag_execution() {
     ctx.retain_carriers(["late"]);
 
     let diag = crate::scheduler::run_targets(
+        // gmeow-test-input: synthetic-only
         &graph,
         &bound,
         &mut ctx,

@@ -916,6 +916,7 @@ mod tests {
 
         let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("fixture N-Triples must parse");
+        // gmeow-test-input: synthetic-only
         purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
             .expect("fixture must serialize to GTS")
     }
@@ -937,6 +938,7 @@ mod tests {
         );
         let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
             .expect("fixture N-Quads must parse");
+        // gmeow-test-input: synthetic-only
         let bytes = purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
             .expect("fixture must serialize to GTS");
         let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load");
@@ -980,6 +982,7 @@ mod tests {
         );
         let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("fixture N-Triples must parse");
+        // gmeow-test-input: synthetic-only
         let gts = purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
             .expect("fixture must serialize to GTS");
 
@@ -1227,6 +1230,7 @@ mod tests {
 
         let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("fixture N-Triples must parse");
+        // gmeow-test-input: synthetic-only
         purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
             .expect("fixture must serialize to GTS")
     }
@@ -1392,22 +1396,12 @@ mod tests {
     /// bare IO error — fail closed with an actionable pointer instead of
     /// surfacing a raw `std::io::Error`.
     fn shipped_bundle_bytes() -> Vec<u8> {
-        let path =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/dist/gmeow.gts");
-        let bytes = std::fs::read(&path).unwrap_or_else(|e| {
-            panic!(
-                "gmeow: staged bundle {} is missing or empty — run `make check` (or `make install`) \
-                 to materialize generated/dist/gmeow.gts before running this test. It is a \
-                 git-ignored local/release product, not a committed input. (underlying error: {e})",
-                path.display()
-            )
-        });
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let bytes = gmeow_bundle_import::load_authenticated_source_bytes(&root)
+            .expect("authenticated shipped bundle; tests never produce it");
         assert!(
             !bytes.is_empty(),
-            "gmeow: staged bundle {} is empty — run `make check` (or `make install`) to \
-             materialize generated/dist/gmeow.gts before running this test. It is a git-ignored \
-             local/release product, not a committed input.",
-            path.display()
+            "authenticated shipped bundle must be non-empty"
         );
         bytes
     }

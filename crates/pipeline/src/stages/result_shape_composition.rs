@@ -442,8 +442,20 @@ mod tests {
     /// Positive: every committed composition link in the real corpus is compatible.
     #[test]
     fn validate_compositions_corpus_ok() {
-        let root = repo_root();
-        validate_compositions(&root).expect("corpus compositions must all be compatible");
+        let fixture = crate::fixture::stage_fixture(
+            &repo_root(),
+            1,
+            "stage-validate-result-shape-composition",
+        )
+        .expect("load authenticated composition-validation receipt without rebuilding corpus");
+        assert_eq!(
+            fixture.outcome.product.digest,
+            "result-shape-composition-ok"
+        );
+        assert!(
+            !fixture.outcome.built,
+            "test consumers may never run stages"
+        );
     }
 
     /// Negative: a consumer whose cqInputShape requires a column the producer's

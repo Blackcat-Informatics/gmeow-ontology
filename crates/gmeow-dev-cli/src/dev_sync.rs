@@ -24,7 +24,7 @@ use crate::dev_common::{
 };
 use crate::{SyncMode, SyncOutput};
 
-const MANIFEST_VERSION: u32 = 4;
+const MANIFEST_VERSION: u32 = 5;
 const TELEMETRY_SCHEMA_VERSION: u32 = 2;
 const LOCK_ROOT_ENV: &str = "GMEOW_TASK_LOCK_ROOT";
 const LOCK_TOKEN_ENV: &str = "GMEOW_TASK_LOCK_TOKEN";
@@ -341,7 +341,7 @@ pub fn sync(
     if verbose {
         reporter.stage_start("sync:hash-inputs");
     }
-    let input_digest = match sync_input_digest(&root) {
+    let input_digest = match sync_input_digest(&root, output) {
         Ok(digest) => digest,
         Err(e) => return fail(format!("hash sync inputs: {e}")),
     };
@@ -489,7 +489,7 @@ pub fn sync(
     if verbose {
         reporter.stage_start("sync:rehash-inputs");
     }
-    let final_input_digest = match sync_input_digest(&root) {
+    let final_input_digest = match sync_input_digest(&root, output) {
         Ok(digest) => digest,
         Err(e) => return fail(format!("rehash synchronized inputs: {e}")),
     };
@@ -921,53 +921,24 @@ fn modified_ns(metadata: &std::fs::Metadata) -> u128 {
         .map_or(0, |duration| duration.as_nanos())
 }
 
-fn sync_input_digest(root: &Path) -> std::io::Result<String> {
-    let mut paths = Vec::new();
-    for rel in [
-        "bench",
-        "conformance",
-        "coverage",
-        "crates",
-        "docs",
-        "dsl",
-        "evals",
-        "governance",
-        "i18n",
-        "imports",
-        "metadata",
-        "ontology",
-        "queries",
-        "shapes",
-        "slices",
-        "tests",
-        "validations",
-    ] {
-        collect_files(&root.join(rel), root, &mut paths);
-    }
-    for rel in [
-        ".cargo/config.toml",
-        ".goals",
-        "AGENTS.md",
-        "CLAUDE.md",
-        "CONSTITUTION.md",
-        "CONTRIBUTING.md",
-        "Cargo.lock",
-        "Cargo.toml",
-        "Makefile",
-        "README.md",
-        "rust-toolchain.toml",
-    ] {
-        if root.join(rel).is_file() {
-            paths.push(rel.to_string());
-        }
-    }
-    paths.sort();
-    paths.dedup();
+fn sync_input_digest(root: &Path, output: SyncOutput) -> std::io::Result<String> {
+    let paths = declared_sync_input_files(root, output)?;
     let mut hasher = Sha256::new();
+    hasher.update(b"gmeow:sync-input-closure:v5\x1f");
     hasher.update(BUILD_FINGERPRINT.as_bytes());
+    hasher.update(b"\x1f");
+    hasher.update(output.as_str().as_bytes());
     hasher.update(b"\x1e");
-    for rel in paths {
-        let bytes = std::fs::read(root.join(&rel))?;
+    for path in paths {
+        let rel = path.strip_prefix(root).map_err(|_| {
+            std::io::Error::other(format!(
+                "declared sync input {} escapes repository root {}",
+                path.display(),
+                root.display()
+            ))
+        })?;
+        let rel = rel.to_string_lossy().replace('\\', "/");
+        let bytes = std::fs::read(&path)?;
         hasher.update(rel.as_bytes());
         hasher.update(b"\x1f");
         hasher.update((bytes.len() as u64).to_le_bytes());
@@ -975,6 +946,60 @@ fn sync_input_digest(root: &Path) -> std::io::Result<String> {
         hasher.update(b"\x1e");
     }
     Ok(hex(&hasher.finalize()))
+}
+
+/// Resolve the exact source closure selected by synchronization.
+///
+/// The generated profile is the normal pre-commit / `make check` boundary. Its
+/// inputs are the union of every bound production stage's own `input_files()`
+/// declaration; executable semantics, Cargo/toolchain state, and transitive local
+/// library dependencies are already sealed by [`BUILD_FINGERPRINT`]. This avoids the
+/// old blanket `crates/` + `tests/` census, under which editing an unrelated Rust test
+/// harness invalidated a byte-identical ontology corpus and imposed a full pipeline
+/// run before tests could start.
+///
+/// External documentation additionally reads two build-produced serialization files
+/// after the pipeline. They are explicit inputs to that selected branch. Every other
+/// docs source is already in a bound stage declaration because the same docs model and
+/// assets are embedded into the shipped carrier.
+fn declared_sync_input_files(root: &Path, output: SyncOutput) -> std::io::Result<Vec<PathBuf>> {
+    let spec = gmeow_pipeline::run::full_spec();
+    let graph = spec
+        .validate()
+        .map_err(|error| std::io::Error::other(format!("validate bound pipeline: {error}")))?;
+    let registry = gmeow_pipeline::registry::default_registry();
+    let bound = gmeow_pipeline::loader::bind(&spec, &graph, &registry)
+        .map_err(|error| std::io::Error::other(format!("bind pipeline inputs: {error}")))?;
+
+    let mut paths = Vec::new();
+    for stage in bound {
+        paths.extend(stage.input_files(root).map_err(|error| {
+            std::io::Error::other(format!(
+                "enumerate declared inputs for {}: {error}",
+                stage.id()
+            ))
+        })?);
+    }
+    if matches!(output, SyncOutput::All | SyncOutput::Docs) {
+        for relative in [
+            gmeow_pipeline::stages::yaml_ld::JSON_LD_PATH,
+            gmeow_pipeline::stages::yaml_ld::YAML_LD_PATH,
+            // `sync_docs` is the post-pipeline renderer. Its local orchestration is
+            // intentionally outside the pipeline library's build fingerprint, so bind
+            // the few source modules that can change this selected branch's bytes.
+            "crates/gmeow-dev-cli/src/dev_common.rs",
+            "crates/gmeow-dev-cli/src/dev_project.rs",
+            "crates/gmeow-dev-cli/src/dev_sync.rs",
+        ] {
+            let path = root.join(relative);
+            if path.is_file() {
+                paths.push(path);
+            }
+        }
+    }
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
 }
 
 fn collect_files(dir: &Path, root: &Path, out: &mut Vec<String>) {
@@ -1034,6 +1059,42 @@ fn hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn repo_root() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("canonical repository root")
+    }
+
+    #[test]
+    fn generated_sync_inputs_exclude_unrelated_test_harness_implementation() {
+        // This is a declaration audit only: it binds the DAG and enumerates paths. It
+        // never starts a stage, generator, corpus build, or fixture producer.
+        let root = repo_root();
+        let files = declared_sync_input_files(&root, SyncOutput::Generated)
+            .expect("enumerate generated sync input closure");
+        let relative = files
+            .iter()
+            .map(|path| path.strip_prefix(&root).unwrap_or(path))
+            .collect::<BTreeSet<_>>();
+
+        assert!(relative.contains(Path::new("ontology/gmeow.ttl")));
+        assert!(
+            relative.contains(Path::new("tests/fixtures/coverage/external/bii.ttl")),
+            "a product-bearing fixture declared by the mappings stage remains an input"
+        );
+        for unrelated in [
+            ".pre-commit-config.yaml",
+            "crates/gmeow-dev-cli/tests/make_gate_contract.rs",
+            "crates/slicetest/src/repository.rs",
+        ] {
+            assert!(
+                !relative.contains(Path::new(unrelated)),
+                "unrelated test/pre-commit implementation must not rebuild the corpus: {unrelated}"
+            );
+        }
+    }
 
     #[test]
     fn manifest_path_sanitizes_language() {

@@ -34,7 +34,11 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use gmeow_validate::language_tags::{load_inverse_tag_map, load_tag_map, retag_graph_to_internal};
+mod conformance_support;
+use conformance_support::authenticated_bundle_dataset;
+use gmeow_validate::language_tags::{
+    load_inverse_tag_map_from_dataset, load_tag_map_from_dataset, retag_graph_to_internal,
+};
 use purrdf::{TermRef, parse_dataset};
 
 /// The GMEOW namespace prefix.
@@ -84,35 +88,6 @@ fn repo_root() -> PathBuf {
 fn catalog_bytes() -> Vec<u8> {
     let path = repo_root().join("imports/languages-reference.ttl");
     std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()))
-}
-
-/// Read the carrier-surface Turtle bytes: the grounding-slice module (which
-/// defines the three carrier `lang:LanguageVariety` individuals with their
-/// `lang:carrierTag`) UNIONED with the generated `bcp47-tags.ttl` projection
-/// (which carries the derived `gmeow:bcp47Tag` on those same variety IRIs).
-///
-/// Since the lang: graft, the internal→BCP-47 carrier map is a BUNDLE fact, not a
-/// catalog fact: the `x-gmeow-*` tag rides `lang:carrierTag` on the carrier
-/// varieties, and their BCP-47 tag is GENERATED (never authored on a language).
-/// The N-Triples projection is a valid Turtle continuation of the module, so the
-/// concatenation parses as one dataset — exactly the surface the real consumers
-/// (`gmeow` CLI, docs, mcp) resolve the tag map from.
-fn carrier_surface_bytes() -> Vec<u8> {
-    let module = repo_root().join("slices/grounding/lang/module.ttl");
-    let projection = repo_root().join("generated/projections/lang/bcp47-tags.ttl");
-    // The grounding module is a pipeline FRAGMENT: the regeneration preamble
-    // supplies `ontolex:`, so prepend that one declaration to parse it standalone
-    // (duplicate `@prefix` is legal Turtle — the module redeclares the rest).
-    let mut bytes = b"@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .\n".to_vec();
-    bytes.extend(
-        std::fs::read(&module).unwrap_or_else(|e| panic!("cannot read {}: {e}", module.display())),
-    );
-    bytes.push(b'\n');
-    bytes.extend(
-        std::fs::read(&projection)
-            .unwrap_or_else(|e| panic!("cannot read {}: {e}", projection.display())),
-    );
-    bytes
 }
 
 /// Parse the catalog into a dataset (hard-fail on parse error).
@@ -403,11 +378,11 @@ fn reference_catalog_glottolog_alignments() {
 /// (japanese/arabic/hindi/python/…) is dropped, so only the carriers map.
 #[test]
 fn language_tag_map_is_deterministic_and_covers_catalog() {
-    let bytes = carrier_surface_bytes();
+    let dataset = authenticated_bundle_dataset();
     let map_a: HashMap<String, String> =
-        load_tag_map(&bytes, "turtle").expect("first load_tag_map must succeed");
+        load_tag_map_from_dataset(dataset).expect("first load_tag_map_from_dataset must succeed");
     let map_b: HashMap<String, String> =
-        load_tag_map(&bytes, "turtle").expect("second load_tag_map must succeed");
+        load_tag_map_from_dataset(dataset).expect("second load_tag_map_from_dataset must succeed");
     assert_eq!(map_a, map_b, "load_tag_map output must be deterministic");
 
     for (internal_tag, expected_bcp) in [
@@ -439,9 +414,8 @@ fn language_tag_map_is_deterministic_and_covers_catalog() {
 /// tag, removed carrier variety) would break this test but leave the unit test green.
 #[test]
 fn inverse_tag_map_recovers_natural_internal_tags() {
-    let bytes = carrier_surface_bytes();
-    let inv = load_inverse_tag_map(&bytes, "turtle")
-        .expect("load_inverse_tag_map must succeed on the carrier surface");
+    let inv = load_inverse_tag_map_from_dataset(authenticated_bundle_dataset())
+        .expect("load_inverse_tag_map_from_dataset must succeed on the carrier surface");
 
     assert_eq!(
         inv.get("en"),
@@ -471,9 +445,8 @@ fn inverse_tag_map_recovers_natural_internal_tags() {
 /// graph — exercising the end-to-end carrier-surface → inverse-map → retag path.
 #[test]
 fn retag_graph_to_internal_catalog_round_trip() {
-    let bytes = carrier_surface_bytes();
-    let inv = load_inverse_tag_map(&bytes, "turtle")
-        .expect("load_inverse_tag_map must succeed on the carrier surface");
+    let inv = load_inverse_tag_map_from_dataset(authenticated_bundle_dataset())
+        .expect("load_inverse_tag_map_from_dataset must succeed on the carrier surface");
 
     // Build a small N-Triples graph with one @en and one @zh literal.
     let nt = "<https://e/s> <https://e/label> \"Hello\"@en .\n\

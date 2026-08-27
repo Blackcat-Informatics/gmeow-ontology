@@ -85,18 +85,11 @@ tempfile.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
 serde_json.workspace = true
-# The shared MEDIUM negative controls (crates/pipeline/tests/support/medium_tamper.rs)
-# rewrite the real materialized bundle's CBOR items and re-derive its prev/id hash chain,
-# so the breach fixtures stay valid GTS files that are wrong about exactly ONE medium
-# claim.
-ciborium = "0.2"
-# The medium CLI suite stages the authenticated producer bundle and its tampered
-# derivatives in a temp dir too; `tempfile` is already declared once below for the
-# console session-replay lane, so it is not redeclared here.
 # Mints an ephemeral Ed25519 signing key for the bundle_smoke.rs positive/negative
 # real-crypto verify test, in-process — never a production dependency, `purrdf`
 # (already a normal dependency above) is what `gmeow verify` actually uses.

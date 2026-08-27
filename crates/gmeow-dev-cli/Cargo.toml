@@ -35,6 +35,10 @@ gmeow-logic = { path = "../logic" }
 gmeow-bundle-import = { path = "../bundle-import" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
+# Repository-wide declarative slice validation is an explicit, cache-keyed producer
+# action. It is linked into this maintenance binary rather than exposed to nextest,
+# so no test executable can discover sources or rebuild the merged ontology corpus.
+gmeow-slicetest = { path = "../slicetest" }
 gmeow-docs = { path = "../docs" }
 # The ONE mandated GMEOW GTS authorship door: the feedback bundle is authored GMEOW GTS,
 # so it goes through the profile rather than purrdf's raw writer.

@@ -266,10 +266,24 @@ accurate. **A justification that names a path appearing only in an error string
 is a false claim about the build, and P11 applies to it.**
 
 **Corollary.** Splitting a node that declares itself serial is part of the same
-rule. `rust-gate` ran clippy, then a docs fixture, then the whole test suite,
-then doctests in one node; those are now four siblings under `rust-build`.
-`rust-gate` survives as an aggregate alias because `AGENTS.md` references it,
-but the gate no longer runs it, so nothing executes twice.
+rule. The explicit fixture producer now sits between `rust-build` and nextest;
+clippy and doctests remain independent siblings, while carrier/coherence proofs
+run inside the one nextest inventory. `rust-gate` survives as an aggregate alias
+because `AGENTS.md` references it, but the gate no longer runs it, so nothing
+executes twice.
+
+The fixture handoff is a selector, not a second traversal. The producer records
+the exact action context and receipt for every test-consumed persistent leaf in
+`.cache/gmeow-sync/test-fixture-manifest-v2.json`. The test runner pins that
+file's SHA-256, and each loader opens the selected action directly. This matters
+when a persistent leaf depends on a deliberately nonpersistent carrier stage:
+trying to rediscover the leaf key from currently persistent dependency receipts
+would either miss or pressure the runner to execute the DAG again. The recorded
+context removes that work while preserving fail-closed receipt and blob checks.
+The selector also records the producer-profile bundle-import receipt and every
+bundle-derived corpus-artifact action. Consumers compiled under the test profile
+load those selected producer actions; they do not derive a false miss from their
+own profile identity, and they never repair a miss by importing the corpus.
 
 ### P6 — Local gate versus CI-only `heavy`
 
@@ -291,19 +305,16 @@ hard-failing in CI so the parity criterion is never silently unverified on the
 gating path.
 
 `medium-consumer-surface` joined them later, and it is the sharpest illustration
-of criterion 2 *within one axis*. The medium axis landed four whole-DAG-in-memory
-suites at once. Two of them — `medium_identity_gate` (the same carrier emitted
-under a second declared medium, folded and compared) and `medium_bundle` (the
-shipped bundle's dictionary table, envelopes and stratified digest) — are proofs
-about the deliverable that a source edit can genuinely break, so they stayed on
-`make check`. The other two — `medium_cli` and `medium_gate` — drive shipped
-*consumer verbs* over that same emission plus a real runtime store and five
-tampered breach fixtures; their cost is the pipeline's breadth, they each reserve
-the host (`threads-required = "num-cpus"` in `.config/nextest.toml`), and so on a
-developer's gate they serialize everything else behind two full pipeline runs.
-The membership decision is therefore *per suite*, never per subsystem: "the
-medium tests" is not a unit that moves together, and moving all four would have
-taken the axis's razor off the gate it exists to hold.
+of criterion 2 *within one axis*. The former `medium_identity_gate` emitted the
+whole carrier under a second medium from inside a test; it was removed because a
+test may never rebuild the corpus. Its useful contract is now split between the
+read-only `medium_bundle` audit of the ONE producer-authenticated deliverable and
+`medium_codec_composition`, which proves `decode(encode(x)) = x` over every
+declared chain without executing the DAG. The two breadth-heavy consumer suites
+— `medium_cli` and `medium_gate` — remain in the CI-only
+`medium-consumer-surface` lane. The membership decision is therefore per
+contract: artifact inspection stays cheap and read-only, codec laws use bounded
+inputs, and no test launches another producer.
 
 **The refusal.** `make heavy` requires `CI=true` **and** a CI-vendor marker
 (`GITHUB_ACTIONS`, `GITLAB_CI`, or `BUILDKITE_BUILD_ID`), so a developer who

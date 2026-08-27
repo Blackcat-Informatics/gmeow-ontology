@@ -12,8 +12,9 @@
 //! reason lane over the lift to prove — with a positive control — that it materializes no
 //! domain fact. It also parse-checks every committed `.put.rq`.
 
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+use std::sync::{Arc, OnceLock};
 
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult, parse_dataset};
@@ -31,8 +32,19 @@ fn repo_root() -> PathBuf {
 }
 
 fn read_query(name: &str) -> String {
-    let path = repo_root().join("generated").join("queries").join(name);
-    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    let path = format!("generated/queries/{name}");
+    let bytes = query_artifacts()
+        .get(&path)
+        .unwrap_or_else(|| panic!("producer-selected stage-mappings carries no {path}"));
+    String::from_utf8(bytes.clone()).unwrap_or_else(|e| panic!("{path} is not UTF-8: {e}"))
+}
+
+fn query_artifacts() -> &'static BTreeMap<String, Vec<u8>> {
+    static QUERIES: OnceLock<BTreeMap<String, Vec<u8>>> = OnceLock::new();
+    QUERIES.get_or_init(|| {
+        gmeow_pipeline::fixture::stage_artifacts(&repo_root(), 1, "stage-mappings")
+            .expect("load producer-selected mapping/query artifacts read-only")
+    })
 }
 
 /// Run a CONSTRUCT over `dataset`, returning the constructed default-graph triples as
@@ -492,36 +504,34 @@ fn sioc_complete_over_cells_round_trip_recovers_exactly_their_source_and_fabrica
 
 #[test]
 fn every_committed_put_rq_parses_as_valid_sparql() {
-    let dir = repo_root().join("generated").join("queries");
     let empty = parse_dataset(b"", "text/turtle", None).expect("empty dataset");
     let engine = NativeSparqlEngine::new();
 
     let mut checked = 0usize;
-    for entry in std::fs::read_dir(&dir).expect("read_dir queries") {
-        let path: PathBuf = entry.expect("entry").path();
-        if path.extension().and_then(|e| e.to_str()) != Some("rq") {
+    for (path, bytes) in query_artifacts() {
+        if !path.starts_with("generated/queries/") || !path.ends_with(".rq") {
             continue;
         }
-        if !is_put_rq(&path) {
+        if !is_put_rq(path) {
             continue;
         }
-        let query = std::fs::read_to_string(&path).expect("read .put.rq");
+        let query =
+            std::str::from_utf8(bytes).unwrap_or_else(|e| panic!("{path} is not UTF-8: {e}"));
         // A broken CONSTRUCT fails to parse/evaluate; a well-formed one returns a graph
         // (empty over the empty dataset). Either way, execution proves the SPARQL is valid.
         let result = engine
             .query(
                 &empty,
                 SparqlRequest {
-                    query: &query,
+                    query,
                     base_iri: None,
                     substitutions: &[],
                 },
             )
-            .unwrap_or_else(|e| panic!("{} is not valid SPARQL: {e}", path.display()));
+            .unwrap_or_else(|e| panic!("{path} is not valid SPARQL: {e}"));
         assert!(
             matches!(result, SparqlResult::Graph(_)),
-            "{} must be a CONSTRUCT (graph result)",
-            path.display()
+            "{path} must be a CONSTRUCT (graph result)"
         );
         checked += 1;
     }
@@ -531,9 +541,6 @@ fn every_committed_put_rq_parses_as_valid_sparql() {
     );
 }
 
-fn is_put_rq(path: &Path) -> bool {
-    path.file_name()
-        .and_then(|n| n.to_str())
-        .map(|n| n.ends_with(".put.rq"))
-        .unwrap_or(false)
+fn is_put_rq(path: &str) -> bool {
+    path.ends_with(".put.rq")
 }

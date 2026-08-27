@@ -4,7 +4,7 @@
 #   ?work       — the MusicalWork individual that is the primary answer
 #   ?evidence   — a supporting individual
 #
-# Expected bindings are asserted in crates/validate/tests/conformance_music_competency.rs.
+# Expected bindings are asserted in crates/validate/tests/conformance_cases/conformance_music_competency.rs.
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>

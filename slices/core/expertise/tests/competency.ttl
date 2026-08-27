@@ -3,7 +3,7 @@
 #
 # Declarative competency questions for the expertise slice, executed by the native
 # Rust slice-test harness (crates/slicetest). Migrated from the expertise
-# competency tests in crates/validate/tests/conformance_competency.rs.
+# competency tests in crates/validate/tests/conformance_cases/conformance_competency.rs.
 #
 # All three are instance classifiers overlaying a synthetic ABox via
 # gmeow:cqDataFile (the merged ontology is TBox-only). Each query projects MULTIPLE

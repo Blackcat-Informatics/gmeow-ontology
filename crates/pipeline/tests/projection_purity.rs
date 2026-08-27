@@ -19,15 +19,8 @@
 //! DECLARED terms and are expected in the bundle — what must not appear is the value
 //! TRANSPORT surface.
 
-use std::path::{Path, PathBuf};
-
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .expect("canonicalize repo root")
-}
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
 
 /// The engine-internal value-transport datatype IRIs (see
 /// `crates/logic/src/physical/builtin_eval.rs`). None may appear in the shipped bundle.
@@ -39,19 +32,11 @@ const TRANSPORT_DATATYPES: &[&str] = &[
 
 #[test]
 fn bundle_carries_no_value_transport_surface() {
-    let bundle = repo_root().join("generated/dist/gmeow.gts");
-    let bytes = std::fs::read(&bundle).unwrap_or_else(|e| {
-        panic!(
-            "materialized bundle {} is required for the projection-purity gate — run \
-             `make check` first: {e}",
-            bundle.display()
-        )
-    });
-
     // Read every interned term of the CBOR bundle. A transport-tagged literal would
     // intern its datatype IRI as a term, so scanning the term table catches a leak in
     // any position (subject, predicate, object, graph name, or datatype reference).
-    let graph = purrdf::gts::read_graph(&bytes, true).expect("read gmeow.gts");
+    let graph = purrdf::gts::read_graph(authenticated_bundle::source_bytes(), true)
+        .expect("read authenticated gmeow.gts");
     let mut leaks: Vec<String> = Vec::new();
     // Non-vacuity guard: the numeric-builtin work DID author a first-class declared
     // term. If the bundle does not carry it, the projection is empty/wrong and the

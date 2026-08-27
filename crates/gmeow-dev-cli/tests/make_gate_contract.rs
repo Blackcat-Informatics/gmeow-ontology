@@ -69,16 +69,17 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
 /// CHECK_DAG targets that are legitimately NOT invoked as a `make <target>`
 /// step in ci.yml because they are exercised by a dedicated CI job through a
 /// different surface instead of the ontology-lane `make` steps:
-///   - `rust-build`, `nextest`: `rust-prebuild` compiles producer-independent units,
+///   - `rust-build`, `produce-test-fixtures`, `nextest`: `rust-prebuild` compiles
+///     producer-independent units, the explicit producer-independent and producer-bound
+///     CI steps publish the exact fixture receipts before archive construction,
 ///     `rust-archive` completes and authenticates that one build lineage, and `rust`
-///     runs its exact slice union.
+///     runs its exact slice union. No test target invokes a fixture producer.
 ///   - `doctests`: the parallel `rust-static` job runs `cargo test --doc
 ///     --workspace` directly because nextest archives do not carry doctests.
-///   - `clippy`: the parallel `lint` job's pre-commit suite runs the identical
-///     all-target clippy command (and fmt) once.
-///   - `check-lint`: the `lint` job runs `cargo clippy --all-targets -- -D
-///     warnings` directly and `make lint` (the standalone, non-scoped
-///     target) covers the rest of the pre-commit hygiene suite.
+///   - `clippy`: the parallel `rust-static` job runs the identical all-target
+///     clippy command once on its existing Rust/generated runner.
+///   - `check-lint`: the source-only `lint` job runs `make lint`, which is exactly
+///     the same fast pre-commit hygiene inventory without a compiled Rust hook.
 ///   - `console`: it is the declared Make PREREQUISITE of `console-smoke`,
 ///     which ci.yml does run — so `make console-smoke` assembles the tree
 ///     before it drives it, and a receipt naming `console` names something CI
@@ -96,6 +97,7 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
 /// silently leaving the console assembled by nothing.
 const CI_JOB_COVERED: &[&str] = &[
     "rust-build",
+    "produce-test-fixtures",
     "nextest",
     "doctests",
     "clippy",
@@ -111,7 +113,6 @@ const HEAVY_TASKS: &[&str] = &[
     "wasm-parity",
     "acceptance",
     "bench-soak",
-    "example-sweep-parity",
     "medium-consumer-surface",
 ];
 
@@ -150,12 +151,7 @@ fn evidence_binaries_have_one_dependency_light_owner() {
 
 /// Heavy tasks that need only the producer artifact. The medium consumer proof is
 /// scheduled separately because it also consumes the authenticated Rust archive.
-const CI_HEAVY_MATRIX_TASKS: &[&str] = &[
-    "wasm-parity",
-    "acceptance",
-    "bench-soak",
-    "example-sweep-parity",
-];
+const CI_HEAVY_MATRIX_TASKS: &[&str] = &["wasm-parity", "acceptance", "bench-soak"];
 
 #[test]
 fn every_check_dag_target_is_exercised_by_ci() {
@@ -167,7 +163,7 @@ fn every_check_dag_target_is_exercised_by_ci() {
     );
     assert!(
         !dag_targets.iter().any(|target| target == "rust-gate"),
-        "rust-gate is the aggregate ALIAS; the DAG must schedule its four parts"
+        "rust-gate is the aggregate ALIAS; the DAG must schedule its three shared-inventory parts"
     );
 
     let ci_source = ci_workflow();
@@ -258,11 +254,10 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "crate-check",
         "i18n-lint",
         "rust-build",
-        "carrier-purity",
+        "test-fixtures",
         "clippy",
         "nextest",
         "doctests",
-        "coherence-gate-teeth",
         "validate",
         "medium-gate",
         "constitution-check",
@@ -293,7 +288,7 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "mappings",
         "bench-golden-gate",
         "gts-frame-profile-gate",
-        // The aggregate alias must never be scheduled alongside its four parts.
+        // The aggregate alias must never be scheduled alongside its three parts.
         "rust-gate",
         // The CI-only breadth lane.
         "wasm-parity",
@@ -346,11 +341,12 @@ fn sync_is_not_a_blanket_prerequisite_of_the_gate() {
     }
 }
 
-/// The four Rust lanes are siblings under `rust-build`, never chained to each other.
+/// Corpus-independent Rust lanes are siblings under `rust-build`; nextest waits for the
+/// explicit fixture producer node and owns carrier/coherence without invoking a producer.
 #[test]
 fn the_rust_gate_is_split_into_independent_dag_nodes() {
     let source = xtask();
-    for task in ["carrier-purity", "clippy", "nextest", "doctests"] {
+    for task in ["clippy", "doctests"] {
         let declaration = source
             .split(&format!("name: \"{task}\""))
             .nth(1)
@@ -367,8 +363,23 @@ fn the_rust_gate_is_split_into_independent_dag_nodes() {
         );
     }
 
+    let nextest = source
+        .split("name: \"nextest\"")
+        .nth(1)
+        .expect("CHECK_DAG declares nextest");
+    let nextest_dependencies = nextest
+        .split("dependencies: ")
+        .nth(1)
+        .and_then(|tail| tail.split(',').next())
+        .expect("nextest declares dependencies");
+    assert_eq!(
+        nextest_dependencies.trim(),
+        "AFTER_TEST_FIXTURES",
+        "nextest must start only after the explicit corpus-producer DAG node"
+    );
+
     let makefile = makefile();
-    for target in ["nextest", "doctests", "clippy", "carrier-purity"] {
+    for target in ["nextest", "doctests", "clippy"] {
         assert!(
             !target_recipe(&makefile, target).trim().is_empty(),
             "{target} must be a real, independently runnable Make target"
@@ -388,7 +399,7 @@ fn the_rust_gate_is_split_into_independent_dag_nodes() {
     );
     // The alias remains, so a human can still ask for the whole Rust surface.
     let alias = target_header(&makefile, "rust-gate");
-    for part in ["carrier-purity", "clippy", "nextest", "doctests"] {
+    for part in ["clippy", "nextest", "doctests"] {
         assert!(
             alias.contains(part),
             "the rust-gate alias must still compose {part}"
@@ -396,95 +407,147 @@ fn the_rust_gate_is_split_into_independent_dag_nodes() {
     }
 }
 
-/// Fixture primers run between the shared test build and nextest. The shared build must
-/// produce their stable test-profile executables, and the primer must invoke those files
-/// directly so it cannot serialize the Rust siblings on Cargo's build lock.
+/// Fixture production is a distinct DAG node before nextest. Both sides use the
+/// already-built maintenance binary, but test-facing targets select only read-only verify.
 #[test]
-fn fixture_priming_runs_prebuilt_test_profile_binaries() {
+fn fixture_production_and_test_consumption_are_structurally_separate() {
     let makefile = makefile();
-    let recipe = target_recipe(&makefile, "prime-test-fixtures");
+    let pipeline_build = std::fs::read_to_string(repo_root().join("crates/pipeline/build.rs"))
+        .expect("read pipeline build identity");
+    let producer = target_recipe(&makefile, "produce-test-fixtures");
+    let verifier = target_recipe(&makefile, "verify-test-fixtures");
 
     assert!(
-        target_header(&makefile, "prime-test-fixtures").contains("rust-build"),
+        target_header(&makefile, "produce-test-fixtures").contains("rust-build"),
         "fixture executables must be owned by the shared Rust build"
     );
     assert!(
         makefile.contains("cargo nextest run --no-run --profile ci $(RUST_TEST_WORKSPACE_ARGS)"),
         "the shared build must precompile the exact CI-profile nextest inventory"
     );
-    for (primer, package, variable) in [
-        ("prime-docs-fixture", "gmeow-docs", "$(DOCS_FIXTURE_PRIMER)"),
-        (
-            "prime-pipeline-test-fixtures",
-            "gmeow-pipeline",
-            "$(PIPELINE_FIXTURE_PRIMER)",
+    assert!(
+        makefile.contains("TEST_FIXTURE_TOOL := $(CARGO_TARGET_DIR)/debug/gmeow-dev")
+            && producer.contains("$(TEST_FIXTURE_TOOL) test-fixtures produce --scope all")
+            && verifier.contains("$(TEST_FIXTURE_TOOL) test-fixtures verify --scope all")
+            && verifier.contains("$(TEST_FIXTURE_ENV)"),
+        "one already-built maintenance binary must expose separate producer and verifier modes"
+    );
+    assert!(
+        makefile.contains(
+            "TEST_FIXTURE_MANIFEST ?= $(abspath .cache/gmeow-sync/test-fixture-manifest-v2.json)"
+        ) && makefile.contains("GMEOW_TEST_FIXTURE_MANIFEST_SHA256")
+            && target_recipe(&makefile, "nextest").contains("$(TEST_FIXTURE_ENV)"),
+        "every corpus consumer must receive the producer-written selector and its exact digest"
+    );
+    assert!(
+        pipeline_build.contains("build_inputs::crate_input_paths")
+            && pipeline_build.contains("is_library_implementation_input")
+            && pipeline_build.contains("src/fixture.rs\" | \"src/tests.rs")
+            && !std::fs::read_to_string(
+                repo_root().join("build-support/path_dependency_inputs.rs")
+            )
+            .expect("read exact path-dependency input walker")
+            .contains("\"tests\", \"examples\", \"benches\""),
+        "external Rust test/example/bench sources must not invalidate production-stage actions"
+    );
+    // Filtering is nextest-side: retaining `--workspace` keeps Cargo's feature graph
+    // identical to the shared archive/prebuild lineage.
+    assert!(
+        makefile.contains("NEXTEST_FILTER_ARG :=")
+            && target_recipe(&makefile, "nextest").contains("$(NEXTEST_FILTER_ARG)")
+            && target_recipe(&makefile, "nextest").contains("$(RUST_TEST_WORKSPACE_ARGS)"),
+        "focused tests must filter the already-built workspace inventory instead of creating a package-scoped Cargo lineage"
+    );
+    assert!(
+        !makefile.contains("FIXTURE_TOOL_BUILD_ARGS")
+            && !makefile.contains("--example prime-")
+            && target_recipe(&makefile, "rust-prebuild").contains("test -x $(TEST_FIXTURE_TOOL)"),
+        "fixture coordination must reuse nextest's gmeow-dev binary without a second Cargo build lineage"
+    );
+    assert!(
+        !producer
+            .lines()
+            .any(|line| line.trim().starts_with("cargo ")),
+        "fixture production must not invoke Cargo after the Rust DAG fans out: {producer}"
+    );
+    assert!(
+        producer.contains(
+            "$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope all"
         ),
-    ] {
+        "the explicit producer must publish the exact shipped-bundle import before fanout"
+    );
+    let independent = target_recipe(&makefile, "produce-producer-independent-test-fixtures");
+    let producer_bound = target_recipe(&makefile, "produce-producer-bound-test-fixtures");
+    assert!(
+        independent
+            .contains("$(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-independent")
+            && !independent.contains("BUNDLE_IMPORT_CACHE_ENV"),
+        "the parallel fixture producer must contain only actions whose complete inputs are producer-independent"
+    );
+    assert!(
+        producer_bound.contains(
+            "$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-bound"
+        ),
+        "the joined fixture profile must produce generated-dependent docs and bundle actions in one process"
+    );
+    for target in ["nextest", "nextest-archive", "maint-rust-heavy"] {
+        let recipe = target_recipe(&makefile, target);
         assert!(
-            makefile.contains(&format!("--package {package}"))
-                && makefile.contains(&format!("--example {primer}")),
-            "the combined fixture-primer build must materialize {primer}"
+            !recipe.contains("test-fixtures produce")
+                && !recipe.contains("produce-test-fixtures")
+                && !recipe.contains("produce-producer-"),
+            "test-facing target {target} may authenticate fixtures but may never invoke a corpus producer: {recipe}"
         );
         assert!(
-            recipe
-                .lines()
-                .any(|line| line.split_whitespace().any(|token| token == variable)),
-            "prime-test-fixtures must execute {variable} directly"
+            target_header(&makefile, target).contains("verify-test-fixtures"),
+            "test-facing target {target} must fail closed through the read-only verifier"
+        );
+    }
+}
+
+#[test]
+fn corpus_producer_purity_is_a_pre_test_and_pre_commit_gate() {
+    let makefile = makefile();
+    let hook = std::fs::read_to_string(repo_root().join(".pre-commit-config.yaml"))
+        .expect("read pre-commit config");
+    let lint = std::fs::read_to_string(repo_root().join("scripts/lint-test-corpus-producers.sh"))
+        .expect("read test-corpus purity linter");
+
+    assert!(
+        target_recipe(&makefile, "test-corpus-purity")
+            .contains("./scripts/lint-test-corpus-producers.sh"),
+        "Make must expose the static test-corpus purity gate"
+    );
+    for target in ["rust-build", "rust-prebuild"] {
+        assert!(
+            target_header(&makefile, target).contains("test-corpus-purity"),
+            "{target} must reject producer-reachable tests before compiling or running them"
         );
     }
     assert!(
-        target_recipe(&makefile, "rust-prebuild")
-            .contains("cargo build $(FIXTURE_PRIMER_BUILD_ARGS)"),
-        "rust-prebuild must compile both fixture primers in one Cargo invocation"
+        hook.contains("id: test-corpus-purity")
+            && hook.contains("entry: ./scripts/lint-test-corpus-producers.sh")
+            && hook.contains("files: ^(crates/.*\\.rs|crates/.*/README\\.md|Makefile|scripts/"),
+        "pre-commit must reject corpus-producing changes without running on unrelated commits"
     );
-    assert_eq!(
-        makefile
-            .matches("cargo build $(FIXTURE_PRIMER_BUILD_ARGS)")
-            .count(),
-        2,
-        "the parallel prebuild and final Rust-ready stamp must share one combined primer build"
-    );
-    assert!(
-        !recipe.lines().any(|line| line.trim().starts_with("cargo ")),
-        "fixture priming must not invoke Cargo after the Rust DAG fans out: {recipe}"
-    );
-    assert!(
-        recipe.contains("$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope all"),
-        "the pipeline primer must publish the exact shipped-bundle import before fanout"
-    );
-    let independent = target_recipe(&makefile, "prime-producer-independent-test-fixtures");
-    let producer_bound = target_recipe(&makefile, "prime-producer-bound-test-fixtures");
-    assert!(
-        independent.contains("$(PIPELINE_FIXTURE_PRIMER) --scope producer-independent")
-            && !independent.contains("$(DOCS_FIXTURE_PRIMER)")
-            && !independent.contains("BUNDLE_IMPORT_CACHE_ENV"),
-        "the parallel fixture profile must contain only actions whose complete inputs are producer-independent"
-    );
-    assert!(
-        producer_bound.contains("$(DOCS_FIXTURE_PRIMER)")
-            && producer_bound.contains(
-                "$(BUNDLE_IMPORT_CACHE_ENV) $(PIPELINE_FIXTURE_PRIMER) --scope producer-bound"
-            ),
-        "the joined fixture profile must consume both generated-dependent docs and bundle actions"
-    );
-    assert!(
-        target_recipe(&makefile, "nextest-archive")
-            .contains("$(MAKE) $(NEXTEST_FIXTURE_PRIME_TARGET)"),
-        "archive construction must select its already-verified fixture DAG profile explicitly"
-    );
-    let nextest = target_recipe(&makefile, "nextest");
-    assert!(
-        nextest.contains("cargo nextest run --profile ci")
-            && !nextest.contains("BUNDLE_IMPORT_CACHE_ENV"),
-        "the broad process-isolated nextest lane must not create a concurrent bundle-cache \
-         hydration herd; exact producer-bound consumers select the cache explicitly"
-    );
-    let maint_heavy = target_recipe(&makefile, "maint-rust-heavy");
-    assert!(
-        maint_heavy.contains("cargo nextest run --profile maint-heavy")
-            && !maint_heavy.contains("BUNDLE_IMPORT_CACHE_ENV"),
-        "the broad maint-heavy lane must preserve the same no-herd boundary"
-    );
+    for seal in [
+        "run_full",
+        "run_import",
+        "run_acceptance",
+        "prime_stage_fixture",
+        "snapshot_dataset",
+        "serialize_carrier_snapshot",
+        "compile_mappings",
+        "load_authored[A-Za-z0-9_]*",
+        "examples_graph",
+        "build_[A-Za-z0-9_]*corpus",
+        "produce-test-fixtures",
+    ] {
+        assert!(
+            lint.contains(seal),
+            "test-corpus purity linter lost the {seal:?} producer seal"
+        );
+    }
 }
 
 /// Moving a task to `make heavy` is a SCHEDULING decision, never a coverage cut:
@@ -542,11 +605,6 @@ fn the_heavy_lane_still_runs_on_every_pr() {
         "each heavy matrix branch must invoke its selected task"
     );
     assert!(
-        ci.contains("if: ${{ matrix.task == 'example-sweep-parity' }}")
-            && ci.contains("tool: cargo-nextest@0.9.137"),
-        "the example-sweep heavy branch must install the pinned nextest runner its Make target invokes"
-    );
-    assert!(
         !ci_make_targets(&ci).contains("heavy"),
         "CI expands the independent heavy DAG; invoking the serial aggregate too would \
          execute every breadth proof twice"
@@ -577,9 +635,11 @@ fn the_heavy_lane_still_runs_on_every_pr() {
     );
     let medium_recipe = target_recipe(&makefile, "medium-consumer-surface");
     assert!(
-        medium_recipe.contains("$(strip $(NEXTEST_ARCHIVE_INPUT))")
-            && medium_recipe.contains("$(MAKE) check-sync"),
-        "a local non-archive invocation must verify its materialized generated fixed point"
+        medium_recipe.contains("$(NEXTEST_ARCHIVE_REPLAY_ARGS)")
+            && medium_recipe.contains("$(TEST_FIXTURE_ENV)")
+            && medium_recipe.contains("$(BUNDLE_IMPORT_CACHE_ENV)")
+            && !medium_recipe.contains("check-sync"),
+        "the medium tests must consume exact producer identities without invoking a corpus producer"
     );
     assert!(
         ci.contains("needs: [producer, lint, rust-archive, rust, rust-static, heavy, medium-consumer-surface, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"),
@@ -617,10 +677,10 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         .expect("producer-independent Rust prebuild job is bounded by the archive comment");
     assert!(
         prebuild_job.contains("run: make rust-prebuild")
-            && prebuild_job.contains("make prime-producer-independent-test-fixtures")
+            && prebuild_job.contains("make produce-producer-independent-test-fixtures")
             && prebuild_job.contains("rust-prebuild-evidence-${{ github.sha }}")
             && !prebuild_job.contains("generated-tree-${{ github.sha }}"),
-        "the Rust/fixture prebuild must overlap generation and must not consume its output"
+        "the Rust build and explicit producer-independent fixture stage must overlap generation and must not consume its output"
     );
     let archive_job = ci
         .split_once("\n  rust-archive:\n")
@@ -630,8 +690,10 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     assert!(
         archive_job.contains("needs: [producer, rust-prebuild]")
             && archive_job.contains("Restore same-run producer-independent Rust build products")
-            && archive_job
-                .contains("Rehydrate and verify every producer-independent fixture receipt")
+            && archive_job.contains("Verify every transferred test-profile pipeline fixture read-only")
+            && archive_job.contains(
+                "Produce generated-bound docs and bundle-import fixtures before archive construction"
+            )
             && archive_job.contains("Build dependency-light archive evidence tools")
             && archive_job.contains("target/debug/perf_sample")
             && archive_job.contains("archive-build-sample.json")
@@ -639,14 +701,15 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             && archive_job
                 .contains("--work-telemetry dist/nextest/fixture-timings-producer-bound.json")
             && archive_job.contains("--output-root archive=dist/nextest")
-            && archive_job
-                .contains("NEXTEST_FIXTURE_PRIME_TARGET=prime-producer-bound-test-fixtures"),
+            && archive_job.contains("make nextest-archive")
+            && !archive_job.contains("NEXTEST_FIXTURE_PRIME_TARGET")
+            && !target_recipe(&makefile, "nextest-archive").contains("test-fixtures produce"),
         "the archive authority must join the producer artifact with the parallel Rust prebuild"
     );
     assert_eq!(
         ci.matches("key: rust-prebuild-v1-").count(),
-        2,
-        "prebuild producer and archive consumer must name the same exact cache lineage"
+        3,
+        "prebuild producer, archive consumer, and static Rust consumer must name the same exact cache lineage"
     );
     assert!(
         ci.contains("rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-")
@@ -715,15 +778,24 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         .split_once("\n  # === ONTOLOGY GATE LANES ===")
         .expect("ontology gate lanes follow the static Rust job")
         .0;
-    let nextest_install = rust_static_job
-        .find("cargo-nextest@0.9.137")
-        .expect("rust-static pins cargo-nextest for make carrier-purity's rust-build prerequisite");
-    let carrier_purity = rust_static_job
-        .find("run: make carrier-purity")
-        .expect("rust-static executes the carrier-purity gate");
     assert!(
-        nextest_install < carrier_purity,
-        "rust-static must install cargo-nextest before make carrier-purity invokes rust-build"
+        rust_static_job.contains("cargo clippy --all-targets -- -D warnings")
+            && !rust_static_job.contains("cargo-nextest")
+            && !rust_static_job.contains("make carrier-purity"),
+        "rust-static must own clippy without compiling or replaying tests from the authenticated archive"
+    );
+    let lint_job = ci
+        .split_once("\n  lint:\n")
+        .expect("ci.yml carries the source-only lint job")
+        .1
+        .split_once("\n  # === ONE RUST TEST BUILD LINEAGE ===")
+        .expect("Rust build lineage follows lint")
+        .0;
+    assert!(
+        !lint_job.contains("cargo clippy")
+            && !lint_job.contains("Swatinem/rust-cache")
+            && !lint_job.contains("generated-tree-${{ github.sha }}"),
+        "source-only lint must not own a Cargo cache, generated transfer, or workspace compile"
     );
     assert!(
         ci.contains("--archive-file dist/nextest/ci.tar.zst")
@@ -763,6 +835,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         "junit_inventory_sha256",
         "perf_sample_sha256",
         "perf_accept_sha256",
+        "test_fixture_manifest_sha256",
     ] {
         assert!(
             receipt_script.contains(field),
@@ -796,10 +869,13 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             && ci
                 .matches("name: bundle-import-cache-${{ github.sha }}")
                 .count()
-                == 2
-            && ci.contains("fixture-timings-producer-independent-verify.json")
+                == 3
+            && ci
+                .matches(".cache/gmeow-sync/test-fixture-manifest-v2.json")
+                .count()
+                >= 3
             && ci.contains("fixture-timings-producer-bound.json"),
-        "the bounded shared action store and producer-bound bundle imports need distinct cache, artifact, and evidence authorities"
+        "the bounded shared action store and exact bundle import need distinct cache, artifact, and evidence authorities in archive, shard, and medium consumers"
     );
     assert!(
         ci.contains("dist/nextest/perf_sample")
@@ -830,15 +906,13 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         );
     }
     assert!(
-        rust_job.contains("--bundle-import-cache-state not-applicable")
+        rust_job.contains("--bundle-import-cache-state warm")
             && rust_job.contains("--cache-root actions=.cache/gmeow-sync/actions")
-            && !rust_job.contains(".cache/gmeow-bundle-import"),
-        "broad archive shards must receive the shared action store without transferring or selecting the producer-bound bundle cache"
-    );
-    assert!(
-        !ci.contains("export GMEOW_BUNDLE_IMPORT_CACHE")
-            && !ci.contains("export GMEOW_BUNDLE_IMPORT_SOURCE_SHA256"),
-        "broad archive shards must not select the pack cache for every process-isolated test"
+            && rust_job.contains("--cache-root bundle-import=.cache/gmeow-bundle-import")
+            && rust_job.contains("GMEOW_BUNDLE_IMPORT_CACHE:")
+            && rust_job.contains("GMEOW_BUNDLE_IMPORT_SOURCE_SHA256:")
+            && rust_job.contains("GMEOW_TEST_FIXTURE_MANIFEST_SHA256=$(jq -er"),
+        "archive shards must select the authenticated whole-bundle product read-only instead of rebuilding it per process"
     );
     assert!(
         target_recipe(&makefile, "medium-consumer-surface")
@@ -909,12 +983,27 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         ci.contains("  rust-static:") && ci.contains("run: cargo test --doc --workspace"),
         "doctests and rustdoc must remain required parallel static surfaces"
     );
+    let nextest = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+        .expect("read nextest config");
     assert!(
-        ci.contains("run: make carrier-purity")
-            && std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
-                .expect("read nextest config")
-                .contains("binary(carrier_purity)"),
-        "carrier purity must be a required sibling and excluded from duplicate archive replay"
+        !nextest
+            .split("default-filter = '''")
+            .nth(1)
+            .and_then(|tail| tail.split("'''").next())
+            .expect("default filter")
+            .contains("binary(carrier_purity)")
+            && !ci.contains("run: make carrier-purity"),
+        "carrier purity must execute once in the authenticated nextest archive"
+    );
+    assert!(
+        !nextest
+            .split("default-filter = '''")
+            .nth(1)
+            .and_then(|tail| tail.split("'''").next())
+            .expect("default filter")
+            .contains("whole_bundle_.*gate")
+            && !ci.contains("run: make coherence-gate-teeth"),
+        "coherence teeth must execute once in the authenticated nextest archive"
     );
 }
 
@@ -1007,7 +1096,7 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
 
     assert_eq!(
         target_header(&source, "lint"),
-        "lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets)."
+        "lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, and source-policy seals)."
     );
     let lint = target_recipe(&source, "lint");
     assert!(lint.contains("pre-commit run --all-files --show-diff-on-failure"));
@@ -1018,7 +1107,8 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
 
     let check_lint = target_recipe(&source, "check-lint");
     assert!(
-        check_lint.contains("SKIP=cargo-clippy pre-commit run --all-files --show-diff-on-failure")
+        check_lint.contains("pre-commit run --all-files --show-diff-on-failure")
+            && !check_lint.contains("SKIP=")
     );
 
     for target in [
@@ -1077,11 +1167,12 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
     assert!(!target_header(&source, "coherence-gate-teeth").contains("reason-verify"));
     let xtask_source = xtask();
     assert!(xtask_source.contains("const AFTER_RUST_BUILD: &[&str] = &[\"rust-build\"]"));
-    // The whole-bundle gate-teeth proofs run their OWN reasoning; they never consumed
-    // `reason-verify`'s output, so that serial edge is removed rather than preserved.
+    // The whole-bundle gate-teeth proofs run their OWN reasoning inside nextest; they
+    // never consume `reason-verify` output or receive a separate aggregate task.
     assert!(
-        !xtask_source.contains("AFTER_REASON"),
-        "coherence-gate-teeth must not be chained behind reason-verify"
+        !xtask_source.contains("AFTER_REASON")
+            && !xtask_source.contains("target: \"coherence-gate-teeth\""),
+        "coherence-gate-teeth must be part of nextest, not chained or compiled separately"
     );
 }
 
@@ -1241,34 +1332,19 @@ fn validate_help_matches_the_phase_coverage_registry() {
         );
     }
 
-    // Every phase the gate deliberately does NOT run live must be attributed to
-    // where it DOES run, so the help never implies it runs in `make validate`.
-    let owner_help_token = |owner: &str| -> &'static str {
-        match owner {
-            "example_sweep" => "per-example",
-            "slicetest" => "slice-test",
-            other => panic!(
-                "VALIDATE_PHASE_COVERAGE has an OnRustTest owner {other:?} with no help-token \
-                 mapping; add its human phrasing here and to the validate help string"
-            ),
-        }
-    };
-    let mut saw_rust_test_owner = false;
+    // Corpus-building validation phases may not be delegated to Rust tests.
     for phase in VALIDATE_PHASE_COVERAGE {
         if let PhaseHome::OnRustTest(owner) = phase.home {
-            saw_rust_test_owner = true;
-            let token = owner_help_token(owner);
-            assert!(
-                help.contains(token),
-                "validate help does not say where the excluded phase {:?} runs (expected token \
-                 {token:?} for owner {owner:?}): {help:?}",
+            panic!(
+                "validation phase {:?} delegates corpus work to Rust test owner {owner:?}",
                 phase.phase
             );
         }
     }
     assert!(
-        saw_rust_test_owner && help.contains("Rust test"),
-        "the help must state that the excluded per-example / slice-test SHACL run in the Rust \
-         test gate: {help:?}"
+        !help.contains("Rust test")
+            && !help.contains("per-example")
+            && !help.contains("slice-test"),
+        "validate help must not claim corpus validation is delegated to tests: {help:?}"
     );
 }

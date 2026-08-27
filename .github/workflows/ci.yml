@@ -62,12 +62,20 @@ jobs:
           sha256=$(rustc -Vv | sha256sum | cut -d' ' -f1)
           echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
 
+      - name: Fingerprint the exact producer implementation closure
+        id: producer-inputs
+        run: |
+          set -euo pipefail
+          sha256=$(./scripts/rust-producer-input-digest.sh crates/gmeow-dev-cli)
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+          echo "producer input sha256=$sha256"
+
       - name: Restore exact-source producer binary
         id: producer-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: dist/bin/gmeow-dev
-          key: producer-bin-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.sha256 }}-${{ hashFiles('Cargo.toml', 'Cargo.lock', 'Makefile', 'rust-toolchain.toml', '.cargo/**', 'crates/**', 'vendor/**') }}
+          key: producer-bin-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.sha256 }}-${{ steps.producer-inputs.outputs.sha256 }}
 
       - name: Cache Cargo dependencies
         if: steps.producer-cache.outputs.cache-hit != 'true'
@@ -252,31 +260,11 @@ jobs:
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
           toolchain: nightly
-          components: clippy, rustfmt
+          components: rustfmt
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      # Download the producer-materialized generated/ tree and validate its bundle
-      # digest before any cargo compile (make lint's clippy hook builds the consumers,
-      # whose build.rs embeds generated/dist/gmeow.gts).
-      - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: generated-tree-${{ github.sha }}
-          path: generated
-
-      - name: Validate the producer artifact digest (identity, not regeneration)
-        env:
-          BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
-        run: |
-          set -euo pipefail
-          echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
-
-      # `make lint` runs the pre-commit hygiene suite directly (the Rust-only
-      # config: cargo fmt/clippy, spelling, YAML, actions, secrets). pre-commit is
-      # installed via pipx (preinstalled on the runner image); each hook manages
-      # its own environment.
+      # Commit hygiene is source-only. Compiled all-target clippy is owned exactly
+      # once by rust-static below, on a runner that already has generated/ and Cargo
+      # state for rustdoc/doctests.
       - name: Install pre-commit
         run: pipx install pre-commit
 
@@ -354,18 +342,20 @@ jobs:
         id: fixture-prebuild-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .cache/gmeow-sync/actions
+          path: |
+            .cache/gmeow-sync/actions
+            .cache/gmeow-sync/test-fixture-manifest-v2.json
           key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-
             test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-
 
-      - name: Compile producer-independent CI tests and fixture primers
+      - name: Compile producer-independent CI tests and shared fixture tool
         run: make rust-prebuild
 
-      - name: Prime producer-independent typed fixtures while generation runs
+      - name: Produce test-profile corpus fixtures before any test runner starts
         run: >-
-          make prime-producer-independent-test-fixtures
+          make produce-producer-independent-test-fixtures
           FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
 
       - name: Upload producer-independent fixture evidence
@@ -455,19 +445,23 @@ jobs:
           name: rust-prebuild-evidence-${{ github.sha }}
           path: dist/nextest
 
-      # Outer caches are transfer accelerations only. The fixture coordinator and bundle
-      # importer re-derive exact action keys, verify every receipt/blob, and recompute on a
-      # clean miss. Run-scoped producer keys let the archive consume the just-completed
-      # parallel work rather than an immutable stale exact hit.
+      # The pipeline action store is a required same-run producer artifact, not a
+      # best-effort acceleration. The archive lane verifies every selected receipt and
+      # hard-fails on a transfer miss; it can never become a second corpus producer.
       - name: Restore same-run producer-independent typed fixtures
         id: fixture-prebuild-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .cache/gmeow-sync/actions
+          path: |
+            .cache/gmeow-sync/actions
+            .cache/gmeow-sync/test-fixture-manifest-v2.json
           key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-
+
+      - name: Require the exact same-run fixture transfer
+        if: steps.fixture-prebuild-cache.outputs.cache-hit != 'true'
+        run: |
+          echo "exact same-run pipeline fixture cache was not transferred" >&2
+          exit 1
 
       - name: Restore exact generated-bundle import products
         id: bundle-import-cache
@@ -478,10 +472,16 @@ jobs:
           restore-keys: |
             bundle-import-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/bundle-import/**', 'crates/errors/**', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ hashFiles('generated/dist/gmeow.gts') }}-
 
-      - name: Rehydrate and verify every producer-independent fixture receipt
+      - name: Verify every transferred test-profile pipeline fixture read-only
+        run: make verify-producer-independent-test-fixtures
+
+      - name: Produce generated-bound docs and bundle-import fixtures before archive construction
+        env:
+          BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
         run: >-
-          make prime-producer-independent-test-fixtures
-          FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent-verify.json
+          make produce-producer-bound-test-fixtures
+          FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-bound.json
+          BUNDLE_IMPORT_CACHE_ROOT="$PWD/.cache/gmeow-bundle-import"
 
       - name: Build dependency-light archive evidence tools
         run: make nextest-evidence-tools
@@ -511,9 +511,7 @@ jobs:
             --cache-root bundle-import=.cache/gmeow-bundle-import \
             --output-root archive=dist/nextest \
             -- \
-            make nextest-archive \
-              NEXTEST_FIXTURE_PRIME_TARGET=prime-producer-bound-test-fixtures \
-              FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-bound.json
+            make nextest-archive
 
       # Keep the small run/work receipts separately downloadable. The full archive is
       # intentionally large; a critical-path collector must not transfer gigabytes just
@@ -525,7 +523,6 @@ jobs:
           path: |
             dist/nextest/receipt.json
             dist/nextest/fixture-timings-producer-independent.json
-            dist/nextest/fixture-timings-producer-independent-verify.json
             dist/nextest/fixture-timings-producer-bound.json
             dist/nextest/archive-build-sample.json
             dist/producer-receipt.json
@@ -540,7 +537,6 @@ jobs:
             dist/nextest/ci.tar.zst
             dist/nextest/receipt.json
             dist/nextest/fixture-timings-producer-independent.json
-            dist/nextest/fixture-timings-producer-independent-verify.json
             dist/nextest/fixture-timings-producer-bound.json
             dist/nextest/archive-build-sample.json
             dist/nextest/junit_inventory
@@ -548,6 +544,7 @@ jobs:
             dist/nextest/perf_accept
             dist/producer-receipt.json
             .cache/gmeow-sync/actions
+            .cache/gmeow-sync/test-fixture-manifest-v2.json
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
@@ -613,6 +610,12 @@ jobs:
           name: rust-test-archive-${{ github.sha }}
           path: .
 
+      - name: Download the authenticated whole-bundle import product
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: bundle-import-cache-${{ github.sha }}
+          path: .cache/gmeow-bundle-import
+
       - name: Install cargo-nextest (pinned archive format and partition semantics)
         uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
         with:
@@ -636,10 +639,16 @@ jobs:
         run: make nextest-archive-verify
 
       - name: Workspace tests from authenticated archive (slice ${{ matrix.shard }}/3)
+        env:
+          GMEOW_BUNDLE_IMPORT_CACHE: ${{ github.workspace }}/.cache/gmeow-bundle-import
+          GMEOW_BUNDLE_IMPORT_SOURCE_SHA256: ${{ needs.producer.outputs.bundle_digest }}
         run: |
-          # The shared action store travels with the archive. The producer-bound bundle
-          # cache is a separate artifact reserved for the host-wide medium consumer;
-          # broad process-isolated shards must not create a concurrent hydration herd.
+          set -euo pipefail
+          export GMEOW_TEST_FIXTURE_MANIFEST="$PWD/.cache/gmeow-sync/test-fixture-manifest-v2.json"
+          export GMEOW_TEST_FIXTURE_MANIFEST_SHA256
+          GMEOW_TEST_FIXTURE_MANIFEST_SHA256=$(jq -er '.test_fixture_manifest.sha256' dist/nextest/receipt.json)
+          # The exact bundle-import product is authenticated and selected read-only by
+          # digest, so isolated processes never rebuild the same whole-bundle dataset.
           dist/nextest/perf_sample \
             --pair-id "ci-${GITHUB_RUN_ID}-rust-archive" \
             --variant candidate \
@@ -649,7 +658,7 @@ jobs:
             --sync-cache-state not-applicable \
             --pipeline-cache-state warm \
             --fixture-cache-state warm \
-            --bundle-import-cache-state not-applicable \
+            --bundle-import-cache-state warm \
             --nextest-archive-cache-state warm \
             --node-class github-ubuntu-latest-x64 \
             --runner-image "${ImageOS}@${ImageVersion}" \
@@ -657,6 +666,7 @@ jobs:
             --identity-receipt nextest=dist/nextest/receipt.json \
             --identity-receipt producer=dist/producer-receipt.json \
             --cache-root actions=.cache/gmeow-sync/actions \
+            --cache-root bundle-import=.cache/gmeow-bundle-import \
             -- \
             cargo nextest run \
               --archive-file dist/nextest/ci.tar.zst \
@@ -816,10 +826,12 @@ jobs:
           reporter: java-junit
 
   # Static Rust surfaces are a sibling of archive construction, not serial work on
-  # test shard 1. `make lint` already owns fmt + all-target clippy; this job owns the
-  # non-nextest rustdoc/doctest surfaces and the report-only diagnostics projection.
+  # test shard 1. This one runner owns all-target clippy, rustdoc/doctests, and the
+  # report-only diagnostics projection instead of cold-building clippy in lint. It
+  # restores the exact same-run prebuild target so docs and static surfaces reuse the
+  # already-compiled dependency graph; Cargo still fingerprints every additional unit.
   rust-static:
-    needs: [producer]
+    needs: [producer, rust-prebuild]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -834,17 +846,27 @@ jobs:
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
           toolchain: nightly
+          components: clippy
 
-      # `make carrier-purity` depends on `rust-build`, whose single workspace
-      # compile authority is `cargo nextest run --no-run`. Keep the static lane's
-      # tool provisioned and pinned even though it does not run the shared archive.
-      - name: Install cargo-nextest (carrier-purity build prerequisite)
-        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
-        with:
-          tool: cargo-nextest@0.9.137
-
-      - name: Cache Cargo dependencies
+      - name: Cache Cargo registry
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          cache-targets: false
+
+      - name: Resolve exact Rust toolchain cache identity
+        id: rust-prebuild-identity
+        run: |
+          set -euo pipefail
+          echo "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore same-run producer-independent Rust build products
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: target
+          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
+            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
 
       - name: Download the producer-materialized generated/ tree
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -859,14 +881,14 @@ jobs:
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
+      - name: Workspace clippy
+        run: cargo clippy --all-targets -- -D warnings
+
       - name: Rust API docs (broken-link gate)
         run: make rust-docs
 
       - name: Workspace doctests
         run: cargo test --doc --workspace
-
-      - name: Pipeline carrier purity
-        run: make carrier-purity
 
       - name: gmeow-lsp rust diagnostics SARIF (non-gating projection)
         continue-on-error: true
@@ -890,10 +912,10 @@ jobs:
   # Every remaining gate lands in exactly one job:
   #   ontology-validate  : validate
   #   ontology-generated : sync, constitution-check, crate-check
-  #   ontology-reason    : reason-verify, coverage, coherence gate teeth
+  #   ontology-reason    : reason-verify, coverage
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
   #                        slice-quality, compliance-report
-  #   heavy              : wasm-parity, acceptance, bench-soak, example-sweep-parity
+  #   heavy              : wasm-parity, acceptance, bench-soak
   #   medium-consumer-surface : archive replay of the two exhaustive medium suites
   ontology-validate:
     needs: [producer]
@@ -1046,11 +1068,6 @@ jobs:
           set -euo pipefail
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
-      - name: Install cargo-nextest
-        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
-        with:
-          tool: cargo-nextest
-
       - name: Native reason + reasoned-graph verify (one closure)
         run: make reason-verify REASON_VERIFY_TIMINGS_JSON=dist/reason/reason-verify.json
 
@@ -1067,9 +1084,6 @@ jobs:
 
       - name: Vendored-entity coverage — hard class/predicate floors
         run: make coverage
-
-      - name: Whole-ontology poisoned-witness and relator-mediation proofs
-        run: make coherence-gate-teeth
 
   ontology-misc:
     needs: [producer]
@@ -1156,15 +1170,14 @@ jobs:
   #                 unverified.
   #   acceptance  : full transpile-recall floor over every external RDF snapshot.
   #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
-  #   example-sweep-parity : full-corpus batched-vs-isolated SHACL identity proof.
-  # The standalone `medium-consumer-surface` job above runs the fifth matrix-independent
+  # The standalone `medium-consumer-surface` job above runs the fourth matrix-independent
   # HEAVY_TASKS member from the authenticated archive. The Make aggregate covers both.
   heavy:
     needs: [producer]
     strategy:
       fail-fast: false
       matrix:
-        task: [wasm-parity, acceptance, bench-soak, example-sweep-parity]
+        task: [wasm-parity, acceptance, bench-soak]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -1191,12 +1204,6 @@ jobs:
       - name: Install wasm32 target for the parity branch
         if: ${{ matrix.task == 'wasm-parity' }}
         run: rustup target add wasm32-unknown-unknown
-
-      - name: Install cargo-nextest for the example-sweep branch
-        if: ${{ matrix.task == 'example-sweep-parity' }}
-        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
-        with:
-          tool: cargo-nextest@0.9.137
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1

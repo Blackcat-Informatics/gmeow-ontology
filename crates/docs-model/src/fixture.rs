@@ -12,8 +12,10 @@
 //! is paid dozens of times, and when many start at once the concurrent builds
 //! contend and each takes far longer than a single build would.
 //!
-//! [`load`] / [`try_load`] build the model ONCE and store it in a content-addressed
-//! disk cache; later callers load it cheaply. `gmeow-docs` layers the renderer-only
+//! [`load`] / [`try_load`] are strict test-facing consumers: they load an exact
+//! authenticated model or fail closed, and never build on a miss. The explicitly named
+//! [`load_or_build`] / [`try_load_or_build`] producer APIs build the model once and store
+//! it in a content-addressed disk cache before test processes start. `gmeow-docs` layers the renderer-only
 //! artifacts (the per-language site and the mdBook source tree) on top of the SAME
 //! action DAG and bounded store — see `gmeow_docs::fixture`. The split is a
 //! layering one: this crate is a leaf with respect to the renderer, so the model
@@ -90,6 +92,14 @@ fn action_store(root: &Path) -> ActionStore {
     .unwrap_or_else(|error| panic!("open bounded docs-fixture action cache: {error}"))
 }
 
+fn read_only_action_store(root: &Path) -> Result<ActionStore, ActionCacheError> {
+    ActionStore::open_existing_read_only(
+        ActionStore::default_root(root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+}
+
 fn model_context(root: &Path) -> ActionContext {
     let input_digest = cache_key(root);
     ActionContext::new(
@@ -156,22 +166,8 @@ fn probe_model(
     Ok(Some((model, identity)))
 }
 
-/// Load the live documentation model rooted at `root`, from the once-per-run
-/// cache when present, otherwise built via [`DocsModel::discover`] and cached for
-/// the rest of the run. Byte-identical to a fresh `discover()` — the three
-/// `#[serde(skip)]` i18n fields are carried explicitly in the cache envelope, so
-/// localized (`fr` / `zh`) rendering is preserved (not an English fallback).
-///
-/// A cache file that is PRESENT but unreadable / undeserializable is an integrity
-/// violation (a corrupt or partial envelope, or a serde regression) — it panics
-/// loudly rather than silently rebuilding and masking it. So is a file that
-/// deserializes but does not fold to the payload digest it carries: an entry EDITED
-/// after it was written (see [`verify_payload`]). Only a genuine absence is a
-/// legitimate miss that falls through to `discover()`.
-///
-/// # Panics
-/// When the model cannot be built (use [`try_load`] to receive that as an `Err`), or
-/// on any of the integrity violations above.
+/// Load the exact authenticated documentation model produced before this consumer.
+/// A miss is terminal and never falls through to [`DocsModel::discover`].
 #[must_use]
 pub fn load(root: &Path) -> DocsModel {
     load_with_identity(root).0
@@ -182,30 +178,55 @@ pub fn load(root: &Path) -> DocsModel {
 #[must_use]
 pub fn load_with_identity(root: &Path) -> (DocsModel, FixtureIdentity) {
     try_load_with_identity(root)
-        .unwrap_or_else(|error| panic!("build docs model from live slices: {error}"))
+        .unwrap_or_else(|error| panic!("load authenticated docs model: {error}"))
 }
 
-/// [`load`], but surfacing a model-BUILD failure as `Err` instead of panicking.
-///
-/// Same cache, same key, same integrity contract: a cache file that is present but
-/// undeserializable still panics (that is corruption, not an honest absence), and a
-/// genuine miss still builds and caches. The only difference is the disposition of a
-/// [`DocsModel::discover`] error, which some callers must report as a first-class
-/// finding rather than a crash — `gmeow-slice-quality`'s DocMaturity axis records it
-/// as `slice-quality.doc-maturity.model-unavailable`, and swapping that for a panic
-/// would turn a recorded, gradeable condition into a dead process.
-///
-/// # Errors
-/// The [`DocsError`] [`DocsModel::discover`] raised on a genuine cache miss.
-///
-/// # Panics
-/// On a cache entry that is present but undeserializable, or present but unreadable
-/// for a reason other than absence — both are corruption, never a silent rebuild.
+/// [`load`], but reporting an absent authenticated fixture as an error.
 pub fn try_load(root: &Path) -> Result<DocsModel, DocsError> {
     try_load_with_identity(root).map(|(model, _)| model)
 }
 
 fn try_load_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
+    let context = model_context(root);
+    let cache_path = cache_path(root);
+    let store = read_only_action_store(root).map_err(|error| {
+        DocsError::FixtureUnavailable(format!(
+            "authenticated docs action store is unavailable without mutation: {error}"
+        ))
+    })?;
+    match probe_model(&store, &context, &cache_path) {
+        Ok(Some(hit)) => Ok(hit),
+        Ok(None) => Err(DocsError::FixtureUnavailable(format!(
+            "no receipt for action {}; run the explicit corpus producer before starting tests",
+            context.key()
+        ))),
+        Err(error) => panic!(
+            "corrupt docs-fixture action cache at {}: {error}",
+            cache_path.display()
+        ),
+    }
+}
+
+/// Load or produce the documentation model for an explicit producer operation.
+/// Test code must use [`load`] or [`try_load`] instead.
+#[must_use]
+pub fn load_or_build(root: &Path) -> DocsModel {
+    load_or_build_with_identity(root).0
+}
+
+/// Producer counterpart of [`load_with_identity`].
+#[must_use]
+pub fn load_or_build_with_identity(root: &Path) -> (DocsModel, FixtureIdentity) {
+    try_load_or_build_with_identity(root)
+        .unwrap_or_else(|error| panic!("build docs model from live slices: {error}"))
+}
+
+/// Producer counterpart of [`try_load`].
+pub fn try_load_or_build(root: &Path) -> Result<DocsModel, DocsError> {
+    try_load_or_build_with_identity(root).map(|(model, _)| model)
+}
+
+fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
     let store = action_store(root);
     let context = model_context(root);
     let key = context.key();
@@ -241,9 +262,28 @@ fn try_load_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), D
 }
 
 /// Authenticate the model action and return its receipt identity without
-/// deserializing the model on a warm hit. A miss is elected and built normally.
+/// deserializing the model. A miss is terminal.
 #[must_use]
 pub fn model_identity(root: &Path) -> FixtureIdentity {
+    let store = read_only_action_store(root)
+        .unwrap_or_else(|error| panic!("open authenticated docs model store read-only: {error}"));
+    let context = model_context(root);
+    match store.inspect::<DocsActionPayload>(&context) {
+        Ok(Some(receipt)) => {
+            validate_model_receipt(&context, &receipt)
+                .unwrap_or_else(|error| panic!("corrupt docs-fixture model receipt: {error}"));
+            FixtureIdentity::from_receipt(&receipt)
+        }
+        Ok(None) => {
+            panic!("authenticated docs model fixture is absent; tests may not rebuild the corpus")
+        }
+        Err(error) => panic!("corrupt docs-fixture model action cache: {error}"),
+    }
+}
+
+/// Producer counterpart of [`model_identity`].
+#[must_use]
+pub fn model_identity_or_build(root: &Path) -> FixtureIdentity {
     let store = action_store(root);
     let context = model_context(root);
     match store.inspect::<DocsActionPayload>(&context) {
@@ -252,7 +292,7 @@ pub fn model_identity(root: &Path) -> FixtureIdentity {
                 .unwrap_or_else(|error| panic!("corrupt docs-fixture model receipt: {error}"));
             FixtureIdentity::from_receipt(&receipt)
         }
-        Ok(None) => load_with_identity(root).1,
+        Ok(None) => load_or_build_with_identity(root).1,
         Err(error) => panic!("corrupt docs-fixture model action cache: {error}"),
     }
 }
@@ -479,8 +519,15 @@ const CRATE_INPUT_SUBPATHS: [&str; 5] = ["src", "assets", "templates", "Cargo.to
 /// are explicitly gitignored at their owning boundary. Folding them into every warm
 /// test process would make an output mutate its own input key and repeatedly hash a
 /// large non-input tree.
-const CRATE_INPUT_EXCLUDED_SUBPATHS: [&str; 2] =
-    ["assets/console/pkg", "assets/console/smoke/node_modules"];
+const CRATE_INPUT_EXCLUDED_SUBPATHS: [&str; 5] = [
+    // The docs/docs-model fixture modules decide cache admission and persistence;
+    // neither changes the model/site/book bytes whose identities they guard.
+    "src/fixture.rs",
+    "assets/console/pkg",
+    "assets/console/smoke",
+    "assets/console/tests",
+    "assets/tests",
+];
 
 /// The repo-root-relative crate directory the implementation closure is rooted at.
 ///
@@ -1014,7 +1061,7 @@ gmeow-e = { path = \"../e\" }\n";
     }
 
     #[test]
-    #[should_panic(expected = "corrupt docs-fixture action cache")]
+    #[should_panic(expected = "load authenticated docs model")]
     fn present_but_corrupt_model_cache_panics() {
         let (_tmp, root) = temp_root("corrupt-model");
         let cp = cache_path(&root);

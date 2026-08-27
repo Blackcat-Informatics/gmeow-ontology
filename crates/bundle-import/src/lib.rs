@@ -6,20 +6,27 @@
 //! Required repository commands and whole-bundle tests run in separate processes. This
 //! boundary makes them share the expensive container decode/freeze/index construction:
 //! a first process imports normally and publishes an immutable `PURRPCK1` image; later
-//! processes verify its receipt/blob and restore the exact indexed dataset. Missing
-//! material recomputes. A referenced missing/truncated/tampered receipt or pack hard
-//! fails. Per-key OS election locks prevent duplicate builders, atomic rename prevents a
-//! partial publication, and a store lease makes bounded GC safe against active readers.
+//! processes verify its receipt/blob and restore the exact indexed dataset. Producer
+//! callers use [`import_graph_preserving_cached`], where a clean miss computes the
+//! product. Test-facing callers use [`load_graph_preserving_cached`], where a clean miss
+//! is terminal and can never invoke the importer. A referenced missing/truncated/tampered
+//! receipt or pack hard fails. Per-key OS election locks prevent duplicate builders,
+//! atomic rename prevents a partial publication, and a store lease makes bounded GC safe
+//! against active readers.
 //!
 //! This cache never substitutes for the raw GTS frame/profile audit. Callers retain and
 //! independently grade the original bytes where header/blob/compression semantics matter.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_action_cache::{
+    ActionContext, ActionInput, ActionStore, FileKind, ProducerIdentity, STORE_FORMAT_VERSION,
+    StoreLimits,
+};
 use purrdf::{ContentDigest, PackBuilder, RdfDataset, restore_pack};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -27,6 +34,7 @@ use sha2::{Digest, Sha256};
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
 #[cfg(test)]
+#[path = "../../../build-support/path_dependency_inputs.rs"]
 mod build_inputs;
 
 define_diag_kind! {
@@ -57,6 +65,12 @@ const RETAINED_NAMESPACES: usize = 4;
 const MAX_STORE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
 const STORE_SENTINEL: &str = ".gmeow-bundle-import-store-v1";
 const STORE_SENTINEL_BYTES: &[u8] = b"gmeow-bundle-import-store:v1\n";
+const CORPUS_ARTIFACT_CODEC: &str = "authenticated-corpus-artifact-v1";
+const TEST_FIXTURE_MANIFEST_PATH_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST";
+const TEST_FIXTURE_MANIFEST_SHA256_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST_SHA256";
+const TEST_FIXTURE_MANIFEST_SCHEMA_VERSION: u32 = 2;
+const BUNDLE_FIXTURE_SELECTOR_SCHEMA_VERSION: u32 = 1;
+const MAX_TEST_FIXTURE_MANIFEST_BYTES: u64 = 16 * 1024 * 1024;
 
 /// Exact producer identity over this implementation, dependency lock/configuration,
 /// rustc, target, profile, features, and code-generation flags.
@@ -103,6 +117,406 @@ pub struct ImportOutcome {
     pub transferred_bytes: u64,
 }
 
+/// Producer-side admission of one exact graph-preserving import action.
+///
+/// A warm admission authenticates the immutable receipt and packed-product bytes but
+/// deliberately does not restore the indexed dataset. Tests load that dataset through
+/// [`load_graph_preserving_cached`]; restoring it in the producer first would duplicate
+/// the largest warm-path allocation without strengthening their selected identity.
+#[derive(Debug)]
+pub struct ImportAdmission {
+    pub receipt: ImportReceipt,
+    pub built: bool,
+    pub transferred_bytes: u64,
+}
+
+/// Exact identity of one producer-published, bundle-derived test artifact.
+///
+/// The profile that executes tests may differ from the profile that admitted the
+/// producer action. Consumers therefore use this producer-issued identity instead of
+/// deriving a new action key from their own executable profile.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CorpusArtifactPublication {
+    pub schema_version: u32,
+    pub action_key: String,
+    pub receipt_digest: String,
+    pub build_fingerprint: String,
+    pub name: String,
+    pub source_sha256: String,
+    pub product_digest: String,
+    pub product_bytes: u64,
+}
+
+/// Producer-issued selection for every fixture derived from one exact GTS bundle.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BundleFixtureSelector {
+    pub schema_version: u32,
+    pub receipt_digest: String,
+    pub receipt: ImportReceipt,
+    pub corpus_artifacts: BTreeMap<String, CorpusArtifactPublication>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TestFixtureSelectorEnvelope {
+    schema_version: u32,
+    bundle_import: BundleFixtureSelector,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+struct CorpusArtifactPayload {
+    schema_version: u32,
+    name: String,
+    source_sha256: String,
+}
+
+fn expected_repository_source_sha256() -> gmeow_errors::Result<String> {
+    let expected = std::env::var("GMEOW_BUNDLE_IMPORT_SOURCE_SHA256").map_err(|_| {
+        diag(
+            "bundle import: GMEOW_BUNDLE_IMPORT_SOURCE_SHA256 is required; tests may only read \
+             an explicitly selected corpus identity",
+        )
+    })?;
+    if expected.len() != 64 || !expected.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(diag(
+            "bundle import: GMEOW_BUNDLE_IMPORT_SOURCE_SHA256 must be a 64-digit SHA-256",
+        ));
+    }
+    Ok(expected.to_ascii_lowercase())
+}
+
+fn validate_bundle_fixture_selector(selector: &BundleFixtureSelector) -> gmeow_errors::Result<()> {
+    let receipt = &selector.receipt;
+    if selector.schema_version != BUNDLE_FIXTURE_SELECTOR_SCHEMA_VERSION
+        || receipt.schema_version != SCHEMA_VERSION
+        || receipt.codec != CODEC
+        || selector.receipt_digest != receipt.receipt_digest()
+        || !is_digest(&selector.receipt_digest)
+        || !is_digest(&receipt.action_key)
+        || !is_digest(&receipt.build_fingerprint)
+        || !is_digest(&receipt.source_digest)
+        || !is_digest(&receipt.pack_digest)
+    {
+        return Err(diag(
+            "bundle import: producer fixture selector has an invalid receipt identity",
+        ));
+    }
+    let expected_action = digest(&[
+        b"gmeow:bundle-import-action:v1",
+        receipt.build_fingerprint.as_bytes(),
+        CODEC.as_bytes(),
+        receipt.source_digest.as_bytes(),
+    ]);
+    if receipt.action_key != expected_action {
+        return Err(diag(
+            "bundle import: producer fixture selector action key is not receipt-derived",
+        ));
+    }
+    for (name, artifact) in &selector.corpus_artifacts {
+        if artifact.schema_version != 1
+            || artifact.name != *name
+            || artifact.build_fingerprint != receipt.build_fingerprint
+            || artifact.source_sha256 != receipt.source_digest
+            || !is_digest(&artifact.action_key)
+            || !is_digest(&artifact.receipt_digest)
+            || !is_digest(&artifact.product_digest)
+        {
+            return Err(diag(format!(
+                "bundle import: producer fixture selector has an invalid artifact identity for {name}"
+            )));
+        }
+        validate_corpus_artifact_name(name)?;
+        let context =
+            corpus_artifact_context_for(&artifact.source_sha256, name, &artifact.build_fingerprint);
+        if artifact.action_key != context.key().as_str() {
+            return Err(diag(format!(
+                "bundle import: producer fixture selector action key is not context-derived for {name}"
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn load_bundle_fixture_selector() -> gmeow_errors::Result<BundleFixtureSelector> {
+    let selected_path = std::env::var_os(TEST_FIXTURE_MANIFEST_PATH_ENV)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| {
+            diag(format!(
+                "bundle import: {TEST_FIXTURE_MANIFEST_PATH_ENV} is required; tests may not discover a producer identity"
+            ))
+        })?;
+    let selected_path = PathBuf::from(selected_path);
+    let path = if selected_path.is_absolute() {
+        selected_path
+    } else {
+        std::env::current_dir()
+            .map_err(io_diag)?
+            .join(selected_path)
+    };
+    let expected = std::env::var(TEST_FIXTURE_MANIFEST_SHA256_ENV)
+        .ok()
+        .map(|value| value.to_ascii_lowercase())
+        .filter(|value| is_digest(value))
+        .ok_or_else(|| {
+            diag(format!(
+                "bundle import: {TEST_FIXTURE_MANIFEST_SHA256_ENV} must select one exact SHA-256"
+            ))
+        })?;
+    let bytes = read_bounded(
+        &path,
+        MAX_TEST_FIXTURE_MANIFEST_BYTES,
+        "test fixture selector",
+    )?;
+    let actual = format!("{:x}", Sha256::digest(&bytes));
+    if actual != expected {
+        return Err(diag(format!(
+            "bundle import: test fixture selector identity mismatch: expected {expected}, actual {actual}"
+        )));
+    }
+    let envelope: TestFixtureSelectorEnvelope =
+        serde_json::from_slice(&bytes).map_err(|error| {
+            diag(format!(
+                "bundle import: decode test fixture selector: {error}"
+            ))
+        })?;
+    if envelope.schema_version != TEST_FIXTURE_MANIFEST_SCHEMA_VERSION {
+        return Err(diag(format!(
+            "bundle import: test fixture selector schema {} != {TEST_FIXTURE_MANIFEST_SCHEMA_VERSION}",
+            envelope.schema_version
+        )));
+    }
+    validate_bundle_fixture_selector(&envelope.bundle_import)?;
+    Ok(envelope.bundle_import)
+}
+
+fn corpus_artifact_context_for(
+    source_sha256: &str,
+    name: &str,
+    build_fingerprint: &str,
+) -> ActionContext {
+    ActionContext::new(
+        "test-corpus",
+        name,
+        ProducerIdentity::new(format!("{build_fingerprint}:{CORPUS_ARTIFACT_CODEC}")),
+        CORPUS_ARTIFACT_CODEC,
+        vec![ActionInput::Raw {
+            logical_path: "generated/dist/gmeow.gts".to_string(),
+            file_kind: FileKind::File,
+            executable: false,
+            digest: source_sha256.to_string(),
+        }],
+    )
+}
+
+fn corpus_artifact_context(source_sha256: &str, name: &str) -> ActionContext {
+    corpus_artifact_context_for(source_sha256, name, BUILD_FINGERPRINT)
+}
+
+fn validate_corpus_artifact_name(name: &str) -> gmeow_errors::Result<()> {
+    if !name.is_empty()
+        && name
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.'))
+    {
+        Ok(())
+    } else {
+        Err(diag(format!(
+            "bundle import: invalid authenticated corpus artifact name {name:?}"
+        )))
+    }
+}
+
+/// Publish a derived corpus artifact from an explicitly selected source bundle.
+///
+/// This is a producer-only API. The action key binds the exact source bytes, artifact
+/// kind, extraction codec, and producer build fingerprint. Test processes must call
+/// [`load_authenticated_corpus_artifact`] instead.
+pub fn publish_authenticated_corpus_artifact(
+    repo_root: &Path,
+    gts_bytes: &[u8],
+    name: &str,
+    bytes: &[u8],
+) -> gmeow_errors::Result<CorpusArtifactPublication> {
+    validate_corpus_artifact_name(name)?;
+    let source_sha256 = ContentDigest::of(gts_bytes).to_hex();
+    let context = corpus_artifact_context(&source_sha256, name);
+    let payload = CorpusArtifactPayload {
+        schema_version: 1,
+        name: name.to_string(),
+        source_sha256: source_sha256.clone(),
+    };
+    let store = ActionStore::open(
+        ActionStore::default_root(repo_root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .map_err(|error| {
+        diag(format!(
+            "bundle import: open corpus artifact store: {error}"
+        ))
+    })?;
+    let receipt = store
+        .publish(&context, ContentDigest::of(bytes).to_hex(), payload, bytes)
+        .map_err(|error| diag(format!("bundle import: publish corpus artifact: {error}")))?;
+    Ok(CorpusArtifactPublication {
+        schema_version: 1,
+        action_key: receipt.action_key.as_str().to_owned(),
+        receipt_digest: receipt.digest(),
+        build_fingerprint: BUILD_FINGERPRINT.to_string(),
+        name: name.to_string(),
+        source_sha256: source_sha256.to_string(),
+        product_digest: receipt.product_digest,
+        product_bytes: receipt.product_blob.bytes,
+    })
+}
+
+/// Load one already-produced corpus artifact selected by the runner's exact bundle SHA.
+///
+/// A missing or corrupt action is terminal. This function has no producer callback and
+/// never derives the requested bytes from source.
+pub fn load_authenticated_corpus_artifact(
+    repo_root: &Path,
+    name: &str,
+) -> gmeow_errors::Result<Vec<u8>> {
+    validate_corpus_artifact_name(name)?;
+    let source_sha256 = expected_repository_source_sha256()?;
+    let selector = load_bundle_fixture_selector()?;
+    if selector.receipt.source_digest != source_sha256 {
+        return Err(diag(format!(
+            "bundle import: fixture selector source {} != runner-selected {source_sha256}",
+            selector.receipt.source_digest
+        )));
+    }
+    let selected = selector.corpus_artifacts.get(name).ok_or_else(|| {
+        diag(format!(
+            "authenticated corpus artifact {name:?} is absent from the producer selector; tests may not rebuild it"
+        ))
+    })?;
+    let context = corpus_artifact_context_for(&source_sha256, name, &selected.build_fingerprint);
+    let expected_payload = CorpusArtifactPayload {
+        schema_version: 1,
+        name: name.to_string(),
+        source_sha256,
+    };
+    let store = ActionStore::open_existing_read_only(
+        ActionStore::default_root(repo_root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .map_err(|error| {
+        diag(format!(
+            "bundle import: open corpus artifact store read-only: {error}"
+        ))
+    })?;
+    let entry = store
+        .get::<CorpusArtifactPayload>(&context)
+        .map_err(|error| diag(format!("bundle import: load corpus artifact: {error}")))?
+        .ok_or_else(|| {
+            diag(format!(
+                "authenticated corpus artifact {name:?} is absent; tests may not rebuild it"
+            ))
+        })?;
+    if entry.receipt.payload != expected_payload {
+        return Err(diag(format!(
+            "bundle import: authenticated corpus artifact {name:?} payload identity mismatch"
+        )));
+    }
+    if entry.receipt.action_key.as_str() != selected.action_key
+        || entry.receipt.digest() != selected.receipt_digest
+        || entry.receipt.product_digest != selected.product_digest
+        || entry.receipt.product_blob.bytes != selected.product_bytes
+    {
+        return Err(diag(format!(
+            "bundle import: authenticated corpus artifact {name:?} differs from the producer selector"
+        )));
+    }
+    Ok(entry.bytes)
+}
+
+/// Load and decode one producer-published deterministic ustar corpus archive.
+///
+/// This is a read-only test-consumer seam over [`load_authenticated_corpus_artifact`].
+/// An absent, stale, corrupt, or malformed archive hard-fails; it never discovers
+/// repository files or invokes an archive producer.
+pub fn load_authenticated_corpus_archive(
+    repo_root: &Path,
+    name: &str,
+) -> gmeow_errors::Result<BTreeMap<String, Vec<u8>>> {
+    let bytes = load_authenticated_corpus_artifact(repo_root, name)?;
+    let members = purrdf::ustar::read_archive(&bytes).map_err(|error| {
+        diag(format!(
+            "bundle import: decode corpus archive {name:?}: {error}"
+        ))
+    })?;
+    Ok(members.into_iter().collect())
+}
+
+/// Read the repository's selected GTS source only after authenticating its exact identity.
+///
+/// Test runners must supply `GMEOW_BUNDLE_IMPORT_SOURCE_SHA256`; absence or mismatch is
+/// terminal. This helper performs no import, cache publication, generation, or fallback and
+/// is therefore suitable for tests that inspect wire bytes directly.
+pub fn load_authenticated_source_bytes(repo_root: &Path) -> gmeow_errors::Result<Vec<u8>> {
+    let expected = expected_repository_source_sha256()?;
+    let path = repo_root.join("generated/dist/gmeow.gts");
+    let bytes = fs::read(&path).map_err(|error| {
+        diag(format!(
+            "bundle import: read authenticated source {}: {error}",
+            path.display()
+        ))
+    })?;
+    let actual = ContentDigest::of(&bytes).to_hex();
+    if actual != expected {
+        return Err(diag(format!(
+            "bundle import: selected source identity mismatch: expected {expected}, actual {actual}"
+        )));
+    }
+    Ok(bytes)
+}
+
+/// Select the repository's materialized GTS path only after authenticating its bytes.
+///
+/// This is the test-facing seam for consumer commands whose public contract accepts a
+/// filename rather than bytes. It performs no production or fallback. Callers must keep
+/// the returned path read-only for the duration of the consumer invocation.
+pub fn authenticated_source_path(repo_root: &Path) -> gmeow_errors::Result<PathBuf> {
+    load_authenticated_source_bytes(repo_root)?;
+    Ok(repo_root.join("generated/dist/gmeow.gts"))
+}
+
+/// Load the repository's already-produced, graph-preserving corpus product.
+///
+/// Both the raw source identity and the immutable import receipt/blob are authenticated.
+/// A clean cache miss is terminal; this function never invokes the importer or publishes
+/// cache state.
+pub fn load_authenticated_repository_bundle(
+    repo_root: &Path,
+) -> gmeow_errors::Result<ImportOutcome> {
+    let cache_root = std::env::var_os("GMEOW_BUNDLE_IMPORT_CACHE")
+        .map(PathBuf::from)
+        .ok_or_else(|| {
+            diag(
+                "bundle import: GMEOW_BUNDLE_IMPORT_CACHE is required; tests may not build a \
+                 missing corpus fixture",
+            )
+        })?;
+    let bytes = load_authenticated_source_bytes(repo_root)?;
+    let selector = load_bundle_fixture_selector()?;
+    let source_digest = ContentDigest::of(&bytes).to_hex();
+    if selector.receipt.source_digest != source_digest {
+        return Err(diag(format!(
+            "bundle import: fixture selector source {} != authenticated repository source {source_digest}",
+            selector.receipt.source_digest
+        )));
+    }
+    let outcome = load_graph_preserving_selected(&cache_root, &bytes, &selector)?;
+    if outcome.built {
+        return Err(diag(
+            "bundle import: test-facing repository loader unexpectedly produced a corpus fixture",
+        ));
+    }
+    Ok(outcome)
+}
+
 /// Import `gts_bytes` once across processes, rooted under `cache_root`.
 ///
 /// # Errors
@@ -131,6 +545,216 @@ pub fn import_graph_preserving_cached(
     // restore obsolete namespaces alongside a valid current entry; a warm hit cannot
     // make those bytes exempt from the store contract.
     prune_store(cache_root, BUILD_FINGERPRINT)?;
+    Ok(outcome)
+}
+
+/// Admit the exact graph-preserving import before tests without eagerly restoring a
+/// warm packed dataset.
+///
+/// A clean miss delegates to [`import_graph_preserving_cached`] and therefore produces
+/// the action exactly once. A hit re-hashes the referenced pack and validates its
+/// immutable receipt, returning only that identity. This is a producer API, not a test
+/// fallback; test consumers remain read-only through [`load_graph_preserving_cached`].
+pub fn admit_graph_preserving_cached(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+) -> gmeow_errors::Result<ImportAdmission> {
+    if let Some(receipt) = inspect_graph_preserving_cached(cache_root, gts_bytes)? {
+        return Ok(ImportAdmission {
+            transferred_bytes: receipt.pack_bytes,
+            receipt,
+            built: false,
+        });
+    }
+    let outcome = import_graph_preserving_cached(cache_root, gts_bytes)?;
+    Ok(ImportAdmission {
+        receipt: outcome.receipt,
+        built: outcome.built,
+        transferred_bytes: outcome.transferred_bytes,
+    })
+}
+
+fn inspect_graph_preserving_cached(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+) -> gmeow_errors::Result<Option<ImportReceipt>> {
+    if !cache_root.exists() {
+        return Ok(None);
+    }
+    ensure_real_directory(cache_root, "cache root")?;
+    let sentinel_path = cache_root.join(STORE_SENTINEL);
+    if !sentinel_path.exists() {
+        return Ok(None);
+    }
+    let sentinel = read_bounded(
+        &sentinel_path,
+        u64::try_from(STORE_SENTINEL_BYTES.len()).unwrap_or(u64::MAX),
+        "store sentinel",
+    )?;
+    if sentinel != STORE_SENTINEL_BYTES {
+        return Err(diag("bundle import: store sentinel identity mismatch"));
+    }
+
+    let source_digest = ContentDigest::of(gts_bytes).to_hex();
+    let action_key = digest(&[
+        b"gmeow:bundle-import-action:v1",
+        BUILD_FINGERPRINT.as_bytes(),
+        CODEC.as_bytes(),
+        source_digest.as_bytes(),
+    ]);
+    let build_root = cache_root.join(BUILD_FINGERPRINT);
+    if !build_root.exists() {
+        return Ok(None);
+    }
+    let namespace = build_root.join(format!("v{SCHEMA_VERSION}"));
+    if !namespace.exists() {
+        return Ok(None);
+    }
+    ensure_real_directory(&build_root, "build namespace")?;
+    validate_build_root(&build_root)?;
+    ensure_real_directory(&namespace, "schema namespace")?;
+    for lane in ["receipts", "blobs", "locks"] {
+        ensure_real_directory(&namespace.join(lane), "cache lane")?;
+    }
+    validate_schema_root(&namespace)?;
+
+    let receipt_path = namespace.join(format!("receipts/{action_key}.json"));
+    if !receipt_path.is_file() {
+        return Ok(None);
+    }
+    let root_lock = open_existing_lock(&cache_root.join("store.lock"))?;
+    let store_lock = open_existing_lock(&namespace.join("locks/store.lock"))?;
+    let action_lock = open_existing_lock(&namespace.join(format!("locks/{action_key}.lock")))?;
+    root_lock.lock_shared().map_err(io_diag)?;
+    store_lock.lock_shared().map_err(io_diag)?;
+    action_lock.lock_shared().map_err(io_diag)?;
+    let inspected = load_verified_pack(
+        &namespace,
+        &action_key,
+        BUILD_FINGERPRINT,
+        &source_digest,
+        gts_bytes.len(),
+    )
+    .map(|entry| entry.map(|(receipt, _pack)| receipt));
+    action_lock.unlock().map_err(io_diag)?;
+    store_lock.unlock().map_err(io_diag)?;
+    root_lock.unlock().map_err(io_diag)?;
+    inspected
+}
+
+/// Load an already-produced graph-preserving import product without any fallback.
+///
+/// This is the test-facing consumer API. It opens only existing cache structures,
+/// authenticates the action receipt and referenced pack, restores the indexed dataset,
+/// and fails closed if the exact action is absent. It never creates a cache directory,
+/// lock, receipt, or pack and never calls `purrdf::import_gts_events` or
+/// [`PackBuilder::build_bytes`].
+pub fn load_graph_preserving_cached(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+) -> gmeow_errors::Result<ImportOutcome> {
+    let source_digest = ContentDigest::of(gts_bytes).to_hex();
+    let selected = match (
+        std::env::var_os(TEST_FIXTURE_MANIFEST_PATH_ENV),
+        std::env::var_os(TEST_FIXTURE_MANIFEST_SHA256_ENV),
+    ) {
+        (None, None) => None,
+        (Some(_), Some(_)) => {
+            let selector = load_bundle_fixture_selector()?;
+            (selector.receipt.source_digest == source_digest).then_some(selector)
+        }
+        _ => {
+            return Err(diag(format!(
+                "bundle import: {TEST_FIXTURE_MANIFEST_PATH_ENV} and {TEST_FIXTURE_MANIFEST_SHA256_ENV} must be configured together"
+            )));
+        }
+    };
+    if let Some(selector) = selected {
+        return load_graph_preserving_selected(cache_root, gts_bytes, &selector);
+    }
+    load_graph_preserving_for_build(cache_root, gts_bytes, BUILD_FINGERPRINT, None)
+}
+
+fn load_graph_preserving_selected(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+    selector: &BundleFixtureSelector,
+) -> gmeow_errors::Result<ImportOutcome> {
+    validate_bundle_fixture_selector(selector)?;
+    load_graph_preserving_for_build(
+        cache_root,
+        gts_bytes,
+        &selector.receipt.build_fingerprint,
+        Some(selector),
+    )
+}
+
+fn load_graph_preserving_for_build(
+    cache_root: &Path,
+    gts_bytes: &[u8],
+    build_fingerprint: &str,
+    selector: Option<&BundleFixtureSelector>,
+) -> gmeow_errors::Result<ImportOutcome> {
+    ensure_real_directory(cache_root, "cache root")?;
+    let sentinel = read_bounded(
+        &cache_root.join(STORE_SENTINEL),
+        u64::try_from(STORE_SENTINEL_BYTES.len()).unwrap_or(u64::MAX),
+        "store sentinel",
+    )?;
+    if sentinel != STORE_SENTINEL_BYTES {
+        return Err(diag("bundle import: store sentinel identity mismatch"));
+    }
+
+    let source_digest = ContentDigest::of(gts_bytes).to_hex();
+    let action_key = digest(&[
+        b"gmeow:bundle-import-action:v1",
+        build_fingerprint.as_bytes(),
+        CODEC.as_bytes(),
+        source_digest.as_bytes(),
+    ]);
+    let build_root = cache_root.join(build_fingerprint);
+    let namespace = build_root.join(format!("v{SCHEMA_VERSION}"));
+    ensure_real_directory(&build_root, "build namespace")?;
+    validate_build_root(&build_root)?;
+    ensure_real_directory(&namespace, "schema namespace")?;
+    for lane in ["receipts", "blobs", "locks"] {
+        ensure_real_directory(&namespace.join(lane), "cache lane")?;
+    }
+    validate_schema_root(&namespace)?;
+
+    let receipt_path = namespace.join(format!("receipts/{action_key}.json"));
+    if !receipt_path.is_file() {
+        return Err(diag(
+            "authenticated bundle-import corpus fixture is absent; tests may not rebuild it",
+        ));
+    }
+    let root_lock = open_existing_lock(&cache_root.join("store.lock"))?;
+    let store_lock = open_existing_lock(&namespace.join("locks/store.lock"))?;
+    let action_lock = open_existing_lock(&namespace.join(format!("locks/{action_key}.lock")))?;
+    root_lock.lock_shared().map_err(io_diag)?;
+    store_lock.lock_shared().map_err(io_diag)?;
+    action_lock.lock_shared().map_err(io_diag)?;
+    let loaded = load(
+        &namespace,
+        &action_key,
+        build_fingerprint,
+        &source_digest,
+        gts_bytes.len(),
+    );
+    action_lock.unlock().map_err(io_diag)?;
+    store_lock.unlock().map_err(io_diag)?;
+    root_lock.unlock().map_err(io_diag)?;
+    let outcome = loaded?.ok_or_else(|| {
+        diag("authenticated bundle-import corpus fixture is absent; tests may not rebuild it")
+    })?;
+    if let Some(selector) = selector
+        && (outcome.receipt != selector.receipt
+            || outcome.receipt.receipt_digest() != selector.receipt_digest)
+    {
+        return Err(diag(
+            "bundle import: authenticated import receipt differs from the producer selector",
+        ));
+    }
     Ok(outcome)
 }
 
@@ -210,7 +834,13 @@ fn import_graph_preserving_under_root(
 
     store_lock.lock_shared().map_err(io_diag)?;
     action_lock.lock_shared().map_err(io_diag)?;
-    if let Some(outcome) = load(&namespace, &action_key, &source_digest, gts_bytes.len())? {
+    if let Some(outcome) = load(
+        &namespace,
+        &action_key,
+        BUILD_FINGERPRINT,
+        &source_digest,
+        gts_bytes.len(),
+    )? {
         action_lock.unlock().map_err(io_diag)?;
         store_lock.unlock().map_err(io_diag)?;
         return Ok(outcome);
@@ -222,7 +852,13 @@ fn import_graph_preserving_under_root(
     // this builder/rechecker is active; unrelated action keys can still proceed.
     store_lock.lock_shared().map_err(io_diag)?;
     action_lock.lock().map_err(io_diag)?;
-    if let Some(outcome) = load(&namespace, &action_key, &source_digest, gts_bytes.len())? {
+    if let Some(outcome) = load(
+        &namespace,
+        &action_key,
+        BUILD_FINGERPRINT,
+        &source_digest,
+        gts_bytes.len(),
+    )? {
         action_lock.unlock().map_err(io_diag)?;
         store_lock.unlock().map_err(io_diag)?;
         return Ok(outcome);
@@ -280,9 +916,47 @@ fn import_graph_preserving_under_root(
 fn load(
     namespace: &Path,
     action_key: &str,
+    build_fingerprint: &str,
     source_digest: &str,
     source_bytes: usize,
 ) -> gmeow_errors::Result<Option<ImportOutcome>> {
+    let Some((receipt, pack)) = load_verified_pack(
+        namespace,
+        action_key,
+        build_fingerprint,
+        source_digest,
+        source_bytes,
+    )?
+    else {
+        return Ok(None);
+    };
+    let actual_bytes = u64::try_from(pack.len()).unwrap_or(u64::MAX);
+    let dataset = restore_pack(&pack)
+        .map_err(|error| diag(format!("bundle import: structurally invalid pack: {error}")))?;
+    let quads = u64::try_from(dataset.quad_count()).unwrap_or(u64::MAX);
+    let named_graphs = u64::try_from(dataset.owned_named_graphs().count()).unwrap_or(u64::MAX);
+    if quads != receipt.dataset_quads || named_graphs != receipt.named_graphs {
+        return Err(diag(format!(
+            "bundle import: restored structure mismatch: expected quads/graphs {}/{}, \
+             got {quads}/{named_graphs}",
+            receipt.dataset_quads, receipt.named_graphs
+        )));
+    }
+    Ok(Some(ImportOutcome {
+        dataset,
+        receipt,
+        built: false,
+        transferred_bytes: actual_bytes,
+    }))
+}
+
+fn load_verified_pack(
+    namespace: &Path,
+    action_key: &str,
+    build_fingerprint: &str,
+    source_digest: &str,
+    source_bytes: usize,
+) -> gmeow_errors::Result<Option<(ImportReceipt, Vec<u8>)>> {
     let receipt_path = namespace.join(format!("receipts/{action_key}.json"));
     if !receipt_path.exists() {
         return Ok(None);
@@ -297,7 +971,7 @@ fn load(
     let expected_source_bytes = u64::try_from(source_bytes).unwrap_or(u64::MAX);
     if receipt.schema_version != SCHEMA_VERSION
         || receipt.action_key != action_key
-        || receipt.build_fingerprint != BUILD_FINGERPRINT
+        || receipt.build_fingerprint != build_fingerprint
         || receipt.codec != CODEC
         || receipt.source_digest != source_digest
         || receipt.source_bytes != expected_source_bytes
@@ -324,23 +998,7 @@ fn load(
             receipt.pack_digest, receipt.pack_bytes
         )));
     }
-    let dataset = restore_pack(&pack)
-        .map_err(|error| diag(format!("bundle import: structurally invalid pack: {error}")))?;
-    let quads = u64::try_from(dataset.quad_count()).unwrap_or(u64::MAX);
-    let named_graphs = u64::try_from(dataset.owned_named_graphs().count()).unwrap_or(u64::MAX);
-    if quads != receipt.dataset_quads || named_graphs != receipt.named_graphs {
-        return Err(diag(format!(
-            "bundle import: restored structure mismatch: expected quads/graphs {}/{}, \
-             got {quads}/{named_graphs}",
-            receipt.dataset_quads, receipt.named_graphs
-        )));
-    }
-    Ok(Some(ImportOutcome {
-        dataset,
-        receipt,
-        built: false,
-        transferred_bytes: actual_bytes,
-    }))
+    Ok(Some((receipt, pack)))
 }
 
 fn publish_identical(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()> {
@@ -400,6 +1058,19 @@ fn publish_identical(path: &Path, bytes: &[u8]) -> gmeow_errors::Result<()> {
             Err(io_diag(error))
         }
     }
+}
+
+fn open_existing_lock(path: &Path) -> gmeow_errors::Result<File> {
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(path)
+        .map_err(|error| {
+            diag(format!(
+                "bundle import: required existing lock {} cannot be opened: {error}",
+                path.display()
+            ))
+        })
 }
 
 fn prune_namespace(namespace: &Path, protected_action: &str) -> gmeow_errors::Result<()> {
@@ -900,7 +1571,15 @@ mod tests {
             None,
         )
         .expect("fixture dataset");
+        // gmeow-test-input: synthetic-only
         gmeow_gts_profile::dataset_to_gmeow_gts(dataset.as_ref()).expect("fixture GTS")
+    }
+
+    /// Exercise the cache publisher only over a one-triple synthetic container.
+    /// This is not a repository-corpus producer and can never resolve repository
+    /// inputs, `generated/`, or the authenticated bundle selector.
+    fn synthetic_import(root: &Path, bytes: &[u8]) -> gmeow_errors::Result<ImportOutcome> {
+        import_graph_preserving_cached(root, bytes) // gmeow-test-input: synthetic-only
     }
 
     #[test]
@@ -927,8 +1606,8 @@ mod tests {
     fn cold_then_warm_import_is_structurally_identical() {
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        let cold = import_graph_preserving_cached(root.path(), &bytes).unwrap();
-        let warm = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let cold = synthetic_import(root.path(), &bytes).unwrap();
+        let warm = synthetic_import(root.path(), &bytes).unwrap();
         assert!(cold.built);
         assert!(!warm.built);
         assert_eq!(cold.receipt, warm.receipt);
@@ -940,7 +1619,7 @@ mod tests {
     fn referenced_tampered_pack_hard_fails() {
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        let cold = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let cold = synthetic_import(root.path(), &bytes).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
@@ -950,8 +1629,8 @@ mod tests {
             b"truncated",
         )
         .unwrap();
-        let error = import_graph_preserving_cached(root.path(), &bytes)
-            .expect_err("corruption cannot turn into a miss");
+        let error =
+            synthetic_import(root.path(), &bytes).expect_err("corruption cannot turn into a miss");
         assert!(error.to_string().contains("pack digest/size mismatch"));
     }
 
@@ -959,13 +1638,13 @@ mod tests {
     fn referenced_missing_pack_hard_fails() {
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        let cold = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let cold = synthetic_import(root.path(), &bytes).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
             .join(format!("v{SCHEMA_VERSION}"));
         fs::remove_file(namespace.join(format!("blobs/{}", cold.receipt.pack_digest))).unwrap();
-        let error = import_graph_preserving_cached(root.path(), &bytes)
+        let error = synthetic_import(root.path(), &bytes)
             .expect_err("a referenced missing pack cannot turn into a clean miss");
         assert!(
             error.to_string().contains("cannot be inspected"),
@@ -977,7 +1656,7 @@ mod tests {
     fn malformed_receipt_hard_fails() {
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        let cold = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let cold = synthetic_import(root.path(), &bytes).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
@@ -987,7 +1666,7 @@ mod tests {
             b"{not-json",
         )
         .unwrap();
-        let error = import_graph_preserving_cached(root.path(), &bytes)
+        let error = synthetic_import(root.path(), &bytes)
             .expect_err("a malformed receipt cannot turn into a clean miss");
         assert!(error.to_string().contains("corrupt receipt"), "{error:?}");
     }
@@ -996,7 +1675,7 @@ mod tests {
     fn structurally_invalid_digest_valid_pack_hard_fails() {
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        let cold = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let cold = synthetic_import(root.path(), &bytes).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
@@ -1020,7 +1699,7 @@ mod tests {
             serde_json::to_vec_pretty(&envelope).unwrap(),
         )
         .unwrap();
-        let error = import_graph_preserving_cached(root.path(), &bytes)
+        let error = synthetic_import(root.path(), &bytes)
             .expect_err("a digest-valid but structurally invalid pack must fail closed");
         assert!(
             error.to_string().contains("structurally invalid pack"),
@@ -1042,7 +1721,7 @@ mod tests {
                 let barrier = Arc::clone(&barrier);
                 std::thread::spawn(move || {
                     barrier.wait();
-                    import_graph_preserving_cached(&root, bytes.as_slice()).unwrap()
+                    synthetic_import(&root, bytes.as_slice()).unwrap()
                 })
             })
             .collect::<Vec<_>>();
@@ -1058,7 +1737,7 @@ mod tests {
     fn gc_retains_only_reachable_recent_imports() {
         let root = tempfile::tempdir().unwrap();
         for object in ["one", "two", "three"] {
-            import_graph_preserving_cached(root.path(), &tiny_gts_with_object(object)).unwrap();
+            synthetic_import(root.path(), &tiny_gts_with_object(object)).unwrap();
         }
         let namespace = root
             .path()
@@ -1094,7 +1773,7 @@ mod tests {
     #[test]
     fn gc_removes_crash_leftovers_after_the_next_publication() {
         let root = tempfile::tempdir().unwrap();
-        import_graph_preserving_cached(root.path(), &tiny_gts()).unwrap();
+        synthetic_import(root.path(), &tiny_gts()).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
@@ -1104,7 +1783,7 @@ mod tests {
         fs::write(&abandoned_blob, b"partial").unwrap();
         fs::write(&abandoned_receipt, b"partial").unwrap();
 
-        import_graph_preserving_cached(root.path(), &tiny_gts_with_object("changed")).unwrap();
+        synthetic_import(root.path(), &tiny_gts_with_object("changed")).unwrap();
         assert!(!abandoned_blob.exists());
         assert!(!abandoned_receipt.exists());
     }
@@ -1143,7 +1822,7 @@ mod tests {
         fs::create_dir(&unrelated).unwrap();
         fs::write(unrelated.join("owned-by-another-cache"), b"preserve me").unwrap();
 
-        let error = import_graph_preserving_cached(root.path(), &tiny_gts())
+        let error = synthetic_import(root.path(), &tiny_gts())
             .expect_err("a broad or unrelated cache root must never become a GC authority");
         assert!(error.to_string().contains("refusing quota GC"), "{error:?}");
         assert_eq!(
@@ -1162,7 +1841,7 @@ mod tests {
         let selected = parent.path().join("selected-cache");
         fs::create_dir(&actual).unwrap();
         symlink(&actual, &selected).unwrap();
-        let root_error = import_graph_preserving_cached(&selected, &tiny_gts())
+        let root_error = synthetic_import(&selected, &tiny_gts())
             .expect_err("a symlink cache root must never acquire cache or GC authority");
         assert!(
             root_error.to_string().contains("not a real directory"),
@@ -1170,7 +1849,7 @@ mod tests {
         );
 
         let root = tempfile::tempdir().unwrap();
-        import_graph_preserving_cached(root.path(), &tiny_gts()).unwrap();
+        synthetic_import(root.path(), &tiny_gts()).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
@@ -1179,7 +1858,7 @@ mod tests {
         let outside = parent.path().join("outside-receipts");
         fs::create_dir(&outside).unwrap();
         symlink(&outside, namespace.join("receipts")).unwrap();
-        let lane_error = import_graph_preserving_cached(root.path(), &tiny_gts())
+        let lane_error = synthetic_import(root.path(), &tiny_gts())
             .expect_err("a symlink cache lane must never be followed");
         assert!(
             lane_error.to_string().contains("not a real directory"),
@@ -1192,7 +1871,7 @@ mod tests {
     fn warm_hit_still_enforces_the_store_wide_namespace_quota() {
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        let cold = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let cold = synthetic_import(root.path(), &bytes).unwrap();
         assert!(cold.built);
         for index in 0..6 {
             let obsolete = root.path().join(format!("{index:064x}"));
@@ -1202,7 +1881,7 @@ mod tests {
             }
         }
 
-        let warm = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let warm = synthetic_import(root.path(), &bytes).unwrap();
         assert!(!warm.built);
         let retained_namespaces = fs::read_dir(root.path())
             .unwrap()
@@ -1220,7 +1899,7 @@ mod tests {
 
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        synthetic_import(root.path(), &bytes).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
@@ -1230,7 +1909,7 @@ mod tests {
             namespace.join("blobs/hidden-link"),
         )
         .unwrap();
-        let error = import_graph_preserving_cached(root.path(), &bytes)
+        let error = synthetic_import(root.path(), &bytes)
             .expect_err("the root quota census must refuse cache symlinks even on a warm hit");
         assert!(error.to_string().contains("refuses symlink"), "{error:?}");
     }
@@ -1239,7 +1918,7 @@ mod tests {
     fn oversized_referenced_pack_is_rejected_before_hydration() {
         let root = tempfile::tempdir().unwrap();
         let bytes = tiny_gts();
-        let cold = import_graph_preserving_cached(root.path(), &bytes).unwrap();
+        let cold = synthetic_import(root.path(), &bytes).unwrap();
         let namespace = root
             .path()
             .join(BUILD_FINGERPRINT)
@@ -1250,7 +1929,7 @@ mod tests {
             .unwrap()
             .set_len(MAX_PACK_BYTES + 1)
             .unwrap();
-        let error = import_graph_preserving_cached(root.path(), &bytes)
+        let error = synthetic_import(root.path(), &bytes)
             .expect_err("an oversized sparse cache pack must never be hydrated");
         assert!(error.to_string().contains("byte bound"), "{error:?}");
     }

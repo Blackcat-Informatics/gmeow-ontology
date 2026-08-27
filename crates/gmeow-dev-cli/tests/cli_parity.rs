@@ -12,14 +12,9 @@
 //! | `logic_compile_unknown_mode_fails`| `test_logic_cli::…_unknown_mode_fails`  |
 //! | `external_tool_mirrors_child_exit`| `test_external_tool`                    |
 //! | `external_tool_success_is_clean`  | `test_external_tool`                    |
-//! | `slice_fix_deps_runs`             | `test_slice_fix_deps`                   |
-//! | `feedback_writes_artifacts` (ign) | `test_cli_feedback`                     |
-//! | `logic_compile_check` (ignored)   | `test_logic_cli::…_compile_check_*`     |
 //!
-//! The whole-pipeline / whole-gate commands (`logic compile --check`, `feedback`,
-//! synchronization) duplicate dedicated repository gates, so they ride an explicit
-//! `#[ignore]` maintainer lane behind `GMEOW_DEV_CLI_HEAVY=1`; focused CLI behavior
-//! stays on the default lane.
+//! Whole-pipeline and whole-gate commands are intentionally absent: a test must
+//! never reach a repository corpus producer. Focused CLI behavior stays here.
 
 use std::path::PathBuf;
 use std::process::Command;
@@ -219,93 +214,6 @@ fn external_tool_writes_artifacts() {
 }
 
 #[test]
-fn slice_fix_deps_runs() {
-    // Over the committed tree, slice-fix-deps runs to completion (proposes diffs
-    // or reports none) without erroring.
-    dev_cmd().arg("slice-fix-deps").assert().success();
-}
-
-#[test]
-fn slice_fix_deps_dry_run_writes_nothing() {
-    // The reviewable-diff contract: a dry run (no `--apply`) is READ-ONLY — it
-    // renders the proposed manifest patches but must not touch a single file. We
-    // point `--slices-dir` at a copy of the committed tree, fingerprint every file
-    // before and after, and assert nothing was created, deleted, or modified.
-    let (_tmp, tmp_root) = tempdir();
-    let copy = tmp_root.join("slices");
-    copy_tree(&repo_root().join("slices"), &copy);
-    let before = fingerprint_tree(&copy);
-
-    dev_cmd()
-        .arg("slice-fix-deps")
-        .arg("--slices-dir")
-        .arg(&copy)
-        .assert()
-        .success();
-
-    let after = fingerprint_tree(&copy);
-    assert_eq!(
-        before, after,
-        "slice-fix-deps without --apply must not create, delete, or modify any file"
-    );
-}
-
-/// Recursively copy `src` into `dst` (files + directory structure).
-fn copy_tree(src: &std::path::Path, dst: &std::path::Path) {
-    std::fs::create_dir_all(dst).expect("create dst dir");
-    for entry in std::fs::read_dir(src).expect("read_dir src") {
-        let entry = entry.expect("dir entry");
-        let from = entry.path();
-        let to = dst.join(entry.file_name());
-        if from.is_dir() {
-            copy_tree(&from, &to);
-        } else {
-            std::fs::copy(&from, &to).expect("copy file");
-        }
-    }
-}
-
-/// A deterministic `relative-path → (len, content-hash)` fingerprint of every file
-/// under `root` — equal iff the file set and every byte are unchanged.
-fn fingerprint_tree(root: &std::path::Path) -> std::collections::BTreeMap<String, (u64, u64)> {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
-
-    let mut out = std::collections::BTreeMap::new();
-    let mut stack = vec![root.to_path_buf()];
-    while let Some(dir) = stack.pop() {
-        for entry in std::fs::read_dir(&dir).expect("read_dir") {
-            let path = entry.expect("dir entry").path();
-            if path.is_dir() {
-                stack.push(path);
-            } else {
-                let bytes = std::fs::read(&path).expect("read file");
-                let mut hasher = DefaultHasher::new();
-                bytes.hash(&mut hasher);
-                let rel = path
-                    .strip_prefix(root)
-                    .expect("under root")
-                    .to_string_lossy()
-                    .into_owned();
-                out.insert(rel, (bytes.len() as u64, hasher.finish()));
-            }
-        }
-    }
-    out
-}
-
-#[test]
-fn build_writes_serializations() {
-    // `build` folds the committed snapshot and writes the derived serializations.
-    dev_cmd()
-        .arg("build")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("gmeow.ttl"));
-    assert!(repo_root().join("dist/gmeow.ttl").is_file());
-}
-
-#[test]
 fn project_view_over_the_snapshot() {
     // `project --profile gmeow` filters the committed snapshot to the pure-GMEOW
     // view and writes a Turtle artifact.
@@ -338,13 +246,6 @@ fn extract_reference_only_target_is_refused() {
         .stdout(predicate::str::contains("import-ok"));
 }
 
-// ── Maintainer lane: whole-pipeline / whole-gate command parity ────────────────
-
-/// Whether the heavy off-gate lane is enabled (`GMEOW_DEV_CLI_HEAVY=1`).
-fn heavy_enabled() -> bool {
-    std::env::var("GMEOW_DEV_CLI_HEAVY").as_deref() == Ok("1")
-}
-
 #[test]
 #[ignore = "off-gate: live Wikidata network lookup (set GMEOW_RUN_NETWORK=1)"]
 fn wikidata_existence_live_lookup() {
@@ -358,124 +259,6 @@ fn wikidata_existence_live_lookup() {
         .assert()
         .success()
         .stdout(predicate::str::contains("resolve on Wikidata"));
-}
-
-#[test]
-#[ignore = "maintainer lane: duplicates the whole compile/check pipeline"]
-fn logic_compile_check_no_drift() {
-    if !heavy_enabled() {
-        return;
-    }
-    dev_cmd()
-        .arg("logic")
-        .arg("compile")
-        .arg("--check")
-        .assert()
-        .success();
-}
-
-#[test]
-#[ignore = "maintainer lane: duplicates whole-ontology validation"]
-fn validate_passes_on_the_clean_repo() {
-    if !heavy_enabled() {
-        return;
-    }
-    dev_cmd()
-        .arg("validate")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("validation passed"));
-}
-
-/// End-to-end negative twin of [`validate_passes_on_the_clean_repo`]:
-/// with a deliberately-nonconforming statement-DSL cell planted in the REAL `dsl/`
-/// corpus the gate reads, `gmeow-dev validate` must FAIL and name the statement DSL
-/// violation. This drives the actual `validate()` entrypoint end-to-end, so a
-/// regression that unwired the DSL phases (the original defect) — which the fast
-/// unit guard `authored_source_invocation_wires_every_dsl_surface` catches at the
-/// assembly, and which any bypass of that assembly would still have to defeat here —
-/// cannot pass on the production surface. The probe is removed on `Drop`, even on
-/// panic. (Heavy lane: needs `generated/` materialized, exactly like its twin.)
-#[test]
-#[ignore = "maintainer lane: end-to-end DSL SHACL negative (plants a nonconforming dsl/ file)"]
-fn validate_fails_when_a_dsl_file_is_nonconforming() {
-    if !heavy_enabled() {
-        return;
-    }
-
-    /// Removes the planted probe on drop so the worktree is never left dirty, even
-    /// if an assertion panics.
-    struct Probe(PathBuf);
-    impl Drop for Probe {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_file(&self.0);
-        }
-    }
-
-    let probe_path = repo_root()
-        .join("dsl")
-        .join("statements")
-        .join("zzz_cli_parity_nonconforming_probe.ttl");
-    std::fs::write(
-        &probe_path,
-        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-         gmeow:CliParityNonconformingProbe a gmeow:StatementMetadata .\n",
-    )
-    .expect("plant nonconforming statement-DSL probe");
-    let _probe = Probe(probe_path);
-
-    // `.failure()` asserts a nonzero exit; then confirm the failure is the statement
-    // DSL SHACL violation (not, say, a missing `generated/` record) so the test
-    // genuinely exercises the DSL phase on the production surface.
-    let assert = dev_cmd().arg("validate").assert().failure();
-    let out = assert.get_output();
-    let combined = format!(
-        "{}{}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
-    );
-    assert!(
-        combined.contains("statement")
-            || combined.contains("StatementMetadata")
-            || combined.contains("zzz_cli_parity_nonconforming_probe"),
-        "gmeow-dev validate must fail with a statement DSL SHACL violation when a \
-         nonconforming dsl/statements/ cell is present; got:\n{combined}"
-    );
-}
-
-#[test]
-#[ignore = "maintainer lane: exhaustive whole-bundle and corpus audit"]
-fn up_projection_audit_runs() {
-    if !heavy_enabled() {
-        return;
-    }
-    dev_cmd()
-        .arg("up-projection-audit")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("liftable"));
-}
-
-#[test]
-#[ignore = "maintainer lane: folds every repository gate surface"]
-fn feedback_writes_artifacts() {
-    if !heavy_enabled() {
-        return;
-    }
-    let (_tmp, dir) = tempdir();
-    let _ = dev_cmd()
-        .arg("feedback")
-        .arg("--diagnostics-dir")
-        .arg(&dir)
-        .arg("--diagnostics-stem")
-        .arg("fb")
-        .arg("--diagnostics-console")
-        .arg("silent")
-        .assert();
-    assert!(
-        dir.join("fb.gts").is_file(),
-        "always writes the .gts bundle"
-    );
 }
 
 /// A fresh, empty temp directory owned by the returned [`tempfile::TempDir`].

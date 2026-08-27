@@ -22,10 +22,10 @@
 # (ex:saFlagshipCoverage) check that the five are present and fully linked with a
 # real failure class; the native flagship cross-check (crates/slicetest) resolves
 # each gmeow:demonstratedByCompetency into tests/competency.ttl and confirms it
-# carries a gmeow:cqExpectRow expectation and an existing query file. The
-# execution-discharge harness (crates/pipeline/tests/logic_flagship_discharge.rs)
-# runs each named producer and pins its falsifiable datum. The competency-question
-# individuals live in the tests dataset, which SHACL never loads — hence the split.
+# carries a gmeow:cqExpectRow expectation and an existing query file. That cross-check
+# runs once inside the authenticated slice-spec producer; the production logic gates own
+# the named entrypoints and their falsifiable outputs. The competency-question individuals
+# live in the tests dataset, which SHACL never loads — hence the split.
 # Validates cleanly.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

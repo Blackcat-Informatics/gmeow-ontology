@@ -409,47 +409,26 @@ reconciles the slice with the evidence.
 
 The winner table above answers *does a dictionary pay for itself?*. It says nothing
 about whether the priming changed what the bundle **says**, and that is the claim the
-medium axis actually rests on. Three gates carry it; two run on every `make check`, the
-third is a maintainer lane.
+medium axis actually rests on. The gate deliberately never obtains that evidence by
+emitting the corpus again from a test.
 
-## On-gate: `medium_identity_gate`
+## On-gate: authenticated artifact plus compositional codec law
 
-`crates/pipeline/tests/medium_identity_gate.rs` runs the real DAG **once** and emits the
-same carrier **twice** — under the authored assignment (whose primed blob reps all name
-`gmeow:mediumProfileDistL12`) and under the DECLARED `gmeow:mediumProfileBaselineL12`.
-The counterfactual is a **named medium**, never an empty registry and never
-`MediumPlan::undicted`: both would be the legacy no-dict mode this axis removes, and
-neither would leave anything on the artifact saying which medium it is. The baseline
-emission still **pins** every declared dictionary — the pack is that family's
-distribution channel — and primes no frame with any of them, so the two emissions differ
-in priming and in nothing else. Then:
+`crates/pipeline/tests/medium_bundle.rs` consumes the ONE exact bundle selected by the
+fixture producer. It authenticates the selector before opening the bytes, recomputes
+every frame digest, audits the dictionary table and medium envelopes, and checks the
+stratified snapshot digest. A miss or identity mismatch fails closed.
 
-1. **the fold is byte-identical** — the same RDFC-1.0 canonical N-Quads per named graph
-   and the same reconstructed bytes for every committed path, with the one difference
-   confined to the `gmeow:MediumEnvelope` subgraph and characterized exactly: only
-   `gmeow:envelopeMedium` and `gmeow:envelopeDictionary` may move, and they **must** —
-   an envelope that did not move is projecting an intention rather than the wire;
-2. **every `gmeow:contentDigest` is recomputed** from the bytes actually decoded off the
-   wire (through the frame's own declared transform primed by the header's own pinned
-   dictionary, so the documentation-scale payloads are covered too) and matched against
-   the frame's in-band `pub.digest`;
-3. **the delta-transfer property is measured**, not asserted — `zstd_block_layout` walks
-   each frame's payload without decompressing it, and the rsyncable block count and the
-   uncompressed cut points must be identical across the two emissions. The snapshot frame
-   is DECLARED out of that comparison, for the same reason it is declared out of the
-   dictionary-effect population: its payload carries the very envelopes that name the
-   medium.
+`crates/pipeline/tests/medium_codec_composition.rs` proves `decode ∘ encode = id` for
+every chain the registry declares over bounded inputs that straddle the 64 KiB
+rsyncable cut grid plus committed frozen codec corpora, primed and unprimed. It also
+proves that a mis-primed decode never silently returns the payload. This is codec work,
+not a second DAG emission.
 
-`crates/pipeline/tests/medium_codec_composition.rs` proves the same law for the MEDIUM
-rather than for one build: `decode ∘ encode = id` for every chain the registry declares,
-over inputs that straddle the 64 KiB rsyncable cut grid plus the repository's committed
-frozen corpora, primed and unprimed — and that a mis-primed decode never silently
-returns the payload.
+## On-gate: zero model-facing change (source legs)
 
-## On-gate: zero model-facing change (legs 1, 2, 4)
-
-Leg 1 rides the identity gate (the GMN-dialect artifact set, derived from the emitted
-bundle, must reconstruct byte-identically from both emissions). Legs 2 and 4 live in
+The producer-authenticated bundle audit covers the shipped artifact. The remaining
+source-level legs live in
 `crates/pipeline/tests/model_facing_invariance.rs`: the branch diff may not touch a
 GMN-dialect producer, and the `llms.txt`-family **shape** is frozen against the merge
 base while term entries and the MCP resource list may grow by an exact enumerated delta.

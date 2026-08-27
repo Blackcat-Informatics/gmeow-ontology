@@ -267,7 +267,11 @@ impl Default for StoreLimits {
         Self {
             max_entry_bytes: 256 * 1024 * 1024,
             max_receipt_bytes: 4 * 1024 * 1024,
-            max_entries: 512,
+            // The producer DAG carries one independently reusable receipt per slice
+            // specification in addition to pipeline stages. Retain several source
+            // generations under the unchanged byte ceiling so a one-slice edit does
+            // not evict the rest of the corpus-wide warm frontier.
+            max_entries: 4_096,
             max_total_bytes: 8 * 1024 * 1024 * 1024,
         }
     }
@@ -278,6 +282,7 @@ pub struct ActionStore {
     dir: PathBuf,
     limits: StoreLimits,
     inert: bool,
+    read_only: bool,
     _lease: Option<File>,
 }
 
@@ -341,6 +346,7 @@ impl ActionStore {
             dir,
             limits,
             inert: false,
+            read_only: false,
             _lease: Some(lease),
         };
         // An outer CI cache restore can materialize more entries than the current
@@ -350,6 +356,89 @@ impl ActionStore {
             store.prune(None)?;
         }
         Ok(store)
+    }
+
+    /// Open an already-admitted action store without creating, locking, pruning, or
+    /// publishing any filesystem entry.
+    ///
+    /// This is the consumer authority used after the producer DAG has completed. A
+    /// missing root, sentinel, version directory, or lane is an error rather than an
+    /// initialization request. The producer/consumer DAG excludes concurrent mutation,
+    /// so immutable receipt and blob reads need no writer-election files.
+    pub fn open_existing_read_only(
+        root: impl Into<PathBuf>,
+        format_version: u32,
+        limits: StoreLimits,
+    ) -> Result<Self, ActionCacheError> {
+        Self::open_existing(root, format_version, limits, true)
+    }
+
+    /// Join an already initialized producer store without repeating root admission,
+    /// obsolete-version pruning, or quota census while sibling workers publish.
+    ///
+    /// The coordinating producer must call [`Self::open`] first. This child-worker
+    /// path validates every owned directory and sentinel, then takes the version lease;
+    /// it may publish through the normal store/action locks but cannot initialize a
+    /// missing store. Avoiding the admission census matters because atomic publishers
+    /// legitimately create and rename temporary lane entries while a cold DAG fans out.
+    pub fn open_existing_writable(
+        root: impl Into<PathBuf>,
+        format_version: u32,
+        limits: StoreLimits,
+    ) -> Result<Self, ActionCacheError> {
+        Self::open_existing(root, format_version, limits, false)
+    }
+
+    fn open_existing(
+        root: impl Into<PathBuf>,
+        format_version: u32,
+        limits: StoreLimits,
+        read_only: bool,
+    ) -> Result<Self, ActionCacheError> {
+        if format_version == 0
+            || limits.max_entry_bytes == 0
+            || limits.max_receipt_bytes == 0
+            || limits.max_entries == 0
+            || limits.max_total_bytes == 0
+            || limits.max_entry_bytes > limits.max_total_bytes
+        {
+            return Err(ActionCacheError::message(
+                "action-store format and every quota must be positive, with entry bytes no larger than total bytes",
+            ));
+        }
+        let root = root.into();
+        ensure_real_directory(&root, "action-store root")?;
+        validate_store_root(&root)?;
+        let sentinel = read_bounded(
+            &root.join(".gmeow-action-cache-v1"),
+            limits.max_receipt_bytes,
+            "action-store sentinel",
+        )?;
+        if sentinel != b"gmeow-action-cache:v1\n" {
+            return Err(ActionCacheError::message(
+                "action-store sentinel identity mismatch",
+            ));
+        }
+        let dir = root.join(format!("v{format_version}"));
+        ensure_real_directory(&dir, "action-store version root")?;
+        for lane in ["blobs", "receipts", "locks", "elections"] {
+            ensure_real_directory(&dir.join(lane), "action-store lane")?;
+        }
+        validate_version_root(&dir)?;
+        let lease = if read_only {
+            None
+        } else {
+            let lease = open_file_lock(&dir.join(".lease.lock"))?;
+            lease.lock_shared()?;
+            Some(lease)
+        };
+        Ok(Self {
+            dir,
+            limits,
+            inert: false,
+            read_only,
+            _lease: lease,
+        })
     }
 
     #[must_use]
@@ -363,6 +452,7 @@ impl ActionStore {
                 max_total_bytes: 0,
             },
             inert: true,
+            read_only: false,
             _lease: None,
         }
     }
@@ -399,9 +489,23 @@ impl ActionStore {
             return Ok(None);
         }
         let key = context.key();
+        if self.read_only {
+            return self.get_unlocked(context, &key);
+        }
         let _store = self.lock_store(false)?;
         let _action = self.lock_action(&key, false)?;
-        let path = self.receipt_path(&key);
+        self.get_unlocked(context, &key)
+    }
+
+    fn get_unlocked<P>(
+        &self,
+        context: &ActionContext,
+        key: &ActionKey,
+    ) -> Result<Option<VerifiedEntry<P>>, ActionCacheError>
+    where
+        P: DeserializeOwned + Serialize,
+    {
+        let path = self.receipt_path(key);
         if !path_entry_exists(&path)? {
             return Ok(None);
         }
@@ -422,9 +526,23 @@ impl ActionStore {
             return Ok(None);
         }
         let key = context.key();
+        if self.read_only {
+            return self.inspect_unlocked(context, &key);
+        }
         let _store = self.lock_store(false)?;
         let _action = self.lock_action(&key, false)?;
-        let path = self.receipt_path(&key);
+        self.inspect_unlocked(context, &key)
+    }
+
+    fn inspect_unlocked<P>(
+        &self,
+        context: &ActionContext,
+        key: &ActionKey,
+    ) -> Result<Option<ActionReceipt<P>>, ActionCacheError>
+    where
+        P: DeserializeOwned + Serialize,
+    {
+        let path = self.receipt_path(key);
         if !path_entry_exists(&path)? {
             return Ok(None);
         }
@@ -444,9 +562,9 @@ impl ActionStore {
     where
         P: Clone + DeserializeOwned + PartialEq + Serialize,
     {
-        if self.inert {
+        if self.inert || self.read_only {
             return Err(ActionCacheError::message(
-                "cannot publish through an inert action cache",
+                "cannot publish through an inert or read-only action cache",
             ));
         }
         let byte_count = u64::try_from(bytes.len()).unwrap_or(u64::MAX);
@@ -524,6 +642,11 @@ impl ActionStore {
         Probe: Fn() -> Result<Option<T>, E>,
         Build: FnOnce() -> Result<T, E>,
     {
+        if self.read_only {
+            return Err(E::from(ActionCacheError::message(
+                "read-only action cache cannot coordinate or execute callbacks",
+            )));
+        }
         if let Some(value) = probe()? {
             return Ok(Coordinated {
                 value,
@@ -1282,6 +1405,70 @@ mod tests {
         let hit = cache.get::<u32>(&context).unwrap().unwrap();
         assert_eq!(hit.receipt, receipt);
         assert_eq!(hit.bytes, b"payload");
+    }
+
+    #[test]
+    fn existing_open_modes_separate_read_only_consumers_from_writable_workers() {
+        let absent_parent = tempfile::tempdir().unwrap();
+        let absent = absent_parent.path().join("absent");
+        assert!(ActionStore::open_existing_read_only(&absent, 1, StoreLimits::default()).is_err());
+        assert!(
+            !absent.exists(),
+            "a read-only miss must not initialize the cache root"
+        );
+
+        let temp = tempfile::tempdir().unwrap();
+        let producer = store(temp.path()); // gmeow-test-input: synthetic-only
+        let present = context("present", vec![]);
+        producer
+            .publish(&present, "semantic", 7_u32, b"payload")
+            .unwrap();
+        drop(producer);
+
+        let consumer =
+            ActionStore::open_existing_read_only(temp.path(), 1, StoreLimits::default()).unwrap();
+        let hit = consumer.get::<u32>(&present).unwrap().unwrap();
+        assert_eq!(hit.bytes, b"payload");
+        assert!(
+            consumer
+                .publish(&present, "semantic", 7_u32, b"payload")
+                .is_err(),
+            "a read-only handle must reject publication even when bytes agree"
+        );
+
+        let missing = context("read-only-miss", vec![]);
+        let stripe = missing.key().as_str()[..2].to_string();
+        let lock_path = consumer
+            .root()
+            .join("locks")
+            .join(format!("action-{stripe}.lock"));
+        let existed_before = lock_path.exists();
+        assert!(consumer.get::<u32>(&missing).unwrap().is_none());
+        assert_eq!(
+            lock_path.exists(),
+            existed_before,
+            "a read-only miss must not create an action lock"
+        );
+        let error = match consumer.coordinate::<_, ActionCacheError, _, _>(
+            &missing.key(),
+            || Ok(None),
+            || Ok(9_u32),
+        ) {
+            Err(error) => error,
+            Ok(_) => panic!("a read-only miss must never execute its build callback"),
+        };
+        assert!(error.to_string().contains("read-only action cache"));
+
+        drop(consumer);
+        let worker =
+            ActionStore::open_existing_writable(temp.path(), 1, StoreLimits::default()).unwrap();
+        worker
+            .publish(&missing, "worker-semantic", 9_u32, b"worker-payload")
+            .unwrap();
+        assert_eq!(
+            worker.get::<u32>(&missing).unwrap().unwrap().bytes,
+            b"worker-payload"
+        );
     }
 
     #[test]

@@ -128,9 +128,6 @@ pub struct VendoredWasmAsset {
     /// The `make` target that rebuilds + re-vendors this asset (referenced in
     /// failure messages).
     pub refresh_target: &'static str,
-    /// The environment variable whose presence makes [`verify`](Self::verify) rewrite
-    /// (bless) the digest manifest instead of comparing — set by the refresh target.
-    pub bless_env: &'static str,
     /// A per-asset native↔wasm parity attestation path (e.g. `WITNESS.reason.nq`): the
     /// committed native output the shipped wasm engine reproduces byte-for-byte. Its
     /// presence + digest-currency is gated by [`attestation_status`](Self::attestation_status)
@@ -269,16 +266,23 @@ impl VendoredWasmAsset {
     /// (WebAssembly magic + plausible size), the JS glue still exposes every declared
     /// export, and the pinned `DIGESTS.blake3` describes the exact on-disk bytes.
     ///
-    /// When the asset's [`bless_env`](Self::bless_env) is set, the manifest is
-    /// rewritten from the current bytes instead of compared — the path the refresh
-    /// maint target drives, so the pinned digests always describe the bytes that
-    /// target produced (no external `b3sum` needed).
-    ///
     /// # Panics
     ///
     /// Panics (fails the test) on any drift: a corrupt/undersized wasm module, a
     /// missing export surface, or a digest mismatch.
     pub fn verify(&self) {
+        self.verify_or_refresh(false);
+    }
+
+    /// Refresh the digest and substrate records from the current vendored bytes.
+    ///
+    /// This is a producer operation exposed only to the explicit maintainer binary;
+    /// tests call [`verify`](Self::verify), which has no write path.
+    pub fn refresh_manifest(&self) {
+        self.verify_or_refresh(true);
+    }
+
+    fn verify_or_refresh(&self, refresh: bool) {
         let dir = self.asset_dir();
 
         // Structural: real WebAssembly module, not a stub/placeholder.
@@ -318,7 +322,7 @@ impl VendoredWasmAsset {
         // stale-but-still-functional engine; this gate does not.
         let manifest_path = dir.join(DIGEST_MANIFEST);
         let current = self.current_manifest();
-        if std::env::var_os(self.bless_env).is_some() {
+        if refresh {
             // Resolve the substrate BEFORE pinning anything. Writing the digests first and
             // failing here would leave bytes pinned with no record of what they were built
             // against — which every later run reads as "current". This runs only on the
@@ -508,7 +512,6 @@ pub static MCP_CORE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
     ],
     refresh_target: "maint-refresh-mcp-core-asset",
-    bless_env: "GMEOW_MCP_CORE_BLESS",
     // The native↔wasm deferral attestation: the typed `mcp.segment-not-loaded` frame the
     // core image returns for a reasoning tool, which the shipped wasm reproduces
     // byte-for-byte. It attests the ROUTING, which is what the tiering rests on.
@@ -556,7 +559,6 @@ pub static MCP_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
     ],
     refresh_target: "maint-refresh-mcp-asset",
-    bless_env: "GMEOW_MCP_BLESS",
     // The native↔wasm attestation: a real `conjecture_test` frame answered by the segment,
     // byte-identical both to the shipped wasm's answer and to what the FULL native engine
     // returns for the same frame.
@@ -627,7 +629,6 @@ pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
     ],
     refresh_target: "maint-refresh-query-asset",
-    bless_env: "GMEOW_QUERY_BLESS",
     // The query-engine parity attestation (`WITNESS.query.txt`): the native
     // `Dataset::query` results over the committed corpus
     // (`crates/query-wasm/js/tests/corpus.trig` + `queries.json`), which the shipped
@@ -692,7 +693,6 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
     ],
     refresh_target: "maint-refresh-validate-asset",
-    bless_env: "GMEOW_VALIDATE_BLESS",
     // The native↔wasm parity attestation (`WITNESS.validate.json`): the byte-identical
     // Tier-1 findings the native validator produced and the wasm engine must
     // reproduce (proven by `crates/validate-wasm/js/tests/witness.test.mjs` +
@@ -748,7 +748,6 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
     ],
     refresh_target: "maint-refresh-reason-asset",
-    bless_env: "GMEOW_REASON_BLESS",
     // The native↔wasm reasoning parity attestation (`WITNESS.reason.nq`): the reasoned
     // closure the native chase produces and the wasm engine reproduces (proven by
     // `crates/reason-wasm/tests/witness_reason.rs` + the Node lane). Task 14 consumes
@@ -803,7 +802,6 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
         },
     ],
     refresh_target: "maint-refresh-gmn-asset",
-    bless_env: "GMEOW_GMN_BLESS",
     // The native↔wasm GMN transcode parity attestation (`WITNESS.gmn1.txt`): the GMN-1
     // surface the native codec writes and the wasm engine reproduces, and which reads
     // back to the input's canonical N-Quads byte-for-byte (proven by

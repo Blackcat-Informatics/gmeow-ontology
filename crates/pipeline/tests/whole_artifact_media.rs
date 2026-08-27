@@ -80,12 +80,14 @@ fn the_music_bundle_routes_to_the_whole_artifact_branch() {
         composer: Some("GMEOW".to_string()),
         voices: Vec::new(),
     };
+    // gmeow-test-input: synthetic-only
     let bytes = gmeow_music::piece_to_gts_bytes(&piece).expect("the music producer emits");
     audit_whole_artifact(&format!("{GMEOW}gtsProducerMusicBundle"), &bytes);
 }
 
 #[test]
 fn the_math_bundle_routes_to_the_whole_artifact_branch() {
+    // gmeow-test-input: synthetic-only
     let bytes = gmeow_math::turtle_to_gts(
         concat!(
             "@prefix math: <https://blackcatinformatics.ca/math/> .\n",
@@ -110,6 +112,7 @@ fn the_convert_exit_routes_to_the_whole_artifact_branch() {
         None,
     )
     .expect("the convert fixture parses");
+    // gmeow-test-input: synthetic-only
     let bytes =
         gmeow_gts_profile::dataset_to_gmeow_gts(&dataset).expect("the convert --to gts exit emits");
     audit_whole_artifact(&format!("{GMEOW}gtsProducerConvertExit"), &bytes);

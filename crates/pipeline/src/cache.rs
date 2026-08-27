@@ -117,7 +117,11 @@ const MAX_RECEIPT_BYTES: u64 = 4 * 1024 * 1024;
 
 /// Default bounded-store quotas. They are storage economics, never correctness
 /// switches: eviction turns a future lookup into ordinary recomputation.
-const MAX_CACHE_ENTRIES: usize = 512;
+// The shared store also carries one independently reusable receipt per declarative
+// slice spec. Keep several complete frontiers so opening the pipeline cache cannot
+// evict the fine-grained test DAG that was just produced. The byte ceiling remains the
+// authoritative storage bound; receipts themselves are compact.
+const MAX_CACHE_ENTRIES: usize = 4_096;
 const MAX_CACHE_BYTES: u64 = 8 * 1024 * 1024 * 1024;
 
 /// The text projection used only by the Reasoning handle's legacy reverse parser.
@@ -1635,6 +1639,13 @@ impl PipelineCache {
         Self::open(Self::default_dir(root))
     }
 
+    /// Open the existing worktree-local cache as a strict read-only consumer.
+    /// Missing cache structure is an error and no lock, directory, sentinel, receipt,
+    /// blob, or quota-pruning mutation is permitted.
+    pub fn open_existing_default_read_only(root: &Path) -> Result<Self, gmeow_errors::Diag> {
+        Self::open_existing_read_only(Self::default_dir(root))
+    }
+
     /// Open (or create) the cache rooted at `dir`. The on-disk
     /// store lives under a `v<STORE_FORMAT_VERSION>` leaf of `dir`. Pipeline product
     /// shape is an action-key dimension, so a [`CACHE_VERSION`] bump makes every older
@@ -1648,6 +1659,26 @@ impl PipelineCache {
         };
         let store =
             ActionStore::open(dir, STORE_FORMAT_VERSION, limits).map_err(action_cache_diag)?;
+        #[cfg(test)]
+        let dir = store.root().to_path_buf();
+        Ok(Self {
+            #[cfg(test)]
+            dir,
+            store,
+            max_bytes: MAX_CACHE_BYTES,
+        })
+    }
+
+    /// Open an existing cache without admitting or mutating its storage namespace.
+    pub fn open_existing_read_only(dir: impl Into<PathBuf>) -> Result<Self, gmeow_errors::Diag> {
+        let limits = StoreLimits {
+            max_entry_bytes: MAX_ENTRY_BYTES,
+            max_receipt_bytes: MAX_RECEIPT_BYTES,
+            max_entries: MAX_CACHE_ENTRIES,
+            max_total_bytes: MAX_CACHE_BYTES,
+        };
+        let store = ActionStore::open_existing_read_only(dir, STORE_FORMAT_VERSION, limits)
+            .map_err(action_cache_diag)?;
         #[cfg(test)]
         let dir = store.root().to_path_buf();
         Ok(Self {

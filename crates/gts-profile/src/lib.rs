@@ -830,6 +830,7 @@ mod tests {
         assert_eq!(purrdf::gts_compose::DIST_ZSTD_LEVEL, 12);
 
         let builder = fixture_builder();
+        // gmeow-test-input: synthetic-only
         let bytes = emit_gmeow_gts(
             &builder,
             vec![BlobRow {
@@ -855,6 +856,7 @@ mod tests {
                 rep: "profile-test".to_string(),
             }]
         };
+        // gmeow-test-input: synthetic-only
         let expected = emit_gmeow_gts_with_medium(
             &fixture_builder(),
             blob_rows(),
@@ -892,6 +894,7 @@ mod tests {
     #[test]
     fn profile_validator_rejects_a_payload_without_a_transform_chain() {
         let builder = fixture_builder();
+        // gmeow-test-input: synthetic-only
         let bytes = emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
             .expect("emit fixture");
         let (mut items, torn) = iter_items(&bytes);
@@ -930,6 +933,7 @@ mod tests {
             None,
         )
         .expect("parse fixture");
+        // gmeow-test-input: synthetic-only
         let bytes = dataset_to_gmeow_gts(&dataset).expect("serialize the carrier exit");
         validate_mandated_frames(&bytes).expect("carrier exit uses the mandated frame profile");
         let graph = purrdf::gts::reader::read(&bytes, false, None);
@@ -1019,6 +1023,7 @@ mod tests {
     }
 
     fn mandated_segment(iri: &str) -> Vec<u8> {
+        // gmeow-test-input: synthetic-only
         let mut writer = GmeowGtsWriter::new("ai-package");
         writer.add_terms(&[iri_term(iri)]).expect("terms frame");
         writer.into_bytes()
@@ -1031,6 +1036,7 @@ mod tests {
             iri_term("https://e/p"),
             iri_term("https://e/o"),
         ];
+        // gmeow-test-input: synthetic-only
         let mut writer = GmeowGtsWriter::new("ai-package");
         writer.add_terms(&terms).expect("terms frame");
         writer.add_quads(&[(0, 1, 2, None)]).expect("quads frame");

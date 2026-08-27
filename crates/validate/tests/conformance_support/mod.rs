@@ -9,12 +9,12 @@
 //! - Two validation entry-points: `validate` (fixture-only) and
 //!   `validate_with_ontology` (merged ontology + fixture).
 //!
-//! All symbols are `pub` so sibling `#[test]` integration files can use them
-//! via `mod conformance_support; use conformance_support::*;`.
+//! All symbols are `pub` so the registered case modules in `conformance_cases/`
+//! can use them through the consolidated runner.
 
 #![allow(dead_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
@@ -28,9 +28,9 @@ use purrdf::shapes::shapes::Shapes;
 use purrdf::shapes::term::Term;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
-    DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, SerializeGraph, SparqlEngine,
-    SparqlRequest, SparqlResult, TermValue, flat_dataset_from_quads, flat_rdf_quads_from_dataset,
-    parse_dataset, serialize_dataset,
+    DatasetView, GraphMatch, RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult,
+    TermValue, flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset,
+    serialize_dataset,
 };
 
 // ── Grounding-correspondence vocabulary ──────────────────────────────────────
@@ -82,226 +82,90 @@ pub fn repo_root() -> PathBuf {
         .expect("repo root must be resolvable")
 }
 
-// ── Shapes corpus assembly ────────────────────────────────────────────────────
-
-/// DSL-specific shapes files excluded from the domain test corpus.
+/// Read one already-authored Turtle input as UTF-8.
 ///
-/// Mirrors Python's `dsl_shapes` exclusion set in `gmeow_tools.validate._shapes_turtle`.
-pub const DSL_SHAPE_FILENAMES: &[&str] = &[
-    "mapping-dsl-shapes.ttl",
-    "statement-dsl-shapes.ttl",
-    "test-dsl-shapes.ttl",
-    "slice-manifest-shapes.ttl",
-    // The derived validation-shape surface is a DECLARED ValidationOnly projection (the OPT
-    // constraint axis + the OWL-restriction reading). This exclusion is LOCAL to the
-    // fixture-conformance corpus assembled here (`collect_shapes_dir`), where an open-world
-    // someValuesFrom reading would over-flag hand-built fixture data. It is NOT mirrored by
-    // `purrdf::shapes::shape_union::EXCLUDED`, which lists only the four DSL shape files —
-    // the production shape union (`shape_union::load_shapes`) DOES enforce
-    // `validation-shapes.ttl`, and the reasoning-layer cardinality bounds reach the gate
-    // through it. Tests that must exercise the projected bounds validate against that
-    // production union directly, not this fixture corpus.
-    "validation-shapes.ttl",
-];
-
-/// Collect `shapes/*.ttl` paths, sorted, excluding DSL-specific files.
-pub fn collect_shapes_dir(root: &Path) -> Vec<PathBuf> {
-    let dir = root.join("shapes");
-    let mut paths: Vec<PathBuf> = std::fs::read_dir(&dir)
-        .unwrap_or_else(|e| panic!("cannot read shapes/: {e}"))
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| {
-            p.extension().and_then(|s| s.to_str()) == Some("ttl")
-                && !DSL_SHAPE_FILENAMES
-                    .iter()
-                    .any(|x| p.file_name().and_then(|n| n.to_str()) == Some(x))
-        })
-        .collect();
-    paths.sort();
-    paths
-}
-
-/// Collect `generated/shapes/*.ttl` paths, sorted.
-///
-/// Hard-fails if the directory is absent or empty — the generated frame shapes
-/// are load-bearing for Principle 11 enforcement (same contract as Python).
-pub fn collect_generated_shapes(root: &Path) -> Vec<PathBuf> {
-    let dir = root.join("generated").join("shapes");
-    let mut paths: Vec<PathBuf> = std::fs::read_dir(&dir)
-        .unwrap_or_else(|e| {
-            panic!(
-                "no generated shapes under generated/shapes/ — \
-                 run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there): {e}"
-            )
-        })
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| {
-            p.extension().and_then(|s| s.to_str()) == Some("ttl")
-                && !DSL_SHAPE_FILENAMES
-                    .iter()
-                    .any(|x| p.file_name().and_then(|n| n.to_str()) == Some(x))
-        })
-        .collect();
-    assert!(
-        !paths.is_empty(),
-        "no generated shapes under generated/shapes/ — \
-         run `gmeow-dev sync --mode update --outputs generated frame-shapes` (P11 enforcement lives there)"
-    );
-    paths.sort();
-    paths
-}
-
-/// Collect per-slice `shapes.ttl` files from `slices/`, sorted.
-///
-/// Mirrors Python's `iter_slice_shape_files()`.
-pub fn collect_slice_shapes(root: &Path) -> Vec<PathBuf> {
-    let slices_dir = root.join("slices");
-    let mut paths: Vec<PathBuf> = Vec::new();
-    collect_slice_shapes_recursive(&slices_dir, &mut paths);
-    paths.sort();
-    paths
-}
-
-pub fn collect_slice_shapes_recursive(dir: &Path, paths: &mut Vec<PathBuf>) {
-    let read = match std::fs::read_dir(dir) {
-        Ok(r) => r,
-        Err(_) => return,
-    };
-    for entry in read.filter_map(|e| e.ok()) {
-        let path = entry.path();
-        if path.is_dir() && !path.is_symlink() {
-            let candidate = path.join("shapes.ttl");
-            if candidate.is_file() {
-                paths.push(candidate);
-            }
-            collect_slice_shapes_recursive(&path, paths);
-        }
-    }
-}
-
-/// Read a Turtle file as raw UTF-8 text.
+/// This helper never assembles or materializes a repository corpus; callers use it for
+/// single, explicitly named fixture/example inputs.
 pub fn read_ttl(path: &Path) -> String {
     std::fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()))
 }
 
-/// Assemble the full SHACL shapes corpus as one concatenated Turtle string.
+// ── Shapes corpus assembly ────────────────────────────────────────────────────
+
+/// Load the producer-extracted SHACL union selected by the exact bundle identity.
 ///
-/// Replicates `gmeow_tools.validate._shapes_turtle(SHAPES_FILE)`:
-///   1. `shapes/gmeow-shapes.ttl` (the base shapes file, listed first),
-///   2. other `shapes/*.ttl` excluding DSL-specific files,
-///   3. `generated/shapes/*.ttl` (frame-relativity shapes, Principle 11),
-///   4. per-slice `shapes.ttl` files.
-///
-/// Cached via [`std::sync::OnceLock`] so the disk I/O happens at most once per
-/// test process even when many tests run in parallel.
+/// The explicit pre-test producer extracts this artifact from the authenticated
+/// `shapes-archive`, preserving the suite's historical extra exclusion of
+/// `validation-shapes.ttl`. A miss is terminal; tests never concatenate source shapes.
 pub fn whole_shapes_ttl() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let root = repo_root();
-        let mut parts: Vec<String> = Vec::new();
-
-        // 1. Base shapes file first.
-        parts.push(read_ttl(&root.join("shapes").join("gmeow-shapes.ttl")));
-
-        // 2. Additional domain shapes (excludes gmeow-shapes.ttl — already added —
-        //    and DSL files).
-        let base_name = "gmeow-shapes.ttl";
-        for path in collect_shapes_dir(&root) {
-            if path.file_name().and_then(|n| n.to_str()) != Some(base_name) {
-                parts.push(read_ttl(&path));
-            }
-        }
-
-        // 3. Generated shapes.
-        for path in collect_generated_shapes(&root) {
-            parts.push(read_ttl(&path));
-        }
-
-        // 4. Per-slice shapes.
-        for path in collect_slice_shapes(&root) {
-            parts.push(read_ttl(&path));
-        }
-
-        parts.join("\n")
+        String::from_utf8(
+            gmeow_bundle_import::load_authenticated_corpus_artifact(
+                &repo_root(),
+                "validate-conformance-shapes.ttl",
+            )
+            .expect("load authenticated conformance shape union without rebuilding it"),
+        )
+        .expect("authenticated conformance shape union is UTF-8")
     })
 }
 
 // ── Merged-ontology helpers ───────────────────────────────────────────────────
 
-/// Collect every `module.ttl` file under `slices/` recursively.
-fn collect_module_ttls(dir: &Path, paths: &mut Vec<PathBuf>) {
-    let read = match std::fs::read_dir(dir) {
-        Ok(r) => r,
-        Err(_) => return,
-    };
-    for entry in read.filter_map(|e| e.ok()) {
-        let path = entry.path();
-        if path.is_dir() && !path.is_symlink() {
-            let candidate = path.join("module.ttl");
-            if candidate.is_file() {
-                paths.push(candidate);
-            }
-            collect_module_ttls(&path, paths);
-        }
-    }
-}
-
-/// Merged ontology as a single N-Triples string.
+/// Authored ontology as one N-Triples document selected from the shipped carrier.
 ///
-/// Parses every `slices/*/*/module.ttl` (recursively under `slices/`, files
-/// literally named `module.ttl`) into the native IR, flattens every named graph into
-/// the default graph, and dumps as N-Triples. Mirrors
-/// `load_merged_graph(include_imports=False)`.
+/// `graph/authored-default` is the pipeline's internal transport label. The terminal
+/// presenter deliberately re-roots that graph into the GTS default graph, so the exact
+/// authenticated terminal default graph is the consumer authority here. No test parses
+/// or merges the authored module tree.
 ///
 /// Cached via [`OnceLock`] so disk I/O happens at most once per test process.
 pub fn base_ontology_nt() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
-    CACHE.get_or_init(|| dataset_default_graph_to_nt(base_ontology_dataset()))
+    CACHE.get_or_init(|| {
+        let authored = dataset_default_graph_to_nt(authenticated_bundle_dataset());
+        assert!(
+            !authored.trim().is_empty(),
+            "authenticated bundle omitted its terminal authored default graph"
+        );
+        authored
+    })
 }
 
-/// Merged ontology as a frozen native dataset (flattened to the default graph).
-///
-/// The native twin of [`base_ontology_nt`]. The conformance tests use it directly
-/// so `validate_with_ontology` does not serialize the full ontology to N-Triples
-/// and immediately parse it back for every case.
+/// Authenticated terminal authored graph as a frozen native dataset.
 pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
     static CACHE: OnceLock<Arc<RdfDataset>> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let root = repo_root();
-        let slices_dir = root.join("slices");
-        let mut module_paths: Vec<PathBuf> = Vec::new();
-        collect_module_ttls(&slices_dir, &mut module_paths);
-        module_paths.sort();
-
-        // Merge every module through the builder's `push_dataset`, which allocates a
-        // FRESH blank-node scope per source dataset (standardize-apart, C0.2): two
-        // modules that both mint `_:b0` — or two distinct `rdf:List` cons cells that
-        // parsed to the same label — stay DISTINCT instead of collapsing into one
-        // over-connected blank node (which corrupts blank `rdf:List`/`owl:Restriction`
-        // walks: a single blank head with multiple `rdf:first` objects). A raw
-        // quad-collect (`flat_rdf_quads_from_dataset` per module → one vec) has no
-        // per-source scope and DOES collide, so build through the interner instead.
-        let mut builder = RdfDatasetBuilder::new();
-        for path in &module_paths {
-            let ttl = std::fs::read_to_string(path)
-                .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
-            // Native codec parse: lenient on private-use language tags.
-            // Continue on a local parse error — some module.ttl files import
-            // cross-slice IRIs that are not resolvable in the local parse; the
-            // merged dataset is still built from the resolvable modules.
-            if let Ok(ds) = parse_dataset(ttl.as_bytes(), "text/turtle", None) {
-                builder.push_dataset(&ds);
-            }
-        }
-        // Re-home every quad to the default graph so the default-graph-only query
-        // helpers see the whole ontology. The blank labels are already standardized
-        // apart (distinct qualified strings), so flattening cannot re-collide them.
-        let merged = builder
-            .freeze()
-            .expect("merged ontology dataset must freeze");
-        flatten_to_default_graph(&merged)
+        parse_dataset(base_ontology_nt().as_bytes(), "application/n-triples", None)
+            .expect("authenticated terminal authored graph must parse")
     })
+}
+
+/// The complete producer-authenticated bundle dataset, restored read-only once per
+/// integration-test process.
+pub fn authenticated_bundle_dataset() -> &'static Arc<RdfDataset> {
+    static CACHE: OnceLock<Arc<RdfDataset>> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
+            .expect("load authenticated repository corpus without rebuilding it")
+            .dataset
+    })
+}
+
+/// Project one exact named graph from the producer-authenticated bundle as N-Triples.
+///
+/// This is the read-only replacement for tests that previously called the production
+/// graph emitter and thereby constructed a second copy of shipped corpus content. A
+/// missing graph is a hard failure; there is no source-tree or producer fallback.
+pub fn authenticated_named_graph_nt(graph_iri: &str) -> String {
+    let graph = authenticated_bundle_dataset().project_named_graph_full(graph_iri);
+    assert!(
+        graph.quad_count() > 0,
+        "authenticated bundle omitted required named graph <{graph_iri}>"
+    );
+    dataset_default_graph_to_nt(&flatten_to_default_graph(&graph))
 }
 
 /// Parsed SHACL shape model for the whole conformance corpus.
@@ -476,69 +340,22 @@ pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
 /// it does NOT touch `purrdf::shapes::shape_union::load_shapes` / its `EXCLUDED`
 /// list, so the LIVE production union (`gmeow validate` / `stage-validate`) and the
 /// superset/fold gate still enforce `result-shapes.ttl` exactly as before.
-pub const CONFORMANCE_EXCLUDED_GENERATED: &[&str] = &["result-shapes.ttl"];
-
-/// Parsed SHACL shape model for the CONFORMANCE-scoped shape union.
+/// Parsed SHACL model from the producer-extracted domain-conformance shape union.
 ///
-/// Reassembles the SAME corpus as `purrdf::shapes::shape_union::load_shapes`
-/// (the LIVE production union `gmeow validate` / `stage-validate` run, INCLUDING
-/// `generated/shapes/validation-shapes.ttl`, the OWL-restriction cardinality
-/// projection that [`whole_shapes`] deliberately EXCLUDES) — reusing the SAME
-/// public `shape_files` ordering, per-file blank-standardized `RdfDataset::union`,
-/// and per-file prefix recovery + `from_dataset_with_prefixes` parse — but drops
-/// the files in [`CONFORMANCE_EXCLUDED_GENERATED`] (`result-shapes.ttl`) whose
-/// unconditional `sh:SPARQLTarget` whole-graph scans dominate per-case cost while
-/// producing no result on the domain fixtures. Every other shape is loaded exactly
-/// as production loads it, so no conformance verdict changes. This mirrors the
-/// `load_shapes` body verbatim (minus the file filter); it does NOT modify or call
-/// through the production `load_shapes`, so production validation is untouched.
-/// Cached in a [`OnceLock`] so the disk I/O + parse happens at most once per test
-/// process.
+/// The authenticated sidecar contains the production bundle's complete shape archive
+/// except `result-shapes.ttl`. A miss is terminal; this test support never walks or
+/// reconstructs the repository shape corpus.
 pub fn conformance_shapes() -> &'static Shapes {
-    use std::collections::BTreeMap;
-
     static CACHE: OnceLock<Shapes> = OnceLock::new();
     CACHE.get_or_init(|| {
-        let files = purrdf::shapes::shape_union::shape_files(&repo_root())
-            .expect("assemble conformance SHACL shape file list");
-        let mut prefix_map: BTreeMap<String, String> = BTreeMap::new();
-        let mut per_file: Vec<Arc<RdfDataset>> = Vec::with_capacity(files.len());
-        for file in &files {
-            // Drop ONLY the conformance-excluded generated files (result-shapes.ttl).
-            if file
-                .file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(|n| CONFORMANCE_EXCLUDED_GENERATED.contains(&n))
-            {
-                continue;
-            }
-            let bytes = std::fs::read(file)
-                .unwrap_or_else(|e| panic!("failed to read shape file {}: {e}", file.display()));
-            let text = std::str::from_utf8(&bytes)
-                .unwrap_or_else(|e| panic!("shape file {} is not UTF-8: {e}", file.display()));
-            let dataset = parse_dataset(&bytes, "text/turtle", None).unwrap_or_else(|e| {
-                panic!("failed to parse Turtle shape file {}: {e}", file.display())
-            });
-            per_file.push(dataset);
-            // Per-file `@prefix` recovery (the IR drops document prefixes); last
-            // declaration wins over the sorted file list, matching `load_shapes`.
-            for (prefix, namespace) in purrdf::shapes::text_ingest::extract_prefixes(text) {
-                prefix_map.insert(prefix, namespace);
-            }
-        }
-        // Union all per-file datasets into one, standardizing blanks apart per file
-        // (exactly as `load_shapes` does via `RdfDataset::union`).
-        let merged = if per_file.is_empty() {
-            RdfDatasetBuilder::new()
-                .freeze()
-                .expect("empty conformance shapes dataset must freeze")
-        } else {
-            let refs: Vec<&RdfDataset> = per_file.iter().map(AsRef::as_ref).collect();
-            Arc::new(RdfDataset::union(&refs))
-        };
-        let doc_prefixes: Vec<(String, String)> = prefix_map.into_iter().collect();
-        purrdf::shapes::shapes::from_dataset_with_prefixes(&merged, &doc_prefixes)
-            .expect("parse conformance SHACL shape union")
+        let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(
+            &repo_root(),
+            "validate-domain-conformance-shapes.ttl",
+        )
+        .expect("authenticated domain-conformance shapes; tests never produce them");
+        let ttl = String::from_utf8(bytes)
+            .expect("authenticated domain-conformance shape union is UTF-8");
+        parse_shapes(&ttl).expect("parse authenticated domain-conformance shape union")
     })
 }
 
@@ -547,7 +364,7 @@ pub fn conformance_shapes() -> &'static Shapes {
 /// run (INCLUDES `generated/shapes/validation-shapes.ttl`, the OWL-derived
 /// cardinality projection, unlike `whole_shapes()`) EXCEPT the result-row
 /// `sh:SPARQLTarget` shapes in `result-shapes.ttl`, which produce no result on the
-/// domain fixtures (see [`CONFORMANCE_EXCLUDED_GENERATED`]). The exclusion is
+/// domain fixtures. The exclusion is
 /// verdict-preserving and scoped to this harness; production validation is
 /// unchanged.
 ///
@@ -751,7 +568,10 @@ impl GraphStore {
 
     /// The merged ontology store (no imports), mirroring `_graph()`.
     pub fn ontology() -> Self {
-        Self::from_dataset(base_ontology_dataset().clone())
+        static STORE: OnceLock<GraphStore> = OnceLock::new();
+        STORE
+            .get_or_init(|| Self::from_dataset(base_ontology_dataset().clone()))
+            .clone()
     }
 
     /// Return a new store containing the merged ontology plus the Turtle file at
@@ -1302,12 +1122,123 @@ pub const OWL_ANNOTATED_PROPERTY: &str = "http://www.w3.org/2002/07/owl#annotate
 /// `owl:annotatedTarget` — the object a reified axiom annotates.
 pub const OWL_ANNOTATED_TARGET: &str = "http://www.w3.org/2002/07/owl#annotatedTarget";
 
+// ── Consolidated conformance harness ────────────────────────────────────
+
+/// One named contract linked into the consolidated conformance test binary.
+pub struct RegisteredConformanceContract {
+    pub module: &'static str,
+    pub name: &'static str,
+    pub run: fn(),
+    pub logical_cases: usize,
+}
+
+inventory::collect!(RegisteredConformanceContract);
+
+/// Architectural conformance lanes retained from the pre-consolidation binary filters.
+pub enum ConformanceLane {
+    /// Per-commit contracts.
+    Required,
+    /// Exhaustive whole-ontology crosschecks owned by `maint-heavy`.
+    MaintHeavy,
+}
+
+fn is_maint_heavy_module(module: &str) -> bool {
+    [
+        "conformance_finance",
+        "conformance_agentic",
+        "conformance_ai_claims",
+        "conformance_music_analysis",
+        "conformance_math_producers",
+        "conformance_affect_producer_union",
+    ]
+    .iter()
+    .any(|name| module.ends_with(name))
+}
+
+/// Execute every linked conformance contract in deterministic name order.
+///
+/// Nextest normally launches one process per `#[test]`, which previously re-imported
+/// the authenticated bundle, reparsed the shared shape model, and linked 90+ near-identical
+/// integration binaries. The consolidated runner preserves every function and assertion
+/// while keeping those immutable intermediates process-local exactly once.
+///
+/// `GMEOW_CONFORMANCE_FILTER` is an explicit developer selection over the fully linked
+/// inventory. A selection that matches nothing fails closed; the required lane leaves it
+/// unset and therefore executes the complete inventory.
+pub fn run_registered_conformance_contracts(lane: ConformanceLane) {
+    let filter = std::env::var("GMEOW_CONFORMANCE_FILTER")
+        .ok()
+        .filter(|value| !value.trim().is_empty());
+    let mut contracts = inventory::iter::<RegisteredConformanceContract>
+        .into_iter()
+        .collect::<Vec<_>>();
+    contracts.sort_by(|left, right| {
+        left.module
+            .cmp(right.module)
+            .then_with(|| left.name.cmp(right.name))
+    });
+    if filter.is_none() {
+        assert_eq!(
+            contracts.len(),
+            518,
+            "the complete consolidated inventory retains every registered contract function"
+        );
+        assert_eq!(
+            contracts
+                .iter()
+                .map(|contract| contract.logical_cases)
+                .sum::<usize>(),
+            707,
+            "the complete consolidated inventory retains every ordinary and parameterized case"
+        );
+    }
+    contracts.retain(|contract| {
+        let heavy = is_maint_heavy_module(contract.module);
+        let in_lane = match lane {
+            ConformanceLane::Required => !heavy,
+            ConformanceLane::MaintHeavy => heavy,
+        };
+        in_lane
+            && filter.as_ref().is_none_or(|needle| {
+                contract.module.contains(needle) || contract.name.contains(needle)
+            })
+    });
+    assert!(
+        !contracts.is_empty(),
+        "GMEOW_CONFORMANCE_FILTER={filter:?} matched no contract in the selected lane"
+    );
+
+    let selected = contracts.len();
+    let mut failures = Vec::new();
+    for contract in contracts {
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(contract.run));
+        if let Err(payload) = result {
+            let detail = payload
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| {
+                    payload
+                        .downcast_ref::<&str>()
+                        .map(|text| (*text).to_string())
+                })
+                .unwrap_or_else(|| "non-string panic".to_string());
+            failures.push(format!("{}::{}: {detail}", contract.module, contract.name));
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} of {selected} consolidated conformance contract(s) failed:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+}
+
 // ── Parameterized case harness ──────────────────────────────────────────
 
 /// Where a [`Case`]'s data graph comes from.
 pub enum Source {
     /// Inline Turtle text, owned so `format!`/helper-assembled cases work in a
-    /// `#[case(...)]` expression (`rstest` evaluates the expr at runtime).
+    /// `#[case(...)]` expression (the batch macro evaluates it at runtime).
     /// Parsed + re-serialized through [`ttl_str_to_nt`].
     Inline(String),
     /// Raw N-Triples fed DIRECTLY to the validator, bypassing the Turtle
@@ -1328,7 +1259,7 @@ pub enum Source {
 /// A single parameterized SHACL conformance case.
 ///
 /// Collapses the load→validate→assert tail shared by the ~37 `conformance_*.rs`
-/// twin files into one reusable spec, driven by `rstest` `#[case]` rows.
+/// twin files into one reusable spec, driven by batched `#[case]` rows.
 /// Construct with [`Case::inline`], [`Case::file`], or [`Case::repo_path`],
 /// refine with the builder methods, then call [`Case::run`].
 ///
@@ -1621,12 +1552,85 @@ impl Case {
     }
 }
 
+/// Run a parameterized conformance table inside one libtest process.
+///
+/// The case bodies remain isolated and every failure retains its authored case name,
+/// but the immutable authenticated bundle and parsed shape corpora are shared by the
+/// process-local caches above. All cases run even when an earlier one fails, then one
+/// aggregate panic reports the complete failing-name set.
+pub fn run_cases<const N: usize>(cases: [(&'static str, Case); N]) {
+    let mut failures = Vec::new();
+    for (name, case) in cases {
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| case.run()));
+        if let Err(payload) = result {
+            let detail = payload
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| {
+                    payload
+                        .downcast_ref::<&str>()
+                        .map(|text| (*text).to_string())
+                })
+                .unwrap_or_else(|| "non-string panic".to_string());
+            failures.push(format!("{name}: {detail}"));
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} batched conformance case(s) failed:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+}
+
 // ── Shared query-text loader ──────────────────────────────────────────────────
 
 /// Query-source search roots, relative to the repo root, tried in order for a
 /// bare `.rq` name in [`read_query`]. The `slices/**/queries/` dirs are appended
 /// dynamically after these fixed roots.
-pub const QUERY_SEARCH_ROOTS: &[&str] = &["generated/queries", "queries/competency"];
+pub const QUERY_SEARCH_ROOTS: &[&str] = &["queries/competency"];
+
+/// Every compiled projection query from the producer-selected bundle identity.
+pub fn generated_queries() -> &'static BTreeMap<String, Vec<u8>> {
+    static CACHE: OnceLock<BTreeMap<String, Vec<u8>>> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        gmeow_bundle_import::load_authenticated_corpus_archive(
+            &repo_root(),
+            "validate-queries.ustar",
+        )
+        .expect("load authenticated generated-query archive without rebuilding it")
+    })
+}
+
+/// Every compiled SSSOM projection from the producer-selected bundle identity.
+pub fn generated_mappings() -> &'static BTreeMap<String, Vec<u8>> {
+    static CACHE: OnceLock<BTreeMap<String, Vec<u8>>> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        gmeow_bundle_import::load_authenticated_corpus_archive(
+            &repo_root(),
+            "validate-mappings.ustar",
+        )
+        .expect("load authenticated generated-mapping archive without rebuilding it")
+    })
+}
+
+/// UTF-8 text of one exact producer-published SSSOM member.
+pub fn generated_mapping(name: &str) -> &'static str {
+    let bytes = generated_mappings()
+        .get(name)
+        .unwrap_or_else(|| panic!("authenticated mapping archive omitted {name}"));
+    std::str::from_utf8(bytes)
+        .unwrap_or_else(|error| panic!("authenticated mapping {name} is not UTF-8: {error}"))
+}
+
+/// UTF-8 text of one exact producer-published generated sidecar.
+pub fn authenticated_corpus_text(name: &str) -> String {
+    String::from_utf8(
+        gmeow_bundle_import::load_authenticated_corpus_artifact(&repo_root(), name)
+            .unwrap_or_else(|error| panic!("load authenticated corpus artifact {name}: {error}")),
+    )
+    .unwrap_or_else(|error| panic!("authenticated corpus artifact {name} is not UTF-8: {error}"))
+}
 
 /// Load a `.rq` query **verbatim** — the query text is the single source of truth
 /// for a competency question, never paraphrased into Rust.
@@ -1643,9 +1647,21 @@ pub const QUERY_SEARCH_ROOTS: &[&str] = &["generated/queries", "queries/competen
 pub fn read_query(name: &str) -> String {
     let root = repo_root();
     if name.contains('/') {
+        if let Some(member) = name.strip_prefix("generated/queries/") {
+            let bytes = generated_queries()
+                .get(member)
+                .unwrap_or_else(|| panic!("authenticated query archive omitted {member}"));
+            return String::from_utf8(bytes.clone()).unwrap_or_else(|error| {
+                panic!("authenticated query {member} is not UTF-8: {error}")
+            });
+        }
         let path = root.join(name);
         return std::fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("read query {}: {e}", path.display()));
+    }
+    if let Some(bytes) = generated_queries().get(name) {
+        return String::from_utf8(bytes.clone())
+            .unwrap_or_else(|error| panic!("authenticated query {name} is not UTF-8: {error}"));
     }
     let mut roots: Vec<PathBuf> = QUERY_SEARCH_ROOTS.iter().map(|r| root.join(r)).collect();
     collect_slice_query_dirs(&root.join("slices"), &mut roots);
@@ -1658,7 +1674,7 @@ pub fn read_query(name: &str) -> String {
     }
     panic!(
         "query {name:?} not found under any of {} search roots \
-         (generated/queries, queries/competency, slices/**/queries)",
+         (authenticated generated query archive, queries/competency, slices/**/queries)",
         roots.len()
     );
 }
@@ -2228,11 +2244,10 @@ fn multiset_eq(a: &[Vec<Option<TermValue>>], b: &[Vec<Option<TermValue>>]) -> bo
 
 // ── Unit tests for the blank-node-aware `GraphStore` helpers ──────────────────
 //
-// This support module is compiled into every sibling integration binary, so plain
-// `#[test]` fns here are collected and run. They exercise the new `*_h` helpers
+// These callable checks are deliberately NOT `#[test]` here: the consolidated
+// runner's support-contract wrappers execute them once. They exercise the new `*_h` helpers
 // against small inline Turtle fixtures parsed through the existing
-// `GraphStore::parse_ttl` path (the same path the IRI-only helpers use), and never
-// touch the on-disk shapes/ontology corpus.
+// `GraphStore::parse_ttl` path and never touch the on-disk shapes/ontology corpus.
 
 /// A blank `owl:Restriction`, an `owl:unionOf`/`intersectionOf` `rdf:List` (with a
 /// blank member), and an `owl:Axiom` reification — everything the helpers walk.
@@ -2264,8 +2279,7 @@ fn ex(local: &str) -> String {
     format!("{EX}{local}")
 }
 
-#[test]
-fn object_as_subject_converts_named_and_blank_only() {
+pub fn object_as_subject_converts_named_and_blank_only() {
     assert_eq!(
         GraphStore::object_as_subject(&Object::Named(ex("A"))),
         Some(Subject::Named(ex("A")))
@@ -2286,8 +2300,7 @@ fn object_as_subject_converts_named_and_blank_only() {
     );
 }
 
-#[test]
-fn rdf_list_h_walks_union_of_in_order() {
+pub fn rdf_list_h_walks_union_of_in_order() {
     let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
     // The list head is a blank node reached from the named `ex:Union` subject.
     let head = GraphStore::object_as_subject(
@@ -2304,8 +2317,7 @@ fn rdf_list_h_walks_union_of_in_order() {
     assert_eq!(g.members_h(&head), g.rdf_list_h(&head));
 }
 
-#[test]
-fn rdf_list_h_preserves_order_with_a_blank_member() {
+pub fn rdf_list_h_preserves_order_with_a_blank_member() {
     let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
     let head = GraphStore::object_as_subject(
         &g.value_h(&Subject::Named(ex("Inter")), OWL_INTERSECTION_OF)
@@ -2331,8 +2343,7 @@ fn rdf_list_h_preserves_order_with_a_blank_member() {
     );
 }
 
-#[test]
-fn subjects_of_type_h_and_restriction_matches_a_blank_restriction() {
+pub fn subjects_of_type_h_and_restriction_matches_a_blank_restriction() {
     let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
     let restrictions = g.subjects_of_type_h(OWL_RESTRICTION);
     assert_eq!(restrictions.len(), 1, "one blank owl:Restriction");
@@ -2364,8 +2375,7 @@ fn subjects_of_type_h_and_restriction_matches_a_blank_restriction() {
     ));
 }
 
-#[test]
-fn axiom_annotations_found_by_annotated_source() {
+pub fn axiom_annotations_found_by_annotated_source() {
     let g = GraphStore::parse_ttl(BNODE_FIXTURE_TTL);
     let annotations = g.axiom_annotations(&ex("C"));
     assert_eq!(annotations.len(), 1, "one reified axiom over ex:C");
@@ -2482,8 +2492,7 @@ fn shard_parity_key(
     )
 }
 
-#[test]
-fn sharded_validation_matches_serial_byte_for_byte() {
+pub fn sharded_validation_matches_serial_byte_for_byte() {
     let shapes =
         parse_shapes(SHARD_PARITY_SHAPES_TTL).expect("shard-parity SHACL shapes must parse");
     let dataset = nt_to_dataset(&ttl_str_to_nt(SHARD_PARITY_DATA_TTL));

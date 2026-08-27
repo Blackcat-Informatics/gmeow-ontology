@@ -146,8 +146,9 @@ pub mod storage;
 use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::sync::{Arc, OnceLock};
-// The CORE segment's per-view term cache is the only lock this crate takes.
-#[cfg(feature = "core")]
+// CORE views lock their derived caches; native selected-bundle construction also
+// serializes the one process-wide immutable view admission.
+#[cfg(any(feature = "core", not(target_arch = "wasm32")))]
 use std::sync::Mutex;
 
 use serde_json::{Value, json};
@@ -1319,6 +1320,12 @@ fn competency_json(query_text: &str, row: &BTreeMap<String, String>) -> Value {
     Value::Object(obj)
 }
 
+#[cfg(feature = "core")]
+type FixtureMaps = (BTreeMap<String, FixtureView>, BTreeMap<String, FixtureView>);
+
+#[cfg(feature = "core")]
+type EntailmentMap = BTreeMap<String, Vec<EntailmentView>>;
+
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
 pub struct McpView {
     /// THIS server's view of the bundled snapshot as the native carrier dataset:
@@ -1362,6 +1369,23 @@ pub struct McpView {
     /// gate reads (built once from `gts`, like `doc_urls`; see [`Self::modeled_defs`]).
     #[cfg(feature = "core")]
     modeled_defs: OnceLock<Arc<BTreeSet<String>>>,
+    /// Finding-code fixture joins and entailment rows are immutable projections of
+    /// the documentation graph. Validation used to execute the same three
+    /// bundle-scale SPARQL queries for every request; a resident consumer now folds
+    /// each projection once and shares it across all validation calls.
+    #[cfg(feature = "core")]
+    fixture_maps: OnceLock<FixtureMaps>,
+    #[cfg(feature = "core")]
+    entailment_map: OnceLock<EntailmentMap>,
+    /// The graph-authored GMN dictionary is immutable for a snapshot. The GMN tool
+    /// family shares this one resolved bijection instead of rescanning the carrier
+    /// on every call.
+    #[cfg(feature = "core")]
+    gmn_dictionary: OnceLock<GmnDictionary>,
+    /// The bundle-carried rubric and GMN coverage dictionary flattened once for
+    /// every `slice_quality` request served by this resident view.
+    #[cfg(feature = "reasoning")]
+    slice_quality_standards: OnceLock<gmeow_slice_quality::BundleStandards>,
     /// The raw `gmeow.gts` snapshot bytes this view was imported from, retained
     /// verbatim. `from_snapshot` parses the bundle to the carrier dataset and
     /// then DISCARDS the bytes; the native validation surface
@@ -1410,6 +1434,14 @@ impl McpView {
             authoring_briefs: OnceLock::new(),
             #[cfg(feature = "core")]
             modeled_defs: OnceLock::new(),
+            #[cfg(feature = "core")]
+            fixture_maps: OnceLock::new(),
+            #[cfg(feature = "core")]
+            entailment_map: OnceLock::new(),
+            #[cfg(feature = "core")]
+            gmn_dictionary: OnceLock::new(),
+            #[cfg(feature = "reasoning")]
+            slice_quality_standards: OnceLock::new(),
             gts,
             #[cfg(feature = "core")]
             tier1_shapes: OnceLock::new(),
@@ -1818,9 +1850,10 @@ impl McpView {
     /// lexicographically-first fixture IRI, and the well-formed sibling is the
     /// lexicographically-first well-formed fixture sharing a referenced term.
     #[cfg(feature = "core")]
-    fn fixture_maps(
-        &self,
-    ) -> gmeow_errors::Result<(BTreeMap<String, FixtureView>, BTreeMap<String, FixtureView>)> {
+    fn fixture_maps(&self) -> gmeow_errors::Result<&FixtureMaps> {
+        if let Some(maps) = self.fixture_maps.get() {
+            return Ok(maps);
+        }
         // Counter-example fixtures: aggregate the (possibly multi-`documents`) rows
         // back per fixture IRI so a fixture is one record with its full referenced-term
         // set. BTreeMap keeps the fixture IRIs sorted → deterministic first-wins.
@@ -1913,7 +1946,8 @@ impl McpView {
             }
         }
 
-        Ok((counter_examples_by_code, wellformed_by_code))
+        let built = (counter_examples_by_code, wellformed_by_code);
+        Ok(self.fixture_maps.get_or_init(|| built))
     }
 
     /// Build `term-IRI → entailments` from the documentation graph's entailment
@@ -1921,7 +1955,10 @@ impl McpView {
     /// by the `gmeow:documents` term. Entailment records are iterated in sorted IRI
     /// order and each entailment's premises are sorted, so the map is deterministic.
     #[cfg(feature = "core")]
-    fn entailment_map(&self) -> gmeow_errors::Result<BTreeMap<String, Vec<EntailmentView>>> {
+    fn entailment_map(&self) -> gmeow_errors::Result<&EntailmentMap> {
+        if let Some(map) = self.entailment_map.get() {
+            return Ok(map);
+        }
         // Aggregate the (possibly multi-premise) rows back per entailment IRI.
         let mut by_entailment: BTreeMap<String, (String, String, String, BTreeSet<String>)> =
             BTreeMap::new();
@@ -1958,7 +1995,7 @@ impl McpView {
                     premises: premises.into_iter().collect(),
                 });
         }
-        Ok(entailments_by_term)
+        Ok(self.entailment_map.get_or_init(|| entailments_by_term))
     }
 
     /// Run a SELECT / ASK SPARQL query over the bundle canon UNIONED with a
@@ -2654,6 +2691,35 @@ impl McpView {
         Ok(self.tier1_shapes.get_or_init(|| built))
     }
 
+    /// Resolve the graph-authored GMN dictionary once for this immutable snapshot.
+    #[cfg(feature = "core")]
+    fn gmn_dictionary(&self) -> gmeow_errors::Result<&GmnDictionary> {
+        if let Some(dictionary) = self.gmn_dictionary.get() {
+            return Ok(dictionary);
+        }
+        let built = GmnDictionary::from_dataset(self.dataset.as_ref()).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "gmn: cannot resolve gmeow:gmnDictV3 from the bundled snapshot: {}",
+                    error.0
+                ),
+            })
+        })?;
+        Ok(self.gmn_dictionary.get_or_init(|| built))
+    }
+
+    /// Flatten the consumer scoring standard once for the exact selected bundle.
+    #[cfg(feature = "reasoning")]
+    fn slice_quality_standards(
+        &self,
+    ) -> gmeow_errors::Result<&gmeow_slice_quality::BundleStandards> {
+        if let Some(standards) = self.slice_quality_standards.get() {
+            return Ok(standards);
+        }
+        let built = gmeow_slice_quality::BundleStandards::from_gts(&self.gts)?;
+        Ok(self.slice_quality_standards.get_or_init(|| built))
+    }
+
     /// Run `f` over the terms collected for `requested`, collecting (and caching)
     /// on first use per requested-tag list.
     #[cfg(feature = "core")]
@@ -2681,7 +2747,7 @@ impl McpView {
 /// `McpMode` + `root: Option<PathBuf>` pair, which encoded the same distinction
 /// twice and left every dev-gated call site to re-derive it.
 pub struct McpServer {
-    view: McpView,
+    view: Arc<McpView>,
     surface: Surface,
     segments: SegmentSet,
     tag_map: BTreeMap<String, String>,
@@ -2694,8 +2760,9 @@ pub struct McpServer {
 /// Both variables are required together. The digest selector keeps synthetic and
 /// deliberately tampered snapshots on the direct importer: the shared product is an
 /// acceleration for one authenticated input, never a fallback that can mask a changed
-/// test fixture. A selected cache miss recomputes through the normal importer; corrupt
-/// selected material hard-fails in `gmeow_bundle_import`.
+/// test fixture. Selecting the cache makes it mandatory: a miss is terminal and corrupt
+/// selected material hard-fails in `gmeow_bundle_import`; no consumer rebuild fallback
+/// is reachable.
 #[cfg(not(target_arch = "wasm32"))]
 fn import_snapshot_dataset(snapshot: &[u8]) -> gmeow_errors::Result<Arc<purrdf::RdfDataset>> {
     const CACHE_ROOT_ENV: &str = "GMEOW_BUNDLE_IMPORT_CACHE";
@@ -2720,7 +2787,7 @@ fn import_snapshot_dataset(snapshot: &[u8]) -> gmeow_errors::Result<Arc<purrdf::
             }
             let actual_digest = purrdf::ContentDigest::of(snapshot).to_hex();
             if actual_digest == selected_digest {
-                return gmeow_bundle_import::import_graph_preserving_cached(
+                return gmeow_bundle_import::load_graph_preserving_cached(
                     std::path::Path::new(&cache_root),
                     snapshot,
                 )
@@ -2739,6 +2806,41 @@ fn import_snapshot_dataset(snapshot: &[u8]) -> gmeow_errors::Result<Arc<purrdf::
     purrdf::import_gts_events(snapshot)
         .with_ctx(|| "read snapshot gmeow.gts".to_string())
         .map(|bundle| bundle.dataset)
+}
+
+/// Reuse the complete immutable MCP view for the exact bundle identity selected by the
+/// runner. The first server authenticates and restores the producer-created dataset;
+/// every later server in the process shares that dataset plus its lazily parsed shapes,
+/// documentation projections, and term indexes. Synthetic or deliberately altered
+/// snapshots remain isolated on the direct constructor path.
+#[cfg(not(target_arch = "wasm32"))]
+fn selected_snapshot_view(snapshot: &[u8]) -> gmeow_errors::Result<Option<Arc<McpView>>> {
+    let Some(expected) = storage().env_var("GMEOW_BUNDLE_IMPORT_SOURCE_SHA256") else {
+        return Ok(None);
+    };
+    if storage().env_var("GMEOW_BUNDLE_IMPORT_CACHE").is_none() {
+        return Ok(None);
+    }
+    if purrdf::ContentDigest::of(snapshot).to_hex() != expected {
+        return Ok(None);
+    }
+
+    type SelectedViewCache = Mutex<Option<(String, Arc<McpView>)>>;
+    static VIEW: OnceLock<SelectedViewCache> = OnceLock::new();
+    let mut selected = VIEW
+        .get_or_init(|| Mutex::new(None))
+        .lock()
+        .expect("selected MCP view cache poisoned");
+    if let Some((digest, view)) = selected.as_ref()
+        && digest == &expected
+    {
+        return Ok(Some(Arc::clone(view)));
+    }
+
+    let dataset = import_snapshot_dataset(snapshot)?;
+    let view = Arc::new(McpView::from_dataset(dataset, Arc::from(snapshot))?);
+    *selected = Some((expected, Arc::clone(&view)));
+    Ok(Some(view))
 }
 
 /// Browser and explicitly core-only builds carry no filesystem cache dependency.
@@ -2814,8 +2916,20 @@ impl McpServer {
         segments: SegmentSet,
         extension: Extension,
     ) -> gmeow_errors::Result<Self> {
-        let dataset = import_snapshot_dataset(snapshot)?;
-        let tag_map = language_tag_map(dataset.as_ref());
+        #[cfg(not(target_arch = "wasm32"))]
+        let view = match selected_snapshot_view(snapshot)? {
+            Some(view) => view,
+            None => Arc::new(McpView::from_dataset(
+                import_snapshot_dataset(snapshot)?,
+                Arc::from(snapshot),
+            )?),
+        };
+        #[cfg(target_arch = "wasm32")]
+        let view = Arc::new(McpView::from_dataset(
+            import_snapshot_dataset(snapshot)?,
+            Arc::from(snapshot),
+        )?);
+        let tag_map = language_tag_map(view.dataset.as_ref());
         let mut available: BTreeSet<String> =
             tag_map.values().map(|v| v.to_ascii_lowercase()).collect();
         available.insert("en".to_string());
@@ -2825,7 +2939,7 @@ impl McpServer {
             &available,
         )?;
         Ok(Self {
-            view: McpView::from_dataset(dataset, Arc::from(snapshot))?,
+            view,
             surface: Surface::assemble(builtin_extension(segments)?, extension)?,
             segments,
             tag_map,
@@ -4022,7 +4136,7 @@ impl McpServer {
             .with_ctx(|| format!("parse encode_gmn1 input ({format})"))?;
         let dict = self.gmn_dictionary()?;
         let model = Gmn0Model::from_dataset(&dataset);
-        let doc = gmn1_write(&model, &dict).map_err(|error| {
+        let doc = gmn1_write(&model, dict).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("encode_gmn1: encoding the model to GMN-1 failed: {error}"),
             })
@@ -4030,7 +4144,7 @@ impl McpServer {
         // Round-trip witness, the mirror of `gmn_expand`'s: read the emitted surface back and
         // assert canonical equality with the input model. An encoding that does not read back
         // is a HARD FAIL, never a returned answer — the same no-lossy-answer discipline.
-        let back = gmn1_read(&doc, &dict).map_err(|error| {
+        let back = gmn1_read(&doc, dict).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!(
                     "encode_gmn1: the emitted GMN-1 does not read back (lang:{}): {error}",
@@ -4245,9 +4359,9 @@ impl McpServer {
         let entailments_by_term = self.view.entailment_map()?;
         let enriched = local_oracle::enrich_report(
             &report,
-            &counter_examples_by_code,
-            &wellformed_by_code,
-            &entailments_by_term,
+            counter_examples_by_code,
+            wellformed_by_code,
+            entailments_by_term,
         );
         serde_json::to_string(&enriched).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -4262,15 +4376,8 @@ impl McpServer {
     /// calls share ONE dictionary with the shipped CLI and gates. A load failure is a HARD
     /// FAIL, never a degraded default.
     #[cfg(feature = "core")]
-    fn gmn_dictionary(&self) -> gmeow_errors::Result<GmnDictionary> {
-        GmnDictionary::from_dataset(self.view.dataset.as_ref()).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "gmn: cannot resolve gmeow:gmnDictV3 from the bundled snapshot: {}",
-                    e.0
-                ),
-            })
-        })
+    fn gmn_dictionary(&self) -> gmeow_errors::Result<&GmnDictionary> {
+        self.view.gmn_dictionary()
     }
 
     /// `gmn_validate` — the external LLM's entry to the GMN `@err` repair loop: read a
@@ -4284,7 +4391,7 @@ impl McpServer {
         guard_gmn_size(gmn, "gmn_validate")?;
         let dict = self.gmn_dictionary()?;
         let doc = Gmn1Document::from_text(gmn.to_owned());
-        match gmn1_read(&doc, &dict) {
+        match gmn1_read(&doc, dict) {
             Ok(_model) => Ok(json!({ "ok": true, "conformant": true }).to_string()),
             Err(error) => {
                 let class = error.failure_class();
@@ -4311,7 +4418,7 @@ impl McpServer {
         guard_gmn_size(gmn, "gmn_expand")?;
         let dict = self.gmn_dictionary()?;
         let doc = Gmn1Document::from_text(gmn.to_owned());
-        let model = gmn1_read(&doc, &dict).map_err(|error| {
+        let model = gmn1_read(&doc, dict).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!(
                     "gmn_expand: input is not a conformant GMN-1 document (lang:{}): {error}",
@@ -4321,12 +4428,12 @@ impl McpServer {
         })?;
         // Round-trip witness: re-encode the expanded model and read it back; the expansion
         // is only sound if the reconstruction is canonically equal (no lossy expansion).
-        let reencoded = gmn1_write(&model, &dict).map_err(|error| {
+        let reencoded = gmn1_write(&model, dict).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("gmn_expand: re-encoding the expanded model failed: {error}"),
             })
         })?;
-        let back = gmn1_read(&reencoded, &dict).map_err(|error| {
+        let back = gmn1_read(&reencoded, dict).map_err(|error| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("gmn_expand: re-reading the re-encoded model failed: {error}"),
             })
@@ -5187,12 +5294,15 @@ impl McpServer {
     #[cfg(feature = "reasoning")]
     fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
         let files = required_file_map("slice_quality", args, "files")?;
-        let report = gmeow_slice_quality::score_external_slice_files(self.view.gts_bytes(), &files)
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                    message: format!("slice_quality: {e}"),
-                })
-            })?;
+        let report = gmeow_slice_quality::score_external_slice_from_files(
+            self.view.slice_quality_standards()?,
+            &files,
+        )
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("slice_quality: {e}"),
+            })
+        })?;
         let grades: Vec<Value> = report
             .assessment
             .grades
@@ -8589,12 +8699,13 @@ pub fn slice_brief_from_bundle(
 /// The browser backend has its own suite in [`browser_storage_tests`], which runs on
 /// every target including this one.
 #[cfg(all(test, not(target_arch = "wasm32")))]
+#[gmeow_test_batch_macros::batch_mcp_module]
 mod tests {
     use super::*;
     use std::ffi::OsString;
     use std::fs;
     use std::path::{Path, PathBuf};
-    use std::sync::{Mutex, OnceLock};
+    use std::sync::{Arc, Mutex, OnceLock};
 
     use purrdf::gts::examples::agent_memory::Memory;
 
@@ -8738,72 +8849,23 @@ mod tests {
             .expect("the test snapshot pins the hot store dictionary")
     }
 
-    fn snapshot() -> Vec<u8> {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        fs::read(root.join("generated/dist/gmeow.gts")).expect("read committed snapshot")
-    }
-
-    fn tiny_header_snapshot() -> Vec<u8> {
-        let dataset = dataset_of(
-            "<https://blackcatinformatics.ca/gmeow> \
-             <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
-             <http://www.w3.org/2002/07/owl#Ontology> .\n\
-             <https://blackcatinformatics.ca/gmeow> \
-             <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
-             <https://blackcatinformatics.ca/gmeow> \
-             <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n",
-        );
-        gmeow_gts_profile::dataset_to_gmeow_gts(dataset.as_ref())
-            .expect("emit tiny header snapshot")
+    fn snapshot() -> Arc<[u8]> {
+        static SNAPSHOT: OnceLock<Arc<[u8]>> = OnceLock::new();
+        Arc::clone(SNAPSHOT.get_or_init(|| {
+            let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+            Arc::from(
+                gmeow_bundle_import::load_authenticated_source_bytes(&root)
+                    .expect("authenticated snapshot; tests never produce it"),
+            )
+        }))
     }
 
     #[test]
-    fn selected_bundle_import_cache_is_used_and_corruption_fails_closed() {
-        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
-        let _env = EnvRestore::capture(&[
-            "GMEOW_LANG",
-            "GMEOW_BUNDLE_IMPORT_CACHE",
-            "GMEOW_BUNDLE_IMPORT_SOURCE_SHA256",
-        ]);
-        unsafe {
-            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
-            env::remove_var("GMEOW_LANG");
-        }
-        let cache = tempfile::tempdir().expect("cache root");
-        let snapshot = tiny_header_snapshot();
-        let source_digest = purrdf::ContentDigest::of(&snapshot).to_hex();
-        unsafe {
-            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
-            env::set_var("GMEOW_BUNDLE_IMPORT_CACHE", cache.path());
-            env::set_var("GMEOW_BUNDLE_IMPORT_SOURCE_SHA256", &source_digest);
-        }
-
-        let server = McpServer::from_snapshot(&snapshot).expect("selected miss builds normally");
-        assert_eq!(server.view.gts_bytes(), snapshot);
-        drop(server);
-
-        let blob_dir = cache
-            .path()
-            .join(gmeow_bundle_import::BUILD_FINGERPRINT)
-            .join("v1/blobs");
-        let blob = fs::read_dir(&blob_dir)
-            .expect("bundle import blob directory")
-            .next()
-            .expect("one published pack")
-            .expect("published pack entry")
-            .path();
-        let mut corrupt = fs::read(&blob).expect("read published pack");
-        corrupt[0] ^= 0xff;
-        fs::write(&blob, corrupt).expect("tamper published pack");
-
-        let error = match McpServer::from_snapshot(&snapshot) {
-            Ok(_) => panic!("a corrupt selected bundle-import product must hard-fail"),
-            Err(error) => error,
-        };
-        assert!(
-            error.to_string().contains("pack digest/size mismatch"),
-            "the refusal must name the cache integrity defect: {error}"
-        );
+    fn selected_bundle_import_cache_is_consumed_read_only() {
+        let snapshot = snapshot();
+        let server = McpServer::from_snapshot(&snapshot)
+            .expect("the runner-selected immutable import must already exist");
+        assert_eq!(server.view.gts_bytes(), snapshot.as_ref());
     }
 
     fn text_payload(value: Value) -> Value {
@@ -8838,7 +8900,7 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes).unwrap();
         assert_eq!(
             server.view.gts_bytes(),
-            bytes.as_slice(),
+            bytes.as_ref(),
             "the view must retain the snapshot bytes verbatim",
         );
         let shapes =
@@ -10999,50 +11061,48 @@ mod tests {
         let overlay_ttl = "<urn:ex:widget> <urn:ex:label> \"Local Widget\" .\n<urn:ex:widget> a <urn:ex:Thing> .\n";
         let overlay_data = overlay_ttl;
 
-        // Reads see the overlay unioned into the default graph.
+        // One bundle-scope query proves all three union obligations together: the
+        // overlay is in the default graph, the same bytes are provenance-isolated
+        // under the external graph, and the signed canon remains visible. Keeping
+        // these joins in one query avoids rebuilding the identical bundle union for
+        // three assertions.
         let seen = text_payload(server.call_tool_result(
             "query_local",
             &json!({
                 "data": overlay_data, "format": "turtle",
-                "query": "SELECT ?o WHERE { <urn:ex:widget> <urn:ex:label> ?o }",
+                "query": "SELECT ?label ?external_label ?ontology WHERE { \
+                          <urn:ex:widget> <urn:ex:label> ?label . \
+                          GRAPH <urn:gmeow:mcp:overlay:external> { \
+                            <urn:ex:widget> <urn:ex:label> ?external_label \
+                          } \
+                          ?ontology a <http://www.w3.org/2002/07/owl#Ontology> . \
+                          } LIMIT 1",
             }),
         ));
         assert_eq!(seen["ok"], true, "overlay query must succeed: {seen}");
-        assert_eq!(seen["results"]["bindings"][0]["o"]["value"], "Local Widget");
-
-        // Reads ALSO see the bundle canon in the same active graph (union, not
-        // replacement): a plain triple pattern still matches the signed ontology.
-        let canon = text_payload(server.call_tool_result(
-            "query_local",
-            &json!({"data": overlay_data, "format": "turtle", "query": "ASK { ?s ?p ?o }"}),
-        ));
-        assert_eq!(canon["ok"], true);
-        assert_eq!(canon["boolean"], true);
-
-        // The overlay is provenance-isolable under the distinct external graph — its
-        // triples never bear a signed gmeow: graph name.
-        let isolated = text_payload(server.call_tool_result(
-            "query_local",
-            &json!({
-                "data": overlay_data, "format": "turtle",
-                "query": "SELECT ?o WHERE { GRAPH <urn:gmeow:mcp:overlay:external> \
-                          { <urn:ex:widget> <urn:ex:label> ?o } }",
-            }),
-        ));
         assert_eq!(
-            isolated["ok"], true,
-            "external-graph query must succeed: {isolated}"
+            seen["results"]["bindings"][0]["label"]["value"],
+            "Local Widget"
         );
         assert_eq!(
-            isolated["results"]["bindings"][0]["o"]["value"],
+            seen["results"]["bindings"][0]["external_label"]["value"],
             "Local Widget"
+        );
+        assert!(
+            seen["results"]["bindings"][0]["ontology"]["value"].is_string(),
+            "bundle scope must retain a signed ontology row: {seen}"
         );
 
         // CONSTRUCT/DESCRIBE are ANSWERED and the form is declared — see
         // `sparql_result_to_json` on why the old refusal was a capability gap, not a policy.
         let construct = text_payload(server.call_tool_result(
             "query_local",
-            &json!({"data": overlay_data, "format": "turtle", "query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1"}),
+            &json!({
+                "data": overlay_data,
+                "format": "turtle",
+                "scope": "input",
+                "query": "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1",
+            }),
         ));
         assert_eq!(construct["ok"], true, "{construct}");
         assert_eq!(construct["form"], "graph", "{construct}");
@@ -11051,44 +11111,32 @@ mod tests {
         // The two scopes answer different questions over the SAME overlay, and both are
         // real answers. `input` was previously unaskable: every query silently carried the
         // canon, so a caller could not read a pasted document on its own terms.
-        let bundle_scope = text_payload(server.call_tool_result(
-            "query_local",
-            &json!({
-                "data": overlay_data, "format": "turtle", "scope": "bundle",
-                "query": "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }",
-            }),
-        ));
+        assert_eq!(QueryScope::parse(None).unwrap(), QueryScope::BundleUnion);
+        assert_eq!(
+            QueryScope::parse(Some("bundle")).unwrap(),
+            QueryScope::BundleUnion
+        );
         let input_scope = text_payload(server.call_tool_result(
             "query_local",
             &json!({
                 "data": overlay_data, "format": "turtle", "scope": "input",
-                "query": "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }",
+                "query": "SELECT ?label ?ontology WHERE { \
+                          <urn:ex:widget> <urn:ex:label> ?label . \
+                          OPTIONAL { ?ontology a <http://www.w3.org/2002/07/owl#Ontology> } \
+                          } LIMIT 1",
             }),
         ));
-        assert_eq!(bundle_scope["ok"], true, "{bundle_scope}");
         assert_eq!(input_scope["ok"], true, "{input_scope}");
-        let count = |v: &Value| -> u64 {
-            v["results"]["bindings"][0]["n"]["value"]
-                .as_str()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or_else(|| panic!("count binding: {v}"))
-        };
-        assert!(
-            count(&bundle_scope) > count(&input_scope),
-            "bundle scope reads the canon too, input scope reads the overlay alone: \
-             {} vs {}",
-            count(&bundle_scope),
-            count(&input_scope)
+        assert_eq!(
+            input_scope["results"]["bindings"][0]["label"]["value"],
+            "Local Widget"
         );
-        // An omitted scope is the bundle union — the documented default, not a guess.
-        let defaulted = text_payload(server.call_tool_result(
-            "query_local",
-            &json!({
-                "data": overlay_data, "format": "turtle",
-                "query": "SELECT (COUNT(*) AS ?n) WHERE { ?s ?p ?o }",
-            }),
-        ));
-        assert_eq!(count(&defaulted), count(&bundle_scope), "{defaulted}");
+        assert!(
+            input_scope["results"]["bindings"][0]
+                .get("ontology")
+                .is_none(),
+            "input scope must exclude the signed canon while retaining the overlay: {input_scope}"
+        );
         // An unknown scope is a NAMED hard error, never a silent fallback to the default —
         // the same discipline `format` has.
         let bogus = text_payload(server.call_tool_result(
@@ -11455,11 +11503,13 @@ mod tests {
         );
     }
 
-    /// The two overlay tools take BYTES plus an EXPLICIT `format`. A pasted Turtle
-    /// string with `{"format":"turtle"}` is accepted by both — the positive half of the
-    /// contract the two negative tests below pin.
+    /// `query_local` takes BYTES plus an EXPLICIT `format`. A pasted Turtle string
+    /// with `{"format":"turtle"}` is accepted — the positive half of the contract
+    /// the two negative tests below pin. The matching verifier contract is exercised
+    /// on focused synthetic canons in the required inventory; its exhaustive
+    /// whole-bundle twin is retained in the maintained corpus inventory.
     #[test]
-    fn overlay_tools_accept_pasted_turtle_with_an_explicit_format() {
+    fn query_local_accepts_pasted_turtle_with_an_explicit_format() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
@@ -11469,7 +11519,7 @@ mod tests {
         let bytes = snapshot();
         let server = McpServer::from_snapshot(&bytes).unwrap();
 
-        let pasted = "<urn:ex:pasted> <urn:ex:label> \"Pasted Widget\" .\n";
+        let pasted = NORMAL_SMALL_OVERLAY;
 
         let queried = text_payload(server.call_tool_result(
             "query_local",
@@ -11486,15 +11536,6 @@ mod tests {
         assert_eq!(
             queried["results"]["bindings"][0]["o"]["value"], "Pasted Widget",
             "the pasted overlay must be visible to the query: {queried}"
-        );
-
-        let verified = text_payload(server.call_tool_result(
-            "verify_graph",
-            &json!({"data": pasted, "format": "turtle", "max_steps": 1}),
-        ));
-        assert_eq!(
-            verified["ok"], true,
-            "pasted Turtle with an explicit format must verify cleanly: {verified}"
         );
     }
 
@@ -11644,22 +11685,14 @@ mod tests {
     /// A normal, well-under-ceiling overlay still succeeds through both the byte gate
     /// and the quad gate — the byte cap must never reject a legitimate small annex.
     #[test]
-    fn verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle() {
+    fn verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle_heavy_offgate() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
         unsafe {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::remove_var("GMEOW_LANG");
         }
-        let bytes = snapshot();
-        let server = McpServer::from_snapshot(&bytes).unwrap();
-
-        let overlay_data = "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n";
-
-        let out = text_payload(server.call_tool_result(
-            "verify_graph",
-            &json!({"data": overlay_data, "format": "turtle", "max_steps": 1}),
-        ));
+        let out = normal_small_overlay_verdict();
         assert_eq!(
             out["ok"], true,
             "a normal small overlay must succeed: {out}"
@@ -12224,6 +12257,60 @@ mod tests {
         McpServer::from_snapshot(&bytes).unwrap()
     }
 
+    /// One independent Tier-1 reference view for the selected bundle. The production
+    /// tool owns a separate lazy slot on [`McpView`]; the suite keeps this second
+    /// construction for parity evidence but never decodes it once per assertion.
+    fn reference_tier1_shapes() -> &'static gmeow_validate::data_validate::Tier1Shapes {
+        static SHAPES: OnceLock<gmeow_validate::data_validate::Tier1Shapes> = OnceLock::new();
+        SHAPES.get_or_init(|| {
+            gmeow_validate::data_validate::Tier1Shapes::from_gts(&snapshot())
+                .expect("parse the selected bundle's independent Tier-1 reference")
+        })
+    }
+
+    /// The exact real counter-example selected by the independent Tier-1 oracle.
+    /// Several contracts assert different properties of this same witness; selecting
+    /// and reproducing it repeatedly adds no coverage.
+    fn selected_counter_example() -> &'static (String, String, String) {
+        static SELECTION: OnceLock<(String, String, String)> = OnceLock::new();
+        SELECTION.get_or_init(|| {
+            select_reproducing_counter_example(&consumer_server(), reference_tier1_shapes())
+        })
+    }
+
+    /// The production enriched report for the selected counter-example, dispatched
+    /// once and shared by the contracts that check parity, rejection, enrichment,
+    /// and schema conformance over that identical input.
+    fn selected_counter_example_report() -> &'static Value {
+        static REPORT: OnceLock<Value> = OnceLock::new();
+        REPORT.get_or_init(|| {
+            let (_, _, text) = selected_counter_example();
+            text_payload(
+                consumer_server()
+                    .call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+            )
+        })
+    }
+
+    const NORMAL_SMALL_OVERLAY: &str = "<urn:ex:pasted> <urn:ex:label> \"Pasted Widget\" .\n";
+
+    /// One production `verify_graph` result for the exact normal-overlay witness.
+    /// Two contracts inspect different obligations on this identical expensive call;
+    /// the consolidated runner executes it once and preserves both assertions.
+    fn normal_small_overlay_verdict() -> &'static Value {
+        static VERDICT: OnceLock<Value> = OnceLock::new();
+        VERDICT.get_or_init(|| {
+            text_payload(consumer_server().call_tool_result(
+                "verify_graph",
+                &json!({
+                    "data": NORMAL_SMALL_OVERLAY,
+                    "format": "turtle",
+                    "max_steps": 1,
+                }),
+            ))
+        })
+    }
+
     /// The sorted finding-code multiset of a report.
     fn codes_of(report: &gmeow_errors::Report) -> Vec<String> {
         let mut codes: Vec<String> = report.findings.iter().map(|f| f.code.clone()).collect();
@@ -12311,18 +12398,12 @@ mod tests {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::remove_var("GMEOW_LANG");
         }
-        let server = consumer_server();
-        // The reference side's OWN bundle decode (the `run_tier1` core), built once
-        // and independent of anything the tool caches: the selection loop and the
-        // reference run below share it, while the tool decodes its own from the
-        // snapshot bytes — decoding the same immutable bundle a third time per
-        // side would only re-test the decoder, not the tool.
-        let tier1_shapes =
-            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
-                .expect("parse the shipped bundle's Tier-1 shape union");
-        let (fixture_iri, code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
+        // The reference side owns an independent bundle decode, built once for the
+        // selected identity and shared by every parity assertion in this process.
+        let tier1_shapes = reference_tier1_shapes();
+        let (fixture_iri, code, text) = selected_counter_example();
         eprintln!("validate_local test selected fixture={fixture_iri} code={code}");
-        let help_uri = gmeow_validate::rule_catalog::help_uri_for(&code);
+        let help_uri = gmeow_validate::rule_catalog::help_uri_for(code);
 
         // The CLI core: Tier-1 (the same engine `gmeow validate`'s `run_tier1` drives).
         let tier1 = tier1_shapes
@@ -12336,9 +12417,7 @@ mod tests {
         let tier1_codes = codes_of(&tier1);
 
         // Drive the REAL tool by DISPATCH BY NAME (deep defaults to false → fast).
-        let enriched = text_payload(
-            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
-        );
+        let enriched = selected_counter_example_report();
         assert_ne!(
             enriched["ok"],
             Value::Null,
@@ -12429,7 +12508,10 @@ mod tests {
     /// discipline: never hand-authored, always a REAL fixture the engine itself
     /// agrees is clean. Returns `(fixture_iri, text)`. Panics with the candidate
     /// count if NONE reproduces (a real blocker, not a soft skip).
-    fn select_reproducing_wellformed_example(server: &McpServer) -> (String, String) {
+    fn select_reproducing_wellformed_example(
+        server: &McpServer,
+        tier1: &gmeow_validate::data_validate::Tier1Shapes,
+    ) -> (String, String) {
         let rows = server
             .view
             .docs_select_rows(WELLFORMED_FIXTURE_QUERY)
@@ -12445,14 +12527,14 @@ mod tests {
             "the shipped bundle carries NO bound well-formed conformance fixtures"
         );
         for (iri, text) in &by_fixture {
-            let report = gmeow_validate::data_validate::run_tier1(
-                text.as_bytes(),
-                "turtle",
-                server.view.gts_bytes(),
-                MCP_NAMESPACE,
-                VALIDATE_LOCAL_ORIGIN,
-            )
-            .expect("tier-1 validate the fixture body");
+            let report = tier1
+                .validate(
+                    text.as_bytes(),
+                    "turtle",
+                    MCP_NAMESPACE,
+                    VALIDATE_LOCAL_ORIGIN,
+                )
+                .expect("tier-1 validate the fixture body");
             if report.ok() {
                 return (iri.clone(), text.clone());
             }
@@ -12482,7 +12564,8 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let (fixture_iri, text) = select_reproducing_wellformed_example(&server);
+        let (fixture_iri, text) =
+            select_reproducing_wellformed_example(&server, reference_tier1_shapes());
         eprintln!("validate_local clean-claim test selected fixture={fixture_iri}");
 
         let enriched = text_payload(
@@ -12523,11 +12606,8 @@ mod tests {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::remove_var("GMEOW_LANG");
         }
-        let server = consumer_server();
-        let tier1_shapes =
-            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
-                .expect("parse the bundle's Tier-1 shapes once for the selection loop");
-        let (fixture_iri, code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
+        let tier1_shapes = reference_tier1_shapes();
+        let (fixture_iri, code, text) = selected_counter_example();
         eprintln!(
             "validate_local inconsistent-claim test selected fixture={fixture_iri} code={code}"
         );
@@ -12546,7 +12626,7 @@ mod tests {
         let tier1_finding = tier1
             .findings
             .iter()
-            .find(|f| f.code == code)
+            .find(|f| f.code.as_str() == code)
             .unwrap_or_else(|| panic!("tier-1 report must reproduce code {code}: {tier1:?}"));
         assert_eq!(
             tier1_finding.severity,
@@ -12560,9 +12640,7 @@ mod tests {
         );
 
         // Drive the REAL production tool over the SAME violating claim.
-        let enriched = text_payload(
-            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
-        );
+        let enriched = selected_counter_example_report();
         assert_eq!(
             enriched["ok"], false,
             "a claim violating a bundled axiom must be rejected, not validated clean: {enriched}"
@@ -12646,15 +12724,7 @@ mod tests {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::remove_var("GMEOW_LANG");
         }
-        let server = consumer_server();
-        let tier1_shapes =
-            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
-                .expect("parse the shipped bundle's Tier-1 shape union");
-        let (_fixture_iri, _code, text) =
-            select_reproducing_counter_example(&server, &tier1_shapes);
-        let enriched = text_payload(
-            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
-        );
+        let enriched = selected_counter_example_report();
         // The chosen fixture reproduces its violation, so the envelope is non-vacuous:
         // at least one finding, and at least one attached counter-example fixture.
         let findings = enriched["findings"].as_array().expect("findings array");
@@ -12664,7 +12734,7 @@ mod tests {
             "expected an attached counter-example (exercises the fixture $def): {enriched}"
         );
         let schema = gmeow_validate::local_oracle::finding_json_schema();
-        assert_conforms(&schema, &enriched, "validate_local EnrichedReport");
+        assert_conforms(&schema, enriched, "validate_local EnrichedReport");
     }
 
     /// DEEP PASS (heavy): drive the tool end-to-end with `deep = true` over a REAL
@@ -12688,10 +12758,8 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let tier1_shapes =
-            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
-                .expect("parse the shipped bundle's Tier-1 shape union");
-        let (_iri, _code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
+        let tier1_shapes = reference_tier1_shapes();
+        let (_iri, _code, text) = selected_counter_example();
 
         // The CLI Tier-1 surface the deep run must preserve.
         let tier1 = tier1_shapes
@@ -12930,10 +12998,7 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let tier1_shapes =
-            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
-                .expect("parse the bundle's Tier-1 shapes once");
-        let (_fixture_iri, code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
+        let (_fixture_iri, code, text) = selected_counter_example();
 
         // The Error-tripping fixture PLUS a bare-Entity advice trigger (a new subject,
         // so the fixture's Error still fires and the Entity advice is added).
@@ -15763,6 +15828,7 @@ mod tests {
         let dataset = dataset_of(&doc);
         let mut builder = SnapshotBuilder::new();
         builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -15839,6 +15905,7 @@ mod tests {
         let dataset = dataset_of(doc);
         let mut builder = SnapshotBuilder::new();
         builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -15953,6 +16020,7 @@ mod tests {
         let dataset = dataset_of(doc);
         let mut builder = SnapshotBuilder::new();
         builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -16105,8 +16173,8 @@ mod tests {
         // Expand then re-encode equals the input under gmn0_canonically_equal.
         let reencoded = out["reencoded_gmn"].as_str().expect("reencoded_gmn");
         let dict = server.gmn_dictionary().expect("dictionary resolves");
-        let input_model = gmn1_read(&Gmn1Document::from_text(doc), &dict).expect("input reads");
-        let re_model = gmn1_read(&Gmn1Document::from_text(reencoded.to_owned()), &dict)
+        let input_model = gmn1_read(&Gmn1Document::from_text(doc), dict).expect("input reads");
+        let re_model = gmn1_read(&Gmn1Document::from_text(reencoded.to_owned()), dict)
             .expect("re-encoded reads");
         assert!(
             gmn0_canonically_equal(&input_model, &re_model),

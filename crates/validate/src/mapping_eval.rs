@@ -1483,18 +1483,6 @@ mod tests {
     }
 
     #[test]
-    fn collects_wikidata_ids_from_committed_mappings() {
-        let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let root = manifest_dir
-            .parent()
-            .and_then(Path::parent)
-            .expect("repo root");
-        let ids = collect_wikidata_ids(&root.join("generated").join("mappings")).unwrap();
-        assert!(ids.iter().any(|id| id == "Q5"));
-        assert!(ids.iter().any(|id| id == "Q43229"));
-    }
-
-    #[test]
     fn slice_module_discovery_fails_loudly_when_empty() {
         let root = tempfile::tempdir().unwrap();
         std::fs::create_dir(root.path().join("slices")).unwrap();

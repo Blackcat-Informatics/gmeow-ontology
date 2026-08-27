@@ -63,3 +63,6 @@ ciborium.workspace = true
 # raise (a term an encoding cannot carry). Never product data and never a gate —
 # the events surface only when the host CLI has installed a subscriber.
 tracing.workspace = true
+
+[dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }

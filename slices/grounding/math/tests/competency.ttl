@@ -1140,9 +1140,10 @@ ex:rowBridgeRoundtrip a gmeow:ExpectedRow ;
 # Bridges Q1–Q6 above are answered by tests/fixtures/bridges.ttl, a HAND-AUTHORED scene
 # under <http://example.org/math/>. The four questions below are their producer-namespace
 # twins: each runs the analogous query over tests/fixtures/lifted-{r,onnx,proof}.ttl, which
-# are byte-for-byte the output of gmeow_math::producers::{r_lift,onnx_lift,proof_lift} (the
-# shipped gmeow_math_lift front-ends, run over real committed artifacts and pinned by
-# crates/math/tests/lift_fixture_drift.rs). They close the producer-without-a-consumer gap:
+# are graph-equivalent to the output of
+# gmeow_math::producers::{r_lift,onnx_lift,proof_lift} (the shipped
+# gmeow_math_lift front-ends, run over real committed artifacts and pinned once at
+# the explicit `stage-math-producers` boundary). They close the producer-without-a-consumer gap:
 # the bridge competency surface is now interrogated against what a parser actually derived,
 # not only against what an author wrote down.
 #

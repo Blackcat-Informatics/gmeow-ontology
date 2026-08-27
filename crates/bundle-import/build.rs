@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
-#[path = "src/build_inputs.rs"]
+#[path = "../../build-support/path_dependency_inputs.rs"]
 mod build_inputs;
 
 fn main() {
@@ -28,6 +28,11 @@ fn main() {
             collect_file(&path, &workspace, &mut inputs);
         }
     }
+    collect_file(
+        &workspace.join("build-support/path_dependency_inputs.rs"),
+        &workspace,
+        &mut inputs,
+    );
     for relative in [
         "Cargo.toml",
         "Cargo.lock",

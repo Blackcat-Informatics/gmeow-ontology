@@ -211,22 +211,6 @@ fn the_distribution_catalog_declares_loss_only_on_loss_bearing_subjects() {
     );
 }
 
-/// The docs-format rendering corpus: `gmeow:NotationProjectionProfile` subjects.
-#[test]
-fn the_docs_format_corpus_declares_loss_only_on_loss_bearing_subjects() {
-    let corpus = gmeow_pipeline::stages::docs_format_rendering::build_docs_format_corpus(
-        "blake3:00",
-        "blake3:01",
-        "blake3:02",
-    );
-    let text = String::from_utf8(corpus.ntriples).expect("utf8 n-triples");
-    let subjects = loss_subjects(&text);
-    assert_every_subject_is_loss_bearing("docs_format_rendering", &subjects);
-    for types in subjects.values() {
-        assert!(types.contains(&format!("{GMEOW_NS}NotationProjectionProfile")));
-    }
-}
-
 /// The music render manifest: a bare node, which therefore has to assert the category
 /// itself. This is the producer a two-class union domain would have excluded.
 #[test]

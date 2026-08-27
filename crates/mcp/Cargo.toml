@@ -161,6 +161,10 @@ tempfile.workspace = true
 gmeow-bundle-import = { path = "../bundle-import" }
 
 [dev-dependencies]
+# Register the native tool contracts behind one required and one maint-heavy libtest
+# runner. Nextest otherwise restores the same authenticated 140 MiB pack once per test.
+gmeow-test-batch-macros = { path = "../test-batch-macros" }
+inventory = "0.3"
 # The `doc_card` JSON projection is asserted against the hand-authored
 # `card.schema.json` (`gmeow_docs_model::card::card_json_schema`), so the tests
 # compile and run a real JSON Schema validator over the tool output.

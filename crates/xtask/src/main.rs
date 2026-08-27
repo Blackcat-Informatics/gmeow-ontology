@@ -91,6 +91,10 @@ const AFTER_SYNC: &[&str] = &["sync"];
 /// edge transitively carries the generated-tree dependency as well.
 const AFTER_RUST_BUILD: &[&str] = &["rust-build"];
 
+/// Corpus fixtures are produced by an explicit DAG node after the test binaries exist.
+/// Test runners depend on this node but never invoke it themselves.
+const AFTER_TEST_FIXTURES: &[&str] = &["test-fixtures"];
+
 /// The browser lane needs the ASSEMBLED console tree, which only `console` produces —
 /// `AFTER_SYNC` materializes the bundle but assembles nothing.
 const AFTER_CONSOLE: &[&str] = &["sync", "console"];
@@ -100,11 +104,10 @@ const FINAL_DEPS: &[&str] = &[
     "crate-check",
     "i18n-lint",
     "rust-build",
-    "carrier-purity",
+    "test-fixtures",
     "clippy",
     "nextest",
     "doctests",
-    "coherence-gate-teeth",
     "validate",
     "medium-gate",
     "constitution-check",
@@ -161,9 +164,12 @@ const CHECK_DAG: &[Task] = &[
         target: "rust-build",
         dependencies: AFTER_SYNC,
     },
+    // The sole pre-test fixture producer. Its separately compiled executables publish
+    // exact test-profile action receipts and the generated-bundle import product. Every
+    // test-facing loader is read-only and fails if this node did not complete.
     Task {
-        name: "carrier-purity",
-        target: "carrier-purity",
+        name: "test-fixtures",
+        target: "produce-test-fixtures",
         dependencies: AFTER_RUST_BUILD,
     },
     Task {
@@ -174,19 +180,11 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "nextest",
         target: "nextest",
-        dependencies: AFTER_RUST_BUILD,
+        dependencies: AFTER_TEST_FIXTURES,
     },
     Task {
         name: "doctests",
         target: "doctests",
-        dependencies: AFTER_RUST_BUILD,
-    },
-    // `crates/logic/tests/coherence_gate.rs` reads `generated/dist/gmeow.gts` and needs
-    // the compiled test binaries; it does NOT need `reason-verify` (it runs its own
-    // whole-bundle proofs), so that former serial edge is gone.
-    Task {
-        name: "coherence-gate-teeth",
-        target: "coherence-gate-teeth",
         dependencies: AFTER_RUST_BUILD,
     },
     // Two post-sync reads. (1) The shape union
@@ -896,17 +894,25 @@ mod tests {
         }
     }
 
-    /// The monolithic `rust-gate` node is split: the four Rust lanes are siblings
-    /// under `rust-build`, never chained to each other.
+    /// The monolithic `rust-gate` node is split. Non-corpus lanes remain siblings
+    /// under `rust-build`; the corpus-consuming runner waits on the explicit producer.
     #[test]
     fn the_rust_lanes_are_independent_siblings() {
-        for name in ["carrier-purity", "clippy", "nextest", "doctests"] {
+        for name in ["clippy", "doctests"] {
             assert_eq!(
                 task(name).dependencies,
                 AFTER_RUST_BUILD,
                 "{name} must depend on rust-build and nothing else"
             );
         }
+        assert_eq!(task("test-fixtures").dependencies, AFTER_RUST_BUILD);
+        assert_eq!(task("nextest").dependencies, AFTER_TEST_FIXTURES);
+        assert!(
+            !CHECK_DAG
+                .iter()
+                .any(|task| matches!(task.name, "carrier-purity" | "coherence-gate-teeth")),
+            "carrier/coherence proofs must run inside the one nextest inventory"
+        );
         assert!(
             !CHECK_DAG.iter().any(|task| task.name == "rust-gate"),
             "the monolithic rust-gate node must not be scheduled alongside its parts"

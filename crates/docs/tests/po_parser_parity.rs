@@ -162,25 +162,16 @@ fn survivor_golden_map(root: &Path) -> std::collections::BTreeMap<String, Vec<St
 }
 
 /// ENH-B pin (survives deletion): the survivor reviewed-coverage map equals the
-/// checked-in golden. Regenerate with `REGEN_REVIEWED_GOLDEN=1`.
+/// checked-in golden. The test is strictly read-only.
 #[test]
 fn reviewed_coverage_matches_frozen_golden() {
     let root = repo_root();
     let computed = survivor_golden_map(&root);
     let path = golden_path();
 
-    if std::env::var("REGEN_REVIEWED_GOLDEN").as_deref() == Ok("1") {
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).expect("create golden parent dir");
-        }
-        let json = serde_json::to_string_pretty(&computed).expect("serialize golden");
-        std::fs::write(&path, format!("{json}\n")).expect("write golden");
-        return;
-    }
-
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "missing golden {}: {e}; regenerate with REGEN_REVIEWED_GOLDEN=1",
+            "missing golden {}: {e}; refresh it through the explicit maintainer producer",
             path.display()
         )
     });
@@ -188,7 +179,6 @@ fn reviewed_coverage_matches_frozen_golden() {
         serde_json::from_str(&text).expect("parse golden JSON");
     assert_eq!(
         golden, computed,
-        "survivor reviewed-coverage drifted from the frozen golden; \
-         regenerate with REGEN_REVIEWED_GOLDEN=1 if intended"
+        "survivor reviewed-coverage drifted from the frozen golden"
     );
 }

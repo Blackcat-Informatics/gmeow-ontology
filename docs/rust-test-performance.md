@@ -16,6 +16,11 @@ termination. That is only a runaway or hang backstop; it is not a performance
 budget. Architecture-scoped overrides extend the backstop for known exhaustive
 paths without turning their elapsed time into a target.
 
+The required profile does not retry failures. A retry previously let one
+contended whole-bundle test perform the same dominant work three times and hid
+the first causal failure. Full-width consumers instead reserve `num-cpus`, and a
+failure remains a single terminal result.
+
 ## Scheduling
 
 Nextest uses the CPUs available to the process. There is no fixed global or
@@ -29,6 +34,13 @@ whole-repository checks whose contracts are already covered by focused tests and
 dedicated drift gates. `make maint-rust-heavy` runs that complete lane. A test
 must never move off the default profile merely because one wall-clock sample was
 slow.
+
+Focused execution filters the already-built workspace inventory rather than asking
+Cargo for a package-scoped graph. Use, for example, `make nextest
+NEXTEST_FILTER='package(gmeow-dev-cli) & binary(make_gate_contract)'`. This retains
+the same feature resolution and binaries as the authenticated archive while nextest
+skips everything outside the expression. The test-fixture producer remains a
+separate prerequisite; a filter never primes, regenerates, or repairs corpus state.
 
 ## Optimization evidence
 
@@ -208,10 +220,10 @@ Reuse follows the production DAG; tests do not maintain a shadow producer.
   entries recompute, while malformed, oversized, truncated, structurally incomplete,
   or same-key-different bytes fail closed. Quota GC deletes only blobs unreachable from
   retained receipts and cannot race an active reader.
-- Expensive test fixtures call the real partial-DAG scheduler and use the same action
-  key/cache. A blocking per-action OS election lets exactly one process build; every
-  waiter validates and hydrates that product. The CI primer only elects those actions
-  early—it does not generate a second fixture format.
+- An explicit pre-test producer runs the selected production DAG once and publishes an
+  immutable manifest of exact action receipts. Test processes receive that manifest's
+  SHA-256 and load only its named products read-only; an absent, stale, corrupt, or
+  wrong-identity product is a hard failure and never causes a dependency walk or build.
 - Snapshot consumers share a graph-preserving, content-keyed GTS-to-indexed-dataset
   import. Raw frame/profile audits still inspect the original GTS bytes independently.
 - CI builds one pinned nextest archive and inventory receipt, then runs exact disjoint
@@ -220,6 +232,25 @@ Reuse follows the production DAG; tests do not maintain a shadow producer.
   canonical identity digest plus separate duration observations. Static Rust siblings
   run independently, and breadth-only heavy DAG nodes stay explicit. Producer artifacts
   move only with their source/build/manifest receipt.
+
+### Share expensive consumer state across contracts
+
+Nextest's unit of process isolation is a libtest identity. An in-process `OnceLock`
+therefore cannot share a restored bundle with a second ordinary test: each process pays
+the import, indexes, parsed shape union, and documentation projections again. A
+corpus-backed module with many independent identities must expose one required runner
+and, where applicable, one maintained exhaustive runner. The runner sorts the registered
+contract names, catches and reports each panic independently, and emits per-contract
+timings; assertion identity and failure attribution survive while immutable setup is paid
+once.
+
+The native MCP module follows that composition. Its resident view additionally caches the
+bundle-derived fixture/entailment joins, GMN dictionary, and slice-quality standard. On the
+same authenticated selector and host, the required MCP contracts fell from 421.655 s to
+188.785 s (55.2%) while 113 required contracts remained. The focused verifier contracts
+stay required; the one whole-bundle overlay proof, whose cost is set by exhaustive corpus
+breadth, remains registered in the maintained runner. This is a same-host hot-cache
+measurement of that module, not a substitute for the hosted critical-path receipts.
 
 These mechanisms reduce duplicate parsing, indexing, fixture construction, compilation,
 serialization, and archive work. They do not remove tests, weaken selected outputs, or

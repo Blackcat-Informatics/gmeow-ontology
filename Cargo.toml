@@ -56,6 +56,10 @@ members = [
     # only on small third-party codecs/accounting crates so producing the binaries
     # beside an already-built nextest archive never relinks pipeline or validation.
     "crates/perf-evidence",
+    # Test-only proc macro that turns parameterized corpus cases into one libtest
+    # process per suite, so nextest cannot re-import the same authenticated corpus
+    # once per case.
+    "crates/test-batch-macros",
     # The consumer/wheel-only `gmeow` command surface (runs without the repo).
     "crates/gmeow-cli",
     # The repo-maintenance `gmeow-dev` command surface (needs the working tree).

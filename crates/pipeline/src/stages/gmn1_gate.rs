@@ -551,9 +551,9 @@ fn envelope_declared_digests(ds: &RdfDataset) -> Vec<(String, String)> {
 /// `gmeow:gmnCodebookDigest`, discharge [`CLASS_GMN_CODEBOOK_DIGEST_MISMATCH`] when the declared
 /// digest differs from the recomputation (and pass when equal). NOT a SHACL shape and NOT the
 /// per-record codec validator — the recomputation state lives in the codebook, outside any
-/// single record a byte-parse or shape can see. `envelope_sources` is explicit so the conformance
-/// discharge harness can drive a negative fixture (trips) and a worked envelope (passes) through
-/// the SAME engine `run.rs` wires on-gate.
+/// single record a byte-parse or shape can see. `envelope_sources` is explicit so the cached
+/// validation producer can drive a negative fixture (trips) and a worked envelope (passes)
+/// through the SAME engine `run.rs` wires on-gate.
 pub fn check_gmn1_codebook_digest(
     root: &Path,
     envelope_sources: &[PathBuf],

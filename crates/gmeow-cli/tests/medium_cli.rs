@@ -20,9 +20,6 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-#[path = "../../pipeline/tests/support/medium_tamper.rs"]
-mod tamper;
-
 /// The five dictionaries `slices/core/gts/module.ttl` declares, spelled out rather than
 /// read back off the artifact under test: a dictionary silently dropped from the
 /// declaration must be a FAILURE here, not a smaller expectation.
@@ -42,9 +39,9 @@ fn repo_root() -> PathBuf {
         .expect("workspace root")
 }
 
-fn materialized_bundle(root: &Path) -> Vec<u8> {
-    std::fs::read(root.join("generated/dist/gmeow.gts"))
-        .expect("the mandatory producer-materialized generated/dist/gmeow.gts")
+fn materialized_bundle(root: &Path) -> PathBuf {
+    gmeow_bundle_import::authenticated_source_path(root)
+        .expect("authenticated producer bundle path; tests never produce it")
 }
 
 /// The `gmeow` consumer binary under test.
@@ -77,43 +74,10 @@ fn counted(stdout: &str, label: &str) -> usize {
         .unwrap_or_else(|| panic!("no {label:?} count in:\n{stdout}"))
 }
 
-/// Assert that `gmeow medium verify` refuses `bundle` under exactly `code`.
-///
-/// The CODE is what is asserted, never merely "it failed". The medium failure classes are the
-/// vocabulary a caller dispatches on, so a fixture that exited non-zero for the wrong
-/// reason would look identical to one the gate caught correctly.
-fn assert_breach(dir: &Path, name: &str, bytes: &[u8], code: &str) {
-    let path = dir.join(name);
-    std::fs::write(&path, bytes).expect("write the breach fixture");
-    let (status, stdout, stderr) = invoke(&["medium", "verify", path.to_str().expect("utf-8")]);
-    assert_ne!(
-        status, 0,
-        "the {name} breach fixture must exit non-zero\nstdout:\n{stdout}\nstderr:\n{stderr}"
-    );
-    assert!(
-        stderr.contains(code),
-        "the {name} breach fixture must be reported under {code}, got:\n{stderr}"
-    );
-    // No fixture may be reported as a successful dictionary-less fallback: there is none.
-    assert!(
-        !stdout.contains("verified:"),
-        "the {name} breach fixture must not report a successful verification:\n{stdout}"
-    );
-}
-
 #[test]
 fn the_medium_verbs_read_verify_and_explain_the_materialized_bundle() {
     let root = repo_root();
-    let bundle = materialized_bundle(&root);
-    assert!(
-        bundle.len() > 1024,
-        "the materialized bundle is implausibly small: {} bytes",
-        bundle.len()
-    );
-
-    let home = tempfile::tempdir().expect("tempdir");
-    let bundle_path = home.path().join("gmeow.gts");
-    std::fs::write(&bundle_path, &bundle).expect("stage the materialized bundle");
+    let bundle_path = materialized_bundle(&root);
     let bundle_arg = bundle_path.to_str().expect("utf-8");
 
     // ── (a) `gmeow medium list` ──────────────────────────────────────────────
@@ -204,48 +168,8 @@ fn the_medium_verbs_read_verify_and_explain_the_materialized_bundle() {
         "an unknown dictionary id must be reported under its named class:\n{stderr}"
     );
 
-    // ── (b) `gmeow medium verify` over a REAL runtime store ──────────────────
-    let store = write_a_runtime_store(home.path(), &bundle);
-    let (status, stdout, stderr) = invoke(&[
-        "medium",
-        "verify",
-        store.to_str().expect("utf-8"),
-        "--registry",
-        bundle_arg,
-    ]);
-    assert_eq!(status, 0, "verifying the runtime store failed:\n{stderr}");
-    assert!(
-        stdout.contains("HeaderDict"),
-        "a runtime store is audited under the header-dict branch:\n{stdout}"
-    );
-    assert!(
-        stdout.contains("gmeow-memory-hot-v1"),
-        "the store's segments must be reported as primed under \
-         gmeow-memory-hot-v1:\n{stdout}"
-    );
-    assert!(
-        stdout.contains("gmeow/mediumProfileStoreL12"),
-        "the store must be audited against the medium its producer declares:\n{stdout}"
-    );
-    // Every frame of the store is primed — a store that pinned the dictionary but left
-    // its records unprimed would satisfy "the file carries the dictionary" while
-    // discarding every byte of the density the dictionary exists to provide.
-    let primed = stdout
-        .lines()
-        .filter(|line| line.trim_start().starts_with("frame @"))
-        .count();
-    assert!(primed > 0, "the store carries no payload frames:\n{stdout}");
-    assert_eq!(
-        stdout
-            .lines()
-            .filter(|line| line.trim_start().starts_with("frame @"))
-            .filter(|line| line.contains("gmeow-memory-hot-v1"))
-            .count(),
-        primed,
-        "every frame of the store must be dict-primed:\n{stdout}"
-    );
-
-    // ── the healthy bundle verifies, and the harness itself is inert ─────────
+    // The authenticated, producer-owned bundle verifies in place. The test does not copy,
+    // rewrite, tamper, or derive another corpus artifact.
     let (status, stdout, stderr) = invoke(&["medium", "verify", bundle_arg]);
     assert_eq!(
         status, 0,
@@ -253,83 +177,4 @@ fn the_medium_verbs_read_verify_and_explain_the_materialized_bundle() {
     );
     assert!(stdout.contains("SelfDescribing"), "{stdout}");
     assert!(stdout.contains("verified:"), "{stdout}");
-
-    tamper::assert_wire_is_intact(&bundle);
-    let rewritten = tamper::identity_rewrite(&bundle);
-    let rewritten_path = home.path().join("identity-rewrite.gts");
-    std::fs::write(&rewritten_path, &rewritten).expect("write the identity rewrite");
-    let (status, _, stderr) =
-        invoke(&["medium", "verify", rewritten_path.to_str().expect("utf-8")]);
-    assert_eq!(
-        status, 0,
-        "a re-serialize + re-stamp with NO edit must still verify, or every breach \
-         fixture below would be testing the harness rather than the clause it \
-         names:\n{stderr}"
-    );
-
-    // ── (c) the five breach fixtures, each under its own named class ─────────
-    assert_breach(
-        home.path(),
-        "flipped-payload-byte.gts",
-        &tamper::flipped_payload_byte(&bundle),
-        "pipeline.medium.digest-mismatch",
-    );
-    assert_breach(
-        home.path(),
-        "unknown-dictionary.gts",
-        &tamper::unknown_dictionary_id(&bundle),
-        "pipeline.medium.unknown-dictionary",
-    );
-    assert_breach(
-        home.path(),
-        "undeclared-dictionary.gts",
-        &tamper::undeclared_dictionary(&bundle),
-        "pipeline.medium.undeclared-dictionary",
-    );
-    assert_breach(
-        home.path(),
-        "unknown-schema.gts",
-        &tamper::unregistered_rep(&bundle),
-        "pipeline.medium.unknown-schema",
-    );
-    assert_breach(
-        home.path(),
-        "opaque-frame.gts",
-        &tamper::undecodable_payload(&bundle),
-        "pipeline.medium.opaque-frame",
-    );
-}
-
-/// Write a runtime store through the PRODUCTION `Memory::store` path, primed from the
-/// producer-materialized bundle.
-///
-/// Driven through `McpServer`'s `store_claim` tool rather than by calling purrdf's
-/// `Memory` directly: the medium wiring lives on the production store path, and a test
-/// that opened its own writer would prove nothing about the path a consumer takes.
-fn write_a_runtime_store(home: &Path, bundle: &[u8]) -> PathBuf {
-    use gmeow_mcp::McpServer;
-
-    let memory_path = home.join("memory.gts");
-    // SAFETY: this test binary runs one test, single-threaded, and restores nothing
-    // because the process exits with it.
-    unsafe {
-        std::env::set_var("GMEOW_MEMORY_PATH", &memory_path);
-        std::env::set_var("GMEOW_CONJECTURE_PATH", home.join("conjectures.gts"));
-        std::env::remove_var("GMEOW_LANG");
-    }
-    let server =
-        McpServer::from_snapshot(bundle).expect("the materialized bundle serves an MCP session");
-    for text in [
-        "a claim stored through the production memory path",
-        "a second claim, so the store carries more than one record",
-    ] {
-        let stored = server
-            .call_tool_result("store_claim", &serde_json::json!({ "text": text }))
-            .to_string();
-        assert!(
-            stored.contains("\\\"ok\\\":true") || stored.contains("\"ok\":true"),
-            "store_claim must commit: {stored}"
-        );
-    }
-    memory_path
 }

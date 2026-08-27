@@ -4991,16 +4991,16 @@ msgid "exa:e8Symmetry gmeow:demonstratedByCompetency cq:cqE8RootSystem ."
 msgstr "示例：exa:e8Symmetry gmeow:demonstratedByCompetency cq:cqE8RootSystem ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/demonstratedByExample|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Names the worked example that realizes a gmeow:FlagshipScenario, as a SLICE-RELATIVE path string (the same base as gmeow:exampleFile). The referenced *.ttl is the concrete artifact a reader inspects to see the scenario built, and the execution-discharge harness validates it clean."
-msgstr "命名实现某个 gmeow:FlagshipScenario 的示例，以切片相对路径字符串形式给出（与 gmeow:exampleFile 相同的基准）。被引用的 *.ttl 是读者查看以看到场景构建过程的具体工件，执行清偿框架会将其验证为干净。"
+msgid "Names the worked example that realizes a gmeow:FlagshipScenario, as a SLICE-RELATIVE path string (the same base as gmeow:exampleFile). The referenced *.ttl is the concrete artifact a reader inspects to see the scenario built, and the authenticated slice-spec producer validates it once before tests start."
+msgstr "命名实现某个 gmeow:FlagshipScenario 的示例，以切片相对路径字符串形式给出（与 gmeow:exampleFile 相同的基准）。被引用的 *.ttl 是读者查看以了解场景构建方式的具体工件，经过身份验证的切片规范生产者会在测试开始前验证一次。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/demonstratedByExample|http://www.w3.org/2004/02/skos/core#example"
 msgid "exa:e8Symmetry gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ."
 msgstr "示例：exa:e8Symmetry gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/demonstratedByProducer|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Names the native producer entrypoint that emits a gmeow:FlagshipScenario's output, as a path-like identifier string (e.g. math::producers::e8_weyl_order, pipeline::stages::lang_form::build_corpus). REQUIRED on every gmeow:FlagshipScenario: a scenario carries this binding if and only if the execution-discharge harness actually runs that producer and pins its output — the acceptance bar is discharged by execution, never by an unrun label."
-msgstr "命名发出某个 gmeow:FlagshipScenario 输出的原生生产者入口点，以类似路径的标识符字符串形式给出（例如 math::producers::e8_weyl_order、pipeline::stages::lang_form::build_corpus）。在每个 gmeow:FlagshipScenario 上均为必需：当且仅当执行清偿框架实际运行该生产者并固定其输出时，场景才携带此绑定——验收标准由执行来清偿，绝不由未运行的标签来清偿。"
+msgid "Names the native producer entrypoint that emits a gmeow:FlagshipScenario's output, as a path-like identifier string (e.g. math::producers::e8_weyl_order, pipeline::stages::lang_form::build_corpus). REQUIRED on every gmeow:FlagshipScenario: a scenario carries this binding only when the explicit production DAG owns that producer and records its authenticated output — the acceptance bar is discharged by execution, never by an unowned label."
+msgstr "命名发出某个 gmeow:FlagshipScenario 输出的原生生产者入口点，以类似路径的标识符字符串形式给出（例如 math::producers::e8_weyl_order、pipeline::stages::lang_form::build_corpus）。在每个 gmeow:FlagshipScenario 上均为必需：仅当显式生产 DAG 拥有该生产者并记录其经过身份验证的输出时，场景才携带此绑定——验收标准由执行来满足，绝不由无归属的标签来满足。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/demonstratedByProducer|http://www.w3.org/2004/02/skos/core#example"
 msgid "exa:e8Symmetry gmeow:demonstratedByProducer \"math::producers::e8_weyl_order\" ."
@@ -5047,8 +5047,8 @@ msgid "A closed-world integrity constraint: every gmeow:-namespaced owl object/d
 msgstr "一个闭世界完整性约束：gmeow: 命名空间下的每个 owl 对象/数据/注解属性至少携带一个 rdfs:label、一个 skos:definition、一个 rdfs:isDefinedBy 以及一个 gmeow:graphBoxRole。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/guardedByCounterExample|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Names the counter-example that proves a gmeow:FlagshipScenario's gate bites, as a SLICE-RELATIVE path string. The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's gmeow:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced, and the execution-discharge harness runs the fixture and confirms exactly that class fires."
-msgstr "命名证明某个 gmeow:FlagshipScenario 的门有效咬合的反例，以切片相对路径字符串形式给出。被引用的 tests/counter-examples/*.ttl 是引发该场景 gmeow:enforcesFailureClass 的最小违例；依据一致性纪律，没有负向夹具的规则不被视为已强制执行，执行清偿框架会运行该夹具并确认恰好是该类被触发。"
+msgid "Names the counter-example that proves a gmeow:FlagshipScenario's gate bites, as a SLICE-RELATIVE path string. The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's gmeow:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced, and the authenticated slice-spec producer runs the fixture once and confirms exactly that class fires."
+msgstr "命名证明某个 gmeow:FlagshipScenario 的门有效咬合的反例，以切片相对路径字符串形式给出。被引用的 tests/counter-examples/*.ttl 是引发该场景 gmeow:enforcesFailureClass 的最小违例；依据一致性纪律，没有负向夹具的规则不被视为已强制执行，经过身份验证的切片规范生产者会运行该夹具一次，并确认恰好是该类被触发。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/guardedByCounterExample|http://www.w3.org/2004/02/skos/core#example"
 msgid "exa:e8Symmetry gmeow:guardedByCounterExample \"tests/counter-examples/e8-wrong-weyl-order.ttl\" ."
@@ -10735,12 +10735,12 @@ msgid "Asserts on the canonical carrier that gmeow:demonstratedByCompetency is f
 msgstr "在规范载体上断言 gmeow:demonstratedByCompetency 是函数性的：一个 gmeow:FlagshipScenario 恰好由一个能力问题固定——即原生旗舰交叉核查为该场景确认其 gmeow:cqExpectRow 预期的唯一 gmeow:CompetencyQuestion IRI。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByExampleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:demonstratedByExample is functional: a gmeow:FlagshipScenario is realized by exactly one worked example — a single slice-relative *.ttl path the discharge harness validates clean, never more than one per scenario."
-msgstr "在规范载体上断言 gmeow:demonstratedByExample 是函数性的：一个 gmeow:FlagshipScenario 恰好由一个已完成示例来实现——即由履行测试框架验证为干净无误的单一 slice 相对 *.ttl 路径，每个场景绝不超过一个。"
+msgid "Asserts on the canonical carrier that gmeow:demonstratedByExample is functional: a gmeow:FlagshipScenario is realized by exactly one worked example — a single slice-relative *.ttl path covered by the authenticated slice-spec verdict, never more than one per scenario."
+msgstr "在规范载体上断言 gmeow:demonstratedByExample 是函数性的：一个 gmeow:FlagshipScenario 恰好由一个已完成示例来实现——即由经过身份验证的切片规范判定所覆盖的单一切片相对 *.ttl 路径，每个场景绝不超过一个。"
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByProducerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier the execution-discharge harness dispatches, runs, and pins the output of to discharge the acceptance bar. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:demonstratedByProducer 是函数性的：一个 gmeow:FlagshipScenario 恰好指明一个原生生产者入口点——即执行履行测试框架所调度、运行并固定其输出以满足验收门槛的唯一路径式标识符。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+msgid "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier owned by the explicit production DAG and bound to its authenticated output receipt. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:demonstratedByProducer 是函数性的：一个 gmeow:FlagshipScenario 恰好指明一个原生生产者入口点——即由显式生产 DAG 拥有并绑定到其经过身份验证的输出收据的唯一路径式标识符。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/effectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:effect is functional: an action schema introduces exactly one effect — the single ins/del supersession change executing an occurrence records — with alternative results carried instead by the multi-valued logic:nondeterministicOutcome, so the deterministic change stays one edge while nondeterminism lives on a different facet. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
@@ -10783,8 +10783,8 @@ msgid "Asserts on the canonical carrier that logic:goalEvaluationStatus is funct
 msgstr "在规范载体上断言 logic:goalEvaluationStatus 是函数性的:一次目标评估恰好携带一个 logic:GoalEvaluationStatus——即它是否具有结论性——一个单一的结论性取值(不同于引擎计算的 logic:resultEvaluation),该取值与满足状态 logic:Satisfied 及 logic:GoalEvaluationCompleted 一起决定是否放行一条 gmeow:satisfiedBy 边。"
 
 msgctxt "https://blackcatinformatics.ca/logic/guardedByCounterExampleFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the discharge harness runs to confirm the gate bites. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:guardedByCounterExample 是函数性的:一个 gmeow:FlagshipScenario 恰好由一个反例来把守——即触发该场景 gmeow:enforcesFailureClass 的、与切片相关的单一负向固件,验证工具运行它以确认关卡确实生效。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+msgid "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the authenticated slice-spec producer executes once to confirm the gate bites. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:guardedByCounterExample 是函数性的：一个 gmeow:FlagshipScenario 恰好由一个反例来把守——即触发该场景 gmeow:enforcesFailureClass 的单一切片相对负向固件，经过身份验证的切片规范生产者执行它一次以确认关卡确实生效。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/logic/guardsPreconditionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:guardsPrecondition is functional: a freshness guard guards exactly one precondition situation — the single datum whose currency it checks — so a schema guarding several preconditions carries one logic:FreshnessGuard per precondition (the multi-valued logic:freshnessGuard gathers them), never one guard fanning out over many."

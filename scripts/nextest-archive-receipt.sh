@@ -34,12 +34,17 @@ cd "$repo_root"
 junit_inventory=$repo_root/dist/nextest/junit_inventory
 perf_sample=$repo_root/dist/nextest/perf_sample
 perf_accept=$repo_root/dist/nextest/perf_accept
+test_fixture_manifest=$repo_root/.cache/gmeow-sync/test-fixture-manifest-v2.json
 for evidence_tool in "$junit_inventory" "$perf_sample" "$perf_accept"; do
   [[ -x "$evidence_tool" ]] || {
     echo "nextest evidence tool does not exist or is not executable: $evidence_tool" >&2
     exit 1
   }
 done
+[[ -f "$test_fixture_manifest" ]] || {
+  echo "test-fixture manifest does not exist: $test_fixture_manifest" >&2
+  exit 1
+}
 archive=$(realpath "$archive")
 receipt=$(realpath -m "$receipt")
 nextest_release=$(cargo nextest --version | sed -n 's/^release: //p')
@@ -181,6 +186,8 @@ write_candidate() {
   perf_sample_bytes=$(stat -c '%s' "$perf_sample")
   perf_accept_sha256=$(sha256sum "$perf_accept" | cut -d' ' -f1)
   perf_accept_bytes=$(stat -c '%s' "$perf_accept")
+  test_fixture_manifest_sha256=$(sha256sum "$test_fixture_manifest" | cut -d' ' -f1)
+  test_fixture_manifest_bytes=$(stat -c '%s' "$test_fixture_manifest")
   inventory_sha256=$(sha256sum "$canonical" | cut -d' ' -f1)
   inventory_count=$(wc -l < "$canonical" | tr -d ' ')
   build_config_sha256=$(
@@ -196,7 +203,7 @@ write_candidate() {
 
   mkdir -p "$(dirname "$output")"
   jq -S -n \
-    --argjson schema_version 2 \
+    --argjson schema_version 3 \
     --arg source_sha "$source_sha" \
     --arg source_tree_sha256 "$source_tree_sha256" \
     --arg rustc_identity_sha256 "$rustc_sha256" \
@@ -216,6 +223,9 @@ write_candidate() {
     --arg perf_accept_file "$(basename "$perf_accept")" \
     --arg perf_accept_sha256 "$perf_accept_sha256" \
     --argjson perf_accept_bytes "$perf_accept_bytes" \
+    --arg test_fixture_manifest_file ".cache/gmeow-sync/test-fixture-manifest-v2.json" \
+    --arg test_fixture_manifest_sha256 "$test_fixture_manifest_sha256" \
+    --argjson test_fixture_manifest_bytes "$test_fixture_manifest_bytes" \
     --arg profile ci \
     --arg partition_scheme slice \
     --argjson partition_count "$shards" \
@@ -251,6 +261,11 @@ write_candidate() {
           sha256: $perf_accept_sha256,
           bytes: $perf_accept_bytes
         }
+      },
+      test_fixture_manifest: {
+        file: $test_fixture_manifest_file,
+        sha256: $test_fixture_manifest_sha256,
+        bytes: $test_fixture_manifest_bytes
       },
       execution: {
         profile: $profile,

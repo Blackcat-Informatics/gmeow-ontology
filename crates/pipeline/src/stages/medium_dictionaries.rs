@@ -643,67 +643,6 @@ fn collect_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
     }
 }
 
-/// A `stage-medium-dictionaries` product over a carrier that carries the medium
-/// DECLARATIONS but not the real corpora — the shape every focused sink test
-/// has, since none of them assembles the whole DAG.
-///
-/// It trains each declared dictionary over one small synthetic corpus instead of
-/// its declared one. That substitution is scoped to the corpus and NOTHING else:
-/// the declarations, the strategies, the target lengths, the realization
-/// measurement, the projection, and every downstream plan/envelope path are the
-/// production ones, so a test built on this exercises the real wiring and only the
-/// dictionary BYTES differ from a full run's. Corpus resolution itself is covered
-/// where it belongs — `medium::corpus`'s own tests and the whole-DAG bundle gate.
-///
-/// # Errors
-/// The carrier carries an unreadable medium declaration, or a trainer refusal.
-#[cfg(test)]
-pub(crate) fn test_product_over(
-    carrier: &purrdf::RdfDataset,
-) -> Result<StageProduct, gmeow_errors::Diag> {
-    let registry = MediumRegistry::from_dataset(carrier)?;
-    let owned: Vec<Vec<u8>> = (0..512u32)
-        .map(|i| {
-            format!(
-                "<https://blackcatinformatics.ca/gmeow/term{}> \
-                 <https://blackcatinformatics.ca/gmeow/definition> \
-                 \"a definition of term {i} in the gmeow ontology\" .\n",
-                i % 41
-            )
-            .into_bytes()
-        })
-        .collect();
-    let corpus: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-
-    let mut realizations: Vec<DictionaryRealization> = Vec::new();
-    let mut lane: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for def in registry.dictionaries().values() {
-        let bytes = train::build(def.strategy, &corpus, def.target_length)?;
-        realizations.push(realize(
-            def,
-            &bytes,
-            crate::medium::rdf::Measured {
-                strategy: def.strategy,
-                target_length: def.target_length,
-                corpus_sample_count: corpus.len() as u64,
-                corpus_digest: crate::medium::blake3_digest(&owned.concat()),
-            },
-        )?);
-        lane.insert(format!("{DICT_ARTIFACT_PREFIX}{}.zdict", def.id), bytes);
-    }
-    let quads = crate::medium::rdf::project(&registry, &realizations, &[])?;
-    let graph = purrdf::dataset_from_quads(&quads)
-        .map_err(|err| stage_err(format!("freeze the fixture medium registry: {err}")))?;
-    Ok(StageProduct::from_bundle(
-        STAGE_ID,
-        Arc::new(bundle_from_artifacts_over(
-            graph,
-            lane,
-            DatasetProvenance::new(),
-        )),
-    ))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -566,91 +566,6 @@ fn nt_literal(value: &str) -> String {
 mod tests {
     use super::*;
 
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn corpus_types_present_pairs_as_validation_only() {
-        let corpus = build_corpus(&repo_root()).expect("build corpus");
-        let nt = String::from_utf8(corpus.ntriples.clone()).expect("utf8");
-
-        // The live fr/zh lifecycle catalogs are fully translated, so every unit is a
-        // present pair carried as logic:ValidationOnly — never a fabricated Exact.
-        assert!(
-            nt.contains(&iri(LANG_NS, "TranslationUnit")),
-            "corpus must type lang:TranslationUnit instances"
-        );
-        assert!(
-            nt.contains(&iri(LOGIC_NS, "ValidationOnly")),
-            "present pairs carry logic:ValidationOnly"
-        );
-        assert!(
-            !nt.contains(&iri(LOGIC_NS, "ExactPreservation")),
-            "an unanalyzed surface pair must never claim logic:ExactPreservation"
-        );
-        // The crossing is clean of surface-stratum predicates (no SurfaceLeakInContentKey).
-        for unit in ["translationSource", "translationTarget"] {
-            assert!(nt.contains(&iri(LANG_NS, unit)), "missing lang:{unit}");
-        }
-        // Surface text lives on the SurfaceForm, NEVER inline on a crossing subject
-        // (the unit or its correspondence). A blanket EXAMPLE_BASE prefix check is vacuous
-        // — crossing subjects are minted as `<EXAMPLE_BASE>translation-unit/<digest>`, so
-        // the base is never immediately followed by `surfaceText` — so assert directly that
-        // no crossing-subject line carries the predicate.
-        let surface_text = iri(LANG_NS, "surfaceText");
-        for line in nt.lines() {
-            let is_crossing_subject = line
-                .starts_with(&format!("<{EXAMPLE_BASE}translation-unit/"))
-                || line.starts_with(&format!("<{EXAMPLE_BASE}translation-correspondence/"));
-            assert!(
-                !(is_crossing_subject && line.contains(&surface_text)),
-                "surface text must live on the SurfaceForm, never inline on a crossing subject: {line}"
-            );
-        }
-    }
-
-    #[test]
-    fn corpus_is_byte_reproducible() {
-        let a = build_corpus(&repo_root()).expect("build a").ntriples;
-        let b = build_corpus(&repo_root()).expect("build b").ntriples;
-        assert_eq!(a, b, "corpus N-Triples must be deterministic");
-    }
-
-    #[test]
-    fn ledger_rows_are_present_and_ledger_targets_are_novel() {
-        let corpus = build_corpus(&repo_root()).expect("build corpus");
-        assert!(
-            corpus
-                .ledger
-                .iter()
-                .any(|r| r.target.starts_with("lang-translation:")),
-            "per-unit ledger rows must be present"
-        );
-        assert!(
-            corpus
-                .ledger
-                .iter()
-                .any(|r| r.target.starts_with("lang-translation-doc:")),
-            "per-document roll-up ledger rows must be present"
-        );
-        // Every row satisfies the overclaim contract: a floor (Unsupported) row carries a
-        // non-empty residue; no row is Exact.
-        for row in &corpus.ledger {
-            assert_ne!(row.preservation, PreservationKind::Exact);
-            if row.preservation == PreservationKind::Unsupported {
-                assert!(
-                    !corpus.loss.projection_drops_for(&row.target).is_empty(),
-                    "an Unsupported row must carry a non-empty residue"
-                );
-            }
-        }
-    }
-
     #[test]
     fn gap_path_is_unsupported_with_nonempty_residue() {
         // A synthetic gap (empty msgstr) is typed Unsupported on the floor rung with the
@@ -746,38 +661,6 @@ mod tests {
         // A document of all-Exact units rolls up Exact; the vacuous case floors at ValidationOnly.
         assert_eq!(weakest_dominates([Exact, Exact].into_iter()), Exact);
         assert_eq!(weakest_dominates(std::iter::empty()), ValidationOnly);
-    }
-
-    #[test]
-    fn corpus_surface_forms_carry_material_identity() {
-        // Every lang:SurfaceForm the live corpus mints declares the material identity
-        // lang:SurfaceMaterialShape requires — script, Unicode normalization, collation
-        // locale — so the corpus never trips lang:UnhashableSurface.
-        let corpus = build_corpus(&repo_root()).expect("build corpus");
-        let nt = String::from_utf8(corpus.ntriples).expect("utf8");
-        for pred in ["inScript", "unicodeNormalization", "collationLocale"] {
-            assert!(
-                nt.contains(&iri(LANG_NS, pred)),
-                "surface forms must declare lang:{pred}"
-            );
-        }
-        // The zh catalog forces a non-Latin script individual to be referenced.
-        assert!(
-            nt.contains(&iri(LANG_NS, "hanScript")),
-            "the zh catalog surface must be written in lang:hanScript"
-        );
-        // Every SurfaceForm line-block is complete: as many inScript triples as SurfaceForm
-        // types, so no surface is emitted materially underspecified.
-        let surface_forms = nt
-            .matches(&format!("<{}> .", iri(LANG_NS, "SurfaceForm")))
-            .count();
-        let scripts = nt
-            .matches(&format!(" <{}> ", iri(LANG_NS, "inScript")))
-            .count();
-        assert_eq!(
-            surface_forms, scripts,
-            "every lang:SurfaceForm must carry exactly one lang:inScript"
-        );
     }
 
     #[test]

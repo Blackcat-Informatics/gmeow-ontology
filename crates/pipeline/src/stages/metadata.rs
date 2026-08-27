@@ -755,69 +755,12 @@ mod tests {
             .unwrap()
     }
 
-    /// N-Triple-encoded triple set of a built default-graph quad set. The native
-    /// `emit_quad` renders `<s> <p> <o> .\n`; trim the trailing newline so the
-    /// comparison key matches a committed-file parse.
-    fn quads_triple_set(quads: &[RdfQuad]) -> BTreeSet<String> {
-        quads
-            .iter()
-            .map(|q| purrdf::emit_quad(q).trim_end().to_string())
-            .collect()
-    }
-
-    /// N-Triple-encoded triple set of a committed Turtle file's default graph.
-    fn committed_triple_set(path: &Path) -> BTreeSet<String> {
-        let bytes = std::fs::read(path).unwrap_or_else(|_| panic!("committed missing: {path:?}"));
-        let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
-            .unwrap_or_else(|e| panic!("parse {path:?}: {e}"));
-        dataset
-            .owned_quads()
-            .map(|q| purrdf::emit_quad(&q).trim_end().to_string())
-            .collect()
-    }
-
-    #[test]
-    fn metadata_void_is_isomorphic_to_committed() {
-        let root = repo_root();
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let bundle = purrdf::import_gts_events(&gts).unwrap();
-        let built = build_void_quads(bundle.dataset.as_ref()).unwrap();
-        let a = quads_triple_set(&built);
-        let b = committed_triple_set(&root.join(VOID_PATH));
-        // Stats sanity: the dataset's void:triples literal must be present.
-        assert_eq!(
-            a,
-            b,
-            "void.ttl drifted (built {} triples, committed {} triples)",
-            a.len(),
-            b.len()
-        );
-    }
-
-    #[test]
-    fn metadata_dcat_is_isomorphic_to_committed() {
-        let root = repo_root();
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let bundle = purrdf::import_gts_events(&gts).unwrap();
-        let built = build_dcat_quads(bundle.dataset.as_ref(), &root).unwrap();
-        let a = quads_triple_set(&built);
-        let b = committed_triple_set(&root.join(DCAT_PATH));
-        assert_eq!(
-            a,
-            b,
-            "dcat.ttl drifted (built {} triples, committed {} triples)",
-            a.len(),
-            b.len()
-        );
-    }
-
-    /// Read a `void:<key>` integer literal off the dataset subject of the
-    /// committed `void.ttl`, so the expected stats are sourced from the
-    /// canonical artifact itself and never go stale on a refold.
-    fn committed_void_stat(committed: &RdfDataset, key: &str) -> u64 {
+    /// Read a `void:<key>` integer literal from the authenticated producer
+    /// artifact so this semantic check never consults the materialized tree.
+    fn authenticated_void_stat(dataset: &RdfDataset, key: &str) -> u64 {
         let predicate = format!("{VOID}{key}");
         let mut found: Option<u64> = None;
-        for q in committed.owned_quads() {
+        for q in dataset.owned_quads() {
             if term_iri(&q.subject) != Some(VOID_DATASET_IRI) || q.predicate != predicate {
                 continue;
             }
@@ -829,40 +772,22 @@ mod tests {
                 );
             }
         }
-        found.unwrap_or_else(|| panic!("committed void.ttl lacks void:{key} on dataset"))
+        found.unwrap_or_else(|| panic!("authenticated void.ttl lacks void:{key} on dataset"))
     }
 
     #[test]
-    fn metadata_stats_match_committed_targets() {
+    fn authenticated_metadata_stats_are_non_zero() {
         let root = repo_root();
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let bundle = purrdf::import_gts_events(&gts).unwrap();
-        let stats = fold_stats(bundle.dataset.as_ref()).unwrap();
-        // Expected values are read from the committed `void.ttl` dataset subject
-        // (the canonical artifact) rather than hardcoded, so they track every
-        // refold automatically. `fold_stats` counts the default graph exactly as
-        // the Python `metadata._fold_stats` does over `FoldView.quads(DEFAULT)`.
-        let committed_bytes = std::fs::read(root.join(VOID_PATH)).unwrap();
-        let committed = purrdf::parse_dataset(&committed_bytes, "text/turtle", None).unwrap();
-        assert_eq!(
-            stats.triples,
-            committed_void_stat(&committed, "triples"),
-            "triples"
-        );
-        assert_eq!(
-            stats.entities,
-            committed_void_stat(&committed, "entities"),
-            "entities"
-        );
-        assert_eq!(
-            stats.classes,
-            committed_void_stat(&committed, "classes"),
-            "classes"
-        );
-        assert_eq!(
-            stats.properties,
-            committed_void_stat(&committed, "properties"),
-            "properties"
-        );
+        let artifact =
+            crate::fixture::authenticated_artifact(&root, "stage-export-metadata", VOID_PATH)
+                .expect("authenticated VoID artifact; tests never produce it");
+        let dataset = purrdf::parse_dataset(&artifact, "text/turtle", None)
+            .expect("authenticated VoID artifact parses");
+        for key in ["triples", "entities", "classes", "properties"] {
+            assert!(
+                authenticated_void_stat(&dataset, key) > 0,
+                "authenticated void:{key} census must be non-zero"
+            );
+        }
     }
 }

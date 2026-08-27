@@ -1272,8 +1272,8 @@ impl ActionIdentity for StageReceipt {
 /// digest; raw inputs remain separate path/digest rows.
 fn action_key_context_from_identities<T: ActionIdentity>(
     stage: &dyn Stage,
-    root: &Path,
     upstream: &BTreeMap<String, T>,
+    raw_inputs: Vec<RawInputDigest>,
 ) -> Result<StageKeyContext, gmeow_errors::Diag> {
     let entities: BTreeMap<&str, &[String]> = stage
         .consumed_entities()
@@ -1318,7 +1318,6 @@ fn action_key_context_from_identities<T: ActionIdentity>(
         }
     }
 
-    let raw_inputs = input_file_digests(stage, root)?;
     Ok(StageKeyContext::new(
         stage.id(),
         stage.impl_version(),
@@ -1333,7 +1332,8 @@ pub fn action_key_context(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<StageKeyContext, gmeow_errors::Diag> {
-    action_key_context_from_identities(stage, root, upstream)
+    let raw_inputs = input_file_digests(stage, root)?;
+    action_key_context_from_identities(stage, upstream, raw_inputs)
 }
 
 /// Build the identical action context from authenticated upstream receipts, without
@@ -1343,7 +1343,22 @@ pub fn action_key_context_from_receipts(
     root: &Path,
     upstream: &BTreeMap<String, StageReceipt>,
 ) -> Result<StageKeyContext, gmeow_errors::Diag> {
-    action_key_context_from_identities(stage, root, upstream)
+    let raw_inputs = input_file_digests(stage, root)?;
+    action_key_context_from_identities(stage, upstream, raw_inputs)
+}
+
+/// Build a receipt-derived action context while hashing each shared raw file at most
+/// once in this producer admission. Many stage declarations intentionally overlap over
+/// the same repository corpus; repeating those reads per stage turns a warm DAG probe
+/// back into corpus-scale I/O.
+pub(crate) fn action_key_context_from_receipts_cached(
+    stage: &dyn Stage,
+    root: &Path,
+    upstream: &BTreeMap<String, StageReceipt>,
+    digest_cache: &mut BTreeMap<PathBuf, String>,
+) -> Result<StageKeyContext, gmeow_errors::Diag> {
+    let raw_inputs = input_file_digests_cached(stage, root, digest_cache)?;
+    action_key_context_from_identities(stage, upstream, raw_inputs)
 }
 
 /// Each declared raw input as a repo-relative path plus content digest. A missing
@@ -1351,6 +1366,14 @@ pub fn action_key_context_from_receipts(
 pub(crate) fn input_file_digests(
     stage: &dyn Stage,
     root: &Path,
+) -> Result<Vec<RawInputDigest>, gmeow_errors::Diag> {
+    input_file_digests_cached(stage, root, &mut BTreeMap::new())
+}
+
+fn input_file_digests_cached(
+    stage: &dyn Stage,
+    root: &Path,
+    digest_cache: &mut BTreeMap<PathBuf, String>,
 ) -> Result<Vec<RawInputDigest>, gmeow_errors::Diag> {
     let mut files = stage.input_files(root)?;
     files.sort();
@@ -1362,12 +1385,18 @@ pub(crate) fn input_file_digests(
             .unwrap_or(path)
             .to_string_lossy()
             .into_owned();
-        let digest = digest_input_file(path).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: stage.id().to_string(),
-                message: format!("declared input file {} could not be read: {e}", rel),
-            })
-        })?;
+        let digest = if let Some(digest) = digest_cache.get(path) {
+            digest.clone()
+        } else {
+            let digest = digest_input_file(path).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: stage.id().to_string(),
+                    message: format!("declared input file {} could not be read: {e}", rel),
+                })
+            })?;
+            digest_cache.insert(path.clone(), digest.clone());
+            digest
+        };
         rows.push(RawInputDigest { path: rel, digest });
     }
     rows.sort();

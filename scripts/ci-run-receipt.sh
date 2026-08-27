@@ -522,10 +522,10 @@ jq -S \
       .payload];
   def archive_rows: payloads_starting("rust-archive/");
   def fixture_rows:
-    (archive_rows | map(select(.command == "prime-pipeline-test-fixtures"))) as $archive |
+    (archive_rows | map(select(.command == "gmeow-dev test-fixtures produce"))) as $archive |
     if ($archive | length) > 0 then $archive
     else (payloads_starting("rust-prebuild/") |
-      map(select(.command == "prime-pipeline-test-fixtures"))) end;
+      map(select(.command == "gmeow-dev test-fixtures produce"))) end;
   def reason_rows: payloads_starting("reason/");
   def junit_rows:
     [.[] | select(.payload.command == "junit-inventory") | .payload];

@@ -22,20 +22,13 @@
 //! builds contend and each takes far longer than a single build would.
 //!
 //! This module renders the site for EVERY available language and the default mdBook
-//! render ONCE and stores each in a content-addressed disk cache; later callers load
-//! them cheaply. The English carrier and each translation (`fr`, `zh`, …) are cached
-//! symmetrically, and the mdBook source tree ([`render_book`] with default executable
-//! data) is cached alongside them, so a per-language render and the book render are
-//! each paid once in [`prime`] rather than live in each test process. [`prime`] is run
-//! once before the test processes spawn — by the `prime-docs-fixture` example, which
-//! the Makefile test lanes and the CI test job invoke immediately before
-//! `cargo nextest` — so no test pays the build or any render.
-//! [`load_site`] / [`load_site_lang`] / [`load_book`] are the per-process loaders,
-//! which also render-and-cache on a genuine miss so a plain `cargo test` (no prime
-//! step) still works.
+//! render ONCE in the explicit [`prime`] producer and stores each in a content-addressed
+//! disk cache. [`load_site`], [`load_site_lang`], and [`load_book`] are strict consumers:
+//! a missing receipt hard-fails and can never trigger a render or model rebuild.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use gmeow_action_cache::{
     ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, ProducerIdentity,
@@ -50,10 +43,11 @@ use gmeow_docs_model::exec::ExecutableDocsData;
 // `gmeow-docs-model` so a consumer can share it without linking this crate's renderer
 // (which `include_bytes!`s ~19 MB of wasm), but a caller that already depends on the
 // renderer should not have to name a second crate to get the model.
-pub use gmeow_docs_model::fixture::load;
 use gmeow_docs_model::fixture::{
-    FixtureIdentity, cache_key, load_with_identity, model_identity, payload_digest, verify_payload,
+    FixtureIdentity, cache_key, load_or_build_with_identity, model_identity, payload_digest,
+    verify_payload,
 };
+pub use gmeow_docs_model::fixture::{load, load_or_build};
 use gmeow_docs_model::i18n::ENGLISH;
 
 const SITE_CODEC: &str = "docs-site-json-2";
@@ -74,6 +68,17 @@ fn action_store(root: &Path) -> ActionStore {
         StoreLimits::default(),
     )
     .unwrap_or_else(|error| panic!("open bounded docs-render action cache: {error}"))
+}
+
+fn read_only_action_store(root: &Path) -> ActionStore {
+    ActionStore::open_existing_read_only(
+        ActionStore::default_root(root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap_or_else(|error| {
+        panic!("open authenticated docs-render action cache read-only: {error}")
+    })
 }
 
 fn render_context(
@@ -141,58 +146,62 @@ pub fn load_site(root: &Path) -> Site {
     load_site_lang(root, ENGLISH)
 }
 
-/// Load the rendered static site for `lang` rooted at `root`, from the once-per-run
-/// cache when present, otherwise rendered via [`render_site_lang`] and cached for
-/// the rest of the run. Byte-identical to a fresh `render_site_lang(&load(root), lang)`.
-///
-/// Every gated test that needs a rendered site — determinism checks, the
-/// carrier-vs-`render_site` identity, per-language path-graph comparisons, lint
-/// passes — loads it from here instead of paying a fresh render. That removes the
-/// dominant per-test cost (a full site render) and the cross-process render
-/// contention that pushed those tests over the gate. The English carrier and each
-/// translation are cached symmetrically, so the `fr` / `zh` round-trip tests pay no
-/// live render either.
-///
-/// Corrupt-but-present is an integrity violation and panics; only a genuine
-/// absence falls through to a fresh render (so a plain `cargo test` still works).
+/// Load the exact authenticated rendered static site for `lang`.
+/// A miss is terminal and never invokes a renderer.
 #[must_use]
 pub fn load_site_lang(root: &Path, lang: &str) -> Site {
     let model = model_identity(root);
-    load_cached_site(root, "site", Some(lang), &model, || {
-        render_site_lang(&load(root), lang)
-    })
+    load_cached_site(root, "site", Some(lang), &model)
 }
 
-/// Load the default mdBook render (the mdBook `src/` source tree —
-/// `book.toml`, `SUMMARY.md`, and one `src/<page>/index.md` per page) rooted at
-/// `root`, from the once-per-run cache when present, otherwise rendered via
-/// [`render_book`] with default executable data and cached for the rest of the run.
-/// Byte-identical to a fresh `render_book(&load(root), &ExecutableDocsData::default())`.
-///
-/// This is a distinct artifact from [`load_site`] — the static HTML site and the
-/// mdBook source tree share the `Site` type but not their contents — so it lives at
-/// its own cache path. The default book render is language-agnostic, so unlike the
-/// per-language site there is no `lang` component. Every gated `mdbook_render` test
-/// that needs the default book loads it from here instead of paying a fresh render.
-///
-/// Corrupt-but-present is an integrity violation and panics; only a genuine absence
-/// falls through to a fresh render (so a plain `cargo test` still works).
+/// Load the exact authenticated default mdBook render. A miss is terminal.
 #[must_use]
 pub fn load_book(root: &Path) -> Site {
     let model = model_identity(root);
-    load_cached_site(root, "book", None, &model, || {
-        render_book(&load(root), &ExecutableDocsData::default())
-    })
+    load_cached_site(root, "book", None, &model)
 }
 
-/// Shared loader for a [`CachedSite`]-envelope artifact: load from `cache_path`
-/// when present, else `build` it and cache for the rest of the run. `label` names
-/// the artifact in diagnostics (`"site"` / `"book"`). A cache file that is PRESENT
-/// but undeserializable is an integrity violation and panics loudly rather than
-/// silently rebuilding and masking it; only a genuine absence (`NotFound`) is a
-/// legitimate miss that falls through to `build`. This is the single authority for
-/// the site/book integrity contract — do not reintroduce a per-artifact copy.
+/// Load one authenticated render action. Missing and corrupt entries both fail closed.
 fn load_cached_site(
+    root: &Path,
+    artifact: &str,
+    language: Option<&str>,
+    model: &FixtureIdentity,
+) -> Site {
+    let store = read_only_action_store(root);
+    let context = render_context(root, artifact, language, model);
+    let cache_path = render_cache_path(root, &context);
+    let entry = store
+        .get::<RenderActionPayload>(&context)
+        .unwrap_or_else(|error| {
+            panic!(
+                "corrupt docs-fixture {artifact} action cache at {}: {error}",
+                cache_path.display()
+            )
+        })
+        .unwrap_or_else(|| {
+            panic!(
+                "authenticated docs {artifact} fixture is absent; tests may not rebuild the corpus"
+            )
+        });
+    validate_render_receipt(artifact, language, model, &entry.receipt).unwrap_or_else(|error| {
+        panic!(
+            "corrupt docs-fixture {artifact} action cache at {}: {error}",
+            cache_path.display()
+        )
+    });
+    let cached: CachedSite = serde_json::from_slice(&entry.bytes).unwrap_or_else(|error| {
+        panic!(
+            "corrupt docs-fixture {artifact} action cache at {}: docs payload JSON is corrupt: {error}",
+            cache_path.display()
+        )
+    });
+    cached.into_site(&cache_path)
+}
+
+/// Produce or load one render action. This is reachable only from explicit producer
+/// operations; test-facing loaders call [`load_cached_site`] instead.
+fn load_or_build_cached_site(
     root: &Path,
     artifact: &str,
     language: Option<&str>,
@@ -200,6 +209,17 @@ fn load_cached_site(
     build: impl FnOnce() -> Site,
 ) -> Site {
     let store = action_store(root);
+    load_or_build_cached_site_in_store(&store, root, artifact, language, model, build).0
+}
+
+fn load_or_build_cached_site_in_store(
+    store: &ActionStore,
+    root: &Path,
+    artifact: &str,
+    language: Option<&str>,
+    model: &FixtureIdentity,
+    build: impl FnOnce() -> Site,
+) -> (Site, bool) {
     let context = render_context(root, artifact, language, model);
     let key = context.key();
     let cache_path = render_cache_path(root, &context);
@@ -230,14 +250,37 @@ fn load_cached_site(
             Ok(site)
         },
     );
-    outcome
-        .unwrap_or_else(|error| {
-            panic!(
-                "corrupt docs-fixture {artifact} action cache at {}: {error}",
-                cache_path.display()
-            )
-        })
-        .value
+    let outcome = outcome.unwrap_or_else(|error| {
+        panic!(
+            "corrupt docs-fixture {artifact} action cache at {}: {error}",
+            cache_path.display()
+        )
+    });
+    (outcome.value, outcome.built)
+}
+
+/// Producer counterpart of [`load_site`].
+#[must_use]
+pub fn load_site_or_build(root: &Path) -> Site {
+    load_site_lang_or_build(root, ENGLISH)
+}
+
+/// Producer counterpart of [`load_site_lang`].
+#[must_use]
+pub fn load_site_lang_or_build(root: &Path, lang: &str) -> Site {
+    let (model, identity) = load_or_build_with_identity(root);
+    load_or_build_cached_site(root, "site", Some(lang), &identity, || {
+        render_site_lang(&model, lang)
+    })
+}
+
+/// Producer counterpart of [`load_book`].
+#[must_use]
+pub fn load_book_or_build(root: &Path) -> Site {
+    let (model, identity) = load_or_build_with_identity(root);
+    load_or_build_cached_site(root, "book", None, &identity, || {
+        render_book(&model, &ExecutableDocsData::default())
+    })
 }
 
 /// Build the model, the rendered site for every available language, and the
@@ -247,21 +290,104 @@ fn load_cached_site(
 ///
 /// Every warm action is authenticated before the primer returns. A missing action
 /// recomputes; a present corrupt action hard-fails rather than being hidden by a
-/// sentinel file.
-pub fn prime(root: &Path) {
-    let (model, identity) = load_with_identity(root);
+/// sentinel file. Independent render nodes share one admitted store and execute in
+/// memory-bounded batches; the selected concurrency scales down to one on small CI
+/// runners instead of creating a fixed host-wide cap.
+#[must_use]
+pub fn prime(root: &Path) -> PrimeObservation {
+    let (model, identity) = load_or_build_with_identity(root);
     let mut languages = model.available_languages.clone();
     languages.push(ENGLISH.to_string());
     languages.sort();
     languages.dedup();
-    for lang in &languages {
-        let _ = load_cached_site(root, "site", Some(lang), &identity, || {
-            render_site_lang(&model, lang)
+    let mut tasks = languages.into_iter().map(Some).collect::<Vec<_>>();
+    tasks.push(None);
+    let parallelism = render_parallelism(tasks.len());
+    let built = AtomicUsize::new(0);
+    let store = action_store(root);
+    for batch in tasks.chunks(parallelism) {
+        std::thread::scope(|scope| {
+            for language in batch {
+                let built = &built;
+                let store = &store;
+                let model = &model;
+                let identity = &identity;
+                scope.spawn(move || {
+                    let was_built = if let Some(language) = language.as_deref() {
+                        load_or_build_cached_site_in_store(
+                            store,
+                            root,
+                            "site",
+                            Some(language),
+                            identity,
+                            || render_site_lang(model, language),
+                        )
+                        .1
+                    } else {
+                        load_or_build_cached_site_in_store(
+                            store,
+                            root,
+                            "book",
+                            None,
+                            identity,
+                            || render_book(model, &ExecutableDocsData::default()),
+                        )
+                        .1
+                    };
+                    if was_built {
+                        built.fetch_add(1, Ordering::Relaxed);
+                    }
+                });
+            }
         });
     }
-    let _ = load_cached_site(root, "book", None, &identity, || {
-        render_book(&model, &ExecutableDocsData::default())
-    });
+    let built = built.load(Ordering::Relaxed);
+    PrimeObservation {
+        action_count: tasks.len(),
+        built,
+        receipt_hits: tasks.len().saturating_sub(built),
+        parallelism,
+    }
+}
+
+/// Observational cache/scheduling telemetry from one explicit docs-fixture producer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub struct PrimeObservation {
+    /// Number of independent render actions selected by the model.
+    pub action_count: usize,
+    /// Actions recomputed after an authenticated miss.
+    pub built: usize,
+    /// Actions restored from already-authenticated receipts.
+    pub receipt_hits: usize,
+    /// Maximum render actions admitted concurrently for this host.
+    pub parallelism: usize,
+}
+
+const MIN_RENDER_WORKER_BYTES: u64 = 4 * 1024 * 1024 * 1024;
+
+fn render_parallelism(task_count: usize) -> usize {
+    let cpus = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
+    let by_memory = available_memory_bytes()
+        .map(|bytes| {
+            usize::try_from((bytes / 2) / MIN_RENDER_WORKER_BYTES)
+                .unwrap_or(usize::MAX)
+                .max(1)
+        })
+        .unwrap_or(1);
+    task_count.max(1).min(cpus).min(by_memory)
+}
+
+fn available_memory_bytes() -> Option<u64> {
+    let meminfo = std::fs::read_to_string("/proc/meminfo").ok()?;
+    meminfo.lines().find_map(|line| {
+        let mut fields = line.split_whitespace();
+        if fields.next()? != "MemAvailable:" {
+            return None;
+        }
+        fields.next()?.parse::<u64>().ok()?.checked_mul(1024)
+    })
 }
 
 fn render_cache_path(root: &Path, context: &ActionContext) -> PathBuf {
@@ -417,10 +543,11 @@ mod tests {
             "# \u{e9}\u{e8}\u{ea} \u{2603}\n".as_bytes().to_vec(),
         );
         let built = Site { files };
-        let cold = load_cached_site(&root, "site", Some(ENGLISH), &identity, || built.clone());
+        let cold =
+            load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || built.clone());
         assert_eq!(cold, built, "the cold miss returns the built site");
         assert!(path.is_file(), "the miss wrote the envelope");
-        let warm = load_cached_site(&root, "site", Some(ENGLISH), &identity, || {
+        let warm = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
             panic!("the warm hit must be served from disk, not rebuilt")
         });
         assert_eq!(
@@ -474,7 +601,7 @@ mod tests {
         let sp = site_cache_path(&root, ENGLISH, &identity);
         fs::create_dir_all(sp.parent().unwrap()).unwrap();
         fs::write(&sp, b"{ not valid json").unwrap();
-        let _ = load_cached_site(&root, "site", Some(ENGLISH), &identity, || {
+        let _ = load_or_build_cached_site(&root, "site", Some(ENGLISH), &identity, || {
             panic!("a present corrupt action must not rebuild")
         });
     }
@@ -487,7 +614,7 @@ mod tests {
         let bp = book_cache_path(&root, &identity);
         fs::create_dir_all(bp.parent().unwrap()).unwrap();
         fs::write(&bp, b"{ not valid json").unwrap();
-        let _ = load_cached_site(&root, "book", None, &identity, || {
+        let _ = load_or_build_cached_site(&root, "book", None, &identity, || {
             panic!("a present corrupt action must not rebuild")
         });
     }

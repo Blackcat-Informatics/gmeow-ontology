@@ -3,19 +3,23 @@
 
 //! Emit the fail-closed build identity used by pipeline action keys.
 //!
-//! The identity covers every file under every workspace crate (Rust plus compile-time
-//! assets/fixtures), all Cargo manifests, the lockfile, Cargo configuration, the pinned
-//! toolchain declaration, the complete compiler identity, target/profile/features, and
-//! code-generation flags. A cache hit is an executable claim about all of those inputs,
-//! so omitting any one would make a syntactically valid key semantically incomplete.
+//! The identity covers the pipeline library's exact transitive non-dev path-dependency
+//! closure (Rust plus compile-time assets/templates), the workspace manifest and lockfile,
+//! Cargo configuration, the pinned toolchain declaration, the complete compiler identity,
+//! target/profile/features, and code-generation flags. Unrelated workspace packages and
+//! each crate's separate binary target tree cannot enter this producer library and are
+//! deliberately excluded. The pipeline's fixture selector and unit-test module are
+//! consumers/orchestrators of stage products, not stage semantics, so changing them must
+//! not invalidate every production-stage action either.
 //!
 //! The full-run clean manifest and focused per-stage cache keys incorporate this
-//! fingerprint, so ANY change to ANY workspace crate — or a toolchain or dependency
-//! bump — invalidates the cached proof. That makes both cache boundaries fail-closed
-//! against the hazard where a Rust implementation change could serve a stale
-//! pre-change product because no manual `impl_version` was bumped. Full sync runs use
-//! this identity both for the whole-run clean manifest and for the DAG-admitted cache
-//! of independently bounded stage contributions.
+//! fingerprint, so any change capable of affecting the producer — or a toolchain or
+//! dependency bump — invalidates the cached proof. Test/report-only code changes do not.
+//! That makes both cache boundaries fail-closed against the hazard where a Rust
+//! implementation change could serve a stale pre-change product because no manual
+//! `impl_version` was bumped. Full sync runs use this identity both for the whole-run
+//! clean manifest and for the DAG-admitted cache of independently bounded stage
+//! contributions.
 //!
 //! A `rerun-if-changed` is emitted for every hashed file, so Cargo recomputes the
 //! fingerprint exactly when a hashed input changes (and not otherwise).
@@ -25,21 +29,35 @@ use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
+#[path = "../../build-support/path_dependency_inputs.rs"]
+mod build_inputs;
+
 fn main() {
-    let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
+    let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
     // crates/pipeline → workspace root is two levels up.
-    let workspace = Path::new(&manifest)
+    let workspace = manifest
         .join("..")
         .join("..")
         .canonicalize()
         .expect("canonicalize workspace root");
 
-    // Collect, sorted by relative path for determinism, every workspace crate file.
-    // This deliberately includes non-Rust compile-time inputs (`include_str!`,
-    // `include_bytes!`, templates, wasm, fixtures) rather than trying to maintain an
-    // incomplete extension allowlist. BTreeMap keeps the fold stable.
+    // Derive the local implementation closure from Cargo manifests. Cargo.lock binds
+    // registry/Git dependencies; path dependencies have no content checksum there and
+    // therefore need this live content fold. Separate binary trees are not linked into
+    // the producer library. BTreeMap keeps the fold stable.
     let mut inputs: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    collect_workspace_inputs(&workspace.join("crates"), &workspace, &mut inputs);
+    for crate_dir in build_inputs::transitive_path_dependency_dirs(&manifest) {
+        for path in build_inputs::crate_input_paths(&crate_dir) {
+            if is_library_implementation_input(&path, &crate_dir) {
+                collect_file(&path, &workspace, &mut inputs);
+            }
+        }
+    }
+    collect_file(
+        &workspace.join("build-support/path_dependency_inputs.rs"),
+        &workspace,
+        &mut inputs,
+    );
     for relative in [
         "Cargo.toml",
         "Cargo.lock",
@@ -48,18 +66,11 @@ fn main() {
         ".cargo/config",
         ".cargo/config.toml",
     ] {
-        let path = workspace.join(relative);
-        // Watching a nonexistent optional spelling marks the package dirty forever
-        // (`the file rust-toolchain is missing`). Watch and hash only the spelling
-        // that actually exists; creating the alternative necessarily changes the
-        // workspace directory/package inputs and is picked up on the next build.
-        if let Ok(bytes) = std::fs::read(&path) {
-            println!("cargo:rerun-if-changed={}", path.display());
-            inputs.insert(relative.to_string(), bytes);
-        }
+        collect_file(&workspace.join(relative), &workspace, &mut inputs);
     }
 
     let mut hasher = Sha256::new();
+    hasher.update(b"gmeow:pipeline-build:v3\x1f");
     for (rel, content) in &inputs {
         hasher.update(rel.as_bytes());
         hasher.update([0x1f]);
@@ -174,32 +185,42 @@ fn hex(bytes: &[u8]) -> String {
     out
 }
 
-/// Recursively collect every regular file under the workspace `crates/` tree, keyed by
-/// its path relative to `workspace`, and emit a `rerun-if-changed` for each. This tree
-/// contains compile-time assets and fixtures as well as Rust. Build output is excluded
-/// because it is an effect of this identity, never an input to it.
-fn collect_workspace_inputs(dir: &Path, workspace: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
+fn collect_file(path: &Path, workspace: &Path, out: &mut BTreeMap<String, Vec<u8>>) {
+    // Watching a nonexistent optional spelling marks the package dirty forever. Watch
+    // and hash only files that exist; a newly selected manifest/toolchain spelling is
+    // observed when Cargo next resolves the package.
+    let Ok(bytes) = std::fs::read(path) else {
         return;
     };
-    let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
-    paths.sort();
-    for path in paths {
-        if path.is_dir() {
-            if path.file_name().is_some_and(|n| n == "target") {
-                continue;
-            }
-            collect_workspace_inputs(&path, workspace, out);
-        } else if path.is_file()
-            && let Ok(bytes) = std::fs::read(&path)
-        {
-            let rel = path
-                .strip_prefix(workspace)
-                .unwrap_or(&path)
-                .to_string_lossy()
-                .into_owned();
-            println!("cargo:rerun-if-changed={}", path.display());
-            out.insert(rel, bytes);
-        }
+    println!("cargo:rerun-if-changed={}", path.display());
+    let relative = path
+        .strip_prefix(workspace)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .into_owned();
+    out.insert(relative, bytes);
+}
+
+fn is_library_implementation_input(path: &Path, crate_dir: &Path) -> bool {
+    let Ok(relative) = path.strip_prefix(crate_dir) else {
+        return true;
+    };
+    if relative == Path::new("src/main.rs") || relative.starts_with("src/bin") {
+        return false;
     }
+    if crate_dir.file_name().is_some_and(|name| name == "pipeline")
+        && matches!(relative.to_str(), Some("src/fixture.rs" | "src/tests.rs"))
+    {
+        return false;
+    }
+    let docs_non_library_assets = [
+        "assets/console/pkg",
+        "assets/console/smoke",
+        "assets/console/tests",
+        "assets/tests",
+    ];
+    crate_dir.file_name().is_none_or(|name| name != "docs")
+        || docs_non_library_assets
+            .iter()
+            .all(|excluded| !relative.starts_with(excluded))
 }
