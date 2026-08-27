@@ -67,6 +67,86 @@ pub fn is_object_level_named_graph(iri: &str) -> bool {
     OBJECT_LEVEL_NAMED_GRAPHS.contains(&iri)
 }
 
+/// `rdf:type` and the canonical `logic:GroundingCorrespondence` class IRI — used to recognize
+/// the meta-level grounding-correspondence records that are excluded from object-level closure.
+const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const LOGIC_GROUNDING_CORRESPONDENCE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+/// The two correspondence-DEFINING predicates: a `logic:GroundingCorrespondence` names its two
+/// related terms through these, and no production object-level record uses them.
+const LOGIC_SOURCE_ENDPOINT_IRI: &str = "https://blackcatinformatics.ca/logic/sourceEndpoint";
+const LOGIC_TARGET_ENDPOINT_IRI: &str = "https://blackcatinformatics.ca/logic/targetEndpoint";
+
+/// Every grounding-correspondence subject in `snapshot` (in ANY graph): the meta-level grounding
+/// correspondences whose triples are re-projected into `graph/correspondence-laws` and therefore
+/// must not enter the object-level reasoning EDB even when authored inline in an object-level
+/// graph (a slice `module.ttl` body).
+///
+/// A record is identified by its `rdf:type logic:GroundingCorrespondence` OR — robustly against
+/// graph placement — by carrying one of the correspondence-defining endpoint predicates
+/// (`logic:sourceEndpoint`/`logic:targetEndpoint`). The type alone is not enough for the
+/// build-time twin: the compile stage projects the `rdf:type` + morphism metadata into
+/// `graph/correspondence-laws` (a meta graph absent from a narrowed object-level union) while the
+/// raw endpoint triples remain in an admitted graph, so keying on the type over the narrowed union
+/// finds NO subjects and the endpoints — whose objects are the out-of-fragment
+/// `logic:inverseFunctionalProperty` / `logic:oneOf` referents — leak into the EDB and make
+/// reason-verify honestly-but-uselessly withhold. Keying on the endpoint predicates catches the
+/// record wherever its endpoint triples land.
+pub fn grounding_correspondence_subjects(snapshot: &RdfDataset) -> HashSet<String> {
+    let mut subjects = HashSet::new();
+    for quad in snapshot.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let identifies_correspondence = if quad.predicate == RDF_TYPE_IRI {
+            matches!(&quad.object, RdfTerm::Iri(o) if o == LOGIC_GROUNDING_CORRESPONDENCE_IRI)
+        } else {
+            quad.predicate == LOGIC_SOURCE_ENDPOINT_IRI
+                || quad.predicate == LOGIC_TARGET_ENDPOINT_IRI
+        };
+        if identifies_correspondence {
+            subjects.insert(subject.clone());
+        }
+    }
+    subjects
+}
+
+/// True iff `quad`'s subject is a `logic:GroundingCorrespondence` record — a meta-level
+/// correspondence datum excluded from the object-level reasoning EDB.
+pub fn is_correspondence_quad(quad: &RdfQuad, correspondence_subjects: &HashSet<String>) -> bool {
+    matches!(&quad.subject, RdfTerm::Iri(s) if correspondence_subjects.contains(s))
+}
+
+/// Return `dataset` with every `logic:GroundingCorrespondence` record's triples removed. This
+/// is the SHARED meta-level exclusion the two object-level-EDB twins apply so they cannot
+/// drift: `project_object_level_edb` (the snapshot authority) applies it inline while
+/// projecting the admitted graphs, and `crates/pipeline`'s `assemble_object_level_edb` (the
+/// build-time twin) applies it to the assembled object-level union. A correspondence's
+/// `logic:sourceEndpoint`/`logic:targetEndpoint` referents are correspondence data (preserved
+/// in `graph/correspondence-laws`), not production object-level class expressions.
+pub fn exclude_grounding_correspondences(
+    dataset: &RdfDataset,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    let correspondence_subjects = grounding_correspondence_subjects(dataset);
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in dataset.owned_quads() {
+        if !is_correspondence_quad(&quad, &correspondence_subjects) {
+            builder.push_owned_quad(&quad);
+        }
+    }
+    for reifier in dataset.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in dataset.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: format!("freeze grounding-correspondence exclusion: {e}"),
+        })
+    })
+}
+
 /// Whether `graph` (a quad's/reifier's/annotation's graph-name term — `None` for the
 /// true default graph) is admitted to the object-level reasoning EDB: the default graph
 /// always is; a named graph is iff [`is_object_level_named_graph`] admits its IRI; a
@@ -206,9 +286,21 @@ pub fn without_recovery_case_envelopes(
 pub fn project_object_level_edb(
     snapshot: &RdfDataset,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    // Grounding correspondences are meta-level ontology content — shipped OUTSIDE object-level
+    // closure and re-projected into `graph/correspondence-laws` (docs/GROUNDING.md, CONSTITUTION
+    // Principle 17). A `logic:GroundingCorrespondence` record authored in an object-level graph
+    // (e.g. a slice `module.ttl` body) therefore must NOT enter the object-level reasoning EDB:
+    // its `logic:sourceEndpoint`/`logic:targetEndpoint` referents (e.g. `logic:oneOf`,
+    // `logic:inverseFunctionalProperty`) are correspondence data, not production class
+    // expressions, and admitting them makes the native DL path honestly-but-uselessly withhold
+    // (reason-verify refuses on the out-of-fragment nominals/inverse-functional it cannot decide).
+    // The correspondence itself is preserved in `graph/correspondence-laws` (the mappings stage).
+    let correspondence_subjects = grounding_correspondence_subjects(snapshot);
     let mut builder = RdfDatasetBuilder::new();
     for quad in snapshot.owned_quads() {
-        if admitted_graph(&quad.graph_name) {
+        if admitted_graph(&quad.graph_name)
+            && !is_correspondence_quad(&quad, &correspondence_subjects)
+        {
             builder.push_owned_quad(&quad);
         }
     }
@@ -253,5 +345,47 @@ mod tests {
         assert!(!is_object_level_named_graph(
             "https://blackcatinformatics.ca/gmeow/graph/grounding-seams"
         ));
+    }
+
+    #[test]
+    fn endpoint_predicates_identify_a_correspondence_without_its_type_triple() {
+        // The build-time object-level-EDB twin sees a narrowed union in which the compile
+        // stage has already projected the `rdf:type logic:GroundingCorrespondence` triple into
+        // the meta `graph/correspondence-laws` graph, leaving only the raw endpoint triples in
+        // an admitted graph. Keying on the endpoint predicates still identifies the record, so
+        // its out-of-fragment `owl:InverseFunctionalProperty` referent never reaches the EDB
+        // (the reason-verify regression these leaks caused).
+        let ttl = concat!(
+            "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
+            "logic:corrIFP\n",
+            "  logic:sourceEndpoint logic:inverseFunctionalProperty ;\n",
+            "  logic:targetEndpoint <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> .\n",
+            "logic:Person a logic:Class .\n",
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse ttl");
+
+        let subjects = grounding_correspondence_subjects(&ds);
+        assert!(
+            subjects.contains("https://blackcatinformatics.ca/logic/corrIFP"),
+            "an endpoint-only correspondence record must be detected: {subjects:?}"
+        );
+
+        let excluded = exclude_grounding_correspondences(&ds).expect("exclude correspondences");
+        let leaks_ifp = excluded.owned_quads().any(|q| {
+            matches!(&q.object, RdfTerm::Iri(o)
+                if o == "http://www.w3.org/2002/07/owl#InverseFunctionalProperty")
+        });
+        assert!(
+            !leaks_ifp,
+            "the inverse-functional endpoint referent must be excluded from the object-level EDB"
+        );
+        let keeps_person = excluded.owned_quads().any(|q| {
+            matches!(&q.subject, RdfTerm::Iri(s)
+                if s == "https://blackcatinformatics.ca/logic/Person")
+        });
+        assert!(
+            keeps_person,
+            "ordinary object-level axioms (logic:Person a logic:Class) must be preserved"
+        );
     }
 }

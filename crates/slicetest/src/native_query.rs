@@ -28,7 +28,7 @@ use gmeow_errors::{Diag, Result};
 use purrdf::ir::RdfDatasetBuilder;
 use purrdf::parse_dataset;
 use purrdf::sparql::NativeSparqlEngine;
-use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
+use purrdf::{RdfDataset, RdfTerm, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
 
 use crate::error::{DatasetRead, SparqlEval, UnexpectedResultForm};
 
@@ -97,8 +97,14 @@ pub fn union(datasets: &[Arc<RdfDataset>]) -> Arc<RdfDataset> {
     Arc::new(RdfDataset::union(&refs))
 }
 
-/// `dataset` with the OWL/RDFS **projection** of its canonical subsumption edges
-/// materialized — the surface a SHACL shape set is written against.
+/// `rdf:type` — the predicate whose OBJECT names a term's kind. A quad on this
+/// predicate whose object is a canonical `logic:` type marker gets an OWL-view
+/// twin (`logic:Class`→`owl:Class`, …) via [`gmeow_ns::owl_view_of_type_marker`].
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// `dataset` with the complete OWL/RDFS **projection** of its canonical `logic:`
+/// vocabulary materialized — the surface a SHACL shape set and the fixtures'
+/// `owl:`/`rdfs:` ASK/SELECT queries are written against.
 ///
 /// # Why a SHACL data graph is not the authored graph
 ///
@@ -118,19 +124,63 @@ pub fn union(datasets: &[Arc<RdfDataset>]) -> Arc<RdfDataset> {
 /// first is what restores the correspondence — the shapes and the ontology are
 /// both right; only the un-projected data graph was wrong.
 ///
-/// The canonical edges are KEPT (the projection adds the RDFS view, it never
-/// rewrites the authored edge away), and blank-node identity is preserved so an
-/// `owl:Restriction`-encoded axiom survives intact.
+/// # What is projected
+///
+/// The single source of the projection map is the `logic:` slice's
+/// `graph/correspondence-laws` corpus, mirrored in `gmeow_ns`:
+///
+/// * `rdf:type` OBJECTS — every canonical typing / property-characteristic /
+///   axiom marker via [`gmeow_ns::owl_view_of_type_marker`]
+///   (`logic:Class`→`owl:Class`, `logic:AllDisjointClasses`→`owl:AllDisjointClasses`, …);
+/// * PREDICATES — every canonical axiom / class-expression / restriction /
+///   cardinality / identity / header edge via [`gmeow_ns::owl_view_of_predicate`]
+///   (`logic:subClassOf`→`rdfs:subClassOf`, `logic:members`→`owl:members`,
+///   `logic:someValuesFrom`→`owl:someValuesFrom`, …).
+///
+/// The canonical `logic:` quads are KEPT (the projection ADDS the OWL/RDFS view,
+/// it never rewrites the authored quad away), and blank-node identity is preserved
+/// so an `owl:Restriction`-encoded axiom survives intact.
 #[must_use]
-pub fn with_rdfs_subsumption_projection(dataset: &Arc<RdfDataset>) -> Arc<RdfDataset> {
+pub fn with_owl_rdfs_projection(dataset: &Arc<RdfDataset>) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
     let mut projected = 0usize;
     for quad in dataset.owned_quads() {
-        if let Some(rdfs) = rdfs_projection_of_subsumption(&quad.predicate) {
-            let mut lowered = quad.clone();
-            lowered.predicate = rdfs.to_owned();
-            builder.push_owned_quad(&lowered);
-            projected += 1;
+        let pred_view = gmeow_ns::owl_view_of_predicate(&quad.predicate);
+        let obj_view = object_marker_view(&quad.predicate, &quad.object);
+        // Emit EVERY surface combination of {canonical, projected} for the predicate
+        // and the object, so a fixture written in any spelling matches. The fixtures
+        // are not uniform: a restriction cell reads `logic:onProperty …; logic:onClass
+        // owl:Thing` (canonical predicate, projected object), while a property cell
+        // reads `rdfs:range owl:Thing` (both projected). The canonical quad is always
+        // kept last; the projection only ever ADDS the view spellings.
+        match (pred_view, obj_view) {
+            (None, None) => {}
+            (Some(p), None) => {
+                let mut lowered = quad.clone();
+                lowered.predicate = p.to_owned();
+                builder.push_owned_quad(&lowered);
+                projected += 1;
+            }
+            (None, Some(o)) => {
+                let mut lowered = quad.clone();
+                lowered.object = RdfTerm::iri(o);
+                builder.push_owned_quad(&lowered);
+                projected += 1;
+            }
+            (Some(p), Some(o)) => {
+                // both-projected, predicate-only, object-only
+                let mut both = quad.clone();
+                both.predicate = p.to_owned();
+                both.object = RdfTerm::iri(o);
+                builder.push_owned_quad(&both);
+                let mut pred_only = quad.clone();
+                pred_only.predicate = p.to_owned();
+                builder.push_owned_quad(&pred_only);
+                let mut obj_only = quad.clone();
+                obj_only.object = RdfTerm::iri(o);
+                builder.push_owned_quad(&obj_only);
+                projected += 3;
+            }
         }
         builder.push_owned_quad(&quad);
     }
@@ -145,17 +195,37 @@ pub fn with_rdfs_subsumption_projection(dataset: &Arc<RdfDataset>) -> Arc<RdfDat
     }
     builder
         .freeze()
-        .expect("projecting a valid dataset's subsumption edges re-freezes successfully")
+        .expect("projecting a valid dataset's canonical edges re-freezes successfully")
 }
 
-/// The `rdfs:` spelling a canonical `logic:` subsumption predicate projects to, or
-/// `None` for every other predicate ([`gmeow_ns::SUB_CLASS_OF`] /
-/// [`gmeow_ns::SUB_PROPERTY_OF`], canonical first, projected second).
-fn rdfs_projection_of_subsumption(predicate: &str) -> Option<&'static str> {
-    match predicate {
-        gmeow_ns::LOGIC_SUB_CLASS_OF => Some(gmeow_ns::RDFS_SUB_CLASS_OF),
-        gmeow_ns::LOGIC_SUB_PROPERTY_OF => Some(gmeow_ns::RDFS_SUB_PROPERTY_OF),
-        _ => None,
+/// The OWL-view spelling of a quad's OBJECT when it names a canonical `logic:` marker,
+/// or `None`.
+///
+/// In `rdf:type` position EVERY typing / property-characteristic / axiom marker lowers
+/// ([`gmeow_ns::owl_view_of_type_marker`]). In a CLASS-POSITION predicate
+/// ([`gmeow_ns::is_class_position_predicate`] — `rdfs:range`/`logic:range`,
+/// `owl:onClass`/`logic:onClass`, …) only the universal class-identity markers
+/// `logic:Thing` / `logic:Nothing` are lowered; they are the sole canonical markers that
+/// appear as a class-valued object.
+///
+/// Crucially, a marker object under a NON-class predicate is left untouched: a
+/// `logic:GroundingCorrespondence`'s `logic:sourceEndpoint logic:Thing` names the term
+/// `logic:Thing` as data, NOT a class filler, so lowering it would mint a second
+/// `sourceEndpoint` value and trip that shape's `maxCount 1`.
+fn object_marker_view(predicate: &str, object: &RdfTerm) -> Option<&'static str> {
+    let RdfTerm::Iri(object_iri) = object else {
+        return None;
+    };
+    if predicate == RDF_TYPE {
+        gmeow_ns::owl_view_of_type_marker(object_iri)
+    } else if gmeow_ns::is_class_position_predicate(predicate) {
+        match object_iri.as_str() {
+            gmeow_ns::LOGIC_THING => Some(gmeow_ns::OWL_THING),
+            gmeow_ns::LOGIC_NOTHING => Some(gmeow_ns::OWL_NOTHING),
+            _ => None,
+        }
+    } else {
+        None
     }
 }
 

@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Asset
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Asset"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -18,7 +17,7 @@ gmeow:Asset
 
 gmeow:AssetType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Asset Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -27,49 +26,49 @@ gmeow:AssetType
 
 gmeow:CryptoWallet
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Crypto Wallet"@x-gmeow-english ;
     rdfs:subClassOf gmeow:FinancialAccount ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:walletScheme ;
-            owl:someValuesFrom gmeow:WalletScheme ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:walletScheme ;
+            logic:someValuesFrom gmeow:WalletScheme ;
         ] ;
     skos:definition "A digital wallet that holds cryptocurrency assets. A subclass of FinancialAccount (it is a financial-existence account) with wallet-specific properties: address(es), scheme, and cryptographic key linkage. It is the ACCOUNT, not the asset held in it (gmeow:FinancialAsset) and not the key that controls it (gmeow:walletKey)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FinancialAccount
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Financial Account"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:accountHolder ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:accountHolder ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:bic ;
-            owl:allValuesFrom [
+            a logic:Restriction ;
+            logic:onProperty gmeow:bic ;
+            logic:allValuesFrom [
                 a rdfs:Datatype ;
-                owl:onDatatype xsd:string ;
-                owl:withRestrictions (
+                logic:onDatatype xsd:string ;
+                logic:withRestrictions (
                     [ xsd:minLength "8"^^xsd:nonNegativeInteger ]
                     [ xsd:maxLength "11"^^xsd:nonNegativeInteger ]
                     [ xsd:pattern "^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$" ]
                 ) ;
             ] ;
         ] ;
-    owl:disjointWith gmeow:OnlineAccount ;
+    logic:disjointWith gmeow:OnlineAccount ;
     skos:definition "A financial account held by an agent with a financial institution — a bank account, credit card, investment account, or wallet. Distinct from OnlineAccount (social profiles, decentralized identity): this is the financial-existence layer. The account's legal terms are modelled as an Agreement between the holder and the institution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FinancialAccountType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Financial Account Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -78,66 +77,66 @@ gmeow:FinancialAccountType
 
 gmeow:FinancialTransaction
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Financial Transaction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Event ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:transactionAmount ;
-            owl:someValuesFrom gmeow:MonetaryAmount ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:transactionAmount ;
+            logic:someValuesFrom gmeow:MonetaryAmount ;
         ] ;
     skos:definition "A money-movement event — a payment, transfer, deposit, withdrawal, fee, interest, or refund. Reuses the Event/Participation substrate: payer, payee, and intermediary are ParticipantRole values on Participation relators, never subproperties. The kind of transaction is a TransactionType value; the status is a TransactionStatus value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Holding
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Holding"@x-gmeow-english ;
     logic:mediates gmeow:holdingAgent ,
         gmeow:holdingAsset ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:holdingAgent ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:holdingAgent ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:holdingAsset ;
-            owl:someValuesFrom gmeow:Asset ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:holdingAsset ;
+            logic:someValuesFrom gmeow:Asset ;
         ] ;
     skos:definition "A reified relator connecting an agent to a financial asset with a quantity and cost-basis. The thing that is held: agent × asset × quantity × cost-basis × optional period. Promote from a flat accountBalance when cost-basis, period, or provenance must be recorded. A Holding is the relator, not the asset itself and never the account it is booked against."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Invoice
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Invoice"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Document ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:invoiceAmount ;
-            owl:someValuesFrom gmeow:MonetaryAmount ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:invoiceAmount ;
+            logic:someValuesFrom gmeow:MonetaryAmount ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:invoiceIssuer ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:invoiceIssuer ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:invoiceRecipient ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:invoiceRecipient ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A billing document issued by a seller to a buyer, requesting payment for goods or services rendered. A subclass of Document: it is the REQUEST for payment, not the payment that discharges it (gmeow:Payment) and not the agreement it bills against (gmeow:Order)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InvoiceStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Invoice Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -146,41 +145,41 @@ gmeow:InvoiceStatus
 
 gmeow:JournalEntry
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Journal Entry"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Event ,
         [
-            a owl:Restriction ;
-            owl:minQualifiedCardinality "2"^^xsd:nonNegativeInteger ;
-            owl:onProperty gmeow:journalEntryPostings ;
-            owl:onClass gmeow:Posting ;
+            a logic:Restriction ;
+            logic:minQualifiedCardinality "2"^^xsd:nonNegativeInteger ;
+            logic:onProperty gmeow:journalEntryPostings ;
+            logic:onClass gmeow:Posting ;
         ] ;
     skos:definition "A balanced double-entry bookkeeping event: a temporal occurrence in which debits equal credits (per currency bucket). Composed of two or more Posting relators — a single-posting entry cannot balance, so at least two postings of class gmeow:Posting are required."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LedgerAccount
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Ledger Account"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:ledgerAccountType ;
-            owl:someValuesFrom gmeow:LedgerAccountType ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:ledgerAccountType ;
+            logic:someValuesFrom gmeow:LedgerAccountType ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:ledgerAccountHolder ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:ledgerAccountHolder ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A book-keeping account in a double-entry ledger — an asset, liability, equity, revenue, or expense account. An InformationObject distinct from FinancialAccount: a LedgerAccount is a conceptual book-keeping construct, while a FinancialAccount is a bank-level account with IBAN/BIC/number."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LedgerAccountType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Ledger Account Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -189,31 +188,31 @@ gmeow:LedgerAccountType
 
 gmeow:Order
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Order"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Agreement ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:orderAmount ;
-            owl:someValuesFrom gmeow:MonetaryAmount ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:orderAmount ;
+            logic:someValuesFrom gmeow:MonetaryAmount ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:orderBuyer ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:orderBuyer ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:orderSeller ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:orderSeller ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ;
     skos:definition "A purchase order or sales order — an agreement between a buyer and a seller for the supply of goods or services at a stated price. A subclass of Agreement: it records what was agreed, not what was delivered or billed — the bill is a gmeow:Invoice."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:OrderStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Order Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -222,7 +221,7 @@ gmeow:OrderStatus
 
 gmeow:Payment
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Payment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:FinancialTransaction ;
@@ -231,38 +230,38 @@ gmeow:Payment
 
 gmeow:Posting
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Posting"@x-gmeow-english ;
     logic:mediates gmeow:postingJournalEntry ,
         gmeow:postingAccount ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:postingJournalEntry ;
-            owl:someValuesFrom gmeow:JournalEntry ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:postingJournalEntry ;
+            logic:someValuesFrom gmeow:JournalEntry ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:postingAccount ;
-            owl:someValuesFrom gmeow:LedgerAccount ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:postingAccount ;
+            logic:someValuesFrom gmeow:LedgerAccount ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:postingAmount ;
-            owl:someValuesFrom gmeow:MonetaryAmount ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:postingAmount ;
+            logic:someValuesFrom gmeow:MonetaryAmount ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:postingDirection ;
-            owl:someValuesFrom gmeow:PostingDirection ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:postingDirection ;
+            logic:someValuesFrom gmeow:PostingDirection ;
         ] ;
     skos:definition "A reified relator connecting a journal entry to a ledger account with a monetary amount and a posting direction (debit or credit). The atomic unit of double-entry bookkeeping. A posting is one leg, never a whole entry: it does not balance on its own, and the balancing obligation lives on the journal entry."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PostingDirection
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Posting Direction"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -271,7 +270,7 @@ gmeow:PostingDirection
 
 gmeow:TransactionStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Transaction Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -280,7 +279,7 @@ gmeow:TransactionStatus
 
 gmeow:TransactionType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Transaction Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -289,7 +288,7 @@ gmeow:TransactionType
 
 gmeow:WalletScheme
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Wallet Scheme"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -297,7 +296,7 @@ gmeow:WalletScheme
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:accountBalance
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account balance"@x-gmeow-english ;
@@ -306,7 +305,7 @@ gmeow:accountBalance
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountCurrency
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account currency"@x-gmeow-english ;
@@ -315,7 +314,7 @@ gmeow:accountCurrency
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountHolder
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account holder"@x-gmeow-english ;
@@ -324,7 +323,7 @@ gmeow:accountHolder
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountNumber
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account number"@x-gmeow-english ;
@@ -333,7 +332,7 @@ gmeow:accountNumber
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:accountType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "account type"@x-gmeow-english ;
@@ -370,7 +369,7 @@ gmeow:accountTypeWallet
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:assetIdentifier
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Asset ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "asset identifier"@x-gmeow-english ;
@@ -379,7 +378,7 @@ gmeow:assetIdentifier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:assetType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Asset ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "asset type"@x-gmeow-english ;
@@ -423,7 +422,7 @@ gmeow:assetTypeStock
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:bic
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "BIC"@x-gmeow-english ;
@@ -432,7 +431,7 @@ gmeow:bic
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding agent"@x-gmeow-english ;
@@ -441,7 +440,7 @@ gmeow:holdingAgent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingAsset
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding asset"@x-gmeow-english ;
@@ -450,7 +449,7 @@ gmeow:holdingAsset
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingCostBasis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding cost basis"@x-gmeow-english ;
@@ -459,7 +458,7 @@ gmeow:holdingCostBasis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingPeriod
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding period"@x-gmeow-english ;
@@ -468,7 +467,7 @@ gmeow:holdingPeriod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:holdingQuantity
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Holding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holding quantity"@x-gmeow-english ;
@@ -477,7 +476,7 @@ gmeow:holdingQuantity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:iban
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:FinancialAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "IBAN"@x-gmeow-english ;
@@ -486,7 +485,7 @@ gmeow:iban
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceAmount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Invoice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice amount"@x-gmeow-english ;
@@ -495,7 +494,7 @@ gmeow:invoiceAmount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceDueDate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Invoice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice due date"@x-gmeow-english ;
@@ -504,7 +503,7 @@ gmeow:invoiceDueDate
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceIssuer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Invoice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice issuer"@x-gmeow-english ;
@@ -513,7 +512,7 @@ gmeow:invoiceIssuer
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceRecipient
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Invoice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice recipient"@x-gmeow-english ;
@@ -522,7 +521,7 @@ gmeow:invoiceRecipient
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:invoiceStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Invoice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoice status"@x-gmeow-english ;
@@ -566,17 +565,17 @@ gmeow:invoiceStatusSent
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:journalEntryPostings
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:JournalEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "journal entry postings"@x-gmeow-english ;
     rdfs:range gmeow:Posting ;
-    owl:inverseOf gmeow:postingJournalEntry ;
+    logic:inverseOf gmeow:postingJournalEntry ;
     skos:definition "The postings that compose a journal entry. Non-functional: a journal entry has at least two postings (SHACL-enforced) — a single-posting entry cannot balance and is not a journal entry."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountCurrency
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LedgerAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledger account currency"@x-gmeow-english ;
@@ -585,7 +584,7 @@ gmeow:ledgerAccountCurrency
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountHolder
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LedgerAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledger account holder"@x-gmeow-english ;
@@ -594,7 +593,7 @@ gmeow:ledgerAccountHolder
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:ledgerAccountType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LedgerAccount ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledger account type"@x-gmeow-english ;
@@ -638,7 +637,7 @@ gmeow:ledgerAccountTypeRevenue
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:orderAmount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Order ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order amount"@x-gmeow-english ;
@@ -647,7 +646,7 @@ gmeow:orderAmount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:orderBuyer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Order ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order buyer"@x-gmeow-english ;
@@ -656,7 +655,7 @@ gmeow:orderBuyer
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:orderSeller
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Order ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order seller"@x-gmeow-english ;
@@ -665,7 +664,7 @@ gmeow:orderSeller
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:orderStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Order ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "order status"@x-gmeow-english ;
@@ -709,7 +708,7 @@ gmeow:orderStatusShipped
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:paymentMethod
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Payment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "payment method"@x-gmeow-english ;
@@ -718,7 +717,7 @@ gmeow:paymentMethod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingAccount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting account"@x-gmeow-english ;
@@ -727,7 +726,7 @@ gmeow:postingAccount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingAmount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting amount"@x-gmeow-english ;
@@ -736,7 +735,7 @@ gmeow:postingAmount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:postingDirection
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting direction"@x-gmeow-english ;
@@ -759,12 +758,12 @@ gmeow:postingDirectionDebit
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:postingJournalEntry
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Posting ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "posting journal entry"@x-gmeow-english ;
     rdfs:range gmeow:JournalEntry ;
-    owl:inverseOf gmeow:journalEntryPostings ;
+    logic:inverseOf gmeow:journalEntryPostings ;
     skos:definition "The journal entry this posting belongs to. Functional: a posting belongs to exactly one journal entry and is never shared between entries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -790,7 +789,7 @@ gmeow:rolePayer
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:transactionAmount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FinancialTransaction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "transaction amount"@x-gmeow-english ;
@@ -799,7 +798,7 @@ gmeow:transactionAmount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:transactionStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FinancialTransaction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "transaction status"@x-gmeow-english ;
@@ -836,7 +835,7 @@ gmeow:transactionStatusReversed
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:transactionType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:FinancialTransaction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "transaction type"@x-gmeow-english ;
@@ -894,7 +893,7 @@ gmeow:transactionTypeWithdrawal
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:walletAddress
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CryptoWallet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "wallet address"@x-gmeow-english ;
@@ -903,7 +902,7 @@ gmeow:walletAddress
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:walletKey
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CryptoWallet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "wallet key"@x-gmeow-english ;
@@ -912,7 +911,7 @@ gmeow:walletKey
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:walletScheme
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CryptoWallet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "wallet scheme"@x-gmeow-english ;
@@ -949,7 +948,7 @@ gmeow:walletSchemeXMR
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/finance>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Personal and SMB financial existence: accounts, monetary amounts, transactions, ledgers, invoices, orders, asset holdings, and crypto wallets. Grounded in the existing Event/Participation/Agreement/Rights/Trust substrate. FIBO, schema.org, ISO 4217, ISO 20022, FIGI and OFX are aligned by reference, never imported.
 
@@ -971,7 +970,7 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraints (#1194) — projections of the finance Phase B–D        #
+# Suppression constraints — projections of the finance Phase B–D        #
 # suppression shapes. A reversed/cancelled record that is not suppressed        #
 # (gmeow:displayable false) is a Warning — a source may lag on setting the flag. #
 # =========================================================================== #
@@ -1098,7 +1097,7 @@ logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # posting-direction value set. The gmeow:Agent obligations on                   #
 # ledgerAccountHolder / invoiceIssuer / invoiceRecipient hold under reasoning    #
 # (gmeow:Organization logic:subClassOf gmeow:Agent), so they ground              #
-# declaratively via owl:allValuesFrom gmeow:Agent.                              #
+# declaratively via logic:allValuesFrom gmeow:Agent.                            #
 # =========================================================================== #
 
 gmeow:ReversedTransactionSuppressionConstraint logic:formalizes gmeow:ReversedTransactionSuppressionShape .
@@ -1150,7 +1149,7 @@ gmeow:JournalEntryPostingsCountConstraint
     logic:formalizes gmeow:JournalEntryHasPostingsShape ;
     logic:message "A JournalEntry must have at least two postings (gmeow:journalEntryPostings)." .
 
-# postingDirection sh:in value set → owl:oneOf antecedent (declarative sh:in).
+# postingDirection sh:in value set → logic:oneOf antecedent (declarative sh:in).
 gmeow:Posting logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:postingDirection ; logic:allValuesFrom [ logic:oneOf ( gmeow:postingDirectionDebit gmeow:postingDirectionCredit ) ] ] .
 
@@ -1164,10 +1163,10 @@ gmeow:Invoice logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceIssuer" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Invoice ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invoiceRecipient" ; logic:closureValue logic:ClosedWorldClosure ] .
 
-# JournalEntry: at least two postings, projected as a BARE sh:minCount 2 (owl:Thing
+# JournalEntry: at least two postings, projected as a BARE sh:minCount 2 (logic:Thing
 # filler collapses the qualified count to the plain minimum the legacy shape stated).
 gmeow:JournalEntry logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:journalEntryPostings ; logic:minQualifiedCardinality 2 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:journalEntryPostings ; logic:minQualifiedCardinality 2 ; logic:onClass logic:Thing ] .
 
 # The double-entry balance invariant: within each currency, the sum of a JournalEntry's debit
 # postings equals the sum of its credit postings. A first-class aggregate-balance constraint
@@ -1195,7 +1194,7 @@ gmeow:JournalEntryBalanceConstraint
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1203,7 +1202,7 @@ gmeow:JournalEntryBalanceConstraint
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:accountTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "accountType is functional"@x-gmeow-english ;
@@ -1218,7 +1217,7 @@ gmeow:accountTypeFunctionality
     skos:example "gmeow:accountTypeFunctionality logic:characterizes gmeow:accountType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:assetTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "assetType is functional"@x-gmeow-english ;
@@ -1233,7 +1232,7 @@ gmeow:assetTypeFunctionality
     skos:example "gmeow:assetTypeFunctionality logic:characterizes gmeow:assetType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:holdingAgentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingAgent is functional"@x-gmeow-english ;
@@ -1248,7 +1247,7 @@ gmeow:holdingAgentFunctionality
     skos:example "gmeow:holdingAgentFunctionality logic:characterizes gmeow:holdingAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:holdingAssetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingAsset is functional"@x-gmeow-english ;
@@ -1263,7 +1262,7 @@ gmeow:holdingAssetFunctionality
     skos:example "gmeow:holdingAssetFunctionality logic:characterizes gmeow:holdingAsset ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:holdingCostBasisFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingCostBasis is functional"@x-gmeow-english ;
@@ -1278,7 +1277,7 @@ gmeow:holdingCostBasisFunctionality
     skos:example "gmeow:holdingCostBasisFunctionality logic:characterizes gmeow:holdingCostBasis ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:holdingQuantityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "holdingQuantity is functional"@x-gmeow-english ;
@@ -1293,7 +1292,7 @@ gmeow:holdingQuantityFunctionality
     skos:example "gmeow:holdingQuantityFunctionality logic:characterizes gmeow:holdingQuantity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:invoiceAmountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "invoiceAmount is functional"@x-gmeow-english ;
@@ -1308,7 +1307,7 @@ gmeow:invoiceAmountFunctionality
     skos:example "gmeow:invoiceAmountFunctionality logic:characterizes gmeow:invoiceAmount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:ledgerAccountTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "ledgerAccountType is functional"@x-gmeow-english ;
@@ -1323,7 +1322,7 @@ gmeow:ledgerAccountTypeFunctionality
     skos:example "gmeow:ledgerAccountTypeFunctionality logic:characterizes gmeow:ledgerAccountType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:orderAmountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "orderAmount is functional"@x-gmeow-english ;
@@ -1338,7 +1337,7 @@ gmeow:orderAmountFunctionality
     skos:example "gmeow:orderAmountFunctionality logic:characterizes gmeow:orderAmount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:postingAccountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "postingAccount is functional"@x-gmeow-english ;
@@ -1353,7 +1352,7 @@ gmeow:postingAccountFunctionality
     skos:example "gmeow:postingAccountFunctionality logic:characterizes gmeow:postingAccount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:postingAmountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "postingAmount is functional"@x-gmeow-english ;
@@ -1368,7 +1367,7 @@ gmeow:postingAmountFunctionality
     skos:example "gmeow:postingAmountFunctionality logic:characterizes gmeow:postingAmount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:postingDirectionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "postingDirection is functional"@x-gmeow-english ;
@@ -1383,7 +1382,7 @@ gmeow:postingDirectionFunctionality
     skos:example "gmeow:postingDirectionFunctionality logic:characterizes gmeow:postingDirection ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:postingJournalEntryFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "postingJournalEntry is functional"@x-gmeow-english ;
@@ -1398,7 +1397,7 @@ gmeow:postingJournalEntryFunctionality
     skos:example "gmeow:postingJournalEntryFunctionality logic:characterizes gmeow:postingJournalEntry ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:transactionAmountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "transactionAmount is functional"@x-gmeow-english ;
@@ -1413,7 +1412,7 @@ gmeow:transactionAmountFunctionality
     skos:example "gmeow:transactionAmountFunctionality logic:characterizes gmeow:transactionAmount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:walletSchemeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "walletScheme is functional"@x-gmeow-english ;

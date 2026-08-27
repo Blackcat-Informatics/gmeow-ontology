@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 452
 expression: summary
 ---
 {
@@ -28,5 +29,5 @@ expression: summary
     ],
     "url": "terms/zstddictmedium/index.html"
   },
-  "record_count": 7445
+  "record_count": 7468
 }

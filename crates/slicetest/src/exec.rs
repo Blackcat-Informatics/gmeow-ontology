@@ -220,18 +220,24 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
     // therefore see all three canonical modules, which lets a lang: denotation of a
     // math:-owned class observe its authoritative owl:Class type without duplicating
     // that declaration in lang: (Principle 4).
-    let owned_module =
-        native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
+    // `scope_shapes_to_slice` recovers the slice's ontology authority by scanning the
+    // module for `?s a owl:Ontology`, and the generated shape set is written against
+    // the OWL/RDFS surface — so this owning module, like the conformance data below,
+    // must carry the `owl:`/`rdfs:` projection of its canonical `logic:` vocabulary
+    // (the authored surface spells the header `logic:Ontology`).
+    let owned_module = native_query::with_owl_rdfs_projection(
+        &native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
             Diag::of_kind(DatasetRead {
                 detail: format!("building module dataset: {e}"),
             })
-        })?;
+        })?,
+    );
     // The shape set is the GENERATED SHACL projection, written against the OWL/RDFS
     // surface; the module is the CANONICAL authored surface. Lower the module's
-    // canonical subsumption edges into their `rdfs:` projection (once, shared by
-    // every cell) so both sides of the validation speak the same surface — see
-    // `native_query::with_rdfs_subsumption_projection`.
-    let module = native_query::with_rdfs_subsumption_projection(
+    // canonical `logic:` vocabulary into its complete `owl:`/`rdfs:` projection
+    // (once, shared by every cell) so both sides of the validation speak the same
+    // surface — see `native_query::with_owl_rdfs_projection`.
+    let module = native_query::with_owl_rdfs_projection(
         &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir)).map_err(
             |e| {
                 Diag::of_kind(DatasetRead {
@@ -641,11 +647,16 @@ fn run_structural_cell(
             if sa.scope == Scope::ModuleAndExamples {
                 sources.extend(example_ttls(&paths::examples_dir(slice_dir))?);
             }
-            let built = native_query::dataset_from_files(&sources).map_err(|e| {
+            let raw = native_query::dataset_from_files(&sources).map_err(|e| {
                 Diag::of_kind(DatasetRead {
                     detail: format!("building scoped dataset for structural assertion: {e}"),
                 })
             })?;
+            // Structural ASK patterns are authored against the OWL/RDFS surface
+            // (`gmeow:Agreement a owl:Class ; rdfs:subClassOf …`), so lower the
+            // canonical `logic:` module onto its complete `owl:`/`rdfs:` projection —
+            // the same view the conformance cells validate against.
+            let built = native_query::with_owl_rdfs_projection(&raw);
             *cache = Some(Arc::clone(&built));
             built
         }
@@ -677,7 +688,7 @@ fn run_structural_cell(
     // unioned with the module only (never examples), isolating the injected violation.
     if let Some(witness_rel) = &sa.fail_witness {
         let witness_path = slice_dir.join(witness_rel);
-        let witnessed = native_query::dataset_from_files(&[
+        let witnessed_raw = native_query::dataset_from_files(&[
             paths::module_file(slice_dir),
             witness_path.clone(),
         ])
@@ -689,6 +700,10 @@ fn run_structural_cell(
                 ),
             })
         })?;
+        // Same OWL/RDFS projection the module cell uses, so the witnessed run and the
+        // primary run evaluate the ASK over the SAME surface (an owl:/rdfs:-spelled
+        // ban must trip on the projected witness, not read a bare `logic:` graph).
+        let witnessed = native_query::with_owl_rdfs_projection(&witnessed_raw);
         let witness_holds = run_ask(&witnessed, pattern)?;
         let tripped = match sa.polarity {
             Polarity::Must => !witness_holds,
@@ -771,10 +786,10 @@ fn run_conformance_cell(
 ) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
     // Lowered onto the shape set's own OWL/RDFS surface for the same reason the
-    // module is (`native_query::with_rdfs_subsumption_projection`): an example that
-    // authors a canonical subsumption edge must be visible to a shape written
-    // against the projection.
-    let example = native_query::with_rdfs_subsumption_projection(
+    // module is (`native_query::with_owl_rdfs_projection`): an example that authors
+    // a canonical `logic:` edge (subsumption, restriction, axiom) must be visible to
+    // a shape written against the projection.
+    let example = native_query::with_owl_rdfs_projection(
         &native_query::dataset_from_file(&example_path).map_err(|e| {
             Diag::of_kind(DatasetRead {
                 detail: format!("parsing example {}: {e}", example_path.display()),
@@ -1848,10 +1863,14 @@ mod tests {
         let slice_dir = paths::repo_root().join("slices/grounding/logic");
         let shapes_ttl = authenticated_shape_union();
         let shapes = parse_shapes(shapes_ttl).expect("authenticated shape surface parses");
-        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
-            .expect("the logic module parses");
-        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-            .expect("the grounding kernel modules parse");
+        let owned_module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_file(&paths::module_file(&slice_dir))
+                .expect("the logic module parses"),
+        );
+        let module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+                .expect("the grounding kernel modules parse"),
+        );
         let local_shapes = slice_dir.join("shapes.ttl");
         let shapes = scope_shapes_to_slice(
             shapes,
@@ -1933,10 +1952,14 @@ mod tests {
         let slice_dir = paths::repo_root().join("slices/grounding/lang");
         let shapes_ttl = authenticated_shape_union();
         let shapes = parse_shapes(shapes_ttl).expect("authenticated shape surface parses");
-        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
-            .expect("the lang module parses");
-        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-            .expect("the grounding kernel modules parse");
+        let owned_module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_file(&paths::module_file(&slice_dir))
+                .expect("the lang module parses"),
+        );
+        let module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+                .expect("the grounding kernel modules parse"),
+        );
         let local_shapes = slice_dir.join("shapes.ttl");
         let shapes = scope_shapes_to_slice(
             shapes,

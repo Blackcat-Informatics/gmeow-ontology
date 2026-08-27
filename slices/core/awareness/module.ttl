@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AwarenessLevel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "Awareness Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -23,21 +22,21 @@ gmeow:AwarenessLevel
 
 gmeow:AwarenessMode
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "Awareness Mode"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "The named operational state of the experiencer — the qualitative mode of consciousness or processing an agent is in: waking, drowsy, asleep, dreaming, focused, flow, meditative, sedated, comatose (the human modes), or online-inference, offline-replay, training, sampling, dormant (the machine modes). A closed-but-open value vocabulary (individuals, never subclasses): new modes are minted as gmeow:AwarenessMode individuals. The human and machine modes coexist as SIBLINGS in one vocabulary — the machine modes are the analogues of waking / dreaming / focused / drowsy bridged by analogy, NOT by equivalence (Principle 5). The state-of-the-experiencer axis, orthogonal to content (WHAT is entertained) and attitude (HOW it is held)."@x-gmeow-english ;
     skos:example "gmeow:modeWaking a gmeow:AwarenessMode ."@x-gmeow-english ;
     skos:scopeNote "State of the experiencer, NOT a verdict on the content (Principle 9): gmeow:AwarenessMode records WHAT STATE the agent is in (asleep, online-inference), distinct from gmeow:ContentOrigin (imagination — WHERE content came from) and from any truth axis. Dreamt content is not 'false' by virtue of the dream mode; the dream STATE and the content's reality-monitoring source are separate axes."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid subclassing it to add a mode — the vocabulary's members are individuals — and avoid asserting an owl:sameAs / owl:equivalentClass between a machine mode and a human one; the bridge is by analogy, not equivalence (Principle 5)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing it to add a mode — the vocabulary's members are individuals — and avoid asserting an OWL sameAs / OWL equivalentClass between a machine mode and a human one; the bridge is by analogy, not equivalence (Principle 5)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Reference a seeded mode individual from a process, an agent, or a gmeow:AwarenessTenure via gmeow:awarenessMode (non-functional, vantage-indexed); extend with new individuals rather than subclasses if a finer state distinction is needed."@x-gmeow-english ;
     gmeow:useWhen "Use as the value vocabulary for the operational state of an experiencer — the open set of human modes (waking, asleep, dreaming, focused …) and machine modes (online-inference, training, sampling …) an agent or a gmeow:AwarenessTenure declares through gmeow:awarenessMode."@x-gmeow-english .
 
 gmeow:AwarenessTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "Awareness Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -50,7 +49,7 @@ gmeow:AwarenessTenure
     gmeow:useWhen "Use to reify an agent's awareness state over a bounded span — a sleep episode, a focus or meditation session, a serving window or training run — whenever that span, its subject, its level, or its provenance must be queryable; the carrier of AI operational-state provenance for the agent-memory flagship."@x-gmeow-english .
 
 gmeow:awarenessLevel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "awareness level"@x-gmeow-english ;
     rdfs:range gmeow:AwarenessLevel ;
@@ -63,7 +62,7 @@ gmeow:awarenessLevel
     gmeow:useWhen "Use to record the graded arousal of an experiencer on the named ladder — clinical-style alertness (alert, obtunded, unresponsive) on a gmeow:AwarenessTenure or directly on an agent."@x-gmeow-english .
 
 gmeow:awarenessMode
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "awareness mode"@x-gmeow-english ;
     rdfs:range gmeow:AwarenessMode ;
@@ -76,7 +75,7 @@ gmeow:awarenessMode
     gmeow:useWhen "Use to record the operational state of an experiencer — on a gmeow:AwarenessTenure (the reified, interval-scoped case) or directly on a process or agent for a lightweight tag; the headline edge for AI operational-state provenance (was a claim formed during gmeow:modeOnlineInference or gmeow:modeOfflineReplay)."@x-gmeow-english .
 
 gmeow:awarenessScalar
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "awareness scalar"@x-gmeow-english ;
     rdfs:range xsd:decimal ;
@@ -89,7 +88,7 @@ gmeow:awarenessScalar
     gmeow:useWhen "Use for a continuous, normalised arousal or vigilance value — a vigilance index for a human, or a temperature-like sampling regime for a machine in gmeow:modeSampling / gmeow:modeOnlineInference; the fine-grained companion of the named gmeow:awarenessLevel."@x-gmeow-english .
 
 gmeow:awarenessSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AwarenessTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "awareness subject"@x-gmeow-english ;
@@ -135,7 +134,7 @@ gmeow:levelObtunded
     gmeow:levelRank 1 .
 
 gmeow:levelRank
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AwarenessLevel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "level rank"@x-gmeow-english ;
@@ -284,13 +283,13 @@ gmeow:modeWaking
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/awareness>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The third orthogonal axis of mind alongside content (WHAT is entertained) and attitude (HOW it is held): awareness is the STATE OF THE EXPERIENCER — waking, asleep, focused, drowsy, dreaming — within which any content or attitude occurs. It is the Principle-5 human↔machine bridge made concrete: one open value vocabulary holds the human awareness modes BESIDE the machine operational modes, so a stored claim can record whether it was formed during live online-inference or offline replay, at what arousal, exactly as a human memory can record whether it was formed awake or in a dream.
 
 DOCTRINE.
-  * Value vocabulary of INDIVIDUALS, not subclasses (Principle 9, the gmeow:ContentOrigin / gmeow:MentalProcessType idiom): gmeow:AwarenessMode and gmeow:AwarenessLevel are gufo:QualityValue value classes whose members (gmeow:modeWaking … gmeow:modeDormant; gmeow:levelHyperalert … gmeow:levelUnresponsive) are INDIVIDUALS, never subclasses. New modes are minted as individuals into the open vocabulary, never as an owl:Class hierarchy.
-  * Machine modes are SIBLINGS, bridged by ANALOGY not equivalence (Principle 5): gmeow:modeOnlineInference / gmeow:modeOfflineReplay / gmeow:modeTraining / gmeow:modeSampling / gmeow:modeDormant sit in the SAME open vocabulary as the human modes — they are the machine analogues of waking / dreaming / focused / drowsy — but NO owl:sameAs, owl:equivalentClass, or rdfs:subClassOf couples a machine mode to a human one. The human↔machine mapping is a shared faculty with substrate-specific realisations, NOT an asserted equality.
+  * Value vocabulary of INDIVIDUALS, not subclasses (Principle 9, the gmeow:ContentOrigin / gmeow:MentalProcessType idiom): gmeow:AwarenessMode and gmeow:AwarenessLevel are gufo:QualityValue value classes whose members (gmeow:modeWaking … gmeow:modeDormant; gmeow:levelHyperalert … gmeow:levelUnresponsive) are INDIVIDUALS, never subclasses. New modes are minted as individuals into the open vocabulary, never as an OWL Class hierarchy.
+  * Machine modes are SIBLINGS, bridged by ANALOGY not equivalence (Principle 5): gmeow:modeOnlineInference / gmeow:modeOfflineReplay / gmeow:modeTraining / gmeow:modeSampling / gmeow:modeDormant sit in the SAME open vocabulary as the human modes — they are the machine analogues of waking / dreaming / focused / drowsy — but NO OWL sameAs, OWL equivalentClass, or rdfs:subClassOf couples a machine mode to a human one. The human↔machine mapping is a shared faculty with substrate-specific realisations, NOT an asserted equality.
   * No re-minted dreaming ACT (Principle 6, reuse-don't-remint): the dreaming EPISODE is already a mental process (gmeow:processDreaming, mentation slice, by reference); this slice contributes the awareness-MODE value gmeow:modeDreaming over it, never redeclaring the act. The LUCIDITY SEAM is documented BY REFERENCE: gmeow:modeLucidDreaming = gmeow:modeDreaming with metacognition (gmeow:MetacognitiveState, metacognition slice) ONLINE — referenced in prose, with NO triple asserted into the mentation or metacognition namespaces.
   * No truth or reality bit (Principle 9): awareness is a state of the experiencer, NOT a verdict on the content entertained within it. There is no isReal / isTrue / isDream property — dreamt content is marked by reference through reality-monitoring (gmeow:contentOrigin, imagination slice), and the dream STATE is the gmeow:modeDreaming awareness value, never a truth flag.
   * Vantage-indexed, non-functional edges (Principle 9): gmeow:awarenessMode and gmeow:awarenessLevel are non-functional and vantage-indexed — an agent may be attributed one mode by self-report and another by an observer, both coexisting; whose attribution rides gmeow:accordingTo on the statement. The bearer edge gmeow:awarenessSubject is a per-branch relation (Principle 4), NOT gufo:inheresIn — the tenure carries its subject explicitly, leaving the gUFO inherence target untouched (P5 alignment-target discipline)."""@x-gmeow-english ;
@@ -304,7 +303,7 @@ DOCTRINE.
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -312,7 +311,7 @@ DOCTRINE.
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:awarenessSubjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "awarenessSubject is functional"@x-gmeow-english ;

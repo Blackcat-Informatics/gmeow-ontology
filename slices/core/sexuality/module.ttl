@@ -1,21 +1,20 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:RomanticOrientation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Romantic Orientation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IdentityFacet ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:romanticOrientationValue ;
-            owl:someValuesFrom gmeow:RomanticOrientationValue ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:romanticOrientationValue ;
+            logic:someValuesFrom gmeow:RomanticOrientationValue ;
         ] ;
     skos:definition "A person's SELF-ASSERTED romantic orientation — the pattern of their romantic attraction — as a reified facet pointing (via gmeow:romanticOrientationValue) to an open gmeow:RomanticOrientationValue. A SEPARATE axis from sexual orientation (split-attraction model); the two are mutually independent (e.g. asexual yet biromantic)."@x-gmeow-english ;
     skos:example "ex:lillithRomOrient a gmeow:RomanticOrientation ; gmeow:romanticOrientationValue gmeow:romanticBiromantic ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
@@ -26,7 +25,7 @@ gmeow:RomanticOrientation
 
 gmeow:RomanticOrientationValue
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Romantic Orientation Value"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -39,14 +38,14 @@ gmeow:RomanticOrientationValue
 
 gmeow:SexualOrientation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Sexual Orientation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IdentityFacet ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:sexualOrientationValue ;
-            owl:someValuesFrom gmeow:SexualOrientationValue ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:sexualOrientationValue ;
+            logic:someValuesFrom gmeow:SexualOrientationValue ;
         ] ;
     skos:definition "A person's SELF-ASSERTED sexual orientation — the pattern of their sexual attraction — as a reified facet pointing (via gmeow:sexualOrientationValue) to an open gmeow:SexualOrientationValue. A SEPARATE axis from romantic orientation (split-attraction model) and from gender identity/expression; nothing infers one from another."@x-gmeow-english ;
     skos:example "ex:lillithSexOrient a gmeow:SexualOrientation ; gmeow:sexualOrientationValue gmeow:orientBisexual ; gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ."@x-gmeow-english ;
@@ -57,7 +56,7 @@ gmeow:SexualOrientation
 
 gmeow:SexualOrientationValue
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Sexual Orientation Value"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -69,7 +68,7 @@ gmeow:SexualOrientationValue
     gmeow:useWhen "Use as the open value vocabulary for sexual-attraction patterns — reference a seed (heterosexual, homosexual, bisexual, pansexual, asexual, demisexual, queer, questioning) or mint a fresh individual for the long tail, each lossily aligned to GSSO/Homosaurus/Wikidata."@x-gmeow-english .
 
 gmeow:hasRomanticOrientation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "has romantic orientation"@x-gmeow-english ;
@@ -90,7 +89,7 @@ gmeow:hasRomanticOrientation
     gmeow:useWhen "Use to attach one or more self-asserted romantic-orientation facets to a person — non-functional by design, so concurrent or time-scoped orientations and a superseded prior orientation all coexist."@x-gmeow-english .
 
 gmeow:hasSexualOrientation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "has sexual orientation"@x-gmeow-english ;
@@ -202,7 +201,7 @@ gmeow:romanticHomoromantic
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:romanticOrientationValue
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:RomanticOrientation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "romantic orientation value"@x-gmeow-english ;
@@ -236,7 +235,7 @@ gmeow:romanticQuestioning
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:sexualOrientationValue
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SexualOrientation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "sexual orientation value"@x-gmeow-english ;
@@ -249,7 +248,7 @@ gmeow:sexualOrientationValue
     gmeow:useWhen "Use to point a gmeow:SexualOrientation facet at the one value it asserts — functional per facet, so a single facet names exactly one orientation value; model a change of orientation as a new facet, not a second value here."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/sexuality>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "A respectful, inclusive model of a person's orientation, reusing the gmeow:IdentityFacet base from the gender module (a reified, SELF-ASSERTED gufo:Relator). It applies the SPLIT-ATTRACTION model: sexual orientation and romantic orientation are SEPARATE, mutually independent axes — so asexual-biromantic, aromantic-bisexual and similar are directly expressible; neither is inferred from the other, nor from gender identity/expression, sex-assigned-at-birth, pronouns or honorifics. GOVERNING TENETS (shared with gender): self-assertion is the top authority; co-equality (no preferred/primary orientation; superseded labels kept with gmeow:displayable false, never deleted); INCLUSIVE WITHOUT OVERTYPING — gmeow:SexualOrientationValue and gmeow:RomanticOrientationValue are OPEN value vocabularies of individuals (never per-value subclasses, never a forced enum), an orientation not among the seeds being a FRESH value individual with rdfs:label. Aligns (lossily) to GSSO, Homosaurus and Wikidata; schema.org and FOAF have no orientation term, so orientation is a documented lossy drop at the projection layer. The machinery is otherwise canonical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
@@ -259,8 +258,8 @@ gmeow:sexualOrientationValue
         gmeow:boxTBox .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/RomanticOrientation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/romanticOrientationValue> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/SexualOrientation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sexualOrientationValue> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RomanticOrientation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/romanticOrientationValue> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/SexualOrientation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/sexualOrientationValue> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/RomanticOrientation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/romanticOrientationValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SexualOrientation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/sexualOrientationValue" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
@@ -268,7 +267,7 @@ gmeow:sexualOrientationValue
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -276,7 +275,7 @@ gmeow:sexualOrientationValue
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:romanticOrientationValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "romanticOrientationValue is functional"@x-gmeow-english ;
@@ -291,7 +290,7 @@ gmeow:romanticOrientationValueFunctionality
     skos:example "gmeow:romanticOrientationValueFunctionality logic:characterizes gmeow:romanticOrientationValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sexualOrientationValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "sexualOrientationValue is functional"@x-gmeow-english ;

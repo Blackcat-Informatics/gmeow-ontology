@@ -1,7 +1,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -9,7 +8,7 @@
 
 gmeow:InquiryKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Inquiry Kind"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -23,13 +22,13 @@ gmeow:InquiryKind
 
 gmeow:InquiryStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Inquiry Status"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
     skos:definition "The working status of a research inquiry — a VALUE, never a gmeow:Question subclass. It records the state of the PURSUIT (not yet started, being worked, settled, dropped, parked), not the epistemic standing of any answer: whether an answer is believed or known stays on the epistemics spine (gmeow:accepts / gmeow:knowsThat) and is never inferred from a status value. The set is OPEN; a status not among the seeded individuals is a fresh gmeow:InquiryStatus individual, not a new class."@x-gmeow-english ;
     skos:example "ex:whoOwnsLotSeven gmeow:inquiryStatus gmeow:inquiryStatusActive ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading a status as an epistemic verdict — gmeow:inquiryStatusResolved says the pursuit stopped, not that the answer is true — and avoid overtyping a status as an owl:Class (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a status as an epistemic verdict — gmeow:inquiryStatusResolved says the pursuit stopped, not that the answer is true — and avoid overtyping a status as an OWL Class (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Point a gmeow:Question at exactly the statuses that genuinely apply through gmeow:inquiryStatus, letting competing monitoring vantages coexist; record the ANSWER's standing separately through the epistemics acceptance spine."@x-gmeow-english ;
     skos:scopeNote "Records the state of the PURSUIT and never the epistemic standing of an answer. Whether an answer is believed or known lives on the epistemics spine, so a settled inquiry may still carry an answer nobody believes."@x-gmeow-english ;
@@ -37,14 +36,14 @@ gmeow:InquiryStatus
 
 gmeow:InquiryTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Inquiry Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureQuestion ;
-            owl:someValuesFrom gmeow:Question ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:tenureQuestion ;
+            logic:someValuesFrom gmeow:Question ;
         ] ;
     skos:definition "The reified, time-scoped fact that an agent held an open question over an interval — an inquiry opened in January and closed by an accepted answer in June is an opened-then-closed tenure, never a deletion (Principle 10). The StandpointTenure idiom applied to inquiry: use only when the opening / closing of an inquiry is itself worth modelling; the common case is a bare gmeow:asks with validFrom / validUntil on the statement. Carries its interval via gmeow:duringInterval (temporal module); a closed tenure is kept with gmeow:displayable false."@x-gmeow-english ;
     skos:example "ex:keySearch a gmeow:InquiryTenure ; gmeow:tenureInquirer ex:lillith ; gmeow:tenureQuestion ex:whereIsTheKey ; gmeow:duringInterval ex:firstHalfYear ."@x-gmeow-english ;
@@ -56,7 +55,7 @@ gmeow:InquiryTenure
 
 gmeow:Question
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Question"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -70,7 +69,7 @@ gmeow:Question
 
 gmeow:QuestionType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Question Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -82,11 +81,11 @@ gmeow:QuestionType
     gmeow:useWhen "Use as the value vocabulary for the erotetic kind of a question — the closed set of question types (polar, alternative, wh, why, how) a Question declares through gmeow:questionType."@x-gmeow-english .
 
 gmeow:answers
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "answers"@x-gmeow-english ;
     rdfs:range gmeow:Question ;
-    skos:definition "Relates a candidate direct answer to the question it answers. The DOMAIN is left intentionally open: an answer is typically a gmeow:StandpointClaim or a gmeow:Proposition, but asserting a domain (or an owl:unionOf) would prematurely close the answer surface, so it stays open and is documented in prose. NOT functional, and VANTAGE-INDEXED (Principle 9): different standpoints answer the same question differently and the answers coexist — there is never one global answer; whose answer it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
+    skos:definition "Relates a candidate direct answer to the question it answers. The DOMAIN is left intentionally open: an answer is typically a gmeow:StandpointClaim or a gmeow:Proposition, but asserting a domain (or an OWL unionOf) would prematurely close the answer surface, so it stays open and is documented in prose. NOT functional, and VANTAGE-INDEXED (Principle 9): different standpoints answer the same question differently and the answers coexist — there is never one global answer; whose answer it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
     skos:example "ex:keyIsOnHook gmeow:answers ex:whereIsTheKey ."@x-gmeow-english ;
     skos:scopeNote "Answers are vantage-indexed (Principle 9): a question has no single global answer. Each gmeow:answers edge is one standpoint's direct answer, held according to a frame (gmeow:accordingTo) and resolved for an agent only when that agent gmeow:accepts / gmeow:knowsThat it — the epistemics spine, reused rather than re-minted."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating a single gmeow:answers edge as THE answer — answers are vantage-indexed and coexist, carry whose answer it is on gmeow:accordingTo — and avoid reading the edge as resolving the question; resolution is an agent gmeow:accepts / gmeow:knowsThat over the answer-claim (the epistemics spine)."@x-gmeow-english ;
@@ -95,7 +94,7 @@ gmeow:answers
     gmeow:useWhen "Use to record that a claim or proposition is a direct answer to a question — one vantage's answer among possibly many — so an inquiry graph can carry competing answers that coexist (Principle 9)."@x-gmeow-english .
 
 gmeow:asks
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "asks"@x-gmeow-english ;
@@ -108,11 +107,11 @@ gmeow:asks
     gmeow:useWhen "Use to record that an agent poses or holds a question as open — the base inquiry attitude and the cheap 80% surface; the natural store_question companion of the epistemics store_claim spine."@x-gmeow-english .
 
 gmeow:evokes
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "evokes"@x-gmeow-english ;
     rdfs:range gmeow:Question ;
-    skos:definition "Relates a declarative or erotetic premise to a question it gives rise to — Wiśniewski's erotetic implication (a question or set of propositions evokes a further question). The DOMAIN is left intentionally open: a gmeow:Proposition or a gmeow:Question may evoke a question, but asserting a domain (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional."@x-gmeow-english ;
+    skos:definition "Relates a declarative or erotetic premise to a question it gives rise to — Wiśniewski's erotetic implication (a question or set of propositions evokes a further question). The DOMAIN is left intentionally open: a gmeow:Proposition or a gmeow:Question may evoke a question, but asserting a domain (or an OWL unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional."@x-gmeow-english ;
     skos:example "ex:whoCommittedIt gmeow:evokes ex:whatWasTheMotive ."@x-gmeow-english ;
     skos:scopeNote "SOLVER-LAYER decoration (Principle 12): gmeow:evokes records Wiśniewski erotetic implication as an OPTIONAL decoration of an inquiry graph and carries NO reasoner / entailment semantics in core — the ontology never derives an evoked question, and no DL axiom enforces the relation. Whether one question genuinely evokes another is solver work, asserted here only as recorded structure."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid expecting any entailment from it — it is a solver-layer decoration (Principle 12) with no reasoner semantics; the core never derives an evoked question — and avoid making it functional, since a premise may evoke several questions."@x-gmeow-english ;
@@ -121,7 +120,7 @@ gmeow:evokes
     gmeow:useWhen "Use to decorate an inquiry graph with Wiśniewski erotetic implication — recording that one premise or question gives rise to a further question — when that derived structure is worth keeping explicit."@x-gmeow-english .
 
 gmeow:inquiresInto
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "inquires into"@x-gmeow-english ;
@@ -134,7 +133,7 @@ gmeow:inquiresInto
     gmeow:useWhen "Use to record that an agent is actively investigating a question — committing inquiry effort to find an answer — the investigative attitude that drives a research queue."@x-gmeow-english .
 
 gmeow:inquiryKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "inquiry kind"@x-gmeow-english ;
@@ -155,7 +154,7 @@ gmeow:inquiryKindResearchPlan
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:inquiryPriority
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "inquiry priority"@x-gmeow-english ;
@@ -168,7 +167,7 @@ gmeow:inquiryPriority
     gmeow:useWhen "Use to order a research queue by urgency, so the inquirer's scheduling weight is explicit data rather than an implicit list position."@x-gmeow-english .
 
 gmeow:inquirySource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "inquiry source"@x-gmeow-english ;
@@ -182,7 +181,7 @@ gmeow:inquirySource
     gmeow:useWhen "Use to keep the provenance of an open question: what made this worth asking, so a lead can be traced back to the material that produced it."@x-gmeow-english .
 
 gmeow:inquiryStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "inquiry status"@x-gmeow-english ;
@@ -230,7 +229,7 @@ gmeow:inquiryStatusSuspended
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:inquiryTheme
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "inquiry theme"@x-gmeow-english ;
@@ -243,7 +242,7 @@ gmeow:inquiryTheme
     gmeow:useWhen "Use to group an inquiry queue by working topic when the topic is a queue-local convenience rather than shared vocabulary."@x-gmeow-english .
 
 gmeow:presupposes
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "presupposes"@x-gmeow-english ;
@@ -257,7 +256,7 @@ gmeow:presupposes
     gmeow:useWhen "Use to record a proposition a question takes for granted — what must hold for the question to admit a true answer — so a contested presupposition can be flagged through the standpoint layer rather than baked into the question."@x-gmeow-english .
 
 gmeow:questionType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "question type"@x-gmeow-english ;
@@ -270,7 +269,7 @@ gmeow:questionType
     gmeow:useWhen "Use to classify a gmeow:Question by its erotetic kind — pointing it at one or more gmeow:QuestionType individuals so consumers can route polar, alternative, wh, why, and how questions differently."@x-gmeow-english .
 
 gmeow:resolvedByArtifact
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Question ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "resolved by artifact"@x-gmeow-english ;
@@ -283,7 +282,7 @@ gmeow:resolvedByArtifact
     gmeow:useWhen "Use to close the loop on a pursued inquiry: naming the artifact that ended the search so a later reader can audit what the closure rested on."@x-gmeow-english .
 
 gmeow:seeksToKnow
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "seeks to know"@x-gmeow-english ;
@@ -296,7 +295,7 @@ gmeow:seeksToKnow
     gmeow:useWhen "Use to record directed inquiry aimed at an epistemics resolution — the agent pursues the question specifically so as to come to gmeow:knowsThat its answer, tying the open inquiry to the epistemics spine."@x-gmeow-english .
 
 gmeow:tenureInquirer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InquiryTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "tenure inquirer"@x-gmeow-english ;
@@ -309,7 +308,7 @@ gmeow:tenureInquirer
     gmeow:useWhen "Use to bind a gmeow:InquiryTenure to the single agent whose holding-open of the question over time it records."@x-gmeow-english .
 
 gmeow:tenureQuestion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InquiryTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "tenure question"@x-gmeow-english ;
@@ -357,7 +356,7 @@ gmeow:typeWhy
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:wondersWhether
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "wonders whether"@x-gmeow-english ;
@@ -371,7 +370,7 @@ gmeow:wondersWhether
 
 
 <https://blackcatinformatics.ca/gmeow/slices/inquiry>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The erotetic companion to the epistemics and teleology slices: where epistemics relates an agent to a PROPOSITION (truth-condition) and teleology to a GOAL (satisfaction-condition), inquiry relates an agent to a QUESTION — content individuated by its ANSWERHOOD CONDITION, the set of propositions counting as direct answers.
 
@@ -392,7 +391,7 @@ DOCTRINE.
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -400,7 +399,7 @@ DOCTRINE.
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:tenureInquirerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "tenureInquirer is functional"@x-gmeow-english ;
@@ -415,7 +414,7 @@ gmeow:tenureInquirerFunctionality
     skos:example "gmeow:tenureInquirerFunctionality logic:characterizes gmeow:tenureInquirer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tenureQuestionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "tenureQuestion is functional"@x-gmeow-english ;

@@ -3,14 +3,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AggregationFunction
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Aggregation Function"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -19,7 +18,7 @@ gmeow:AggregationFunction
 
 gmeow:SpatialAggregation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Spatial Aggregation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Measurement ;
@@ -28,7 +27,7 @@ gmeow:SpatialAggregation
 
 gmeow:SpatialBin
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Spatial Bin"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Place ;
@@ -85,7 +84,7 @@ gmeow:aggSum
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:aggregationFunction
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SpatialAggregation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "aggregation function"@x-gmeow-english ;
@@ -94,7 +93,7 @@ gmeow:aggregationFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasBin
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SpatialAggregation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "has bin"@x-gmeow-english ;
@@ -103,7 +102,7 @@ gmeow:hasBin
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:minimumPopulation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:SpatialAggregation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "minimum population"@x-gmeow-english ;
@@ -112,7 +111,7 @@ gmeow:minimumPopulation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/aggregation>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Spatial aggregation and statistical summarisation over places — count, sum, average, density, centroid, and binning. Realises the Location-as-reference-frame design and the centroid shortcut cross-cutting aggregation concern.
 
@@ -128,9 +127,9 @@ Privacy (k-anonymity, coarsening, suppression) is handled by the existing projec
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/aggregationFunction> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/AggregationFunction> ] .
 <https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/minimumPopulation> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
-<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Place> ] .
-<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/SpatialAggregation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/aggregationFunction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationResult" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/SpatialAggregation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -140,10 +139,10 @@ Privacy (k-anonymity, coarsening, suppression) is handled by the existing projec
 # gmeow:SpatialAggregationShape — exactly one vantage, one observed region, one aggregation
 # function, one scalar result, and at most one minimum population.
 gmeow:SpatialAggregation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:aggregationFunction ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:aggregationFunction ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:minimumPopulation ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
 
 # The observationResult value is a math:Quantity (the sole quantity authority) or a
@@ -178,7 +177,7 @@ logic:spaggMonetary a logic:Formula ; logic:relation <http://www.w3.org/1999/02/
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -186,7 +185,7 @@ logic:spaggMonetary a logic:Formula ; logic:relation <http://www.w3.org/1999/02/
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:aggregationFunctionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "aggregationFunction is functional"@x-gmeow-english ;
@@ -201,7 +200,7 @@ gmeow:aggregationFunctionFunctionality
     skos:example "gmeow:aggregationFunctionFunctionality logic:characterizes gmeow:aggregationFunction ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:minimumPopulationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "minimumPopulation is functional"@x-gmeow-english ;

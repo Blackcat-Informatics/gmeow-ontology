@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ContentOrigin
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     rdfs:label "Content Origin"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -21,11 +20,11 @@ gmeow:ContentOrigin
     gmeow:useWhen "Use as the value vocabulary for the reality-monitoring source of content — the closed set of origins (perceived, remembered, believed, imagined, supposed, generated) a claim or content declares through gmeow:contentOrigin so agent memory can tell a recalled fact from a confabulated or LLM-generated one."@x-gmeow-english .
 
 gmeow:contentOrigin
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     rdfs:label "content origin"@x-gmeow-english ;
     rdfs:range gmeow:ContentOrigin ;
-    skos:definition "Marks a piece of content with its reality-monitoring source — one of the closed gmeow:ContentOrigin value vocabulary. The DOMAIN is left intentionally OPEN: the marked content is typically a gmeow:StandpointClaim or a gmeow:Proposition (by reference), but asserting a domain (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional, and VANTAGE-INDEXED (Principle 9): different standpoints may attribute different origins to the same content and the attributions coexist — an agent's gmeow:originRemembered and an auditor's gmeow:originGenerated for one claim are both recorded; whose attribution it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
+    skos:definition "Marks a piece of content with its reality-monitoring source — one of the closed gmeow:ContentOrigin value vocabulary. The DOMAIN is left intentionally OPEN: the marked content is typically a gmeow:StandpointClaim or a gmeow:Proposition (by reference), but asserting a domain (or an OWL unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional, and VANTAGE-INDEXED (Principle 9): different standpoints may attribute different origins to the same content and the attributions coexist — an agent's gmeow:originRemembered and an auditor's gmeow:originGenerated for one claim are both recorded; whose attribution it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
     skos:example "ex:recalledMeeting gmeow:contentOrigin gmeow:originRemembered ."@x-gmeow-english ;
     skos:scopeNote "Reality-monitoring, distinct from veridicality and attribution (Principle 9): gmeow:contentOrigin records WHERE content came from, gmeow:claimVeridicality (deception, by reference) WHETHER it is true, gmeow:accordingTo WHO holds it. The flagship store_claim records a gmeow:contentOrigin so recall can tell a recalled fact from a confabulated or generated one; a contested origin is two coexisting gmeow:contentOrigin attributions, never an overwrite (Principle 10)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid forcing a single origin per content — it is non-functional and vantage-indexed, so an agent's attribution and an auditor's may both apply — and avoid reading it as a truth verdict (that is gmeow:claimVeridicality) or as authorship (that is gmeow:accordingTo); origin is the source axis only."@x-gmeow-english ;
@@ -34,7 +33,7 @@ gmeow:contentOrigin
     gmeow:useWhen "Use to mark content with its reality-monitoring source — most importantly on a stored claim, so agent memory can distinguish a recalled or perceived fact from a confabulated (gmeow:originImagined) or machine-generated (gmeow:originGenerated) one; the reality-monitoring half of the memory flagship."@x-gmeow-english .
 
 gmeow:imaginedWorld
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     rdfs:label "imagined world"@x-gmeow-english ;
     skos:definition "Relates an imagining or supposition to the imagined / counterfactual WORLD it explores — the reified context within which the as-if content is evaluated. Both the DOMAIN and the RANGE are left intentionally OPEN: the subject is typically an imagining act or a supposition statement, and the target is a logic:World (the counterfactual-world machinery of slices/grounding/logic), but the link is carried BY REFERENCE — no triple is asserted into the logic: namespace and logic is not a declared dependency, so the slice stays DL-clean standalone (the inference-slice precedent). NOT functional: one rehearsal may explore several worlds."@x-gmeow-english ;
@@ -46,7 +45,7 @@ gmeow:imaginedWorld
     gmeow:useWhen "Use to link an imagining or supposition to the counterfactual world it explores — for planning rollouts, what-if rehearsal, and the antecedent-world of a conditional — pointing at a logic:World (by reference) that holds the as-if content."@x-gmeow-english .
 
 gmeow:imagines
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     rdfs:label "imagines"@x-gmeow-english ;
@@ -101,7 +100,7 @@ gmeow:originSupposed
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:supposes
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     rdfs:label "supposes"@x-gmeow-english ;
@@ -114,7 +113,7 @@ gmeow:supposes
     gmeow:useWhen "Use to record that an agent entertains a proposition hypothetically — the antecedent of a conditional, the hypothesis of a reductio, a what-if premise — to explore its consequences, typically against a gmeow:imaginedWorld; the propositional companion of gmeow:imagines."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/imagination>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The as-if companion to the epistemics and inquiry slices: where epistemics relates an agent to a PROPOSITION held true (gmeow:believes) or taken on pragmatically (gmeow:accepts), imagination relates an agent to content entertained AS-IF — quasi-perceptual or suppositional, decoupled from both belief and current perception. It is the faculty that USES the counterfactual worlds (logic:, by reference), and it carries the content-origin / reality-monitoring vocabulary that lets agent memory tell a recalled fact from a confabulated or machine-generated one.
 

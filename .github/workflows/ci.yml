@@ -915,7 +915,7 @@ jobs:
   #   ontology-reason    : reason-verify, coverage
   #   ontology-misc      : mappings, wikidata, alignment/i18n/doc lints, audit,
   #                        slice-quality, compliance-report
-  #   heavy              : wasm-parity, acceptance, bench-soak
+  #   heavy              : wasm-parity, console-smoke, acceptance, bench-soak
   #   medium-consumer-surface : archive replay of the two exhaustive medium suites
   ontology-validate:
     needs: [producer]
@@ -1155,8 +1155,9 @@ jobs:
 
   # === THE CI-ONLY HEAVY DAG (`HEAVY_TASKS`, also aggregated by `make heavy`) ===
   # Every task here was lifted OFF the local `make check` DAG because its runtime is
-  # dominated by BREADTH (a whole external corpus, five release wasm builds) or by a
-  # repeat-for-confidence loop, not by the change under test. Nothing was dropped:
+  # dominated by BREADTH (a whole external corpus, five release wasm builds, or the
+  # 41-case browser/package sweep) or by a repeat-for-confidence loop, not by the change
+  # under test. Nothing was dropped:
   # every HEAVY_TASKS member runs on every PR as an explicit parallel branch (the
   # medium consumer branch is standalone because it also needs `rust-archive`).
   # `make heavy` remains the canonical aggregate and its CI-only refusal stays intact.
@@ -1168,16 +1169,18 @@ jobs:
   #                 from the workspace purrdf pin. `make wasm` hard-fails in CI if the
   #                 wasm32 target is absent, so the criterion is never silently
   #                 unverified.
+  #   console-smoke: assembled/deployed browser surface, all read tools, offline and
+  #                  perturbed trees, and the real installed npm tarball.
   #   acceptance  : full transpile-recall floor over every external RDF snapshot.
   #   bench-soak  : the deterministic native-vs-golden divergence soak window (3×).
-  # The standalone `medium-consumer-surface` job above runs the fourth matrix-independent
+  # The standalone `medium-consumer-surface` job above runs the fifth matrix-independent
   # HEAVY_TASKS member from the authenticated archive. The Make aggregate covers both.
   heavy:
     needs: [producer]
     strategy:
       fail-fast: false
       matrix:
-        task: [wasm-parity, acceptance, bench-soak]
+        task: [wasm-parity, console-smoke, acceptance, bench-soak]
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -1272,28 +1275,15 @@ jobs:
       # The browser smoke lane's pinned runner. `npm ci` requires the committed lockfile, so
       # the Playwright version the lane drives is the version that was reviewed.
       - name: Install the pinned Playwright runner
-        if: ${{ matrix.task == 'wasm-parity' }}
+        if: ${{ matrix.task == 'console-smoke' }}
         run: npm ci --prefix crates/docs/assets/console/smoke
 
       # …and the browser it drives. `--with-deps` provisions the shared libraries a headless
       # Chromium needs on a bare runner; without it the lane fails at launch rather than at
       # an assertion.
       - name: Install the Chromium build Playwright drives
-        if: ${{ matrix.task == 'wasm-parity' }}
+        if: ${{ matrix.task == 'console-smoke' }}
         run: npx --prefix crates/docs/assets/console/smoke playwright install --with-deps chromium
-
-      # The console's browser surface IS its deliverable, and this is the only lane that
-      # executes it. `make console-smoke` assembles the tree, serves it over plain static
-      # HTTP with NO COOP/COEP — exactly what GitHub Pages provides — and drives /console/ in
-      # headless Chromium: the derived pane set, every read tool through the assembled
-      # worker, RDF-1.2 through every target, the single-threaded contract bound to the wasm
-      # bytes, the measured page load and pre-cache ceiling, and the REAL `npm pack` tarball installed
-      # into a scratch project and booted the way the shipped README prescribes. It rides
-      # this job because it needs the same Node + materialized-bundle preconditions
-      # `wasm-parity` does. It hard-fails everywhere; there is no skip branch.
-      - name: Standalone console browser smoke lane (make console-smoke)
-        if: ${{ matrix.task == 'wasm-parity' }}
-        run: make console-smoke
 
   # Aggregator gate. Branch protection requires the "quality" context; this job
   # keeps that single required check stable while the work runs in parallel

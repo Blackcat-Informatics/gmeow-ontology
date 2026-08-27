@@ -75,14 +75,19 @@ const PROVENANCE_PREDICATES: [&str; 7] = [
 /// of the docs model's `category_for_type` selection (which additionally documents
 /// `rdfs:Datatype` terms such as `gmeow:markdown`), so every documented term is
 /// guaranteed a manifest entry.
-const TERM_TYPE_IRIS: [&str; 8] = [
-    "http://www.w3.org/2002/07/owl#Class",
-    "http://www.w3.org/2002/07/owl#ObjectProperty",
-    "http://www.w3.org/2002/07/owl#DatatypeProperty",
-    "http://www.w3.org/2002/07/owl#AnnotationProperty",
+const TERM_TYPE_IRIS: [&str; 13] = [
+    gmeow_ns::LOGIC_CLASS,
+    gmeow_ns::OWL_CLASS,
+    gmeow_ns::LOGIC_OBJECT_PROPERTY,
+    gmeow_ns::OWL_OBJECT_PROPERTY,
+    gmeow_ns::LOGIC_DATATYPE_PROPERTY,
+    gmeow_ns::OWL_DATATYPE_PROPERTY,
+    gmeow_ns::LOGIC_ANNOTATION_PROPERTY,
+    gmeow_ns::OWL_ANNOTATION_PROPERTY,
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
     "http://www.w3.org/2000/01/rdf-schema#Class",
-    "http://www.w3.org/2002/07/owl#NamedIndividual",
+    gmeow_ns::LOGIC_NAMED_INDIVIDUAL,
+    gmeow_ns::OWL_NAMED_INDIVIDUAL,
     "http://www.w3.org/2000/01/rdf-schema#Datatype",
 ];
 
@@ -513,7 +518,7 @@ impl Stage for TermManifestStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "term_manifest.v1"
+        "term_manifest.v2-canonical-type-markers"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The digests are computed over the authored default graph (root ontology +
@@ -559,6 +564,11 @@ mod tests {
 <https://blackcatinformatics.ca/gmeow> owl:versionInfo "9.9.9" .
 gmeow:SyntheticClass a owl:Class ; rdfs:label "Synthetic class" .
 logic:syntheticProperty a owl:ObjectProperty ; rdfs:label "Synthetic property" .
+gmeow:CanonicalClass a logic:Class ; rdfs:label "Canonical class" .
+logic:canonicalObjectProperty a logic:ObjectProperty ; rdfs:label "Canonical object property" .
+gmeow:canonicalDatatypeProperty a logic:DatatypeProperty ; rdfs:label "Canonical datatype property" .
+gmeow:canonicalAnnotationProperty a logic:AnnotationProperty ; rdfs:label "Canonical annotation property" .
+gmeow:canonicalIndividual a logic:NamedIndividual ; rdfs:label "Canonical individual" .
 "#,
             "synthetic term manifest graph",
         )
@@ -596,7 +606,7 @@ logic:syntheticProperty a owl:ObjectProperty ; rdfs:label "Synthetic property" .
     fn every_gmeow_typed_term_gets_a_digest() {
         let dataset = synthetic_manifest_dataset();
         let terms = documented_terms(&dataset).expect("documented terms");
-        assert_eq!(terms.len(), 2, "the synthetic graph declares two terms");
+        assert_eq!(terms.len(), 7, "the synthetic graph declares seven terms");
         let root = tempfile::tempdir().expect("temporary manifest root");
         let text = build_manifest_nquads(root.path(), &dataset).expect("build synthetic manifest");
         for term in &terms {

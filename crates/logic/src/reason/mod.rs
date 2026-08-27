@@ -703,12 +703,13 @@ fn characteristic_type_has_no_alternative_producer(
     class_reachability: &TransitiveReachability,
     axiom: &LeaveOneOutAxiom,
 ) -> bool {
-    if axiom.predicate != LOO_RDF_TYPE || !is_property_characteristic(&axiom.object) {
+    let object = calculus_term(&axiom.object);
+    if axiom.predicate != LOO_RDF_TYPE || !is_property_characteristic(object) {
         return false;
     }
-    if class_reachability.has_nonself_incoming(&axiom.object)
-        || dataset_has_pattern(edb, None, LOO_RDFS_DOMAIN, Some(&axiom.object))
-        || dataset_has_pattern(edb, None, LOO_RDFS_RANGE, Some(&axiom.object))
+    if class_reachability.has_nonself_incoming(object)
+        || dataset_has_pattern(edb, None, LOO_RDFS_DOMAIN, Some(object))
+        || dataset_has_pattern(edb, None, LOO_RDFS_RANGE, Some(object))
     {
         return false;
     }
@@ -719,7 +720,7 @@ fn characteristic_type_has_no_alternative_producer(
         LOO_OWL_INTERSECTION_OF,
         LOO_OWL_ONE_OF,
     ] {
-        if dataset_has_pattern(edb, Some(&axiom.object), predicate, None) {
+        if dataset_has_pattern(edb, Some(object), predicate, None) {
             return false;
         }
     }
@@ -837,6 +838,13 @@ pub fn leave_one_out_rederived(
         // full finite-DL augmentation, and is answered vacuously (no fixed rule head is
         // spelled `logic:`), so the redundancy measurement would be both quadratically
         // expensive and blind on every canonically-authored slice.
+        // Every fast-family classifier is written in the fixed calculus vocabulary.
+        // Normalize the canonical `logic:` authoring spelling through the reasoner's
+        // single correspondence table before dispatch. In particular, a bare
+        // `logic:disjointWith` whose pair has no alternate producer is decided by the
+        // shared disjoint-support index; treating it as an unknown predicate would run
+        // a complete finite-DL rebuild for each probe.
+        let predicate = calculus_term(&axiom.predicate);
         let subsumption = loo_subsumption_spelling(&axiom.predicate);
         if subsumption == LOO_RDFS_SUBCLASS_OF
             && axiom.object != LOO_OWL_NOTHING
@@ -847,7 +855,7 @@ pub fn leave_one_out_rederived(
             && let Some(reachability) = &subproperty_reachability
         {
             results[index] = reachability.rederived_without(axiom);
-        } else if axiom.predicate == LOO_OWL_DISJOINT_WITH {
+        } else if predicate == LOO_OWL_DISJOINT_WITH {
             if disjoint_possibility
                 .as_ref()
                 .is_some_and(|possibility| possibility.cannot_be_rederived(axiom))
@@ -860,7 +868,7 @@ pub fn leave_one_out_rederived(
             && characteristic_type_has_no_alternative_producer(edb, reachability, axiom)
         {
             results[index] = false;
-        } else if fixed_head_is_absent(edb, &axiom.predicate) {
+        } else if fixed_head_is_absent(edb, predicate) {
             results[index] = false;
         } else {
             slow.push((index, axiom));
@@ -1696,12 +1704,35 @@ pub(crate) fn run_reasoning_rules_budgeted(
 ///   still dark: `dl:type-propagation` and `cax-sco` reach a restriction node only
 ///   along a subsumption edge, so lowering the slots and not the anchor would read the
 ///   restriction and never apply it to an individual.
-static CALCULUS_VOCABULARY: [(&str, &str); 18] = {
+/// * the **typing + class-axiom vocabulary** the DL post-pass and the counting/case-split
+///   refuters read BY NAME off the raw dataset (`owl:Class`/`owl:ObjectProperty`/… type
+///   markers, the property-characteristic types, `owl:disjointWith`/`owl:inverseOf`/
+///   `owl:unionOf`/`owl:oneOf`/…, and the `owl:Thing`/`owl:Nothing` top/bottom the clash
+///   readers compare against). Once the `owl:` authoring spelling is retired, a slice
+///   authors these as `logic:`; without the row the normalized read never matches the
+///   hardcoded `owl:` constant and the axiom goes dark exactly as a bare `logic:Restriction`
+///   would. Every entry here is a slice-authorable construct the reasoner already reads —
+///   see the matching arms in `dl.rs` and `refute/counting.rs`.
+static CALCULUS_VOCABULARY: [(&str, &str); 51] = {
     macro_rules! owl {
         ($local:literal) => {
             (
                 concat!("https://blackcatinformatics.ca/logic/", $local),
                 concat!("http://www.w3.org/2002/07/owl#", $local),
+            )
+        };
+    }
+    // The property-characteristic markers are NOT a pure namespace swap: the canonical `logic:`
+    // spelling is lower-camel (`logic:transitiveProperty`), the `owl:` view upper-camel
+    // (`owl:TransitiveProperty`) — the exact map `adapter::OWL_CHARACTERISTIC_TO_LOGIC` and
+    // `rdf::owl_for_char` use. A slice authors `?P a logic:transitiveProperty` once `owl:` is
+    // retired as an authoring vocabulary, so the
+    // reasoner must lower THAT onto the upper-camel spelling the fixed RL characteristic rules match.
+    macro_rules! owl_char {
+        ($logic_local:literal, $owl_local:literal) => {
+            (
+                concat!("https://blackcatinformatics.ca/logic/", $logic_local),
+                concat!("http://www.w3.org/2002/07/owl#", $owl_local),
             )
         };
     }
@@ -1712,6 +1743,11 @@ static CALCULUS_VOCABULARY: [(&str, &str); 18] = {
             gmeow_ns::LOGIC_SUB_PROPERTY_OF,
             gmeow_ns::RDFS_SUB_PROPERTY_OF,
         ),
+        // Property domain/range — canonical `logic:` lowered to the fixed `rdfs:` calculus
+        // spelling the DL/RL domain-range rules match (a slice authors `?P logic:domain C`
+        // / `?P logic:range C`, e.g. the `logic:` grounding slice's own reasoning axioms).
+        (gmeow_ns::LOGIC_DOMAIN, gmeow_ns::RDFS_DOMAIN),
+        (gmeow_ns::LOGIC_RANGE, gmeow_ns::RDFS_RANGE),
         owl!("equivalentClass"),
         // Class-expression body.
         owl!("Restriction"),
@@ -1729,8 +1765,51 @@ static CALCULUS_VOCABULARY: [(&str, &str); 18] = {
         owl!("qualifiedCardinality"),
         owl!("minQualifiedCardinality"),
         owl!("maxQualifiedCardinality"),
+        // Typing markers (rdf:type objects the refuters read by name).
+        owl!("Class"),
+        owl!("ObjectProperty"),
+        owl!("DatatypeProperty"),
+        owl!("NamedIndividual"),
+        owl!("AnnotationProperty"),
+        owl!("Ontology"),
+        owl!("Thing"),
+        owl!("Nothing"),
+        // Property-characteristic types — canonical lower-camel `logic:` → upper-camel `owl:` view.
+        owl_char!("functionalProperty", "FunctionalProperty"),
+        owl_char!("inverseFunctionalProperty", "InverseFunctionalProperty"),
+        owl_char!("transitiveProperty", "TransitiveProperty"),
+        owl_char!("symmetricProperty", "SymmetricProperty"),
+        owl_char!("asymmetricProperty", "AsymmetricProperty"),
+        owl_char!("reflexiveProperty", "ReflexiveProperty"),
+        owl_char!("irreflexiveProperty", "IrreflexiveProperty"),
+        // Class + property axiom vocabulary.
+        owl!("disjointWith"),
+        owl!("inverseOf"),
+        owl!("unionOf"),
+        owl!("oneOf"),
+        owl!("intersectionOf"),
+        owl!("disjointUnionOf"),
+        owl!("sameAs"),
+        owl!("differentFrom"),
+        owl!("equivalentProperty"),
+        owl!("propertyChainAxiom"),
+        owl!("propertyDisjointWith"),
+        owl!("hasKey"),
+        owl!("members"),
+        owl!("hasSelf"),
+        owl!("AllDisjointClasses"),
+        owl!("AllDisjointProperties"),
     ]
 };
+
+/// The reasoner's fixed-calculus lowering table: each `(canonical logic: IRI, projected
+/// W3C OWL/RDFS IRI)` pair the EDB boundary normalizes (Principle 17). Exposed so the
+/// grounding-law cross-check (`crates/validate`) can pin the shipped
+/// `logic:GroundingCorrespondence` corpus against THIS table directly, rather than a
+/// hand-retyped 51-row mirror that can silently drift from it.
+pub fn calculus_vocabulary() -> &'static [(&'static str, &'static str)] {
+    &CALCULUS_VOCABULARY
+}
 
 /// The fixed-calculus spelling of a canonical `logic:` axiom term, or `None` when `iri`
 /// is not one — the single lookup behind both lowerings below.
@@ -2255,7 +2334,14 @@ mod tests {
         const P: &str = "http://gmeow.example/p";
         const Q: &str = "http://gmeow.example/q";
         const R: &str = "http://gmeow.example/r";
+        const S: &str = "http://gmeow.example/s";
+        const T: &str = "http://gmeow.example/t";
+        const D: &str = "http://gmeow.example/D";
+        const E: &str = "http://gmeow.example/E";
         const MARKER: &str = "http://gmeow.example/FunctionalMarker";
+        const LOGIC_DISJOINT: &str = "https://blackcatinformatics.ca/logic/disjointWith";
+        const LOGIC_INVERSE: &str = "https://blackcatinformatics.ca/logic/inverseOf";
+        const LOGIC_FUNCTIONAL: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
 
         let store = dataset(vec![
             quad(P, SUBPROPERTY, R),
@@ -2268,7 +2354,13 @@ mod tests {
             quad(A, DISJOINT, C),
             quad(A, COMPLEMENT, C),
             quad(B, DISJOINT, C),
+            // Canonical authoring must take the same batch negative filter as its
+            // OWL projection. Missing this lowering made each such probe rebuild
+            // and rerun the complete finite-DL dataset.
+            quad(D, LOGIC_DISJOINT, E),
+            quad(S, LOGIC_INVERSE, T),
             quad(P, TYPE, FUNCTIONAL),
+            quad(S, TYPE, LOGIC_FUNCTIONAL),
             quad(Q, TYPE, MARKER),
             quad(MARKER, SUBCLASS, FUNCTIONAL),
             quad(Q, TYPE, FUNCTIONAL),
@@ -2282,7 +2374,10 @@ mod tests {
             LeaveOneOutAxiom::new(P, INVERSE, Q),
             LeaveOneOutAxiom::new(A, DISJOINT, C),
             LeaveOneOutAxiom::new(B, DISJOINT, C),
+            LeaveOneOutAxiom::new(D, LOGIC_DISJOINT, E),
+            LeaveOneOutAxiom::new(S, LOGIC_INVERSE, T),
             LeaveOneOutAxiom::new(P, TYPE, FUNCTIONAL),
+            LeaveOneOutAxiom::new(S, TYPE, LOGIC_FUNCTIONAL),
             LeaveOneOutAxiom::new(Q, TYPE, FUNCTIONAL),
         ];
 
@@ -2295,7 +2390,8 @@ mod tests {
         assert_eq!(
             batched,
             vec![
-                true, false, false, false, false, false, true, false, false, true
+                true, false, false, false, false, false, true, false, false, false, false, false,
+                true
             ]
         );
     }

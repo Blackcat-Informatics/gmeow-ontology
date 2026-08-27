@@ -402,10 +402,51 @@ pub fn example_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     Ok(out)
 }
 
+/// The canonical `rdf:type` and `logic:GroundingCorrespondence` IRIs used to recognize a
+/// grounding-surface demonstrator among the example corpus. A grounding-surface demonstrator
+/// (e.g. `slices/grounding/logic/examples/grounding-bridge-surface.ttl`) authors a
+/// `logic:GroundingCorrespondence` and, alongside it, representative `logic:`-native
+/// class-expression constructs (`logic:inverseFunctionalProperty`, `logic:oneOf`, …) purely
+/// to DEMONSTRATE the grounding surface. That is META/grounding material — the same doctrine
+/// (`docs/GROUNDING.md`, CONSTITUTION Principle 17) that keeps `graph/correspondence-laws`
+/// OUT of the reasoned object-level EDB applies to it: a worked grounding surface is a
+/// correspondence demonstration, not a production object-level ABox, so its out-of-fragment
+/// demonstration constructs must not enter object-level reasoning (where the native DL path
+/// would honestly-but-uselessly withhold on them). Its correspondence itself already rides
+/// the canonical `graph/correspondence-laws` ownership (the stage-mappings
+/// `discharge_correspondence_laws` producer folds every authored `logic:Correspondence`).
+const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const LOGIC_GROUNDING_CORRESPONDENCE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+
+/// True iff `dataset` authors at least one `?s a logic:GroundingCorrespondence`, i.e. it is a
+/// grounding-surface demonstrator that is owned by `graph/correspondence-laws`, not by the
+/// object-level `graph/examples` positive-demonstrator corpus.
+pub fn is_grounding_surface_demonstrator(dataset: &RdfDataset) -> bool {
+    dataset.owned_quads().any(|q| {
+        q.predicate == RDF_TYPE_IRI
+            && matches!(&q.object, purrdf::RdfTerm::Iri(o) if o == LOGIC_GROUNDING_CORRESPONDENCE_IRI)
+    })
+}
+
+/// Whether an already-parsed example belongs in the object-level positive-demonstrator
+/// graph. Kept as a pure predicate so its policy can be tested without invoking the
+/// repository corpus producer.
+fn belongs_in_object_level_examples(dataset: &RdfDataset) -> bool {
+    !is_grounding_surface_demonstrator(dataset)
+}
+
 /// Parse and union every example file into one dataset rooted at
 /// [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`]. Each file's blank nodes are
 /// standardized apart ([`RdfDatasetBuilder::push_dataset`]) so a structurally-distinct blank
 /// axiom in two slices' examples can never collide.
+///
+/// A grounding-surface demonstrator ([`is_grounding_surface_demonstrator`]) is EXCLUDED from
+/// this object-level corpus by canonical graph ownership: its correspondence is folded into
+/// `graph/correspondence-laws` by stage-mappings, and its representative out-of-fragment
+/// `logic:`-native constructs are demonstrations, not production object-level axioms, so they
+/// stay OUT of the reasoned object-level EDB exactly like every other correspondence-law
+/// datum.
 pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut builder = RdfDatasetBuilder::new();
     for path in files {
@@ -416,6 +457,10 @@ pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors
             })
         })?;
         let parsed = turtle_bytes_to_dataset(&bytes, &path.display().to_string())?;
+        if !belongs_in_object_level_examples(parsed.as_ref()) {
+            // Owned by graph/correspondence-laws, not the object-level graph/examples corpus.
+            continue;
+        }
         builder.push_dataset(parsed.as_ref());
     }
     let unioned = builder.freeze().map_err(|e| {
@@ -663,7 +708,10 @@ impl Stage for SourceLoadStage {
         // docs.md, and translation catalogs beyond the carrier's ontology inputs; a
         // change to any of them must invalidate graph/quality-assessment rather than
         // serving a stale cached grade.
-        "source_load.v9-quality-input-closure"
+        // v10: exclude grounding-surface demonstrators from graph/examples. They are
+        // correspondence-law material, not object-level ABox input. The version bump is
+        // mandatory because the action-cache key cannot infer semantic Rust changes.
+        "source_load.v10-grounding-demo-exclusion"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -977,5 +1025,41 @@ mod tests {
         assert!(ttl_files_in(&root.join("imports")).unwrap().is_empty());
         assert!(module_files(root).unwrap().is_empty());
         assert!(all_manifest_files(root).unwrap().is_empty());
+    }
+
+    /// A grounding-surface demonstrator (a slice example authoring a `logic:GroundingCorrespondence`)
+    /// is owned by `graph/correspondence-laws`, NOT the object-level `graph/examples` corpus. Its
+    /// representative out-of-fragment `logic:`-native constructs (`logic:inverseFunctionalProperty`,
+    /// `logic:oneOf`, …) are grounding DEMONSTRATIONS, not production object-level axioms, so they
+    /// must never enter the reasoned object-level EDB — where the native DL path would honestly but
+    /// uselessly WITHHOLD on them and red `reason-verify`. Regression for the `owl:`→`logic:`
+    /// authoring migration (the flip made these constructs visible to `scan_coverage`).
+    #[test]
+    fn grounding_surface_demonstrator_stays_out_of_object_level_examples() {
+        // Unit: the recognizer keys on the authored `logic:GroundingCorrespondence` type.
+        let demonstrator = turtle_bytes_to_dataset(
+            b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/> .\n\
+              ex:bridge a logic:GroundingCorrespondence .\n\
+              ex:identifiedBy a logic:inverseFunctionalProperty .\n",
+            "test-grounding-surface-demonstrator",
+        )
+        .expect("parse demonstrator fixture");
+        assert!(is_grounding_surface_demonstrator(demonstrator.as_ref()));
+        assert!(
+            !belongs_in_object_level_examples(demonstrator.as_ref()),
+            "a grounding-surface demonstrator is correspondence-law material"
+        );
+        let ordinary = turtle_bytes_to_dataset(
+            b"@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/> .\n\
+              ex:a ex:knows ex:b .\n",
+            "test-ordinary-demonstrator",
+        )
+        .expect("parse ordinary fixture");
+        assert!(!is_grounding_surface_demonstrator(ordinary.as_ref()));
+        assert!(
+            belongs_in_object_level_examples(ordinary.as_ref()),
+            "an ordinary positive demonstrator belongs in the object-level graph"
+        );
     }
 }

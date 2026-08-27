@@ -38,7 +38,7 @@ use std::collections::{BTreeSet, HashSet, VecDeque};
 use gmeow_errors::model::{Finding, Location, Severity};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
-use crate::model::{owl, rdf, rdfs};
+use crate::model::{logic, owl, rdf, rdfs};
 
 /// Resolve an IRI value to its dataset-local [`TermId`], if interned.
 #[inline]
@@ -185,14 +185,22 @@ fn local(iri: &str, cfg: &GufoConfig) -> String {
 /// output (mirrors `_gmeow_classes`).
 fn gmeow_classes(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<String> {
     let mut classes: BTreeSet<String> = BTreeSet::new();
-    let (Some(type_id), Some(class_id)) = (iri_id(ds, rdf::TYPE), iri_id(ds, owl::CLASS)) else {
+    let Some(type_id) = iri_id(ds, rdf::TYPE) else {
         return Vec::new();
     };
-    for q in ds.quads_for_pattern(None, Some(type_id), Some(class_id), GraphMatch::Any) {
-        if let TermRef::Iri(iri) = ds.resolve(q.s)
-            && is_gmeow_class_iri(iri, cfg)
-        {
-            classes.insert(iri.to_owned());
+    // A class is typed in the canonical `logic:Class`; its generated OWL view uses
+    // `owl:Class`. Iterate BOTH markers so a re-authored slice is not read as
+    // class-less after the `owl:`→`logic:` surface flip.
+    for class_id in [owl::CLASS, gmeow_ns::LOGIC_CLASS]
+        .into_iter()
+        .filter_map(|m| iri_id(ds, m))
+    {
+        for q in ds.quads_for_pattern(None, Some(type_id), Some(class_id), GraphMatch::Any) {
+            if let TermRef::Iri(iri) = ds.resolve(q.s)
+                && is_gmeow_class_iri(iri, cfg)
+            {
+                classes.insert(iri.to_owned());
+            }
         }
     }
     classes.into_iter().collect()
@@ -504,14 +512,18 @@ pub fn relator_mediation(ds: &RdfDataset, cfg: &GufoConfig) -> Vec<Finding> {
 
     // The GMEOW object properties (graph iteration order; output is count-only).
     let mut gmeow_object_properties: Vec<String> = Vec::new();
-    if let (Some(type_id), Some(obj_prop_id)) =
-        (iri_id(ds, rdf::TYPE), iri_id(ds, owl::OBJECT_PROPERTY))
-    {
-        for q in ds.quads_for_pattern(None, Some(type_id), Some(obj_prop_id), GraphMatch::Any) {
-            if let TermRef::Iri(iri) = ds.resolve(q.s)
-                && iri.starts_with(&cfg.namespace)
-            {
-                gmeow_object_properties.push(iri.to_owned());
+    if let Some(type_id) = iri_id(ds, rdf::TYPE) {
+        // Both the canonical `logic:ObjectProperty` and its generated `owl:` view.
+        for obj_prop_id in [owl::OBJECT_PROPERTY, gmeow_ns::LOGIC_OBJECT_PROPERTY]
+            .into_iter()
+            .filter_map(|m| iri_id(ds, m))
+        {
+            for q in ds.quads_for_pattern(None, Some(type_id), Some(obj_prop_id), GraphMatch::Any) {
+                if let TermRef::Iri(iri) = ds.resolve(q.s)
+                    && iri.starts_with(&cfg.namespace)
+                {
+                    gmeow_object_properties.push(iri.to_owned());
+                }
             }
         }
     }
@@ -635,32 +647,46 @@ fn object_iris(ds: &RdfDataset, subject_iri: &str, predicate_iri: &str) -> HashS
     out
 }
 
-/// Whether `prop` is declared an `owl:FunctionalProperty`.
+/// Whether `prop` is declared functional — in the canonical
+/// `logic:functionalProperty` or its generated `owl:FunctionalProperty` view.
 fn is_functional(ds: &RdfDataset, prop: &str) -> bool {
-    has_type(ds, prop, owl::FUNCTIONAL_PROPERTY)
+    has_type(ds, prop, &logic("functionalProperty")) || has_type(ds, prop, owl::FUNCTIONAL_PROPERTY)
 }
 
 /// Every `owl:AllDisjointClasses` axiom's member set (mirrors
 /// `_all_disjoint_member_sets`). Walks the `owl:members` RDF Collection by hand.
 fn all_disjoint_member_sets(ds: &RdfDataset) -> Vec<HashSet<String>> {
     let mut sets: Vec<HashSet<String>> = Vec::new();
-    let (Some(type_id), Some(adc_id), Some(members_id)) = (
-        iri_id(ds, rdf::TYPE),
-        iri_id(ds, owl::ALL_DISJOINT_CLASSES),
-        iri_id(ds, owl::MEMBERS),
-    ) else {
+    let Some(type_id) = iri_id(ds, rdf::TYPE) else {
         return sets;
     };
-    for q in ds.quads_for_pattern(None, Some(type_id), Some(adc_id), GraphMatch::Any) {
-        let node = q.s;
-        for members_q in ds.quads_for_pattern(Some(node), Some(members_id), None, GraphMatch::Any) {
-            // The collection head is a named or blank node; a literal/triple head is
-            // skipped (matching the legacy `NamedNode | BlankNode` guard).
-            if matches!(
-                ds.resolve(members_q.o),
-                TermRef::Iri(_) | TermRef::Blank { .. }
-            ) {
-                sets.push(collection_members(ds, members_q.o));
+    // A slice authors the axiom in the canonical `logic:` spelling
+    // (`logic:AllDisjointClasses` + `logic:members`); accept the `owl:` spelling
+    // too so an owl:-authored or mixed corpus still walks.
+    let adc_ids: Vec<TermId> = [logic::ALL_DISJOINT_CLASSES, owl::ALL_DISJOINT_CLASSES]
+        .iter()
+        .filter_map(|iri| iri_id(ds, iri))
+        .collect();
+    let members_ids: Vec<TermId> = [logic::MEMBERS, owl::MEMBERS]
+        .iter()
+        .filter_map(|iri| iri_id(ds, iri))
+        .collect();
+    for adc_id in &adc_ids {
+        for q in ds.quads_for_pattern(None, Some(type_id), Some(*adc_id), GraphMatch::Any) {
+            let node = q.s;
+            for members_id in &members_ids {
+                for members_q in
+                    ds.quads_for_pattern(Some(node), Some(*members_id), None, GraphMatch::Any)
+                {
+                    // The collection head is a named or blank node; a literal/triple
+                    // head is skipped (matching the legacy `NamedNode | BlankNode` guard).
+                    if matches!(
+                        ds.resolve(members_q.o),
+                        TermRef::Iri(_) | TermRef::Blank { .. }
+                    ) {
+                        sets.push(collection_members(ds, members_q.o));
+                    }
+                }
             }
         }
     }
@@ -867,7 +893,15 @@ fn bridged_pairs(ds: &RdfDataset, axes: &[String]) -> Vec<(String, String)> {
             }
         }
     }
-    if let Some(equiv_id) = iri_id(ds, owl::EQUIVALENT_PROPERTY) {
+    // Property equivalence is authored in the canonical `logic:equivalentProperty`;
+    // its generated OWL view is `owl:equivalentProperty`. Fold BOTH into adjacency.
+    for equiv_id in [
+        logic("equivalentProperty"),
+        owl::EQUIVALENT_PROPERTY.to_owned(),
+    ]
+    .into_iter()
+    .filter_map(|m| iri_id(ds, &m))
+    {
         for q in ds.quads_for_pattern(None, Some(equiv_id), None, GraphMatch::Any) {
             if let (TermRef::Iri(s), TermRef::Iri(o)) = (ds.resolve(q.s), ds.resolve(q.o)) {
                 let (s, o) = (s.to_owned(), o.to_owned());

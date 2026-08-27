@@ -95,10 +95,6 @@ const AFTER_RUST_BUILD: &[&str] = &["rust-build"];
 /// Test runners depend on this node but never invoke it themselves.
 const AFTER_TEST_FIXTURES: &[&str] = &["test-fixtures"];
 
-/// The browser lane needs the ASSEMBLED console tree, which only `console` produces —
-/// `AFTER_SYNC` materializes the bundle but assembles nothing.
-const AFTER_CONSOLE: &[&str] = &["sync", "console"];
-
 const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "crate-check",
@@ -117,7 +113,6 @@ const FINAL_DEPS: &[&str] = &[
     "reason-verify",
     "console-test",
     "console",
-    "console-smoke",
     "lint-alignment",
     "doc-lint",
     "slice-quality-gate",
@@ -127,7 +122,8 @@ const FINAL_DEPS: &[&str] = &[
 ///
 /// Every `AFTER_SYNC` edge below names the exact `generated/` read that forces it;
 /// every `ROOT` task was verified to read authored sources only. The breadth-dominated
-/// lanes (`acceptance`, `wasm-parity`, `bench-soak`) live in `make heavy`, not here.
+/// lanes (`acceptance`, `wasm-parity`, `console-smoke`, `bench-soak`) live in `make heavy`,
+/// not here.
 const CHECK_DAG: &[Task] = &[
     // The producer. Materializes `generated/` (bundle + fanout) from authored sources.
     Task {
@@ -254,23 +250,16 @@ const CHECK_DAG: &[Task] = &[
         target: "console-test",
         dependencies: AFTER_SYNC,
     },
-    // The standalone console's assembled tree, and the browser lane that drives it. Two
-    // tasks, not one: `console-smoke` needs the ASSEMBLED tree, and `AFTER_SYNC` never
-    // assembles anything — so the edge `console-smoke <- console` is what makes the browser
-    // lane run against the artifact rather than against nothing. The browser surface IS the
-    // console's deliverable, so this lane is a gate blocker: it serves the assembled tree
-    // over plain static HTTP with no COOP/COEP (exactly what Pages provides), drives the
-    // whole read surface through the assembled worker, and boots the REAL `npm pack`
-    // tarball the way the shipped README prescribes.
+    // Assemble the standalone console deterministically on the local gate. The focused
+    // DOM-free `console-test` above exercises the shipped wasm bytes against the synchronized
+    // bundle. The 41-case browser/package sweep (`console-smoke`) is breadth-dominated — it
+    // drives the whole read surface, offline and perturbed trees, and a real installed npm
+    // tarball — so it runs on every PR as its own `make heavy` matrix branch instead of
+    // extending every local edit's critical path.
     Task {
         name: "console",
         target: "console",
         dependencies: AFTER_SYNC,
-    },
-    Task {
-        name: "console-smoke",
-        target: "console-smoke",
-        dependencies: AFTER_CONSOLE,
     },
     // `correspondence_soundness` audits `generated/mappings/*.sssom.tsv`,
     // `generated/projections/*.edoal.ttl`, and the generated FnO catalog.
@@ -922,7 +911,7 @@ mod tests {
     /// The breadth-dominated lanes belong to `make heavy`, not the per-commit gate.
     #[test]
     fn the_heavy_lanes_are_not_scheduled_by_check() {
-        for name in ["acceptance", "wasm-parity", "bench-soak"] {
+        for name in ["acceptance", "wasm-parity", "console-smoke", "bench-soak"] {
             assert!(
                 !CHECK_DAG.iter().any(|task| task.name == name),
                 "{name} moved to `make heavy` and must not reappear in CHECK_DAG"

@@ -1407,17 +1407,15 @@ fn functional_carrier_record_projects_owl_functional_property() {
 
 #[test]
 fn owl_restriction_round_trips_through_dl_projection() {
-    // Adapt an OWL restriction into the logic: IR, then project OWL-DL back: the
-    // owl:Restriction graph must reappear (anchored on the deterministic skolem node).
+    // Parse a logic: restriction into the IR, then project OWL-DL: the owl:Restriction
+    // graph must appear (anchored on the deterministic skolem node).
     let prefixes = "\
-@prefix ex:   <https://example.org/test/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix ex:    <https://example.org/test/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 ";
-    let ttl = "ex:Bird rdfs:subClassOf [ a owl:Restriction ;
-        owl:onProperty ex:hasBeak ; owl:someValuesFrom ex:Beak ] .";
-    let (program, _) =
-        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+    let ttl = "ex:Bird logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty ex:hasBeak ; logic:someValuesFrom ex:Beak ] .";
+    let (program, _) = parse_logic_str(&format!("{prefixes}{ttl}"), None).expect("parse ok");
     let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     for needle in [
         "http://www.w3.org/2002/07/owl#Restriction",
@@ -1454,14 +1452,12 @@ fn non_el_restriction_drops_whole_in_el_projection() {
     // into it) must vanish from the EL projection, with a disclosed drop — no dangling
     // reference. DL keeps it.
     let prefixes = "\
-@prefix ex:   <https://example.org/test/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix ex:    <https://example.org/test/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 ";
-    let ttl = "ex:VegDish rdfs:subClassOf [ a owl:Restriction ;
-        owl:onProperty ex:hasIngredient ; owl:allValuesFrom ex:Vegetable ] .";
-    let (program, _) =
-        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+    let ttl = "ex:VegDish logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty ex:hasIngredient ; logic:allValuesFrom ex:Vegetable ] .";
+    let (program, _) = parse_logic_str(&format!("{prefixes}{ttl}"), None).expect("parse ok");
 
     let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     assert!(
@@ -1500,13 +1496,12 @@ fn non_el_restriction_drops_whole_in_el_projection() {
 #[test]
 fn oneof_enumeration_round_trips_dl_and_drops_in_el() {
     let prefixes = "\
-@prefix ex:   <https://example.org/test/> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix ex:    <https://example.org/test/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 ";
-    let ttl = "ex:Season owl:equivalentClass [ a owl:Class ;
-        owl:oneOf ( ex:Spring ex:Summer ) ] .";
-    let (program, _) =
-        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+    let ttl = "ex:Season logic:equivalentClass [ a logic:Class ;
+        logic:oneOf ( ex:Spring ex:Summer ) ] .";
+    let (program, _) = parse_logic_str(&format!("{prefixes}{ttl}"), None).expect("parse ok");
 
     let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     for needle in [
@@ -1543,17 +1538,16 @@ fn withrestrictions_datarange_round_trips_dl_and_drops_in_el() {
     // owl:withRestrictions( facet cells ); datatype facets are not OWL 2 EL, so the whole
     // datarange (node + its anchor) drops from EL with a disclosed loss.
     let prefixes = "\
-@prefix ex:   <https://example.org/test/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
-@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://example.org/test/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 ";
-    let ttl = "ex:PositiveScore owl:equivalentClass [ a rdfs:Datatype ;
-        owl:onDatatype xsd:decimal ;
-        owl:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ]
-                               [ xsd:maxInclusive \"1.0\"^^xsd:decimal ] ) ] .";
-    let (program, _) =
-        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+    let ttl = "ex:PositiveScore logic:equivalentClass [ a rdfs:Datatype ;
+        logic:onDatatype xsd:decimal ;
+        logic:withRestrictions ( [ xsd:minInclusive \"0.0\"^^xsd:decimal ]
+                                 [ xsd:maxInclusive \"1.0\"^^xsd:decimal ] ) ] .";
+    let (program, _) = parse_logic_str(&format!("{prefixes}{ttl}"), None).expect("parse ok");
 
     let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     for needle in [
@@ -1596,14 +1590,12 @@ fn withrestrictions_datarange_round_trips_dl_and_drops_in_el() {
 #[test]
 fn cardinality_restriction_projects_typed_integer_in_dl() {
     let prefixes = "\
-@prefix ex:   <https://example.org/test/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix ex:    <https://example.org/test/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 ";
-    let ttl = "ex:Parent rdfs:subClassOf [ a owl:Restriction ;
-        owl:onProperty ex:hasChild ; owl:minCardinality 1 ] .";
-    let (program, _) =
-        crate::adapter::adapt_legacy_str(&format!("{prefixes}{ttl}"), None).expect("adapt ok");
+    let ttl = "ex:Parent logic:subClassOf [ a logic:Restriction ;
+        logic:onProperty ex:hasChild ; logic:minCardinality 1 ] .";
+    let (program, _) = parse_logic_str(&format!("{prefixes}{ttl}"), None).expect("parse ok");
     let dl = rdf::project_owl_dl(&program, &mut LossLedger::new()).unwrap();
     assert!(
         dl.content

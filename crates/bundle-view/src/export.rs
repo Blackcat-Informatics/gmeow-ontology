@@ -71,7 +71,11 @@ const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it become the term's logic stereotypes. Mirrors
 /// `gmeow_docs_model::model::LOGIC_NS`.
-use gmeow_ns::LOGIC_NS;
+use gmeow_ns::{
+    LOGIC_ANNOTATION_PROPERTY, LOGIC_CLASS, LOGIC_DATATYPE_PROPERTY, LOGIC_NS,
+    LOGIC_OBJECT_PROPERTY, OWL_ANNOTATION_PROPERTY, OWL_CLASS, OWL_DATATYPE_PROPERTY,
+    OWL_OBJECT_PROPERTY,
+};
 
 /// The carrier variety class: the internal `x-gmeow-*` tag rides `lang:carrierTag`
 /// on a `lang:LanguageVariety` since the lang: graft, and the generated
@@ -857,11 +861,22 @@ fn fold_advisory(view: &FoldView, t: usize, term: &mut Term) {
     term.related_terms = fold_related_terms(view, t);
 }
 
-const PROPERTY_KINDS: &[(&str, &str)] = &[
-    ("ObjectProperty", "object"),
-    ("DatatypeProperty", "datatype"),
-    ("AnnotationProperty", "annotation"),
+const PROPERTY_KINDS: &[(&str, &str, &str)] = &[
+    (LOGIC_OBJECT_PROPERTY, OWL_OBJECT_PROPERTY, "object"),
+    (LOGIC_DATATYPE_PROPERTY, OWL_DATATYPE_PROPERTY, "datatype"),
+    (
+        LOGIC_ANNOTATION_PROPERTY,
+        OWL_ANNOTATION_PROPERTY,
+        "annotation",
+    ),
 ];
+
+fn subjects_by_types(view: &FoldView, type_iris: &[&str]) -> BTreeSet<usize> {
+    type_iris
+        .iter()
+        .flat_map(|type_iri| view.subjects_by_type(type_iri, DEFAULT_SCOPE))
+        .collect()
+}
 
 pub fn collect_terms(view: &FoldView) -> Vec<Term> {
     // Every GMEOW grounding namespace is a term surface, not just `gmeow:` — the
@@ -874,15 +889,14 @@ pub fn collect_terms(view: &FoldView) -> Vec<Term> {
         }
     };
 
-    let classes: BTreeSet<usize> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let classes: BTreeSet<usize> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| in_namespace(view, t))
         .collect();
 
     let mut properties: BTreeMap<usize, &'static str> = BTreeMap::new();
-    for (ptype, kind) in PROPERTY_KINDS {
-        for t in view.subjects_by_type(&format!("{OWL}{ptype}"), DEFAULT_SCOPE) {
+    for &(canonical_type, projected_type, kind) in PROPERTY_KINDS {
+        for t in subjects_by_types(view, &[canonical_type, projected_type]) {
             if in_namespace(view, t) {
                 properties.insert(t, kind);
             }
@@ -1122,13 +1136,16 @@ pub fn fold_meta(view: &FoldView) -> Result<(String, String), gmeow_errors::Diag
     let title = view
         .value(onto, "http://purl.org/dc/terms/title", DEFAULT_SCOPE)
         .map(|t| view.lex(t).to_string());
+    // The header's version rides the canonical logic:versionInfo or its generated
+    // owl:versionInfo view; accept either and name the field namespace-neutrally.
     let version = view
-        .value(onto, &format!("{OWL}versionInfo"), DEFAULT_SCOPE)
+        .value(onto, &format!("{LOGIC_NS}versionInfo"), DEFAULT_SCOPE)
+        .or_else(|| view.value(onto, &format!("{OWL}versionInfo"), DEFAULT_SCOPE))
         .map(|t| view.lex(t).to_string());
     match (title, version) {
         (Some(t), Some(v)) => Ok((t, v)),
         _ => Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: "ontology header lacks dcterms:title / owl:versionInfo".into(),
+            message: "ontology header lacks dcterms:title / versionInfo".into(),
         })),
     }
 }
@@ -2317,8 +2334,7 @@ fn skos_config() -> Result<purrdf::SkosConfig, gmeow_errors::Diag> {
 fn skos_source_dataset(view: &FoldView) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
     use purrdf::{RdfDatasetBuilder, RdfLiteral};
 
-    let mut classes: Vec<usize> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let mut classes: Vec<usize> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| view.is_iri(t) && view.lex(t).starts_with(NAMESPACE))
         .collect();
@@ -2527,8 +2543,7 @@ fn obo_graphs_source_dataset(
 
     let label_iri = format!("{RDFS}label");
     let definition_iri = format!("{SKOS}definition");
-    let mut classes: Vec<usize> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let mut classes: Vec<usize> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| view.is_iri(t) && view.lex(t).starts_with(NAMESPACE))
         .collect();
@@ -2610,8 +2625,7 @@ fn shex_domains(view: &FoldView, prop: usize, class_iris: &BTreeSet<String>) -> 
 }
 
 fn write_shex(view: &FoldView) -> Vec<u8> {
-    let class_iris: BTreeSet<String> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let class_iris: BTreeSet<String> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| view.is_iri(t) && view.lex(t).starts_with(NAMESPACE))
         .map(|t| view.lex(t).to_string())
@@ -2619,11 +2633,11 @@ fn write_shex(view: &FoldView) -> Vec<u8> {
     let functional_tid = view.tid_of_iri(&format!("{OWL}FunctionalProperty"));
 
     let mut per_class: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for (ptype, kind) in [
-        ("ObjectProperty", "object"),
-        ("DatatypeProperty", "datatype"),
+    for (canonical_type, projected_type, kind) in [
+        (LOGIC_OBJECT_PROPERTY, OWL_OBJECT_PROPERTY, "object"),
+        (LOGIC_DATATYPE_PROPERTY, OWL_DATATYPE_PROPERTY, "datatype"),
     ] {
-        for prop in view.subjects_by_type(&format!("{OWL}{ptype}"), DEFAULT_SCOPE) {
+        for prop in subjects_by_types(view, &[canonical_type, projected_type]) {
             if !view.lex(prop).starts_with(NAMESPACE) {
                 continue;
             }

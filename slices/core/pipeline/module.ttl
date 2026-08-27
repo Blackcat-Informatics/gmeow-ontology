@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -15,7 +15,7 @@
 # =========================================================================== #
 
 <https://blackcatinformatics.ca/gmeow/slices/pipeline>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "GMEOW Pipeline Module"@x-gmeow-english ;
@@ -29,7 +29,7 @@
 
 gmeow:Pipeline
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline"@x-gmeow-english ;
     rdfs:subClassOf logic:Plan ,
@@ -46,7 +46,7 @@ gmeow:Pipeline
 
 gmeow:PipelineStage
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline Stage"@x-gmeow-english ;
     rdfs:subClassOf logic:ActionSchema ,
@@ -78,7 +78,7 @@ gmeow:PipelineStage
 
 gmeow:StageCapability
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Capability"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -88,7 +88,7 @@ gmeow:StageCapability
 
 gmeow:Resource
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Resource"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -98,7 +98,7 @@ gmeow:Resource
 
 gmeow:BuildDataFlow
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Build Data Flow"@x-gmeow-english ;
     rdfs:subClassOf logic:DataFlowEdge ;
@@ -122,7 +122,7 @@ gmeow:BuildDataFlow
 # =========================================================================== #
 
 gmeow:hasStage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "has stage"@x-gmeow-english ;
     rdfs:domain gmeow:Pipeline ;
@@ -132,7 +132,7 @@ gmeow:hasStage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dataflowConsumes
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:subPropertyOf logic:dataflowConsumes ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow consumes"@x-gmeow-english ;
@@ -143,8 +143,8 @@ gmeow:dataflowConsumes
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dataflowProduces
-    a owl:ObjectProperty ;
-    owl:inverseOf gmeow:dataflowConsumes ;
+    a logic:ObjectProperty ;
+    logic:inverseOf gmeow:dataflowConsumes ;
     rdfs:subPropertyOf logic:dataflowProduces ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "dataflow produces"@x-gmeow-english ;
@@ -155,7 +155,7 @@ gmeow:dataflowProduces
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasCapability
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:subPropertyOf logic:capability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "has capability"@x-gmeow-english ;
@@ -166,7 +166,7 @@ gmeow:hasCapability
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stageImpl
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage impl"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -176,7 +176,7 @@ gmeow:stageImpl
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:producesFormat
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "produces format"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -186,7 +186,7 @@ gmeow:producesFormat
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:requiresResource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:subPropertyOf logic:actionResource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "requires resource"@x-gmeow-english ;
@@ -197,7 +197,7 @@ gmeow:requiresResource
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:buildFlowFrom
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:subPropertyOf logic:flowFrom ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "build flow from"@x-gmeow-english ;
@@ -208,7 +208,7 @@ gmeow:buildFlowFrom
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:buildFlowTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:subPropertyOf logic:flowTo ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "build flow to"@x-gmeow-english ;
@@ -219,7 +219,7 @@ gmeow:buildFlowTo
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:flowEntity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow entity"@x-gmeow-english ;
     rdfs:domain gmeow:BuildDataFlow ;
@@ -230,7 +230,7 @@ gmeow:flowEntity
 # --- Stage attach declarations (contribution-declaration; PIPELINE_SPINE §3.3) ---
 
 gmeow:attachesGraph
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "attaches graph"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -242,7 +242,7 @@ gmeow:attachesGraph
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attachesBlobRep
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "attaches blob rep"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -258,7 +258,7 @@ gmeow:attachesBlobRep
 
 gmeow:FanoutExtraction
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Fanout Extraction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -267,7 +267,7 @@ gmeow:FanoutExtraction
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:fanoutExtracts
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "fanout extracts"@x-gmeow-english ;
     rdfs:domain gmeow:Pipeline ;
@@ -280,7 +280,7 @@ gmeow:fanoutExtracts
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extractsPath
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts path"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
@@ -290,7 +290,7 @@ gmeow:extractsPath
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extractsMatch
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts match"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
@@ -300,7 +300,7 @@ gmeow:extractsMatch
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extractsSuffix
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts suffix"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
@@ -310,7 +310,7 @@ gmeow:extractsSuffix
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extractsGraphFamily
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts graph family"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
@@ -320,7 +320,7 @@ gmeow:extractsGraphFamily
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:extractsForm
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts form"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
@@ -330,7 +330,7 @@ gmeow:extractsForm
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:expectsGeneratedOutput
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "expects generated output"@x-gmeow-english ;
     rdfs:domain gmeow:Pipeline ;
@@ -997,7 +997,7 @@ gmeow:stage-export-export
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: flat views"@x-gmeow-english ;
-    skos:definition "Emit the flattened export views: Markdown, JSONL, and llms.txt, plus the dataset/semantic-web tiers (N-Quads, TriG, statements JSONL, ShEx). The SKOS concept-scheme extract, OBO Graphs JSON, and CSVW package are purrdf's native RDF-1.2 projections (project_skos / project_obo_graphs / project_csvw_exact) rather than hand-rolled writers — gmeow owns only the scoping decision (the gmeow-namespace owl:Class taxonomy for SKOS/OBO Graphs; the default-graph TBox/ABox for CSVW) and the caller-owned semantic-role vocabulary, purrdf owns the encoding. CSVW now emits purrdf's generic, always-lossless RDF-1.2-in-CSV package (csvw-metadata.json + terms/quads/reifiers/annotations.csv) in place of the retired curated class/property/individual CSV tables. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
+    skos:definition "Emit the flattened export views: Markdown, JSONL, and llms.txt, plus the dataset/semantic-web tiers (N-Quads, TriG, statements JSONL, ShEx). The SKOS concept-scheme extract, OBO Graphs JSON, and CSVW package are purrdf's native RDF-1.2 projections (project_skos / project_obo_graphs / project_csvw_exact) rather than hand-rolled writers — gmeow owns only the scoping decision (the gmeow-namespace OWL Class taxonomy for SKOS/OBO Graphs; the default-graph TBox/ABox for CSVW) and the caller-owned semantic-role vocabulary, purrdf owns the encoding. CSVW now emits purrdf's generic, always-lossless RDF-1.2-in-CSV package (csvw-metadata.json + terms/quads/reifiers/annotations.csv) in place of the retired curated class/property/individual CSV tables. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -2238,7 +2238,7 @@ gmeow:pipeline-build gmeow:expectsGeneratedOutput
 
 gmeow:FlowReason
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Flow Reason"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -2247,7 +2247,7 @@ gmeow:FlowReason
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:flowReason
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "flow reason"@x-gmeow-english ;
     rdfs:domain gmeow:BuildDataFlow ;
@@ -2284,7 +2284,7 @@ gmeow:flowReasonCost
 
 gmeow:StageExecution
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Execution"@x-gmeow-english ;
     rdfs:subClassOf logic:Event ;
@@ -2294,7 +2294,7 @@ gmeow:StageExecution
 
 gmeow:StageDisposition
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Disposition"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -2303,7 +2303,7 @@ gmeow:StageDisposition
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:stageDisposition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage disposition"@x-gmeow-english ;
     rdfs:domain gmeow:StageExecution ;
@@ -2359,7 +2359,7 @@ gmeow:dispositionTimedOut
 
 gmeow:StageObligation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Obligation"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -2368,7 +2368,7 @@ gmeow:StageObligation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:stageObligation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage obligation"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -2398,7 +2398,7 @@ gmeow:obligationDegradable
 
 gmeow:StageStability
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Stability"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -2407,7 +2407,7 @@ gmeow:StageStability
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:stageStability
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage stability"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -2435,7 +2435,7 @@ gmeow:stabilityPerTurnVariance
 
 gmeow:StageCacheDisposition
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Cache Disposition"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -2448,7 +2448,7 @@ gmeow:StageCacheDisposition
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:stageCacheDisposition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage cache disposition"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -2479,7 +2479,7 @@ gmeow:cacheRecomputeAggregate
 
 gmeow:StageBudget
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Budget"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -2488,7 +2488,7 @@ gmeow:StageBudget
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:hasStageBudget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "has stage budget"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
@@ -2501,7 +2501,7 @@ gmeow:hasStageBudget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:budgetDeadline
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "budget deadline"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
@@ -2511,7 +2511,7 @@ gmeow:budgetDeadline
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:budgetMaxSteps
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "budget max steps"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
@@ -2521,7 +2521,7 @@ gmeow:budgetMaxSteps
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:budgetMaxAnswers
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "budget max answers"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
@@ -2531,7 +2531,7 @@ gmeow:budgetMaxAnswers
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:budgetMaxInputBytes
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "budget max input bytes"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
@@ -2541,7 +2541,7 @@ gmeow:budgetMaxInputBytes
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:budgetMaxMemoryBytes
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "budget max memory bytes"@x-gmeow-english ;
     rdfs:domain gmeow:StageBudget ;
@@ -2554,7 +2554,7 @@ gmeow:budgetMaxMemoryBytes
 
 gmeow:PipelineRun
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline Run"@x-gmeow-english ;
     rdfs:subClassOf logic:Event ;
@@ -2564,7 +2564,7 @@ gmeow:PipelineRun
 
 gmeow:StageReceipt
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Receipt"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
@@ -2573,7 +2573,7 @@ gmeow:StageReceipt
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:hasStageReceipt
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "has stage receipt"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineRun ;
@@ -2586,7 +2586,7 @@ gmeow:hasStageReceipt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:receiptOfStage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "receipt of stage"@x-gmeow-english ;
     rdfs:domain gmeow:StageReceipt ;
@@ -2596,7 +2596,7 @@ gmeow:receiptOfStage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:receiptDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "receipt digest"@x-gmeow-english ;
     rdfs:domain gmeow:StageReceipt ;
@@ -2608,7 +2608,7 @@ gmeow:receiptDigest
 # ── Occurrence wiring: execution ↔ stage, run ↔ execution, receipt ↔ execution ─ #
 
 gmeow:executesStage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "executes stage"@x-gmeow-english ;
     rdfs:domain gmeow:StageExecution ;
@@ -2621,7 +2621,7 @@ gmeow:executesStage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasStageExecution
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "has stage execution"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineRun ;
@@ -2634,7 +2634,7 @@ gmeow:hasStageExecution
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:receiptOfExecution
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "receipt of execution"@x-gmeow-english ;
     rdfs:domain gmeow:StageReceipt ;
@@ -2805,12 +2805,12 @@ gmeow:runtimeDagAdmissionBoundary
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
-# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# NodeShapes state, authored here once as logic:Restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). A restriction carrying both owl:*Cardinality and
-# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# (Principle 17). A restriction carrying both a logic: qualified-cardinality bound
+# and logic:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / value-range / disjunctive
-# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL/DL
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
@@ -2821,15 +2821,15 @@ gmeow:PipelineStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:dataflowConsumes ; logic:allValuesFrom gmeow:PipelineStage ] .
 
 gmeow:Pipeline logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:hasStage ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:hasStage ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # Runtime-DAG vocabulary declarative axioms. A gmeow:BuildDataFlow
 # carries EXACTLY ONE gmeow:flowReason (required + closed to the three individuals);
 # the per-stage/per-execution value properties are closed to their declared sets via
 # logic:oneOf (projected declaratively to sh:in), matching the sibling-slice idiom.
-gmeow:BuildDataFlow rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:flowReason ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:FlowReason ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:flowReason ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FlowReason ] .
+gmeow:BuildDataFlow logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:flowReason ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:FlowReason ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:flowReason ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:FlowReason ] .
 gmeow:BuildDataFlow logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:flowReason ; logic:allValuesFrom [ logic:oneOf ( gmeow:flowReasonDataflow gmeow:flowReasonAuthority gmeow:flowReasonCost ) ] ] .
 gmeow:StageExecution logic:subClassOf
@@ -2843,13 +2843,26 @@ gmeow:PipelineStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:stageCacheDisposition ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageCacheDisposition ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:stageCacheDisposition ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageCacheDisposition ] .
 
+# gmeow:stageDisposition is EXACTLY ONE on a gmeow:StageExecution: a run ends in one
+# gmeow:StageDisposition, and a run with no disposition is an incomplete execution record —
+# so it carries both the min- and max-qualified bound, mirroring gmeow:flowReason.
+# gmeow:stageObligation and gmeow:stageStability are single-VALUED on a gmeow:PipelineStage
+# (at most one — two values are incoherent); their max-qualified bound is enforced here
+# alongside the logic:oneOf value closure above.
+gmeow:StageExecution logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageDisposition ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageDisposition ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageDisposition ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageDisposition ] .
+gmeow:PipelineStage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:stageObligation ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageObligation ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageStability ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageStability ] .
+
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 gmeow:PipelineStage logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:stageImpl ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 # gmeow:PipelineShape: gmeow:hasStage is non-functional (min1, no maxCount).
-# The min-qualified restriction above now uses onClass owl:Thing (not the
+# The min-qualified restriction above now uses logic:onClass logic:Thing (not the
 # specific gmeow:PipelineStage), which degrades to the bare sh:minCount 1
 # (frontend.rs derive_validation_shapes) instead of a qualified sh:qualifiedMinCount
 # — the same fix as the CitationAct/Embedding min1/max1 idiom, here min-only.
@@ -2876,7 +2889,7 @@ gmeow:pcc-pipeline-sh a gmeow:ProjectionCeilingCommitment ; rdfs:label "projecti
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -2884,7 +2897,7 @@ gmeow:pcc-pipeline-sh a gmeow:ProjectionCeilingCommitment ; rdfs:label "projecti
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:stageImplFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stageImpl is functional"@x-gmeow-english ;
@@ -2900,7 +2913,7 @@ gmeow:stageImplFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:executesStageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "executesStage is functional"@x-gmeow-english ;
@@ -2910,13 +2923,13 @@ gmeow:executesStageFunctionality
     logic:formalizes gmeow:executesStage ;
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:executesStage names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:executesStage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:executesStage, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects OWL FunctionalProperty from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:executesStage and nothing else. It is not a definition of the term (that lives on the term itself), not a shape, and not a second place to state its meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:executesStageFunctionality logic:characterizes gmeow:executesStage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:receiptOfExecutionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "receiptOfExecution is functional"@x-gmeow-english ;
@@ -2926,7 +2939,7 @@ gmeow:receiptOfExecutionFunctionality
     logic:formalizes gmeow:receiptOfExecution ;
     gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:receiptOfExecution names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:receiptOfExecution, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects owl:FunctionalProperty from it."@x-gmeow-english ;
+    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:receiptOfExecution, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects OWL FunctionalProperty from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:receiptOfExecution and nothing else. It is not a definition of the term (that lives on the term itself), not a shape, and not a second place to state its meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:receiptOfExecutionFunctionality logic:characterizes gmeow:receiptOfExecution ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

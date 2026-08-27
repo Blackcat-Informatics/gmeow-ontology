@@ -653,15 +653,22 @@ fn edoal_node_kind_uri(
 /// `owl:ObjectProperty` — is still an object property by OWL 2 semantics, so it also
 /// derives `Relation` here.
 fn owl_kind_edoal(onto: &DslView<'_>, iri: &str) -> Option<&'static str> {
-    if has_type(onto, iri, OWL_OBJECT_PROPERTY)
+    // Authored `rdf:type` is canonical `logic:` after the surface flip; normalize each onto its
+    // `owl:` view before matching (`logic:ObjectProperty`→`owl:ObjectProperty`,
+    // `logic:transitiveProperty`→`owl:TransitiveProperty`, …) so the EDOAL kind is still derived.
+    let types: BTreeSet<String> = objects_iri(onto, iri, RDF_TYPE)
+        .iter()
+        .map(|t| crate::typing_vocab::to_owl_view(t))
+        .collect();
+    if types.contains(OWL_OBJECT_PROPERTY)
         || OWL_OBJECT_PROPERTY_SUBTYPES
             .iter()
-            .any(|t| has_type(onto, iri, t))
+            .any(|t| types.contains(*t))
     {
         Some("Relation")
-    } else if has_type(onto, iri, OWL_DATATYPE_PROPERTY) {
+    } else if types.contains(OWL_DATATYPE_PROPERTY) {
         Some("Property")
-    } else if has_type(onto, iri, OWL_CLASS) {
+    } else if types.contains(OWL_CLASS) {
         Some("Class")
     } else {
         None
@@ -1043,17 +1050,25 @@ fn check_property_character(
     let owl_prop_types: BTreeSet<&str> = OWL_PROPERTY_TYPES.iter().copied().collect();
 
     for (prop, prop_mappings) in gmeow_props {
-        let g_is_object = has_type(onto, prop, OWL_OBJECT_PROPERTY);
-        let g_is_data = has_type(onto, prop, OWL_DATATYPE_PROPERTY);
+        // The GMEOW side is authored in the canonical `logic:` vocabulary after the surface flip, so
+        // normalize each `rdf:type` onto its `owl:` view (`logic:ObjectProperty`→`owl:ObjectProperty`,
+        // `logic:transitiveProperty`→`owl:TransitiveProperty`, …) before the character checks — else
+        // g_is_object/g_is_data/g_chars would silently read false and the soundness check would go
+        // inert. The TARGET side (`t_types` below) is an EXTERNAL ontology and keeps its `owl:` spelling.
+        let g_types: BTreeSet<String> = objects_iri(onto, prop, RDF_TYPE)
+            .iter()
+            .map(|t| crate::typing_vocab::to_owl_view(t))
+            .collect();
+        let g_is_object = g_types.contains(OWL_OBJECT_PROPERTY);
+        let g_is_data = g_types.contains(OWL_DATATYPE_PROPERTY);
         // The functional / inverse-functional characteristics of a GMEOW property now live
         // on the canonical `logic:PropertyCharacteristicAssertion` carrier, not on an
-        // `rdf:type owl:FunctionalProperty` triple; the remaining characteristics
-        // (Transitive/Symmetric) are still authored as OWL types. Read owl-typed
-        // characteristics via `rdf:type` AND the functional pair from the carrier.
+        // `rdf:type` marker; the remaining characteristics (Transitive/Symmetric) are read via the
+        // normalized `rdf:type` set. Read carrier-borne characteristics from the carrier.
         let carrier_chars = gmeow_carrier_characteristics(onto, prop);
         let mut g_chars: Vec<String> = Vec::new();
         for char_iri in CHARACTER_TYPES {
-            if has_type(onto, prop, char_iri) || carrier_chars.contains(*char_iri) {
+            if g_types.contains(*char_iri) || carrier_chars.contains(*char_iri) {
                 g_chars.push((*char_iri).to_owned());
             }
         }

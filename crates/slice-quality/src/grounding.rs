@@ -19,8 +19,14 @@ use gmeow_logic_compile::projections::sssom::{EquivalenceCell, equivalence_cells
 use crate::graph::{self, all_iris, all_lits, g, id, instances_of};
 
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+// An authored identity correspondence names its predicate in the canonical
+// `logic:` spelling (`logic:equivalentClass`); its generated OWL view uses `owl:`.
+// Both spellings (plus `skos:exactMatch`) are identity-strength and listed here.
 const IDENTITY_PREDICATES: &[&str] = &[
     "http://www.w3.org/2004/02/skos/core#exactMatch",
+    "https://blackcatinformatics.ca/logic/equivalentClass",
+    "https://blackcatinformatics.ca/logic/equivalentProperty",
+    "https://blackcatinformatics.ca/logic/sameAs",
     "http://www.w3.org/2002/07/owl#equivalentClass",
     "http://www.w3.org/2002/07/owl#equivalentProperty",
     "http://www.w3.org/2002/07/owl#sameAs",

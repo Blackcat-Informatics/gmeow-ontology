@@ -200,6 +200,14 @@ pub const AUTHORING_SEAM_REGISTRY_DRIFT: &str = "authoring.seam-registry-drift";
 /// it has no owning slice, and no cross-slice dependency edge into the minting
 /// slice is computable. The failure is otherwise silent.
 pub const AUTHORING_UNREGISTERED_TERM_NAMESPACE: &str = "authoring.unregistered-term-namespace";
+/// A slice's `module.ttl` reintroduces a retired `owl:`-prefixed authoring token
+/// (a prefixed name `owl:Foo`, or an `@prefix owl:` declaration) into its SOURCE
+/// text. `logic:` is the canonical authoring vocabulary; the OWL/RDFS surface is a
+/// GENERATED projection the pipeline derives — a hand-authored `owl:` token is a
+/// forbidden second source of truth. A full IRI (`…/2002/07/owl#…`, the
+/// correspondence-law target form), a longer prefix (`powl:` / `owlish`), and
+/// reworded prose (`OWL X`, no colon) are deliberately NOT flagged.
+pub const AUTHORING_RETIRED_OWL_PREFIX: &str = "authoring.retired-owl-prefix";
 /// Family base for `authoring.*`.
 pub const AUTHORING_FAMILY: &str = "authoring.";
 
@@ -355,6 +363,7 @@ pub const ALL_CODES: &[&str] = &[
     AUTHORING_UNTAGGED_LOCALIZABLE_LITERAL,
     AUTHORING_SEAM_REGISTRY_DRIFT,
     AUTHORING_UNREGISTERED_TERM_NAMESPACE,
+    AUTHORING_RETIRED_OWL_PREFIX,
     SLICE_DISCIPLINE_DUPLICATE_IRI,
     SLICE_DISCIPLINE_MISSING_TIER,
     SLICE_DISCIPLINE_NON_GROUNDING_PEERAGE,

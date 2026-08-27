@@ -1,15 +1,15 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Attestation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation"@x-gmeow-english ;
     logic:mediates gmeow:attester ,
@@ -18,19 +18,19 @@ gmeow:Attestation
     logic:instantiatesFramework logic:EpistemicFramework ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attester ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attester ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attestedSubject ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attestedSubject ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:issuedAt ;
-            owl:someValuesFrom xsd:dateTime ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:issuedAt ;
+            logic:someValuesFrom xsd:dateTime ;
         ] ;
     skos:definition "A reified assertion envelope that an attester vouches for a claim, artifact, identity binding, process, quality report, or ledger claim under a specific policy. Mediates between an attester, an attested subject, and optionally an attested claim or artifact. Distinct from Observation: an attestation is a vouching act, not a measurement or sensory reading. Its validity window is carried with gmeow:validFrom/validUntil; revocation sets validUntil (Principle 10)."@x-gmeow-english ;
     skos:example "ex:provAtt a gmeow:Attestation ; gmeow:attester ex:buildBot ; gmeow:attestedClaim ex:buildClaim ; gmeow:attestationPolicy ex:slsaL3 ."@x-gmeow-english ;
@@ -42,14 +42,14 @@ gmeow:Attestation
 
 gmeow:AttestationArtifact
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation Artifact"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:artifactMediaType ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:artifactMediaType ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "A concrete carrier of an attestation — in-toto JSON, SLSA provenance, W3C Verifiable Credential, DSSE envelope, C2PA manifest, EAT token, signed RDF graph, SCITT signed statement, nanopublication, signed git tag, release manifest, or signed blockchain payload. The artifact is the serialization; the Attestation is the logical vouching act that the artifact carries."@x-gmeow-english ;
     skos:example "ex:inTotoJson a gmeow:AttestationArtifact ; gmeow:artifactMediaType \"application/vnd.in-toto+json\" ."@x-gmeow-english ;
@@ -61,7 +61,7 @@ gmeow:AttestationArtifact
 
 gmeow:AttestationPolicy
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation Policy"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -75,7 +75,7 @@ gmeow:AttestationPolicy
 
 gmeow:AttestationType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -89,19 +89,19 @@ gmeow:AttestationType
 
 gmeow:Block
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Block"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:blockHash ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:blockHash ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:blockNumber ;
-            owl:someValuesFrom xsd:integer ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:blockNumber ;
+            logic:someValuesFrom xsd:integer ;
         ] ;
     skos:definition "A block of transactions on a distributed ledger or blockchain."@x-gmeow-english ;
     skos:example "ex:block42 a gmeow:Block ; gmeow:blockNumber 42 ; gmeow:blockHash \"0xdef...\" ."@x-gmeow-english ;
@@ -113,7 +113,7 @@ gmeow:Block
 
 gmeow:BlockchainAccount
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Blockchain Account"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -127,14 +127,14 @@ gmeow:BlockchainAccount
 
 gmeow:BlockchainNetwork
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Blockchain Network"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:chainId ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:chainId ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "A blockchain network identified by a chain identifier (e.g. CAIP-2 chainId)."@x-gmeow-english ;
     skos:example "ex:ethMainnet a gmeow:BlockchainNetwork ; gmeow:chainId \"eip155:1\" ."@x-gmeow-english ;
@@ -146,14 +146,14 @@ gmeow:BlockchainNetwork
 
 gmeow:LedgerEvent
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Ledger Event"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Event ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:logIndex ;
-            owl:someValuesFrom xsd:integer ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:logIndex ;
+            logic:someValuesFrom xsd:integer ;
         ] ;
     skos:definition "An event emitted by a smart contract or recorded on a ledger — a log entry, oracle callback, or bridge message."@x-gmeow-english ;
     skos:example "ex:transferEvent a gmeow:LedgerEvent ; gmeow:logIndex 3 ."@x-gmeow-english ;
@@ -165,7 +165,7 @@ gmeow:LedgerEvent
 
 gmeow:LedgerFinalityStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Ledger Finality Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -179,14 +179,14 @@ gmeow:LedgerFinalityStatus
 
 gmeow:LedgerTransaction
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Ledger Transaction"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:transactionHash ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:transactionHash ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "A transaction recorded on a distributed ledger or blockchain — the information-object representation of the payload, not the on-chain bytes themselves."@x-gmeow-english ;
     skos:example "ex:tx1 a gmeow:LedgerTransaction ; gmeow:transactionHash \"0xabc...\" ; gmeow:finalityStatus gmeow:finalityStatusFinalized ."@x-gmeow-english ;
@@ -198,7 +198,7 @@ gmeow:LedgerTransaction
 
 gmeow:SignatureScheme
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Signature Scheme"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -212,14 +212,14 @@ gmeow:SignatureScheme
 
 gmeow:SmartContract
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Smart Contract"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contractAddress ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contractAddress ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ;
     skos:definition "A deployed program on a blockchain or distributed ledger, identified by a contract address."@x-gmeow-english ;
     skos:example "ex:registry a gmeow:SmartContract ; gmeow:contractAddress \"0x1234...\" ."@x-gmeow-english ;
@@ -231,19 +231,19 @@ gmeow:SmartContract
 
 gmeow:TransparencyLogEntry
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Transparency Log Entry"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:logEntryUrl ;
-            owl:someValuesFrom rdfs:Literal ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:logEntryUrl ;
+            logic:someValuesFrom rdfs:Literal ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:logEntryIndex ;
-            owl:someValuesFrom xsd:integer ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:logEntryIndex ;
+            logic:someValuesFrom xsd:integer ;
         ] ;
     skos:definition "An append-only registry evidence record such as a Rekor entry, SCITT receipt, certificate-transparency log entry, or timestamp/notary log entry. Proves inclusion at a point in time, not correctness (Principle 1)."@x-gmeow-english ;
     skos:example "ex:rekorEntry a gmeow:TransparencyLogEntry ; gmeow:logEntryIndex 4815162342 ."@x-gmeow-english ;
@@ -255,7 +255,7 @@ gmeow:TransparencyLogEntry
 
 gmeow:VerificationActivity
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Verification Activity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Activity ;
@@ -269,14 +269,14 @@ gmeow:VerificationActivity
 
 gmeow:VerificationResult
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Verification Result"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:hasVerificationStatus ;
-            owl:someValuesFrom gmeow:VerificationStatus ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:hasVerificationStatus ;
+            logic:someValuesFrom gmeow:VerificationStatus ;
         ] ;
     skos:definition "An information object recording the outcome of a verification activity — verified, failed, unverified, expired, revoked, policy-failed, finality-pending, etc. A verification result is an observation output, not an axiom of correctness (Principle 12)."@x-gmeow-english ;
     skos:example "ex:verifyOutcome a gmeow:VerificationResult ; gmeow:hasVerificationStatus gmeow:verificationStatusVerified ."@x-gmeow-english ;
@@ -288,7 +288,7 @@ gmeow:VerificationResult
 
 gmeow:VerificationStatus
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Verification Status"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -301,7 +301,7 @@ gmeow:VerificationStatus
     gmeow:useWhen "Use as the value vocabulary behind gmeow:hasVerificationStatus — the open set of individuals naming a verification verdict (verified, failed, unverified, expired, revoked, policy-failed, finality-pending)."@x-gmeow-english .
 
 gmeow:artifactMediaType
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AttestationArtifact ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "artifact media type"@x-gmeow-english ;
@@ -315,7 +315,7 @@ gmeow:artifactMediaType
     gmeow:useWhen "Use to record the IANA media type of an attestation artifact's serialization, so a consumer can dispatch the right parser before re-verifying it."@x-gmeow-english .
 
 gmeow:attestationArtifact
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attestation artifact"@x-gmeow-english ;
@@ -329,7 +329,7 @@ gmeow:attestationArtifact
     gmeow:useWhen "Use to link the logical Attestation to the concrete serialization that carries it — an in-toto JSON, DSSE envelope, VC, or C2PA manifest — when the byte-level carrier matters for retrieval or re-verification."@x-gmeow-english .
 
 gmeow:attestationPolicy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attestation policy"@x-gmeow-english ;
@@ -343,7 +343,7 @@ gmeow:attestationPolicy
     gmeow:useWhen "Use to name the rules or framework the attester followed when issuing — a SLSA build level, a credential-issuance policy, an editorial standard — so consumers and the solver can weigh the attestation against its stated policy."@x-gmeow-english .
 
 gmeow:attestationType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attestation type"@x-gmeow-english ;
@@ -493,7 +493,7 @@ gmeow:attestationTypeVerifiableCredential
         gmeow:boxCBox .
 
 gmeow:attestedClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attested claim"@x-gmeow-english ;
@@ -507,7 +507,7 @@ gmeow:attestedClaim
     gmeow:useWhen "Use to link an attestation to the gmeow:Observation it vouches for — the seam between the universal claim stack (what is asserted) and the attestation (who vouches for it under which policy)."@x-gmeow-english .
 
 gmeow:attestedSubject
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attested subject"@x-gmeow-english ;
@@ -521,7 +521,7 @@ gmeow:attestedSubject
     gmeow:useWhen "Use to name the bare entity an attestation vouches for — an artifact, a key↔identity binding, a release — when the subject is a thing rather than a reified claim."@x-gmeow-english .
 
 gmeow:attester
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attester"@x-gmeow-english ;
@@ -535,7 +535,7 @@ gmeow:attester
     gmeow:useWhen "Use to name the single agent that issued an attestation — the party doing the vouching, a person, organization, or software agent — the WHO of the envelope."@x-gmeow-english .
 
 gmeow:blockHash
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Block ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "block hash"@x-gmeow-english ;
@@ -549,7 +549,7 @@ gmeow:blockHash
     gmeow:useWhen "Use to carry the hash identifying a gmeow:Block on its chain — the content-addressed identity that anchors the block independent of its sequential number."@x-gmeow-english .
 
 gmeow:blockNumber
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Block ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "block number"@x-gmeow-english ;
@@ -563,7 +563,7 @@ gmeow:blockNumber
     gmeow:useWhen "Use to carry the height/ordinal number of a gmeow:Block — its position in the chain, the figure confirmation depth is measured against."@x-gmeow-english .
 
 gmeow:chainId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:BlockchainNetwork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "chain id"@x-gmeow-english ;
@@ -577,7 +577,7 @@ gmeow:chainId
     gmeow:useWhen "Use to carry the CAIP-2 chain identifier of a gmeow:BlockchainNetwork — the string that distinguishes one chain from another when resolving on-chain identifiers."@x-gmeow-english .
 
 gmeow:confirmationDepth
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "confirmation depth"@x-gmeow-english ;
     rdfs:range xsd:integer ;
@@ -590,7 +590,7 @@ gmeow:confirmationDepth
     gmeow:useWhen "Use to record how many blocks have confirmed a transaction or log entry since inclusion — the depth a consumer weighs when judging settlement risk."@x-gmeow-english .
 
 gmeow:contractAddress
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:SmartContract ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "contract address"@x-gmeow-english ;
@@ -604,7 +604,7 @@ gmeow:contractAddress
     gmeow:useWhen "Use to carry the deployment address of a gmeow:SmartContract — the on-chain location at which the program lives and is invoked."@x-gmeow-english .
 
 gmeow:finalityStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "finality status"@x-gmeow-english ;
     rdfs:range gmeow:LedgerFinalityStatus ;
@@ -657,12 +657,12 @@ gmeow:finalityStatusReorged
         gmeow:boxCBox .
 
 gmeow:hasAttestation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "has attestation"@x-gmeow-english ;
     rdfs:range gmeow:Attestation ;
-    owl:inverseOf gmeow:attestedSubject ;
+    logic:inverseOf gmeow:attestedSubject ;
     skos:definition "Relates an entity to an attestation about it — the inverse of gmeow:attestedSubject. Non-functional: an entity may have many co-existing attestations from different attesters (Principle 9)."@x-gmeow-english ;
     skos:example "ex:release1_2 gmeow:hasAttestation ex:relAtt ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when you can state gmeow:attestedSubject instead (prefer the attestation-rooted direction and read this as its inverse), and avoid treating one attestation as authoritative — multiple coexist (Principle 9)."@x-gmeow-english ;
@@ -672,7 +672,7 @@ gmeow:hasAttestation
     gmeow:useWhen "Use from an entity to enumerate the attestations vouching for it — the entity-rooted inverse of gmeow:attestedSubject, when traversing from the thing to who has vouched for it."@x-gmeow-english .
 
 gmeow:hasSignature
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "has signature"@x-gmeow-english ;
     rdfs:range gmeow:CryptographicSignature ;
@@ -685,7 +685,7 @@ gmeow:hasSignature
     gmeow:useWhen "Use to attach a gmeow:CryptographicSignature to anything that is signed — an attestation, its carrier artifact, a release, a message — the universal domain-free signature spine."@x-gmeow-english .
 
 gmeow:hasVerificationStatus
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VerificationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "has verification status"@x-gmeow-english ;
@@ -699,7 +699,7 @@ gmeow:hasVerificationStatus
     gmeow:useWhen "Use to attach the categorical verdict — verified, failed, expired, revoked, policy-failed, finality-pending — to a gmeow:VerificationResult, naming one or more gmeow:VerificationStatus individuals."@x-gmeow-english .
 
 gmeow:issuedAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "issued at"@x-gmeow-english ;
@@ -713,7 +713,7 @@ gmeow:issuedAt
     gmeow:useWhen "Use to stamp the single instant a vouching act was issued — the wall-clock moment the attester signed and released the envelope."@x-gmeow-english .
 
 gmeow:ledgerInclusionProof
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "ledger inclusion proof"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
@@ -726,7 +726,7 @@ gmeow:ledgerInclusionProof
     gmeow:useWhen "Use to carry the cryptographic inclusion proof (e.g. a Merkle proof) for a ledger transaction, event, block, or transparency-log entry — the domain-free evidence that the record is present in its log or chain."@x-gmeow-english .
 
 gmeow:logEntryIndex
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TransparencyLogEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "log entry index"@x-gmeow-english ;
@@ -740,7 +740,7 @@ gmeow:logEntryIndex
     gmeow:useWhen "Use to record the stable sequential position of a gmeow:TransparencyLogEntry within its append-only log — the log-local identity that survives mirror changes."@x-gmeow-english .
 
 gmeow:logEntryUrl
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:TransparencyLogEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "log entry URL"@x-gmeow-english ;
@@ -754,7 +754,7 @@ gmeow:logEntryUrl
     gmeow:useWhen "Use to record a retrieval URL for a gmeow:TransparencyLogEntry so a consumer can fetch and re-check the logged record; assert one per mirror."@x-gmeow-english .
 
 gmeow:logIndex
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:LedgerEvent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "log index"@x-gmeow-english ;
@@ -768,11 +768,11 @@ gmeow:logIndex
     gmeow:useWhen "Use to carry the position of a gmeow:LedgerEvent within its containing block or transaction — the offset that disambiguates one emitted log from another in the same record."@x-gmeow-english .
 
 gmeow:signatureOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CryptographicSignature ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "signature of"@x-gmeow-english ;
-    owl:inverseOf gmeow:hasSignature ;
+    logic:inverseOf gmeow:hasSignature ;
     skos:definition "The entity, attestation, or artifact that a cryptographic signature is over — the inverse of gmeow:hasSignature."@x-gmeow-english ;
     skos:example "ex:sig1 gmeow:signatureOf ex:inTotoJson ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when you can state gmeow:hasSignature instead (prefer the payload-rooted direction and read this as its inverse), and avoid using it to imply the covered payload is true rather than merely intact."@x-gmeow-english ;
@@ -782,7 +782,7 @@ gmeow:signatureOf
     gmeow:useWhen "Use from a gmeow:CryptographicSignature to name what it covers — the signature-rooted inverse of gmeow:hasSignature, when traversing from a signature back to its signed payload."@x-gmeow-english .
 
 gmeow:signatureRecoveryAddress
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "signature recovery address"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
@@ -835,7 +835,7 @@ gmeow:signatureSchemeRSASHA256
         gmeow:boxCBox .
 
 gmeow:transactionHash
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:LedgerTransaction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "transaction hash"@x-gmeow-english ;
@@ -849,7 +849,7 @@ gmeow:transactionHash
     gmeow:useWhen "Use to carry the hash that identifies a gmeow:LedgerTransaction on its chain — the stable on-chain identity used to look up and re-verify the transaction."@x-gmeow-english .
 
 gmeow:transparencyLogEntry
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "transparency log entry"@x-gmeow-english ;
@@ -863,7 +863,7 @@ gmeow:transparencyLogEntry
     gmeow:useWhen "Use to link an attestation to a gmeow:TransparencyLogEntry recording its inclusion in an append-only log; an attestation may have entries in several logs."@x-gmeow-english .
 
 gmeow:verificationActivity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "verification activity"@x-gmeow-english ;
@@ -877,7 +877,7 @@ gmeow:verificationActivity
     gmeow:useWhen "Use to link an attestation to a gmeow:VerificationActivity that checked it — the act perspective, when you care about who ran the check and with what inputs."@x-gmeow-english .
 
 gmeow:verificationResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Attestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "verification result"@x-gmeow-english ;
@@ -947,7 +947,7 @@ gmeow:verificationStatusVerified
         gmeow:boxCBox .
 
 gmeow:verifiedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:VerificationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "verified by"@x-gmeow-english ;
@@ -961,7 +961,7 @@ gmeow:verifiedBy
     gmeow:useWhen "Use to name the agent or software that produced a gmeow:VerificationResult — the verifier whose standpoint the verdict is held from (Principle 9: a result is one verifier's observation, not a global fact)."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/attestation>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Cross-cutting certified attestation layer: signed claims, signed artifacts, verification results, transparency-log evidence, and ledger/blockchain evidence. Separates the claim/observation (what is asserted) from the attestation (who vouches for it under which policy) from the cryptographic evidence (signature) from the verification result (an observed outcome, not truth itself). Aligns to PROV-O, in-toto, SLSA, DSSE, Sigstore, Rekor, SCITT, W3C Verifiable Credentials, C2PA, RATS/EAT, and nanopublications by reference (Principle 5).
 
@@ -987,7 +987,7 @@ REUSE.
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -995,7 +995,7 @@ REUSE.
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:artifactMediaTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "artifactMediaType is functional"@x-gmeow-english ;
@@ -1010,7 +1010,7 @@ gmeow:artifactMediaTypeFunctionality
     skos:example "gmeow:artifactMediaTypeFunctionality logic:characterizes gmeow:artifactMediaType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attesterFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "attester is functional"@x-gmeow-english ;
@@ -1025,7 +1025,7 @@ gmeow:attesterFunctionality
     skos:example "gmeow:attesterFunctionality logic:characterizes gmeow:attester ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:blockHashFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "blockHash is functional"@x-gmeow-english ;
@@ -1040,7 +1040,7 @@ gmeow:blockHashFunctionality
     skos:example "gmeow:blockHashFunctionality logic:characterizes gmeow:blockHash ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:blockNumberFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "blockNumber is functional"@x-gmeow-english ;
@@ -1055,7 +1055,7 @@ gmeow:blockNumberFunctionality
     skos:example "gmeow:blockNumberFunctionality logic:characterizes gmeow:blockNumber ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:chainIdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "chainId is functional"@x-gmeow-english ;
@@ -1070,7 +1070,7 @@ gmeow:chainIdFunctionality
     skos:example "gmeow:chainIdFunctionality logic:characterizes gmeow:chainId ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:contractAddressFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "contractAddress is functional"@x-gmeow-english ;
@@ -1085,7 +1085,7 @@ gmeow:contractAddressFunctionality
     skos:example "gmeow:contractAddressFunctionality logic:characterizes gmeow:contractAddress ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:issuedAtFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "issuedAt is functional"@x-gmeow-english ;
@@ -1100,7 +1100,7 @@ gmeow:issuedAtFunctionality
     skos:example "gmeow:issuedAtFunctionality logic:characterizes gmeow:issuedAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:logEntryIndexFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "logEntryIndex is functional"@x-gmeow-english ;
@@ -1115,7 +1115,7 @@ gmeow:logEntryIndexFunctionality
     skos:example "gmeow:logEntryIndexFunctionality logic:characterizes gmeow:logEntryIndex ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:logIndexFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "logIndex is functional"@x-gmeow-english ;
@@ -1130,7 +1130,7 @@ gmeow:logIndexFunctionality
     skos:example "gmeow:logIndexFunctionality logic:characterizes gmeow:logIndex ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:transactionHashFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "transactionHash is functional"@x-gmeow-english ;
@@ -1160,7 +1160,7 @@ gmeow:transactionHashFunctionality
 
 gmeow:Component
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Component"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -1175,7 +1175,7 @@ gmeow:Component
 
 gmeow:SubstrateComponent
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Substrate Component"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Component ;
@@ -1190,7 +1190,7 @@ gmeow:SubstrateComponent
 
 gmeow:PinClaim
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Pin Claim"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -1205,7 +1205,7 @@ gmeow:PinClaim
 
 gmeow:ReconciledPin
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Reconciled Pin"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -1221,7 +1221,7 @@ gmeow:ReconciledPin
 # --- Kernel properties -------------------------------------------------------
 
 gmeow:componentName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "component name"@x-gmeow-english ;
@@ -1235,7 +1235,7 @@ gmeow:componentName
     gmeow:useWhen "Use to name a build component canonically so claims and the SBOM refer to the same subject."@x-gmeow-english .
 
 gmeow:componentVersion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "component version"@x-gmeow-english ;
@@ -1249,7 +1249,7 @@ gmeow:componentVersion
     gmeow:useWhen "Use to carry a component's single reconciled crate version, the headline the CLI and SBOM report."@x-gmeow-english .
 
 gmeow:embeds
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "embeds"@x-gmeow-english ;
@@ -1263,7 +1263,7 @@ gmeow:embeds
     gmeow:useWhen "Use to record what a shipped engine artifact statically embeds, so the SBOM can list the bundle's embedded components verifiably."@x-gmeow-english .
 
 gmeow:claimedComponent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimed component"@x-gmeow-english ;
@@ -1277,7 +1277,7 @@ gmeow:claimedComponent
     gmeow:useWhen "Use to say which component a per-site claim is asserting a version of."@x-gmeow-english .
 
 gmeow:claimSite
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claim site"@x-gmeow-english ;
@@ -1291,7 +1291,7 @@ gmeow:claimSite
     gmeow:useWhen "Use to record which of the mutually-unaware representations a claim came from."@x-gmeow-english .
 
 gmeow:claimDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claim dimension"@x-gmeow-english ;
@@ -1305,7 +1305,7 @@ gmeow:claimDimension
     gmeow:useWhen "Use to record which versioned dimension a claim asserts, so reconciliation partitions strictly by dimension."@x-gmeow-english .
 
 gmeow:claimedValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PinClaim ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimed value"@x-gmeow-english ;
@@ -1319,7 +1319,7 @@ gmeow:claimedValue
     gmeow:useWhen "Use to carry the version string a claim site asserts, normalized so like dimensions compare like."@x-gmeow-english .
 
 gmeow:expectedClaimSite
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Component ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "expected claim site"@x-gmeow-english ;
@@ -1333,7 +1333,7 @@ gmeow:expectedClaimSite
     gmeow:useWhen "Use to declare which sites must assert a component, so a silently missing site is caught as drift's completeness half."@x-gmeow-english .
 
 gmeow:reconciledComponent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ReconciledPin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciled component"@x-gmeow-english ;
@@ -1347,7 +1347,7 @@ gmeow:reconciledComponent
     gmeow:useWhen "Use to say which component a consensus value is for."@x-gmeow-english .
 
 gmeow:reconciledDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ReconciledPin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciled dimension"@x-gmeow-english ;
@@ -1361,7 +1361,7 @@ gmeow:reconciledDimension
     gmeow:useWhen "Use to say which dimension a consensus value reconciles."@x-gmeow-english .
 
 gmeow:reconciledValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ReconciledPin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciled value"@x-gmeow-english ;
@@ -1377,7 +1377,7 @@ gmeow:reconciledValue
 # --- Functional-property characteristic assertions (reasoner-safe at-most-one) -
 
 gmeow:componentNameFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "componentName is functional"@x-gmeow-english ;
@@ -1393,7 +1393,7 @@ gmeow:componentNameFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:componentVersionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "componentVersion is functional"@x-gmeow-english ;
@@ -1409,7 +1409,7 @@ gmeow:componentVersionFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimedComponentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimedComponent is functional"@x-gmeow-english ;
@@ -1425,7 +1425,7 @@ gmeow:claimedComponentFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimSiteFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimSite is functional"@x-gmeow-english ;
@@ -1441,7 +1441,7 @@ gmeow:claimSiteFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimDimensionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimDimension is functional"@x-gmeow-english ;
@@ -1457,7 +1457,7 @@ gmeow:claimDimensionFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:claimedValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "claimedValue is functional"@x-gmeow-english ;
@@ -1473,7 +1473,7 @@ gmeow:claimedValueFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reconciledComponentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciledComponent is functional"@x-gmeow-english ;
@@ -1489,7 +1489,7 @@ gmeow:reconciledComponentFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reconciledDimensionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciledDimension is functional"@x-gmeow-english ;
@@ -1505,7 +1505,7 @@ gmeow:reconciledDimensionFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:reconciledValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "reconciledValue is functional"@x-gmeow-english ;
@@ -1524,7 +1524,7 @@ gmeow:reconciledValueFunctionality
 
 gmeow:ClaimSite
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Claim Site"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -1581,7 +1581,7 @@ gmeow:claimSiteProse
 
 gmeow:ClaimDimension
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Claim Dimension"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;

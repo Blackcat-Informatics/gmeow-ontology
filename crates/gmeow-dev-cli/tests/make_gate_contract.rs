@@ -111,6 +111,7 @@ const CI_JOB_COVERED: &[&str] = &[
 /// parallel branches and that the Makefile aggregate has the same membership.
 const HEAVY_TASKS: &[&str] = &[
     "wasm-parity",
+    "console-smoke",
     "acceptance",
     "bench-soak",
     "medium-consumer-surface",
@@ -151,7 +152,8 @@ fn evidence_binaries_have_one_dependency_light_owner() {
 
 /// Heavy tasks that need only the producer artifact. The medium consumer proof is
 /// scheduled separately because it also consumes the authenticated Rust archive.
-const CI_HEAVY_MATRIX_TASKS: &[&str] = &["wasm-parity", "acceptance", "bench-soak"];
+const CI_HEAVY_MATRIX_TASKS: &[&str] =
+    &["wasm-parity", "console-smoke", "acceptance", "bench-soak"];
 
 #[test]
 fn every_check_dag_target_is_exercised_by_ci() {
@@ -267,7 +269,6 @@ fn aggregate_gate_has_one_owner_for_each_expensive_equivalence_class() {
         "reason-verify",
         "console-test",
         "console",
-        "console-smoke",
         "lint-alignment",
         "doc-lint",
         "slice-quality-gate",

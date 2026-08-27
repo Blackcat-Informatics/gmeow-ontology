@@ -138,8 +138,9 @@ pub fn base_ontology_nt() -> &'static str {
 pub fn base_ontology_dataset() -> &'static Arc<RdfDataset> {
     static CACHE: OnceLock<Arc<RdfDataset>> = OnceLock::new();
     CACHE.get_or_init(|| {
-        parse_dataset(base_ontology_nt().as_bytes(), "application/n-triples", None)
-            .expect("authenticated terminal authored graph must parse")
+        let canonical = parse_dataset(base_ontology_nt().as_bytes(), "application/n-triples", None)
+            .expect("authenticated terminal authored graph must parse");
+        with_owl_rdfs_projection(&canonical)
     })
 }
 
@@ -166,6 +167,68 @@ pub fn authenticated_named_graph_nt(graph_iri: &str) -> String {
         "authenticated bundle omitted required named graph <{graph_iri}>"
     );
     dataset_default_graph_to_nt(&flatten_to_default_graph(&graph))
+}
+
+/// `dataset` with the complete OWL/RDFS projection of its canonical `logic:`
+/// vocabulary materialized. The authenticated carrier remains the sole corpus
+/// source; this consumer-only view adds the spellings used by generated shapes
+/// and legacy conformance assertions without reading or rebuilding slice modules.
+fn with_owl_rdfs_projection(dataset: &RdfDataset) -> Arc<RdfDataset> {
+    let base = flat_rdf_quads_from_dataset(dataset);
+    let mut out: Vec<purrdf::RdfQuad> = Vec::with_capacity(base.len());
+    for quad in base {
+        let pred_view = gmeow_ns::owl_view_of_predicate(&quad.predicate);
+        let obj_view = object_marker_view(&quad.predicate, &quad.object);
+        match (pred_view, obj_view) {
+            (None, None) => {}
+            (Some(predicate), None) => {
+                let mut lowered = quad.clone();
+                lowered.predicate = predicate.to_owned();
+                out.push(lowered);
+            }
+            (None, Some(object)) => {
+                let mut lowered = quad.clone();
+                lowered.object = purrdf::RdfTerm::iri(object);
+                out.push(lowered);
+            }
+            (Some(predicate), Some(object)) => {
+                let mut both = quad.clone();
+                both.predicate = predicate.to_owned();
+                both.object = purrdf::RdfTerm::iri(object);
+                out.push(both);
+
+                let mut pred_only = quad.clone();
+                pred_only.predicate = predicate.to_owned();
+                out.push(pred_only);
+
+                let mut obj_only = quad.clone();
+                obj_only.object = purrdf::RdfTerm::iri(object);
+                out.push(obj_only);
+            }
+        }
+        out.push(quad);
+    }
+    flat_dataset_from_quads(&out).expect("projected ontology dataset must freeze")
+}
+
+/// The OWL-view spelling of a canonical marker in object position, when the
+/// predicate gives that object class/type semantics.
+fn object_marker_view(predicate: &str, object: &purrdf::RdfTerm) -> Option<&'static str> {
+    const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let purrdf::RdfTerm::Iri(object_iri) = object else {
+        return None;
+    };
+    if predicate == RDF_TYPE_IRI {
+        gmeow_ns::owl_view_of_type_marker(object_iri)
+    } else if gmeow_ns::is_class_position_predicate(predicate) {
+        match object_iri.as_str() {
+            gmeow_ns::LOGIC_THING => Some(gmeow_ns::OWL_THING),
+            gmeow_ns::LOGIC_NOTHING => Some(gmeow_ns::OWL_NOTHING),
+            _ => None,
+        }
+    } else {
+        None
+    }
 }
 
 /// Parsed SHACL shape model for the whole conformance corpus.

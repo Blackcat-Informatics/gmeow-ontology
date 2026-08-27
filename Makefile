@@ -178,7 +178,7 @@ TEST_FIXTURE_ENV = GMEOW_TEST_FIXTURE_MANIFEST="$(TEST_FIXTURE_MANIFEST)" GMEOW_
 # The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
 # because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
 # than by the change under test; each remains individually runnable by name.
-HEAVY_TASKS := wasm-parity acceptance bench-soak medium-consumer-surface
+HEAVY_TASKS := wasm-parity console-smoke acceptance bench-soak medium-consumer-surface
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
@@ -202,7 +202,7 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate perf-sample perf-accept perf-ci-receipt \
 	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
-	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
+	maint-extract maint-refresh-target-axioms maint-refresh-mcp-witness maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
 	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
@@ -846,7 +846,14 @@ mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-b
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
-maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reasoning segment into crates/docs/assets/mcp/ and re-pin its BLAKE3 manifest (only after the Node native<->wasm parity lane passes).
+maint-refresh-mcp-witness: ## Refresh the deterministic native MCP response attestation consumed read-only by native/wasm parity tests.
+	cargo run -p gmeow-mcp-wasm --example refresh-witness-mcp
+
+maint-refresh-mcp-asset: mcp-wasm-pkg maint-refresh-mcp-witness ## Refresh the native witness, prove parity, then re-vendor the reasoning segment and digest manifest.
+	@# The explicit maintainer producer above runs BEFORE either parity consumer. Tests are
+	@# read-only and never bless, repair, regenerate, or otherwise mutate their attestation.
+	cd crates/mcp-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-mcp-wasm Node native↔wasm parity witness lane passed"
 	@# The re-pin drives the SHARED vendored-wasm-asset harness through the `MCP_ASSET`
 	@# descriptor (`gmeow_docs::vendored_asset`). The vendored set is a TREE, not a flat
 	@# list: `index.mjs` imports `./pkg/<mod>.js`, so the wasm-bindgen output keeps its
@@ -951,7 +958,7 @@ console: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) —
 	@# SYNC_OUTPUTS=docs`), which is why
 	@# CONSOLE_OUT defaults to a scratch base.
 	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
-console-smoke: console ## Drive the ASSEMBLED console in a real browser: the deployed leg, the published tarball, and the byte ceiling.
+console-smoke: console ## HEAVY (CI-only lane, `make heavy`) drive the assembled console's whole browser/package breadth sweep.
 	@# The browser surface IS the deliverable, and this is the only lane that executes it.
 	@# It serves $(CONSOLE_OUT) over plain static HTTP with NO COOP/COEP — exactly what
 	@# GitHub Pages provides — and drives /console/ in headless Chromium: the derived pane
@@ -959,10 +966,11 @@ console-smoke: console ## Drive the ASSEMBLED console in a real browser: the dep
 	@# single-threaded contract, the measured page load and pre-cache ceiling, and the REAL `npm pack`
 	@# tarball installed into a scratch project and booted the way the shipped README says.
 	@#
-	@# It HARD-FAILS EVERYWHERE. There is deliberately no local skip and no CI-only branch:
-	@# a locally-green gate that quietly skipped the browser is precisely how a published
-	@# console that could not boot at all went undetected. A missing dependency is a missing
-	@# dependency — the two commands that install it are named below, verbatim.
+	@# Its runtime is set by breadth — 41 browser cases spanning the whole read surface,
+	@# offline installation, package installation, and perturbed deployment trees — so it
+	@# lives in `make heavy` and runs on every PR as its own CI matrix branch. It remains
+	@# directly runnable by name and HARD-FAILS when invoked without its dependencies; the
+	@# two commands that install them are named below, verbatim.
 	@command -v node >/dev/null 2>&1 || { \
 		echo "FAIL: node is not installed — the console browser smoke lane cannot run and is not skippable."; \
 		echo "      Install Node (>=18), then:"; \

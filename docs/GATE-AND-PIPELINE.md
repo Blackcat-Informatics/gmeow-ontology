@@ -295,7 +295,7 @@ and **deterministically** on *this branch's own changes*. It moves to
 2. its runtime is set by corpus breadth rather than by the edit under test;
 3. it SKIPs locally — critical-path occupancy with no local signal.
 
-**The case.** Three lanes moved (commit `6bb22778d`). `bench-soak` is a
+**The case.** Three lanes moved first (commit `6bb22778d`). `bench-soak` is a
 repeat-for-confidence window (criterion 1). `acceptance` globs every external
 coverage fixture and round-trips each (criterion 2). `wasm-parity` builds five
 crates for `wasm32` in release plus `wasm-bindgen`, `wasm-opt` and four Node
@@ -315,6 +315,14 @@ declared chain without executing the DAG. The two breadth-heavy consumer suites
 `medium-consumer-surface` lane. The membership decision is therefore per
 contract: artifact inspection stays cheap and read-only, codec laws use bounded
 inputs, and no test launches another producer.
+
+`console-smoke` joined them after the 41-case browser/package sweep repeatedly
+dominated the local critical path: it boots the assembled deployment, executes the
+whole read surface, perturbs deployment trees, exercises offline installation, and
+packs and installs the real npm artifact. That is breadth by construction (criterion
+2), not a focused verdict about the current edit. The focused DOM-free `console-test`
+still runs on `make check` against the shipped wasm and synchronized bundle; the full
+browser sweep runs on every PR as its own parallel heavy-matrix branch.
 
 **The refusal.** `make heavy` requires `CI=true` **and** a CI-vendor marker
 (`GITHUB_ACTIONS`, `GITLAB_CI`, or `BUILDKITE_BUILD_ID`), so a developer who

@@ -258,8 +258,9 @@ fn the_admissible_types_are_really_subsumed_by_the_category() {
     kernel.assert_triple(
         &gmeow("LossBearingProfile"),
         RDF_TYPE,
-        &format!("{OWL_NS}Class"),
-        "the kernel must declare gmeow:LossBearingProfile as an EL-safe owl:Class",
+        &format!("{LOGIC_NS}Class"),
+        "the kernel must declare gmeow:LossBearingProfile as an EL-safe logic:Class (owl:Class \
+         is now its generated projection, never the authored source)",
     );
     kernel.assert_triple(
         &gmeow("DocumentationDistribution"),
@@ -296,7 +297,7 @@ fn the_admissible_types_are_really_subsumed_by_the_category() {
         notation.assert_triple(
             &gmeow(property),
             RDF_TYPE,
-            &format!("{OWL_NS}ObjectProperty"),
+            &format!("{LOGIC_NS}ObjectProperty"),
             why,
         );
         notation.assert_triple(
