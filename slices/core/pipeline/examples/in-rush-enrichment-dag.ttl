@@ -40,6 +40,7 @@ ex:fetch a gmeow:PipelineStage ;
     gmeow:stageImpl "in_rush_fetch" ;
     gmeow:hasCapability gmeow:sourceOrigin ;
     gmeow:stageStability gmeow:stabilityPerTurnVariance ;
+    gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ;
     gmeow:stageObligation gmeow:obligationMandatory .
 
 # Canonicalization is byte-identical across turns, so it can sit in the prefix.
@@ -49,6 +50,7 @@ ex:canonicalize a gmeow:PipelineStage ;
     gmeow:stageImpl "canonicalize" ;
     gmeow:dataflowConsumes ex:fetch ;
     gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:stageObligation gmeow:obligationMandatory .
 
 # The enrichment itself is per-turn variant and budgeted; its absence is tolerable.
@@ -58,6 +60,7 @@ ex:enrich a gmeow:PipelineStage ;
     gmeow:stageImpl "enrich" ;
     gmeow:dataflowConsumes ex:canonicalize ;
     gmeow:stageStability gmeow:stabilityPerTurnVariance ;
+    gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ;
     gmeow:stageObligation gmeow:obligationDegradable ;
     gmeow:hasStageBudget ex:budget-enrich .
 
@@ -75,6 +78,8 @@ ex:gateAdmission a gmeow:PipelineStage ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "gate_admission" ;
     gmeow:dataflowConsumes ex:canonicalize ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution ;
     gmeow:stageObligation gmeow:obligationMandatory .
 
 # The receipt writer reads its bytes from ex:enrich (dataflow) but MUST run after
@@ -84,6 +89,8 @@ ex:writeReceipt a gmeow:PipelineStage ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "write_receipt" ;
     gmeow:dataflowConsumes ex:enrich ;
+    gmeow:stageStability gmeow:stabilityPerTurnVariance ;
+    gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ;
     gmeow:stageObligation gmeow:obligationMandatory .
 
 ex:enrichSink a gmeow:PipelineStage ;
@@ -92,6 +99,8 @@ ex:enrichSink a gmeow:PipelineStage ;
     gmeow:stageImpl "enrich_sink" ;
     gmeow:dataflowConsumes ex:writeReceipt ;
     gmeow:hasCapability gmeow:sinkCapability ;
+    gmeow:stageStability gmeow:stabilityPerTurnVariance ;
+    gmeow:stageCacheDisposition gmeow:cacheRecomputeAggregate ;
     gmeow:stageObligation gmeow:obligationMandatory .
 
 # ── The authority edge a pure-dataflow reasoner would drop ──

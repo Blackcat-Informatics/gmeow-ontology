@@ -401,6 +401,12 @@ use session_common::*;
 /// stays an honest gap, and the W3C divergence corpus is unchanged
 /// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
 /// class expression, so its reasoning verdict is unchanged.
+/// Re-blessed once more for the process-independent whole-bundle import cache. The shared
+/// term arena's `ContentKey` now derives serde so that exact content identity can cross the
+/// cache boundary; dense arena handles remain non-serializable and every constructor,
+/// interning key, ordering, and decision path is unchanged. `term-arena/src/lib.rs` is an
+/// `EXTERNAL_BACKWARD_SOURCE` member, so the raw-source pin moves even though adding derives
+/// cannot change a reasoning answer. The fixed edge-only input's verdict is unchanged.
 /// Re-blessed once more, EXTENDING the canonical `logic:` lowering from the
 /// restriction body to the full slice-authorable TYPING + class-axiom vocabulary:
 /// `CALCULUS_VOCABULARY` (`reason/mod.rs`) grows from the restriction slots to also carry
@@ -435,8 +441,15 @@ use session_common::*;
 /// grows 49→51 rows and `native_contract_hash()` `include_str!`s `reason/mod.rs`, so the descriptor
 /// moves; every currently-`rdfs:`-authored domain/range input is untouched (`calculus_term` is
 /// identity on an `rdfs:` IRI), so the shipped corpus's reasoning verdicts are unchanged.
+/// Re-blessed after the finite-DL reader stopped treating `graph/logic` flat IR and
+/// `graph/relational-core` reified fields as OWL syntax. The object/meta boundary changes the
+/// shipped coverage verdict deliberately while leaving ordinary authored OWL/logic inputs intact.
+/// Re-blessed after leave-one-out fast-family dispatch began normalizing canonical `logic:`
+/// predicates and characteristic objects through the same fixed-calculus table. This removes
+/// full finite-DL rebuilds for canonical disjointness/inverse/characteristic probes without
+/// changing their verdicts.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "3151c0c72828ebde43c070e493b3bd87dd8cb24846f2b9bb5bea90047553e71f";
+    "b9de8d2a2f5851b7a99b182602a24fdc74ed3538933dd2bf9e2c9de453e66068";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -629,6 +642,10 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// and `reason/dl.rs`, so this fixed-input session identity moves with it. The fixed
 /// edge-only input authors no class expression in either spelling, so its reasoning verdict
 /// is unchanged.
+/// Re-blessed once more for the whole-bundle import cache (see the engine-descriptor note
+/// above): the backward-source digest is one of the seven folded identity axes and moves
+/// when `ContentKey` gains serialization derives. Those derives do not change the fixed
+/// edge-only program, its canonical terms, or its reasoning verdict.
 /// Re-blessed once more, extending the canonical `logic:` lowering to the full
 /// typing + class-axiom vocabulary (see the engine-descriptor golden above): the native
 /// contract hash is one of the seven folded identity axes and `native_contract_hash()`
@@ -648,8 +665,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// axes and it `include_str!`s `reason/mod.rs`, so this fixed-input session identity moves with the
 /// 49→51-row table even though the fixed edge-only input carries no domain/range axiom and its
 /// reasoning verdict is unchanged.
+/// Re-blessed for the compiled-program graph boundary above; the fixed edge-only input contains
+/// neither internal graph, but its engine-contract identity deliberately moves with the boundary.
+/// Re-blessed for the canonical leave-one-out fast-family dispatch above. The fixed edge-only
+/// input has no such TBox axiom, so its verdict is unchanged while engine identity moves.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "a014db827eebe3e2e2b4350816837ee508833801def333eb5c6d1fac7de630d1";
+    "2060163f892e0c000d07fe2e4020f2d3a4c1afdd9eb7cd6b07596550b46b2c91";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

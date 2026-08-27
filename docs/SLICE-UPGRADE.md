@@ -253,9 +253,11 @@ filled cell in a coverage table.
 ```bash
 make fmt
 make check          # materializes generated/ through the single producer, then gates
-make validate
-make slicetest
 ```
+
+Do not follow `make check` with its component targets: the gate already ran
+validation, the cached declarative slice verdict, and the authenticated Rust suite.
+Repeating them adds burden without adding evidence.
 
 Review generated diffs as projections of the canonical change. Unexpected fanout
 usually reveals an ownership mistake, a generator defect, or a broader semantic

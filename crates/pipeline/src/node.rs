@@ -10,9 +10,9 @@
 //! Each resource a stage [`Stage::resources`] declares is held exclusively while
 //! it runs — two stages competing for the same resource serialize; everything
 //! else is parallel within its topological level. The reasoning stage requires
-//! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive); the two
-//! whole-dataset serialization leaves require [`SERIALIZATION_BUFFER_RESOURCE`]
-//! (their peak residency is exclusive).
+//! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive); carrier-scale
+//! serializers and dictionary materialization require
+//! [`SERIALIZATION_BUFFER_RESOURCE`] (their peak residency is exclusive).
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -22,7 +22,7 @@ use purrdf::provenance::DatasetProvenance;
 use purrdf::{PipelineBundle, RdfDataset};
 
 use crate::bundle::{
-    PipelineHandle, bundle_artifact, bundle_artifacts, bundle_from_artifacts,
+    PipelineHandle, bundle_artifact, bundle_artifact_refs, bundle_artifacts, bundle_from_artifacts,
     bundle_from_artifacts_over,
 };
 /// The GMEOW namespace prefix that every pipeline term lives under.
@@ -38,18 +38,16 @@ pub const ENGINE_RESOURCE: &str = "https://blackcatinformatics.ca/gmeow/engineRe
 /// buffer.
 ///
 /// Unlike [`ENGINE_RESOURCE`] this guards no shared mutable state — the carrier is a
-/// read-only `Arc` every export leaf shares. It is exclusive because of PEAK
-/// RESIDENCY: a stage that declares it materializes the ENTIRE terminal carrier into
-/// in-memory text buffers, so its transient footprint is a multiple of the dataset,
-/// and two such stages running concurrently add their peaks. MEASURED on the
-/// production DAG at `jobs=4` (per-stage peak allocation delta): `stage-export-export`
-/// 9.06 GiB, `stage-export-yaml-ld` 8.37 GiB, then an order-of-magnitude cliff to the
-/// next leaf (`stage-export-okf`, 0.73 GiB). Concurrently those two alone exceed a
-/// 16 GB runner. Declaring this resource makes them serialize against each other while
-/// every cheap leaf keeps full parallelism — the same declarative permit the reasoning
-/// engine uses, with no new scheduler special case.
+/// read-only `Arc` every consumer shares. It is exclusive because of PEAK RESIDENCY:
+/// a stage that declares it materializes a carrier-scale canonical or serialized
+/// representation, so its transient footprint is a multiple of the dataset and two
+/// such stages running concurrently add their peaks. The two whole-dataset export
+/// leaves and the dictionary trainer's canonical selected-graph/training buffers are
+/// the measured production holders. Declaring this resource makes them serialize
+/// against each other while every cheap leaf keeps full parallelism — the same
+/// declarative permit the reasoning engine uses, with no scheduler special case.
 ///
-/// This is a permit, not a fix for the underlying shape: both stages ask purrdf for a
+/// This is a permit, not a fix for the underlying shape: the exporters ask purrdf for a
 /// whole-document `String`/`Vec<u8>`
 /// (`purrdf::serialize_dataset`, `purrdf::native_codecs::jsonld::serialize_dataset_to_jsonld`
 /// / `serialize_dataset_to_yamlld`). Removing the peak rather than scheduling around it
@@ -99,8 +97,10 @@ pub struct StageProduct {
     /// `false` for every product a stage emits and for every product the cache serves.
     /// The scheduler sets it — and replaces `bundle` with
     /// [`release_carrier`](crate::bundle::release_carrier)'s residue (the committed
-    /// byte-artifact lane only) — once the LAST stage declaring this one in `consumes()`
-    /// has run, under [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention).
+    /// byte-artifact lane only) — once the LAST stage declaring this one in
+    /// `carrier_consumes()` has run (or immediately after production when every later
+    /// dependency is artifact-only), under
+    /// [`CarrierRetention::DropAfterLastConsumer`](crate::scheduler::CarrierRetention).
     /// `digest` is preserved verbatim across the release: it is the identity witness of
     /// the carrier that was released, so `combined()` is byte-identical either way.
     ///
@@ -196,6 +196,12 @@ impl StageProduct {
 
     /// Borrow the frozen RDF dataset this product's bundle carries.
     pub fn dataset(&self) -> &RdfDataset {
+        assert!(
+            !self.carrier_released,
+            "stage `{}` attempted to read a dataset after its carrier was released; add the \
+             producer to the consumer's carrier_consumes() subset",
+            self.stage_id
+        );
         self.bundle.dataset()
     }
 
@@ -208,6 +214,17 @@ impl StageProduct {
     /// sorted by path. The surface `run_full` writes / compares against committed.
     pub fn artifacts(&self) -> BTreeMap<String, Vec<u8>> {
         bundle_artifacts(&self.bundle)
+    }
+
+    /// Borrow every byte-artifact entry without cloning its payload.
+    ///
+    /// Selective consumers should filter this view before copying anything. The
+    /// owned [`Self::artifacts`] projection remains the reconcile/write boundary.
+    ///
+    /// # Errors
+    /// The carrier's byte-artifact lane is structurally corrupt.
+    pub fn artifact_refs(&self) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
+        bundle_artifact_refs(&self.bundle)
     }
 
     /// The FORWARD-projected diagnostics nodes this product carries on its
@@ -275,7 +292,8 @@ pub struct StageOutput {
     /// The pre-lowered diagnostic nodes this stage emits (the FORWARD projection of
     /// its `gmeow_errors::Report` findings). Empty for every stage that produces no
     /// findings; the diagnostics producers (`stage-validate`, `stage-compile-logic`,
-    /// and `stage-reason`) populate it from their report. The scheduler folds
+    /// `stage-reason`, and `stage-verify-attestation`) populate it from their report.
+    /// The scheduler folds
     /// these into the run-level `DiagLedger` (fresh run) or reads them back from the
     /// product's `diagnostics:nodes` blob (cache hit), so the ledger is a projection
     /// of the SAME producer findings whether the stage ran or replayed.
@@ -325,10 +343,51 @@ impl StageOutput {
     }
 }
 
+/// Whether a stage's output is stable for identical declared inputs.
+///
+/// This is the executable twin of RDF `gmeow:stageStability`. The loader requires
+/// exact agreement before scheduling, so a receipt never claims a stronger stability
+/// class than the canonical DAG declares.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StageStability {
+    /// Identical declared inputs produce byte-identical output across runs.
+    StablePrefix,
+    /// The output intentionally varies between otherwise identical runs.
+    PerTurnVariance,
+}
+
+impl StageStability {
+    /// Parse one closed-vocabulary RDF individual.
+    #[must_use]
+    pub fn from_iri(value: &str) -> Option<Self> {
+        match value {
+            "https://blackcatinformatics.ca/gmeow/stabilityStablePrefix" => {
+                Some(Self::StablePrefix)
+            }
+            "https://blackcatinformatics.ca/gmeow/stabilityPerTurnVariance" => {
+                Some(Self::PerTurnVariance)
+            }
+            _ => None,
+        }
+    }
+
+    /// The canonical RDF individual IRI serialized into immutable receipts.
+    #[must_use]
+    pub const fn iri(self) -> &'static str {
+        match self {
+            Self::StablePrefix => "https://blackcatinformatics.ca/gmeow/stabilityStablePrefix",
+            Self::PerTurnVariance => {
+                "https://blackcatinformatics.ca/gmeow/stabilityPerTurnVariance"
+            }
+        }
+    }
+}
+
 /// Whether a stage product should use the persistent structural cache.
 ///
-/// This is a performance policy only: both variants execute the same stage body and
-/// the scheduler applies the same attach-drift, provenance, and diagnostics gates.
+/// This is the executable twin of RDF `gmeow:stageCacheDisposition`: both variants
+/// execute the same stage body and the scheduler applies the same attach-drift,
+/// provenance, and diagnostics gates. The loader requires exact RDF/Rust agreement.
 /// [`Self::Recompute`] is for very large aggregate products whose canonical-byte
 /// reparse and typed-handle reconstruction costs more than rebuilding them from their
 /// already-live upstream products.
@@ -341,6 +400,29 @@ pub enum CachePolicy {
     Recompute,
 }
 
+impl CachePolicy {
+    /// Parse one closed-vocabulary RDF individual.
+    #[must_use]
+    pub fn from_iri(value: &str) -> Option<Self> {
+        match value {
+            "https://blackcatinformatics.ca/gmeow/cachePersistentContribution" => {
+                Some(Self::Persistent)
+            }
+            "https://blackcatinformatics.ca/gmeow/cacheRecomputeAggregate" => Some(Self::Recompute),
+            _ => None,
+        }
+    }
+
+    /// The canonical RDF individual IRI serialized into immutable receipts.
+    #[must_use]
+    pub const fn iri(self) -> &'static str {
+        match self {
+            Self::Persistent => "https://blackcatinformatics.ca/gmeow/cachePersistentContribution",
+            Self::Recompute => "https://blackcatinformatics.ca/gmeow/cacheRecomputeAggregate",
+        }
+    }
+}
+
 /// A pipeline stage: one node in the build DAG. The Rust impl is the executable
 /// twin of a `gmeow:PipelineStage` individual; the loader binds them by
 /// `gmeow:stageImpl` and HARD-fails if their `capabilities` / `consumes` /
@@ -350,6 +432,22 @@ pub trait Stage: Send + Sync {
     fn id(&self) -> &str;
     /// The ids of the upstream stages this stage consumes, sorted.
     fn consumes(&self) -> &[String];
+    /// The subset of [`Self::consumes`] whose in-memory carrier lanes this stage reads.
+    ///
+    /// Every `consumes()` edge remains the RDF-authored scheduling, cache-key, and
+    /// artifact-access authority. This executable transport-use refinement says which
+    /// of those already-declared products must still retain its dataset, typed handles,
+    /// representation blobs, provenance, or internal `pipeline/` artifacts when this
+    /// stage runs. An edge absent here is artifact-only: the committed logical-artifact
+    /// lane survives carrier release and remains available through the same dependency.
+    ///
+    /// The conservative default is every dependency. A stage may narrow this only when
+    /// its implementation reads committed artifacts exclusively; the loader hard-fails
+    /// if an override names anything outside `consumes()`, and a mistaken narrowing
+    /// hard-fails at the first carrier read through [`StageProduct::carrier_released`].
+    fn carrier_consumes(&self) -> &[String] {
+        self.consumes()
+    }
     /// The capability IRIs (`gmeow:hasCapability`) this stage holds, sorted. The
     /// executor reads these declarations in place of a kind enum: [`SINK_CAPABILITY`]
     /// marks the sole serialization exit (the gts narrow waist — the loader HARD-fails
@@ -364,11 +462,17 @@ pub trait Stage: Send + Sync {
     /// The IRIs of the shared resources this stage must hold exclusively while it
     /// runs (`gmeow:requiresResource`), sorted. Two stages declaring the same
     /// resource serialize; the default is none (parallel-eligible). The reasoning
-    /// stage declares [`ENGINE_RESOURCE`]; the two whole-dataset serialization leaves
-    /// declare [`SERIALIZATION_BUFFER_RESOURCE`]. The loader HARD-fails if this
+    /// stage declares [`ENGINE_RESOURCE`]; carrier-scale materializers declare
+    /// [`SERIALIZATION_BUFFER_RESOURCE`]. The loader HARD-fails if this
     /// disagrees with the RDF `gmeow:requiresResource` declaration.
     fn resources(&self) -> &[String] {
         &[]
+    }
+    /// The output-stability declaration mirrored by RDF `gmeow:stageStability`.
+    /// Deterministic repository stages use the stable-prefix class by default; a
+    /// stage with intentional per-run variance must opt in explicitly.
+    fn stability(&self) -> StageStability {
+        StageStability::StablePrefix
     }
     /// The persistent-cache policy for this stage's product. Most stages are cheap to
     /// hydrate and use [`CachePolicy::Persistent`]. A stage may opt into

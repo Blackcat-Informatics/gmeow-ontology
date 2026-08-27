@@ -576,8 +576,9 @@ fn seam_registry_drift_over_rendered_site(
 pub fn doc_lint() -> i32 {
     let root = project_root();
     // The model and the English site come from the content-addressed
-    // `.cache/docs-fixture` store, NOT a fresh ~12 s `DocsModel::discover` + render.
-    // This is the identical artifact by construction: `fixture::try_load` is
+    // shared `.cache/gmeow-sync/actions/` store, NOT a fresh ~12 s
+    // `DocsModel::discover` + render.
+    // This is the identical artifact by construction: `fixture::try_load_or_build` is
     // byte-identical to `discover()` (its envelope carries the three `#[serde(skip)]`
     // i18n fields explicitly) and `fixture::load_site` is byte-identical to
     // `render_site(&load(root))` (`render_site` IS `render_site_lang(_, ENGLISH)`).
@@ -588,11 +589,11 @@ pub fn doc_lint() -> i32 {
     // only how many times the same model gets built in one `make check`. The model
     // loader lives in `gmeow-docs-model` and the site loader in `gmeow-docs`; both
     // hang off the one cache key the model crate owns.
-    let model = match gmeow_docs_model::fixture::try_load(&root) {
+    let model = match gmeow_docs_model::fixture::try_load_or_build(&root) {
         Ok(m) => m,
         Err(e) => return fail(format!("doc-lint: cannot build model: {e}")),
     };
-    let site = gmeow_docs::fixture::load_site(&root);
+    let site = gmeow_docs::fixture::load_site_or_build(&root);
 
     // R7 seam-registry drift, over the page just rendered — the leg that makes the
     // per-seam comparison unconditional on-gate (see the helper's doc comment).

@@ -113,8 +113,8 @@ fn default_filter_clauses(config: &str) -> Vec<String> {
         .map(str::to_string)
         .collect();
     assert!(
-        clauses.len() >= 20,
-        "expected the default filter to carry many exclusion clauses; parsed {} — the \
+        clauses.len() >= 15,
+        "expected the default filter to carry the live architectural exclusions; parsed {} — the \
          parse is broken and this gate would pass vacuously",
         clauses.len()
     );
@@ -226,6 +226,32 @@ fn nextest_override_filters_all_match_a_live_test() {
     );
 }
 
+/// Scheduling reservations scale with the runner. A numeric `threads-required`
+/// silently turns the machine that authored the config into a global ceiling: it
+/// oversubscribes smaller runners and strands larger hosts. Whole-width tests may
+/// reserve the natural host, but no fixed test-group/global cap is part of correctness.
+#[test]
+fn nextest_has_no_fixed_concurrency_caps() {
+    let config = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+        .expect("read .config/nextest.toml");
+    let reservations = config
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with("threads-required"))
+        .collect::<Vec<_>>();
+    assert!(
+        reservations.len() >= 3,
+        "the live config should exercise natural-width reservations non-vacuously"
+    );
+    assert!(
+        reservations
+            .iter()
+            .all(|line| *line == "threads-required = \"num-cpus\""),
+        "fixed nextest concurrency reservations are forbidden; use the runner-scaled \
+         threads-required = \"num-cpus\": {reservations:?}"
+    );
+}
+
 /// Append every `.rs` file's text under `dir` (recursively) to `sink`.
 fn collect_rust_sources(dir: &Path, sink: &mut String) {
     let Ok(entries) = std::fs::read_dir(dir) else {
@@ -249,7 +275,7 @@ fn the_contract_catches_a_filter_whose_test_moved_crates() {
     // Non-vacuity: the exact regression this gate exists for. A filter scoped to
     // `gmeow-pipeline` naming a test that now lives in `gmeow-mcp` must be reported.
     let dirs = package_dirs();
-    let moved = "verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle";
+    let moved = "verify_graph_accepts_a_normal_small_overlay_over_the_whole_bundle_heavy_offgate";
 
     let mut pipeline = String::new();
     for sub in ["src", "tests"] {

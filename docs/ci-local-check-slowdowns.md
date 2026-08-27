@@ -5,8 +5,12 @@ Worktree: `.worktrees/check-slowdowns`
 Branch: `perf/ci-check-slowdowns`
 Base: `origin/main` at `c929acedd6`
 
-This is an exploration note, not an optimization patch. It records the current
-slow and hanging paths in CI plus local `make check` / `make test` evidence.
+This is a historical exploration note, not current workflow guidance. It records
+the slow and hanging paths that existed on 2026-06-15. The Python suites described
+below have since been retired. In particular, the old recommendations to build or
+cache repository corpus artifacts inside test fixtures are superseded and forbidden:
+tests consume exact producer-authenticated artifacts read-only and fail closed on a
+miss; only an explicit pre-test DAG producer may materialize them.
 
 ## Executive summary
 
@@ -101,13 +105,13 @@ Focused module timings:
    not useful feedback. A 45-60 minute timeout would preserve failure evidence
    while stopping wasted CI capacity.
 
-3. Cache full ontology-doc output inside `tests/test_ontology_docs.py` with a
-   module-scoped fixture, then point the individual assertions at the same tree.
-   Keep the deterministic two-build test as the only deliberate second build.
+3. Superseded: do not cache or build ontology-doc output inside a test fixture.
+   Materialize it once in an explicit producer DAG node, authenticate its exact
+   identity, and let every test process consume it read-only.
 
-4. Reduce GTS snapshot rebuilds. Build once in a fixture for content assertions,
-   keep one dedicated determinism test, and avoid rebuilding full ontology docs
-   inside every snapshot build unless the test specifically covers doc bundling.
+4. Superseded: no test-side GTS snapshot rebuild is permitted, including a
+   determinism test. Producer determinism belongs at the producer boundary; tests
+   consume the retained authenticated snapshot and its receipt.
 
 5. Keep structural suppression-guard checks in the Rust slice emitter tests so
    parsed DSL, suppression vocabulary, and branch rendering happen in one native

@@ -30,6 +30,7 @@ const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 fn snapshot_from_trig(trig: &str) -> Vec<u8> {
     let dataset = purrdf::parse_dataset(trig.as_bytes(), "application/trig", None)
         .expect("fixture parses as TriG");
+    // gmeow-test-input: synthetic-only
     purrdf::gts_write::to_gts(
         &dataset,
         &RdfLookaside::default(),

@@ -87,8 +87,8 @@ exa:rBridge a gmeow:FlagshipScenario ;
 # math:PCAAnalysis over the exact-rational math:GramMatrix G = [[4,1,0],[1,3,1],[0,1,2]] it
 # decomposes (dominant axis + LDLᵀ pivots pinned exactly). The worked example IS that producer
 # output (dogfooded, like the rBridge flagship): the manifest's gmeow:demonstratedByExample
-# names the object the producer emits, and the discharge harness asserts the two are
-# graph-isomorphic so neither can silently drift. The gate is the PCA-completeness rule
+# names the object the producer emits, and `stage-math-producers` asserts the two are
+# graph-isomorphic at the explicit producer boundary so neither can silently drift. The gate is the PCA-completeness rule
 # (math:IncompletePCAAnalysis), guarded by a PCA missing its covariance operator.
 exa:aiSelfStructure a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: an AI describing its own structure"@x-gmeow-english ;

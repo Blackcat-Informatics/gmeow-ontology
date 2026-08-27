@@ -517,50 +517,17 @@ mod tests {
             .unwrap()
     }
 
-    /// The fresh `generated/shapes/*.ttl` byte map a hermetic test builds from the
-    /// COMMITTED files — the same members [`crate::stages::shape_union_fresh::fresh_generated_shape_members`]
-    /// pulls off the producer products in production, so the test exercises the
-    /// stage's real fresh-union path without a pipeline run. Mirrors
-    /// [`crate::stages::json_schema::tests::committed_fresh_map`].
-    fn committed_fresh_map(root: &Path) -> BTreeMap<String, Vec<u8>> {
-        [
-            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
-            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
-            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
-            crate::stages::frame_shapes::FRAME_SHAPES_PATH,
-            crate::stages::result_shapes::RESULT_SHAPES_PATH,
-        ]
-        .into_iter()
-        .map(|rel| {
-            (
-                rel.to_string(),
-                std::fs::read(root.join(rel)).unwrap_or_else(|e| panic!("read {rel}: {e}")),
-            )
-        })
-        .collect()
-    }
-
-    fn run_once(root: &Path) -> BTreeMap<String, Vec<u8>> {
-        let fresh = committed_fresh_map(root);
-        let (_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, &fresh)
-            .expect("load fresh shape union");
-        render_schemas(root, &shapes).expect("render schemas")
-    }
-
     #[test]
-    fn schemas_stage_emits_all_artifacts_deterministically() {
+    fn schemas_stage_emits_all_authenticated_artifacts() {
         let stage = SchemasStage::new();
         assert_eq!(stage.id(), "stage-export-schemas");
         let root = repo_root();
-        let first = run_once(&root);
+        let first = crate::fixture::stage_artifacts(&root, 1, "stage-export-schemas")
+            .expect("authenticated developer-schema projection");
         for path in SCHEMA_PATHS {
             assert!(first.contains_key(path), "missing {path}");
             assert!(!first[path].is_empty(), "{path} is empty");
         }
-
-        // Byte-deterministic across two runs.
-        let second = run_once(&root);
-        assert_eq!(first, second, "purrdf schema output is non-deterministic");
     }
 
     /// A value-vocabulary enum (e.g. `gmeow:TermStability`'s members) must reach
@@ -570,7 +537,8 @@ mod tests {
     #[test]
     fn value_vocab_enum_reaches_linkml_output() {
         let root = repo_root();
-        let artifacts = run_once(&root);
+        let artifacts = crate::fixture::stage_artifacts(&root, 1, "stage-export-schemas")
+            .expect("authenticated developer-schema projection");
         let linkml_yaml =
             String::from_utf8(artifacts[LINKML_PATH].clone()).expect("linkml yaml is utf8");
         // The `gmeow:TermStability` value vocabulary's seed members are

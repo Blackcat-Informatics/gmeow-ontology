@@ -170,7 +170,21 @@ impl Tier1Shapes {
     /// archive is malformed, or the shapes fail to parse.
     pub fn from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<Self> {
         let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
-        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl).map_err(|e| {
+        let ontology = crate::store::dataset_from_gts(gts_bytes)?;
+        Self::from_shapes_and_ontology(&shapes_ttl, ontology)
+    }
+
+    /// Build the resident Tier-1 view from an already-authenticated shape union and
+    /// already-imported ontology dataset.
+    ///
+    /// This is the read-only composition used after an explicit producer has published
+    /// both intermediates. It avoids decoding the same GTS container again merely to
+    /// recover bytes and indexes the caller already authenticated.
+    pub fn from_shapes_and_ontology(
+        shapes_ttl: &str,
+        ontology: Arc<RdfDataset>,
+    ) -> gmeow_errors::Result<Self> {
+        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 detail: format!("bundled SHACL shapes failed to parse: {e}"),
             })
@@ -188,9 +202,6 @@ impl Tier1Shapes {
             })?;
         let failure_classes =
             crate::findings::FailureClassIndex::from_shapes_dataset(&shapes_dataset);
-        // Cross-platform (native AND wasm — see the `ontology` field doc): the bundle's
-        // ontology, the class-hierarchy authority the subclass-shortcut injection reads.
-        let ontology = crate::store::dataset_from_gts(gts_bytes)?;
         Ok(Self {
             shapes,
             shapes_dataset,
@@ -925,7 +936,52 @@ fn is_json_ld(format: &str) -> bool {
 
 /// Extract and assemble the data-graph SHACL shape union (one Turtle document)
 /// from the bundle's `shapes-archive` blob.
-fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<String> {
+pub fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<String> {
+    shapes_from_gts_excluding(gts_bytes, &[])
+}
+
+/// Three authenticated shape selections consumed by the test corpus.
+///
+/// The explicit producer derives all three from one decoded `shapes-archive`; test
+/// processes load the published byte artifacts and never call this producer seam.
+pub struct ShapeCorpusVariants {
+    /// Complete data-graph shape surface used by production validation.
+    pub production: String,
+    /// Fixture-conformance surface, excluding `validation-shapes.ttl`.
+    pub conformance: String,
+    /// Domain-conformance surface, excluding `result-shapes.ttl`.
+    pub domain_conformance: String,
+}
+
+/// Decode the bundle and its shapes archive once, then derive every authenticated
+/// test-corpus shape selection from that single member table.
+pub fn shape_corpus_variants_from_gts(
+    gts_bytes: &[u8],
+) -> gmeow_errors::Result<ShapeCorpusVariants> {
+    let members = shape_archive_members(gts_bytes)?;
+    Ok(ShapeCorpusVariants {
+        production: assemble_shape_members(&members, &[])?,
+        conformance: assemble_shape_members(&members, &["validation-shapes.ttl"])?,
+        domain_conformance: assemble_shape_members(&members, &["result-shapes.ttl"])?,
+    })
+}
+
+/// Extract the bundle-carried SHACL union while excluding additional member basenames.
+///
+/// The production Tier-1 surface calls [`data_graph_shapes_from_gts`] with no additional
+/// exclusions. The explicit test-corpus producer uses this to retain the historical
+/// fixture-conformance exclusion of `validation-shapes.ttl`; test processes consume its
+/// authenticated output and never reassemble the archive themselves.
+pub fn shapes_from_gts_excluding(
+    gts_bytes: &[u8],
+    additional_excluded: &[&str],
+) -> gmeow_errors::Result<String> {
+    let members = shape_archive_members(gts_bytes)?;
+    assemble_shape_members(&members, additional_excluded)
+}
+
+/// Decode and deterministically order the bundle's `shapes-archive` members.
+fn shape_archive_members(gts_bytes: &[u8]) -> gmeow_errors::Result<Vec<(String, Vec<u8>)>> {
     let mut graph = store::read_gts_graph(gts_bytes)?;
 
     // Resolve the digest of the blob declared with rep == "shapes-archive".
@@ -968,15 +1024,22 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<String> 
         .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Dataset { detail: e }))?;
     // Deterministic concatenation order regardless of archive member order.
     members.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(members)
+}
 
+/// Assemble one UTF-8 Turtle selection from already-decoded shape members.
+fn assemble_shape_members(
+    members: &[(String, Vec<u8>)],
+    additional_excluded: &[&str],
+) -> gmeow_errors::Result<String> {
     let mut ttl = String::new();
     let mut included = 0usize;
-    for (name, bytes) in &members {
+    for (name, bytes) in members {
         if !name.ends_with(".ttl") {
             continue;
         }
         let base = name.rsplit('/').next().unwrap_or(name);
-        if EXCLUDED.contains(&base) {
+        if EXCLUDED.contains(&base) || additional_excluded.contains(&base) {
             continue;
         }
         let text = std::str::from_utf8(bytes).map_err(|e| {
@@ -1097,6 +1160,7 @@ mod tests {
     fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
         let dataset =
             purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse test turtle");
+        // gmeow-test-input: synthetic-only
         purrdf::gts_write::to_gts(
             &dataset,
             &purrdf::RdfLookaside::default(),

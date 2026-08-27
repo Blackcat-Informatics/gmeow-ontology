@@ -45,7 +45,9 @@ pub use gmeow_logic::correspondence_exec::{
 #[cfg(test)]
 use gmeow_logic_compile::ir::{CorrespondenceLaw, DischargeVerdict, MorphismClass};
 #[cfg(test)]
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+#[cfg(test)]
+use std::sync::OnceLock;
 
 #[cfg(test)]
 fn term_str(term: &purrdf::RdfTerm) -> String {
@@ -68,8 +70,19 @@ mod tests {
     }
 
     fn read_query(name: &str) -> String {
-        let path = repo_root().join("generated").join("queries").join(name);
-        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+        let path = format!("generated/queries/{name}");
+        let bytes = query_artifacts()
+            .get(&path)
+            .unwrap_or_else(|| panic!("producer-selected stage-mappings carries no {path}"));
+        String::from_utf8(bytes.clone()).unwrap_or_else(|error| panic!("{path}: {error}"))
+    }
+
+    fn query_artifacts() -> &'static BTreeMap<String, Vec<u8>> {
+        static QUERIES: OnceLock<BTreeMap<String, Vec<u8>>> = OnceLock::new();
+        QUERIES.get_or_init(|| {
+            crate::fixture::stage_artifacts(&repo_root(), 1, "stage-mappings")
+                .expect("load producer-selected query artifacts read-only")
+        })
     }
 
     // ── The real committed SIOC fixture: the three CompleteOver cells round-trip exactly. ──

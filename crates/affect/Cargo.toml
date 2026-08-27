@@ -28,3 +28,6 @@ gmeow-math = { path = "../math" }
 # moded-builtin family here, never a private numeric path. No cycle:
 # gmeow-logic depends only on errors/math/logic-compile/lang-form, never on affect.
 gmeow-logic = { path = "../logic" }
+
+[dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }

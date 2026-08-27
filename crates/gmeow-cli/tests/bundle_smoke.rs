@@ -333,9 +333,8 @@ fn verify_rejects_the_same_bundle_under_a_different_trusted_key() {
 
 #[test]
 fn embedded_bundle_equals_the_committed_snapshot() {
-    let committed = repo_root().join("generated/dist/gmeow.gts");
-    let committed_bytes =
-        std::fs::read(&committed).unwrap_or_else(|e| panic!("read {}: {e}", committed.display()));
+    let committed_bytes = gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("authenticated producer bundle; tests never produce it");
     assert_eq!(
         gmeow_cli::BUNDLE_GTS,
         committed_bytes.as_slice(),

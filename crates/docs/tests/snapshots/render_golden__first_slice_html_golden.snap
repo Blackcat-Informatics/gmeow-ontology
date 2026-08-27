@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 354
 expression: "to_html(&model, &Page::Slice(slug))"
 ---
 <!doctype html>
@@ -139,7 +140,7 @@ class, in connectivity).</p>
 </tbody></table>
 <h3>Module</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
-<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>2ffd23a0c689</code></td></tr>
+<tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>45e6adbe6d16</code></td></tr>
 </tbody></table>
 <h3>Tests</h3>
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>

@@ -4,7 +4,7 @@
 //! Documentation-coverage status — the SINGLE source of the per-term and
 //! per-slice coverage predicates.
 //!
-//! Both the lint gate ([`crate::lint()`], which emits a `docs/missing-*` warning per
+//! Both the lint gate (`gmeow_docs::lint`, which emits a `docs/missing-*` warning per
 //! absent dimension) and the rendered docs site ([`crate::slug`], which surfaces
 //! coverage on each term page and the documentation-health page) read coverage
 //! from here, and the self-hosting RDF projection ([`crate::rdf`]) emits the

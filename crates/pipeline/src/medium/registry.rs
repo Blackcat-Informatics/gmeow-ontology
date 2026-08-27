@@ -1334,7 +1334,7 @@ mod tests {
     /// inventory is pinned in BOTH directions: a dropped dictionary and an added one
     /// each fail [`the_live_gts_slice_reads_as_a_complete_registry`].
     ///
-    /// It is SEVEN, and the eighth term the inventory was first drafted with —
+    /// It is SIX, and the seventh term the inventory was first drafted with —
     /// `gmeow-math-v1` — is absent for a reason no measurement can overturn: a
     /// dictionary primes a FRAME, `gmeow:payloadSchemaDictionary` is
     /// `maxQualifiedCardinality 1`, every `math:` named graph is unioned into the

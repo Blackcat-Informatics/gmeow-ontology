@@ -33,7 +33,7 @@
 //! object-level ontology asserts. The explorer means the second, so the query says the
 //! second rather than depending on a DESCRIBE dialect.
 //!
-//! Refreshed with the bundle via `GMEOW_WITNESS_BLESS=1`.
+//! Refreshed with the bundle only by an explicit maintainer producer.
 
 use std::path::PathBuf;
 
@@ -66,7 +66,7 @@ fn describe(dataset: &purrdf::RdfDataset, subject_iri: &str) -> String {
         }
     };
     let mut lines: Vec<String> = dataset
-        .quads_for_pattern(None, None, None, GraphMatch::Any)
+        .quads_for_pattern(None, None, None, GraphMatch::Default)
         .filter(|q| matches!(dataset.resolve(q.s), TermRef::Iri(iri) if iri == subject_iri))
         .map(|q| {
             format!(
@@ -92,20 +92,19 @@ fn describe_query(subject_iri: &str) -> String {
 #[test]
 fn explorer_describe_is_the_same_on_both_routes_and_matches_the_attestation() {
     let root = repo_root();
-    let full = std::fs::read(root.join("generated/dist/gmeow.gts"))
-        .unwrap_or_else(|e| panic!("witness needs the generated bundle (run `make regen`): {e}"));
+    let full = gmeow_bundle_import::load_authenticated_source_bytes(&root)
+        .expect("authenticated bundle; tests never produce it");
 
     // ── 1. The native oracle: the object-level projection, described directly ─────────
-    let core_nq = gmeow_validate::store::core_browser_bundle_nquads(&full, &[])
-        .expect("build core browser bundle");
-    let core = purrdf::parse_dataset(core_nq.as_bytes(), "application/n-quads", None)
-        .expect("parse core bundle N-Quads");
+    let core = gmeow_bundle_import::load_authenticated_repository_bundle(&root)
+        .expect("authenticated bundle dataset; tests never produce it")
+        .dataset;
 
     // A deterministic subject: the lexicographically smallest GMEOW-namespace IRI that
     // appears in subject position (the same term the explorer would describe).
     let ns = "https://blackcatinformatics.ca/gmeow/";
     let mut subject: Option<String> = None;
-    for q in core.quads_for_pattern(None, None, None, GraphMatch::Any) {
+    for q in core.quads_for_pattern(None, None, None, GraphMatch::Default) {
         if let TermRef::Iri(iri) = core.resolve(q.s)
             && iri.starts_with(ns)
             && subject.as_deref().map(|s| iri < s).unwrap_or(true)
@@ -114,7 +113,7 @@ fn explorer_describe_is_the_same_on_both_routes_and_matches_the_attestation() {
         }
     }
     let subject = subject.expect("core bundle carries a GMEOW-namespace subject");
-    let native = describe(&core, &subject);
+    let native = describe(core.as_ref(), &subject);
     assert!(
         !native.is_empty(),
         "the describe of {subject} must be non-empty"
@@ -160,21 +159,14 @@ fn explorer_describe_is_the_same_on_both_routes_and_matches_the_attestation() {
     // ── 3. Both against the committed attestation ────────────────────────────────────
     let rendered = format!("# describe <{subject}>\n{native}\n");
     let path = attestation_path();
-    // Require the EXACT documented value: only `GMEOW_WITNESS_BLESS=1` may overwrite the
-    // committed witness (an empty or `=0` value must not silently replace it).
-    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
-        std::fs::write(&path, &rendered).expect("write");
-        eprintln!("blessed describe witness at {}", path.display());
-        return;
-    }
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "describe witness attestation {} missing (bless with GMEOW_WITNESS_BLESS=1): {e}",
+            "describe witness attestation {} missing; refresh it through the explicit maintainer producer: {e}",
             path.display()
         )
     });
     assert_eq!(
         rendered, committed,
-        "the object-level describe drifted from the committed witness attestation — re-bless"
+        "the object-level describe drifted from the committed witness attestation"
     );
 }

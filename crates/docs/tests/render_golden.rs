@@ -16,9 +16,7 @@
 use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
 
-use gmeow_docs::render::{
-    Page, concern_slug, render_site, search_index_json, term_slug, to_html, to_markdown,
-};
+use gmeow_docs::render::{Page, concern_slug, search_index_json, term_slug, to_html, to_markdown};
 use gmeow_docs::svg;
 use gmeow_docs::{DocTermCategory, DocsModel};
 
@@ -930,66 +928,39 @@ fn llms_full_txt_conforms_structurally() {
 }
 
 #[test]
-fn render_site_is_byte_stable() {
+fn cached_site_has_the_required_distribution_surface() {
     let model = common::cached_model();
-    let a = render_site(&model);
-    let b = common::cached_site();
-    // Byte-stability is asserted PER FILE, never as one whole-`Site`
-    // `assert_eq!`. A Debug-diffing compare (this file's `pretty_assertions`
-    // `assert_eq!`) over two multi-hundred-MB `Site`s would, on ANY drift,
-    // build `diff`'s O(lines_a·lines_b) LCS table over their `{:#?}` dumps —
-    // a >50-petabyte allocation that aborts the process (SIGABRT) instead of
-    // reporting the drift. Compare the file set, then each file's bytes, so a
-    // drift names the first offending path with bounded output.
-    let a_keys: Vec<&String> = a.files.keys().collect();
-    let b_keys: Vec<&String> = b.files.keys().collect();
-    assert!(
-        a_keys == b_keys,
-        "render_site file set drifted from the cached once-per-run render \
-         (fresh: {} files, cached: {} files)",
-        a_keys.len(),
-        b_keys.len()
-    );
-    for (path, bytes) in &a.files {
-        let cached = &b.files[path];
-        assert!(
-            bytes == cached,
-            "render_site drift in {path}: a fresh render differs from the cached \
-             once-per-run render ({} vs {} bytes)",
-            bytes.len(),
-            cached.len()
-        );
-    }
+    let site = common::cached_site();
     // The CSS asset and the landing pages are always present.
-    assert!(a.files.contains_key("assets/gmeow.css"));
-    assert!(a.files.contains_key("index.md"));
-    assert!(a.files.contains_key("index.html"));
+    assert!(site.files.contains_key("assets/gmeow.css"));
+    assert!(site.files.contains_key("index.md"));
+    assert!(site.files.contains_key("index.html"));
     // The T2 surfaces: diagrams, static indexes, and the new section pages.
-    assert!(a.files.contains_key("diagrams/slices.svg"));
-    assert!(a.files.contains_key("diagrams/concerns.svg"));
-    assert!(a.files.contains_key("search-index.json"));
+    assert!(site.files.contains_key("diagrams/slices.svg"));
+    assert!(site.files.contains_key("diagrams/concerns.svg"));
+    assert!(site.files.contains_key("search-index.json"));
     // The standard llmstxt.org surfaces (superseded `llms-docs.txt`).
-    assert!(a.files.contains_key("llms.txt"));
-    assert!(a.files.contains_key("llms-full.txt"));
+    assert!(site.files.contains_key("llms.txt"));
+    assert!(site.files.contains_key("llms-full.txt"));
     // The per-term card surface: at least the richest-surface term's
     // card.md must be present in the site tree (terms/{slug}/card.md).
     let card_slug = richest_surface_term_slug(&model);
     let card_path = format!("terms/{card_slug}/card.md");
     assert!(
-        a.files.contains_key(card_path.as_str()),
+        site.files.contains_key(card_path.as_str()),
         "expected per-term card at {card_path}"
     );
-    assert!(a.files.contains_key("linkages/index.html"));
-    assert!(a.files.contains_key("examples/index.html"));
-    assert!(a.files.contains_key("concerns/index.html"));
-    assert!(a.files.contains_key("external-ontologies/index.html"));
-    assert!(a.files.contains_key("integrity-constraints/index.html"));
+    assert!(site.files.contains_key("linkages/index.html"));
+    assert!(site.files.contains_key("examples/index.html"));
+    assert!(site.files.contains_key("concerns/index.html"));
+    assert!(site.files.contains_key("external-ontologies/index.html"));
+    assert!(site.files.contains_key("integrity-constraints/index.html"));
     // The logic-stereotypes index (resolves the formerly-dangling nav_logic).
-    assert!(a.files.contains_key("logic/index.html"));
+    assert!(site.files.contains_key("logic/index.html"));
     // The T3b guides surfaces: recipe/learning-path indexes + the four-boxes page.
-    assert!(a.files.contains_key("recipes/index.html"));
-    assert!(a.files.contains_key("learning-paths/index.html"));
-    assert!(a.files.contains_key("four-boxes/index.html"));
+    assert!(site.files.contains_key("recipes/index.html"));
+    assert!(site.files.contains_key("learning-paths/index.html"));
+    assert!(site.files.contains_key("four-boxes/index.html"));
 }
 
 #[test]

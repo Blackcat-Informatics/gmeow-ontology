@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Executable conformance pair for the closed stage-cache-disposition contract.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/pipeline/tests/> .
+
+ex:ecCacheDispositionConforms a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/cache-disposition-valid.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture's verify stage carries every required stage field and exactly one closed cache disposition, so the derived gmeow:PipelineStage-shape accepts it without findings." .
+
+ex:ecCacheDispositionAmbiguous a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/cache-disposition-ambiguous.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.QualifiedMaxCountConstraintComponent" ;
+    gmeow:expectedSourceShape gmeow:PipelineStage-shape ;
+    gmeow:conformanceRationale "The counter-example gives one pipeline stage both declared cache dispositions. The canonical exact-one class-qualified restriction derives sh:qualifiedMaxCount 1 on gmeow:PipelineStage-shape, so validation must emit shacl.QualifiedMaxCountConstraintComponent instead of letting the scheduler choose a persistence policy outside the authored DAG." .

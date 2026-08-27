@@ -35,7 +35,7 @@
 //! # Why the envelopes are sealed at the SINK and not here
 //!
 //! A `gmeow:MediumEnvelope` is the projection of an EMITTED FRAME. The frame set of
-//! the shipped bundle — the nine archives plus the language-surface, reasoning,
+//! the shipped bundle — the eleven archives plus the language-surface, reasoning,
 //! opaque-fanout, typed-validation and SHACL-report blobs, plus the snapshot itself
 //! — is assembled by the terminal, and several of those blobs exist nowhere else.
 //! Recomputing that assembly here to seal envelopes early would be a second source
@@ -54,9 +54,11 @@ use purrdf::provenance::DatasetProvenance;
 
 use crate::bundle::bundle_from_artifacts_over;
 use crate::medium::corpus::{self, CorpusSources};
-use crate::medium::envelope::{DigestStratum, FrameFacts, MediumEnvelope, seal};
+use crate::medium::envelope::{
+    DigestStratum, FrameDigestFacts, FrameFacts, MediumEnvelope, seal, seal_digests,
+};
 use crate::medium::rdf::{DictionaryRealization, check_dictionary_retention, realize};
-use crate::medium::registry::{DictionaryStrategy, MediumRegistry, MediumSelection};
+use crate::medium::registry::{DictionaryDef, DictionaryStrategy, MediumRegistry, MediumSelection};
 use crate::medium::{GMEOW, MEDIUM_REGISTRY_GRAPH, SNAPSHOT_WIRE_REP, blake3_digest, train};
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -74,12 +76,12 @@ pub const DICT_ARTIFACT_PREFIX: &str = "pipeline/medium/";
 ///
 /// * `stage-archive-blobs` — `gmeow:corpusSelectsBlobRep "cells-archive"` /
 ///   `"axioms-archive"`;
-/// * `stage-reason` — `gmeow:corpusSelectsStageProduct gmeow:stage-reason`
-///   (the proof-trace corpus, whose archive is sink-folded and so exists as a
-///   product only mid-DAG);
-/// * `stage-snapshot` — the named-graph selectors
-///   (`graph/statements`, `graph/authoring-briefs`) and the `generated/briefs/`
-///   path prefix, all of which first exist on the assembled carrier;
+/// * `stage-reason` — the proof-trace corpus's three exact `generated/logic/`
+///   report paths (the sink-folded reasoning archive members, excluding the closure
+///   that already rides the snapshot graph);
+/// * `stage-snapshot` — the `graph/authoring-briefs` named-graph selector and the
+///   `generated/briefs/` path prefix, both of which first exist on the assembled
+///   carrier;
 /// * `stage-statements` — the `generated/statements/` path prefix.
 ///
 /// `stage-mappings` is NOT an edge, and its absence is derived rather than chosen:
@@ -137,10 +139,11 @@ pub fn corpus_samples(
     sources: &CorpusSources<'_>,
 ) -> Result<BTreeMap<String, corpus::CorpusResolution>, gmeow_errors::Diag> {
     let mut out = BTreeMap::new();
+    let mut cache = corpus::CorpusAssemblyCache::default();
     for def in registry.dictionaries().values() {
         out.insert(
             def.id.clone(),
-            corpus::assemble(registry, &def.corpus, sources)?,
+            corpus::assemble_with_cache(registry, &def.corpus, sources, &mut cache)?,
         );
     }
     Ok(out)
@@ -166,8 +169,8 @@ pub fn resolved_corpora(
     let carrier = upstream
         .get("stage-snapshot")
         .ok_or_else(|| stage_err("missing stage-snapshot product"))?;
-    let archives = crate::stages::archive_blobs::archive_blobs_from_product(upstream)?;
-    let artifacts = upstream_artifacts(upstream);
+    let archives = Vec::new();
+    let artifacts = BTreeMap::new();
     let sources = CorpusSources {
         root,
         dataset: carrier.dataset(),
@@ -225,56 +228,41 @@ pub struct ResolvedCorpora {
 ///
 /// # Errors
 /// A trainer refusal, or a dictionary with no entry in `corpora`.
-fn train_declared_dictionaries(
-    registry: &MediumRegistry,
+fn train_declared_dictionary(
+    def: &DictionaryDef,
     dataset: &purrdf::RdfDataset,
-    corpora: &BTreeMap<String, corpus::CorpusResolution>,
-) -> Result<BTreeMap<String, TrainedDictionary>, gmeow_errors::Diag> {
-    let term_table = crate::medium::corpus::term_table_sample(dataset);
-    let mut trained: BTreeMap<String, TrainedDictionary> = BTreeMap::new();
-    for def in registry.dictionaries().values() {
-        let resolved = corpora
-            .get(&def.id)
-            .ok_or_else(|| stage_err(format!("no resolved corpus for dictionary {:?}", def.id)))?;
-        let owned: Vec<&[u8]> = match def.strategy {
-            DictionaryStrategy::TermTable => vec![term_table.as_slice()],
-            _ => resolved.training.iter().map(Vec::as_slice).collect(),
-        };
-        let bytes = train::build(def.strategy, &owned, def.target_length)?;
-        trained.insert(
-            def.id.clone(),
-            TrainedDictionary {
-                bytes,
-                measured: crate::medium::rdf::Measured {
-                    strategy: def.strategy,
-                    target_length: def.target_length,
-                    corpus_sample_count: resolved.training.len() as u64,
-                    corpus_digest: resolved.digest.clone(),
-                },
-            },
-        );
-    }
-    Ok(trained)
+    resolved: &corpus::CorpusResolution,
+    term_table: &mut Option<Vec<u8>>,
+) -> Result<TrainedDictionary, gmeow_errors::Diag> {
+    let term_table_sample = if def.strategy == DictionaryStrategy::TermTable {
+        Some(
+            term_table
+                .get_or_insert_with(|| corpus::term_table_sample(dataset))
+                .as_slice(),
+        )
+    } else {
+        None
+    };
+    let samples: Vec<&[u8]> = match term_table_sample {
+        Some(sample) => vec![sample],
+        None => resolved.training.iter().map(AsRef::as_ref).collect(),
+    };
+    let bytes = train::build(def.strategy, &samples, def.target_length)?;
+    Ok(TrainedDictionary {
+        bytes,
+        measured: crate::medium::rdf::Measured {
+            strategy: def.strategy,
+            target_length: def.target_length,
+            corpus_sample_count: resolved.training.len() as u64,
+            corpus_digest: resolved.digest.clone(),
+        },
+    })
 }
 
 /// One trained dictionary and the measured facts about the run that produced it.
 struct TrainedDictionary {
     bytes: Vec<u8>,
     measured: crate::medium::rdf::Measured,
-}
-
-/// Every consumed product's byte-artifact lane, unioned by logical path — the
-/// in-memory resolution source for a `gmeow:corpusSelectsPathPrefix` naming a
-/// `generated/` family. A disk read there would train on the PREVIOUS build's
-/// bytes, which is the stale-disk-fold class this crate refuses.
-fn upstream_artifacts(upstream: &BTreeMap<String, StageProduct>) -> BTreeMap<String, Vec<u8>> {
-    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for id in CONSUMES {
-        if let Some(product) = upstream.get(id) {
-            out.extend(product.artifacts());
-        }
-    }
-    out
 }
 
 /// The trained dictionary bytes this stage produced, read back off its product's
@@ -361,13 +349,12 @@ pub fn frame_iri(rep: &str, content_digest: &str) -> String {
 /// Seal one `gmeow:MediumEnvelope` per payload-bearing frame of the emission: every
 /// blob row, and the snapshot frame itself.
 ///
-/// `snapshot_payload` is the canonical CBOR of the ENVELOPE-FREE snapshot payload,
-/// so its digest is `snapshot_content_id()` verbatim; `snapshot_stratum` is the
-/// canonical serialization of that same payload's quad set, which is the region
-/// `gmeow:stratumPayloadExcludingMediumEnvelope` names. Adding the sealed envelopes
-/// to the payload cannot change either value — the first is taken before they
-/// exist, the second over a region that excludes them — so the emission reaches its
-/// fixed point in exactly two passes rather than iterating.
+/// `snapshot_content_digest` is the content id of the ENVELOPE-FREE snapshot payload;
+/// `snapshot_strata_digest` is the identity of that same payload's canonical quad
+/// set, which is the region `gmeow:stratumPayloadExcludingMediumEnvelope` names.
+/// The terminal computes and releases each large preimage separately before calling
+/// here. Adding the sealed envelopes cannot change either value, so emission reaches
+/// its fixed point in exactly two passes rather than iterating.
 ///
 /// # Errors
 /// A blob whose rep is unregistered or unassigned, a plan that primes a frame with a
@@ -378,8 +365,8 @@ pub(crate) fn seal_bundle_envelopes(
     selection: &MediumSelection,
     plan: &MediumPlan,
     blobs: &[&BlobRow],
-    snapshot_payload: &[u8],
-    snapshot_stratum: &[u8],
+    snapshot_content_digest: &str,
+    snapshot_strata_digest: &str,
 ) -> Result<Vec<MediumEnvelope>, gmeow_errors::Diag> {
     use purrdf::gts_compose::{DictSelection as WireDictSelection, FrameSlot};
 
@@ -420,15 +407,14 @@ pub(crate) fn seal_bundle_envelopes(
         )?);
     }
 
-    let snapshot_digest = blake3_digest(snapshot_payload);
-    envelopes.push(seal(
+    envelopes.push(seal_digests(
         registry,
         selection,
-        &FrameFacts {
-            frame: &frame_iri(SNAPSHOT_WIRE_REP, &snapshot_digest),
+        &FrameDigestFacts {
+            frame: &frame_iri(SNAPSHOT_WIRE_REP, snapshot_content_digest),
             rep: SNAPSHOT_WIRE_REP,
-            payload: snapshot_payload,
-            stratum_bytes: snapshot_stratum,
+            content_digest: snapshot_content_digest,
+            strata_digest: snapshot_strata_digest,
             stratum: DigestStratum::PayloadExcludingMediumEnvelope,
             dictionary_id: dictionary_of(&FrameSlot::Snapshot),
         },
@@ -453,7 +439,9 @@ pub(crate) fn envelope_quads(
 /// The `medium-dictionaries` pipeline stage.
 pub struct MediumDictionariesStage {
     consumes: Vec<String>,
+    carrier_consumes: Vec<String>,
     attaches_graphs: Vec<String>,
+    resources: Vec<String>,
 }
 
 impl MediumDictionariesStage {
@@ -462,7 +450,21 @@ impl MediumDictionariesStage {
     pub fn new() -> Self {
         Self {
             consumes: CONSUMES.iter().map(|s| (*s).to_string()).collect(),
+            // Archive bytes live on the archive producer's representation-blob lane,
+            // and declarations/named-graph samples live on the snapshot dataset. The
+            // reason and statements inputs contribute committed generated/* artifacts
+            // only, so their multi-million-quad datasets may be released earlier.
+            carrier_consumes: vec![
+                "stage-archive-blobs".to_string(),
+                "stage-snapshot".to_string(),
+            ],
             attaches_graphs: crate::stages::attach::graphs(STAGE_ID).to_vec(),
+            // Named-graph corpus resolution canonicalizes a carrier-scale selection
+            // and dictionary training materializes compressed candidates. That live
+            // set is independently bounded, but overlaps additively with either
+            // whole-dataset export serializer on a cold run. Model the measured peak
+            // conflict through the same declarative resource, never a fixed thread cap.
+            resources: vec![crate::node::SERIALIZATION_BUFFER_RESOURCE.to_string()],
         }
     }
 }
@@ -480,8 +482,14 @@ impl Stage for MediumDictionariesStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    fn carrier_consumes(&self) -> &[String] {
+        &self.carrier_consumes
+    }
     fn attaches_graphs(&self) -> &[String] {
         &self.attaches_graphs
+    }
+    fn resources(&self) -> &[String] {
+        &self.resources
     }
     fn impl_version(&self) -> &str {
         // v4: as v3 (the declared dictionaries trained at the COMMITTED sweep winner
@@ -493,7 +501,15 @@ impl Stage for MediumDictionariesStage {
         // The inventory itself is DATA — it is read off the carrier's
         // gmeow:CompressionDictionary individuals — so growing or shrinking it does not
         // move this key; only the training/measurement code does.
-        "medium-dictionaries.v4"
+        // v5: resolve, evidence-check, and train one dictionary at a time; share only
+        // bounded selected-graph bytes; borrow archive/artifact lanes before selection;
+        // and declare the exact two carrier inputs independently from the two
+        // committed-artifact inputs. Dictionary bytes remain a pure function of the
+        // same corpus multiset and authored training point.
+        // v6: declare the carrier-materialization resource shared with the two
+        // whole-dataset exporters. A measured cold run showed their otherwise valid
+        // same-wave overlap crossing 16 GiB; serialization changes, not output bytes.
+        "medium-dictionaries.v6-serialized-carrier-materialization"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let registry = registry_from_carrier(input.upstream)?;
@@ -501,8 +517,12 @@ impl Stage for MediumDictionariesStage {
             .upstream
             .get("stage-snapshot")
             .ok_or_else(|| stage_err("missing stage-snapshot product"))?;
-        let archives = crate::stages::archive_blobs::archive_blobs_from_product(input.upstream)?;
-        let artifacts = upstream_artifacts(input.upstream);
+        // Production resolves archive and artifact selectors by borrowing the exact
+        // upstream lanes. These owned maps are fixture overlays and intentionally empty
+        // here: cloning all eleven archives and every generated artifact before a
+        // selector ran was the required-path memory spike this stage now avoids.
+        let archives = Vec::new();
+        let artifacts = BTreeMap::new();
         let sources = CorpusSources {
             root: input.root,
             dataset: carrier.dataset(),
@@ -531,9 +551,22 @@ impl Stage for MediumDictionariesStage {
         // corpora once, HERE, and refuse when the recorded identity is not the
         // resolved one — the same resolution the trainer then consumes, so the digest
         // that was gated and the bytes that ship cannot come from two different reads.
-        let corpora = corpus_samples(&registry, &sources)?;
-        crate::medium::sweep::check_corpus_digests(&registry, &baseline, &corpora)?;
-        let trained = train_declared_dictionaries(&registry, carrier.dataset(), &corpora)?;
+        let mut corpus_cache = corpus::CorpusAssemblyCache::default();
+        let mut term_table: Option<Vec<u8>> = None;
+        let mut trained: BTreeMap<String, TrainedDictionary> = BTreeMap::new();
+        for def in registry.dictionaries().values() {
+            let resolved =
+                corpus::assemble_with_cache(&registry, &def.corpus, &sources, &mut corpus_cache)?;
+            // Grade this exact resolution before its bytes reach the trainer. On a
+            // clean build the resolution is consumed immediately after training; on
+            // drift it is dropped before any dictionary based on stale evidence can
+            // be produced.
+            crate::medium::sweep::check_corpus_digest(&baseline, &def.id, &resolved)?;
+            trained.insert(
+                def.id.clone(),
+                train_declared_dictionary(def, carrier.dataset(), &resolved, &mut term_table)?,
+            );
+        }
 
         let mut realizations: Vec<DictionaryRealization> = Vec::with_capacity(trained.len());
         let mut lane: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -610,77 +643,15 @@ fn collect_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
     }
 }
 
-/// A `stage-medium-dictionaries` product over a carrier that carries the medium
-/// DECLARATIONS but not the real corpora — the shape every focused sink test
-/// has, since none of them assembles the whole DAG.
-///
-/// It trains each declared dictionary over one small synthetic corpus instead of
-/// its declared one. That substitution is scoped to the corpus and NOTHING else:
-/// the declarations, the strategies, the target lengths, the realization
-/// measurement, the projection, and every downstream plan/envelope path are the
-/// production ones, so a test built on this exercises the real wiring and only the
-/// dictionary BYTES differ from a full run's. Corpus resolution itself is covered
-/// where it belongs — `medium::corpus`'s own tests and the whole-DAG bundle gate.
-///
-/// # Errors
-/// The carrier carries an unreadable medium declaration, or a trainer refusal.
-#[cfg(test)]
-pub(crate) fn test_product_over(
-    carrier: &purrdf::RdfDataset,
-) -> Result<StageProduct, gmeow_errors::Diag> {
-    let registry = MediumRegistry::from_dataset(carrier)?;
-    let owned: Vec<Vec<u8>> = (0..512u32)
-        .map(|i| {
-            format!(
-                "<https://blackcatinformatics.ca/gmeow/term{}> \
-                 <https://blackcatinformatics.ca/gmeow/definition> \
-                 \"a definition of term {i} in the gmeow ontology\" .\n",
-                i % 41
-            )
-            .into_bytes()
-        })
-        .collect();
-    let corpus: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
-
-    let mut realizations: Vec<DictionaryRealization> = Vec::new();
-    let mut lane: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    for def in registry.dictionaries().values() {
-        let bytes = train::build(def.strategy, &corpus, def.target_length)?;
-        realizations.push(realize(
-            def,
-            &bytes,
-            crate::medium::rdf::Measured {
-                strategy: def.strategy,
-                target_length: def.target_length,
-                corpus_sample_count: corpus.len() as u64,
-                corpus_digest: crate::medium::blake3_digest(&owned.concat()),
-            },
-        )?);
-        lane.insert(format!("{DICT_ARTIFACT_PREFIX}{}.zdict", def.id), bytes);
-    }
-    let quads = crate::medium::rdf::project(&registry, &realizations, &[])?;
-    let graph = purrdf::dataset_from_quads(&quads)
-        .map_err(|err| stage_err(format!("freeze the fixture medium registry: {err}")))?;
-    Ok(StageProduct::from_bundle(
-        STAGE_ID,
-        Arc::new(bundle_from_artifacts_over(
-            graph,
-            lane,
-            DatasetProvenance::new(),
-        )),
-    ))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// The declared consumes set covers EVERY stage a shipped corpus selector names.
-    /// `corpus::assemble` hard-fails on a stage-product selector whose product is not
-    /// among this stage's upstream, so a missing edge here is a build failure — but
-    /// only once the whole DAG runs. Pin it against the live declaration instead.
+    /// The declared consumes set covers every stage-product selector, and the
+    /// sink-folded proof-trace corpus names exactly the three report artifacts owned
+    /// by stage-reason rather than selecting its closure-bearing whole product.
     #[test]
-    fn the_consumes_set_covers_every_stage_product_a_shipped_corpus_selects() {
+    fn the_consumes_set_covers_shipped_corpus_producers_exactly() {
         let module = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(Path::parent)
@@ -704,10 +675,6 @@ mod tests {
         }
         selected.sort();
         selected.dedup();
-        assert!(
-            !selected.is_empty(),
-            "the shipped corpora must exercise the stage-product selector at all"
-        );
         for stage in &selected {
             assert!(
                 CONSUMES.contains(&stage.as_str()),
@@ -715,6 +682,29 @@ mod tests {
                  corpus::assemble would hard-fail on the missing gmeow:dataflowConsumes edge"
             );
         }
+
+        let prooftrace = registry
+            .corpora()
+            .get(&format!("{GMEOW}corpusGmeowProoftraceV1"))
+            .expect("the proof-trace corpus is declared");
+        let paths: Vec<&str> = prooftrace
+            .selectors
+            .iter()
+            .filter_map(|selector| match selector {
+                crate::medium::corpus::CorpusSelector::PathPrefix(path) => Some(path.as_str()),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            paths,
+            [
+                crate::stages::reason::LEDGER_PATH,
+                crate::stages::reason::PERF_LEDGER_PATH,
+                crate::stages::reason::EXPLANATIONS_PATH,
+            ]
+        );
+        assert!(!paths.contains(&crate::stages::reason::CLOSURE_PATH));
+        assert!(CONSUMES.contains(&"stage-reason"));
     }
 
     /// The Rust `consumes()` is sorted and matches the declared constant, which is the
@@ -727,6 +717,28 @@ mod tests {
         sorted.sort();
         assert_eq!(stage.consumes(), sorted.as_slice());
         assert_eq!(stage.id(), STAGE_ID);
+        assert_eq!(
+            stage.carrier_consumes(),
+            ["stage-archive-blobs", "stage-snapshot"]
+        );
+        assert_eq!(
+            stage.resources(),
+            [crate::node::SERIALIZATION_BUFFER_RESOURCE]
+        );
+        assert!(stage.consumes().iter().any(|id| id == "stage-reason"));
+        assert!(stage.consumes().iter().any(|id| id == "stage-statements"));
+        assert!(
+            !stage
+                .carrier_consumes()
+                .iter()
+                .any(|id| id == "stage-reason")
+        );
+        assert!(
+            !stage
+                .carrier_consumes()
+                .iter()
+                .any(|id| id == "stage-statements")
+        );
     }
 
     /// The frame identity is a pure function of `(rep, digest)` and separates frames

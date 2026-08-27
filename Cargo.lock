@@ -1399,27 +1399,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2cd50c473c80f6d7c3670a752354b8e569b1a7cbfdc0419ec88e5edad85e0dc7"
 
 [[package]]
-name = "futures-macro"
-version = "0.3.33"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d6d3cde68c518367be28956066ddfef33813991b77a55005a69dae04bf3b10b"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
 name = "futures-task"
 version = "0.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b231ed28831efb4a61a08580c4bc233ec56bc009f4cd8f52da2c3cb97df0c109"
-
-[[package]]
-name = "futures-timer"
-version = "3.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af43fadb8a98512d547e37b4e92e0ced13e205c061b87b4623eff01d918d6968"
 
 [[package]]
 name = "futures-util"
@@ -1428,7 +1411,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a77a90a256fce34da66415271e30f94ee91c57b04b8a2c042d9cf3220179deaa"
 dependencies = [
  "futures-core",
- "futures-macro",
  "futures-task",
  "pin-project-lite",
  "slab",
@@ -1517,9 +1499,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
+name = "gmeow-action-cache"
+version = "0.2.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "gmeow-affect"
 version = "0.2.0"
 dependencies = [
+ "gmeow-bundle-import",
  "gmeow-errors",
  "gmeow-logic",
  "gmeow-math",
@@ -1552,11 +1545,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-bundle-import"
+version = "0.2.0"
+dependencies = [
+ "gmeow-action-cache",
+ "gmeow-errors",
+ "gmeow-gts-profile",
+ "purrdf",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "gmeow-bundle-view"
 version = "0.2.0"
 dependencies = [
  "blake3",
  "ciborium",
+ "gmeow-bundle-import",
  "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-logic-compile",
@@ -1572,11 +1580,11 @@ name = "gmeow-cli"
 version = "0.2.0"
 dependencies = [
  "assert_cmd",
- "ciborium",
  "clap",
  "ed25519-dalek",
  "gmeow-affect",
  "gmeow-affect-ingest",
+ "gmeow-bundle-import",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",
@@ -1621,6 +1629,7 @@ version = "0.2.0"
 dependencies = [
  "blake3",
  "datatest-stable",
+ "gmeow-bundle-import",
  "gmeow-cli-core",
  "gmeow-errors",
  "gmeow-license",
@@ -1644,6 +1653,7 @@ dependencies = [
  "ciborium",
  "clap",
  "docs-print",
+ "gmeow-bundle-import",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-docs-model",
@@ -1659,6 +1669,7 @@ dependencies = [
  "gmeow-ns",
  "gmeow-pipeline",
  "gmeow-slice-quality",
+ "gmeow-slicetest",
  "gmeow-validate",
  "predicates",
  "purrdf",
@@ -1676,6 +1687,8 @@ name = "gmeow-docs"
 version = "0.2.0"
 dependencies = [
  "blake3",
+ "gmeow-action-cache",
+ "gmeow-bundle-import",
  "gmeow-docs-model",
  "gmeow-errors",
  "gmeow-lang-bridge",
@@ -1710,6 +1723,8 @@ name = "gmeow-docs-model"
 version = "0.2.0"
 dependencies = [
  "blake3",
+ "gmeow-action-cache",
+ "gmeow-bundle-import",
  "gmeow-errors",
  "gmeow-lang-bridge",
  "gmeow-logic-compile",
@@ -1743,6 +1758,7 @@ dependencies = [
  "purrdf",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "unicode-normalization",
 ]
@@ -1820,8 +1836,10 @@ dependencies = [
  "csv",
  "flate2",
  "foldhash 0.1.5",
+ "gmeow-bundle-import",
  "gmeow-cost-measure",
  "gmeow-errors",
+ "gmeow-gts-profile",
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "gmeow-math",
@@ -1901,6 +1919,7 @@ name = "gmeow-mcp"
 version = "0.2.0"
 dependencies = [
  "ed25519-dalek",
+ "gmeow-bundle-import",
  "gmeow-bundle-view",
  "gmeow-docs-catalog",
  "gmeow-docs-model",
@@ -1911,8 +1930,10 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-ns",
  "gmeow-slice-quality",
+ "gmeow-test-batch-macros",
  "gmeow-transcode",
  "gmeow-validate",
+ "inventory",
  "jsonschema",
  "purrdf",
  "serde_json",
@@ -1924,6 +1945,7 @@ dependencies = [
 name = "gmeow-mcp-core-wasm"
 version = "0.2.0"
 dependencies = [
+ "gmeow-bundle-import",
  "gmeow-mcp",
  "serde_json",
  "wasm-bindgen",
@@ -1933,6 +1955,7 @@ dependencies = [
 name = "gmeow-mcp-dev"
 version = "0.2.0"
 dependencies = [
+ "gmeow-bundle-import",
  "gmeow-errors",
  "gmeow-logic",
  "gmeow-mcp",
@@ -1944,6 +1967,7 @@ dependencies = [
 name = "gmeow-mcp-wasm"
 version = "0.2.0"
 dependencies = [
+ "gmeow-bundle-import",
  "gmeow-mcp",
  "serde_json",
  "wasm-bindgen",
@@ -1967,6 +1991,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-perf-evidence"
+version = "0.2.0"
+dependencies = [
+ "libc",
+ "roxmltree",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "gmeow-pipeline"
 version = "0.2.0"
 dependencies = [
@@ -1977,7 +2012,9 @@ dependencies = [
  "docs-print",
  "ed25519-dalek",
  "fastrand",
+ "gmeow-action-cache",
  "gmeow-affect",
+ "gmeow-bundle-import",
  "gmeow-bundle-view",
  "gmeow-cli-core",
  "gmeow-conformance",
@@ -1990,16 +2027,15 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-math",
- "gmeow-mcp",
  "gmeow-music",
  "gmeow-ns",
  "gmeow-slice-brief",
  "gmeow-slice-quality",
- "gmeow-slicetest",
  "gmeow-transcode",
  "gmeow-validate",
  "insta",
  "jsonschema",
+ "libc",
  "purrdf",
  "rayon",
  "serde",
@@ -2075,13 +2111,17 @@ dependencies = [
 name = "gmeow-slicetest"
 version = "0.2.0"
 dependencies = [
- "datatest-stable",
+ "gmeow-action-cache",
+ "gmeow-bundle-import",
  "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-ns",
  "gmeow-validate",
  "purrdf",
+ "serde",
+ "serde_json",
+ "sha2",
  "tempfile",
 ]
 
@@ -2092,7 +2132,17 @@ dependencies = [
  "foldhash 0.1.5",
  "hashbrown 0.15.5",
  "purrdf",
+ "serde",
  "smallvec",
+]
+
+[[package]]
+name = "gmeow-test-batch-macros"
+version = "0.2.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -2115,6 +2165,7 @@ dependencies = [
  "criterion",
  "ed25519-dalek",
  "gmeow-affect-ingest",
+ "gmeow-bundle-import",
  "gmeow-cost-measure",
  "gmeow-errors",
  "gmeow-gts-profile",
@@ -2123,15 +2174,15 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-math",
  "gmeow-ns",
- "gmeow-query-wasm",
+ "gmeow-test-batch-macros",
  "iai-callgrind",
  "insta",
+ "inventory",
  "jsonschema",
  "purrdf",
  "rayon",
  "regex",
  "roxmltree",
- "rstest",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -2647,6 +2698,15 @@ dependencies = [
  "serde",
  "similar",
  "tempfile",
+]
+
+[[package]]
+name = "inventory"
+version = "0.3.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4f0c30c76f2f4ccee3fe55a2435f691ca00c0e4bd87abe4f4a851b1d4dac39b"
+dependencies = [
+ "rustversion",
 ]
 
 [[package]]
@@ -3480,15 +3540,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "proc-macro-crate"
-version = "3.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f"
-dependencies = [
- "toml_edit 0.25.13+spec-1.1.0",
-]
-
-[[package]]
 name = "proc-macro-error-attr2"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4052,12 +4103,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
-name = "relative-path"
-version = "1.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba39f3699c378cd8970968dcbff9c43159ea4cfbd88d43c00b22f2ef10a435d2"
-
-[[package]]
 name = "resvg"
 version = "0.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4102,35 +4147,6 @@ name = "roxmltree"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c20b6793b5c2fa6553b250154b78d6d0db37e72700ae35fad9387a46f487c97"
-
-[[package]]
-name = "rstest"
-version = "0.26.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5a3193c063baaa2a95a33f03035c8a72b83d97a54916055ba22d35ed3839d49"
-dependencies = [
- "futures-timer",
- "futures-util",
- "rstest_macros",
-]
-
-[[package]]
-name = "rstest_macros"
-version = "0.26.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c845311f0ff7951c5506121a9ad75aec44d083c31583b2ea5a30bcb0b0abba0"
-dependencies = [
- "cfg-if",
- "glob",
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "regex",
- "relative-path",
- "rustc_version",
- "syn 2.0.119",
- "unicode-ident",
-]
 
 [[package]]
 name = "rust_decimal"
@@ -4975,15 +4991,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "toml_datetime"
-version = "1.1.1+spec-1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3165f65f62e28e0115a00b2ebdd37eb6f3b641855f9d636d3cd4103767159ad7"
-dependencies = [
- "serde_core",
-]
-
-[[package]]
 name = "toml_edit"
 version = "0.22.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5010,18 +5017,6 @@ dependencies = [
  "toml_parser",
  "toml_writer",
  "winnow 0.7.15",
-]
-
-[[package]]
-name = "toml_edit"
-version = "0.25.13+spec-1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6975367e4d2ef766d86af01ffad14b622fecc8d4357a998fbc4deb6e9bacaf9b"
-dependencies = [
- "indexmap",
- "toml_datetime 1.1.1+spec-1.1.0",
- "toml_parser",
- "winnow 1.0.4",
 ]
 
 [[package]]
@@ -6094,9 +6089,6 @@ name = "winnow"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
-dependencies = [
- "memchr",
-]
 
 [[package]]
 name = "wit-bindgen"

@@ -17,6 +17,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+gmeow-action-cache = { path = "../action-cache" }
 serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true
@@ -62,6 +63,7 @@ minijinja.workspace = true
 pulldown-cmark.workspace = true
 
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 # RAII temp directories/files for tests. Every scratch path a test creates is
 # removed on drop — including on panic and early return — so a gate run never
 # leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path

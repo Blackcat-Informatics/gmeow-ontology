@@ -524,7 +524,7 @@ pub struct ProducedPath {
 /// Every derived GMN-dialect path producer in `produced` must be a member of
 /// [`PINNED_GMN_DIALECT_PRODUCERS`].
 ///
-/// The companion to [`check_producer_non_interference`], and the reason that ratchet is
+/// The companion to `check_producer_non_interference`, and the reason that ratchet is
 /// not merely a ratchet over whatever somebody happened to list. It filters through the
 /// SAME [`is_gmn_dialect_path`] predicate leg 1 uses — deliberately NOT through "every
 /// path leg 1's manifest carries", which would sweep in the non-GMN `lang:` projection

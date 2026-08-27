@@ -18,6 +18,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
+use std::time::Instant;
 
 use gmeow_logic::reason::artifacts::{
     build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
@@ -29,7 +30,9 @@ use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_result};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::bundle::PipelineHandle;
-use crate::node::{CachePolicy, ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{
+    CachePolicy, ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct, StageRunTiming,
+};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
 /// the SOLE reasoning pass: it reasons once over the object-level EDB
@@ -138,23 +141,7 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
     // the native codec so the RDF 1.2 statement layer is reconstructed exactly as
     // `dataset_from_oxigraph_quads` did — content-addressed Skolem witnesses are a pure
     // function of this canonical, transport-independent EDB.
-    let canon_nquads = purrdf::canonical_flat_nquads(edb).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-reason".to_string(),
-            message: format!("RDFC-1.0 canonicalize EDB: {e}"),
-        })
-    })?;
-    let canon = purrdf::parse_dataset(
-        canon_nquads.as_bytes(),
-        NativeRdfFormat::NQuads.media_type(),
-        None,
-    )
-    .map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-reason".to_string(),
-            message: format!("re-fold canonical quads: {e}"),
-        })
-    })?;
+    let canon = canonicalize_edb(edb, "stage-reason")?;
     let certified = reason_all_certified(canon.as_ref()).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-reason".to_string(),
@@ -245,6 +232,35 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
         result,
         chase_report,
         witness_derivations,
+    })
+}
+
+/// Canonicalize the exact object-level EDB through the transport-independent RDFC-1.0
+/// boundary shared by the reason and verify-attestation stages.
+///
+/// The verify stage deliberately repeats only this canonical byte/index normalization;
+/// it consumes the reason stage's typed [`ReasoningResult`] and never constructs a
+/// second closure.
+pub(crate) fn canonicalize_edb(
+    edb: &RdfDataset,
+    stage_id: &str,
+) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
+    let canon_nquads = purrdf::canonical_flat_nquads(edb).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: stage_id.to_string(),
+            message: format!("RDFC-1.0 canonicalize EDB: {e}"),
+        })
+    })?;
+    purrdf::parse_dataset(
+        canon_nquads.as_bytes(),
+        NativeRdfFormat::NQuads.media_type(),
+        None,
+    )
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: stage_id.to_string(),
+            message: format!("re-fold canonical quads: {e}"),
+        })
     })
 }
 
@@ -526,9 +542,13 @@ impl Stage for ReasonStage {
         // math:alphaEquivalenceClass edges, so the α-equivalence class is a joinable node in
         // the shipped bundle and the committed closure rather than a value that exists only
         // inside a gate process.
-        "reason.v4"
+        // v5 briefly carried graph/verify directly. v6 restores single ownership:
+        // stage-verify-attestation consumes this stage's typed ReasoningResult and
+        // projects graph/verify without launching another closure.
+        "reason.v6-dedicated-verify-consumer"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let mut timings = Vec::with_capacity(3);
         // Reason ONCE over the object-level EDB (ontology + imports + statements +
         // alignments + logic/relational-core), assembled in the SAME
         // graph layout the bundle carries but WITHOUT the meta/report graphs — they
@@ -536,8 +556,40 @@ impl Stage for ReasonStage {
         // Skolem witnesses a function of the ontology alone. This pass owns the
         // committed closure AND backs the bundle's `graph/reasoning`; there is no
         // second full-fold export leaf.
+        let edb_started = Instant::now();
         let edb = crate::stages::carrier::assemble_object_level_edb(input.upstream)?;
+        let edb_quads = edb.quad_count();
+        timings.push(StageRunTiming {
+            phase: "assemble-object-edb".to_string(),
+            elapsed_ms: edb_started.elapsed().as_millis(),
+            metadata: Some(format!("edb-quads={edb_quads}")),
+        });
+        let closure_started = Instant::now();
         let reasoned = reason_over_dataset(edb.as_ref())?;
+        let inferred_axioms = reasoned.result.inferred().len();
+        let budget = reasoned.result.provenance.consumed_budget;
+        let budget_allowance = budget
+            .allowance
+            .map_or_else(|| "unbounded".to_string(), |value| value.to_string());
+        let budget_limit = budget.limit.map_or("none", |limit| limit.wire());
+        let artifact_bytes = reasoned
+            .closure
+            .len()
+            .saturating_add(reasoned.explanations.len())
+            .saturating_add(reasoned.ledger.len())
+            .saturating_add(reasoned.perf_ledger.len());
+        timings.push(StageRunTiming {
+            phase: "construct-closure-and-artifacts".to_string(),
+            elapsed_ms: closure_started.elapsed().as_millis(),
+            metadata: Some(format!(
+                "closure-constructions=1;edb-quads={edb_quads};inferred-axioms={inferred_axioms};\
+                 budget-consumed={};budget-allowance={budget_allowance};budget-limit={budget_limit};\
+                 witness-derivations={};artifact-bytes={artifact_bytes}",
+                budget.consumed,
+                reasoned.witness_derivations.len(),
+            )),
+        });
+        let output_started = Instant::now();
         // The CLOSURE is the reason stage's contribution to `gts_compose`'s union and
         // stays the dataset's DEFAULT graph. The EXPLANATIONS and LEDGER are diagnostic
         // REPORTS (proof skeletons / DL·EL crosscheck), NOT ontology facts; they stay
@@ -594,10 +646,20 @@ impl Stage for ReasonStage {
                     message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
                 })
             })?;
+        let output_quads = bundle.dataset().quad_count();
+        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle));
+        timings.push(StageRunTiming {
+            phase: "assemble-reason-product".to_string(),
+            elapsed_ms: output_started.elapsed().as_millis(),
+            metadata: Some(format!(
+                "output-quads={output_quads};diagnostic-nodes={}",
+                nodes.len()
+            )),
+        });
         Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
+            product,
             diags: nodes,
-            timings: Vec::new(),
+            timings,
         })
     }
 }

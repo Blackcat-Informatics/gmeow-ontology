@@ -42,7 +42,14 @@ sha1.workspace = true
 blake3.workspace = true
 pulldown-cmark.workspace = true
 
+# The fixture is a native on-disk action cache. Browser/Wasm consumers use the
+# complete in-memory documentation model and must not inherit filesystem cache
+# machinery (or its native-only atomic-publication dependencies).
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+gmeow-action-cache = { path = "../action-cache" }
+
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 # RAII temp directories/files for tests. Every scratch path a test creates is
 # removed on drop — including on panic and early return — so a gate run never
 # leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path

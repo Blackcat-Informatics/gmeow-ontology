@@ -239,7 +239,7 @@ mod lpg_prefixes_registry_coherence_tests {
     /// The affect-classifier label registries (`gmeow-goemotions`/`gmeow-hf`/
     /// `gmeow-labelset`) are GMEOW-local per the host filter, but they are external
     /// per-model label identities used only by the affect ingest/conformance
-    /// machinery (see `crates/affect-ingest`, `crates/validate/tests/conformance_affect*`)
+    /// machinery (see `crates/affect-ingest`, `crates/validate/tests/conformance_cases/conformance_affect*`)
     /// — they never surface in an LPG/consumer/metadata/export projection, so
     /// `PREFIXES_BY_LEN` deliberately omits them. Every OTHER GMEOW-local namespace
     /// (the four grounding namespaces plus `vcardx`) is required.

@@ -867,26 +867,49 @@ pub fn bundled_denied_cells(snapshot: &[u8]) -> Result<Option<DeniedCells>, gmeo
 mod tests {
     use super::*;
     use std::path::PathBuf;
+    use std::sync::OnceLock;
 
-    /// The committed `generated/dist/gmeow.gts` snapshot bytes, read from the
-    /// worktree (the CLI embeds these via `include_bytes!`; a test reads them off
-    /// disk to exercise the real fold).
-    fn committed_snapshot() -> Vec<u8> {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("generated/dist/gmeow.gts");
-        std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+    fn repo_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("repository root canonicalizes")
+    }
+
+    /// Exact producer-selected snapshot bytes. Missing or mismatched identity is
+    /// terminal; this test helper never generates or imports the corpus.
+    fn committed_snapshot() -> &'static [u8] {
+        static SNAPSHOT: OnceLock<Vec<u8>> = OnceLock::new();
+        SNAPSHOT
+            .get_or_init(|| {
+                gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+                    .expect("load authenticated bundle bytes without rebuilding them")
+            })
+            .as_slice()
+    }
+
+    fn committed_bundle() -> &'static Bundle {
+        static BUNDLE: OnceLock<Bundle> = OnceLock::new();
+        BUNDLE.get_or_init(|| {
+            Bundle::from_snapshot(committed_snapshot()).expect("fold committed gmeow.gts")
+        })
+    }
+
+    fn committed_integrity_report() -> &'static BundleIntegrityReport {
+        static REPORT: OnceLock<BundleIntegrityReport> = OnceLock::new();
+        REPORT.get_or_init(|| {
+            committed_bundle()
+                .integrity_report()
+                .expect("integrity report")
+        })
     }
 
     /// Mirrors `tests/test_bundle_blob_integrity.py`: the wheel-mode consumer
     /// archives are folded into gmeow.gts as blobs and resolve non-empty. This
     /// pins Rust↔producer rep-string agreement — a drifted label would silently
     /// resolve to `{}` and ship the bundle without that surface.
-    #[test]
     fn bundle_carries_the_consumer_archives() {
-        let snapshot = committed_snapshot();
-        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+        let bundle = committed_bundle();
         assert!(
             !bundle.sssom().unwrap().is_empty(),
             "mappings-archive blob missing from gmeow.gts"
@@ -934,10 +957,8 @@ mod tests {
 
     /// Presentation projections are a hard negative contract for the committed
     /// logical bundle: they are regenerated externally by `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`.
-    #[test]
     fn documentation_projections_are_absent() {
-        let snapshot = committed_snapshot();
-        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+        let bundle = committed_bundle();
         assert!(
             bundle.ontology_docs().unwrap().is_empty(),
             "ontology-docs must be absent"
@@ -975,10 +996,8 @@ mod tests {
         );
     }
 
-    #[test]
     fn merged_ttl_reconstructs_non_empty_ntriples() {
-        let snapshot = committed_snapshot();
-        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+        let bundle = committed_bundle();
         let base = bundle.merged_ttl(false).unwrap();
         assert!(!base.is_empty(), "merged N-Triples are non-empty");
         assert!(base.ends_with(b"\n"), "merged N-Triples end with a newline");
@@ -997,10 +1016,8 @@ mod tests {
         assert!(with_imports.len() >= base.len());
     }
 
-    #[test]
     fn absent_rep_resolves_to_empty_not_error() {
-        let snapshot = committed_snapshot();
-        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+        let bundle = committed_bundle();
         assert!(
             bundle.archive("no-such-rep-archive").unwrap().is_empty(),
             "an unknown rep resolves to an empty archive (wheel-only contract)"
@@ -1008,12 +1025,10 @@ mod tests {
         assert!(bundle.blob_by_rep("no-such-rep").unwrap().is_none());
     }
 
-    #[test]
     fn malformed_snapshot_is_a_hard_error() {
         assert!(Bundle::from_snapshot(b"not a valid gts snapshot").is_err());
     }
 
-    #[test]
     fn is_slice_mapping_matches_five_segment_ttl() {
         assert!(is_slice_mapping("slices/core/inhabitation/mappings/x.ttl"));
         assert!(!is_slice_mapping("dsl/mappings/equivalences/x.ttl"));
@@ -1030,11 +1045,8 @@ mod tests {
     /// contract. Scanning by literal shape instead of by name previously
     /// flagged this committed bundle's real, correct data as thousands of
     /// false "dangling references".
-    #[test]
     fn integrity_report_does_not_flag_fingerprint_predicates_as_references() {
-        let snapshot = committed_snapshot();
-        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
-        let report = bundle.integrity_report().expect("integrity report");
+        let report = committed_integrity_report();
         assert!(
             !report
                 .referenced
@@ -1058,12 +1070,9 @@ mod tests {
     /// for that particular rep, and even when no graph predicate references
     /// its digest by name. Only a blob with NEITHER a reference NOR a
     /// declared rep is a genuine orphan.
-    #[test]
     fn integrity_report_does_not_flag_rep_labeled_blobs_as_orphans() {
-        let snapshot = committed_snapshot();
-        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
-        let report = bundle.integrity_report().expect("integrity report");
-        let graph = bundle.view.graph();
+        let report = committed_integrity_report();
+        let graph = committed_bundle().view.graph();
         for orphan in &report.orphan_blobs {
             let has_rep = graph
                 .blob_meta
@@ -1099,13 +1108,13 @@ mod tests {
     /// surface (`builder_from` + [`purrdf::gts_compose::emit_gts`]) with an empty
     /// blob list — this failure mode needs no low-level writer access, since the
     /// dangling-ness lives entirely in the graph, not the blob store.
-    #[test]
     fn integrity_report_flags_a_dangling_blob_reference() {
         use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, emit_gts};
 
         let dangling_digest = format!("blake3:{}", "0".repeat(64));
         let nq = format!("<https://e/s> <https://e/testBlob> \"{dangling_digest}\" .\n");
         let b = builder_from(&nq, purrdf::NativeRdfFormat::NTriples.media_type());
+        // gmeow-test-input: synthetic-only
         let snapshot = emit_gts(
             &b,
             "dist",
@@ -1213,7 +1222,6 @@ mod tests {
     /// carrying no producer-declared `rep` label must trip `is_clean() == false`
     /// and land in `report.orphan_blobs`. The digest IS correctly keyed (so this
     /// test isolates orphan-ness from the hash-mismatch law below).
-    #[test]
     fn integrity_report_flags_an_orphan_blob() {
         use ciborium::value::Value;
         use purrdf::gts::writer::digest_string;
@@ -1246,7 +1254,6 @@ mod tests {
     /// `report.hash_mismatches`. The blob DOES carry a `rep` (so this test
     /// isolates the mismatch from the orphan law above — a rep-labeled blob must
     /// never also be flagged as an orphan, per the existing regression pin).
-    #[test]
     fn integrity_report_flags_a_hash_mismatch() {
         use ciborium::value::Value;
         use purrdf::gts::writer::digest_string;
@@ -1277,5 +1284,79 @@ mod tests {
             "the blob carries a rep, so it must not ALSO be flagged as an orphan"
         );
         assert!(report.dangling.values().all(Vec::is_empty));
+    }
+
+    /// One process owns the bundle-reader contract table. This makes the parsed
+    /// committed bundle and its whole-store integrity walk true shared intermediates
+    /// instead of repeating both in a fresh nextest process for every assertion.
+    #[test]
+    fn bundle_reader_contracts_share_one_authenticated_parse() {
+        let cases: &[(&str, fn())] = &[
+            (
+                "bundle_carries_the_consumer_archives",
+                bundle_carries_the_consumer_archives,
+            ),
+            (
+                "documentation_projections_are_absent",
+                documentation_projections_are_absent,
+            ),
+            (
+                "merged_ttl_reconstructs_non_empty_ntriples",
+                merged_ttl_reconstructs_non_empty_ntriples,
+            ),
+            (
+                "absent_rep_resolves_to_empty_not_error",
+                absent_rep_resolves_to_empty_not_error,
+            ),
+            (
+                "malformed_snapshot_is_a_hard_error",
+                malformed_snapshot_is_a_hard_error,
+            ),
+            (
+                "is_slice_mapping_matches_five_segment_ttl",
+                is_slice_mapping_matches_five_segment_ttl,
+            ),
+            (
+                "integrity_report_does_not_flag_fingerprint_predicates_as_references",
+                integrity_report_does_not_flag_fingerprint_predicates_as_references,
+            ),
+            (
+                "integrity_report_does_not_flag_rep_labeled_blobs_as_orphans",
+                integrity_report_does_not_flag_rep_labeled_blobs_as_orphans,
+            ),
+            (
+                "integrity_report_flags_a_dangling_blob_reference",
+                integrity_report_flags_a_dangling_blob_reference,
+            ),
+            (
+                "integrity_report_flags_an_orphan_blob",
+                integrity_report_flags_an_orphan_blob,
+            ),
+            (
+                "integrity_report_flags_a_hash_mismatch",
+                integrity_report_flags_a_hash_mismatch,
+            ),
+        ];
+        let mut failures = Vec::new();
+        for (name, case) in cases {
+            if let Err(payload) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(*case)) {
+                let detail = payload
+                    .downcast_ref::<String>()
+                    .cloned()
+                    .or_else(|| {
+                        payload
+                            .downcast_ref::<&str>()
+                            .map(|text| (*text).to_string())
+                    })
+                    .unwrap_or_else(|| "non-string panic".to_string());
+                failures.push(format!("{name}: {detail}"));
+            }
+        }
+        assert!(
+            failures.is_empty(),
+            "{} bundle-reader contract(s) failed:\n{}",
+            failures.len(),
+            failures.join("\n")
+        );
     }
 }

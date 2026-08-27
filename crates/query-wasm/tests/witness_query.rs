@@ -13,7 +13,7 @@
 //! `crates/docs/assets/query/` — the bytes that actually ship). All three run the
 //! same function rather than three similar ones.
 //!
-//! Refreshed with `GMEOW_WITNESS_BLESS=1`.
+//! Refreshed only by an explicit maintainer producer; this test is read-only.
 //!
 //! Why a committed corpus and not `gmeow.gts`: engine parity is a property of the
 //! engine. A bundle-scoped witness would red on every ontology edit — parity noise
@@ -79,18 +79,9 @@ fn native_query_results_match_the_witness_attestation() {
     }
 
     let path = attestation_path();
-    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).expect("create asset dir");
-        }
-        std::fs::write(&path, &rendered).expect("write witness");
-        eprintln!("blessed query witness at {}", path.display());
-        return;
-    }
-
     let recorded = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "query witness attestation {} missing (bless with GMEOW_WITNESS_BLESS=1): {e}",
+            "query witness attestation {} missing; refresh it through the explicit maintainer producer: {e}",
             path.display()
         )
     });

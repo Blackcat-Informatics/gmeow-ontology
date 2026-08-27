@@ -2490,13 +2490,11 @@ mod tests {
             "ternary head → 3 naryArg conjuncts: {:?}",
             rule.head_conjuncts
         );
-        for i in 0..3 {
+        for (i, conjunct) in rule.head_conjuncts.iter().enumerate() {
             assert!(
-                rule.head_conjuncts[i]
-                    .predicate
-                    .ends_with(&format!("naryArg{i}")),
+                conjunct.predicate.ends_with(&format!("naryArg{i}")),
                 "conjunct {i} predicate: {}",
-                rule.head_conjuncts[i].predicate
+                conjunct.predicate
             );
         }
         // The reifier `R` is one fresh existential var shared across head + every conjunct,

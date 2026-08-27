@@ -97,13 +97,8 @@ fn repo_root() -> PathBuf {
 /// it (a bare checkout that has not run `make regen`) the contract cannot be exercised.
 /// That is unfinished work for the sync gate, not a pass — surface it loudly.
 fn snapshot() -> Vec<u8> {
-    let path = repo_root().join("generated/dist/gmeow.gts");
-    std::fs::read(&path).unwrap_or_else(|e| {
-        panic!(
-            "the segment-deferral contract needs the generated bundle {} (run `make regen`): {e}",
-            path.display()
-        )
-    })
+    gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("authenticated bundle; tests never produce it")
 }
 
 /// The LEAN deployment: every segment tool deferred.

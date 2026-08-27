@@ -136,7 +136,9 @@ mod sealed {
 /// This is the ONE content-key type in the workspace: it lands on both sides of the
 /// congruence seam (the DAG's fold and `gmeow_logic_compile::ir::Formula::content_key`),
 /// so the guarantee that the two agree is stated in the types rather than by convention.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct ContentKey(String);
 
 impl ContentKey {

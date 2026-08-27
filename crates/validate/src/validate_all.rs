@@ -2719,6 +2719,7 @@ ex:x rdf:type ex:A .
     fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
         let dataset =
             purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse test turtle");
+        // gmeow-test-input: synthetic-only
         purrdf::gts_write::to_gts(
             &dataset,
             &purrdf::RdfLookaside::default(),

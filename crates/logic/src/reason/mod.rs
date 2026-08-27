@@ -703,12 +703,13 @@ fn characteristic_type_has_no_alternative_producer(
     class_reachability: &TransitiveReachability,
     axiom: &LeaveOneOutAxiom,
 ) -> bool {
-    if axiom.predicate != LOO_RDF_TYPE || !is_property_characteristic(&axiom.object) {
+    let object = calculus_term(&axiom.object);
+    if axiom.predicate != LOO_RDF_TYPE || !is_property_characteristic(object) {
         return false;
     }
-    if class_reachability.has_nonself_incoming(&axiom.object)
-        || dataset_has_pattern(edb, None, LOO_RDFS_DOMAIN, Some(&axiom.object))
-        || dataset_has_pattern(edb, None, LOO_RDFS_RANGE, Some(&axiom.object))
+    if class_reachability.has_nonself_incoming(object)
+        || dataset_has_pattern(edb, None, LOO_RDFS_DOMAIN, Some(object))
+        || dataset_has_pattern(edb, None, LOO_RDFS_RANGE, Some(object))
     {
         return false;
     }
@@ -719,7 +720,7 @@ fn characteristic_type_has_no_alternative_producer(
         LOO_OWL_INTERSECTION_OF,
         LOO_OWL_ONE_OF,
     ] {
-        if dataset_has_pattern(edb, Some(&axiom.object), predicate, None) {
+        if dataset_has_pattern(edb, Some(object), predicate, None) {
             return false;
         }
     }
@@ -837,6 +838,13 @@ pub fn leave_one_out_rederived(
         // full finite-DL augmentation, and is answered vacuously (no fixed rule head is
         // spelled `logic:`), so the redundancy measurement would be both quadratically
         // expensive and blind on every canonically-authored slice.
+        // Every fast-family classifier is written in the fixed calculus vocabulary.
+        // Normalize the canonical `logic:` authoring spelling through the reasoner's
+        // single correspondence table before dispatch. In particular, a bare
+        // `logic:disjointWith` whose pair has no alternate producer is decided by the
+        // shared disjoint-support index; treating it as an unknown predicate would run
+        // a complete finite-DL rebuild for each probe.
+        let predicate = calculus_term(&axiom.predicate);
         let subsumption = loo_subsumption_spelling(&axiom.predicate);
         if subsumption == LOO_RDFS_SUBCLASS_OF
             && axiom.object != LOO_OWL_NOTHING
@@ -847,7 +855,7 @@ pub fn leave_one_out_rederived(
             && let Some(reachability) = &subproperty_reachability
         {
             results[index] = reachability.rederived_without(axiom);
-        } else if axiom.predicate == LOO_OWL_DISJOINT_WITH {
+        } else if predicate == LOO_OWL_DISJOINT_WITH {
             if disjoint_possibility
                 .as_ref()
                 .is_some_and(|possibility| possibility.cannot_be_rederived(axiom))
@@ -860,7 +868,7 @@ pub fn leave_one_out_rederived(
             && characteristic_type_has_no_alternative_producer(edb, reachability, axiom)
         {
             results[index] = false;
-        } else if fixed_head_is_absent(edb, &axiom.predicate) {
+        } else if fixed_head_is_absent(edb, predicate) {
             results[index] = false;
         } else {
             slow.push((index, axiom));
@@ -2326,7 +2334,14 @@ mod tests {
         const P: &str = "http://gmeow.example/p";
         const Q: &str = "http://gmeow.example/q";
         const R: &str = "http://gmeow.example/r";
+        const S: &str = "http://gmeow.example/s";
+        const T: &str = "http://gmeow.example/t";
+        const D: &str = "http://gmeow.example/D";
+        const E: &str = "http://gmeow.example/E";
         const MARKER: &str = "http://gmeow.example/FunctionalMarker";
+        const LOGIC_DISJOINT: &str = "https://blackcatinformatics.ca/logic/disjointWith";
+        const LOGIC_INVERSE: &str = "https://blackcatinformatics.ca/logic/inverseOf";
+        const LOGIC_FUNCTIONAL: &str = "https://blackcatinformatics.ca/logic/functionalProperty";
 
         let store = dataset(vec![
             quad(P, SUBPROPERTY, R),
@@ -2339,7 +2354,13 @@ mod tests {
             quad(A, DISJOINT, C),
             quad(A, COMPLEMENT, C),
             quad(B, DISJOINT, C),
+            // Canonical authoring must take the same batch negative filter as its
+            // OWL projection. Missing this lowering made each such probe rebuild
+            // and rerun the complete finite-DL dataset.
+            quad(D, LOGIC_DISJOINT, E),
+            quad(S, LOGIC_INVERSE, T),
             quad(P, TYPE, FUNCTIONAL),
+            quad(S, TYPE, LOGIC_FUNCTIONAL),
             quad(Q, TYPE, MARKER),
             quad(MARKER, SUBCLASS, FUNCTIONAL),
             quad(Q, TYPE, FUNCTIONAL),
@@ -2353,7 +2374,10 @@ mod tests {
             LeaveOneOutAxiom::new(P, INVERSE, Q),
             LeaveOneOutAxiom::new(A, DISJOINT, C),
             LeaveOneOutAxiom::new(B, DISJOINT, C),
+            LeaveOneOutAxiom::new(D, LOGIC_DISJOINT, E),
+            LeaveOneOutAxiom::new(S, LOGIC_INVERSE, T),
             LeaveOneOutAxiom::new(P, TYPE, FUNCTIONAL),
+            LeaveOneOutAxiom::new(S, TYPE, LOGIC_FUNCTIONAL),
             LeaveOneOutAxiom::new(Q, TYPE, FUNCTIONAL),
         ];
 
@@ -2366,7 +2390,8 @@ mod tests {
         assert_eq!(
             batched,
             vec![
-                true, false, false, false, false, false, true, false, false, true
+                true, false, false, false, false, false, true, false, false, false, false, false,
+                true
             ]
         );
     }

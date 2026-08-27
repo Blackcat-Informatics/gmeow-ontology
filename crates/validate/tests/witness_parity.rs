@@ -19,7 +19,7 @@
 //! `gmeow-validate-wasm` remains a published npm package, so its native≡wasm evidence is
 //! still load-bearing — it MOVED rather than being dropped with the asset.
 //!
-//! Refreshed via `GMEOW_WITNESS_BLESS=1`.
+//! Refreshed only by an explicit maintainer producer; this test is read-only.
 
 use std::path::PathBuf;
 
@@ -44,17 +44,8 @@ fn attestation_path() -> PathBuf {
 #[test]
 fn native_tier1_validation_matches_the_witness_attestation() {
     let root = repo_root();
-    let bundle_path = root.join("generated/dist/gmeow.gts");
-    let bundle = match std::fs::read(&bundle_path) {
-        Ok(b) => b,
-        // The bundle is a generated artifact; without it (a bare checkout that has
-        // not run `make check`) the parity witness cannot run. That is unfinished
-        // work for the sync gate, not a pass — surface it loudly.
-        Err(e) => panic!(
-            "witness needs the generated bundle {} (run `make check`): {e}",
-            bundle_path.display()
-        ),
-    };
+    let bundle = gmeow_bundle_import::load_authenticated_source_bytes(&root)
+        .expect("authenticated bundle; tests never produce it");
     let turtle = std::fs::read(root.join(COUNTER_EXAMPLE)).expect("read counter-example fixture");
 
     let findings = gmeow_validate::data_validate::validate_json(
@@ -80,23 +71,14 @@ fn native_tier1_validation_matches_the_witness_attestation() {
     );
 
     let path = attestation_path();
-    // Require the EXACT documented value: `GMEOW_WITNESS_BLESS=0` or an empty value must
-    // NOT overwrite the committed parity attestation (an accidental export would otherwise
-    // silently replace the witness).
-    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
-        std::fs::write(&path, findings.as_bytes()).expect("write witness attestation");
-        eprintln!("blessed witness attestation at {}", path.display());
-        return;
-    }
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "witness attestation {} missing (run `GMEOW_WITNESS_BLESS=1 cargo test -p gmeow-validate --test witness_parity`): {e}",
+            "witness attestation {} missing; refresh it through the explicit maintainer producer: {e}",
             path.display()
         )
     });
     assert_eq!(
         findings, committed,
-        "native Tier-1 findings drifted from the committed witness attestation — \
-         re-bless with GMEOW_WITNESS_BLESS=1 after confirming the wasm Node lane still agrees"
+        "native Tier-1 findings drifted from the committed witness attestation"
     );
 }

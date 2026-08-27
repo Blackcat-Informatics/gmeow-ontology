@@ -891,10 +891,28 @@ mod tests {
 
     #[test]
     fn covers_all_six_claim_sites_and_reconciles_purrdf() {
-        // The full build read against the real repo: purrdf appears at all six sites,
-        // its crate version and git rev reconcile, and the graph carries embeds edges.
-        let root = crate_repo_root();
-        let nt = build_substrate_projection(&root).expect("substrate projection builds");
+        use purrdf::{DatasetView, GraphMatch, TermValue};
+
+        // The producer owns the repository scan and reconciliation. Consume its exact
+        // admitted source-load product; a missing receipt is terminal.
+        let fixture = crate::fixture::stage_fixture(&crate_repo_root(), 1, "stage-source-load")
+            .expect("load authenticated source-load product without rebuilding corpus");
+        let dataset = fixture.outcome.product.dataset();
+        let graph = dataset
+            .term_id_by_value(&TermValue::iri(GRAPH_PROVENANCE))
+            .expect("provenance graph is present");
+        let rdf_type = dataset
+            .term_id_by_value(&TermValue::iri(RDF_TYPE))
+            .expect("rdf:type is interned");
+        let contains = |iri: String| {
+            let object = dataset
+                .term_id_by_value(&TermValue::iri(iri))
+                .expect("expected substrate term is interned");
+            dataset
+                .quads_for_pattern(None, Some(rdf_type), Some(object), GraphMatch::Named(graph))
+                .next()
+                .is_some()
+        };
         for site in [
             SITE_WORKSPACE_MANIFEST,
             SITE_FUZZ_MANIFEST,
@@ -903,21 +921,27 @@ mod tests {
             SITE_SHIPPED_ARTIFACT,
             SITE_PROSE,
         ] {
+            let site = dataset
+                .term_id_by_value(&TermValue::iri(format!("{GMEOW}{site}")))
+                .unwrap_or_else(|| panic!("the substrate graph must carry claim site {site}"));
             assert!(
-                nt.contains(&format!("{GMEOW}{site}")),
-                "the substrate graph must carry a claim at every site; missing {site}"
+                dataset
+                    .quads_for_pattern(None, None, Some(site), GraphMatch::Named(graph))
+                    .next()
+                    .is_some(),
+                "the substrate graph must carry a claim at every site"
             );
         }
+        assert!(contains(format!("{GMEOW}SubstrateComponent")));
+        assert!(contains(format!("{GMEOW}ReconciledPin")));
+        let embeds = dataset
+            .term_id_by_value(&TermValue::iri(format!("{GMEOW}embeds")))
+            .expect("gmeow:embeds is interned");
         assert!(
-            nt.contains(&format!("{GMEOW}SubstrateComponent")),
-            "≥1 SubstrateComponent"
-        );
-        assert!(
-            nt.contains(&format!("{GMEOW}ReconciledPin")),
-            "≥1 ReconciledPin (sites agree)"
-        );
-        assert!(
-            nt.contains(&format!("{GMEOW}embeds")),
+            dataset
+                .quads_for_pattern(None, Some(embeds), None, GraphMatch::Named(graph))
+                .next()
+                .is_some(),
             "≥1 embeds edge (SBOM contains)"
         );
     }
@@ -930,47 +954,92 @@ mod tests {
         // `spdx:versionInfo` from the reconciled pin, and an SPDX `contains` relationship
         // for every `gmeow:embeds` edge. This is the production producer folded into
         // gmeow.gts so `gmeow project --profile spdx` returns substrate packages.
-        let root = crate_repo_root();
-        let spdx_rq = std::fs::read_to_string(root.join("generated/queries/spdx.rq"))
-            .expect("committed generated/queries/spdx.rq");
-        let sbom = build_substrate_sbom_projection(&root, &spdx_rq).expect("spdx SBOM projects");
+        use purrdf::{DatasetView, GraphMatch, TermValue};
+
+        let fixture = crate::fixture::stage_fixture(&crate_repo_root(), 1, "stage-mappings")
+            .expect("load authenticated mappings product without rebuilding corpus");
+        let dataset = fixture.outcome.product.dataset();
+        let graph_iri = crate::stages::carrier::GRAPH_SUBSTRATE_SBOM;
+        let graph = dataset
+            .term_id_by_value(&TermValue::iri(graph_iri))
+            .expect("substrate SBOM graph is present");
+        let id = |iri: &str| {
+            dataset
+                .term_id_by_value(&TermValue::iri(iri))
+                .unwrap_or_else(|| panic!("expected SBOM term {iri}"))
+        };
+        let rdf_type = id(RDF_TYPE);
+        let package = id("http://spdx.org/rdf/terms#Package");
+        let version = id("http://spdx.org/rdf/terms#versionInfo");
+        let relationship = id("http://spdx.org/rdf/terms#relationship");
 
         // Every embedded library reconciles a crate version, so each carries an
         // spdx:versionInfo — purrdf (0.12.0) plus the toolchain libraries.
         for name in ["purrdf", "binaryen", "wasm-bindgen"] {
             let comp = iri("component", name);
             assert!(
-                sbom.contains(&format!(
-                    "<{comp}> <{RDF_TYPE}> <http://spdx.org/rdf/terms#Package> ."
-                )),
-                "{name} must project as an spdx:Package: {sbom}"
+                dataset
+                    .quads_for_pattern(
+                        Some(id(&comp)),
+                        Some(rdf_type),
+                        Some(package),
+                        GraphMatch::Named(graph),
+                    )
+                    .next()
+                    .is_some(),
+                "{name} must project as an spdx:Package"
             );
             assert!(
-                sbom.contains(&format!("<{comp}> <http://spdx.org/rdf/terms#versionInfo>")),
-                "{name} must carry an spdx:versionInfo from its reconciled pin: {sbom}"
+                dataset
+                    .quads_for_pattern(
+                        Some(id(&comp)),
+                        Some(version),
+                        None,
+                        GraphMatch::Named(graph),
+                    )
+                    .next()
+                    .is_some(),
+                "{name} must carry an spdx:versionInfo from its reconciled pin"
             );
         }
         // Each of the four shipped engines is an spdx:Package that CONTAINS its embeds.
         for engine in SHIPPED_ENGINES {
             let engine_iri = iri("component", &format!("{engine}-engine"));
             assert!(
-                sbom.contains(&format!(
-                    "<{engine_iri}> <{RDF_TYPE}> <http://spdx.org/rdf/terms#Package> ."
-                )),
-                "the {engine} engine must project as an spdx:Package: {sbom}"
+                dataset
+                    .quads_for_pattern(
+                        Some(id(&engine_iri)),
+                        Some(rdf_type),
+                        Some(package),
+                        GraphMatch::Named(graph),
+                    )
+                    .next()
+                    .is_some(),
+                "the {engine} engine must project as an spdx:Package"
             );
             assert!(
-                sbom.contains(&format!(
-                    "<{engine_iri}> <http://spdx.org/rdf/terms#relationship>"
-                )),
-                "the {engine} engine must carry an spdx:relationship (contains): {sbom}"
+                dataset
+                    .quads_for_pattern(
+                        Some(id(&engine_iri)),
+                        Some(relationship),
+                        None,
+                        GraphMatch::Named(graph),
+                    )
+                    .next()
+                    .is_some(),
+                "the {engine} engine must carry an spdx:relationship (contains)"
             );
         }
         // Directional & lossy: the internal gmeow substrate vocabulary never leaks into
         // the pure-SPDX projection.
         assert!(
-            !sbom.contains(&format!("{GMEOW}claimedValue")),
-            "internal gmeow substrate predicate leaked into the SBOM: {sbom}"
+            dataset
+                .term_id_by_value(&TermValue::iri(format!("{GMEOW}claimedValue")))
+                .is_none_or(|predicate| dataset
+                    .quads_for_pattern(None, Some(predicate), None, GraphMatch::Named(graph),)
+                    .next()
+                    .is_none()),
+            "internal gmeow substrate predicate leaked into the SBOM"
         );
     }
 

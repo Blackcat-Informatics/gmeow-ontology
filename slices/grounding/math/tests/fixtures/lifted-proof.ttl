@@ -22,8 +22,8 @@
 # non-thm SZS inference status, the `unknown` role, a <useful_info> field) enumerates that
 # residue on its witness and travels at logic:LossyLens instead.
 #
-# Drift is a loud failure: crates/math/tests/lift_fixture_drift.rs regenerates the
-# producer and byte-compares against this file.
+# Drift is a loud failure at the explicit `stage-math-producers` boundary, which
+# graph-compares the already-required producer output with this pinned witness.
 
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .

@@ -25,4 +25,4 @@ gmeow-errors = { path = "../errors" }
 # production entry rather than calling the writer directly.
 gmeow-gts-profile = { path = "../gts-profile" }
 purrdf.workspace = true
-roxmltree = "0.20"
+roxmltree.workspace = true

@@ -4,7 +4,7 @@
 # Declarative competency questions for the places slice, executed by the native
 # Rust slice-test harness (crates/slicetest). Migrated from the location /
 # place-type / storage-media / place-property competency tests in
-# crates/validate/tests/conformance_competency.rs. TBox vocabulary questions over the asserted
+# crates/validate/tests/conformance_cases/conformance_competency.rs. TBox vocabulary questions over the asserted
 # merged ontology; rows are the SUBSET the pytest asserted present (cqExactRows
 # omitted → contains-check). No Gap-1 universal — fixed term sets.
 

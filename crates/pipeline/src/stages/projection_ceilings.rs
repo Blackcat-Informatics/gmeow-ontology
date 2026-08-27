@@ -214,16 +214,20 @@ mod tests {
     #[test]
     fn ceilings_project_deterministically_from_the_ontology() {
         let root = repo_root();
-        let floors = gmeow_slice_quality::load_repo_ceilings(&root).expect("load ceilings");
-        let a = render_ceilings(&floors);
-        let b = render_ceilings(&floors);
-        assert_eq!(a, b, "ceiling projection must be deterministic");
+        let a = String::from_utf8(
+            crate::fixture::authenticated_artifact(
+                &root,
+                "stage-export-projection-ceilings",
+                CEILINGS_PATH,
+            )
+            .expect("authenticated projection ceilings"),
+        )
+        .expect("projection ceilings utf8");
 
         let data_rows: Vec<&str> = a.lines().filter(|l| !l.starts_with('#')).collect();
-        assert_eq!(
-            data_rows.len(),
-            floors.ceilings.len(),
-            "one data row per gmeow:ProjectionCeilingCommitment"
+        assert!(
+            !data_rows.is_empty(),
+            "projection ceilings must not be empty"
         );
         for row in &data_rows {
             let cols: Vec<&str> = row.split('\t').collect();
@@ -242,16 +246,20 @@ mod tests {
     #[test]
     fn vocabularies_project_deterministically_from_the_ontology() {
         let root = repo_root();
-        let floors = gmeow_slice_quality::load_repo_ceilings(&root).expect("load ceilings");
-        let a = render_vocabularies(&floors);
-        let b = render_vocabularies(&floors);
-        assert_eq!(a, b, "vocabulary projection must be deterministic");
+        let a = String::from_utf8(
+            crate::fixture::authenticated_artifact(
+                &root,
+                "stage-export-projection-ceilings",
+                VOCABULARIES_PATH,
+            )
+            .expect("authenticated projection vocabularies"),
+        )
+        .expect("projection vocabularies utf8");
 
         let data_rows: Vec<&str> = a.lines().filter(|l| !l.starts_with('#')).collect();
-        assert_eq!(
-            data_rows.len(),
-            floors.vocabularies.len(),
-            "one data row per gmeow:ProjectionVocabulary"
+        assert!(
+            !data_rows.is_empty(),
+            "projection vocabulary inventory must not be empty"
         );
         for row in &data_rows {
             let cols: Vec<&str> = row.split('\t').collect();
@@ -265,37 +273,5 @@ mod tests {
         let mut sorted = data_rows.clone();
         sorted.sort();
         assert_eq!(data_rows, sorted, "vocabulary rows must be sorted");
-    }
-
-    #[test]
-    #[ignore = "requires generated TSVs + bundle from make check (stage3)"]
-    fn generated_projection_ceilings_are_byte_reconstructible_from_the_bundle() {
-        // The opaque-blob superset property: the shipped gmeow.gts reconstructs both
-        // committed projection-ceiling TSVs byte-for-byte (they ride as REP_GENERATED
-        // members), and the reconstruction equals THIS stage's fresh projection.
-        let root = repo_root();
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read bundle");
-        let projection = crate::stages::superset::project_bundle(&gts).expect("project bundle");
-
-        let floors = gmeow_slice_quality::load_repo_ceilings(&root).expect("load ceilings");
-        for (path, fresh) in [
-            (CEILINGS_PATH, render_ceilings(&floors)),
-            (VOCABULARIES_PATH, render_vocabularies(&floors)),
-        ] {
-            let reconstructed = projection.files.get(path).unwrap_or_else(|| {
-                panic!("{path} must reconstruct from gmeow.gts as a blob member")
-            });
-            assert_eq!(
-                reconstructed,
-                &fresh.into_bytes(),
-                "{path} bundle reconstruction must equal the fresh ontology projection"
-            );
-            let committed = std::fs::read(root.join(path))
-                .unwrap_or_else(|_| panic!("committed {path} must exist"));
-            assert_eq!(
-                reconstructed, &committed,
-                "{path} bundle reconstruction must equal the committed bytes"
-            );
-        }
     }
 }

@@ -18,10 +18,11 @@
 //! gmeow:UnwiredFlagshipScenario`), to `gmeow:UnwiredFlagshipScenario`. The shared unwired gate
 //! bites, deterministically.
 
-mod support;
-use support::flagship_discharge::{local_name, shape_class_map, shared_shapes_path};
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
 use gmeow_validate::store::shacl_validate_dataset;
+use purrdf::RdfTerm;
 use purrdf::shapes::engine::parse_shapes;
 
 /// The `gmeow:` namespace (the manifest/annotation vocabulary and the unwired failure class).
@@ -44,18 +45,57 @@ const UNWIRED_SCENARIO: &str = r#"
     gmeow:enforcesFailureClass lang:UnhashableSurface .
 "#;
 
+fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("repository root canonicalizes")
+}
+
+fn local_name(iri: &str) -> String {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned()
+}
+
+/// Resolve the projected shape-to-failure-class links from the exact authenticated
+/// shape artifact supplied by the explicit pre-test producer.
+fn shape_class_map(shapes_text: &str) -> HashMap<String, String> {
+    let dataset = purrdf::parse_dataset(shapes_text.as_bytes(), "text/turtle", None)
+        .expect("authenticated production shapes parse as RDF");
+    let predicate = format!("{GMEOW_NS}enforcesFailureClass");
+    dataset
+        .owned_quads()
+        .filter_map(|quad| {
+            if quad.predicate != predicate {
+                return None;
+            }
+            let RdfTerm::Iri(subject) = quad.subject else {
+                return None;
+            };
+            let RdfTerm::Iri(object) = quad.object else {
+                return None;
+            };
+            Some((subject, object))
+        })
+        .collect()
+}
+
 #[test]
 fn shared_flagship_shape_bites_on_a_missing_required_link() {
     // The projected validation-shape surface carries the derived gmeow:FlagshipScenario-shape (the
     // cardinality gate) and its gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario annotation.
-    let shapes_path = shared_shapes_path();
-    let shapes_text =
-        std::fs::read_to_string(&shapes_path).expect("read projected validation-shapes.ttl");
-    let shapes = parse_shapes(&shapes_text).expect("projected shapes parse");
+    let shapes_text = String::from_utf8(
+        gmeow_bundle_import::load_authenticated_corpus_artifact(
+            &repo_root(),
+            "validate-production-shapes.ttl",
+        )
+        .expect("load authenticated production shapes without rebuilding them"),
+    )
+    .expect("authenticated production shapes are UTF-8");
+    let shapes = parse_shapes(&shapes_text).expect("authenticated production shapes parse");
 
     // The shape -> failure-class map, resolved from the projected surface: the flagship gate
     // resolves to gmeow:UnwiredFlagshipScenario.
-    let shape_class = shape_class_map(std::slice::from_ref(&shapes_path));
+    let shape_class = shape_class_map(&shapes_text);
 
     // The unwired scenario, parsed in-memory (deterministic — no fixture on disk, no ordering).
     let data = purrdf::parse_dataset(UNWIRED_SCENARIO.as_bytes(), "text/turtle", None)

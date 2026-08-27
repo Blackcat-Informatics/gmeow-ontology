@@ -930,6 +930,7 @@ mod tests {
         .expect("parse turtle");
         let mut builder = SnapshotBuilder::default();
         builder.add_dataset(&dataset).expect("add dataset");
+        // gmeow-test-input: synthetic-only
         emit_gts(
             &builder,
             "dist",

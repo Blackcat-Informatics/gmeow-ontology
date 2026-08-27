@@ -50,6 +50,7 @@ pub mod docs_loss_lattice;
 pub mod docs_measure;
 pub mod error;
 pub mod fanout;
+pub mod fixture;
 pub mod generator_registry;
 pub mod gmn_dialect;
 pub mod graph;
@@ -98,7 +99,7 @@ pub use medium::audit::{
 };
 pub use node::{
     CachePolicy, ENGINE_RESOURCE, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN,
-    Stage, StageInput, StageOutput, StageProduct,
+    Stage, StageInput, StageOutput, StageProduct, StageStability,
 };
 pub use registry::{StageRegistry, default_registry};
 pub use run::{

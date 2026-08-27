@@ -14,8 +14,8 @@
 //! adds/renames the binding but forgets to re-vendor is caught here — and that a
 //! BLAKE3 content-digest manifest (`assets/validate/DIGESTS.blake3`) pins the exact
 //! vendored bytes, so a *stale-but-still-functional* engine cannot slip through. Any
-//! change to a vendored file without re-running `make maint-refresh-validate-asset`
-//! (which rewrites the manifest under `GMEOW_VALIDATE_BLESS=1`) fails this gate.
+//! change to a vendored file without first running the explicit
+//! `make maint-refresh-validate-asset` producer fails this read-only gate.
 //!
 //! Behaviour (does a validation actually run?) is covered by the Node execution lane
 //! (`crates/validate-wasm/js/tests/validate.test.mjs`, on `make validate-wasm-pkg-test`).

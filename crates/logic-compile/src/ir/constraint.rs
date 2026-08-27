@@ -47,7 +47,7 @@ const LOGIC_SPARQL_TARGET: &str = "https://blackcatinformatics.ca/logic/sparqlTa
 /// aggregate value is tested against. Named the FOL way (equality / inequality / ordering), with
 /// both the SPARQL rendering and its logical [`Self::negated`] (used to select the VIOLATING rows
 /// of a `sh:SPARQLConstraint`, whose `sh:select` returns focus nodes that FAIL the invariant).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum AggregateComparator {
     /// `=` — the aggregate equals the right-hand side.
     Eq,
@@ -111,7 +111,7 @@ impl AggregateComparator {
 
 /// The right-hand side an [`AggregateComparison`] tests the aggregate against: a compared
 /// property of the focus node, or a fixed literal.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum AggregateRhs {
     /// The value of this predicate on the focus (`$this <predicate> ?rhs`); the aggregate is
     /// compared to `?rhs`.
@@ -147,7 +147,7 @@ impl AggregateRhs {
 /// not a `Formula` construct), so an aggregate integrity is carried HERE as a structured satellite
 /// and lowered to a `SELECT $this … GROUP BY $this HAVING(…)` `sh:SPARQLConstraint` — reusing the
 /// SHACL-AF `GROUP BY` machinery rather than a bespoke aggregate formula lowering.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AggregateComparison {
     /// The aggregate function, an upper-case SPARQL name (`COUNT`, `SUM`, `MIN`, `MAX`).
     pub function: String,
@@ -220,7 +220,7 @@ impl AggregateComparison {
 /// group product is `sign₁ · sign₂`. The chain's shared join variable is `leg[k].target =
 /// leg[k+1].source`; there is no cartesian product over cells, so the projected SPARQL scales with
 /// the number of incidence RECORDS, not with cells².
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct JoinLeg {
     /// Optional class the record node is typed with (an index-friendly anchor and a well-formedness
     /// guard; `None` ⇒ the record is bound only by its role/value predicates).
@@ -293,7 +293,7 @@ impl JoinLeg {
 /// [`AggregateComparison`] the realized FOL [`Formula`] core has no aggregate/join node, so the
 /// structured join is carried HERE and lowered to a `SELECT $this ?far … GROUP BY $this ?far
 /// HAVING(…)` `sh:SPARQLConstraint`.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct JoinAggregate {
     /// The aggregate function, an upper-case SPARQL name (`SUM` for ∂²; `COUNT`/`MIN`/`MAX` accepted).
     pub function: String,
@@ -379,7 +379,7 @@ impl JoinAggregate {
 /// posting's numeric amount is read via `amount_node_predicate` then `value_predicate`; the group key
 /// is read via `amount_node_predicate` then `group_predicate`; and the two partition-sums must be
 /// EQUAL within every group.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AggregateBalance {
     /// The predicate from the focus to each posting (`$this <posting_predicate> ?posting`).
     pub posting_predicate: String,
@@ -460,7 +460,7 @@ fn key_field(s: &str) -> String {
 /// closed-world integrity condition whose violation is a finding. The canonical form the
 /// `sh:SPARQLConstraint` surface projects from. Identity is the content-addressed
 /// [`Self::content_key`]; the `iri` is the sort key.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ConstraintIr {
     /// IRI string of the constraint individual (identity / sort key).
     pub iri: String,

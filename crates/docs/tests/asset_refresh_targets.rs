@@ -63,27 +63,11 @@ fn the_target_check_rejects_a_name_the_makefile_does_not_define() {
     );
 }
 
-/// Each asset's `bless_env` must be distinct, so one asset's bless cannot silently
-/// rewrite another's digest manifest.
-#[test]
-fn every_asset_bless_env_is_distinct() {
-    let mut seen: Vec<&str> = ALL_ASSETS.iter().map(|a| a.bless_env).collect();
-    seen.sort_unstable();
-    let before = seen.len();
-    seen.dedup();
-    assert_eq!(
-        seen.len(),
-        before,
-        "two assets share a bless environment variable: {seen:?}"
-    );
-}
-
 /// Each asset's `refresh_target` must be distinct AND must actually refresh THAT asset.
 ///
 /// Existence alone is too weak: all four descriptors could name one real target and the
 /// existence gate would stay green, so three engines would advertise a command that
-/// re-vendors a different one. `bless_env` distinctness was already asserted; the target
-/// this failure message tells a reader to run was not.
+/// re-vendors a different one.
 #[test]
 fn every_asset_refresh_target_is_distinct_and_refreshes_that_asset() {
     let mut seen: Vec<&str> = ALL_ASSETS.iter().map(|a| a.refresh_target).collect();

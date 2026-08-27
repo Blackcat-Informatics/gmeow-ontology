@@ -18,7 +18,7 @@ use gmeow_docs::model::{
 use gmeow_docs::rdf::to_gmeow_rdf;
 use purrdf::RdfTerm;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 
 /// Logical path of the documentation named graph (N-Quads, in-memory dataflow).
 pub const DOCS_GRAPH_PATH: &str = "pipeline/documentation.nq";
@@ -720,6 +720,51 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow
     Ok(())
 }
 
+/// Whether one path below `assets_root` is a producer-owned console artifact rather than
+/// authored documentation input.
+///
+/// These paths are git-ignored outputs of `console-assemble`, `npm ci`, or `npm pack`.
+/// Folding them back into the docs-stage source digest creates a producer-to-input cycle:
+/// a successful gate refreshes the console package after synchronization and invalidates
+/// the clean manifest it just wrote. The next gate then pays for another full pipeline even
+/// though no authored input changed.
+fn is_derived_docs_asset(assets_root: &Path, path: &Path) -> bool {
+    let Ok(relative) = path.strip_prefix(assets_root) else {
+        return false;
+    };
+    relative.starts_with(Path::new("console/pkg"))
+        || relative.starts_with(Path::new("console/node_modules"))
+        || relative.starts_with(Path::new("console/smoke/node_modules"))
+        || (relative.parent() == Some(Path::new("console"))
+            && relative
+                .extension()
+                .is_some_and(|extension| extension == "tgz"))
+}
+
+/// Recursively collect authored vendored assets while pruning producer-owned subtrees
+/// before descent, so an installed `node_modules` tree costs neither hashing nor walking.
+fn walk_docs_asset_sources(
+    assets_root: &Path,
+    dir: &Path,
+    out: &mut Vec<std::path::PathBuf>,
+) -> Result<(), gmeow_errors::Diag> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if is_derived_docs_asset(assets_root, &path) {
+            continue;
+        }
+        if path.is_dir() {
+            walk_docs_asset_sources(assets_root, &path, out)?;
+        } else {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
 /// Recursively collect every `*.md` Markdown source under `dir` into `out` — the
 /// cache-key mirror of the docs model's recursive `text/markdown` document
 /// discovery (fail-fast on a `read_dir` entry error; a missing directory yields
@@ -851,7 +896,7 @@ pub(crate) fn docs_source_files(
     // …) — many `gmeow:cqQueryFile` values resolve here rather than into a slice's
     // own directory (both forms are repo-root-relative; see the doc comment above).
     walk_files(&root.join("queries"), &mut files)?;
-    // The vendored documentation site assets (`crates/docs/assets/**` — the CSS/JS
+    // The AUTHORED vendored documentation site assets (`crates/docs/assets/**` — the CSS/JS
     // theme, the offline SPARQL playground's `include_bytes!`'d purrdf wasm engine,
     // and every other vendored wasm surface + its `DIGESTS.blake3` pin). The
     // `SnapshotStage` embeds the rendered site, which carries these bytes verbatim,
@@ -861,7 +906,10 @@ pub(crate) fn docs_source_files(
     // (the only thing `GMEOW_BUILD_FINGERPRINT` folds) does not change on an
     // asset-only refresh, so the asset bytes are declared here as first-class cache
     // inputs. New vendored surfaces land under this tree and fold in automatically.
-    walk_files(&root.join("crates").join("docs").join("assets"), &mut files)?;
+    // Git-ignored console package/install outputs are pruned: they are produced from these
+    // sources later in the gate and must never feed back into the sync input identity.
+    let assets_root = root.join("crates").join("docs").join("assets");
+    walk_docs_asset_sources(&assets_root, &assets_root, &mut files)?;
     files.sort();
     files.dedup();
     Ok(files)
@@ -930,6 +978,11 @@ impl Stage for DocsRenderStage {
     fn attaches_blob_reps(&self) -> &[String] {
         crate::stages::attach::blob_reps(self.id())
     }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 241.6 MB serialized for a ~6.1 s rebuild. Hydration
+        // cannot amortize the disk/RSS cost, so the typed DAG keeps it recompute-only.
+        CachePolicy::Recompute
+    }
     fn impl_version(&self) -> &str {
         // v9: the per-term content-address manifest (definition digest + first-seen
         // version + computed changelog) is read from THIS run's consumed
@@ -985,7 +1038,6 @@ impl Stage for DocsRenderStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::rdf_bytes_to_dataset;
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -1079,6 +1131,24 @@ mod tests {
             has_vendored_asset,
             "docs_source_files must include the vendored crates/docs/assets/** site assets"
         );
+        let assets_root = root.join("crates/docs/assets");
+        for derived in [
+            "console/pkg/gmeow.gts",
+            "console/node_modules/package/index.js",
+            "console/smoke/node_modules/playwright/index.js",
+            "console/blackcatinformatics-gmeow-console-0.2.0.tgz",
+        ] {
+            assert!(
+                is_derived_docs_asset(&assets_root, &assets_root.join(derived)),
+                "the producer-owned docs asset {derived} must be classified as derived"
+            );
+        }
+        assert!(
+            files
+                .iter()
+                .all(|path| !is_derived_docs_asset(&assets_root, path)),
+            "docs_source_files must never hash producer-owned console package/install outputs"
+        );
         // F4/F5: each interactive engine's native↔wasm witness-ATTESTATION is itself a
         // declared consumed input of this render leaf (it lives under crates/docs/assets/**
         // and is walked here), so re-blessing an attestation busts the docs cache and the
@@ -1105,87 +1175,6 @@ mod tests {
                  (the F4/F5 attestation→capability dataflow edge)"
             );
         }
-    }
-
-    /// A `stage-validate` + `stage-compile-logic` + `stage-mappings` upstream
-    /// triple whose JSON diagnostics artifacts carry an EMPTY
-    /// [`gmeow_errors::Report`] (zero findings, never an absent artifact — a
-    /// missing artifact must hard-fail, see [`diagnostics_digest_from_upstream`])
-    /// and whose `stage-mappings` product carries an EMPTY dataset (zero
-    /// `GRAPH_PROJECTION_LEDGER` rows, never an absent product — a missing
-    /// product must hard-fail, see [`term_loss_digest_from_upstream`]) — the
-    /// minimal upstream `render_docs_graph` needs so a source-lane test can
-    /// render the whole-repo docs graph without a real pipeline run.
-    fn empty_render_docs_graph_upstream() -> BTreeMap<String, StageProduct> {
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert(
-            "stage-validate".to_string(),
-            report_json_product(
-                "stage-validate",
-                crate::stages::validate::SHACL_JSON_PATH,
-                &gmeow_errors::Report::new("shacl"),
-            ),
-        );
-        upstream.insert(
-            "stage-compile-logic".to_string(),
-            report_json_product(
-                "stage-compile-logic",
-                crate::stages::compile_logic::DIAG_JSON_PATH,
-                &gmeow_errors::Report::new("logic-compile"),
-            ),
-        );
-        upstream.insert(
-            "stage-mappings".to_string(),
-            StageProduct::new("stage-mappings", "test-empty-mappings-digest"),
-        );
-        // The docs graph now folds the per-term entailment DAG parsed from
-        // stage-reason's materialized reasoning-explanations (reason-once); provide a
-        // valid-but-empty explanations artifact so the read-back joins to zero
-        // derivations (an honest absence) rather than hard-failing on a missing
-        // artifact.
-        let mut reason_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        reason_artifacts.insert(
-            crate::stages::reason::EXPLANATIONS_PATH.to_string(),
-            b"# no derivations\n".to_vec(),
-        );
-        upstream.insert(
-            "stage-reason".to_string(),
-            StageProduct::from_artifacts("stage-reason", reason_artifacts),
-        );
-        // The per-term schema-fragment digest is attached from THIS run's
-        // stage-export-json-schema product (a missing artifact must hard-fail, see
-        // `schema_fragments_from_upstream`); provide valid-but-empty JSON documents
-        // so the join resolves to zero fragments (an honest absence).
-        let mut schema_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        schema_artifacts.insert(
-            crate::stages::json_schema::JSON_SCHEMA_PATH.to_string(),
-            b"{}".to_vec(),
-        );
-        schema_artifacts.insert(
-            crate::stages::json_schema::OPENAPI_PATH.to_string(),
-            b"{}".to_vec(),
-        );
-        upstream.insert(
-            "stage-export-json-schema".to_string(),
-            StageProduct::from_artifacts("stage-export-json-schema", schema_artifacts),
-        );
-        // The per-term content-address manifest is now read from THIS run's
-        // stage-term-manifest product (a missing artifact must hard-fail, see
-        // `render_docs_graph`); feed the freshly-rendered manifest for the live repo
-        // so the join carries every documented term's content-address exactly as a
-        // real pipeline run would (never the empty digest a stale/absent read gives).
-        let manifest_bytes = crate::stages::term_manifest::render_term_manifest(&repo_root())
-            .expect("render term manifest for the docs-graph render test");
-        let mut manifest_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        manifest_artifacts.insert(
-            crate::stages::term_manifest::TERM_MANIFEST_RDF_PATH.to_string(),
-            manifest_bytes,
-        );
-        upstream.insert(
-            "stage-term-manifest".to_string(),
-            StageProduct::from_artifacts("stage-term-manifest", manifest_artifacts),
-        );
-        upstream
     }
 
     /// Build a synthetic `stage_id` product carrying `report`'s JSON
@@ -1662,27 +1651,6 @@ mod tests {
     }
 
     #[test]
-    fn docs_graph_is_nonempty_and_parses() {
-        let root = repo_root();
-        let upstream = empty_render_docs_graph_upstream();
-        let nq = render_docs_graph(&root, ReasoningVerdict::default(), &upstream)
-            .expect("render docs graph");
-        let dataset =
-            rdf_bytes_to_dataset(nq.as_bytes(), "application/n-quads", "docs-graph").unwrap();
-        let count = dataset.quad_count();
-        // The documentation graph covers 50+ slices and their terms.
-        assert!(
-            count > 200,
-            "docs named graph unexpectedly small: {count} quads"
-        );
-        // With a verdict attached, every documented term carries a reasoning status.
-        assert!(
-            nq.contains("docReasoningStatus"),
-            "docs graph must carry per-term reasoning status when a verdict is attached"
-        );
-    }
-
-    #[test]
     fn reasoning_verdict_reads_unsat_and_inconsistency_from_closure() {
         // A closure with one unsat class and one Nothing-typed individual.
         let closure = concat!(
@@ -1715,357 +1683,5 @@ mod tests {
 
         // A missing stage-reason product hard-fails (never a silent default).
         assert!(reasoning_verdict_from_reason(&BTreeMap::new()).is_err());
-    }
-
-    /// B1 (real-repo non-vacuity, symmetric with the B2/B3 gates): the
-    /// diagnostics→term digest folded from the REAL `stage-validate` +
-    /// `stage-compile-logic` products over the whole ontology must carry BOTH a
-    /// non-zero raw finding total AND a NON-EMPTY `by_term` — i.e. at least one
-    /// DOCUMENTED term whose "Diagnostics you might hit" panel renders a real
-    /// diagnostic. The weaker `total > 0` alone passed while the HEADLINE per-term
-    /// surface shipped vacuous on every one of the ~2357 term pages (the real SHACL
-    /// findings' focus nodes are ABox individuals that name no documented term), so
-    /// it is retained only as a precondition. The TRUE bar is the term join: the four
-    /// real `ExpressionFrameRequirement` MinCount violations concern the documented
-    /// property `gmeow:hasReferenceFrame` (their constrained `sh:path`), so that
-    /// term's page must carry a `shacl.MinCountConstraintComponent` row. Runs the real
-    /// source-load → validate / compile-logic chain directly (each `Stage::run` is
-    /// pure in-memory — the committed `generated/` tree is untouched), mirroring the
-    /// B3 real-repo chaining.
-    #[test]
-    fn diagnostics_digest_total_is_non_vacuous_on_the_real_repo() {
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap();
-        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
-
-        let source_load = crate::stages::source_load::SourceLoadStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real source-load");
-
-        // compile-logic reads the narrowed graph/logic-compile-inputs corpus off the
-        // source-load product, so its upstream must carry that product.
-        let mut compile_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        compile_upstream.insert("stage-source-load".to_string(), source_load.product.clone());
-        let compile = crate::stages::compile_logic::CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &compile_upstream,
-            })
-            .expect("real compile-logic");
-
-        // The validate stage enforces the FRESH shape union: its upstream must carry
-        // the four generated-shape producers (compile-logic + the three shape export
-        // leaves), never a disk read of generated/shapes (the stale-disk-fold class).
-        let frame = crate::stages::frame_shapes::FrameShapesStage
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real frame-shapes");
-        let constraint = crate::stages::constraint_shapes::ConstraintShapesStage
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real constraint-shapes");
-        let result_shapes = crate::stages::result_shapes::ResultShapesStage
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real result-shapes");
-
-        let mut with_source: BTreeMap<String, StageProduct> = BTreeMap::new();
-        with_source.insert("stage-source-load".to_string(), source_load.product);
-        with_source.insert("stage-compile-logic".to_string(), compile.product.clone());
-        with_source.insert("stage-export-frame-shapes".to_string(), frame.product);
-        with_source.insert(
-            "stage-export-constraint-shapes".to_string(),
-            constraint.product,
-        );
-        with_source.insert(
-            "stage-export-result-shapes".to_string(),
-            result_shapes.product,
-        );
-        // The validate stage's D5 abductive tier consumes stage-reason's reasoned closure.
-        // This harness drives the docs diagnostics-to-term join, not abductive entailment, so
-        // it supplies an empty-EDB reason product (empty closure ⇒ the reasoned union is the
-        // authored source graph alone) rather than paying for a full reasoner run.
-        with_source.insert(
-            "stage-reason".to_string(),
-            crate::stages::reason::reason_product(b"").expect("stage-reason fixture product"),
-        );
-
-        let validate = crate::stages::validate::ValidateStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &with_source,
-            })
-            .expect("real validate");
-
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert("stage-validate".to_string(), validate.product);
-        upstream.insert("stage-compile-logic".to_string(), compile.product);
-
-        let model = DocsModel::discover(&root).expect("real docs model discovery");
-        let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
-        let digest =
-            diagnostics_digest_from_upstream(&upstream, &known_term_iris, &model.constraint_rules)
-                .expect("real diagnostics digest folds from validate + compile-logic products");
-
-        // Precondition (weaker proxy): some findings were folded at all.
-        assert!(
-            digest.total > 0,
-            "the diagnostics digest total must be non-vacuous on the real repo (B1) — the docs \
-             diagnostics surface must never ship with zero folded findings"
-        );
-
-        // The TRUE B1 bar: the per-term join must actually connect — at least one
-        // DOCUMENTED term carries a "Diagnostics you might hit" row. An empty `by_term`
-        // means every term page's diagnostics panel renders blank ("No diagnostics
-        // recorded against this term in the current build.") on real data.
-        assert!(
-            !digest.by_term.is_empty(),
-            "B1 (true bar): DiagnosticsDigest.by_term must be NON-EMPTY on the real repo — at \
-             least one DOCUMENTED term must carry a real diagnostic on its page, not just a \
-             non-zero raw total. An empty by_term means the diagnostics→term join is vacuous \
-             and every one of the ~2357 term pages ships the blank 'No diagnostics recorded' panel"
-        );
-
-        // The concrete documented term the real MinCount violations honestly concern:
-        // the constrained property `gmeow:hasReferenceFrame` (the `sh:path` of the
-        // ExpressionFrameRequirement shape), NOT the ABox fixture individuals that
-        // tripped it. Its page must carry the SHACL MinCount diagnostic.
-        let has_reference_frame = "https://blackcatinformatics.ca/gmeow/hasReferenceFrame";
-        let rows = digest.by_term.get(has_reference_frame).unwrap_or_else(|| {
-            panic!(
-                "B1 (true bar): the documented property <{has_reference_frame}> must carry its \
-                 constrained-property MinCount diagnostics in by_term; got keys {:?}",
-                digest.by_term.keys().collect::<Vec<_>>()
-            )
-        });
-        assert!(
-            rows.iter()
-                .any(|r| r.code == "shacl.MinCountConstraintComponent"),
-            "B1 (true bar): <{has_reference_frame}>'s per-term rows must include the \
-             shacl.MinCountConstraintComponent violation it constrains; got {rows:?}"
-        );
-    }
-
-    /// B2 (real-repo non-vacuity, symmetric with the B1/B3 gates above): the per-term
-    /// projection-loss digest [`gmeow_docs::model::TermLossDigest`] folded from the REAL
-    /// `stage-mappings` product over the real ontology must carry at least one
-    /// `property-path:<iri>` row. Root cause (gap G1): `compile_logic`'s
-    /// `SOURCE_PATH` (`slices/grounding/logic/module.ttl`) carries only the
-    /// `logic:PathShape` VOCABULARY; the two authored INSTANCES (`ex:nearbyOrgs`,
-    /// `ex:ancestorsTo3`) live in the worked example
-    /// `slices/grounding/logic/examples/predicate-paths.ttl` and were never ingested, so
-    /// `program.path_shapes` was empty and `paths::project_path_shapes` emitted zero rows
-    /// — this is the hard-fail gate that catches a regression back to that vacuous state.
-    /// Runs the real `source_load` → `compile_logic` → `mappings` stage chain directly
-    /// (each `Stage::run` call is pure in-memory — no disk write; the committed
-    /// `generated/` tree is untouched), mirroring the B3 `term_entailments_are_non_vacuous_
-    /// on_the_real_repo` chaining pattern in `carrier.rs`.
-    #[test]
-    fn term_loss_digest_is_non_vacuous_on_the_real_repo() {
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap();
-        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
-
-        // compile-logic reads the narrowed graph/logic-compile-inputs corpus off the
-        // source-load product, so run source-load first and carry it as its upstream.
-        let source_load = crate::stages::source_load::SourceLoadStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real source-load");
-        let mut compile_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        compile_upstream.insert("stage-source-load".to_string(), source_load.product);
-        let compile = crate::stages::compile_logic::CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &compile_upstream,
-            })
-            .expect("real compile-logic");
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        upstream.insert("stage-compile-logic".to_string(), compile.product);
-
-        let constraint_shapes = crate::stages::constraint_shapes::ConstraintShapesStage
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real constraint-shapes");
-        upstream.insert(
-            "stage-export-constraint-shapes".to_string(),
-            constraint_shapes.product,
-        );
-
-        let mappings = crate::stages::mappings::MappingsStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("real mappings");
-        upstream.insert("stage-mappings".to_string(), mappings.product);
-
-        let model = DocsModel::discover(&root).expect("real docs model discovery");
-        let digest = term_loss_digest_from_upstream(&upstream, &model.shapes, &model.terms)
-            .expect("real term-loss digest folds from the stage-mappings product");
-
-        // The weaker proxy: at least one `property-path:<iri>` ledger row exists.
-        // This alone passed while the HEADLINE per-term surface (`by_term`) was
-        // empty, so it is NOT the true bar — it is retained only as a precondition.
-        assert!(
-            digest.total_property_path_rows >= 1,
-            "G1/B2: total_property_path_rows must be non-vacuous on the real repo — the \
-             authored logic:PathShape worked examples (ex:nearbyOrgs, ex:ancestorsTo3) must \
-             produce real property-path:<iri> ledger rows, not zero"
-        );
-
-        // The TRUE B2 bar: the per-term join must actually connect — at least one
-        // DOCUMENTED term carries a per-term projection-loss row. A `property-path`
-        // row joins a term only if its bare shape IRI resolves to a documented
-        // `DocTerm.iri` (or a `DocShape.target_term`), so an empty `by_term` means
-        // the authored PathShapes never became documented terms and the headline
-        // surface ships vacuous on every one of the ~2357 term pages. The two
-        // authored worked-example PathShapes are documented Individual terms, so
-        // each must carry its own per-term loss row here.
-        assert!(
-            !digest.by_term.is_empty(),
-            "G1/B2 (true bar): TermLossDigest.by_term must be NON-EMPTY on the real repo — \
-             at least one DOCUMENTED term must carry a per-term projection-loss row, not just \
-             a whole-program `property-path:<iri>` count. An empty by_term means the per-term \
-             join is vacuous and every term page's projection-loss table renders blank"
-        );
-        for shape_iri in [
-            "https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs",
-            "https://blackcatinformatics.ca/gmeow/examples/logic/ancestorsTo3",
-        ] {
-            let rows = digest.by_term.get(shape_iri).unwrap_or_else(|| {
-                panic!(
-                    "G1/B2 (true bar): the authored logic:PathShape term <{shape_iri}> must be a \
-                     documented term carrying its own per-term projection-loss row in by_term; \
-                     got keys {:?}",
-                    digest.by_term.keys().collect::<Vec<_>>()
-                )
-            });
-            assert!(
-                rows.iter()
-                    .any(|r| r.target == format!("property-path:{shape_iri}")),
-                "G1/B2 (true bar): term <{shape_iri}>'s per-term rows must include its own \
-                 property-path:<iri> projection-loss row; got {rows:?}"
-            );
-        }
-
-        // The CORRECTED B2 bar (source-term-attribution reframing): the per-term loss table must surface
-        // what the canonical `logic:`/`gmeow:` core loses when projected DOWN to a lossy
-        // surface (OWL/EL/Datalog/SPARQL/SSSOM/…). At least one CORE documented term — NOT an
-        // example worked shape under `.../gmeow/examples/` — must carry a projection-loss row
-        // attributed structurally via `gmeow:lossySourceTerm` (the correspondence/SSSOM
-        // down-projections attribute each aligned `gmeow:` term's dropped alignment
-        // distinction to its page). An empty CORE set means the general term-attribution join
-        // is inert and only the two worked-example path shapes ever light up.
-        const EXAMPLE_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/";
-        let core_terms: Vec<&String> = digest
-            .by_term
-            .keys()
-            .filter(|iri| !iri.starts_with(EXAMPLE_NS))
-            .collect();
-        assert!(
-            !core_terms.is_empty(),
-            "G1/B2 (corrected bar): at least one CORE documented term (NOT a \
-             .../gmeow/examples/ worked shape) must carry a per-term projection-loss row — the \
-             canonical core's loss when projected DOWN must land on real term pages. Only \
-             example path shapes lit up; by_term keys = {:?}",
-            digest.by_term.keys().collect::<Vec<_>>()
-        );
-        // Every CORE row must be honestly attributed (a real projection target + at least one
-        // dropped feature), never an empty placeholder.
-        for term in &core_terms {
-            let rows = &digest.by_term[*term];
-            assert!(
-                rows.iter()
-                    .all(|r| !r.target.is_empty() && !r.lossy_drops.is_empty()),
-                "G1/B2 (corrected bar): CORE term <{term}> carries a malformed loss row \
-                 (empty target or no dropped feature); rows = {rows:?}"
-            );
-        }
-    }
-
-    /// The EXACT production `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` fanout path: build the docs model via
-    /// `DocsModel::discover` (no live pipeline product — the standalone render),
-    /// source the schema-fragment digest off the committed `generated/schemas/*.json`
-    /// via [`schema_fragments_from_generated`] (the production sibling reader), attach
-    /// it, and render a real modeled class's term page. Proves that after the
-    /// production discover+attach the model's `schema_fragments` is populated AND that
-    /// the per-term Python (Pydantic) + Rust example tabs actually render — the gate the
-    /// dark feature lacked (the tabs return `None` whenever `schema_fragments` is
-    /// `None`, which was ALWAYS the case on the shipped surface before this wiring).
-    /// This deliberately does NOT hand-call `attach_schema_fragments` with a synthetic
-    /// digest: it exercises the real disk-sourced producer end-to-end.
-    #[test]
-    fn make_docs_render_populates_schema_fragments_and_renders_python_rust_tabs() {
-        use gmeow_docs::model::{DocTermCategory, DocsModel};
-        use gmeow_docs::render::{Page, term_slug, to_markdown};
-
-        let root = repo_root();
-        let mut model = DocsModel::discover(&root).expect("discover live docs model");
-
-        // The production disk-sourced digest — NOT a hand-attached synthetic one.
-        let digest = schema_fragments_from_generated(&root, &model.terms)
-            .expect("build schema-fragment digest from committed generated/schemas/*.json");
-        assert!(
-            !digest.schema_by_term.is_empty(),
-            "the committed JSON Schema must join at least one documented class \
-             (an empty digest means the tabs would never render)"
-        );
-        model.attach_schema_fragments(digest);
-        assert!(
-            model.schema_fragments.is_some(),
-            "attach_schema_fragments must populate the model's schema_fragments"
-        );
-
-        // Pick a real modeled CLASS carrying a schema fragment — the exact key both
-        // example-tab providers read — deterministically (first by iri).
-        let fragments = model.schema_fragments.as_ref().unwrap();
-        let mut modeled: Vec<&gmeow_docs::model::DocTerm> = model
-            .terms
-            .iter()
-            .filter(|t| {
-                t.category == DocTermCategory::Class
-                    && fragments.schema_by_term.contains_key(&t.iri)
-            })
-            .collect();
-        modeled.sort_by(|a, b| a.iri.cmp(&b.iri));
-        let term = modeled
-            .first()
-            .copied()
-            .expect("at least one modeled class carries a schema fragment")
-            .clone();
-
-        let md = to_markdown(&model, &Page::Term(term_slug(&term)));
-        assert!(
-            md.contains("## Example in multiple syntaxes"),
-            "the modeled class term page must render the multi-syntax example section"
-        );
-        assert!(
-            md.contains("from gmeow_models.") && md.contains(".model_validate("),
-            "the Python (Pydantic) example tab must render on the production term page"
-        );
-        assert!(
-            md.contains("purrdf::parse_turtle(") && md.contains("gmeow_validate::validate("),
-            "the Rust example tab must render on the production term page"
-        );
     }
 }

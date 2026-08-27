@@ -2275,13 +2275,12 @@ ex:ecChartUnderspecified a gmeow:ExampleConformance ;
 # =========================================================================== #
 # THE RUST-VALIDATOR AND REASONED-GATE TIERS.
 #
-# This file is the REGISTRY of tests/counter-examples/: the execution-discharge
-# harness (crates/pipeline/tests/math_conformance_discharge.rs) reads the
-# gmeow:exampleFile bindings below and reports any counter-example on disk with no
-# cell as a HARD GAP, the same standing it gives a phantom failure class. A fixture
-# can therefore no longer satisfy the completeness harness while never being checked
-# for the ISOLATION the charter promises ("one negative fixture that raises EXACTLY
-# the named failure class").
+# This file is the REGISTRY of tests/counter-examples/. The explicit cached
+# slice-spec producer reads the gmeow:exampleFile bindings below and executes each
+# declared channel before publishing its authenticated verdict. A fixture can
+# therefore no longer satisfy the registry while never being checked for the
+# ISOLATION the charter promises ("one negative fixture that raises EXACTLY the
+# named failure class"). Tests only verify that verdict; they never run this sweep.
 #
 # The cells below are the ones that registry rule required, and they are reachable
 # because the conformance runner executes the two channels it previously did not:

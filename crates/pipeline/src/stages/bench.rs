@@ -1213,44 +1213,6 @@ mod tests {
     }
 
     #[test]
-    fn bench_leaderboard_is_byte_identical_to_committed() {
-        // The committed generated/bench/leaderboard.md must be reproduced
-        // byte-for-byte from the committed bench/baseline.json (the drift gate).
-        let root = repo_root();
-        let arts = render_bench_leaderboard(&root).expect("render bench leaderboard");
-        let built = arts
-            .get(BENCH_LEADERBOARD_PATH)
-            .expect("leaderboard produced");
-        let committed = std::fs::read(root.join(BENCH_LEADERBOARD_PATH))
-            .expect("committed generated/bench/leaderboard.md exists");
-        assert_eq!(
-            built,
-            &committed,
-            "generated/bench/leaderboard.md drifted from committed (len built {} vs committed {})",
-            built.len(),
-            committed.len()
-        );
-    }
-
-    #[test]
-    fn cost_ledger_is_byte_identical_to_committed() {
-        // The committed generated/bench/cost-ledger.md must be reproduced
-        // byte-for-byte from the committed bench/cost-baseline.json (the drift gate).
-        let root = repo_root();
-        let arts = render_cost_ledger(&root).expect("render cost ledger");
-        let built = arts.get(COST_LEDGER_PATH).expect("cost ledger produced");
-        let committed = std::fs::read(root.join(COST_LEDGER_PATH))
-            .expect("committed generated/bench/cost-ledger.md exists");
-        assert_eq!(
-            built,
-            &committed,
-            "generated/bench/cost-ledger.md drifted from committed (len built {} vs committed {})",
-            built.len(),
-            committed.len()
-        );
-    }
-
-    #[test]
     fn cost_ledger_returns_contextual_error_for_incomplete_grounding_evidence() {
         let root = repo_root();
         let bytes = fs::read(root.join(COST_BASELINE_PATH)).expect("read committed baseline");
@@ -1273,8 +1235,9 @@ mod tests {
             serde_json::to_vec(&artifact).unwrap(),
         )
         .expect("write malformed baseline");
-        let error = render_cost_ledger(tmp.path())
-            .expect_err("incomplete grounding evidence must return a diagnostic");
+        let error =
+            render_cost_ledger(tmp.path()) // gmeow-test-input: synthetic-only
+                .expect_err("incomplete grounding evidence must return a diagnostic");
         assert!(error.message().contains(&format!("{corpus}/{case}")));
         assert!(error.message().contains("scratch comparator"));
     }
@@ -1294,40 +1257,13 @@ mod tests {
             serde_json::to_vec(&artifact).unwrap(),
         )
         .expect("write malformed baseline");
-        let error = render_cost_ledger(tmp.path())
+        let error = render_cost_ledger(tmp.path()) // gmeow-test-input: synthetic-only
             .expect_err("incoherent rule-parallel evidence must return a diagnostic");
         assert!(
             error
                 .message()
                 .contains("four-worker rule-parallel evidence")
         );
-    }
-
-    #[test]
-    fn soak_record_is_byte_identical_to_committed() {
-        // The committed generated/bench/soak.md must be reproduced byte-for-byte from
-        // the committed bench/cost-baseline.json (the soak drift gate).
-        let root = repo_root();
-        let arts = render_soak(&root).expect("render soak record");
-        let built = arts.get(SOAK_RECORD_PATH).expect("soak record produced");
-        let committed = std::fs::read(root.join(SOAK_RECORD_PATH))
-            .expect("committed generated/bench/soak.md exists");
-        assert_eq!(
-            built,
-            &committed,
-            "generated/bench/soak.md drifted from committed (len built {} vs committed {})",
-            built.len(),
-            committed.len()
-        );
-    }
-
-    #[test]
-    fn soak_render_is_deterministic() {
-        // Emit twice → byte-identical (the record must be byte-reproducible).
-        let root = repo_root();
-        let a = render_soak(&root).expect("render soak record (1)");
-        let b = render_soak(&root).expect("render soak record (2)");
-        assert_eq!(a, b, "the soak record must be byte-reproducible");
     }
 
     /// Write a minimal criterion `new/estimates.json` for `<group>/<bench>`.

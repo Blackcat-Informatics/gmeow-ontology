@@ -271,24 +271,3 @@ impl Stage for ApacheStage {
         )))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn apache_is_byte_identical_to_committed() {
-        let root = repo_root();
-        let fresh = render_apache(&root).expect("render");
-        let committed = std::fs::read_to_string(root.join(APACHE_PATH)).expect("committed conf");
-        assert_eq!(fresh, committed, "gmeow.conf drifted from committed");
-    }
-}

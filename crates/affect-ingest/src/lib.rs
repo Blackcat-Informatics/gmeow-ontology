@@ -8,7 +8,7 @@
 //! JSON envelope, never on-gate inference) into attributed
 //! `gmeow:ModelInferenceRun` + `gmeow:AffectClassifierOutput`
 //! (+ `gmeow:AffectiveClaim`) RDF that passes the affect evidence-spine Stage-4
-//! hard-fail gates (`crates/validate/tests/conformance_affect.rs`).
+//! hard-fail gates (`crates/validate/tests/conformance_cases/conformance_affect.rs`).
 //!
 //! ## The put leg — [`produce`]
 //! `ClassifierRunCapture → Turtle`. All labels survive losslessly (one

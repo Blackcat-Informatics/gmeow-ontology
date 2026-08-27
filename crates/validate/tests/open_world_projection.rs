@@ -19,7 +19,7 @@
 //!    object and so fails the `not` for every node.
 //!
 //! Every test drives the SAME production surface the corpus sweep uses
-//! (`example_sweep.rs`): shapes are compiled with `json_schema::compile`, data
+//! (the focused projection contract): shapes are compiled with `json_schema::compile`, data
 //! graphs are parsed with the native codec and projected to JSON-LD with
 //! `instance::project_graph`, and the projection is validated with
 //! `gmeow_validate::instance::validate_instance`. The final test is a Principle-17

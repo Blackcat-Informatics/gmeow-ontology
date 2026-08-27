@@ -354,6 +354,7 @@ impl FoundationImporter {
 
         self.import_scores(record, &work)?;
         let (frame, positions, segments) = self.import_chapters(record, &work, &expression);
+        self.add_iri(&expression, &gm("hasReferenceFrame"), &frame);
         let characters = self.import_characters(record, &work, &frame, &positions, &segments);
         self.import_concepts(record, &segments);
 

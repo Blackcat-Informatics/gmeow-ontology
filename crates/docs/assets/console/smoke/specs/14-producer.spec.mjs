@@ -22,12 +22,15 @@ import { expect, test } from "../lib/test.mjs";
 import { REPO_ROOT } from "../lib/paths.mjs";
 import { listFiles } from "../lib/tree.mjs";
 
-/** The producer command, as the Makefile spells it. */
-const PRODUCER = ["run", "-q", "-p", "gmeow-dev-cli", "--", "console-assemble", "--out"];
+/** The canonical producer target; CI injects its authenticated `GMEOW_DEV` into Make. */
+const PRODUCER = ["--no-print-directory", "console-assemble"];
 
 /** Assemble into `out` and return its file list. */
 function assemble(out) {
-  execFileSync("cargo", [...PRODUCER, out], { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "inherit"] });
+  execFileSync("make", [...PRODUCER, `CONSOLE_OUT=${out}`], {
+    cwd: REPO_ROOT,
+    stdio: ["ignore", "pipe", "inherit"],
+  });
   return listFiles(out);
 }
 
@@ -86,7 +89,7 @@ test("console-assemble REFUSES the regen-owned bases, naming the one writer", as
     let failed = false;
     let message = "";
     try {
-      execFileSync("cargo", [...PRODUCER, base], {
+      execFileSync("make", [...PRODUCER, `CONSOLE_OUT=${base}`], {
         cwd: REPO_ROOT,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],

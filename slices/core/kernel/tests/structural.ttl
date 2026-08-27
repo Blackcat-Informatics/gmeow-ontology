@@ -201,7 +201,7 @@ ASK {
     gmeow:saRationale "The universal facet gmeow:hasDeterminacy and the frame-level default gmeow:determinacyModel MUST NOT be related via rdfs:subPropertyOf or owl:equivalentProperty — they are distinct properties serving different scopes." .
 
 # =============================================================================
-# 7. Disclosure / projection axis (migrated from crates/validate/tests/conformance_disclosure.rs)
+# 7. Disclosure / projection axis (migrated from crates/validate/tests/conformance_cases/conformance_disclosure.rs)
 # =============================================================================
 
 # --- 7.1 ProjectionContext class structure (MUST hold) -----------------------

@@ -24,6 +24,9 @@ path = "src/lib.rs"
 # `gmeow-logic-compile` pins (oxigraph OFF, python OFF), so the arena stays reasoner-free
 # and wasm-buildable — it is an RDF value-space dependency, never a reasoning one.
 purrdf.workspace = true
+# serde: `ContentKey` is the process-independent identity explicitly designed to
+# cross cache/receipt boundaries. Dense arena handles remain non-serializable.
+serde.workspace = true
 # hashbrown: the raw-entry / `HashTable` borrowed-key probe surface so the interner dedup
 # and the DAG's content-key probe never clone an owned key per probe (the borrowed-key
 # raw-entry probe requirement — mechanical-sympathy doctrine). Direct, always-on

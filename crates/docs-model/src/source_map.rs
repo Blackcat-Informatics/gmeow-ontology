@@ -428,7 +428,7 @@ pub const SLICE_PAGE_SOURCE: &str = "docs.md";
 /// and normalized source path — the ONE scheme both the map and the renderers
 /// derive from. The top-level `docs.md` maps to its slice page `slices/{slug}/`;
 /// every other markdown maps to `slices/{slug}/documents/{stem}/`. Public so the
-/// static-site renderer's [`crate::slug::Page::SliceDocument`] arm computes a
+/// static-site renderer's `gmeow_docs::render::Page::SliceDocument` arm computes a
 /// child page's path through this single authority rather than re-deriving the
 /// scheme.
 pub fn page_for(slice_slug: &str, source_path: &str) -> String {

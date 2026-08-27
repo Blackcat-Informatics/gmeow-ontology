@@ -3,7 +3,7 @@
 #
 # Declarative structural assertions for the GTS transport slice — the
 # slice-resident test-DSL twin of the MUST / MUST-NOT invariants formerly
-# hand-written in crates/validate/tests/conformance_gts_slice.rs. Authored as gmeow: ontology data so
+# hand-written in crates/validate/tests/conformance_cases/conformance_gts_slice.rs. Authored as gmeow: ontology data so
 # the same annotation discipline and the native Rust harness (crates/slicetest)
 # drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK
 # over the slice module graph (gmeow:scopeModule).
@@ -23,7 +23,7 @@
 #    the set was fixed upstream to exactly those three (NOT a dynamic
 #    universal weakened to a blacklist).
 #
-# TWO fns are native twins in crates/validate/tests/conformance_gts_slice.rs
+# TWO fns are native twins in crates/validate/tests/conformance_cases/conformance_gts_slice.rs
 # rather than DSL cells, because neither shape fits a boolean ASK:
 #  * test_value_vocabulary_cardinality_floors — the numeric cardinality (>=7
 #    GTSProfile, >=7 TransformCodec, ==3 CodecClass): a boolean ASK cannot assert

@@ -117,6 +117,10 @@ sha2.workspace = true
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
+# The whole-bundle coherence integration test imports the shipped snapshot through
+# the native cross-process transport cache. It is deliberately test-only: the
+# reasoning core and its browser consumers must not inherit filesystem/locking code.
+gmeow-bundle-import = { path = "../bundle-import" }
 # Also a dev-dependency so the integration tests (tests/never_panic.rs,
 # proptest_invariants.rs) can `use gmeow_logic_compile::` directly.
 gmeow-logic-compile = { path = "../logic-compile" }
@@ -134,6 +138,9 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 # Harness-only allocator accounting for the OWL-RL oracle scan. This dependency
 # installs no allocator itself; the dedicated bench binary opts in explicitly.
 gmeow-cost-measure = { path = "../cost-measure" }
+# Test bundles still pass through the mandatory GMEOW authorship profile; the import
+# cache itself is a reader and keeps no production writer edge.
+gmeow-gts-profile = { path = "../gts-profile" }
 # iai-callgrind: the DETERMINISTIC instruction-count backend for the engine bench
 # (benches/engines_iai.rs). It counts retired instructions under Valgrind Callgrind
 # — a machine-independent, run-to-run stable metric — as external corroboration for

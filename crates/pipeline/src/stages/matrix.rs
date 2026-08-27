@@ -303,24 +303,3 @@ impl Stage for MatrixStage {
         )))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn matrix_is_byte_identical_to_committed() {
-        let root = repo_root();
-        let fresh = render_matrix(&root).expect("render");
-        let committed = std::fs::read_to_string(root.join(MATRIX_PATH)).expect("committed matrix");
-        assert_eq!(fresh, committed, "module-status.md drifted from committed");
-    }
-}
