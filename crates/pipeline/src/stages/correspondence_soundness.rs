@@ -188,7 +188,8 @@ fn merge_ontology(
             b.push_dataset(&ds);
         }
     }
-    b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
+    let canonical = b.freeze().map_err(|e| SliceError::Parse(e.to_string()))?;
+    Ok(crate::stages::carrier::with_owl_rdfs_projection(&canonical))
 }
 
 /// Recursively collect every `.ttl` file under `dir` (mirrors

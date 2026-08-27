@@ -53,7 +53,7 @@ fn compile_product(root: &Path) -> StageProduct {
     };
 
     let base = load_authored_dataset(root).expect("load the authored corpus");
-    let narrowed = logic_compile_input_subgraph(base.as_ref()).expect("narrow the corpus");
+    let narrowed = logic_compile_input_subgraph(&base).expect("preserve the corpus");
     // Root every quad into the graph/logic-compile-inputs named graph (source-load's publish
     // form), so compile-logic's `project_named_graph(GRAPH_LOGIC_COMPILE_INPUTS)` finds it.
     let graph = purrdf::RdfTerm::Iri(GRAPH_LOGIC_COMPILE_INPUTS.to_string());

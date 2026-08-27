@@ -318,7 +318,7 @@ pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
 pub(crate) fn source_load_upstream(root: &Path) -> BTreeMap<String, StageProduct> {
     let base = crate::stages::source_load::load_authored_dataset(root)
         .expect("load authored corpus for compile-logic upstream");
-    let narrowed = crate::stages::source_load::logic_compile_input_subgraph(base.as_ref())
+    let narrowed = crate::stages::source_load::logic_compile_input_subgraph(&base)
         .expect("narrow the logic-compile-inputs corpus for compile-logic upstream");
     let dataset = crate::stages::carrier::rooted_in_graph(
         narrowed.as_ref(),
@@ -353,19 +353,18 @@ pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
 /// The `stage-compile-logic` pipeline stage.
 pub struct CompileLogicStage {
     /// The upstream products this stage consumes — `stage-source-load`, off which it reads
-    /// the narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
+    /// the complete [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
     /// merged authored corpus its five augmentation readers walk).
     consumes: Vec<String>,
     /// The typed dataflow entities: it reads ONLY the `graph/logic-compile-inputs` named
-    /// graph of the `stage-source-load` product (a SOUND denylist narrowing of the whole
-    /// corpus), so a documentation-only edit that touches no read predicate leaves that
-    /// graph's digest unchanged and this (compiler) stage's cache key stable.
+    /// graph of the `stage-source-load` product, so its complete digest owns compiler
+    /// cache freshness.
     entities: Vec<(String, Vec<String>)>,
 }
 
 impl CompileLogicStage {
     /// Construct the stage. It consumes `stage-source-load`, reading ONLY that product's
-    /// narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] named graph for the
+    /// complete [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] named graph for the
     /// five augmentation readers (validation shapes, constraints, correspondences, leg
     /// programs, the diagnostic meta-fold); the canonical `logic:` source and the vendored
     /// OPTs / worked examples it still reads directly from disk (declared via
@@ -417,11 +416,8 @@ impl Stage for CompileLogicStage {
         &self.consumes
     }
     /// Typed dataflow (artifact-level): from `stage-source-load` it reads ONLY the
-    /// `graph/logic-compile-inputs` named graph (the SOUND denylist narrowing of the whole
-    /// authored corpus). Declaring that single entity folds only that graph's digest into
-    /// the compiler's cache key, so a documentation-only edit — one touching only the
-    /// stripped SKOS/Dublin-Core/PROV/VANN predicates — leaves the graph unchanged and this
-    /// (compiler) stage skips re-running.
+    /// complete `graph/logic-compile-inputs` named graph. Declaring that single entity folds
+    /// its digest into the compiler's cache key.
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
     }
@@ -454,17 +450,18 @@ impl Stage for CompileLogicStage {
         // (`REASONING_PROGRAMS_EXAMPLE_PATH`) is now folded into `program.reasoning_programs`,
         // so `stage-goal-directed` compiles authored `logic:ReasoningProgram`s instead of the
         // hand-interned Rust demonstrator constants.
-        "compile-logic.v9"
+        // v10: compile input is the complete reader-identical authored carrier; ownership
+        // and projection annotations are no longer predicate-filtered away.
+        "compile-logic.v10-lossless-input"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
         // two worked-example cells directly from disk, so those are declared as raw input
         // files for byte-level cache soundness. The WHOLE authored corpus is NO LONGER
-        // declared here: the five augmentation readers now read the narrowed
+        // declared here: the five augmentation readers now read the complete
         // `graph/logic-compile-inputs` entity off the `stage-source-load` product
         // (`consumed_entities`), so corpus freshness rides that typed dataflow edge — a
-        // documentation-only edit that leaves the narrowed graph's digest unchanged no
-        // longer busts the (expensive) compiler's cache.
+        // corpus freshness rides that typed dataflow edge.
         Ok(vec![
             root.join(SOURCE_PATH),
             root.join(OPT_SOURCE_PATH),
@@ -511,11 +508,10 @@ impl Stage for CompileLogicStage {
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
         // derived ontology shapes ride into gmeow.gts through the shape surfaces.
         //
-        // Read the merged authored corpus as the NARROWED `graph/logic-compile-inputs`
-        // entity off the `stage-source-load` product — a SOUND (denylist) narrowing of
-        // `load_authored_dataset` with only pure-documentation predicates stripped, proved
-        // reader-identical by the `logic_compile_input_subgraph_preserves_reader_output`
-        // guard. `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
+        // Read the complete merged authored corpus as the `graph/logic-compile-inputs`
+        // entity off the `stage-source-load` product, proved reader-identical by the
+        // `logic_compile_input_subgraph_preserves_reader_output` guard.
+        // `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
         // default graph, so the five augmentation readers (all graph-position-agnostic over
         // the default graph) consume it directly. A missing product or an empty projection
         // is a corrupt build — HARD-fail (no-optionality), never a silently-empty corpus.
@@ -530,7 +526,7 @@ impl Stage for CompileLogicStage {
         );
         if ontology.quad_count() == 0 {
             return Err(stage_err(format!(
-                "stage-source-load product carries an empty <{}> graph — the narrowed \
+                "stage-source-load product carries an empty <{}> graph — the typed \
                  compile-logic input corpus is missing (corrupt upstream product)",
                 crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS
             )));
@@ -1411,16 +1407,13 @@ mod tests {
         let root = repo_root();
         let full = crate::stages::source_load::load_authored_dataset(&root)
             .expect("load the full authored corpus");
-        let narrow = crate::stages::source_load::logic_compile_input_subgraph(full.as_ref())
+        let narrow = crate::stages::source_load::logic_compile_input_subgraph(&full)
             .expect("build the denylisted logic-compile-inputs subgraph");
 
-        // The narrowing must have actually REMOVED documentation triples (else it proves
-        // nothing about the denylist) yet KEPT the vast majority of the corpus.
-        assert!(
-            narrow.quad_count() < full.quad_count(),
-            "the denylist must strip at least some documentation triples: full {} == narrow {}",
+        assert_eq!(
+            narrow.quad_count(),
             full.quad_count(),
-            narrow.quad_count()
+            "the compile-logic typed input must preserve the complete authored carrier"
         );
 
         // Reader 1: closed-world validation shapes. Non-vacuity FIRST.
@@ -1434,7 +1427,7 @@ mod tests {
         );
         assert_eq!(
             vs_full, vs_narrow,
-            "derive_validation_shapes must be reader-identical across the denylist narrowing"
+            "derive_validation_shapes must be reader-identical across the typed carrier seam"
         );
 
         // Reader 2: procedural constraints. Non-vacuity FIRST.

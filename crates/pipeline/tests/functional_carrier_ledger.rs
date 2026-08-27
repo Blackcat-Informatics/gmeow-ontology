@@ -42,7 +42,7 @@ fn repo_root() -> PathBuf {
 fn logic_compile_inputs() -> Arc<RdfDataset> {
     let root = repo_root();
     let base = load_authored_dataset(&root).expect("load the authored corpus");
-    let narrowed = logic_compile_input_subgraph(base.as_ref()).expect("narrow the corpus");
+    let narrowed = logic_compile_input_subgraph(&base).expect("preserve the corpus");
     let graph = RdfTerm::Iri(GRAPH_LOGIC_COMPILE_INPUTS.to_string());
     let mut builder = RdfDatasetBuilder::new();
     for mut quad in narrowed.owned_quads() {
@@ -82,7 +82,7 @@ fn dropping_one_carrier_hard_fails_completeness_naming_the_property() {
     // a silently-dropped carrier — the exact non-vacuity the migration required.
     let root = repo_root();
     let base = load_authored_dataset(&root).expect("load the authored corpus");
-    let narrowed = logic_compile_input_subgraph(base.as_ref()).expect("narrow the corpus");
+    let narrowed = logic_compile_input_subgraph(&base).expect("preserve the corpus");
     let graph = RdfTerm::Iri(GRAPH_LOGIC_COMPILE_INPUTS.to_string());
     let mut builder = RdfDatasetBuilder::new();
     let mut dropped = 0usize;

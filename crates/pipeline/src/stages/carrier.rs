@@ -291,19 +291,10 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
 
-/// The narrowed authored corpus `stage-compile-logic` reads: the WHOLE merged authored
-/// dataset (`load_authored_dataset` — root ontology + every slice `module.ttl` + every
-/// `imports/*.ttl`) with the pure-documentation predicates in
-/// [`crate::stages::source_load::LOGIC_COMPILE_INPUT_DENYLIST`] removed. It is the SOUND
-/// (denylist) narrowing of the compile-logic input: the five augmentation readers
-/// (`derive_validation_shapes`, `extract_all_constraints`, `extract_correspondences`,
-/// `extract_leg_programs`, `MetaProgram::from_source_dataset`) read the OWL/RDFS/XSD
-/// restriction + `logic:`/`gmeow:` vocabulary + `rdfs:comment` caveats, never the stripped
-/// SKOS/Dublin-Core/PROV/VANN documentation triples, so the graph is reader-identical to
-/// the full corpus (the `logic_compile_input_subgraph_preserves_reader_output` soundness
-/// guard proves it). Attaching it as its own named graph on the `stage-source-load` product
-/// lets compile-logic declare a typed `consumed_entities` edge and drop the whole-corpus
-/// file list from its cache key — a documentation-only edit no longer re-runs the compiler.
+/// The complete authored corpus `stage-compile-logic` reads: root ontology, every slice
+/// `module.ttl`, and every import, preserved as one typed carrier entity. Ownership and
+/// projection metadata are reader inputs, so predicate-level narrowing is unsound. The
+/// `logic_compile_input_subgraph_preserves_reader_output` guard pins exact reader identity.
 pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
@@ -896,7 +887,7 @@ pub(crate) fn build_self_description_dataset(
     let quality = gmeow_slice_quality::assessment_artifacts(root)
         .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
     let authored_base = crate::stages::source_load::load_authored_dataset(root)?;
-    build_self_description_dataset_with_quality(root, authored_base.as_ref(), &quality.nquads)
+    build_self_description_dataset_with_quality(root, &authored_base, &quality.nquads)
 }
 
 /// Build the self-description named graphs with a caller-supplied slice-quality graph.
@@ -906,13 +897,13 @@ pub(crate) fn build_self_description_dataset(
 /// `authored_base` is the WHOLE merged authored dataset
 /// ([`crate::stages::source_load::load_authored_dataset`] — root ontology + slice modules +
 /// imports). It is the EXACT corpus `stage-compile-logic` used to re-parse for its five
-/// augmentation readers; the denylisted narrowing of it is published as
+/// augmentation readers; the complete typed copy of it is published as
 /// [`GRAPH_LOGIC_COMPILE_INPUTS`] so compile-logic reads a typed entity instead. It is NOT
 /// the same dataset as the local `base` below (the authored DEFAULT graph — imports
 /// excluded, `.po` translations merged), so the two must not be conflated.
 pub(crate) fn build_self_description_dataset_with_quality(
     root: &Path,
-    authored_base: &purrdf::RdfDataset,
+    authored_base: &std::sync::Arc<purrdf::RdfDataset>,
     quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
@@ -984,9 +975,9 @@ pub(crate) fn build_self_description_dataset_with_quality(
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
         )?,
-        // graph/logic-compile-inputs — the SOUND (denylist) narrowing of the WHOLE merged
-        // authored corpus `stage-compile-logic` reads (root ontology + slices + imports,
-        // documentation predicates stripped). Published here so compile-logic declares a
+        // graph/logic-compile-inputs — the complete merged authored corpus
+        // `stage-compile-logic` reads (root ontology + slices + imports). Published here so
+        // compile-logic declares a
         // typed `consumed_entities` edge on THIS graph and drops the whole-corpus file list
         // from its cache key. Built from `authored_base` (the same `load_authored_dataset`
         // compile-logic used), NOT the `base` authored-default above (which excludes imports
@@ -1049,6 +1040,55 @@ fn source_load_graph(
     )
 }
 
+/// Add the generated OWL/RDFS reader view of canonical `logic:` quads while retaining
+/// every canonical quad. This is the carrier-side projection boundary used by consumers
+/// and OWL-oriented audit readers; it never becomes another authored source.
+pub fn with_owl_rdfs_projection(
+    dataset: &purrdf::RdfDataset,
+) -> std::sync::Arc<purrdf::RdfDataset> {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for quad in dataset.owned_quads() {
+        let predicate = gmeow_ns::owl_view_of_predicate(&quad.predicate);
+        let object = match &quad.object {
+            purrdf::RdfTerm::Iri(iri) if quad.predicate == RDF_TYPE => {
+                gmeow_ns::owl_view_of_type_marker(iri)
+            }
+            purrdf::RdfTerm::Iri(iri) if gmeow_ns::is_class_position_predicate(&quad.predicate) => {
+                match iri.as_str() {
+                    gmeow_ns::LOGIC_THING => Some(gmeow_ns::OWL_THING),
+                    gmeow_ns::LOGIC_NOTHING => Some(gmeow_ns::OWL_NOTHING),
+                    _ => None,
+                }
+            }
+            _ => None,
+        };
+        for (p, o) in [(predicate, object), (predicate, None), (None, object)] {
+            if p.is_none() && o.is_none() {
+                continue;
+            }
+            let mut projected = quad.clone();
+            if let Some(p) = p {
+                projected.predicate = p.to_owned();
+            }
+            if let Some(o) = o {
+                projected.object = purrdf::RdfTerm::iri(o);
+            }
+            builder.push_owned_quad(&projected);
+        }
+        builder.push_owned_quad(&quad);
+    }
+    for reifier in dataset.owned_reifiers() {
+        builder.push_owned_reifier(&reifier);
+    }
+    for annotation in dataset.owned_annotations() {
+        builder.push_owned_annotation(&annotation);
+    }
+    builder
+        .freeze()
+        .expect("OWL/RDFS projection of a valid dataset must freeze")
+}
+
 /// Read a first-class carrier named graph off its PRODUCER's attached dataset, re-rooted
 /// into `graph_iri` (PIPELINE_SPINE §4 — the presenter is a pure keyed fold: it projects
 /// the producer's already-parsed named graph, never re-parses the producer's byte
@@ -1084,8 +1124,8 @@ fn assemble_carrier(
     // are read here as pure projections. The authored default rides its own named graph;
     // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
     // graph (label dropped).
-    let base = std::sync::Arc::new(
-        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    let base = with_owl_rdfs_projection(
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
     );
     // ── the first-class carrier graphs ride in from their producers' datasets ───
     // Each is read off the PRODUCER's attached named graph (a pure keyed fold), NOT
@@ -1576,8 +1616,8 @@ pub(crate) fn assemble_object_level_edb(
     // worlds match the bundle's by construction, with ONE load. Mapping and
     // correspondence graphs are shipped by the presenter but stay meta-level, so no
     // external endpoint IRI can be mistaken for an authored object-level construct.
-    let base = std::sync::Arc::new(
-        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    let base = with_owl_rdfs_projection(
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
     );
     let rdf12 = upstream
         .get("stage-statements")
@@ -7356,6 +7396,33 @@ mod logic_graph_golden_tests {
 #[cfg(test)]
 mod native_assembly_tests {
     use super::*;
+
+    #[test]
+    fn canonical_logic_types_gain_the_required_owl_reader_view() {
+        let source = br#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://example.org/> .
+ex:ontology a logic:Ontology .
+ex:Class a logic:Class .
+ex:value a logic:DatatypeProperty .
+"#;
+        let canonical = purrdf::parse_dataset(source, "text/turtle", None)
+            .expect("parse canonical logic fixture");
+        let projected = with_owl_rdfs_projection(canonical.as_ref());
+        let nq = String::from_utf8(
+            dataset_to_nquads(projected.as_ref()).expect("serialize projected fixture"),
+        )
+        .expect("N-Quads is UTF-8");
+        for required in ["owl#Ontology", "owl#Class", "owl#DatatypeProperty"] {
+            assert!(
+                nq.contains(required),
+                "missing required projection {required}: {nq}"
+            );
+        }
+        assert!(
+            nq.contains("blackcatinformatics.ca/logic/Ontology"),
+            "projection must retain canonical authority: {nq}"
+        );
+    }
 
     /// Count the `owl:AllDisjointClasses` typed subjects (blank nodes) and the
     /// `owl:members` list-head triples in a canonical N-Quads blob.

@@ -226,6 +226,7 @@ pub fn load_scoped_shapes(spec: &SliceSpec) -> (purrdf::shapes::shapes::Shapes, 
     let owned_module =
         gmeow_slicetest::native_query::dataset_from_file(&spec.slice_root.join("module.ttl"))
             .expect("slice module parses for shape ownership");
+    let owned_module = gmeow_slicetest::native_query::with_owl_rdfs_projection(&owned_module);
     let local_shapes = spec.slice_root.join("shapes.ttl");
     let scoped = gmeow_slicetest::exec::scope_shapes_to_slice(
         shapes,
