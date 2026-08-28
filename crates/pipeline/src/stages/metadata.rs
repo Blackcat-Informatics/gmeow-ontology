@@ -68,10 +68,14 @@ const CC_BY: &str = "https://creativecommons.org/licenses/by/4.0/";
 const PUBLISHER: &str = "https://blackcatinformatics.ca/#bii";
 
 const CLASS_TYPES: &[&str] = &[
+    gmeow_ns::LOGIC_CLASS,
     "http://www.w3.org/2002/07/owl#Class",
     "http://www.w3.org/2000/01/rdf-schema#Class",
 ];
 const PROPERTY_TYPES: &[&str] = &[
+    gmeow_ns::LOGIC_OBJECT_PROPERTY,
+    gmeow_ns::LOGIC_DATATYPE_PROPERTY,
+    gmeow_ns::LOGIC_ANNOTATION_PROPERTY,
     "http://www.w3.org/2002/07/owl#ObjectProperty",
     "http://www.w3.org/2002/07/owl#DatatypeProperty",
     "http://www.w3.org/2002/07/owl#AnnotationProperty",
@@ -789,5 +793,23 @@ mod tests {
                 "authenticated void:{key} census must be non-zero"
             );
         }
+    }
+
+    #[test]
+    fn metadata_census_counts_canonical_logic_typing() {
+        let dataset = purrdf::parse_dataset(
+            br#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
+                @prefix ex: <https://blackcatinformatics.ca/gmeow/test/> .
+                ex:Class a logic:Class .
+                ex:object a logic:ObjectProperty .
+                ex:data a logic:DatatypeProperty .
+                ex:annotation a logic:AnnotationProperty ."#,
+            "text/turtle",
+            None,
+        )
+        .expect("canonical logic typing fixture parses");
+        let stats = fold_stats(&dataset).expect("metadata census succeeds");
+        assert_eq!(stats.classes, 1);
+        assert_eq!(stats.properties, 3);
     }
 }

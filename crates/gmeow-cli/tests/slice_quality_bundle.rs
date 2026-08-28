@@ -6,9 +6,9 @@
 //! no network — via `gmeow_slice_quality::score_external_slice`.
 //!
 //! The fixture under `tests/fixtures/external-slice/` is a well-formed slice that
-//! scores STRICTLY between 0 and 1 on the three environment-anchored axes:
-//!   * `gmn1_coverage` — one module quad references an IRI under an unregistered
-//!     namespace (uncovered), the rest are codec-covered;
+//! exercises the environment-anchored axes without a checkout:
+//!   * `gmn1_coverage` — the now-total default-graph RDF 1.2 codec covers the complete
+//!     valid Turtle fixture;
 //!   * `DocMaturity` — the slice ships no realized-state design-set table, so a
 //!     FULL-anchor dimension is a gated miss;
 //!   * `translation` — only the widget term's carriers are translated into fr, and
@@ -149,7 +149,11 @@ fn ac1_scores_external_slice_against_embedded_bundle(std: &BundleStandards) {
     let codes = advisory_codes(&report);
 
     // (b) gmn1-coverage: no tolerant no-repo-root / no-dictionary advisory (Bundle
-    // mode always has a valid embedded dictionary), and the score is measured < 1.0.
+    // mode always has a valid embedded dictionary), and the valid default-graph RDF 1.2
+    // fixture is now completely covered. The former unsafe-blank-label witness was not a
+    // real authored-term witness: Turtle parsing canonicalizes blank-node labels before
+    // this measurement sees them, so it could never exercise the codec's raw-model
+    // uncovered branch.
     assert!(
         !codes
             .iter()
@@ -163,16 +167,15 @@ fn ac1_scores_external_slice_against_embedded_bundle(std: &BundleStandards) {
         "Bundle mode must not emit the no-dictionary advisory: {codes:?}"
     );
     let gmn1 = grade_for(&report, AXIS_GMN1);
-    assert!(
-        gmn1.score < 1.0 && gmn1.score > 0.0,
-        "gmn1-coverage is measured strictly in (0,1): {}",
-        gmn1.score
+    assert_eq!(
+        gmn1.score, 1.0,
+        "the codec covers every valid default-graph RDF 1.2 construct in the fixture"
     );
     assert!(
-        codes
+        !codes
             .iter()
             .any(|c| c == "slice-quality.gmn1-coverage.uncovered"),
-        "the uncovered GMN-0 quad surfaces an uplift advisory: {codes:?}"
+        "a fully covered fixture must not fabricate an uncovered advisory: {codes:?}"
     );
 
     // (c) DocMaturity: no model-unavailable advisory, measured < 1.0, and at least

@@ -79,6 +79,7 @@ use wasm_bindgen::prelude::*;
 /// trap. That is not a failure a caller can act on, and it is not one a maintainer can
 /// diagnose: the browser lane spent several runs unable to say WHICH refusal it had hit.
 /// Installed once, on first engine construction.
+#[cfg(target_arch = "wasm32")]
 fn install_panic_reporter() {
     use std::sync::Once;
     static ONCE: Once = Once::new();
@@ -91,6 +92,25 @@ fn install_panic_reporter() {
     });
 }
 
+/// Native parity tests drive the shim without a JavaScript host, so there is no console
+/// hook to install. Keeping this a no-op also leaves Rust's normal panic reporter intact.
+#[cfg(not(target_arch = "wasm32"))]
+fn install_panic_reporter() {}
+
+/// Preserve the engine's exact refusal on both targets. `JsError::new` itself invokes a
+/// wasm import and therefore aborts when constructed natively; panic with the original
+/// message instead so a native parity failure reports the actionable engine diagnostic.
+#[cfg(target_arch = "wasm32")]
+fn transport_error(message: &str) -> JsError {
+    JsError::new(message)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn transport_error(message: &str) -> JsError {
+    panic!("gmeow-mcp-wasm transport error: {message}")
+}
+
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
     /// The host's own `console.error`. Bound by NAMESPACE rather than through an inline
@@ -161,7 +181,7 @@ pub fn init(snapshot: &[u8]) -> Result<(), JsError> {
     install_panic_reporter();
     ENGINE.with_borrow_mut(|slot| *slot = None);
     let server = McpServer::from_snapshot_segmented(snapshot, SegmentSet::reasoning_only())
-        .map_err(|e| JsError::new(e.message()))?;
+        .map_err(|error| transport_error(error.message()))?;
     ENGINE.with_borrow_mut(|slot| *slot = Some(server));
     Ok(())
 }
@@ -185,8 +205,30 @@ pub fn init(snapshot: &[u8]) -> Result<(), JsError> {
 pub fn mcp(request_json: &str) -> Result<String, JsError> {
     ENGINE.with_borrow(|slot| match slot {
         Some(server) => Ok(server.handle_message(request_json)),
-        None => Err(JsError::new(
+        None => Err(transport_error(
             "no gmeow.gts snapshot loaded — call init(snapshotBytes) before mcp(frame)",
         )),
     })
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn native_transport_error_preserves_the_underlying_diagnostic() {
+        let panic = std::panic::catch_unwind(|| {
+            let _: JsError = transport_error("sentinel underlying engine refusal");
+        })
+        .expect_err("native transport conversion must not call a wasm import");
+        let message = panic
+            .downcast_ref::<String>()
+            .map(String::as_str)
+            .or_else(|| panic.downcast_ref::<&str>().copied())
+            .expect("panic carries a string diagnostic");
+        assert!(
+            message.contains("sentinel underlying engine refusal"),
+            "native transport failure discarded its source diagnostic: {message}"
+        );
+    }
 }

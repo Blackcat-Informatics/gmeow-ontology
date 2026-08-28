@@ -29,8 +29,8 @@ use purrdf::shapes::term::Term;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult,
-    TermValue, flat_dataset_from_quads, flat_rdf_quads_from_dataset, parse_dataset,
-    serialize_dataset,
+    TermValue, canonical_flat_nquads, flat_dataset_from_quads, flat_rdf_quads_from_dataset,
+    parse_dataset, serialize_dataset,
 };
 
 // ── Grounding-correspondence vocabulary ──────────────────────────────────────
@@ -1018,22 +1018,33 @@ impl GraphStore {
 
     /// Build the blank-node-aware slice query surface over this store's quads.
     ///
-    /// A blank [`Subject`] round-trips (is re-resolvable via `TermValue::blank`)
-    /// only in a *uniquely-owned* frozen dataset: `Dataset::from_frozen` on a
-    /// SHARED `Arc` (which `self.ds` always is — the store hands out clones) falls
-    /// back to `push_dataset`, which scope-qualifies blank labels into a form the
-    /// blank lookup can no longer resolve. So we reconstruct a fresh, uniquely-owned
-    /// dataset from the store's flat quads via `from_owned_quads`; its blank labels
-    /// are assigned deterministically (same quad order → same labels), so a blank
-    /// `Subject` obtained from one call resolves in the next. Built once and cached
-    /// per store instance (`slice_ds`), so the many `*_h` helper calls a heavy
-    /// conformance test makes share one reconstruction rather than rebuilding —
-    /// and, since every call returns the SAME dataset instance, the blank-node
-    /// round-trip guarantee is strengthened, not merely preserved.
+    /// A blank [`Subject`] round-trips through the slice query surface (an
+    /// `object_of` result fed back in via `TermValue::blank`) ONLY when every blank
+    /// sits in the default [`purrdf::BlankScope`] under a non-envelope label:
+    /// `object_of` renders a blank as its scope-QUALIFIED label, while
+    /// `term_id_by_value` matches the RAW stored label — the two agree only at the
+    /// default scope, where `qualify_label` is verbatim. The merged ontology
+    /// (`self.ds`) does NOT satisfy that: `base_ontology_dataset` standardises each
+    /// module's blanks apart into its own non-default scope, so an `object_of`
+    /// result no longer resolves. Neither purrdf-native reconstruction fixes it — a
+    /// flat re-freeze through `from_owned_quads` DECODES the qualified labels back
+    /// into that same multi-scope shape (`unqualify_label` at the default scope), and
+    /// `from_frozen` re-scopes through `push_dataset` — both leave the round-trip
+    /// broken, so an `rdf:List` / `owl:Restriction` walk finds a head it cannot
+    /// re-enter and returns nothing.
+    ///
+    /// So we canonicalise `self.ds` to flat RDFC-1.0 N-Quads — every blank is
+    /// relabelled to a fresh, globally-unique, non-envelope `c14n…` label — and
+    /// reparse that into a single-scope dataset whose blank `Subject`s round-trip.
+    /// RDFC-1.0 is isomorphism-preserving, so every list / restriction / reifier walk
+    /// is faithful. Built once and cached per store instance (`slice_ds`), so the many
+    /// `*_h` helper calls a heavy conformance test makes share ONE canonicalisation and
+    /// every call returns the SAME dataset instance.
     fn slice_dataset(&self) -> &SliceDataset {
         self.slice_ds.get_or_init(|| {
-            let quads = flat_rdf_quads_from_dataset(&self.ds);
-            SliceDataset::from_owned_quads(&quads)
+            let canonical = canonical_flat_nquads(&self.ds)
+                .unwrap_or_else(|e| panic!("canonical slice n-quads failed: {e}"));
+            SliceDataset::parse(canonical.as_bytes(), "application/n-quads", "slice view")
                 .unwrap_or_else(|e| panic!("slice dataset reconstruction failed: {e}"))
         })
     }

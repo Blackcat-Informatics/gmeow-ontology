@@ -6,39 +6,42 @@
 //!
 //! # What this adds over [`crate::goal_directed`]
 //!
-//! The proof-carrying backward engine ([`crate::physical::resolve_fol`]) builds a genuine
-//! Curry–Howard proof TERM per answer (`crate::physical::proof`), but the only public façade
-//! over it, [`crate::goal_directed::evaluate_reasoning_programs`], flattens each proof to a
-//! single content-addressed `derivation_iri` string. That is enough to *cite* a proof and
-//! nothing else: the rule applications, the premise edges, and the asserted leaves — the
-//! proof-as-process — never leave the crate.
+//! The proof-carrying backward engine (PurRDF's `resolve_fol`, the shared SLG-WFS substrate this
+//! crate cut the backward lane onto) builds a genuine Curry–Howard proof TERM per
+//! answer (a [`purrdf::datalog::resolve_fol::FolProof`]), but the only public façade over it,
+//! [`crate::goal_directed::evaluate_reasoning_programs`], flattens each proof to a single
+//! content-addressed `derivation_iri` string. That is enough to *cite* a proof and nothing else:
+//! the rule applications, the premise edges, and the asserted leaves — the proof-as-process —
+//! never leave the crate.
 //!
-//! This module is the missing structured projection. [`ProofTree::of_answer`] decodes the
-//! arena proof term through `crate::physical::proof`'s OWN `ProofShape` decoder (never a
-//! second parse of the `App` framing) into a flat, arena-independent step table of
-//! [`ProofStepView`]s, in deterministic DFS pre-order with the root first.
+//! This module is the missing structured projection. [`ProofTree::of_answer`] walks PurRDF's
+//! `FolProof` enum directly (its own `Assert`/`ByRule` split — never a second parse of an `App`
+//! framing) into a flat, arena-independent step table of [`ProofStepView`]s, in deterministic DFS
+//! pre-order with the root first.
 //!
 //! # Identity parity is the point (§19 single-path identity)
 //!
-//! Every step's [`ProofStepView::derivation_iri`] is minted by
-//! `crate::physical::proof::structured_derivation_iri` — the SAME recipe
-//! [`crate::goal_directed`] already projects and, through
-//! [`crate::provenance::mint_derivation_id`], the same one the forward reasoner's
-//! [`crate::derivation_graph::RuleApplication`] folds. A tree step and the flattened
-//! `derivation_iri` of the same proof node therefore agree byte-for-byte; there is no forked
-//! hash recipe here and `proof_tree_derivation_iris_match_the_proof_projection` pins it.
+//! Every step's [`ProofStepView::derivation_iri`] is gmeow's own [`crate::provenance::DERIVATION_PREFIX`]
+//! over PurRDF's content-addressed proof digest ([`purrdf::datalog::resolve_fol::derivation_id`]) —
+//! the SAME recipe [`crate::goal_directed`]'s flattened backward projection mints. A tree step and
+//! the flattened `derivation_iri` of the same backward proof node therefore agree byte-for-byte;
+//! there is no forked hash recipe within the backward lane and
+//! `proof_tree_derivation_iris_match_the_proof_projection` pins it. (The forward DL/EL lane keeps
+//! its own native `crate::provenance::mint_derivation_id` recipe over its own proof representation;
+//! the two engines are distinct substrates and their digests are not claimed byte-equal — see
+//! `docs/CUTOVER.md` §4.)
 //!
 //! # No fabricated substitutions
 //!
-//! `crate::physical::proof::check` computes the most general unifier of a `by_rule` step's
-//! body atoms against its checked premises and DISCARDS it. A [`ProofStepView`] deliberately
-//! carries **no substitution field**: the engine registers a content-addressed GROUND-instance
-//! clause per firing (see `resolve_fol::build_proofs`), so the `RuleCtx` clause a step cites is
-//! already ground and its MGU against the (identical) ground premises is the empty
-//! substitution — recomputing it would yield nothing, while reporting the ORIGINAL program
-//! clause's binding would require a general-clause ↔ firing correspondence the proof term does
-//! not carry. Publishing an invented substitution would be worse than publishing none, so the
-//! field is omitted rather than guessed.
+//! PurRDF's [`purrdf::datalog::resolve_fol::check_fol_proof`] re-derives each `ByRule` node against
+//! its checked premises and does not surface any unifier. A [`ProofStepView`] deliberately carries
+//! **no substitution field**: the engine's proof term is already GROUND — a `FolProof::ByRule`
+//! carries one proof per positive body literal whose conclusions are the ground premises the fired
+//! (ground-instance) clause consumes, so the firing's MGU against those identical ground premises is
+//! the empty substitution. Recomputing it would yield nothing, while reporting the ORIGINAL program
+//! clause's binding would require a general-clause ↔ firing correspondence the proof term does not
+//! carry. Publishing an invented substitution would be worse than publishing none, so the field is
+//! omitted rather than guessed.
 //!
 //! # The TSTP projection
 //!
@@ -62,16 +65,20 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use purrdf::TermValue;
-
 use gmeow_logic_compile::ir::ReasoningProgramIr;
-use gmeow_term_arena::engine::{NodeData, TermDag};
 
-use crate::physical::id::{NodeId, TermId};
-use crate::physical::proof::{ProofShape, check, classify, structured_derivation_iri};
-use crate::physical::resolve_fol::{FolBinding, FolControl, render, resolve_fol};
+// The structured proof view projects PurRDF's `FolProof` (the backward lane's proof term), NOT
+// the retired native `crate::physical::proof` arena term. Step identity is
+// PurRDF's content-addressed proof digest (`derivation_id`) under gmeow's own `DERIVATION_PREFIX`,
+// and conclusion/leaf surfaces come from PurRDF's `render`/`TermDag` — see `docs/CUTOVER.md` §4.
+use purrdf::datalog::id::NodeId;
+use purrdf::datalog::resolve_fol::{
+    FolBinding, FolControl, FolProof, FolStatus, Truth, check_fol_proof, derivation_id, render,
+    resolve_fol,
+};
+use purrdf::datalog::term::{NodeData, TermDag};
+
 use crate::provenance;
-use crate::query_ir::Budget;
 
 /// The prefix every TSTP step name carries, so a derivation name is a valid TPTP
 /// `<lower_word>` (`[a-z][A-Za-z0-9_]*`) even though the content address it wraps may start
@@ -92,16 +99,15 @@ fn tree_err(detail: String) -> gmeow_errors::Diag {
 /// proof term lives in and can cross a crate boundary (which the arena `NodeId`s cannot).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProofStepView {
-    /// The step's content-addressed derivation IRI, minted by
-    /// `crate::physical::proof::structured_derivation_iri` — byte-identical to the IRI the
-    /// rest of the system already mints for this proof node (see the module docs).
+    /// The step's content-addressed derivation IRI: gmeow's [`crate::provenance::DERIVATION_PREFIX`]
+    /// over PurRDF's [`derivation_id`] — byte-identical to the IRI the flattened backward
+    /// projection already mints for this proof node (see the module docs).
     pub derivation_iri: String,
     /// The cited ground-instance firing rule IRI, or `None` for an asserted leaf (whose
     /// justification is the assert sentinel, not a rule).
     pub rule_iri: Option<String>,
-    /// The atom this step concludes, rendered to the engine's own functional surface
-    /// (`crate::physical::resolve_fol::render`) — the SAME text
-    /// [`crate::goal_directed::GoalDirectedAnswer::atom`] carries.
+    /// The atom this step concludes, rendered to PurRDF's own functional surface
+    /// ([`render`]) — the SAME text [`crate::goal_directed::GoalDirectedAnswer::atom`] carries.
     pub conclusion: String,
     /// The premise steps, as indices into [`ProofTree::steps`], in the proof term's own
     /// argument order.
@@ -115,7 +121,8 @@ pub struct ProofStepView {
 /// A checked proof as a structured, arena-independent step table.
 ///
 /// Steps are in DFS **pre-order with the root first** (`steps()[0]` is always the root), and
-/// a proof node shared by two premises (the arena hash-conses, so maximal sharing is real)
+/// a proof node shared by two premises (detected by content-addressed digest, since PurRDF's
+/// `FolProof` is an owned tree rather than a hash-consed arena — see [`Self::of_answer`])
 /// appears EXACTLY ONCE, with both parents citing its single index. The tree is therefore the
 /// proof DAG's faithful projection, not an exponential unfolding of it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -166,10 +173,15 @@ impl ProofTree {
     /// IRI, if a conclusion atom is not a ground application (so it has no TSTP surface), or
     /// if two distinct steps mint the same derivation IRI (which would collapse two TSTP step
     /// names onto one and silently merge the derivation).
-    fn of_answer(dag: &TermDag, proof: NodeId) -> gmeow_errors::Result<Self> {
+    fn of_answer(dag: &TermDag, proof: &FolProof) -> gmeow_errors::Result<Self> {
         let mut steps: Vec<ProofStepView> = Vec::new();
         let mut tstp_conclusions: Vec<String> = Vec::new();
-        let mut index: HashMap<NodeId, usize> = HashMap::new();
+        // Keyed by content-addressed proof digest (`derivation_id`), not arena node identity:
+        // PurRDF's `FolProof` is an owned recursive tree with no hash-consing, so two premises
+        // that prove the same atom the same way are DISTINCT values sharing one digest. Keying on
+        // the digest re-establishes maximal sharing — the shared subproof is emitted exactly once
+        // and both parents cite its single index — exactly as the native arena's `NodeId` key did.
+        let mut index: HashMap<String, usize> = HashMap::new();
         visit(dag, proof, &mut steps, &mut tstp_conclusions, &mut index)?;
 
         // Two distinct steps sharing a derivation IRI would mint one TSTP name for two
@@ -231,65 +243,76 @@ impl ProofTree {
     }
 }
 
-/// Walk one proof node, appending its step (pre-order, root first) and returning its index.
-/// A node already visited returns its existing index, so a shared subproof is emitted once.
+/// Walk one [`FolProof`] node, appending its step (pre-order, root first) and returning its
+/// index. A node whose content-addressed digest was already visited returns its existing index,
+/// so a shared subproof is emitted once.
 fn visit(
     dag: &TermDag,
-    node: NodeId,
+    proof: &FolProof,
     steps: &mut Vec<ProofStepView>,
     tstp: &mut Vec<String>,
-    index: &mut HashMap<NodeId, usize>,
+    index: &mut HashMap<String, usize>,
 ) -> gmeow_errors::Result<usize> {
-    if let Some(&existing) = index.get(&node) {
+    // The step's identity is the SAME content-addressed digest the rest of the system mints for
+    // this proof node: gmeow's `DERIVATION_PREFIX` over PurRDF's `derivation_id` (a SHA-1 over the
+    // proof's `rule_identity` and its sub-proof digests). Deduping on the digest gives the shared
+    // subproof one index (see [`ProofTree::of_answer`]).
+    let digest = derivation_id(dag, proof);
+    if let Some(&existing) = index.get(&digest) {
         return Ok(existing);
     }
-    // Decode through the ONE proof-framing decoder (`crate::physical::proof::classify`).
-    let shape = classify(dag, node).map_err(|e| {
-        tree_err(format!(
-            "cannot decode a proof node into a tree step: {e:?}"
-        ))
-    })?;
-    // The step's identity is the SAME content-addressed IRI the rest of the system mints.
-    let derivation_iri = structured_derivation_iri(dag, node)?;
+    let derivation_iri = format!("{}{digest}", provenance::DERIVATION_PREFIX);
 
     // Reserve this node's slot BEFORE recursing so the pre-order index is the visit order and
     // a shared subproof resolves to one index.
     let idx = steps.len();
     steps.push(ProofStepView {
-        derivation_iri: derivation_iri.clone(),
+        derivation_iri,
         rule_iri: None,
         conclusion: String::new(),
         premises: Vec::new(),
         asserted: false,
     });
     tstp.push(String::new());
-    index.insert(node, idx);
+    index.insert(digest, idx);
 
-    match shape {
-        ProofShape::Assert { goal, reifier: _ } => {
+    let goal = proof.goal();
+    match proof {
+        FolProof::Assert { .. } => {
             steps[idx].conclusion = render(dag, goal);
             steps[idx].asserted = true;
             tstp[idx] = tstp_term(dag, goal)?;
         }
-        ProofShape::ByRule {
-            goal,
-            rule,
-            subproofs,
-        } => {
-            let mut premises = Vec::with_capacity(subproofs.len());
-            for sub in &subproofs {
-                premises.push(visit(dag, *sub, steps, tstp, index)?);
+        FolProof::ByRule { premises, .. } => {
+            let mut premise_indices = Vec::with_capacity(premises.len());
+            for sub in premises {
+                premise_indices.push(visit(dag, sub, steps, tstp, index)?);
             }
             let conclusion = render(dag, goal);
             let term = tstp_term(dag, goal)?;
             let step = &mut steps[idx];
-            step.rule_iri = Some(atom_iri(dag, rule)?);
+            // The cited firing rule's IRI: gmeow vocabulary (`{GMEOW}goal-directed/rule/…`) over
+            // PurRDF's content-addressed `rule_identity`. PurRDF mints no rule IRI on the clause
+            // (it carries only an authored-order index); the content address is what makes this
+            // citation run-to-run stable. Mirrors the retired native scheme's `.../rule/{hash}`.
+            step.rule_iri = Some(rule_iri_of(proof));
             step.conclusion = conclusion;
-            step.premises = premises;
+            step.premises = premise_indices;
             tstp[idx] = term;
         }
     }
     Ok(idx)
+}
+
+/// The gmeow-vocabulary firing-rule IRI for a `ByRule` proof node: `{GMEOW}goal-directed/rule/`
+/// over a `blake3` digest of PurRDF's content-addressed [`FolProof::rule_identity`]. Hashing
+/// (rather than embedding the raw identity) keeps the shipped IRI opaque and short and preserves
+/// the EXACT scheme the retired native lowering minted (`.../goal-directed/rule/{blake3hex}`),
+/// re-sourced from PurRDF's clause identity — the same fired clause always mints the same IRI,
+/// byte-stable run to run and independent of the clause's authored-order index.
+fn rule_iri_of(proof: &FolProof) -> String {
+    let hash = blake3::hash(proof.rule_identity().as_bytes()).to_hex();
+    format!("{}goal-directed/rule/{hash}", crate::goal_directed::GMEOW)
 }
 
 // ── TSTP name ↔ derivation IRI ──────────────────────────────────────────────────────────
@@ -363,15 +386,11 @@ pub fn tstp_step_derivation_iri(name: &str) -> gmeow_errors::Result<String> {
 /// proof rather than a shape to approximate.
 fn tstp_term(dag: &TermDag, node: NodeId) -> gmeow_errors::Result<String> {
     match dag.data(node) {
-        NodeData::Leaf(tid) | NodeData::Free(tid) => {
-            Ok(quoted_atom(&atom_surface(dag.atom_value(*tid))))
-        }
+        NodeData::Leaf(sym) | NodeData::Free(sym) => Ok(quoted_atom(dag.symbol(*sym))),
         NodeData::App { op, args } => {
             let (op, args) = (*op, args.clone());
             let functor = match dag.data(op) {
-                NodeData::Leaf(tid) | NodeData::Free(tid) => {
-                    quoted_atom(&atom_surface(dag.atom_value(*tid)))
-                }
+                NodeData::Leaf(sym) | NodeData::Free(sym) => quoted_atom(dag.symbol(*sym)),
                 other => {
                     return Err(tree_err(format!(
                         "a proof conclusion's operator must be an atomic leaf, found {other:?}"
@@ -393,15 +412,6 @@ fn tstp_term(dag: &TermDag, node: NodeId) -> gmeow_errors::Result<String> {
     }
 }
 
-/// The bare surface of an atomic term value: an IRI's own text, or a literal's canonical
-/// display form.
-fn atom_surface(value: &TermValue) -> String {
-    match value {
-        TermValue::Iri(iri) => iri.clone(),
-        other => provenance::term_display(other),
-    }
-}
-
 /// Wrap `s` as a TPTP single-quoted atom, escaping `\` and `'` exactly as the parser's
 /// single-quote lexer unescapes them.
 fn quoted_atom(s: &str) -> String {
@@ -415,16 +425,6 @@ fn quoted_atom(s: &str) -> String {
     }
     out.push('\'');
     out
-}
-
-/// The IRI string of an atom handle, hard-failing if it is not an IRI leaf.
-fn atom_iri(dag: &TermDag, atom: TermId) -> gmeow_errors::Result<String> {
-    match dag.atom_value(atom) {
-        TermValue::Iri(iri) => Ok(iri.clone()),
-        other => Err(tree_err(format!(
-            "a proof step's cited rule handle must be an IRI, found {other:?}"
-        ))),
-    }
 }
 
 // ── The public proving entry ────────────────────────────────────────────────────────────
@@ -448,8 +448,8 @@ pub struct ProvedProgram {
     pub iri: String,
     /// The rendered goal template (free metavariables shown as `?n`).
     pub goal: String,
-    /// The resolution's budget status (`ok` / `partial` / `exhausted`) — disclosed rather
-    /// than swallowed, so a caller can see a truncated grounding for what it is.
+    /// The resolution's grounding status (`ok` / `partial`) — disclosed rather than swallowed,
+    /// so a caller can see a budget-truncated grounding for what it is.
     pub status: String,
     /// The proof-checked answers, in a total order over `(atom, bindings, root derivation
     /// IRI)` for determinism.
@@ -461,10 +461,9 @@ pub struct ProvedProgram {
 ///
 /// This is [`crate::goal_directed::evaluate_reasoning_programs`]'s sibling, not a fork: it
 /// lowers through the SAME single `ReasoningProgramIr` → `FolProgram` compiler
-/// (`crate::goal_directed::lower_reasoning_program`), resolves through the SAME
-/// `crate::physical::resolve_fol::resolve_fol`, and validates through the SAME
-/// `crate::physical::proof::check`. The only difference is what it publishes: the proof TREE
-/// instead of the flattened derivation IRI.
+/// (`crate::goal_directed::lower_reasoning_program`), resolves through the SAME PurRDF
+/// [`resolve_fol`], and validates through the SAME PurRDF [`check_fol_proof`]. The only
+/// difference is what it publishes: the proof TREE instead of the flattened derivation IRI.
 ///
 /// `subsort_edges` is the caller's reasoned `rdfs:subClassOf` closure, narrowed to the sorts
 /// the program references (empty for an unsorted program).
@@ -472,8 +471,8 @@ pub struct ProvedProgram {
 /// # Errors
 ///
 /// Hard-fails if the program is outside the backward engine's fragment
-/// (`FolControl::Unsupported`), if any answer's proof fails to [`check`] or re-derives a
-/// different atom, or if a proof term cannot be decoded into a tree.
+/// (`FolControl::Unsupported`), if any answer's proof fails to [`check_fol_proof`] or re-derives
+/// a different atom, or if a proof term cannot be decoded into a tree.
 pub fn prove_reasoning_program(
     program: &ReasoningProgramIr,
     subsort_edges: &[(String, String)],
@@ -486,7 +485,14 @@ pub fn prove_reasoning_program(
         verdict_probes: _,
     } = built;
     let goal = render(&dag, fol.goal);
-    let outcome = match resolve_fol(&mut dag, &fol, &ctx, &Budget::default())? {
+    // `resolve_fol` returns a `FolControl` directly (no `Result`); grounding runs under the same
+    // determinism-preserving budget the flattened lane uses.
+    let outcome = match resolve_fol(
+        &mut dag,
+        &fol,
+        &ctx,
+        &crate::goal_directed::GROUNDING_BUDGET,
+    ) {
         FolControl::Decided(outcome) => outcome,
         FolControl::Unsupported(kind) => {
             return Err(tree_err(format!(
@@ -495,8 +501,15 @@ pub fn prove_reasoning_program(
             )));
         }
     };
-    let status = outcome.status.as_str().to_owned();
+    let status = match outcome.status {
+        FolStatus::Complete => "ok",
+        FolStatus::Partial => "partial",
+    }
+    .to_owned();
 
+    // The `not_false` predicate `check_fol_proof` charges each negative literal against, read from
+    // THIS outcome's well-founded model (`truth_of`) — see `crate::goal_directed::evaluate_demonstrator`.
+    let not_false = |d: &TermDag, n: NodeId| outcome.truth_of(d, n) != Truth::False;
     let mut answers = Vec::with_capacity(outcome.answers.len());
     for ans in &outcome.answers {
         let FolBinding {
@@ -506,7 +519,15 @@ pub fn prove_reasoning_program(
         } = ans;
         // Curry–Howard check FIRST: a tree is only worth publishing for a proof that
         // independently re-derives exactly its answer atom.
-        let checked = check(&mut dag, *proof, &outcome.rule_ctx).map_err(|e| {
+        let checked = check_fol_proof(
+            &mut dag,
+            proof,
+            &fol.clauses,
+            &fol.meta_sorts,
+            &ctx,
+            &not_false,
+        )
+        .map_err(|e| {
             tree_err(format!(
                 "reasoning program {:?} answer proof failed to check: {e:?}",
                 program.iri
@@ -518,7 +539,7 @@ pub fn prove_reasoning_program(
                 program.iri
             )));
         }
-        let tree = ProofTree::of_answer(&dag, *proof)?;
+        let tree = ProofTree::of_answer(&dag, proof)?;
         answers.push(ProvedAnswer {
             atom: render(&dag, *atom),
             bindings: bindings.clone(),
@@ -628,9 +649,9 @@ mod tests {
 
     #[test]
     fn proof_tree_derivation_iris_match_the_proof_projection() {
-        // Identity parity: rebuild the SAME proof term through the engine and assert every
-        // tree step's IRI is byte-identical to `structured_derivation_iri`'s own projection of
-        // the corresponding proof node — the tree must never fork the minting recipe.
+        // Identity parity: rebuild the SAME proof term through the engine and assert every tree
+        // step's IRI is byte-identical to the flattened backward projection's own recipe
+        // (DERIVATION_PREFIX over PurRDF's derivation_id) — the tree must never fork it.
         let program = subclass_chain();
         let built = crate::goal_directed::lower_reasoning_program(&program, &[]).expect("lower");
         let crate::goal_directed::BuiltDemonstrator {
@@ -639,29 +660,37 @@ mod tests {
             ctx,
             ..
         } = built;
-        let outcome = match resolve_fol(&mut dag, &fol, &ctx, &Budget::default()).expect("resolve")
-        {
+        let outcome = match resolve_fol(
+            &mut dag,
+            &fol,
+            &ctx,
+            &crate::goal_directed::GROUNDING_BUDGET,
+        ) {
             FolControl::Decided(o) => o,
             FolControl::Unsupported(kind) => panic!("unsupported: {kind:?}"),
         };
         assert_eq!(outcome.answers.len(), 1);
-        let proof = outcome.answers[0].proof;
+        let proof = &outcome.answers[0].proof;
         let tree = ProofTree::of_answer(&dag, proof).expect("tree");
 
-        // Walk the proof term independently (root, then its single premise chain) and compare.
+        // Walk the FolProof term independently (root, then its single premise chain) and compare.
         let mut node = proof;
         for step in tree.steps() {
-            let expected = structured_derivation_iri(&dag, node).expect("mint");
+            let expected = format!(
+                "{}{}",
+                provenance::DERIVATION_PREFIX,
+                derivation_id(&dag, node)
+            );
             assert_eq!(
                 step.derivation_iri, expected,
-                "tree step identity must equal proof.rs's own minting"
+                "tree step identity must equal the flattened derivation_id projection"
             );
-            match classify(&dag, node).expect("classify") {
-                ProofShape::ByRule { subproofs, .. } => {
-                    assert_eq!(subproofs.len(), 1);
-                    node = subproofs[0];
+            match node {
+                FolProof::ByRule { premises, .. } => {
+                    assert_eq!(premises.len(), 1);
+                    node = &premises[0];
                 }
-                ProofShape::Assert { .. } => break,
+                FolProof::Assert { .. } => break,
             }
         }
         // And every step's IRI is a genuine derivation-namespace address.

@@ -107,7 +107,7 @@ fn slice_lint_and_slice_quality_share_one_checkout_free_assessment() {
 
     assert!(
         quality_codes.contains("slice-quality.doc-maturity.missing-dimension")
-            && quality_codes.contains("slice-quality.gmn1-coverage.uncovered"),
+            && quality_codes.contains("slice-quality.advice-coverage.unharvested"),
         "the shared assessment must be non-vacuous: {quality_codes:?}"
     );
     assert_eq!(

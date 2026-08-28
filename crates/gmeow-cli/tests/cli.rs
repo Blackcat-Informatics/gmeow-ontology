@@ -1020,7 +1020,7 @@ fn logic_backward_evaluates_the_shipped_demonstrator_corpus() {
         .stdout(
             predicate::str::contains("program peanoAdd")
                 .and(predicate::str::contains(format!(
-                    "answer atom={EX}add({EX}s({EX}s({EX}zero)),{EX}s({EX}zero),\
+                    "answer atom={EX}add({EX}s({EX}s({EX}zero)), {EX}s({EX}zero), \
                      {EX}s({EX}s({EX}s({EX}zero))))"
                 )))
                 .and(predicate::str::contains(format!(
@@ -1029,10 +1029,10 @@ fn logic_backward_evaluates_the_shipped_demonstrator_corpus() {
                 .and(predicate::str::contains("proof-checked=true"))
                 .and(predicate::str::contains("program reachability"))
                 .and(predicate::str::contains(format!(
-                    "answer atom={EX}reach({EX}a,{EX}b)"
+                    "answer atom={EX}reach({EX}a, {EX}b)"
                 )))
                 .and(predicate::str::contains(format!(
-                    "answer atom={EX}reach({EX}a,{EX}c)"
+                    "answer atom={EX}reach({EX}a, {EX}c)"
                 )))
                 .and(predicate::str::contains("program memberCons"))
                 .and(predicate::str::contains(format!("binding M = {EX}a")))

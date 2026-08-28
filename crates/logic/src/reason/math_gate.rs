@@ -70,7 +70,7 @@ const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 /// data: it exists only inside this module's own transient [`WorldStore`].
 const MATH_GATE_WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/math-dimension-gate";
 /// The plan-cache contract-hash namespace for the compiled violation rules — distinct
-/// from [`crate::reason::native_contract_hash`]'s DL/EL/RL contract, so the two never
+/// from [`crate::reason::native_contract_hash`]'s DL/EL contract, so the two never
 /// collide in the shared process-wide plan cache.
 const MATH_GATE_CONTRACT: &str =
     "https://blackcatinformatics.ca/gmeow/reason/math-dimension-gate/v1";

@@ -25,8 +25,12 @@
 //! `slices/grounding/logic/design/LOGIC-RUNTIME.md`. Process flow (which ticket, which
 //! PR) lives only in the issue tracker, never in this code or its emitted Turtle.
 
-use crate::reason::artifacts::{GMEOW_NS, RDF_TYPE, RDFS_COMMENT, escape_literal, gmeow};
+use crate::reason::artifacts::{GMEOW_NS, RDF_TYPE, RDFS_COMMENT, gmeow};
 use purrdf::turtle::emit_resource;
+use purrdf::{RdfLiteral, RdfTerm};
+
+/// `xsd:integer` — the datatype of the ledger's `gmeow:entryCount` object.
+const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
 /// The two honest statuses a perf-ledger row can carry.
 ///
@@ -244,13 +248,18 @@ impl PerfLedger {
         out.push_str(&emit_resource(
             &gmeow("perf-ledger"),
             &[
-                (RDF_TYPE.to_owned(), format!("<{}>", gmeow("PerfLedger"))),
-                (gmeow("entryCount"), self.rows.len().to_string()),
+                (RDF_TYPE.to_owned(), RdfTerm::iri(gmeow("PerfLedger"))),
+                (
+                    gmeow("entryCount"),
+                    RdfTerm::literal(RdfLiteral::typed(self.rows.len().to_string(), XSD_INTEGER)),
+                ),
                 (
                     RDFS_COMMENT.to_owned(),
-                    "\"the deferred / non-incremental parts of the native physical engine's \
-                     seven-lever stack; the built P0 levers are not rows here\"@en"
-                        .to_owned(),
+                    RdfTerm::literal(RdfLiteral::language_tagged(
+                        "the deferred / non-incremental parts of the native physical engine's \
+                         seven-lever stack; the built P0 levers are not rows here",
+                        "en",
+                    )),
                 ),
             ],
         ));
@@ -260,21 +269,18 @@ impl PerfLedger {
             out.push_str(&emit_resource(
                 &gmeow(&format!("perf-entry-{index}")),
                 &[
-                    (
-                        RDF_TYPE.to_owned(),
-                        format!("<{}>", gmeow("PerfLedgerEntry")),
-                    ),
+                    (RDF_TYPE.to_owned(), RdfTerm::iri(gmeow("PerfLedgerEntry"))),
                     (
                         gmeow("construct"),
-                        format!("\"{}\"@en", escape_literal(row.construct)),
+                        RdfTerm::literal(RdfLiteral::language_tagged(row.construct, "en")),
                     ),
                     (
                         gmeow("perfStatus"),
-                        format!("<{}{}>", GMEOW_NS, row.status.iri_local()),
+                        RdfTerm::iri(format!("{}{}", GMEOW_NS, row.status.iri_local())),
                     ),
                     (
                         gmeow("note"),
-                        format!("\"{}\"@en", escape_literal(row.note)),
+                        RdfTerm::literal(RdfLiteral::language_tagged(row.note, "en")),
                     ),
                 ],
             ));
@@ -339,7 +345,7 @@ mod tests {
 
         // The ledger header individual + entry count.
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/PerfLedger>"));
-        assert!(ttl.contains("gmeow/entryCount> 5"));
+        assert!(ttl.contains(&format!("gmeow/entryCount> \"5\"^^<{XSD_INTEGER}>")));
 
         // The three FlaggedNonIncremental hard parts (canon wording).
         for construct in [

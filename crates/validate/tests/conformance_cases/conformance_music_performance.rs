@@ -48,7 +48,7 @@ use crate::conformance_support::*;
 use gmeow_test_batch_macros::batch_cases;
 
 const G: &str = "https://blackcatinformatics.ca/gmeow/";
-const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
 const OWL_TRANSITIVE: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
 const MUSIC_MODULE: &str = "slices/extensions/music/module.ttl";
 
@@ -77,8 +77,8 @@ fn degree_of_freedom_classes_exist() {
         "OrnamentProfileKind",
     ] {
         assert!(
-            s.has(Some(&g(term)), Some(RDF_TYPE), Some(OWL_CLASS)),
-            "{term} should be an owl:Class"
+            s.has(Some(&g(term)), Some(RDF_TYPE), Some(LOGIC_CLASS)),
+            "{term} should be a logic:Class"
         );
     }
 }

@@ -87,6 +87,8 @@ pub mod provenance;
 pub mod purremb_relation;
 pub mod query_ir;
 pub mod reason;
+/// Thin, honest wrappers over the purrdf `entail` DL reasoning services.
+pub mod reasoner_services;
 /// The shared named-graph boundary of the object-level reasoning EDB.
 pub mod reasoning_graphs;
 pub mod reference_resolver;

@@ -7,37 +7,29 @@
 # design-set table is deliberately absent from docs.md, so dimRealizedState is a
 # gated miss and DocMaturity scores < 1.0.
 #
-# GMN-1 coverage: every quad below is under a registered namespace (gmeow:,
-# rdfs:, skos:, owl:, logic:) with a literal or registered-IRI object, so the
-# codec covers it — EXCEPT the single rdfs:seeAlso quad on FixtureExternalWidget
-# whose object is a blank node whose label carries the GMN-1 record separator
-# "__" (an unsafe blank-node label the codec cannot tokenize). That one uncovered
-# quad drives the gmn1_coverage axis strictly below 1.0 while the rest stay
-# covered. (External IRIs under no registered namespace now ride the codec's
-# x_<hash> by-reference token and are covered, so this fixture uses an
-# unsafe blank label — still genuinely uncovered — to exercise the advisory.)
+# GMN-1 coverage: every valid default-graph RDF 1.2 quad below is losslessly
+# codec-covered. External IRIs ride the codec's by-reference token, and Turtle
+# parsing canonicalizes source blank-node labels before coverage is measured.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:FixtureExternalWidget
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice> ;
     rdfs:label "Fixture External Widget"@x-gmeow-english ;
     skos:definition "A grounded fixture class demonstrating a documented, foundation-stereotyped term the external-slice quality engine can score."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Use as the primary demonstrator term when exercising the wheel's external-slice scoring path over a foreign slice."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating this fixture class as a real ontology term; it exists only to exercise the scoring engine."@x-gmeow-english ;
-    gmeow:howToUse "Score the enclosing slice with gmeow_slice_quality::score_external_slice against the embedded bundle standards." ;
-    rdfs:seeAlso _:external__reference .
+    gmeow:howToUse "Score the enclosing slice with gmeow_slice_quality::score_external_slice against the embedded bundle standards." .
 
 gmeow:FixtureExternalGadget
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice> ;
     rdfs:label "Fixture External Gadget"@x-gmeow-english ;
     skos:definition "A second grounded fixture class whose carrier strings are only partially translated, so the translation axis measures below 1.0."@x-gmeow-english ;

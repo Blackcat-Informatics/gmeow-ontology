@@ -487,11 +487,11 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     (
         "goal_directed.rs",
-        "the pub façade that runs shipped goal-directed demonstrators through the backward engine and projects proof-checked answers to RDF — a downstream consumer of the decision path (it calls resolve_fol), not part of what dispatch_query decides",
+        "the pub façade that runs shipped goal-directed demonstrators through the PurRDF backward engine and projects proof-checked answers to RDF — a downstream consumer of the decision path (it calls PurRDF's resolve_fol), not part of what dispatch_query decides",
     ),
     (
         "proof_tree.rs",
-        "the pub structured proof view (proof term -> step tree -> TSTP derivation) — like goal_directed.rs a downstream READER of an already-decided proof (it calls goal_directed's lowering, resolve_fol, and proof::check and then only projects); nothing in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it, so it cannot change what dispatch_query decides",
+        "the pub structured proof view (proof term -> step tree -> TSTP derivation) — like goal_directed.rs a downstream READER of an already-decided proof (it calls goal_directed's lowering and PurRDF's resolve_fol + check_fol_proof, then only projects); nothing in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it, so it cannot change what dispatch_query decides",
     ),
     ("lib.rs", "crate-root module wiring, not the decision path"),
     (
@@ -533,6 +533,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     (
         "purremb_relation.rs",
         "query-scoped external-relation provider over a verified PURREMB embedding artifact — consumes the ExternalRelationProvider contract from external_relation.rs and is invoked only through the &dyn ExternalRelationProvider trait object supplied per query by callers; no production file in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it, so its bytes are an external EDB input, not part of what dispatch_query decides",
+    ),
+    (
+        "reasoner_services.rs",
+        "thin façade over purrdf's `entail` OWL 2 Direct-Semantics services (consistency, classification, realization, instance retrieval, axiom entailment, profile certification, module extraction) — a forward tableau/DL service surface consumed by callers directly, imported only by the lib.rs module declaration; no file in dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance imports it, so it is not part of what dispatch_query decides",
     ),
     (
         "reasoning_graphs.rs",

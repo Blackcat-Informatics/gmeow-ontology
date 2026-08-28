@@ -1573,9 +1573,18 @@ fn has_type(view: &DslView<'_>, term: &str, type_iri: &str) -> bool {
         .any(|t| t.as_iri() == Some(type_iri))
 }
 
-/// Whether the IRI is declared as an OWL ObjectProperty or DatatypeProperty.
+/// Whether the IRI is declared as an object or datatype property.
+///
+/// Authored GMEOW terms use the canonical `logic:` typing vocabulary after the surface
+/// flip. Normalize those declarations onto their OWL view before classifying them, just
+/// as [`owl_kind_edoal`] and [`check_property_character`] do. Without this normalization
+/// the top-level mapping scan drops every canonical property before any soundness check
+/// can inspect its alignment.
 fn is_property(view: &DslView<'_>, iri: &str) -> bool {
-    has_type(view, iri, OWL_OBJECT_PROPERTY) || has_type(view, iri, OWL_DATATYPE_PROPERTY)
+    objects_iri(view, iri, RDF_TYPE)
+        .iter()
+        .map(|type_iri| crate::typing_vocab::to_owl_view(type_iri))
+        .any(|type_iri| type_iri == OWL_OBJECT_PROPERTY || type_iri == OWL_DATATYPE_PROPERTY)
 }
 
 /// Named-node members of an RDF list headed by `head` (only IRI members kept).

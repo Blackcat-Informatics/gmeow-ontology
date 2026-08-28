@@ -30,7 +30,7 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+const LOGIC_CLASS: &str = "https://blackcatinformatics.ca/logic/Class";
 
 /// The seven dictionaries the bundle ships, by `gmeow:dictionaryId`.
 ///
@@ -383,8 +383,8 @@ fn every_medium_axis_class_carries_a_ufo_meta_type_and_a_docs_concern() {
             .map(|t| iri_of(&ds, t))
             .collect();
         assert!(
-            types.contains(OWL_CLASS),
-            "gmeow:{local} must be declared an owl:Class"
+            types.contains(LOGIC_CLASS),
+            "gmeow:{local} must be declared a logic:Class"
         );
 
         let stereotypes: Vec<&String> = types.intersection(&meta_types).collect();

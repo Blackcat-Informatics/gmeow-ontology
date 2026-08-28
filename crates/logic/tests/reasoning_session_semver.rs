@@ -401,6 +401,24 @@ use session_common::*;
 /// stays an honest gap, and the W3C divergence corpus is unchanged
 /// (`webont-description-logic-035` still withholds). The fixed edge-only input carries no
 /// class expression, so its reasoning verdict is unchanged.
+/// Re-blessed for the purrdf substrate-identity fold — which subsumes the earlier RL cutover
+/// that first moved the RL lane onto purrdf's `entail` chase and dropped `reason/rl_rules.rs`
+/// from `native_contract_hash`'s component list. `native_contract_hash()` now folds a
+/// deterministic `purrdf`-PROVIDED engine identity (`purrdf::datalog::cache::CALCULUS_VERSION`
+/// plus the OWL 2 RL and datatype-entailment `calculus_program` `contract_hash`es) alongside
+/// the native component source, so a purrdf pin bump that changes the moved lanes (the RL
+/// chase, the DL `entail` services, the datatype value space) moves the engine seal even
+/// though no native source byte moved. The native contract hash is one of the folded
+/// engine-descriptor axes, so this descriptor moves. No native rule, decider, or profile
+/// capability changed and the fixed edge-only input's reasoning verdict is unchanged — only
+/// the identity moved to reflect the shared purrdf substrate.
+/// Re-blessed once more for folding the public DL service façade (`reasoner_services.rs`) into
+/// `native_contract_hash`'s component list: the OWL 2 Direct-Semantics service surface
+/// (consistency, classification, realization, profile certification, module extraction) is now
+/// part of the engine identity, so a change to how the façade wraps `purrdf::entail`'s services
+/// moves the descriptor — a consumer holding a DL-service verdict can refuse one minted under a
+/// different façade contract. This is a deliberate contract widening; no rule or decider
+/// capability changed.
 /// Re-blessed once more for the process-independent whole-bundle import cache. The shared
 /// term arena's `ContentKey` now derives serde so that exact content identity can cross the
 /// cache boundary; dense arena handles remain non-serializable and every constructor,
@@ -448,8 +466,14 @@ use session_common::*;
 /// predicates and characteristic objects through the same fixed-calculus table. This removes
 /// full finite-DL rebuilds for canonical disjointness/inverse/characteristic probes without
 /// changing their verdicts.
+/// Re-blessed after integrating current main with the complete PurRDF reasoning-substrate
+/// cutover. Both sides changed folded engine-source axes, so the merged descriptor is a third
+/// value measured from the combined source rather than either side's stale pin. The measurement
+/// also includes the correction of `goal_directed.rs`'s public module documentation from the
+/// retired native resolver to the actual PurRDF resolver/proof-checker path; that file is a raw
+/// source-content identity component even though the correction does not change a verdict.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "b9de8d2a2f5851b7a99b182602a24fdc74ed3538933dd2bf9e2c9de453e66068";
+    "496c51b86e8e17a1d484bcc43be8359215faea883872391d8581163fa97ff79d";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -642,6 +666,18 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// and `reason/dl.rs`, so this fixed-input session identity moves with it. The fixed
 /// edge-only input authors no class expression in either spelling, so its reasoning verdict
 /// is unchanged.
+/// Re-blessed for the purrdf substrate-identity fold — which subsumes the earlier RL cutover
+/// that dropped the `reason/rl_rules.rs` component and edited `reason/mod.rs` — for the same
+/// reason as the engine-descriptor golden above: the native contract hash is one of the seven
+/// folded session-identity axes and moves with the folded `purrdf`-provided engine identity
+/// (the datalog `CALCULUS_VERSION` plus the OWL 2 RL and datatype-entailment calculus
+/// `contract_hash`es), while the fixed edge-only input's reasoning verdict (native EL/DL) is
+/// unchanged.
+/// Re-blessed once more for folding the public DL service façade (`reasoner_services.rs`) into
+/// `native_contract_hash`'s component list (see the engine-descriptor golden above): the native
+/// contract hash is one of the seven folded session-identity axes, so this fixed-input session
+/// identity moves with it. The fixed edge-only input exercises no DL service, so its reasoning
+/// verdict is unchanged.
 /// Re-blessed once more for the whole-bundle import cache (see the engine-descriptor note
 /// above): the backward-source digest is one of the seven folded identity axes and moves
 /// when `ContentKey` gains serialization derives. Those derives do not change the fixed
@@ -669,8 +705,11 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// neither internal graph, but its engine-contract identity deliberately moves with the boundary.
 /// Re-blessed for the canonical leave-one-out fast-family dispatch above. The fixed edge-only
 /// input has no such TBox axiom, so its verdict is unchanged while engine identity moves.
+/// Re-blessed from the merged engine for the same combined PurRDF-cutover/current-main source
+/// identity described above. The fixed edge-only input's verdict is unchanged; its session
+/// identity deliberately follows the newly measured engine descriptor.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "2060163f892e0c000d07fe2e4020f2d3a4c1afdd9eb7cd6b07596550b46b2c91";
+    "bf1bd2c84470b585564de80cf8e7aa257fd523557af53c02b1f68b4d20295585";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

@@ -190,19 +190,29 @@ resolver = "2"
 # PINNED BY EXACT GIT REV — an immutable commit is even stronger than an `=x.y.z` crates.io
 # pin: `cargo update` cannot relink the RDF core to a different commit, so the docs wasm
 # engines that statically link this crate cannot drift from the substrate record, which now
-# keys off the commit SHA the lock records. Rev `a59d9f2d` is the purrdf-main
-# deterministic-evaluation-governor merge, which unified `PagedQueryError::{Cancelled,
-# DeadlineExceeded}` into `Stopped { cause: StopCause, .. }`; the crates.io 0.12.0 release
-# predates that API and cannot carry it.
+# keys off the commit SHA the lock records. Rev `3aa4ba51` is the purrdf-main commit that
+# carries the order-sorted goal-directed `resolve_fol`: it threads a caller
+# `SortContext` + `FolProgram::meta_sorts` through backward SLG–WFS resolution and exposes a
+# caller-reproducible, content-addressed proof/term identity (`clause_identity` / `canon`
+# / `derivation_id`). That is the substrate the `logic:ReasoningProgram` backward lane
+# (`goal_directed.rs` / `proof_tree.rs`) resolves onto — the crates.io 0.12.0 release and
+# every earlier rev lack the order-sorted resolver and cannot carry it.
 #
-# The rev is downstream of `rust-v0.12.0`, so it also carries what the machine-compression
-# medium consumes: the multi-dictionary GTS writer (many named in-band dictionaries,
-# per-frame selection, `zstd-rsyncable` dictionary priming, an explicit training seed and a
-# declared catalog `level`) plus `DictStrategy::Pinned`, which lets a compaction plan carry
-# the SHIPPED dictionary bytes verbatim so one `gmeow:dictionaryId` resolves to exactly one
-# byte sequence. It likewise supersedes the older rev pin that carried the ownership
-# analyzer's term-namespace scoping fix (SliceVocab::with_term_namespaces / owns_term).
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "a59d9f2d" }
+# `3aa4ba51` is the current purrdf-main tip: downstream of the order-sorted resolver merge it
+# also lands the later reasoning-substrate fixes merged upstream after it, which this repo's
+# reasoning cutover consumes; the pin advances to that tip so the shipped substrate record
+# matches the reviewed-and-merged upstream rather than an intermediate rev.
+#
+# The rev is downstream of the earlier `a59d9f2d` pin (the deterministic-evaluation-governor
+# merge unifying `PagedQueryError::{Cancelled, DeadlineExceeded}` into
+# `Stopped { cause: StopCause, .. }`) and of `rust-v0.12.0`, so it also carries what the
+# machine-compression medium consumes: the multi-dictionary GTS writer (many named in-band
+# dictionaries, per-frame selection, `zstd-rsyncable` dictionary priming, an explicit
+# training seed and a declared catalog `level`) plus `DictStrategy::Pinned`, which lets a
+# compaction plan carry the SHIPPED dictionary bytes verbatim so one `gmeow:dictionaryId`
+# resolves to exactly one byte sequence, and the ownership analyzer's term-namespace scoping
+# fix (SliceVocab::with_term_namespaces / owns_term).
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "3aa4ba51" }
 
 # `wasm-bindgen` and `blake3` are declared ONCE each in the third-party block below,
 # where this branch's normalization sweep put them — not here. A second declaration in

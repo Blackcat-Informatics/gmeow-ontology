@@ -201,7 +201,7 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate perf-sample perf-accept perf-ci-receipt \
-	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
+	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-conjecture-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
 	maint-extract maint-refresh-target-axioms maint-refresh-mcp-witness maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
 	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
@@ -762,7 +762,14 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(call BUILD_WASM_PKG,reason,)
 
-maint-refresh-reason-asset: reason-wasm-pkg-test ## Re-vendor the gmeow-reason-wasm engine into crates/docs/assets/reason/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+maint-refresh-conjecture-witness: ## Refresh the verified native conjecture attestation consumed read-only by native/wasm parity tests.
+	cargo run -p gmeow-reason-wasm --example refresh-witness-conjecture
+
+maint-refresh-reason-asset: ## Refresh the conjecture witness, prove Node parity, then re-vendor the reasoner and its BLAKE3 manifest.
+	$(MAKE) maint-refresh-conjecture-witness
+	$(MAKE) reason-wasm-pkg
+	cd crates/reason-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
 	$(call REVENDOR_WASM_ASSET,reason,REASON)
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
@@ -1119,6 +1126,12 @@ maint-extract: ## Run import/extract policy for TARGET.
 
 maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
+
+maint-refresh-reviewed-coverage-golden: ## Refresh the deterministic reviewed-translation coverage golden from all live slice catalogs.
+	cargo run -p gmeow-docs --example refresh-reviewed-coverage-golden
+
+maint-refresh-describe-witness: ## Refresh the verified object-level explorer description attestation.
+	cargo run -p gmeow-mcp --example refresh-witness-describe
 
 maint-refresh-validate-asset: validate-wasm-pkg-test ## Re-vendor the gmeow-validate-wasm engine into crates/docs/assets/validate/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
 	$(call REVENDOR_WASM_ASSET,validate,VALIDATE)

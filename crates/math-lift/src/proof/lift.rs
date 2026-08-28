@@ -2782,7 +2782,7 @@ mod tests {
         // shape that pin guarantees.
         let text = std::str::from_utf8(FIXTURE).expect("utf-8");
         assert!(
-            text.contains("produced by OUR OWN native reasoner"),
+            text.contains("produced by OUR OWN reasoner"),
             "the fixture's provenance header"
         );
         let derivation = tstp::parse(FIXTURE).expect("parses");
@@ -2793,7 +2793,7 @@ mod tests {
                 .conclusion()
                 .rule()
                 .expect("a rule")
-                .starts_with("https://blackcatinformatics.ca/logic/dag/firing/"),
+                .starts_with("https://blackcatinformatics.ca/gmeow/goal-directed/rule/"),
             "the rule names the content-addressed ground-instance firing"
         );
     }
