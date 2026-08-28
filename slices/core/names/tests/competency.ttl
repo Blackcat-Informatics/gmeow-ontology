@@ -3,7 +3,7 @@
 #
 # Declarative competency questions for the names slice, executed by the native Rust
 # slice-test harness (crates/slicetest). Migrated from the appellation /
-# name-part / pronoun / place-naming competency tests in crates/validate/tests/conformance_competency.rs
+# name-part / pronoun / place-naming competency tests in crates/validate/tests/conformance_cases/conformance_competency.rs
 # All TBox vocabulary questions over the asserted merged ontology; rows
 # are the SUBSET the pytest asserted present (cqExactRows omitted → contains-check).
 # No Gap-1 universal — fixed term sets.

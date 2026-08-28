@@ -32,6 +32,11 @@ pub mod rubric;
 pub mod score;
 
 use std::path::{Path, PathBuf};
+
+#[cfg(test)]
+#[allow(dead_code)]
+#[path = "../../../build-support/path_dependency_inputs.rs"]
+mod build_inputs;
 use std::sync::Arc;
 
 use gmeow_lang_bridge::GmnDictionary;
@@ -717,8 +722,7 @@ pub fn scored_input_fingerprint(repo_root: &Path) -> gmeow_errors::Result<String
 /// exactly the argument that makes such a list wrong, which is why the test below is what
 /// owns this list's contents.
 const SCORER_CRATE_ROOTS: &[&str] = &[
-    "affect-ingest",
-    "cost-measure",
+    "action-cache",
     "docs-model",
     "errors",
     "gts-profile",
@@ -730,7 +734,6 @@ const SCORER_CRATE_ROOTS: &[&str] = &[
     "math",
     "math-lift",
     "ns",
-    "query-wasm",
     "slice-quality",
     "term-arena",
     "validate",
@@ -1379,37 +1382,16 @@ mod fingerprint_tests {
     /// produces it. A NEW path dependency reds here rather than silently reopening that.
     #[test]
     fn scorer_dep_closure_is_fully_hashed() {
-        /// The `path = "../<name>"` dependencies declared by one crate manifest.
-        fn path_deps(crates_dir: &Path, krate: &str) -> Vec<String> {
-            let manifest = crates_dir.join(krate).join("Cargo.toml");
-            let text = std::fs::read_to_string(&manifest)
-                .unwrap_or_else(|e| panic!("read {}: {e}", manifest.display()));
-            let mut out = Vec::new();
-            for (idx, _) in text.match_indices("path = \"../") {
-                let rest = &text[idx + "path = \"../".len()..];
-                let Some(end) = rest.find('"') else { continue };
-                let name = &rest[..end];
-                // Only sibling crates (`../<name>`), never a deeper relative path.
-                if !name.is_empty() && !name.contains('/') {
-                    out.push(name.to_string());
-                }
-            }
-            out
-        }
-
-        let crates_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("crates/slice-quality has a parent")
-            .to_path_buf();
-
-        let mut closure: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-        let mut queue = vec!["slice-quality".to_string()];
-        while let Some(krate) = queue.pop() {
-            if !closure.insert(krate.clone()) {
-                continue;
-            }
-            queue.extend(path_deps(&crates_dir, &krate));
-        }
+        let closure =
+            build_inputs::transitive_path_dependency_dirs(Path::new(env!("CARGO_MANIFEST_DIR")))
+                .into_iter()
+                .map(|path| {
+                    path.file_name()
+                        .expect("crate directory has a name")
+                        .to_string_lossy()
+                        .into_owned()
+                })
+                .collect::<std::collections::BTreeSet<_>>();
 
         let hashed: std::collections::BTreeSet<String> = SCORER_CRATE_ROOTS
             .iter()

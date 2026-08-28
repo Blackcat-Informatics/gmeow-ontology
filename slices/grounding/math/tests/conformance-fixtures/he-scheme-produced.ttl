@@ -3,7 +3,7 @@
 #
 # The homomorphicEncryption flagship's worked example: the exact output of the native producer
 # math::producers::additive_he_demo (dogfooded — the worked example IS what the producer emits;
-# the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# the explicit `stage-math-producers` boundary asserts this fixture is graph-isomorphic to the
 # producer's Turtle, so neither can silently drift). A math:HomomorphicEncryptionScheme
 # declaring the operation it is math:homomorphicOver, its math:securityAssumption
 # (math:learningWithErrors), its math:noiseModel, and — as a math:RingHomomorphism — its

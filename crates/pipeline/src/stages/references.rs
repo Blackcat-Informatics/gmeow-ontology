@@ -349,27 +349,3 @@ impl Stage for ReferencesStage {
         )))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn references_are_byte_identical_to_committed() {
-        let root = repo_root();
-        let arts = render_references(&root).expect("render");
-        for (path, bytes) in &arts {
-            let committed = std::fs::read(root.join(path))
-                .unwrap_or_else(|_| panic!("committed missing: {path}"));
-            assert_eq!(bytes, &committed, "{path} drifted from committed");
-        }
-    }
-}

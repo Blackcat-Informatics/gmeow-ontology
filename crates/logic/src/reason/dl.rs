@@ -791,6 +791,9 @@ fn materialize_refutation(
 fn quads_by_subject(edb: &RdfDataset) -> Vec<(String, String, RdfTerm, String)> {
     let mut rows = Vec::new();
     for quad in edb.owned_quads() {
+        if compiled_program_graph(&quad.graph_name) {
+            continue;
+        }
         if let Some(subject) = term_resource_key(&quad.subject) {
             let predicate = crate::reason::calculus_term(&quad.predicate).to_owned();
             let object = match quad.object {
@@ -806,6 +809,24 @@ fn quads_by_subject(edb: &RdfDataset) -> Vec<(String, String, RdfTerm, String)> 
         }
     }
     rows
+}
+
+/// Whether a graph carries compiled program DATA rather than ontology-syntax axioms.
+///
+/// `graph/logic` uses the canonical flat IR (for example, repeated `logic:oneOf`
+/// member rows rather than an RDF list), while `graph/relational-core` reifies source
+/// terms through `logic:rcPredicate` / `logic:rcObject`. Both are executable inputs to
+/// their owning logic engines, but neither is an OWL/RDFS document. Letting the finite
+/// DL structural reader reinterpret their data fields as OWL syntax creates false
+/// coverage gaps and duplicate work; the authored/default and projected ontology
+/// surfaces remain in the EDB and are the DL authority.
+fn compiled_program_graph(graph_name: &Option<RdfTerm>) -> bool {
+    matches!(
+        graph_name,
+        Some(RdfTerm::Iri(graph))
+            if graph == crate::reasoning_graphs::GRAPH_LOGIC
+                || graph == crate::reasoning_graphs::GRAPH_RELATIONAL_CORE
+    )
 }
 
 fn read_restrictions(edb: &RdfDataset) -> BTreeMap<(String, String), Restriction> {
@@ -3746,6 +3767,9 @@ pub fn scan_coverage(edb: &RdfDataset) -> gmeow_errors::Result<DlCoverage> {
     // miss a construct that must be counted).
     let mut present_iris: std::collections::HashSet<String> = std::collections::HashSet::new();
     for quad in edb.owned_quads() {
+        if compiled_program_graph(&quad.graph_name) {
+            continue;
+        }
         // Normalize onto the fixed calculi's `owl:`/`rdfs:` spelling so a `logic:`-authored
         // construct (`logic:someValuesFrom`, `[ a logic:Restriction ]`) is counted against the
         // `owl:`-spelled `CONSTRUCT_COVERAGE` inventory — else the honest-coverage gate would
@@ -6782,7 +6806,7 @@ mod tests {
     #[test]
     fn one_of_on_ordinary_class_stays_decided() {
         let list = "onelist";
-        let store = dataset(vec![
+        let mut quads = vec![
             bnode_quad(list, FIRST, X),
             bnode_quad(list, REST, NIL),
             RdfQuad::new(
@@ -6791,12 +6815,45 @@ mod tests {
                 RdfTerm::blank_node(list),
             )
             .in_graph(RdfTerm::iri(W)),
+        ];
+        // Compiled program graphs carry vocabulary IRIs as DATA: graph/logic uses a flat
+        // repeated-member enumeration and graph/relational-core reifies target terms. They
+        // remain available to their owning engines but must not be reinterpreted as OWL
+        // syntax by the DL coverage scanner. Extending this existing tiny fixture prevents
+        // a corpus-scale regression test.
+        quads.extend([
+            RdfQuad::new(
+                RdfTerm::iri("http://gmeow.example/flat-enumeration"),
+                RDF_TYPE,
+                RdfTerm::iri("https://blackcatinformatics.ca/logic/Enumeration"),
+            )
+            .in_graph(RdfTerm::iri(crate::reasoning_graphs::GRAPH_LOGIC)),
+            RdfQuad::new(
+                RdfTerm::iri("http://gmeow.example/flat-enumeration"),
+                "https://blackcatinformatics.ca/logic/oneOf",
+                RdfTerm::iri(X),
+            )
+            .in_graph(RdfTerm::iri(crate::reasoning_graphs::GRAPH_LOGIC)),
+            RdfQuad::new(
+                RdfTerm::iri("http://gmeow.example/reified-fact"),
+                "https://blackcatinformatics.ca/logic/rcObject",
+                RdfTerm::iri(super::OWL_INVERSE_FUNCTIONAL_PROPERTY),
+            )
+            .in_graph(RdfTerm::iri(crate::reasoning_graphs::GRAPH_RELATIONAL_CORE)),
         ]);
+        let store = dataset(quads);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
         assert!(
             verdict.coverage.decided.contains(&"oneOf".to_owned()),
             "ordinary oneOf stays decided: {:?}",
             verdict.coverage
+        );
+        assert!(
+            !verdict
+                .coverage
+                .present
+                .contains(&"inverseFunctionalProperty".to_owned()),
+            "a reified relational-core value is data, not an inverse-functional axiom"
         );
     }
 

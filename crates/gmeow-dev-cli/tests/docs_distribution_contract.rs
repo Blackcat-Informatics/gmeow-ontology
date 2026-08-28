@@ -775,15 +775,8 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
     // `gmeow:PayloadSchema` names. A torn CBOR sequence, a non-conforming frame, an
     // unprimed frame under a primed rep, or a fold that degrades to an opaque node is
     // a hard failure here.
-    let bundle_path =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/dist/gmeow.gts");
-    let bundle = std::fs::read(&bundle_path).unwrap_or_else(|e| {
-        panic!(
-            "cannot read the shipped bundle {} ({e}); materialize it first with \
-             `make check-sync SYNC_MODE=update`",
-            bundle_path.display()
-        )
-    });
+    let bundle = gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("authenticated shipped bundle; tests never produce it");
     gmeow_pipeline::validate_mandated_frames(&bundle).unwrap_or_else(|e| {
         panic!("shipped bundle failed mandated zstd-rsyncable-L12 frame validation: {e}")
     });
@@ -793,44 +786,20 @@ fn ac4_gts_frame_profile_gate_and_zstd_level_12_preserved() {
 
 // ── F1 — the consumer verb is exercised end-to-end (RUNTIME, no bundle needed) ────
 
-/// Compile the REAL `dcat.rq` from the authored `dsl/mappings/projections/dcat.ttl`
-/// source (a pure function of committed, tracked sources — no dependency on a prior
-/// `make check` materializing the git-ignored `generated/` tree) and fold it into a
-/// minimal synthetic GTS snapshot carrying just the `queries-archive` blob, exactly
-/// as the real bundle carries it. Mirrors the equivalent private test helper in
-/// `crates/pipeline/src/docs_distribution.rs`, built here from ONLY the public API
-/// this external test crate can reach.
-fn synthetic_gts_with_dcat_query() -> Vec<u8> {
+/// Load and wire-audit the already-produced bundle. This test is a strict consumer:
+/// it never compiles mappings or constructs a replacement corpus.
+fn authenticated_gts_with_dcat_query() -> Vec<u8> {
     let root = repo_root();
-    let compiled = gmeow_pipeline::stages::mappings::compile_mappings(&root)
-        .expect("compile mappings from committed dsl/mappings sources");
-    let dcat_rq_path = format!("{}/dcat.rq", gmeow_pipeline::stages::mappings::QUERIES_DIR);
-    let dcat_rq = compiled
-        .artifacts
-        .get(&dcat_rq_path)
-        .unwrap_or_else(|| panic!("compiled mappings missing {dcat_rq_path}"))
-        .clone();
-
-    let archive = purrdf::ustar::write_archive(&[("dcat.rq".to_string(), dcat_rq)])
-        .expect("tar the synthetic queries archive");
-    let builder = purrdf::gts_compose::SnapshotBuilder::new();
-    purrdf::gts_compose::emit_gts(
-        &builder,
-        "dist",
-        Some(vec!["zstd-rsyncable".to_string()]),
-        vec![purrdf::gts_compose::BlobRow {
-            data: archive,
-            media_type: "application/x-tar".to_string(),
-            rep: gmeow_pipeline::bundle_blobs::REP_QUERIES.to_string(),
-        }],
-        Vec::new(),
-        None,
-        None,
-        None,
-        purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-        &purrdf::gts_compose::MediumPlan::undicted(Some(12)),
-    )
-    .expect("frame the synthetic GTS snapshot")
+    let bytes = gmeow_bundle_import::load_authenticated_source_bytes(&root)
+        .expect("authenticated shipped bundle; tests never produce it");
+    gmeow_pipeline::validate_mandated_frames(&bytes)
+        .expect("authenticated bundle obeys the mandated frame profile");
+    gmeow_pipeline::validate_dist_bundle_media(&bytes)
+        .expect("authenticated bundle obeys the declared media contract");
+    let queries = gmeow_pipeline::bundle_blobs::bundled_queries(&bytes)
+        .expect("read authenticated queries archive");
+    assert!(queries.contains_key("dcat.rq"), "bundle must carry dcat.rq");
+    bytes
 }
 
 #[test]
@@ -855,7 +824,7 @@ fn f1_consumer_verb_verify_exercises_real_manifest_end_to_end() {
         blake3: digest,
         media_type: "text/html".to_string(),
     }];
-    let gts_bytes = synthetic_gts_with_dcat_query();
+    let gts_bytes = authenticated_gts_with_dcat_query();
     let manifest = gmeow_pipeline::docs_distribution::build_docs_distribution_manifest(
         &entries,
         &[],

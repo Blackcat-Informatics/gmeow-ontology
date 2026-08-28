@@ -30,11 +30,13 @@
 //! the producer output ships in the bundle — the shippable deliverable, maximal dogfooding —
 //! rather than living only behind a test-side equality gate.
 //!
-//! The producer graph content comes ONLY from the producers: no hand-typed constant, no disk
-//! read, no clock, no randomness (the producers are pure), so those graphs are byte-deterministic.
-//! That holds for the three lift producers precisely BECAUSE their sources are `include_str!` /
-//! `include_bytes!` compile-time embeddings — the bytes ride the binary, never the machine that
-//! ran the build, and every IRI they mint is a content digest of those bytes.
+//! The emitted graph content comes ONLY from the producers: no hand-typed fallback, clock, or
+//! randomness (the producers are pure), so those graphs are byte-deterministic. The stage reads
+//! seven committed producer fixtures only as parity witnesses and hard-fails unless each is
+//! graph-isomorphic to its named producer output; fixture bytes never enter the emitted graph.
+//! The three lift sources themselves remain `include_str!` / `include_bytes!` compile-time
+//! embeddings — those bytes ride the binary, never the machine that ran the build, and every IRI
+//! they mint is a content digest of those bytes.
 //! A producer/parse failure is a HARD FAIL — propagated, never swallowed (no-optionality).
 //!
 //! Every attached graph here is COMPUTED: this stage reads no corpus off disk, so its inputs
@@ -52,6 +54,47 @@ use purrdf::RdfDataset;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
+
+/// The committed producer fixtures paired with the exact producer result index they
+/// witness. This parity is enforced by the production stage itself; no test is
+/// permitted to call a producer to regenerate a comparison graph.
+const PRODUCER_PARITY_FIXTURES: [(usize, &str, &str); 7] = [
+    (
+        0,
+        "E8 Weyl",
+        "slices/grounding/math/tests/conformance-fixtures/e8-weyl-produced.ttl",
+    ),
+    (
+        1,
+        "additive homomorphic encryption",
+        "slices/grounding/math/tests/conformance-fixtures/he-scheme-produced.ttl",
+    ),
+    (
+        2,
+        "proof ingest",
+        "slices/grounding/math/tests/conformance-fixtures/verification-result-produced.ttl",
+    ),
+    (
+        7,
+        "R lift",
+        "slices/grounding/math/tests/fixtures/lifted-r.ttl",
+    ),
+    (
+        8,
+        "ONNX lift",
+        "slices/grounding/math/tests/fixtures/lifted-onnx.ttl",
+    ),
+    (
+        9,
+        "proof lift",
+        "slices/grounding/math/tests/fixtures/lifted-proof.ttl",
+    ),
+    (
+        3,
+        "exact PCA residual",
+        "slices/grounding/math/tests/conformance-fixtures/pca-residual-lifted.ttl",
+    ),
+];
 
 /// Run the ten producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
 /// target graph IRI. The order is the SINGLE source of the producer→graph mapping shared with
@@ -99,6 +142,52 @@ fn producer_turtles() -> [(&'static str, String); 10] {
             gmeow_math::producers::proof_lift().turtle,
         ),
     ]
+}
+
+fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::Diag> {
+    let parsed = purrdf::parse_dataset(bytes, "text/turtle", None).map_err(|error| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-math-producers".to_owned(),
+            message: format!("cannot parse {label} Turtle for producer parity: {error}"),
+        })
+    })?;
+    let quads = purrdf::flat_rdf_quads_from_dataset(&parsed);
+    let flat = purrdf::flat_dataset_from_quads(&quads).map_err(|error| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-math-producers".to_owned(),
+            message: format!("cannot freeze {label} graph for producer parity: {error}"),
+        })
+    })?;
+    Ok(purrdf::canonicalize(&flat).nquads)
+}
+
+fn enforce_producer_fixture_parity(
+    root: &Path,
+    produced: &[(&str, String)],
+) -> Result<(), gmeow_errors::Diag> {
+    for (producer_index, label, relative_path) in PRODUCER_PARITY_FIXTURES {
+        let fixture_path = root.join(relative_path);
+        let fixture = std::fs::read(&fixture_path).map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-math-producers".to_owned(),
+                message: format!(
+                    "cannot read {label} producer fixture {}: {error}",
+                    fixture_path.display()
+                ),
+            })
+        })?;
+        let fixture_graph = canonical_turtle(&fixture, relative_path)?;
+        let producer_graph = canonical_turtle(produced[producer_index].1.as_bytes(), label)?;
+        if fixture_graph != producer_graph {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-math-producers".to_owned(),
+                message: format!(
+                    "{label} producer output is not graph-isomorphic to producer fixture {relative_path}"
+                ),
+            }));
+        }
+    }
+    Ok(())
 }
 
 /// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream STAGE
@@ -161,23 +250,34 @@ impl Stage for MathProducersStage {
         // not a computed producer graph, and admitting only the math slice's made every other
         // slice's demonstrators unreachable from the bundle. `stage-source-load` now loads
         // EVERY slice's corpus into graph/examples; this stage is once more purely the ten
-        // native producers, with no disk read at all.
-        "math_producers.v7-producers-only"
+        // native producers, with no disk read contributing to emitted graph content.
+        // v8: move the five flagship producer≡fixture parity laws out of a corpus-producing
+        // test and into this explicit producer boundary. The fixtures are read only as
+        // witnesses and never contribute output bytes.
+        // v9: retain ONNX/proof lift drift coverage at the same explicit boundary after
+        // deleting the last producer-running test. Seven fixture laws now share the one
+        // already-required producer execution.
+        "math_producers.v9-producers-with-fixture-parity"
     }
-    fn input_files(&self, _root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The ten producers are self-contained native functions whose bytes ride the
         // workspace-source BUILD_FINGERPRINT (any code change to `crates/math` yields fresh
         // cache keys), including the three lifts' `include_str!` / `include_bytes!`
         // compile-time embeddings. This stage reads nothing off disk, so it declares no
-        // input file.
-        Ok(Vec::new())
+        // input file for their computation. The seven committed producer fixtures are
+        // explicit comparison witnesses, so they enter the stage action key directly.
+        Ok(PRODUCER_PARITY_FIXTURES
+            .iter()
+            .map(|(_, _, relative_path)| root.join(relative_path))
+            .collect())
     }
-    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Parse each producer's deterministic Turtle into its own named carrier graph and
         // fold them into one frozen dataset the snapshot presenter folds into the bundle. A
         // producer/parse failure is a HARD FAIL — propagated, never swallowed
         // (no-optionality).
         let turtles = producer_turtles();
+        enforce_producer_fixture_parity(input.root, &turtles)?;
         let mut graphs: Vec<Arc<RdfDataset>> = Vec::with_capacity(turtles.len());
         for (graph_iri, turtle) in &turtles {
             graphs.push(parse_into_graph(
@@ -193,108 +293,5 @@ impl Stage for MathProducersStage {
             dataset,
             BTreeMap::new(),
         )))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// Repo root (the workspace, two levels up from this crate's manifest). `StageInput`
-    /// carries a root; this stage reads nothing under it, and `input_files` declares that.
-    fn repo_root() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    /// The stage attaches EXACTLY the ten producer graphs, each non-empty and carrying its
-    /// producer's pinned content — the proof the producer output reaches the carrier (and thence
-    /// `gmeow.gts`), not merely a test.
-    #[test]
-    fn run_attaches_the_ten_producer_graphs() {
-        let stage = MathProducersStage::new();
-        let upstream = BTreeMap::new();
-        let root = repo_root();
-        let out = stage
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("math_producers stage runs");
-        let dataset = out.product.dataset();
-        for graph_iri in MATH_PRODUCER_GRAPHS {
-            let projected = dataset.project_named_graph(graph_iri);
-            assert!(
-                projected.quad_count() > 0,
-                "producer graph <{graph_iri}> must carry the producer's triples"
-            );
-        }
-    }
-
-    /// Determinism: two runs attach byte-identical carrier datasets — the producers are pure
-    /// (no clock, no RNG, no HashMap iteration order, no disk read at all).
-    #[test]
-    fn run_is_deterministic() {
-        let stage = MathProducersStage::new();
-        let upstream = BTreeMap::new();
-        let root = repo_root();
-        let a = stage
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("run a");
-        let b = stage
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("run b");
-        assert_eq!(
-            purrdf::canonical_flat_nquads(a.product.dataset()).expect("canon a"),
-            purrdf::canonical_flat_nquads(b.product.dataset()).expect("canon b"),
-            "the math-producers carrier dataset must be deterministic"
-        );
-    }
-
-    /// [`producer_turtles`] and [`MATH_PRODUCER_GRAPHS`] are INDEX-ALIGNED: the pairing is
-    /// the single source of the producer→graph mapping the snapshot presenter also indexes
-    /// into, so a producer appended to one array and not the other would silently reroute a
-    /// graph's content. The arrays are equal length and slot `i` carries `graphs[i]`.
-    #[test]
-    fn producer_turtles_is_index_aligned_with_the_graph_table() {
-        let turtles = producer_turtles();
-        assert_eq!(
-            turtles.len(),
-            MATH_PRODUCER_GRAPHS.len(),
-            "every producer must have exactly one target graph"
-        );
-        for (i, (graph_iri, turtle)) in turtles.iter().enumerate() {
-            assert_eq!(
-                *graph_iri, MATH_PRODUCER_GRAPHS[i],
-                "producer slot {i} must target MATH_PRODUCER_GRAPHS[{i}]"
-            );
-            assert!(
-                !turtle.is_empty(),
-                "producer slot {i} (<{graph_iri}>) emitted no Turtle"
-            );
-        }
-    }
-
-    /// Every producer graph IRI is DISTINCT. Two producers sharing a graph would union their
-    /// content into one named graph and drop the other's slot entirely — a silent merge the
-    /// per-graph quad-count check above could not see.
-    #[test]
-    fn every_producer_graph_iri_is_distinct() {
-        let distinct: std::collections::BTreeSet<&str> =
-            MATH_PRODUCER_GRAPHS.iter().copied().collect();
-        assert_eq!(
-            distinct.len(),
-            MATH_PRODUCER_GRAPHS.len(),
-            "the ten math-producer graph IRIs must be pairwise distinct"
-        );
     }
 }

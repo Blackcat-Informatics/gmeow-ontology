@@ -38,6 +38,7 @@ gmeow-mcp = { path = "../mcp", default-features = false, features = ["core"] }
 wasm-bindgen.workspace = true
 
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 # The deferral witness parses the JSON-RPC response frame back to assert the ROUTING
 # fields (`code` / `tool` / `segment`) rather than matching prose, so a signal that lost
 # its structure fails as a contract defect rather than passing on a substring.

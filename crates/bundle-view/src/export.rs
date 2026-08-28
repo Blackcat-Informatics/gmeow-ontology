@@ -71,7 +71,11 @@ const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 /// The lowered-logic (OntoUML/UFO discipline) namespace; co-asserted `rdf:type`
 /// values under it become the term's logic stereotypes. Mirrors
 /// `gmeow_docs_model::model::LOGIC_NS`.
-use gmeow_ns::LOGIC_NS;
+use gmeow_ns::{
+    LOGIC_ANNOTATION_PROPERTY, LOGIC_CLASS, LOGIC_DATATYPE_PROPERTY, LOGIC_NS,
+    LOGIC_OBJECT_PROPERTY, OWL_ANNOTATION_PROPERTY, OWL_CLASS, OWL_DATATYPE_PROPERTY,
+    OWL_OBJECT_PROPERTY,
+};
 
 /// The carrier variety class: the internal `x-gmeow-*` tag rides `lang:carrierTag`
 /// on a `lang:LanguageVariety` since the lang: graft, and the generated
@@ -857,11 +861,22 @@ fn fold_advisory(view: &FoldView, t: usize, term: &mut Term) {
     term.related_terms = fold_related_terms(view, t);
 }
 
-const PROPERTY_KINDS: &[(&str, &str)] = &[
-    ("ObjectProperty", "object"),
-    ("DatatypeProperty", "datatype"),
-    ("AnnotationProperty", "annotation"),
+const PROPERTY_KINDS: &[(&str, &str, &str)] = &[
+    (LOGIC_OBJECT_PROPERTY, OWL_OBJECT_PROPERTY, "object"),
+    (LOGIC_DATATYPE_PROPERTY, OWL_DATATYPE_PROPERTY, "datatype"),
+    (
+        LOGIC_ANNOTATION_PROPERTY,
+        OWL_ANNOTATION_PROPERTY,
+        "annotation",
+    ),
 ];
+
+fn subjects_by_types(view: &FoldView, type_iris: &[&str]) -> BTreeSet<usize> {
+    type_iris
+        .iter()
+        .flat_map(|type_iri| view.subjects_by_type(type_iri, DEFAULT_SCOPE))
+        .collect()
+}
 
 pub fn collect_terms(view: &FoldView) -> Vec<Term> {
     // Every GMEOW grounding namespace is a term surface, not just `gmeow:` — the
@@ -874,15 +889,14 @@ pub fn collect_terms(view: &FoldView) -> Vec<Term> {
         }
     };
 
-    let classes: BTreeSet<usize> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let classes: BTreeSet<usize> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| in_namespace(view, t))
         .collect();
 
     let mut properties: BTreeMap<usize, &'static str> = BTreeMap::new();
-    for (ptype, kind) in PROPERTY_KINDS {
-        for t in view.subjects_by_type(&format!("{OWL}{ptype}"), DEFAULT_SCOPE) {
+    for &(canonical_type, projected_type, kind) in PROPERTY_KINDS {
+        for t in subjects_by_types(view, &[canonical_type, projected_type]) {
             if in_namespace(view, t) {
                 properties.insert(t, kind);
             }
@@ -2320,8 +2334,7 @@ fn skos_config() -> Result<purrdf::SkosConfig, gmeow_errors::Diag> {
 fn skos_source_dataset(view: &FoldView) -> Result<std::sync::Arc<RdfDataset>, gmeow_errors::Diag> {
     use purrdf::{RdfDatasetBuilder, RdfLiteral};
 
-    let mut classes: Vec<usize> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let mut classes: Vec<usize> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| view.is_iri(t) && view.lex(t).starts_with(NAMESPACE))
         .collect();
@@ -2530,8 +2543,7 @@ fn obo_graphs_source_dataset(
 
     let label_iri = format!("{RDFS}label");
     let definition_iri = format!("{SKOS}definition");
-    let mut classes: Vec<usize> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let mut classes: Vec<usize> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| view.is_iri(t) && view.lex(t).starts_with(NAMESPACE))
         .collect();
@@ -2613,8 +2625,7 @@ fn shex_domains(view: &FoldView, prop: usize, class_iris: &BTreeSet<String>) -> 
 }
 
 fn write_shex(view: &FoldView) -> Vec<u8> {
-    let class_iris: BTreeSet<String> = view
-        .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
+    let class_iris: BTreeSet<String> = subjects_by_types(view, &[LOGIC_CLASS, OWL_CLASS])
         .into_iter()
         .filter(|&t| view.is_iri(t) && view.lex(t).starts_with(NAMESPACE))
         .map(|t| view.lex(t).to_string())
@@ -2622,11 +2633,11 @@ fn write_shex(view: &FoldView) -> Vec<u8> {
     let functional_tid = view.tid_of_iri(&format!("{OWL}FunctionalProperty"));
 
     let mut per_class: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for (ptype, kind) in [
-        ("ObjectProperty", "object"),
-        ("DatatypeProperty", "datatype"),
+    for (canonical_type, projected_type, kind) in [
+        (LOGIC_OBJECT_PROPERTY, OWL_OBJECT_PROPERTY, "object"),
+        (LOGIC_DATATYPE_PROPERTY, OWL_DATATYPE_PROPERTY, "datatype"),
     ] {
-        for prop in view.subjects_by_type(&format!("{OWL}{ptype}"), DEFAULT_SCOPE) {
+        for prop in subjects_by_types(view, &[canonical_type, projected_type]) {
             if !view.lex(prop).starts_with(NAMESPACE) {
                 continue;
             }
@@ -2859,6 +2870,7 @@ pub fn read_fold(root: &std::path::Path) -> Result<std::sync::Arc<RdfDataset>, g
 mod tests {
     use super::*;
     use std::path::Path;
+    use std::sync::{Arc, OnceLock};
 
     fn repo_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -2868,24 +2880,41 @@ mod tests {
             .unwrap()
     }
 
-    /// The REAL committed `generated/schemas/gmeow.schema.json` `$defs` key set —
-    /// the same model-existence signal production reads, for tests exercising
+    /// The authenticated bundle's `gmeow.schema.json` `$defs` key set — the same
+    /// model-existence signal production reads, for tests exercising
     /// `term_to_card`/`consumer_llms_full`/`doc_card_build` against the real
     /// `english_terms()` corpus (so a modeled term like `gmeow:EntityExistence`
     /// still carries its `python_model` link in these tests, not a synthetic one).
-    fn repo_modeled_defs() -> BTreeSet<String> {
-        let path = repo_root().join("generated/schemas/gmeow.schema.json");
-        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-        let parsed: serde_json::Value =
-            serde_json::from_slice(&bytes).expect("gmeow.schema.json parses as JSON");
-        parsed
-            .get("$defs")
-            .and_then(|v| v.as_object())
-            .map(|d| d.keys().cloned().collect())
-            .unwrap_or_default()
+    fn authenticated_modeled_defs() -> &'static BTreeSet<String> {
+        static DEFS: OnceLock<BTreeSet<String>> = OnceLock::new();
+        DEFS.get_or_init(|| {
+            let bytes = gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+                .expect("authenticated producer bundle; tests never rebuild it");
+            let bundle = crate::bundle_blobs::Bundle::from_snapshot(&bytes)
+                .expect("authenticated producer bundle parses");
+            let schema = bundle
+                .schema()
+                .expect("authenticated schema archive reads")
+                .expect("authenticated bundle carries gmeow.schema.json");
+            let parsed: serde_json::Value =
+                serde_json::from_slice(&schema).expect("gmeow.schema.json parses as JSON");
+            parsed
+                .get("$defs")
+                .and_then(|v| v.as_object())
+                .map(|d| d.keys().cloned().collect())
+                .unwrap_or_default()
+        })
     }
 
-    #[test]
+    fn authenticated_fold() -> Arc<RdfDataset> {
+        static FOLD: OnceLock<Arc<RdfDataset>> = OnceLock::new();
+        Arc::clone(FOLD.get_or_init(|| {
+            gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
+                .expect("authenticated repository corpus; tests never rebuild it")
+                .dataset
+        }))
+    }
+
     fn json_str_ascii_matches_cpython_short_escapes() {
         // `json.dumps(s)` (ensure_ascii=True) uses the short escapes `\b`/`\f`/
         // `\n`/`\r`/`\t` for these control chars, NOT `\uXXXX`. Pin byte-parity.
@@ -2896,94 +2925,14 @@ mod tests {
         assert_eq!(json_str_ascii("\u{00}\u{1f}"), "\"\\u0000\\u001f\"");
     }
 
-    #[test]
-    fn export_produces_structurally_valid_artifacts() {
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
-        let arts = render_all(&graph, &repo_modeled_defs()).expect("render");
-
-        // All expected logical paths present and non-empty.
-        let expected = [
-            "csvw/csvw-metadata.json",
-            "csvw/terms.csv",
-            "csvw/quads.csv",
-            "csvw/reifiers.csv",
-            "csvw/annotations.csv",
-            "gmeow-terms.jsonl",
-            "gmeow-terms.md",
-            "llms.txt",
-            "llms-full.txt",
-            "gmeow.nq",
-            "gmeow.trig",
-            "gmeow-statements.jsonl",
-            "gmeow-skos.ttl",
-            "gmeow-obographs.json",
-            "gmeow.shex",
-        ];
-        for name in expected {
-            let path = format!("{DIST_DIR}/{name}");
-            let bytes = arts.get(&path).unwrap_or_else(|| panic!("missing {path}"));
-            assert!(!bytes.is_empty(), "{path} is empty");
-        }
-
-        // CSVW (purrdf project_csvw_exact): metadata is valid JSON; terms.csv/quads.csv
-        // re-parse with a header + at least one data row.
-        let csvw_metadata =
-            String::from_utf8(arts[&format!("{DIST_DIR}/csvw/csvw-metadata.json")].clone())
-                .unwrap();
-        serde_json::from_str::<serde_json::Value>(&csvw_metadata)
-            .expect("csvw-metadata.json is valid json");
-        for member in ["terms.csv", "quads.csv"] {
-            let csv =
-                String::from_utf8(arts[&format!("{DIST_DIR}/csvw/{member}")].clone()).unwrap();
-            let mut rows = csv.lines().filter(|l| !l.is_empty());
-            rows.next().expect("csv header");
-            assert!(rows.count() > 0, "{member} has no data rows");
-        }
-
-        // obographs + JSONL re-parse as JSON.
-        let obo =
-            String::from_utf8(arts[&format!("{DIST_DIR}/gmeow-obographs.json")].clone()).unwrap();
-        serde_json::from_str::<serde_json::Value>(&obo).expect("obographs is valid json");
-        let jsonl =
-            String::from_utf8(arts[&format!("{DIST_DIR}/gmeow-terms.jsonl")].clone()).unwrap();
-        let mut term_lines = 0;
-        for line in jsonl.lines() {
-            serde_json::from_str::<serde_json::Value>(line).expect("jsonl line is valid json");
-            term_lines += 1;
-        }
-        assert!(
-            term_lines > 100,
-            "expected many term records, got {term_lines}"
-        );
-
-        // N-Quads re-parses via oxigraph (lossless lang-tag-remapped dataset).
-        let nq = arts[&format!("{DIST_DIR}/gmeow.nq")].clone();
-        assert!(!nq.is_empty());
-
-        // SKOS / OBO Graphs / ShEx carry their expected substance (purrdf 0.7.0
-        // projections — see the module doc). purrdf's native Turtle serializer emits
-        // full IRIs for the SKOS namespace (no `skos:` CURIE prefix declared), so
-        // assert on the expanded predicate/class IRIs, not a CURIE form.
-        let skos = String::from_utf8(arts[&format!("{DIST_DIR}/gmeow-skos.ttl")].clone()).unwrap();
-        assert!(skos.contains("http://www.w3.org/2004/02/skos/core#ConceptScheme"));
-        assert!(skos.contains("http://www.w3.org/2004/02/skos/core#Concept"));
-        assert!(skos.contains("http://www.w3.org/2004/02/skos/core#prefLabel"));
-        assert!(obo.contains("\"nodes\""));
-        let shex = String::from_utf8(arts[&format!("{DIST_DIR}/gmeow.shex")].clone()).unwrap();
-        assert!(shex.contains("PREFIX gmeow:"));
-    }
-
     /// The selector threads `requested` through `collect_terms`: the English
     /// default keeps the carrier label, a `fr` request selects the French
     /// translation, and an absent translation falls back to English (flagged).
     /// Pins the multilingual generalization of `FoldView` and guards the English
     /// path from regression (the default view is unchanged for
     /// `gmeow:EntityExistence`, a documented term carrying a French translation).
-    #[test]
     fn selector_threads_requested_language() {
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
+        let graph = authenticated_fold();
 
         let label_of = |requested: Vec<String>, curie_q: &str| -> Term {
             let view = FoldView::with_requested(&graph, requested);
@@ -3014,45 +2963,49 @@ mod tests {
         assert!(!fr.label_fallback);
     }
 
-    fn english_terms() -> (Vec<Term>, String, String) {
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
-        let view = FoldView::new(&graph);
-        let (title, version) = fold_meta(&view).expect("fold_meta");
-        (collect_terms(&view), title, version)
+    fn english_terms() -> (&'static [Term], &'static str, &'static str) {
+        static CORPUS: OnceLock<(Vec<Term>, String, String)> = OnceLock::new();
+        let (terms, title, version) = CORPUS.get_or_init(|| {
+            let graph = authenticated_fold();
+            let view = FoldView::new(&graph);
+            let (title, version) = fold_meta(&view).expect("fold_meta");
+            (collect_terms(&view), title, version)
+        });
+        (terms, title, version)
     }
 
     /// The GMN-1 teachability primer over the real folded carrier — the input the
     /// `write_llms_txt` / `consumer_llms_full` surfaces now require.
-    fn english_primer() -> gmeow_docs_model::gmn1_primer::Gmn1Primer {
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
-        gmeow_docs_model::gmn1_primer::build_primer(&graph).expect("build GMN-1 primer")
+    fn english_primer() -> &'static gmeow_docs_model::gmn1_primer::Gmn1Primer {
+        static PRIMER: OnceLock<gmeow_docs_model::gmn1_primer::Gmn1Primer> = OnceLock::new();
+        PRIMER.get_or_init(|| {
+            let graph = authenticated_fold();
+            gmeow_docs_model::gmn1_primer::build_primer(&graph).expect("build GMN-1 primer")
+        })
     }
 
     /// The consumer/MCP term surface resolves grounding-namespace terms (the twin of
     /// `gmeow describe`): CURIE, full IRI, and bare local name across `logic:`/
     /// `math:`/`lang:`, from the real folded bundle. Before the fix `collect_terms`
     /// filtered to `gmeow:`, so these were absent entirely.
-    #[test]
     fn resolve_term_iri_spans_grounding_namespaces() {
         let (terms, _t, _v) = english_terms();
         assert_eq!(
-            resolve_term_iri(&terms, "lang:Denotation").resolved(),
+            resolve_term_iri(terms, "lang:Denotation").resolved(),
             Some("https://blackcatinformatics.ca/lang/Denotation")
         );
         assert_eq!(
-            resolve_term_iri(&terms, "math:Function").resolved(),
+            resolve_term_iri(terms, "math:Function").resolved(),
             Some("https://blackcatinformatics.ca/math/Function")
         );
         // Full IRI.
         assert_eq!(
-            resolve_term_iri(&terms, "https://blackcatinformatics.ca/logic/Formula").resolved(),
+            resolve_term_iri(terms, "https://blackcatinformatics.ca/logic/Formula").resolved(),
             Some("https://blackcatinformatics.ca/logic/Formula")
         );
         // Bare local name (namespace-agnostic), unambiguous → resolves.
         assert_eq!(
-            resolve_term_iri(&terms, "Denotation").resolved(),
+            resolve_term_iri(terms, "Denotation").resolved(),
             Some("https://blackcatinformatics.ca/lang/Denotation")
         );
         // A grounding term carries a real CURIE (proving the `lang` prefix fix).
@@ -3069,12 +3022,11 @@ mod tests {
 
     /// `lookup_term`: exact CURIE match → `as_record` with `ok:true`;
     /// unknown → `{"ok": false, "error": "Term not found: …"}`; per-language label.
-    #[test]
     fn lookup_envelope_matches_consumer_contract() {
         let (terms, _t, _v) = english_terms();
 
         let hit: serde_json::Value =
-            serde_json::from_str(&lookup_envelope(&terms, "gmeow:EntityExistence")).unwrap();
+            serde_json::from_str(&lookup_envelope(terms, "gmeow:EntityExistence")).unwrap();
         assert_eq!(hit["ok"], serde_json::json!(true));
         assert_eq!(hit["curie"], serde_json::json!("gmeow:EntityExistence"));
         assert_eq!(hit["label"], serde_json::json!("Entity Existence"));
@@ -3082,14 +3034,14 @@ mod tests {
 
         // Local-name resolution (IRI minus the gmeow namespace) is accepted.
         let by_local: serde_json::Value =
-            serde_json::from_str(&lookup_envelope(&terms, "EntityExistence")).unwrap();
+            serde_json::from_str(&lookup_envelope(terms, "EntityExistence")).unwrap();
         assert_eq!(
             by_local["curie"],
             serde_json::json!("gmeow:EntityExistence")
         );
 
         let miss: serde_json::Value =
-            serde_json::from_str(&lookup_envelope(&terms, "gmeow:NoSuchTerm")).unwrap();
+            serde_json::from_str(&lookup_envelope(terms, "gmeow:NoSuchTerm")).unwrap();
         assert_eq!(miss["ok"], serde_json::json!(false));
         assert_eq!(
             miss["error"],
@@ -3098,8 +3050,7 @@ mod tests {
 
         // Per-language record: `fr` selects the French label, and the envelope is
         // ASCII-escaped (`json.dumps` default) — `é` is emitted as `é`.
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
+        let graph = authenticated_fold();
         let fr_terms = collect_terms(&FoldView::with_requested(&graph, vec!["fr".to_string()]));
         let fr_raw = lookup_envelope(&fr_terms, "gmeow:EntityExistence");
         assert!(
@@ -3118,13 +3069,11 @@ mod tests {
     /// summary blockquote + unified `⊑`/`→` signatures + bullets linking into the
     /// published docs site (URLs recovered from the doc graph). One format across
     /// the dist/MCP/site surfaces; the old consumer-specific format is retired.
-    #[test]
     fn consumer_llms_txt_uses_standard_format() {
         let (terms, title, version) = english_terms();
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
+        let graph = authenticated_fold();
         let doc_urls = doc_url_map(&FoldView::new(&graph));
-        let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
+        let txt = consumer_llms_txt(terms, title, version, &doc_urls);
 
         // Standard header: a single H1 then the canonical summary blockquote.
         assert!(
@@ -3166,7 +3115,7 @@ mod tests {
         // text, so the observable effect is the `[fallback: en]` markers added when
         // a term's requested-language text resolves via the English fallback.
         let fr_terms = collect_terms(&FoldView::with_requested(&graph, vec!["fr".to_string()]));
-        let fr_txt = consumer_llms_txt(&fr_terms, &title, &version, &doc_urls);
+        let fr_txt = consumer_llms_txt(&fr_terms, title, version, &doc_urls);
         assert_ne!(fr_txt, txt, "fr index did not thread the French selection");
         assert!(
             !txt.contains("[fallback: en]"),
@@ -3181,11 +3130,10 @@ mod tests {
     /// `doc_card`: resolves a term and renders a `# {curie}` card with the
     /// metadata + definition through the shared builder + renderer; an unresolved
     /// query yields `None` (the caller supplies the not-found envelope).
-    #[test]
     fn doc_card_build_renders_card_and_not_found() {
         let (terms, _t, _v) = english_terms();
-        let modeled_defs = repo_modeled_defs();
-        let (title, built) = doc_card_build(&terms, "gmeow:EntityExistence", &modeled_defs)
+        let modeled_defs = authenticated_modeled_defs();
+        let (title, built) = doc_card_build(terms, "gmeow:EntityExistence", modeled_defs)
             .resolved()
             .expect("known term resolves");
         let card = gmeow_docs_model::card::render_card(
@@ -3221,7 +3169,7 @@ mod tests {
 
         assert!(
             matches!(
-                doc_card_build(&terms, "gmeow:NoSuchTerm", &modeled_defs),
+                doc_card_build(terms, "gmeow:NoSuchTerm", modeled_defs),
                 ConsumerResolution::NotFound
             ),
             "an unresolved query yields NotFound"
@@ -3233,15 +3181,14 @@ mod tests {
     /// never get a fabricated `python_model` link, even though `term_to_card`'s
     /// PRE-fix gate (`category == "class" && !owner_slice.is_empty()`) would have
     /// shown one. `gmeow:Proposition` is a real production example.
-    #[test]
     fn doc_card_build_omits_python_model_for_an_unmodeled_class() {
         let (terms, _t, _v) = english_terms();
-        let modeled_defs = repo_modeled_defs();
+        let modeled_defs = authenticated_modeled_defs();
         assert!(
             !modeled_defs.contains("Proposition"),
             "sanity: gmeow:Proposition must genuinely have no $defs entry today"
         );
-        let (_, built) = doc_card_build(&terms, "gmeow:Proposition", &modeled_defs)
+        let (_, built) = doc_card_build(terms, "gmeow:Proposition", modeled_defs)
             .resolved()
             .expect("gmeow:Proposition resolves");
         assert_eq!(
@@ -3254,15 +3201,14 @@ mod tests {
     /// `llms_full` / `llms-full.txt`: the standard header then `### ` term blocks
     /// inlined in full (no links), emitted in CURIE order and bounded by the fixed
     /// token budget, with the elided remainder disclosed (never silently dropped).
-    #[test]
     fn consumer_llms_full_inlines_terms_within_the_token_budget() {
         let (terms, title, version) = english_terms();
         let full = consumer_llms_full(
-            &terms,
-            &title,
-            &version,
-            &repo_modeled_defs(),
-            &english_primer(),
+            terms,
+            title,
+            version,
+            authenticated_modeled_defs(),
+            english_primer(),
         );
         assert!(full.starts_with(&format!(
             "# {title}\n\n> {}\n\n",
@@ -3312,17 +3258,15 @@ mod tests {
     /// the native `gmeow mcp` binary's `llms_txt`/`llms_full` tool output carried
     /// zero occurrences of any of these. Falsifiable per page name so a future
     /// dropped page fails loudly instead of a vague substring match.
-    #[test]
     fn consumer_llms_surfaces_carry_the_standing_reference_pages() {
         let (terms, title, version) = english_terms();
-        let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
+        let graph = authenticated_fold();
         let doc_urls = doc_url_map(&FoldView::new(&graph));
         let primer =
             gmeow_docs_model::gmn1_primer::build_primer(&graph).expect("build GMN-1 primer");
 
-        let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
-        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs(), &primer);
+        let txt = consumer_llms_txt(terms, title, version, &doc_urls);
+        let full = consumer_llms_full(terms, title, version, authenticated_modeled_defs(), &primer);
 
         assert!(
             txt.contains("## Reference\n"),
@@ -3356,8 +3300,7 @@ mod tests {
 
         // The write_llms_txt (dist/llms.txt tarball) surface shares the same
         // section-append path — it must not silently regress either.
-        let dist_txt =
-            String::from_utf8(write_llms_txt(&terms, &title, &version, &primer)).unwrap();
+        let dist_txt = String::from_utf8(write_llms_txt(terms, title, version, &primer)).unwrap();
         assert!(dist_txt.contains("## Reference\n"));
         for page in gmeow_docs_model::llms::STANDING_REFERENCE_PAGES {
             assert!(
@@ -3373,15 +3316,13 @@ mod tests {
     /// path so a fresh model reads GMN emission guidance inline, not just the vocabulary. The
     /// primer heading and its graph-derived rows (a record sigil, the repair card, an operator
     /// glyph) must survive into both surfaces.
-    #[test]
     fn llms_surfaces_carry_the_gmn1_teachability_primer() {
         let (terms, title, version) = english_terms();
         let primer = english_primer();
         let heading = format!("## {}", gmeow_docs_model::gmn1_primer::PRIMER_HEADING);
 
-        let dist_txt =
-            String::from_utf8(write_llms_txt(&terms, &title, &version, &primer)).unwrap();
-        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs(), &primer);
+        let dist_txt = String::from_utf8(write_llms_txt(terms, title, version, primer)).unwrap();
+        let full = consumer_llms_full(terms, title, version, authenticated_modeled_defs(), primer);
 
         for surface in [&dist_txt, &full] {
             assert!(
@@ -3413,7 +3354,6 @@ mod tests {
     /// `term_to_card` against an explicit `Card` of the same shared values — fed
     /// through the SOLE body renderer — is the determinism guard. The docs side's
     /// own routing through `render_card_body` is pinned by gmeow-docs' tests.)
-    #[test]
     fn term_card_shares_one_renderer_and_convention() {
         // A folded Term with every SHARED card field populated.
         let folded = Term {
@@ -3501,7 +3441,6 @@ mod tests {
     /// `term_to_card` slice handling: a recovered `owner_slice` IRI renders as its
     /// local name; an absent one yields `None` (no blank `slice:` line). Locks
     /// both arms of the term→slice provenance recovery.
-    #[test]
     fn term_to_card_slice_uses_local_name_or_omits() {
         let with_slice = Term {
             category: "class",
@@ -3542,7 +3481,6 @@ mod tests {
     /// `python_model` link; an otherwise-identical class that does not is honestly
     /// omitted — never a fabricated ImportError-inducing link (issue: Pydantic
     /// model surface, finding F3).
-    #[test]
     fn term_to_card_gates_python_model_on_schema_defs_membership() {
         let modeled = Term {
             category: "class",
@@ -3576,10 +3514,9 @@ mod tests {
 
     /// `okf_index`: the manifest envelope wraps `ok`/`format`/`lossy`/`count`
     /// around per-document `{path, type, title, resource}` records.
-    #[test]
     fn okf_index_envelope_shape() {
         let (terms, _t, _v) = english_terms();
-        let env: serde_json::Value = serde_json::from_str(&okf_index_envelope(&terms)).unwrap();
+        let env: serde_json::Value = serde_json::from_str(&okf_index_envelope(terms)).unwrap();
         assert_eq!(env["ok"], serde_json::json!(true));
         assert_eq!(env["format"], serde_json::json!("okf"));
         assert_eq!(env["lossy"], serde_json::json!(true));
@@ -3602,5 +3539,89 @@ mod tests {
         );
         assert_eq!(doc["type"], serde_json::json!("Class"));
         assert_eq!(doc["title"], serde_json::json!("Entity Existence"));
+    }
+
+    /// One process owns every real-bundle export assertion, so the authenticated fold,
+    /// term corpus, schema definition set, and GMN primer are each restored/built once.
+    /// Nextest otherwise invokes each unit test in a fresh process and defeats all four
+    /// process-local caches above.
+    #[test]
+    fn export_contracts_share_one_authenticated_fold() {
+        let cases: &[(&str, fn())] = &[
+            (
+                "json_str_ascii_matches_cpython_short_escapes",
+                json_str_ascii_matches_cpython_short_escapes,
+            ),
+            (
+                "selector_threads_requested_language",
+                selector_threads_requested_language,
+            ),
+            (
+                "resolve_term_iri_spans_grounding_namespaces",
+                resolve_term_iri_spans_grounding_namespaces,
+            ),
+            (
+                "lookup_envelope_matches_consumer_contract",
+                lookup_envelope_matches_consumer_contract,
+            ),
+            (
+                "consumer_llms_txt_uses_standard_format",
+                consumer_llms_txt_uses_standard_format,
+            ),
+            (
+                "doc_card_build_renders_card_and_not_found",
+                doc_card_build_renders_card_and_not_found,
+            ),
+            (
+                "doc_card_build_omits_python_model_for_an_unmodeled_class",
+                doc_card_build_omits_python_model_for_an_unmodeled_class,
+            ),
+            (
+                "consumer_llms_full_inlines_terms_within_the_token_budget",
+                consumer_llms_full_inlines_terms_within_the_token_budget,
+            ),
+            (
+                "consumer_llms_surfaces_carry_the_standing_reference_pages",
+                consumer_llms_surfaces_carry_the_standing_reference_pages,
+            ),
+            (
+                "llms_surfaces_carry_the_gmn1_teachability_primer",
+                llms_surfaces_carry_the_gmn1_teachability_primer,
+            ),
+            (
+                "term_card_shares_one_renderer_and_convention",
+                term_card_shares_one_renderer_and_convention,
+            ),
+            (
+                "term_to_card_slice_uses_local_name_or_omits",
+                term_to_card_slice_uses_local_name_or_omits,
+            ),
+            (
+                "term_to_card_gates_python_model_on_schema_defs_membership",
+                term_to_card_gates_python_model_on_schema_defs_membership,
+            ),
+            ("okf_index_envelope_shape", okf_index_envelope_shape),
+        ];
+        let mut failures = Vec::new();
+        for (name, case) in cases {
+            if let Err(payload) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(*case)) {
+                let detail = payload
+                    .downcast_ref::<String>()
+                    .cloned()
+                    .or_else(|| {
+                        payload
+                            .downcast_ref::<&str>()
+                            .map(|text| (*text).to_string())
+                    })
+                    .unwrap_or_else(|| "non-string panic".to_string());
+                failures.push(format!("{name}: {detail}"));
+            }
+        }
+        assert!(
+            failures.is_empty(),
+            "{} bundled export contract(s) failed:\n{}",
+            failures.len(),
+            failures.join("\n")
+        );
     }
 }

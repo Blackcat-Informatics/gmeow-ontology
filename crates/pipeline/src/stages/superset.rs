@@ -34,6 +34,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
@@ -73,6 +74,61 @@ pub struct BundleProjection {
     pub files: BTreeMap<String, Vec<u8>>,
 }
 
+/// One verified decode of the two bundle surfaces the projection proof needs.
+///
+/// The RDF dataset deliberately comes from the authoritative segment-aware event
+/// importer, while the folded GTS graph retains the raw blob payloads and metadata
+/// that are outside RDF. Keeping both in one opaque value prevents callers from
+/// accidentally pairing a dataset and blob graph from different bundle bytes, and
+/// lets whole-bundle proofs reuse the expensive decode/index work across assertions.
+pub struct DecodedProjectionSource {
+    dataset: Arc<RdfDataset>,
+    graph: purrdf::gts::model::Graph,
+    lookaside: purrdf::RdfLookaside,
+    header_dicts: BTreeMap<String, Vec<u8>>,
+}
+
+impl DecodedProjectionSource {
+    /// The graph-preserving RDF dataset produced by the authoritative GTS event importer.
+    #[must_use]
+    pub fn dataset(&self) -> &RdfDataset {
+        self.dataset.as_ref()
+    }
+
+    /// The raw folded GTS graph, including inline blob payloads.
+    #[must_use]
+    pub fn graph(&self) -> &purrdf::gts::model::Graph {
+        &self.graph
+    }
+
+    /// The blob/header companion index derived from [`Self::graph`].
+    #[must_use]
+    pub fn lookaside(&self) -> &purrdf::RdfLookaside {
+        &self.lookaside
+    }
+}
+
+/// Decode the RDF, blob and header surfaces of one emitted bundle exactly once.
+///
+/// This is intentionally not a weaker graph-only import: the segment-aware event
+/// importer remains the RDF authority, and the raw reader remains the independent
+/// authority for blob/header semantics. Every error is a hard failure.
+pub fn decode_projection_source(
+    gts_bytes: &[u8],
+) -> Result<DecodedProjectionSource, gmeow_errors::Diag> {
+    let dataset = read_dataset(gts_bytes)?;
+    let graph = purrdf::gts::read_graph(gts_bytes, true)
+        .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
+    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+    let header_dicts = read_header_dicts(gts_bytes)?;
+    Ok(DecodedProjectionSource {
+        dataset,
+        graph,
+        lookaside,
+        header_dicts,
+    })
+}
+
 /// Reconstruct every committed `generated/` file the bundle carries, keyed by its
 /// committed repo-relative path (PIPELINE_SPINE §5/§6). Drives off the *bundle's*
 /// representatives, never the on-disk tree, so it reconstructs from `gmeow.gts`
@@ -90,10 +146,20 @@ pub struct BundleProjection {
 /// opaque/byte-decorated output as a blob member, a trained zstd dictionary as a
 /// header `"dct"` entry), so no path is produced twice.
 pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors::Diag> {
-    let dataset = read_dataset(gts_bytes)?;
-    let dataset = dataset.as_ref();
-    let blob_members = read_blob_members(gts_bytes)?;
-    let header_dicts = read_header_dicts(gts_bytes)?;
+    let source = decode_projection_source(gts_bytes)?;
+    project_decoded_bundle(&source)
+}
+
+/// Reconstruct a bundle already decoded by [`decode_projection_source`].
+///
+/// This performs the complete projection, fanout-bijection and independently
+/// authored expected-output checks. It only avoids re-reading the identical bytes;
+/// no assertion or representation family is skipped.
+pub fn project_decoded_bundle(
+    source: &DecodedProjectionSource,
+) -> Result<BundleProjection, gmeow_errors::Diag> {
+    let dataset = source.dataset();
+    let blob_members = read_blob_members(source.graph(), source.lookaside())?;
     // The path↔representative map as DATA: the gmeow:fanoutExtracts rows read back from the
     // bundle. The RDF-fanout / EDOAL rows are AUTHORED (pipeline slice, default graph); the
     // opaque rows are EMITTED by the carrier (one per generated-opaque archive member,
@@ -153,9 +219,9 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     // bytes from — so the projection reads them from there rather than carrying a
     // second copy through the archive lane.
     let mut header_dict_paths: BTreeSet<String> = BTreeSet::new();
-    for (path, bytes) in header_dicts {
+    for (path, bytes) in &source.header_dicts {
         header_dict_paths.insert(path.clone());
-        if files.insert(path.clone(), bytes).is_some() {
+        if files.insert(path.clone(), bytes.clone()).is_some() {
             return Err(stage_err(&format!(
                 "{path} is carried by two representatives (header \"dct\" entry collides)"
             )));
@@ -1191,11 +1257,10 @@ struct BlobMembers {
     opaque_paths: BTreeSet<String>,
 }
 
-fn read_blob_members(gts_bytes: &[u8]) -> Result<BlobMembers, gmeow_errors::Diag> {
-    let graph = purrdf::gts::read_graph(gts_bytes, true)
-        .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
-    let lookaside = purrdf::gts::lookaside_from_graph(&graph);
-
+fn read_blob_members(
+    graph: &purrdf::gts::model::Graph,
+    lookaside: &purrdf::RdfLookaside,
+) -> Result<BlobMembers, gmeow_errors::Diag> {
     let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     let mut opaque_paths: BTreeSet<String> = BTreeSet::new();
     for record in &lookaside.blobs {
@@ -1272,7 +1337,7 @@ fn walk(dir: &Path, root: &Path, out: &mut Vec<String>) -> Result<(), gmeow_erro
         let entry = entry.map_err(|e| stage_err(&format!("dir entry in {dir:?}: {e}")))?;
         let path = entry.path();
         // Skip hidden (dot) directories: they are runtime, never committed — e.g.
-        // `.cache/gmeow-sync/pipeline/` (gitignored opt-in stage cache). The gate
+        // `.cache/gmeow-sync/actions/` (gitignored shared action cache). The gate
         // reconstructs only committed artifacts.
         if entry.file_name().to_string_lossy().starts_with('.') {
             continue;
@@ -1302,45 +1367,6 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn rdfstar_closure_folds_byte_identically() {
-        // The reasoning closure is RDF-1.2 with thousands of ANONYMOUS reifiers.
-        // With the parse (anon-reifier collapse), `rdf:reifies` interning, render
-        // (side-table emission) and content-stable Triple-signature fixes, a per-file
-        // carrier fold must reproduce the canonical bytes exactly.
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap();
-        let committed =
-            std::fs::read(root.join("generated/logic/inferred-closure.rdf12.ttl")).unwrap();
-        let prefixes = rdf_prefixes();
-        // canonical_turtle must be idempotent on RDF-1.2 reifiers.
-        let c1 = purrdf::turtle_normalize::canonical_turtle(&committed, &prefixes).unwrap();
-        let c2 = purrdf::turtle_normalize::canonical_turtle(c1.as_bytes(), &prefixes).unwrap();
-        assert_eq!(
-            c1, c2,
-            "canonical_turtle must be idempotent on the RDF-1.2 closure"
-        );
-        // Full carrier fold: attach in a named graph, project (keeping reifiers by
-        // reified-statement subject), render — must reproduce the canonical bytes.
-        let ds = purrdf::parse_dataset(c1.as_bytes(), "text/turtle", None).unwrap();
-        assert!(
-            ds.annotations().count() > 0,
-            "anonymous-reifier annotations must fold (not become base quads)"
-        );
-        let iri =
-            "https://blackcatinformatics.ca/gmeow/graph/fanout/logic/inferred-closure.rdf12.ttl";
-        let rooted = crate::stages::carrier::rooted_in_graph(&ds, iri).unwrap();
-        let folded =
-            purrdf::turtle_normalize::render(&rooted.project_named_graph_full(iri), &prefixes);
-        assert_eq!(
-            folded, c1,
-            "the RDF-star carrier fold must reproduce the canonical bytes"
-        );
-    }
 
     #[test]
     fn excluded_holds_exactly_the_one_terminal_bundle() {
@@ -1501,70 +1527,6 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
-    }
-
-    #[test]
-    fn project_bundle_reconstructs_the_committed_tree_and_gate_is_clean() {
-        // Single-authority proof: project_bundle reconstructs every committed
-        // generated/ file from the shipped gmeow.gts alone, and the refactored
-        // forward+reverse sweep is clean against the committed tree.
-        let root = repo_root();
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let proj = project_bundle(&gts).unwrap();
-        assert!(
-            proj.files.len() > 50,
-            "projection unexpectedly small ({}); reconstruction likely dropped reps",
-            proj.files.len()
-        );
-        // A byte-decorated RDF file rides a blob member; a plain RDF file a named-graph
-        // fold — both must be present in the one projection.
-        assert!(
-            proj.files
-                .contains_key("generated/logic/inferred-closure.rdf12.ttl"),
-            "byte-decorated closure must reconstruct from a blob member"
-        );
-        assert!(
-            proj.files
-                .keys()
-                .any(|p| p.starts_with("generated/profiles/")),
-            "a profiles/*.ttl named-graph fold must reconstruct"
-        );
-        // Every reconstructed path is under generated/ (source archives filtered out).
-        for path in proj.files.keys() {
-            assert!(
-                path.starts_with("generated/"),
-                "projection leaked a non-generated path: {path}"
-            );
-        }
-        let report = check_superset(&root, &gts).unwrap();
-        assert!(
-            report.is_clean(),
-            "superset gate not clean after the seam refactor: {report:?}"
-        );
-
-        // ── The inventory's OTHER direction. `project_bundle` proves authored ⊆ produced
-        // (`check_expected_completeness`); nothing proved produced ⊆ authored, so an output
-        // the pipeline emits could stay absent from the hand-authored oracle indefinitely —
-        // and one did (`generated/mappings/gmeow-preference.sssom.tsv`, produced from the
-        // preference slice's MappingSet but never declared). An undeclared output is a real
-        // hole, not a harmless omission: the completeness anchor is the ONLY gate that catches
-        // a stage silently ceasing to emit a file, so a path missing from the inventory is a
-        // path that can vanish from a clean clone unnoticed. Closing the loop here makes the
-        // inventory EXACTLY the produced set: authored ⊆ produced (project_bundle, above)
-        // plus produced ⊆ authored (here) = equality. Free — the projection is already in hand.
-        let authored = authored_expected();
-        let undeclared: Vec<&str> = proj
-            .files
-            .keys()
-            .map(String::as_str)
-            .filter(|p| !EXCLUDED.contains(p) && !authored.contains(*p))
-            .collect();
-        assert!(
-            undeclared.is_empty(),
-            "the bundle produces generated/ output(s) absent from the authored \
-             gmeow:expectsGeneratedOutput inventory in slices/core/pipeline/module.ttl, so the \
-             completeness oracle would not notice them disappearing: {undeclared:?}"
-        );
     }
 
     #[test]
@@ -1931,15 +1893,31 @@ gmeow:pipeline-build a gmeow:Pipeline ."#;
         let ds = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None).unwrap();
         let mut builder = SnapshotBuilder::new();
         builder.add_dataset(ds.as_ref()).expect("add_dataset");
+        // gmeow-test-input: synthetic-only
         let gts =
             gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
                 .expect("emit minimal expected-output bundle");
 
-        // The REAL production path: parse the bundle -> reconstruct -> completeness check.
-        let err = project_bundle(&gts)
-            .expect_err("project_bundle must HARD-fail: two declared outputs were never produced");
+        // The reusable path performs the complete proof over one tied decode.
+        let decoded = decode_projection_source(&gts).expect("decode projection source");
+        let decoded_err = project_decoded_bundle(&decoded).expect_err(
+            // gmeow-test-input: synthetic-only
+            "decoded projection must HARD-fail: two declared outputs were never produced",
+        );
+        assert_eq!(
+            decoded_err.code(),
+            crate::error::ExpectedOutputMissing::register()
+        );
+
+        // The public one-shot path is exactly the decode + projection composition.
+        let err =
+            project_bundle(&gts) // gmeow-test-input: synthetic-only
+                .expect_err(
+                    "project_bundle must HARD-fail: two declared outputs were never produced",
+                );
         assert_eq!(err.code(), crate::error::ExpectedOutputMissing::register());
         let msg = err.to_string();
+        assert_eq!(decoded_err.to_string(), msg);
         assert!(
             msg.contains(OPAQUE_MEMBER),
             "the HARD FAIL must name the never-produced opaque-family path, got: {msg}"

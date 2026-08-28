@@ -14,15 +14,16 @@
 //!
 //! For surfaces, `S ≤ T ⟺ representable(T) ⊆ representable(S)` — the LOSS order, in which
 //! the lossless site is the least element and the print PDF / flat snippets are the
-//! greatest. [`crate::surface_lattice::surface_leq`] realizes it, and the
-//! `surface_leq_is_the_object_concept_order` test proves it is exactly the concept-lattice
-//! order restricted to the object concepts, rather than a second, parallel definition.
+//! greatest. [`crate::surface_lattice::surface_leq`] realizes it, and
+//! `surface_leq_is_the_object_concept_order`
+//! proves it is exactly the concept-lattice order restricted to the object concepts, rather
+//! than a second, parallel definition.
 //!
 //! For concepts, the usual FCA order applies: `(A₁,B₁) ≤ (A₂,B₂) ⟺ A₁ ⊆ A₂ ⟺ B₂ ⊆ B₁`,
 //! with `join = ((B₁∩B₂)′, B₁∩B₂)` and `meet = (A₁∩A₂, (A₁∩A₂)′)`.
 //! [`crate::surface_lattice::SurfaceConcept`] implements
-//! [`gmeow_errors::grade::BoundedLattice`], which requires `Copy + Eq` — hence the two bit
-//! masks rather than owned sets.
+//! [`gmeow_errors::grade::BoundedLattice`], which requires `Copy + Eq` — hence the two bit masks
+//! rather than owned sets.
 //!
 //! # This order is NOT the projection DAG
 //!
@@ -37,9 +38,9 @@
 //!   Since `site` drops nothing, that is `({site}, ALL_CAPS)`, **not** `(∅, ALL_CAPS)`:
 //!   an empty extent there is not a formal concept at all, would never appear in
 //!   [`crate::surface_lattice::concepts`], and would break the least-element law.
-//! * `ALL_SURFACES` is derived from [`crate::formats::DistributionSurface::ALL`]'s length —
-//!   the count of capability-BEARING surfaces (4 formats + console = 5). Sizing it to the
-//!   whole distribution catalog instead would leave `TOP` unreachable by any join, because the
+//! * `ALL_SURFACES` is derived from [`crate::formats::DistributionSurface::ALL`]'s length — the count of
+//!   capability-BEARING surfaces (4 formats + console = 5). Sizing it to the whole
+//!   distribution catalog instead would leave `TOP` unreachable by any join, because the
 //!   serialization slugs carry no capability partition and so can never enter an extent.
 
 use std::collections::{BTreeMap, BTreeSet};

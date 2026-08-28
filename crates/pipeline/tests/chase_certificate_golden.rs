@@ -12,28 +12,18 @@
 //! production artifact (the shipped `gmeow.gts`), read back through the production
 //! diagnostics reader — NOT a synthetic in-crate EDB hand-built to force the chase.
 
-use std::path::{Path, PathBuf};
-
 use gmeow_pipeline::diagnostics_reader::{read_findings, read_invented_witnesses};
 
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .unwrap()
-}
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
 
 #[test]
 fn shipped_bundle_carries_a_non_vacuous_certificate_and_explainable_witnesses() {
-    let bytes = std::fs::read(repo_root().join("generated/dist/gmeow.gts"))
-        .expect("read the committed gmeow.gts bundle");
-    let graph = purrdf::gts::read_all_segments(&bytes).expect("read GTS segments");
-    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).expect("fold GTS dataset");
+    let dataset = authenticated_bundle::dataset();
 
     // AC1 — a production existential program surfaces its certificate as a gmeow:Finding
     // in the shipped bundle.
-    let findings = read_findings(&dataset).expect("read graph/diagnostics findings");
+    let findings = read_findings(dataset).expect("read graph/diagnostics findings");
     let has_certificate = |code: &str| findings.findings.values().any(|f| f.code == code);
     assert!(
         has_certificate("chase.certificate.weakly-acyclic"),
@@ -60,7 +50,7 @@ fn shipped_bundle_carries_a_non_vacuous_certificate_and_explainable_witnesses() 
     // AC3 non-vacuity — the chase actually MINTED invented nulls into the shipped bundle
     // (not a structurally present, empty certificate). This is the structured, non-free-
     // text proof the existential program ran in production.
-    let witnesses = read_invented_witnesses(&dataset).expect("read invented witnesses");
+    let witnesses = read_invented_witnesses(dataset).expect("read invented witnesses");
     assert!(
         !witnesses.is_empty(),
         "the shipped bundle carries no gmeow:InventedWitness null — the fold is vacuous \

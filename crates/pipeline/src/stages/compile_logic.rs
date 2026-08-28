@@ -55,7 +55,7 @@ use purrdf::{PipelineBundle, RdfDataset, RdfDatasetBuilder, RdfTerm, parse_datas
 use serde::{Deserialize, Serialize};
 
 use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::diag_render::{DiagnosticsPaths, render_diagnostics_artifacts};
 
 /// The single authoritative `logic:` vocabulary source the compiler reads.
@@ -306,38 +306,6 @@ pub(crate) fn canon_fanout_nt(nt: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
 /// via `parse_correspondence`. Test-only helper so every pipeline test exercises the SAME
 /// canonical authored source the stage does (the fidelity oracle in `gmeow-logic-compile`
 /// proves this equals the `affine_triangle_worked_example` Rust literal byte-for-byte).
-/// Build the `stage-source-load` upstream a test needs to run [`CompileLogicStage`]. Rather
-/// than run the full (heavy) source-load stage — quality sweep, span index, self-description
-/// fold — this builds a MINIMAL product carrying ONLY the one named graph compile-logic
-/// reads: the denylist narrowing of `load_authored_dataset` rooted into
-/// [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`], EXACTLY as the real stage
-/// publishes it. compile-logic's `project_named_graph(GRAPH_LOGIC_COMPILE_INPUTS)` reads it
-/// identically, so the tests exercise the real consumer path at the old (single corpus
-/// parse) cost.
-#[cfg(test)]
-pub(crate) fn source_load_upstream(root: &Path) -> BTreeMap<String, StageProduct> {
-    let base = crate::stages::source_load::load_authored_dataset(root)
-        .expect("load authored corpus for compile-logic upstream");
-    let narrowed = crate::stages::source_load::logic_compile_input_subgraph(&base)
-        .expect("narrow the logic-compile-inputs corpus for compile-logic upstream");
-    let dataset = crate::stages::carrier::rooted_in_graph(
-        narrowed.as_ref(),
-        crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS,
-    )
-    .expect("root the logic-compile-inputs test graph");
-    let bundle = bundle_from_artifacts_over(
-        dataset,
-        BTreeMap::new(),
-        purrdf::provenance::DatasetProvenance::new(),
-    );
-    let mut upstream = BTreeMap::new();
-    upstream.insert(
-        "stage-source-load".to_string(),
-        StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
-    );
-    upstream
-}
-
 #[cfg(test)]
 pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -354,11 +322,12 @@ pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
 pub struct CompileLogicStage {
     /// The upstream products this stage consumes — `stage-source-load`, off which it reads
     /// the complete [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
-    /// merged authored corpus its five augmentation readers walk).
+    /// lossless merged authored RDF 1.2 corpus its augmentation readers walk).
     consumes: Vec<String>,
     /// The typed dataflow entities: it reads ONLY the `graph/logic-compile-inputs` named
-    /// graph of the `stage-source-load` product, so its complete digest owns compiler
-    /// cache freshness.
+    /// graph of the `stage-source-load` product. The graph retains the whole RDF 1.2
+    /// carrier so new ownership/projection readers cannot be starved by an older predicate
+    /// filter.
     entities: Vec<(String, Vec<String>)>,
 }
 
@@ -416,8 +385,9 @@ impl Stage for CompileLogicStage {
         &self.consumes
     }
     /// Typed dataflow (artifact-level): from `stage-source-load` it reads ONLY the
-    /// complete `graph/logic-compile-inputs` named graph. Declaring that single entity folds
-    /// its digest into the compiler's cache key.
+    /// `graph/logic-compile-inputs` named graph (the complete authored RDF 1.2 corpus).
+    /// Declaring that entity folds its digest into the compiler's cache key while retaining
+    /// every semantic input an evolving reader may consume.
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
     }
@@ -431,6 +401,13 @@ impl Stage for CompileLogicStage {
     /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
     fn attaches_blob_reps(&self) -> &[String] {
         crate::stages::attach::blob_reps(self.id())
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // The structural cache stores graph-derived relational/correspondence handles and
+        // the complete typed Logic IR. The latter is required because graph/logic is an
+        // intentionally lossy governed projection; serving a reverse-parsed shorter
+        // program would violate no-optionality.
+        CachePolicy::Persistent
     }
     fn impl_version(&self) -> &str {
         // v5: the authored `logic:PathShape` worked-example instances
@@ -450,18 +427,22 @@ impl Stage for CompileLogicStage {
         // (`REASONING_PROGRAMS_EXAMPLE_PATH`) is now folded into `program.reasoning_programs`,
         // so `stage-goal-directed` compiles authored `logic:ReasoningProgram`s instead of the
         // hand-interned Rust demonstrator constants.
-        // v10: compile input is the complete reader-identical authored carrier; ownership
-        // and projection annotations are no longer predicate-filtered away.
-        "compile-logic.v10-lossless-input"
+        // v10: persistence is fail-closed for typed handles. graph/logic deliberately
+        // omits source-verbatim IR collections, so a semantically shorter reverse parse
+        // is never admitted.
+        // v11: the structural cache carries the complete serde LogicProgram payload,
+        // authenticates its canonical key, and can therefore persist this exact product.
+        // v12: consume the lossless RDF 1.2 source-load carrier. Predicate narrowing was
+        // not a stable boundary for the evolving ownership and projection readers.
+        "compile-logic.v12-lossless-input"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
         // two worked-example cells directly from disk, so those are declared as raw input
         // files for byte-level cache soundness. The WHOLE authored corpus is NO LONGER
-        // declared here: the five augmentation readers now read the complete
+        // declared here: the augmentation readers now read the complete
         // `graph/logic-compile-inputs` entity off the `stage-source-load` product
-        // (`consumed_entities`), so corpus freshness rides that typed dataflow edge — a
-        // corpus freshness rides that typed dataflow edge.
+        // (`consumed_entities`), so corpus freshness rides that typed dataflow edge.
         Ok(vec![
             root.join(SOURCE_PATH),
             root.join(OPT_SOURCE_PATH),
@@ -508,10 +489,10 @@ impl Stage for CompileLogicStage {
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
         // derived ontology shapes ride into gmeow.gts through the shape surfaces.
         //
-        // Read the complete merged authored corpus as the `graph/logic-compile-inputs`
-        // entity off the `stage-source-load` product, proved reader-identical by the
-        // `logic_compile_input_subgraph_preserves_reader_output` guard.
-        // `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
+        // Read the merged authored corpus as the complete `graph/logic-compile-inputs`
+        // entity off the `stage-source-load` product. The producer carries every authored
+        // RDF 1.2 quad and statement side table; no predicate-level guess may discard a
+        // future ownership or projection input. `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
         // default graph, so the five augmentation readers (all graph-position-agnostic over
         // the default graph) consume it directly. A missing product or an empty projection
         // is a corrupt build — HARD-fail (no-optionality), never a silently-empty corpus.
@@ -526,7 +507,7 @@ impl Stage for CompileLogicStage {
         );
         if ontology.quad_count() == 0 {
             return Err(stage_err(format!(
-                "stage-source-load product carries an empty <{}> graph — the typed \
+                "stage-source-load product carries an empty <{}> graph — the complete \
                  compile-logic input corpus is missing (corrupt upstream product)",
                 crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS
             )));
@@ -769,13 +750,27 @@ impl Stage for CompileLogicStage {
                     ))
                 })
         };
+        let validation_shapes_ttl = vs_content("shacl-core")?;
+        purrdf::parse_dataset(validation_shapes_ttl.as_bytes(), "text/turtle", None).map_err(
+            |error| {
+                stage_err(format!(
+                    "compile: emitted validation SHACL is not valid Turtle: {error}"
+                ))
+            },
+        )?;
         artifacts.insert(
             VALIDATION_SHAPES_TTL_PATH.to_string(),
-            vs_content("shacl-core")?.into_bytes(),
+            validation_shapes_ttl.into_bytes(),
         );
+        let validation_shapes_shex = vs_content("shex")?;
+        purrdf::shex::parse_shexc(&validation_shapes_shex, None).map_err(|error| {
+            stage_err(format!(
+                "compile: emitted validation ShEx is not well formed: {error}"
+            ))
+        })?;
         artifacts.insert(
             VALIDATION_SHAPES_SHEX_PATH.to_string(),
-            vs_content("shex")?.into_bytes(),
+            validation_shapes_shex.into_bytes(),
         );
         artifacts.insert(
             PROCEDURAL_CONSTRAINTS_PATH.to_string(),
@@ -1055,7 +1050,8 @@ fn relational_core_graph_dataset(
 
 /// Parse the canonical RDF-1.2 projection Turtle and route every triple into the
 /// `graph/logic` named graph of a fresh frozen dataset — the backing graph the typed
-/// Logic handle pins to and the cache re-derives the program from.
+/// Logic handle pins to. Persistent receipts carry the complete typed program beside
+/// this deliberately lossy governed projection.
 fn logic_graph_dataset(
     canonical_rdf12_turtle: &str,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
@@ -1079,502 +1075,22 @@ fn logic_graph_dataset(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs::{OpenOptions, TryLockError};
-    use std::sync::OnceLock;
-    use std::time::{Duration, Instant};
-
-    use crate::cache::{BUILD_FINGERPRINT, PipelineCache, stage_key};
-    use crate::scheduler::input_files_digest;
-
-    fn repo_root() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    /// Cross-process, content-addressed fixture for the assertion-only tests below.
-    ///
-    /// Nextest runs each test in a separate process, so an in-process `OnceLock`
-    /// alone cannot prevent every test from rebuilding the real repository's full
-    /// logic projection. Reuse the production cache codec and its fail-closed build
-    /// fingerprint/input digest instead. On a genuine miss, an atomic lock elects
-    /// one test process to build while its siblings wait for the persisted product;
-    /// no separate cargo prime invocation is needed. One sibling test deliberately
-    /// calls the stage directly, retaining uncached end-to-end teeth.
-    fn compile_logic_fixture() -> StageProduct {
-        static PRODUCT: OnceLock<StageProduct> = OnceLock::new();
-        PRODUCT
-            .get_or_init(|| {
-                let root = repo_root();
-                let stage = CompileLogicStage::new();
-                let source_digest =
-                    input_files_digest(&stage, &root).expect("digest compile-logic fixture inputs");
-                let key = stage_key(
-                    stage.id(),
-                    stage.impl_version(),
-                    &[],
-                    source_digest.as_deref(),
-                );
-
-                let cache_base = root.join(".cache/pipeline-test-fixtures");
-                let fingerprint = &BUILD_FINGERPRINT[..16];
-                let cache_dir = cache_base.join(fingerprint);
-                std::fs::create_dir_all(&cache_dir)
-                    .expect("create compile-logic fixture cache directory");
-                let cache =
-                    PipelineCache::open(&cache_dir).expect("open compile-logic fixture cache");
-                if let Some(product) = cache.get(&key).expect("read compile-logic fixture cache") {
-                    return product;
-                }
-
-                // Keep the election file outside the Actions-cached product tree:
-                // a cancelled job must not archive and restore a live-looking lock.
-                let lock_dir = root.join(".cache/pipeline-test-fixture-locks");
-                std::fs::create_dir_all(&lock_dir)
-                    .expect("create compile-logic fixture lock directory");
-                let lock_path = lock_dir.join(format!("{fingerprint}.lock"));
-                let lock_file = OpenOptions::new()
-                    .read(true)
-                    .write(true)
-                    .create(true)
-                    .truncate(false)
-                    .open(&lock_path)
-                    .expect("open compile-logic fixture lock");
-                let started = Instant::now();
-                let _lock = loop {
-                    match lock_file.try_lock() {
-                        Ok(()) => break FixtureBuildLock(lock_file),
-                        Err(TryLockError::WouldBlock) => {
-                            // The elected process publishes through PipelineCache's atomic
-                            // index/content writes. Check for that product before sleeping.
-                            let cache = PipelineCache::open(&cache_dir)
-                                .expect("reopen compile-logic fixture cache while waiting");
-                            if let Some(product) = cache
-                                .get(&key)
-                                .expect("read compile-logic fixture cache while waiting")
-                            {
-                                return product;
-                            }
-
-                            // File-lock ownership is tied to the live descriptor/process.
-                            // Normal close and process death both release it, so a slow live
-                            // builder cannot be evicted by elapsed time and a former owner's
-                            // Drop cannot remove a successor's election.
-                            assert!(
-                                started.elapsed() < Duration::from_secs(360),
-                                "timed out waiting for compile-logic fixture builder"
-                            );
-                            std::thread::sleep(Duration::from_millis(50));
-                        }
-                        Err(TryLockError::Error(error)) => {
-                            panic!("acquire compile-logic fixture lock: {error}")
-                        }
-                    }
-                };
-
-                // Another process may have published between our first miss and lock
-                // acquisition. Recheck before paying the stage cost.
-                let mut cache =
-                    PipelineCache::open(&cache_dir).expect("reopen elected fixture cache");
-                if let Some(product) = cache
-                    .get(&key)
-                    .expect("recheck elected compile-logic fixture cache")
-                {
-                    return product;
-                }
-
-                // compile-logic now consumes the `stage-source-load` product (the
-                // narrowed `graph/logic-compile-inputs` entity), so the fixture must
-                // supply that upstream — an empty map would hard-fail the stage.
-                let upstream = source_load_upstream(&root);
-                let product = stage
-                    .run(StageInput {
-                        root: &root,
-                        upstream: &upstream,
-                    })
-                    .expect("build compile-logic fixture")
-                    .product;
-                cache
-                    .put(&key, &product)
-                    .expect("persist compile-logic fixture");
-                product
-            })
-            .clone()
-    }
-
-    struct FixtureBuildLock(std::fs::File);
-
-    impl Drop for FixtureBuildLock {
-        fn drop(&mut self) {
-            let _ = self.0.unlock();
-        }
-    }
-
-    #[test]
-    fn fixture_build_lock_is_owned_by_the_live_file_handle() {
-        let temp = tempfile::tempdir().expect("create fixture-lock tempdir");
-        let path = temp.path().join("fixture.lock");
-        let open = || {
-            OpenOptions::new()
-                .read(true)
-                .write(true)
-                .create(true)
-                .truncate(false)
-                .open(&path)
-                .expect("open fixture lock")
-        };
-
-        let owner = open();
-        owner.try_lock().expect("first handle owns lock");
-        let guard = FixtureBuildLock(owner);
-        let successor = open();
-        assert!(matches!(
-            successor.try_lock(),
-            Err(TryLockError::WouldBlock)
-        ));
-
-        drop(guard);
-        successor
-            .try_lock()
-            .expect("closing the owner releases lock to successor");
-        successor.unlock().expect("release successor fixture lock");
-    }
-
-    /// Proves the content-addressed fixture itself remains readable; on a cold
-    /// nextest run this test may also be the process elected to populate it.
-    #[test]
-    fn compile_logic_fixture_is_primed() {
-        let product = compile_logic_fixture();
-        assert_eq!(product.stage_id, "stage-compile-logic");
-    }
-
-    /// The stage emits all nine projection artifacts plus the four diagnostics
-    /// projections, and the loss ledger surfaces as `logic-compile.lossy-drop`
-    /// findings in the SARIF projection.
-    #[test]
-    fn compile_logic_stage_emits_every_product() {
-        let root = repo_root();
-        let upstream = source_load_upstream(&root);
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let arts = out.product.artifacts();
-        for path in [
-            OWL_DL_PATH,
-            OWL_EL_PATH,
-            DATALOG_PATH,
-            N3_PATH,
-            GUFO_PATH,
-            CANONICAL_RDF12_PATH,
-            CLIF_PATH,
-            CGIF_PATH,
-            XCL_PATH,
-            SHACL_AF_PATH,
-            // The in-memory channel that hands the logic projection rows + header
-            // counts to stage-mappings (which assembles the committed report).
-            LOGIC_PROJECTIONS_CHANNEL,
-            DIAG_JSON_PATH,
-            DIAG_SARIF_PATH,
-            DIAG_HTML_PATH,
-            DIAG_RDF_PATH,
-        ] {
-            assert!(arts.contains_key(path), "missing artifact {path}");
-        }
-        // The committed projection report is now produced by stage-mappings, NOT here.
-        assert!(
-            !arts.contains_key(PROJECTION_REPORT_PATH),
-            "compile-logic must no longer emit the committed projection report"
-        );
-        // The loss ledger reaches SARIF as note-level preservation-rung findings —
-        // projected from the loss ledger's OWN witnesses (so they carry finding_iri +
-        // antecedent DAG), not identity-less hand-built notes.
-        let sarif: serde_json::Value =
-            serde_json::from_slice(&arts[DIAG_SARIF_PATH]).expect("SARIF is JSON");
-        let results = sarif["runs"][0]["results"]
-            .as_array()
-            .expect("SARIF results array");
-        assert!(
-            results
-                .iter()
-                .any(|r| r["ruleId"] == "preservation.rung.structural"
-                    || r["ruleId"] == "preservation.rung.actual"),
-            "expected at least one preservation.rung.* loss finding in SARIF"
-        );
-        // The logic-projections channel carries the rows + header counts the mappings
-        // stage unions with the correspondence ledger to build the committed report.
-        let channel: LogicProjectionsChannel =
-            serde_json::from_slice(&arts[LOGIC_PROJECTIONS_CHANNEL]).expect("channel is JSON");
-        assert!(
-            !channel.projections.is_empty(),
-            "logic projection rows must be handed over to mappings"
-        );
-        assert!(
-            channel.header.axiom_count > 0,
-            "report header axiom count must be populated"
-        );
-    }
-
-    /// Acceptance C2: the loss ledger's OWN witness projection, folded through the
-    /// REAL authored `gmeow:DiagnosticMetaRule` rules, derives a `gmeow:findingRootCause`.
-    /// This is the shipped-bundle path in miniature — the loss ledger records projection
-    /// drops (a childless STRUCTURAL limitation causing a per-run ACTUAL drop), projects
-    /// them with the closing antecedent DAG, and the authored meta rules (discovered BY
-    /// TYPE off the real merged slices) reason a root cause. No hand-built IR, no refusal.
-    #[test]
-    fn loss_witness_projection_derives_a_root_cause_through_authored_meta_rules() {
-        use gmeow_errors::render::to_gmeow_rdf;
-        use gmeow_logic_compile::loss_ledger::LossLedger;
-
-        // Two targets, each with a childless STRUCTURAL limitation that CAUSES its per-run
-        // ACTUAL drop — the non-trivial provenance DAG the projection surfaces as
-        // `gmeow:findingAntecedent` edges (actual → structural).
-        let mut loss = LossLedger::new();
-        loss.record_projection_drops(
-            "owl-dl",
-            PreservationKind::SoundUnder,
-            &["OWL-DL cannot carry full first-order formulas".to_owned()],
-            &["logic:Formula #3 dropped as unsupported residue".to_owned()],
-        );
-        loss.record_projection_drops(
-            "datalog",
-            PreservationKind::SoundUnder,
-            &["Datalog cannot carry existential heads".to_owned()],
-            &["logic:Formula #7 dropped as unsupported residue".to_owned()],
-        );
-
-        // The REAL projection: witnesses → findings carrying finding_iri + antecedent DAG.
-        let report = loss.project_report(TOOL);
-        assert!(
-            report.findings.iter().any(|f| f.finding_iri.is_some()),
-            "projected loss findings must carry a stable finding_iri"
-        );
-        assert!(
-            report
-                .findings
-                .iter()
-                .any(|f| !f.antecedents.is_empty() || !f.related_locations.is_empty()),
-            "an actual-drop finding must carry its structural cause as an antecedent edge"
-        );
-
-        // The REAL authored rules: discovered BY TYPE off the merged authored dataset the
-        // production compile loads (logic + diagnostics slices carry the rules + polarity).
-        let root = repo_root();
-        let ontology = crate::stages::source_load::load_authored_dataset(&root)
-            .expect("load the authored ontology dataset");
-        let meta = crate::stages::meta_findings::MetaProgram::from_source_dataset(&ontology)
-            .expect("the diagnostic meta-fold parses")
-            .expect("the authored slices carry gmeow:DiagnosticMetaRule rules");
-
-        // The REAL chase over the REAL projected finding graph.
-        let derivation = meta
-            .derive(&to_gmeow_rdf(&report))
-            .expect("the meta chase runs over the projected loss findings");
-        assert!(
-            !derivation.root_cause.is_empty(),
-            "the loss witnesses' antecedent DAG must derive a gmeow:findingRootCause \
-             through the authored meta rules; got {:?}",
-            derivation.root_cause
-        );
-    }
-
-    /// Seam 3 soundness guard: the denylist narrowing published as
-    /// `graph/logic-compile-inputs` is READER-IDENTICAL to the full authored corpus. Over the
-    /// REAL repo it runs EACH of the five compile-logic augmentation readers on BOTH the full
-    /// authored base (`load_authored_dataset`) and the denylisted subgraph
-    /// (`logic_compile_input_subgraph`) and asserts the IR output is identical — so the
-    /// stripped predicate families (documentation: SKOS + RDFS presentational; alignment/
-    /// mapping: SKOS mapping predicates + SSSOM `semapv:`; foreign-domain example vocab: gUFO/
-    /// schema.org/FOAF/Wikidata; and the bibliographic-metadata families incl. Dublin Core/PROV/
-    /// VANN/VoID/DCAT/…) are provably never read. If the denylist ever strips a read predicate,
-    /// a reader's output diverges and this test REDS. Non-vacuity is asserted FIRST for EVERY
-    /// reader (validation shapes, constraints, correspondences, leg programs, and the meta-fold
-    /// root cause are each proven non-empty on the full corpus) so the test cannot pass
-    /// vacuously — the widened denylist most affects the correspondence-adjacent readers, so
-    /// their non-emptiness is load-bearing.
-    ///
-    /// On-gate: running the five readers over the whole corpus twice measures ~2.3s, well
-    /// under the 25s budget, so it stays on the default gate (no `#[ignore]`).
-    #[test]
-    fn logic_compile_input_subgraph_preserves_reader_output() {
-        use gmeow_errors::render::to_gmeow_rdf;
-        use gmeow_logic_compile::loss_ledger::LossLedger;
-
-        let root = repo_root();
-        let full = crate::stages::source_load::load_authored_dataset(&root)
-            .expect("load the full authored corpus");
-        let narrow = crate::stages::source_load::logic_compile_input_subgraph(&full)
-            .expect("build the denylisted logic-compile-inputs subgraph");
-
-        assert_eq!(
-            narrow.quad_count(),
-            full.quad_count(),
-            "the compile-logic typed input must preserve the complete authored carrier"
-        );
-
-        // Reader 1: closed-world validation shapes. Non-vacuity FIRST.
-        let vs_full = gmeow_logic_compile::frontend::derive_validation_shapes(full.as_ref())
-            .expect("derive validation shapes over the full corpus");
-        let vs_narrow = gmeow_logic_compile::frontend::derive_validation_shapes(narrow.as_ref())
-            .expect("derive validation shapes over the narrowed corpus");
-        assert!(
-            !vs_full.is_empty(),
-            "non-vacuity: the full corpus must derive at least one validation shape"
-        );
-        assert_eq!(
-            vs_full, vs_narrow,
-            "derive_validation_shapes must be reader-identical across the typed carrier seam"
-        );
-
-        // Reader 2: procedural constraints. Non-vacuity FIRST.
-        let (c_full, _c_full_diags) =
-            gmeow_logic_compile::frontend::extract_all_constraints(full.as_ref());
-        let (c_narrow, _c_narrow_diags) =
-            gmeow_logic_compile::frontend::extract_all_constraints(narrow.as_ref());
-        assert!(
-            !c_full.is_empty(),
-            "non-vacuity: the full corpus must extract at least one constraint"
-        );
-        assert_eq!(
-            c_full, c_narrow,
-            "extract_all_constraints must be reader-identical across the denylist narrowing"
-        );
-
-        // Reader 3: authored correspondences. Non-vacuity FIRST — the broadened denylist
-        // strips the SKOS mapping surface and SSSOM/foreign-domain vocab that sit adjacent to
-        // correspondence cells, so an empty correspondence set here would hide a regression.
-        let (corr_full, corr_full_errs) = extract_correspondences(full.as_ref());
-        let (corr_narrow, corr_narrow_errs) = extract_correspondences(narrow.as_ref());
-        assert!(
-            !corr_full.is_empty(),
-            "non-vacuity: the full corpus must extract at least one authored correspondence"
-        );
-        assert_eq!(
-            corr_full, corr_narrow,
-            "extract_correspondences must be reader-identical across the denylist narrowing"
-        );
-        assert_eq!(
-            corr_full_errs, corr_narrow_errs,
-            "extract_correspondences malformed-cell errors must match across the narrowing"
-        );
-
-        // Reader 4: the correspondence leg programs (over the SAME correspondences).
-        // Non-vacuity FIRST — the authored corpus carries gm: leg-path bodies (equivalence and
-        // structural cells), so an empty program set would mean the reader silently found none.
-        let legs_full = extract_leg_programs(full.as_ref(), &corr_full);
-        let legs_narrow = extract_leg_programs(narrow.as_ref(), &corr_narrow);
-        assert!(
-            !legs_full.is_empty(),
-            "non-vacuity: the full corpus must extract at least one correspondence leg program"
-        );
-        assert_eq!(
-            legs_full, legs_narrow,
-            "extract_leg_programs must be reader-identical across the denylist narrowing"
-        );
-
-        // Reader 5: the diagnostic meta-fold. `MetaProgram` has no `PartialEq`, so compare
-        // the two programs BEHAVIORALLY — run each over the SAME real projected finding graph
-        // and assert identical (and non-empty) `MetaDerivation` (which IS `Eq`).
-        let meta_full = crate::stages::meta_findings::MetaProgram::from_source_dataset(&full)
-            .expect("meta-fold parses over the full corpus")
-            .expect("the full corpus carries gmeow:DiagnosticMetaRule rules");
-        let meta_narrow = crate::stages::meta_findings::MetaProgram::from_source_dataset(&narrow)
-            .expect("meta-fold parses over the narrowed corpus")
-            .expect("the narrowed corpus carries gmeow:DiagnosticMetaRule rules");
-        let mut loss = LossLedger::new();
-        loss.record_projection_drops(
-            "owl-dl",
-            PreservationKind::SoundUnder,
-            &["OWL-DL cannot carry full first-order formulas".to_owned()],
-            &["logic:Formula #3 dropped as unsupported residue".to_owned()],
-        );
-        loss.record_projection_drops(
-            "datalog",
-            PreservationKind::SoundUnder,
-            &["Datalog cannot carry existential heads".to_owned()],
-            &["logic:Formula #7 dropped as unsupported residue".to_owned()],
-        );
-        let projected = to_gmeow_rdf(&loss.project_report(TOOL));
-        let deriv_full = meta_full
-            .derive(&projected)
-            .expect("meta chase over the full corpus program");
-        let deriv_narrow = meta_narrow
-            .derive(&projected)
-            .expect("meta chase over the narrowed corpus program");
-        assert!(
-            !deriv_full.root_cause.is_empty(),
-            "non-vacuity: the authored meta rules must derive a root cause on the full corpus"
-        );
-        assert_eq!(
-            deriv_full, deriv_narrow,
-            "MetaProgram::from_source_dataset must be reader-identical across the denylist narrowing"
-        );
-
-        // Reader 6: the RDFS/SKOS annotation lift. The surgical un-deny keeps the six
-        // annotation predicates in the narrowed subgraph, so the NodeKind::Annotation axioms
-        // must be reader-identical across the narrowing — this is the tripwire that REDs if a
-        // future edit re-denies a lifted annotation predicate (silently dropping the SKOS/RDFS
-        // superset content). Non-vacuity FIRST: the authored corpus carries carrier-tagged
-        // rdfs:label/skos:definition on every term.
-        let anns = |ds: &purrdf::RdfDataset| -> Vec<gmeow_logic_compile::ir::LogicAxiom> {
-            let (prog, _d) = parse_logic_dataset(ds, None).expect("parse annotation axioms");
-            let mut a: Vec<_> = prog
-                .axioms
-                .iter()
-                .filter(|ax| ax.node_kind == gmeow_logic_compile::ir::NodeKind::Annotation)
-                .cloned()
-                .collect();
-            a.sort_by_key(gmeow_logic_compile::ir::LogicAxiom::sort_key);
-            a
-        };
-        let ann_full = anns(full.as_ref());
-        let ann_narrow = anns(narrow.as_ref());
-        assert!(
-            !ann_full.is_empty(),
-            "non-vacuity: the full corpus must lift at least one RDFS/SKOS annotation axiom"
-        );
-        assert_eq!(
-            ann_full, ann_narrow,
-            "the annotation lift must be reader-identical across the denylist narrowing \
-             (a re-denied annotation predicate would drop SKOS/RDFS superset content)"
-        );
-    }
-
-    /// The CaboLabs "Test all datatypes" OPT is wired as a second constraint source, so its
-    /// `C_DV_ORDINAL` and `C_DATE_TIME` families reach the generated shape surface (the axis is
-    /// delivered into gmeow.gts, not merely proven in a unit test). The datetime validity pattern
-    /// must NOT leak into the shapes as an inverted regex — it is ledger-only.
-    #[test]
-    fn test_datatypes_opt_ordinal_and_datetime_flow_into_shape_surface() {
-        let product = compile_logic_fixture();
-        let arts = product.artifacts();
-        let ttl = std::str::from_utf8(&arts[VALIDATION_SHAPES_TTL_PATH]).expect("shapes ttl utf8");
-        // The second OPT's shapes reached the surface (its distinct base IRI).
-        assert!(
-            ttl.contains("openehr/testdatatypes/"),
-            "the test-datatypes OPT shapes must flow into the validation-shape surface"
-        );
-        // The ordinal value set projects its coded symbols as sh:in (C_DV_ORDINAL only exists in
-        // the test-datatypes OPT, so this proves the ordinal family flowed in).
-        assert!(
-            ttl.contains("openehr/testdatatypes/") && ttl.contains("sh:in ("),
-            "the ordinal family must project an sh:in value set into the shapes"
-        );
-        // The datetime validity pattern is a format template, not an XPath regex; it must never be
-        // emitted as an sh:pattern (which would reject every valid datetime). It is ledger-only.
-        assert!(
-            !ttl.contains("sh:pattern \"yyyy") && !ttl.contains("yyyy-mm-dd"),
-            "an openEHR datetime validity pattern must not leak into the SHACL shapes as a regex"
-        );
-    }
 
     use gmeow_logic_compile::frontend::{parse_logic_dataset, parse_logic_str};
     use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom};
     use purrdf::ContentDigest;
+
+    fn compile_logic_fixture() -> StageProduct {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repository root");
+        crate::fixture::stage_fixture(&root, 0, "stage-compile-logic")
+            .expect("authenticated compile-logic fixture; tests never produce it")
+            .outcome
+            .product
+    }
 
     /// A small clean program whose canonical RDF-1.2 projection is an EXACT round-trip
     /// (the documented ExactPreservation case): only graph-derivable constructs —

@@ -6,26 +6,79 @@
 //! directly against the committed `gmeow.gts` bundle, independent of the Python
 //! CLI surface — the CLI test asserts the wheel-resolution and rendering on top.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, OnceLock};
 
 use gmeow_validate::data_validate;
+use purrdf::RdfDataset;
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
-/// The committed snapshot bundle that carries the SHACL shape surface
-/// (`shapes-archive`) the consumer path validates against.
-fn bundle_bytes() -> Vec<u8> {
-    let path: PathBuf = [
-        env!("CARGO_MANIFEST_DIR"),
-        "..",
-        "..",
-        "generated",
-        "dist",
-        "gmeow.gts",
-    ]
-    .iter()
-    .collect();
-    std::fs::read(&path).unwrap_or_else(|e| panic!("read bundle {}: {e}", path.display()))
+struct BundleFixture {
+    bytes: Vec<u8>,
+    shapes: data_validate::Tier1Shapes,
+    dataset: Arc<RdfDataset>,
+}
+
+fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
+/// One process-wide, read-only view of the exact corpus selected by the test runner.
+///
+/// The explicit pre-test producer publishes the imported dataset and extracted shape
+/// union. A missing, stale, corrupt, or differently identified product is terminal;
+/// this fixture has no route that can decode, derive, or publish a replacement.
+fn bundle_fixture() -> &'static BundleFixture {
+    static FIXTURE: OnceLock<BundleFixture> = OnceLock::new();
+    FIXTURE.get_or_init(|| {
+        let root = repo_root();
+        let bytes = gmeow_bundle_import::load_authenticated_source_bytes(&root)
+            .expect("load the producer-selected bundle bytes");
+        let cache_root = std::env::var_os("GMEOW_BUNDLE_IMPORT_CACHE")
+            .map(PathBuf::from)
+            .expect("GMEOW_BUNDLE_IMPORT_CACHE selects the produced immutable import");
+        let imported = gmeow_bundle_import::load_graph_preserving_cached(&cache_root, &bytes)
+            .expect("restore the producer-created bundle import without rebuilding it");
+        let shapes_ttl = String::from_utf8(
+            gmeow_bundle_import::load_authenticated_corpus_artifact(
+                &root,
+                "validate-production-shapes.ttl",
+            )
+            .expect("load the producer-extracted validation shapes without rebuilding them"),
+        )
+        .expect("authenticated validation shape union is UTF-8");
+        let dataset = imported.dataset;
+        let shapes =
+            data_validate::Tier1Shapes::from_shapes_and_ontology(&shapes_ttl, Arc::clone(&dataset))
+                .expect("parse the producer-extracted validation shapes once");
+        BundleFixture {
+            bytes,
+            shapes,
+            dataset,
+        }
+    })
+}
+
+fn run(
+    data_bytes: &[u8],
+    data_format: &str,
+    origin: &str,
+    deep: bool,
+) -> gmeow_errors::Result<gmeow_errors::Report> {
+    let fixture = bundle_fixture();
+    data_validate::run_with(
+        data_validate::BundleParts {
+            gts_bytes: &fixture.bytes,
+            shapes: &fixture.shapes,
+            dataset: fixture.dataset.as_ref(),
+        },
+        data_bytes,
+        data_format,
+        NS,
+        origin,
+        deep,
+    )
 }
 
 /// A data graph that trips the Tier-1 shape surface. Its problems are a
@@ -59,16 +112,8 @@ ex:e1 a gmeow:Event ;
 
 #[test]
 fn fail_fixture_yields_three_errors_one_warning_with_locations() {
-    let gts = bundle_bytes();
-    let report = data_validate::run(
-        FAIL_TTL.as_bytes(),
-        "turtle",
-        &gts,
-        NS,
-        "fixture-fail.ttl",
-        false,
-    )
-    .expect("validate_data run");
+    let report =
+        run(FAIL_TTL.as_bytes(), "turtle", "fixture-fail.ttl", false).expect("validate_data run");
 
     let errors: Vec<_> = report
         .findings
@@ -139,17 +184,14 @@ fn fail_fixture_yields_three_errors_one_warning_with_locations() {
 
 #[test]
 fn clean_fixture_passes() {
-    let gts = bundle_bytes();
     let clean = "@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n";
-    let report = data_validate::run(clean.as_bytes(), "turtle", &gts, NS, "clean.ttl", false)
-        .expect("run clean");
+    let report = run(clean.as_bytes(), "turtle", "clean.ttl", false).expect("run clean");
     assert_eq!(report.error_count(), 0, "clean graph reported errors");
     assert_eq!(report.warning_count(), 0, "clean graph reported warnings");
 }
 
 #[test]
 fn nquads_named_graph_is_flattened_and_validated() {
-    let gts = bundle_bytes();
     // The two type quads sit in a named graph; flattening must surface them so
     // the disjointness checks fire (the P9 IdentityAxisDisjointnessConstraintShape
     // plus the closed-world sh:not pair Honorific-shape / PronounSet-shape).
@@ -159,8 +201,7 @@ fn nquads_named_graph_is_flattened_and_validated() {
         "<https://example.org/p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ",
         "<https://blackcatinformatics.ca/gmeow/Honorific> <https://example.org/g> .\n",
     );
-    let report =
-        data_validate::run(nq.as_bytes(), "nquads", &gts, NS, "g.nq", false).expect("run nq");
+    let report = run(nq.as_bytes(), "nquads", "g.nq", false).expect("run nq");
     assert_eq!(
         report.error_count(),
         3,
@@ -170,19 +211,16 @@ fn nquads_named_graph_is_flattened_and_validated() {
 
 #[test]
 fn json_ld_is_parsed_as_rdf() {
-    let gts = bundle_bytes();
     let jsonld = r#"{"@context":{"gmeow":"https://blackcatinformatics.ca/gmeow/"},
         "@id":"https://example.org/p",
         "@type":["gmeow:PronounSet","gmeow:Honorific"]}"#;
-    let report = data_validate::run(jsonld.as_bytes(), "json-ld", &gts, NS, "p.jsonld", false)
-        .expect("run jsonld");
+    let report = run(jsonld.as_bytes(), "json-ld", "p.jsonld", false).expect("run jsonld");
     assert_eq!(report.error_count(), 3, "JSON-LD was not validated as RDF");
 }
 
 #[test]
 fn unknown_format_hard_fails() {
-    let gts = bundle_bytes();
-    let err = data_validate::run(b"{}", "application/json", &gts, NS, "x.json", false)
+    let err = run(b"{}", "application/json", "x.json", false)
         .expect_err("JSON instance is not an RDF format");
     assert!(err.message().contains("parse error") || err.message().contains("unsupported"));
 }
@@ -217,15 +255,11 @@ fn any_deep_code(report: &gmeow_errors::Report) -> bool {
 /// on-gate `deep_pass_failure_*` / `deep_false_*` tests.
 #[test]
 fn deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate() {
-    let gts = bundle_bytes();
-
     // Tier-1 (deep=false) sees nothing: PhysicalObject ⊥ Agent is not a structural
     // shape, so the data passes the default reasoner-free pass with no deep findings.
-    let tier1 = data_validate::run(
+    let tier1 = run(
         DEEP_INCONSISTENT_TTL.as_bytes(),
         "turtle",
-        &gts,
-        NS,
         "deep.ttl",
         false,
     )
@@ -241,15 +275,7 @@ fn deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate() {
 
     // Tier-2 (deep=true) merges the data with the bundle TBox and the native DL
     // reasoner forces the individual into owl:Nothing — an error Tier-1 missed.
-    let deep = data_validate::run(
-        DEEP_INCONSISTENT_TTL.as_bytes(),
-        "turtle",
-        &gts,
-        NS,
-        "deep.ttl",
-        true,
-    )
-    .expect("deep run");
+    let deep = run(DEEP_INCONSISTENT_TTL.as_bytes(), "turtle", "deep.ttl", true).expect("deep run");
     assert!(
         has_code(&deep, "validate.deep.inconsistent"),
         "--deep must surface the entailed inconsistency: {:?}",
@@ -294,12 +320,9 @@ ex:i a gmeow:Item ;
 /// proxy for "the producer only READ the graph; the base graph is unmutated").
 #[test]
 fn abductive_wing_fires_on_the_real_validate_cli_path() {
-    let gts = bundle_bytes();
-    let report = data_validate::run(
+    let report = run(
         UNDERSPEC_ABDUCTIVE_TTL.as_bytes(),
         "turtle",
-        &gts,
-        NS,
         "underspec.ttl",
         false,
     )
@@ -353,11 +376,9 @@ fn abductive_wing_fires_on_the_real_validate_cli_path() {
     }
 
     // Determinism / read-only: the same input twice yields the identical abductive code set.
-    let report2 = data_validate::run(
+    let report2 = run(
         UNDERSPEC_ABDUCTIVE_TTL.as_bytes(),
         "turtle",
-        &gts,
-        NS,
         "underspec.ttl",
         false,
     )
@@ -384,10 +405,8 @@ fn abductive_wing_fires_on_the_real_validate_cli_path() {
 /// advice fires and no bundle self-advice leaks in — 0 errors, 0 warnings.
 #[test]
 fn abductive_wing_does_not_gate_a_conforming_input() {
-    let gts = bundle_bytes();
     let clean = "@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n";
-    let report = data_validate::run(clean.as_bytes(), "turtle", &gts, NS, "clean.ttl", false)
-        .expect("run clean");
+    let report = run(clean.as_bytes(), "turtle", "clean.ttl", false).expect("run clean");
     assert_eq!(report.error_count(), 0, "clean graph must report no errors");
     assert_eq!(
         report.warning_count(),
@@ -409,9 +428,7 @@ fn deep_false_is_the_reasoner_free_default() {
     // AC3: the pinned Tier-1 fixture under the default (deep=false) keeps its exact
     // 3-errors-1-warning shape AND carries no validate.deep.* findings — the deep
     // reasoner does not run without the flag.
-    let gts = bundle_bytes();
-    let report = data_validate::run(FAIL_TTL.as_bytes(), "turtle", &gts, NS, "fail.ttl", false)
-        .expect("tier-1 run");
+    let report = run(FAIL_TTL.as_bytes(), "turtle", "fail.ttl", false).expect("tier-1 run");
     assert_eq!(
         report.error_count(),
         3,

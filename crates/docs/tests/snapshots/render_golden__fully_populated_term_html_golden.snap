@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 330
 expression: "to_html(&model, &Page::Term(slug))"
 ---
 <!doctype html>
@@ -39,7 +40,7 @@ expression: "to_html(&model, &Page::Term(slug))"
 <tr><td>Category</td><td>Property</td></tr>
 <tr><td>Slice</td><td><a href="../../slices/quality/index.html">GMEOW Data Quality Module</a></td></tr>
 </tbody></table>
-<p><img src="../../badges/completeness/12.svg" alt="completeness: Docs 12/17" /> <img src="../../badges/stability/stable.svg" alt="stability: stable" /> <img src="../../badges/category/property.svg" alt="category: Property" /> <img src="../../badges/box/boxrbox.svg" alt="box: RBox" /></p>
+<p><img src="../../badges/completeness/12.svg" alt="completeness: Docs 12/17" /> <img src="../../badges/stability/stable.svg" alt="stability: stable" /> <img src="../../badges/category/property.svg" alt="category: Property" /> <img src="../../badges/box/boxrbox.svg" alt="box: RBox" /> <img src="../../badges/stereotype/objectproperty.svg" alt="stereotype: ObjectProperty" /></p>
 <h2>Definition</h2>
 <p>The entity whose data quality is being assessed — the feature of interest of the quality observation. Sub-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment.</p>
 <h2>For developers</h2>
@@ -120,6 +121,8 @@ expression: "to_html(&model, &Page::Term(slug))"
 <li><em>An approximate match is a lossy projection — the external term is not an exact equivalent. See the <a href="../../logic/loss-ledger/index.html">preservation loss ledger</a> for the per-target structural drops.</em></li>
 <li><em>These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the <a href="../../logic/loss-ledger/index.html">preservation loss ledger</a> for the per-target structural drops.</em></li>
 </ul>
+<h2>Logic stereotypes</h2>
+<p><code>logic:ObjectProperty</code> — see the <a href="../../logic/index.html">Logic &amp; Reasoning</a> index.</p>
 <h2>Box role</h2>
 <p><a href="../../four-boxes/index.html">RBox (<code>gmeow:boxRBox</code>)</a></p>
 <h2>Documentation coverage</h2>
@@ -138,7 +141,7 @@ expression: "to_html(&model, &Page::Term(slug))"
 <h2>Citation</h2>
 <ul>
 <li><strong>Permalink:</strong> <a href="https://blackcatinformatics.ca/gmeow/assessedEntity">https://blackcatinformatics.ca/gmeow/assessedEntity</a></li>
-<li><strong>Content address:</strong> <code>https://blackcatinformatics.ca/gmeow/assessedEntity@blake3:cf3747eacfbae8d1d0b044115254b28e1df5077bebaf69bca4fa60839848428f</code></li>
+<li><strong>Content address:</strong> <code>https://blackcatinformatics.ca/gmeow/assessedEntity@blake3:b1bedc359ec9ef4cf8debe5e04c04fada046e1d834c112adbe5afad2b8f3fa9b</code></li>
 <li><strong>Cite the ontology:</strong> <a href="https://doi.org/10.67342/26w4o">10.67342/26w4o</a></li>
 </ul>
 <hr />

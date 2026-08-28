@@ -28,7 +28,7 @@
 # such triple exists today.
 #
 # ONE invariant is unreachable by this module-scoped ASK harness and lives as a
-# native Rust conformance twin in crates/validate/tests/conformance_imagination.rs:
+# native Rust conformance twin in crates/validate/tests/conformance_cases/conformance_imagination.rs:
 # slice_depends_on_is_exactly_kernel — set-equality over manifest.ttl, which
 # run_structural_cell never loads (store = module.ttl + examples/ only).
 #

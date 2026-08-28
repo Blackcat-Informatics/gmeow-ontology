@@ -3,7 +3,7 @@
 #
 # Declarative competency questions for the trust slice (crates/slicetest),
 # migrated from the message-trust / key-scheme / key-certification / trust-assertion
-# competency tests in crates/validate/tests/conformance_competency.rs. TBox subsets over the
+# competency tests in crates/validate/tests/conformance_cases/conformance_competency.rs. TBox subsets over the
 # asserted merged ontology (contains-check). No Gap-1 universal — fixed sets.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

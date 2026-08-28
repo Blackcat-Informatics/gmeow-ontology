@@ -12,7 +12,7 @@
 #
 # The inline SHACL example-conformance cases and the fixture-based per-node
 # warning/violation + mutation checks now live natively in
-# crates/validate/tests/conformance_evidence.rs (Case rows for the five inline
+# crates/validate/tests/conformance_cases/conformance_evidence.rs (Case rows for the five inline
 # graphs; GraphStore/report twins for the cogneto-cases.ttl InfoWorld/OrgBook/
 # Private citations and the OrgBook supportsNotability mutation).
 

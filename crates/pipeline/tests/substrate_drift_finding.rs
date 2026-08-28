@@ -14,8 +14,8 @@
 //! so no substrate A-Box entered the SHACL target set and the constraint could never
 //! fire — this test is RED without the fold and GREEN with it.
 //!
-//! Driven through the crate's PUBLIC surface (mirrors `abductive_wing.rs`): the REAL
-//! `ValidateStage::run`, the REAL committed `procedural-constraints.ttl` shape union
+//! Driven through the crate's PUBLIC surface: the REAL `ValidateStage::run`, the
+//! producer-authenticated `procedural-constraints.ttl` shape union
 //! member (which carries the derived pin shapes), and a source-load product whose
 //! `graph/provenance` carries the disagreeing A-Box.
 
@@ -134,10 +134,14 @@ fn run_and_capture_shacl_nq() -> String {
         StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
     );
 
-    // The REAL committed procedural-constraints.ttl carries the derived pin shapes; the
+    // The producer-selected procedural-constraints.ttl carries the derived pin shapes; the
     // other members ride header-only (they contribute no shape that targets the A-Box).
-    let procedural = std::fs::read(repo_root().join(PROCEDURAL_CONSTRAINTS_PATH))
-        .expect("committed procedural-constraints.ttl");
+    let procedural = gmeow_pipeline::fixture::authenticated_artifact(
+        &repo_root(),
+        "stage-compile-logic",
+        PROCEDURAL_CONSTRAINTS_PATH,
+    )
+    .expect("producer-selected procedural-constraints.ttl");
     type ProducerFixture = (&'static str, Vec<(&'static str, Vec<u8>)>);
     let producers: [ProducerFixture; 4] = [
         (

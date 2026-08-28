@@ -11,19 +11,18 @@
 //! |---|---|
 //! | `gmeow:corpusSelectsBlobRep` | the members of that archive, from `stage-archive-blobs` |
 //! | `gmeow:corpusSelectsGraph` | that named graph's canonical N-Triples |
-//! | `gmeow:corpusSelectsPathPrefix` | the artifacts / authored files under that prefix |
+//! | `gmeow:corpusSelectsPathPrefix` | one exact logical file, or the artifacts / authored files under a trailing-slash prefix |
 //! | `gmeow:corpusSelectsStageProduct` | that stage product's artifacts |
 //!
 //! # Why a stage-product selector exists at all
 //!
-//! Two shipped corpora need material that is SINK-FOLDED — `reasoning-archive` and
-//! `lang-surface-blob` are assembled only at the terminal snapshot, so they are not
-//! archive reps a mid-DAG trainer can read. Re-specifying those corpora over the
-//! archives' constituent inputs would duplicate archive-membership logic and create
-//! a second source of truth for "what is in this archive" (Principle 4). Selecting
-//! the PRODUCING STAGE's product instead reaches the same lifted surface at the
-//! point in the DAG where the trainer actually runs: `gmeow-prooftrace-v1` reaches
-//! `stage-reason`.
+//! This selector is the general route to a producer's byte-artifact lane when no
+//! narrower graph, path-prefix, or archive representation identifies the intended
+//! corpus. It preserves DAG provenance: the declaration names the producer whose
+//! exact product is read, rather than reaching around the graph to a stale committed
+//! file. The currently shipped corpora use narrower selectors, but the vocabulary and
+//! its fail-closed evaluator remain available for a future surface that truly needs a
+//! whole stage product.
 //!
 //! # An unrecognized selector is a HARD FAIL
 //!
@@ -64,6 +63,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::Arc;
 
 use purrdf::gts_compose::BlobRow;
 use purrdf::{DatasetView, RdfDataset, TermId, TermRef};
@@ -97,7 +97,8 @@ pub enum CorpusSelector {
     /// `gmeow:corpusSelectsGraph` — a named graph; its canonical N-Triples is one
     /// sample.
     Graph(String),
-    /// `gmeow:corpusSelectsPathPrefix` — a repo-relative path family.
+    /// `gmeow:corpusSelectsPathPrefix` — one repo-relative file, or a
+    /// trailing-slash path family.
     PathPrefix(String),
     /// `gmeow:corpusSelectsStageProduct` — a `gmeow:PipelineStage`; every artifact
     /// on its product's byte lane is one sample.
@@ -138,14 +139,78 @@ pub struct CorpusSources<'a> {
     /// The `stage-archive-blobs` product's rows
     /// ([`crate::stages::archive_blobs::archive_blobs_from_product`]).
     pub archives: &'a [BlobRow],
-    /// THIS run's generated artifacts, by repo-relative logical path, off the
-    /// producing stages' in-memory byte lanes. A `generated/` path prefix resolves
-    /// HERE and never from disk: the committed tree is not flushed until the
-    /// post-run reconcile returns, so a disk read would train on the PREVIOUS
-    /// build's bytes — the stale-disk-fold class this crate refuses.
+    /// Additional in-memory artifacts used by focused fixtures. Production corpus
+    /// resolution reads the exact borrowed artifact lanes from [`Self::upstream`]
+    /// and leaves this map empty, so it never clones every consumed producer merely
+    /// to select one path prefix. A `generated/` path prefix never falls back to disk.
     pub artifacts: &'a BTreeMap<String, Vec<u8>>,
     /// Upstream products by stage id, for the stage-product selector.
     pub upstream: &'a BTreeMap<String, StageProduct>,
+}
+
+/// Reusable bounded intermediates shared by corpus resolutions in one stage run.
+///
+/// Two shipped dictionaries select the same authoring-briefs graph. Canonicalizing
+/// that graph twice was both duplicated work and duplicated peak memory. The cache
+/// holds only the canonical bytes of explicitly selected graphs, keyed by graph IRI;
+/// archive members and source files remain per-corpus and are released immediately
+/// after that dictionary is trained.
+#[derive(Default)]
+pub struct CorpusAssemblyCache {
+    graph_samples: BTreeMap<String, Arc<[u8]>>,
+}
+
+fn selected_archive_bytes<'a>(
+    sources: &CorpusSources<'a>,
+    rep: &str,
+    corpus_iri: &str,
+) -> Result<&'a [u8], gmeow_errors::Diag> {
+    if let Some(row) = sources.archives.iter().find(|row| row.rep == rep) {
+        return Ok(row.data.as_slice());
+    }
+    crate::stages::archive_blobs::archive_blob_bytes_from_product(sources.upstream, rep).map_err(
+        |err| {
+            invalid_declaration(format!(
+                "<{corpus_iri}> selects blob rep {rep:?}, which the stage-archive-blobs \
+                 product does not carry: {err}"
+            ))
+        },
+    )
+}
+
+/// Borrow only the artifact entries one selector can observe. Later producer ids
+/// overwrite earlier equal paths in the upstream map's canonical order, matching the
+/// previous owned-union semantics without copying every unselected payload.
+fn selected_artifacts<'a>(
+    sources: &CorpusSources<'a>,
+    prefix: &str,
+) -> Result<BTreeMap<&'a str, &'a [u8]>, gmeow_errors::Diag> {
+    let mut selected: BTreeMap<&'a str, &'a [u8]> = BTreeMap::new();
+    for (path, bytes) in sources.artifacts.range(prefix.to_string()..) {
+        if !logical_path_selected(path, prefix) {
+            break;
+        }
+        selected.insert(path.as_str(), bytes.as_slice());
+    }
+    for product in sources.upstream.values() {
+        for (path, bytes) in product.artifact_refs()? {
+            if logical_path_selected(path, prefix) {
+                selected.insert(path, bytes);
+            }
+        }
+    }
+    Ok(selected)
+}
+
+/// A trailing slash declares a family; every other value declares one exact logical
+/// file. This keeps a full filename from accidentally admitting a later `.sig`, `.bak`,
+/// or similarly prefixed sibling.
+fn logical_path_selected(path: &str, selector: &str) -> bool {
+    if selector.ends_with('/') {
+        path.starts_with(selector)
+    } else {
+        path == selector
+    }
 }
 
 /// Read a corpus individual's selectors off the carrier.
@@ -247,10 +312,16 @@ fn reject_fixpoint(selector: &CorpusSelector, corpus_iri: &str) -> Result<(), gm
             .find(|excluded| *excluded == graph)
             .map(|excluded| format!("the named graph <{excluded}>")),
         CorpusSelector::PathPrefix(prefix) => {
-            // Coverage runs BOTH ways: `generated/` contains `generated/medium/`,
-            // and `generated/medium/x/` is inside it. Either is a cycle.
-            (MEDIUM_GENERATED_PREFIX.starts_with(prefix.as_str())
-                || prefix.starts_with(MEDIUM_GENERATED_PREFIX))
+            // Family coverage runs BOTH ways: `generated/` contains
+            // `generated/medium/`, and `generated/medium/x/` is inside it. An exact
+            // file selector is a cycle only when that file is inside the emitted
+            // family.
+            (if prefix.ends_with('/') {
+                MEDIUM_GENERATED_PREFIX.starts_with(prefix.as_str())
+                    || prefix.starts_with(MEDIUM_GENERATED_PREFIX)
+            } else {
+                prefix.starts_with(MEDIUM_GENERATED_PREFIX)
+            })
             .then(|| format!("the emitted path family `{MEDIUM_GENERATED_PREFIX}`"))
         }
         // A blob rep and a stage product name a container, not a region: whether
@@ -272,7 +343,7 @@ fn reject_fixpoint(selector: &CorpusSelector, corpus_iri: &str) -> Result<(), gm
 /// Reject material that reaches into the excluded region — the dynamic half of the
 /// fixpoint exclusion, for selectors whose coverage only their contents can answer.
 fn reject_covering_bytes<'a>(
-    names: impl IntoIterator<Item = &'a String>,
+    names: impl IntoIterator<Item = &'a str>,
     selector: &CorpusSelector,
     corpus_iri: &str,
 ) -> Result<(), gmeow_errors::Diag> {
@@ -293,7 +364,7 @@ fn reject_covering_bytes<'a>(
 pub struct CorpusResolution {
     /// The samples the trainer sees: the resolved corpus MINUS the archive members
     /// the declared `gmeow:CorpusTrainingSplit` holds out.
-    pub training: BTreeSet<Vec<u8>>,
+    pub training: BTreeSet<Arc<[u8]>>,
     /// How many archive members the declared split held out — the members the
     /// dictionary never saw, which the evaluated tar still contains.
     pub held_out_count: u64,
@@ -331,13 +402,32 @@ pub fn assemble(
     corpus_iri: &str,
     sources: &CorpusSources<'_>,
 ) -> Result<CorpusResolution, gmeow_errors::Diag> {
+    assemble_with_cache(
+        registry,
+        corpus_iri,
+        sources,
+        &mut CorpusAssemblyCache::default(),
+    )
+}
+
+/// Resolve a declared corpus while sharing bounded graph serializations with other
+/// dictionary resolutions in the same run.
+///
+/// # Errors
+/// The same conditions as [`assemble`].
+pub fn assemble_with_cache(
+    registry: &MediumRegistry,
+    corpus_iri: &str,
+    sources: &CorpusSources<'_>,
+    cache: &mut CorpusAssemblyCache,
+) -> Result<CorpusResolution, gmeow_errors::Diag> {
     let corpus = registry.corpora().get(corpus_iri).ok_or_else(|| {
         invalid_declaration(format!(
             "<{corpus_iri}> is not a declared gmeow:DictionaryCorpus"
         ))
     })?;
 
-    let mut samples: BTreeSet<Vec<u8>> = BTreeSet::new();
+    let mut samples: BTreeSet<Arc<[u8]>> = BTreeSet::new();
     // Every resolved sample's own digest — held-out members included, because the
     // corpus IDENTITY is about what the corpus holds, not about what the trainer saw.
     let mut digests: BTreeSet<String> = BTreeSet::new();
@@ -346,54 +436,52 @@ pub fn assemble(
     // corpus's whole archive material rather than once per selector — a corpus that
     // draws on two archives is split as one population, exactly as it is trained and
     // evaluated as one.
-    let mut archive_members: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    let mut archive_members: BTreeMap<String, Arc<[u8]>> = BTreeMap::new();
     for selector in &corpus.selectors {
         match selector {
             CorpusSelector::BlobRep(rep) => {
-                let row = sources
-                    .archives
-                    .iter()
-                    .find(|row| row.rep == *rep)
-                    .ok_or_else(|| {
-                        invalid_declaration(format!(
-                            "<{corpus_iri}> selects blob rep {rep:?}, which the \
-                             stage-archive-blobs product does not carry (available: {:?})",
-                            sources.archives.iter().map(|r| &r.rep).collect::<Vec<_>>()
-                        ))
-                    })?;
-                let members = purrdf::ustar::read_archive(&row.data).map_err(|err| {
+                let archive = selected_archive_bytes(sources, rep, corpus_iri)?;
+                let members = purrdf::ustar::read_archive(archive).map_err(|err| {
                     invalid_declaration(format!(
                         "<{corpus_iri}> selects blob rep {rep:?}, which does not read as a USTAR \
                          archive: {err}"
                     ))
                 })?;
                 let members: BTreeMap<String, Vec<u8>> = members.into_iter().collect();
-                reject_covering_bytes(members.keys(), selector, corpus_iri)?;
+                reject_covering_bytes(members.keys().map(String::as_str), selector, corpus_iri)?;
                 for bytes in members.into_values().filter(|b| !b.is_empty()) {
                     // Keyed by digest, so a member two archives both carry is ONE
                     // member of the corpus and is split once.
-                    archive_members.insert(super::blake3_digest(&bytes), bytes);
+                    archive_members.insert(super::blake3_digest(&bytes), Arc::from(bytes));
                 }
             }
             CorpusSelector::Graph(graph) => {
-                let projected = sources.dataset.project_named_graph(graph);
-                let ntriples = purrdf::canonical_flat_nquads(&projected).map_err(|err| {
-                    invalid_declaration(format!(
-                        "<{corpus_iri}> selects graph <{graph}>, which does not canonicalize: \
-                         {err}"
-                    ))
-                })?;
-                if !ntriples.is_empty() {
-                    admit(&mut samples, &mut digests, ntriples.into_bytes());
+                let sample = match cache.graph_samples.get(graph) {
+                    Some(sample) => Arc::clone(sample),
+                    None => {
+                        let projected = sources.dataset.project_named_graph(graph);
+                        let ntriples =
+                            purrdf::canonical_flat_nquads(&projected).map_err(|err| {
+                                invalid_declaration(format!(
+                                    "<{corpus_iri}> selects graph <{graph}>, which does not \
+                                     canonicalize: {err}"
+                                ))
+                            })?;
+                        let sample: Arc<[u8]> = Arc::from(ntriples.into_bytes());
+                        cache
+                            .graph_samples
+                            .insert(graph.clone(), Arc::clone(&sample));
+                        sample
+                    }
+                };
+                if !sample.is_empty() {
+                    admit(&mut samples, &mut digests, sample);
                 }
             }
             CorpusSelector::PathPrefix(prefix) => {
-                for (path, bytes) in sources.artifacts.range(prefix.clone()..) {
-                    if !path.starts_with(prefix.as_str()) {
-                        break;
-                    }
+                for bytes in selected_artifacts(sources, prefix)?.into_values() {
                     if !bytes.is_empty() {
-                        admit(&mut samples, &mut digests, bytes.clone());
+                        admit(&mut samples, &mut digests, Arc::from(bytes));
                     }
                 }
                 // An AUTHORED tree is legitimately on disk (it is what
@@ -417,11 +505,11 @@ pub fn assemble(
                          than resolving the corpus from disk"
                     ))
                 })?;
-                let artifacts = product.artifacts();
-                reject_covering_bytes(artifacts.keys(), selector, corpus_iri)?;
+                let artifacts = product.artifact_refs()?;
+                reject_covering_bytes(artifacts.keys().copied(), selector, corpus_iri)?;
                 reject_covering_graphs(product, selector, corpus_iri)?;
                 for bytes in artifacts.into_values().filter(|b| !b.is_empty()) {
-                    admit(&mut samples, &mut digests, bytes);
+                    admit(&mut samples, &mut digests, Arc::from(bytes));
                 }
             }
         }
@@ -477,7 +565,7 @@ pub fn assemble(
 /// serialization and an authored source tree is not what the frame carries, so neither
 /// is the train-equals-test case the split exists to break — holding either out would
 /// shrink the training set without adding an unseen member to any evaluated frame.
-fn admit(samples: &mut BTreeSet<Vec<u8>>, digests: &mut BTreeSet<String>, bytes: Vec<u8>) {
+fn admit(samples: &mut BTreeSet<Arc<[u8]>>, digests: &mut BTreeSet<String>, bytes: Arc<[u8]>) {
     digests.insert(super::blake3_digest(&bytes));
     samples.insert(bytes);
 }
@@ -526,15 +614,26 @@ fn reject_covering_graphs(
     Ok(())
 }
 
-/// Every regular file under an AUTHORED source tree, recursively. Symlinks are
-/// skipped in both positions: a symlinked directory could form a cycle, and a
-/// symlinked file would fold the same bytes twice under two names.
+/// One exact AUTHORED file, or every regular file under an authored directory,
+/// recursively. Symlinks are skipped in both positions: a symlinked directory could
+/// form a cycle, and a symlinked file would fold the same bytes twice under two names.
 fn collect_authored_files(
-    dir: &Path,
-    samples: &mut BTreeSet<Vec<u8>>,
+    path: &Path,
+    samples: &mut BTreeSet<Arc<[u8]>>,
     digests: &mut BTreeSet<String>,
 ) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
+    if path.is_symlink() {
+        return;
+    }
+    if path.is_file() {
+        if let Ok(bytes) = std::fs::read(path)
+            && !bytes.is_empty()
+        {
+            admit(samples, digests, Arc::from(bytes));
+        }
+        return;
+    }
+    let Ok(entries) = std::fs::read_dir(path) else {
         return;
     };
     let mut paths: Vec<std::path::PathBuf> = entries
@@ -548,7 +647,7 @@ fn collect_authored_files(
         } else if let Ok(bytes) = std::fs::read(&path)
             && !bytes.is_empty()
         {
-            admit(samples, digests, bytes);
+            admit(samples, digests, Arc::from(bytes));
         }
     }
 }
@@ -726,6 +825,86 @@ mod tests {
         );
     }
 
+    #[test]
+    fn a_filename_selector_excludes_similarly_prefixed_siblings() {
+        let mut harness = Harness::new();
+        std::fs::write(
+            harness.root.path().join("slices/core/gts/module.ttl.bak"),
+            b"# must not enter the exact authored-file corpus\n",
+        )
+        .expect("authored sibling");
+        harness.artifacts.insert(
+            "generated/statements/claims.ttl.sig".to_string(),
+            b"signature sibling must not enter the exact generated-file corpus\n".to_vec(),
+        );
+        let registry = registry_of(
+            "gmeow:corpusExact a gmeow:DictionaryCorpus ;\n\
+             \x20   gmeow:corpusSelectsPathPrefix \"slices/core/gts/module.ttl\" ,\n\
+             \x20       \"generated/statements/claims.ttl\" .",
+        )
+        .expect("registry");
+        let resolved = assemble(&registry, &gm("corpusExact"), &harness.sources())
+            .expect("exact file selectors resolve");
+
+        assert_eq!(resolved.training.len(), 2);
+        assert!(
+            resolved
+                .training
+                .iter()
+                .any(|sample| sample.starts_with(b"# an authored source file"))
+        );
+        assert!(
+            resolved
+                .training
+                .iter()
+                .any(|sample| sample.starts_with(b"<https://e/claim>"))
+        );
+        assert!(resolved.training.iter().all(|sample| {
+            !sample.starts_with(b"# must not enter") && !sample.starts_with(b"signature sibling")
+        }));
+    }
+
+    #[test]
+    fn repeated_graph_selectors_share_one_canonical_sample() {
+        let mut harness = Harness::new();
+        harness.dataset = purrdf::parse_dataset(
+            b"@prefix ex: <https://e/> . ex:graph { ex:s ex:p \"value\" . }",
+            "application/trig",
+            None,
+        )
+        .expect("named-graph fixture");
+        let registry = registry_of(
+            "gmeow:corpusGraphA a gmeow:DictionaryCorpus ;\n\
+             \x20   gmeow:corpusSelectsGraph <https://e/graph> .\n\
+             gmeow:corpusGraphB a gmeow:DictionaryCorpus ;\n\
+             \x20   gmeow:corpusSelectsGraph <https://e/graph> .",
+        )
+        .expect("registry");
+        let mut cache = CorpusAssemblyCache::default();
+        let first = assemble_with_cache(
+            &registry,
+            &gm("corpusGraphA"),
+            &harness.sources(),
+            &mut cache,
+        )
+        .expect("first resolution");
+        let second = assemble_with_cache(
+            &registry,
+            &gm("corpusGraphB"),
+            &harness.sources(),
+            &mut cache,
+        )
+        .expect("second resolution");
+
+        assert_eq!(cache.graph_samples.len(), 1);
+        let first = first.training.first().expect("first sample");
+        let second = second.training.first().expect("second sample");
+        assert!(
+            Arc::ptr_eq(first, second),
+            "the second dictionary must reuse the canonical graph bytes"
+        );
+    }
+
     /// The members the declared split holds out of `archive_members()`, computed the
     /// way a READER would: rank by content digest, take every stride-th.
     fn expected_held_out(split: &crate::medium::registry::TrainingSplitDef) -> Vec<Vec<u8>> {
@@ -773,7 +952,7 @@ mod tests {
         assert_eq!(resolved.held_out_count, expected_held.len() as u64);
         for held in &expected_held {
             assert!(
-                !resolved.training.contains(held),
+                !resolved.training.contains(held.as_slice()),
                 "a held-out member reached the trainer — the evaluation would be over bytes the \
                  dictionary memorized"
             );
@@ -937,8 +1116,8 @@ mod tests {
         assert!(diag.to_string().contains("closes a cycle"), "{diag}");
     }
 
-    /// A stage-product selector reaches a product's artifacts — the mechanism the
-    /// two SINK-FOLDED corpora depend on.
+    /// A stage-product selector reaches the named product's artifact lane without
+    /// falling back to a committed file.
     #[test]
     fn a_stage_product_selector_reads_the_named_product() {
         let mut harness = Harness::new();

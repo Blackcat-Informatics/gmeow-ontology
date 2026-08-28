@@ -1,18 +1,19 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "17",
   "slice_count": 85,
-  "term_count": 7180,
-  "dependency_edge_count": 1400,
+  "term_count": 7206,
+  "dependency_edge_count": 1401,
   "term_count_by_category": {
-    "Class": 1987,
+    "Class": 1999,
     "Datatype": 1,
-    "Individual": 1758,
-    "Property": 3434
+    "Individual": 1759,
+    "Property": 3447
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -168,8 +169,8 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "2ffd23a0c6899de722e639715ef8264d64d1bda099e6668c65109dae1faebbab",
-        "semantic_digest": "a95701fd11e58120728718c300fd499042fca737c0fd423dae5396b13e2a8bf3"
+        "raw_digest": "45e6adbe6d1671414f9827f04b1d560348943ffac6062d02b042bd9df2a61113",
+        "semantic_digest": "67b36f39d366271223bd04804ca4d5b27e9698f3a1c6a7ffb33828859923a531"
       },
       {
         "role": "TestDsl",
@@ -223,7 +224,8 @@ expression: summary
       "avoid_for_consumer": [],
       "adoption_targets": [],
       "logic_stereotypes": [
-        "logic:AbstractIndividualType"
+        "logic:AbstractIndividualType",
+        "logic:Class"
       ],
       "frameworks": [],
       "related_terms": [],
@@ -235,7 +237,7 @@ expression: summary
       "stability": "stable",
       "added_in_version": "0.1.0",
       "changelog": [],
-      "content_digest": "blake3:d6470c559d25036e50b4d84de570b8ba8dedd056a39e7e972c5cf5f92d744a2d",
+      "content_digest": "blake3:aab7069791a85592d0c9daa8aaa50a2612d4953ae17c483fa379fef35052e7b7",
       "profiles": [
         "claims",
         "dreaming",
@@ -277,7 +279,9 @@ expression: summary
       "use_for_consumer": [],
       "avoid_for_consumer": [],
       "adoption_targets": [],
-      "logic_stereotypes": [],
+      "logic_stereotypes": [
+        "logic:DatatypeProperty"
+      ],
       "frameworks": [],
       "related_terms": [],
       "box_role": "gmeow:boxRBox",
@@ -288,7 +292,7 @@ expression: summary
       "stability": "stable",
       "added_in_version": "0.1.0",
       "changelog": [],
-      "content_digest": "blake3:4f5b4ea54d5738f764aab4111804bd4ffb80874d178369db4b84a72c8495b12c",
+      "content_digest": "blake3:a60fd8db3a9bd76059ac53bbf2358247043f24d5f2a7d766278f0a8416af7fe2",
       "profiles": [
         "claims",
         "dreaming",
@@ -318,7 +322,9 @@ expression: summary
       "use_for_consumer": [],
       "avoid_for_consumer": [],
       "adoption_targets": [],
-      "logic_stereotypes": [],
+      "logic_stereotypes": [
+        "logic:NamedIndividual"
+      ],
       "frameworks": [],
       "related_terms": [],
       "box_role": "gmeow:boxABox",
@@ -329,7 +335,7 @@ expression: summary
       "stability": "stable",
       "added_in_version": "0.1.0",
       "changelog": [],
-      "content_digest": "blake3:2975cace510b2098d48653aebfe8f0a966ecaf8cce2f23d18799f36912fafb19",
+      "content_digest": "blake3:67d2393ed8b1193e0e5ebda39bbea598ac2ed39f9452eff350f2e103f2cc26d0",
       "profiles": [
         "claims",
         "dreaming",
@@ -345,7 +351,7 @@ expression: summary
   "linkage_count": 2125,
   "example_count": 207,
   "concern_count": 7,
-  "external_term_count": 1805,
+  "external_term_count": 1803,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -461,7 +467,7 @@ expression: summary
     ]
   },
   "shape_count": 55,
-  "competency_count": 356,
+  "competency_count": 357,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/AltPathShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AltPath",

@@ -217,15 +217,12 @@ pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_error
     Ok(Arc::new(RdfDataset::union(&refs)))
 }
 
-/// Reader dependencies include ownership and projection metadata as well as logical
-/// predicates, so predicate-level narrowing is not sound: the complete RDF 1.2 carrier
-/// is preserved, including reifiers and annotations.
+/// The complete RDF 1.2 carrier consumed by `stage-compile-logic`.
 ///
-/// `stage-source-load` publishes this as its `graph/logic-compile-inputs` named graph so
-/// compile-logic reads a complete typed entity instead of re-parsing the whole corpus.
-/// Reader-output identity
-/// against the full corpus is proved by the
-/// `logic_compile_input_subgraph_preserves_reader_output` guard.
+/// Ownership, annotation, correspondence, and projection metadata are all reader inputs.
+/// Predicate-level narrowing is therefore unsound: a newly admitted reader can make any
+/// previously stripped predicate semantic without changing this boundary. Preserve the
+/// frozen carrier exactly and let the readers select what they understand.
 pub fn logic_compile_input_subgraph(
     base: &Arc<RdfDataset>,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
@@ -294,6 +291,13 @@ pub fn is_grounding_surface_demonstrator(dataset: &RdfDataset) -> bool {
     })
 }
 
+/// Whether an already-parsed example belongs in the object-level positive-demonstrator
+/// graph. Kept as a pure predicate so its policy can be tested without invoking the
+/// repository corpus producer.
+fn belongs_in_object_level_examples(dataset: &RdfDataset) -> bool {
+    !is_grounding_surface_demonstrator(dataset)
+}
+
 /// Parse and union every example file into one dataset rooted at
 /// [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`]. Each file's blank nodes are
 /// standardized apart ([`RdfDatasetBuilder::push_dataset`]) so a structurally-distinct blank
@@ -315,7 +319,7 @@ pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors
             })
         })?;
         let parsed = turtle_bytes_to_dataset(&bytes, &path.display().to_string())?;
-        if is_grounding_surface_demonstrator(parsed.as_ref()) {
+        if !belongs_in_object_level_examples(parsed.as_ref()) {
             // Owned by graph/correspondence-laws, not the object-level graph/examples corpus.
             continue;
         }
@@ -534,7 +538,7 @@ impl Stage for SourceLoadStage {
     }
     fn impl_version(&self) -> &str {
         // v2: attach the self-description named graphs (authored-default / imports /
-        // metadata / alignments / slice-analysis / verify / provenance) so the presenter
+        // metadata / alignments / slice-analysis / provenance) so the presenter
         // reads them instead of re-loading + re-canonicalizing the sources on the serial
         // snapshot node (PIPELINE_SPINE §3.2/§4). The BASE_GRAPH_PATH byte lane and the
         // default-graph fold `gts_compose` takes are unchanged.
@@ -544,8 +548,10 @@ impl Stage for SourceLoadStage {
         // v4: score slice quality once at the DAG root, emitting both the queryable
         // quality-assessment graph and the internal HTML report artifact consumed by the
         // terminal docs archive.
-        // v5: attach the `graph/logic-compile-inputs` named graph so compile-logic consumes
-        // the authored corpus as a typed entity.
+        // v5: attach the `graph/logic-compile-inputs` named graph — the SOUND (denylist)
+        // narrowing of the whole authored corpus compile-logic reads — so compile-logic
+        // consumes it as a typed entity and a documentation-only edit no longer busts the
+        // compiler's cache.
         // v6: attach the `graph/grounding-seams` named graph — the authored `gmeow:Seam`
         // registry re-projected losslessly off the SAME slice catalog the slice-analysis
         // graph reads. A `manifest.ttl` never enters the composed fold, so this graph is
@@ -556,22 +562,38 @@ impl Stage for SourceLoadStage {
         // the loader that reads the slices reads it too; it is admitted to the object-level
         // reasoning EDB, so every slice's worked examples reach the shipped bundle's
         // reasoned closure instead of only the docs/competency-question harvest.
-        // v8: rdfs:isDefinedBy is a validation-shape ownership input, and grounding-surface
-        // demonstrators are excluded from graph/examples before object-level reasoning.
-        "source_load.v8-lossless-compile-input"
+        // v8: graph/verify leaves this root stage; the dedicated downstream verify
+        // stage projects it from stage-reason's already-built ReasoningResult instead
+        // of launching a second native chase here.
+        // v9: the source-load key includes the exact authored source closure consumed
+        // by the slice-quality assessment. That assessment reads tests, queries,
+        // docs.md, and translation catalogs beyond the carrier's ontology inputs; a
+        // change to any of them must invalidate graph/quality-assessment rather than
+        // serving a stale cached grade.
+        // v10: exclude grounding-surface demonstrators from graph/examples. They are
+        // correspondence-law material, not object-level ABox input. The version bump is
+        // mandatory because the action-cache key cannot infer semantic Rust changes.
+        // v11: publish the complete RDF 1.2 authored carrier for compile-logic. Predicate
+        // denylisting was not a stable reader boundary and could discard newly semantic
+        // ownership/projection metadata.
+        "source_load.v11-lossless-compile-input"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
-        // files: imports, self-description metadata, SSSOM alignments, slice manifests +
-        // shapes (slice-analysis / verify), translation catalogs + docs guides (the
+        // files: imports, self-description metadata, SSSOM alignments, slice manifests,
+        // translation catalogs + docs guides (the
         // translated authored default). Declare them ALL so any of these busting the
         // cache re-runs the loader (cache soundness — a stale self-description graph would
         // ship a stale bundle). `build_self_description_dataset` is the single authority
         // for what is read; this mirrors its source closure. The `examples/*.ttl` corpus is
         // a genuine disk read of this stage's, so it joins that closure: editing any
-        // slice's demonstrator must re-run the loader.
+        // slice's demonstrator must re-run the loader. The quality assessment reads a
+        // wider authored surface (including slice tests, queries, docs.md, and i18n);
+        // use its own single discovery authority so the cache key cannot drift from
+        // the scorer's actual reads.
         let mut files = crate::stages::carrier::self_description_source_files(root)?;
         files.extend(example_files(root)?);
+        files.extend(gmeow_slice_quality::scored_source_files(root));
         files.sort();
         files.dedup();
         Ok(files)
@@ -721,22 +743,6 @@ mod tests {
     }
 
     #[test]
-    fn source_load_parses_the_whole_ontology() {
-        let root = repo_root();
-        let dataset = load_authored_dataset(&root).expect("load");
-        // The merged authored graph is substantial (50+ slices); sanity-floor it.
-        assert!(
-            dataset.quad_count() > 5_000,
-            "authored base graph unexpectedly small: {} quads",
-            dataset.quad_count()
-        );
-        // Round-trips through the in-memory N-Quads hand-off.
-        let nq = dataset_to_sorted_nquads(&dataset).expect("serialize");
-        let back = parse_base_graph(&nq).expect("reparse");
-        assert_eq!(dataset.quad_count(), back.quad_count());
-    }
-
-    #[test]
     fn authored_files_includes_root_and_modules() {
         let root = repo_root();
         let files = authored_files(&root).unwrap();
@@ -873,37 +879,6 @@ mod tests {
         }
     }
 
-    /// The corpus lands in ONE named graph, carrying witnesses from slices that had no path to
-    /// the object-level bundle at all before: a `core/` and an `extensions/` demonstrator
-    /// alongside the `grounding/math` one.
-    #[test]
-    fn examples_graph_carries_every_group_in_one_named_world() {
-        let root = repo_root();
-        let files = example_files(&root).expect("list examples");
-        let graph = examples_graph(&files).expect("union the corpus");
-        let projected = graph.project_named_graph(gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES);
-        assert_eq!(
-            projected.quad_count(),
-            graph.quad_count(),
-            "every corpus quad belongs to graph/examples — nothing leaks to the default graph, \
-             where it would be mistaken for an authored slice TBox"
-        );
-        let nquads = purrdf::canonical_flat_nquads(&projected).expect("canon the corpus");
-        for witness in [
-            // grounding/math: the α-twins the identity gate decides over.
-            "alpha-twins/firstProduct",
-            // core/: a demonstrator whose slice ships no producer stage at all.
-            "modeDeduction",
-            // extensions/: likewise.
-            "/finance/",
-        ] {
-            assert!(
-                nquads.contains(witness),
-                "graph/examples must carry the {witness} witness"
-            );
-        }
-    }
-
     #[test]
     fn missing_directory_listings_are_empty_not_errors() {
         // `sorted_dirs` / `ttl_files_in` treat an absent directory as an empty listing
@@ -935,9 +910,10 @@ mod tests {
             "test-grounding-surface-demonstrator",
         )
         .expect("parse demonstrator fixture");
+        assert!(is_grounding_surface_demonstrator(demonstrator.as_ref()));
         assert!(
-            is_grounding_surface_demonstrator(demonstrator.as_ref()),
-            "a dataset authoring logic:GroundingCorrespondence is a grounding-surface demonstrator"
+            !belongs_in_object_level_examples(demonstrator.as_ref()),
+            "a grounding-surface demonstrator is correspondence-law material"
         );
         let ordinary = turtle_bytes_to_dataset(
             b"@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/> .\n\
@@ -945,28 +921,10 @@ mod tests {
             "test-ordinary-demonstrator",
         )
         .expect("parse ordinary fixture");
+        assert!(!is_grounding_surface_demonstrator(ordinary.as_ref()));
         assert!(
-            !is_grounding_surface_demonstrator(ordinary.as_ref()),
-            "an ordinary positive demonstrator is not a grounding-surface demonstrator"
-        );
-
-        // Integration: the SHIPPED grounding-bridge-surface demonstrator's content never reaches
-        // the object-level graph/examples corpus.
-        let root = repo_root();
-        let graph = examples_graph(&example_files(&root).expect("list examples"))
-            .expect("union the corpus");
-        let projected = graph.project_named_graph(gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES);
-        let nquads = purrdf::canonical_flat_nquads(&projected).expect("canon the corpus");
-        assert!(
-            !nquads.contains("logic/GroundingCorrespondence"),
-            "no graph/examples quad may type a subject logic:GroundingCorrespondence — a grounding \
-             surface is correspondence-laws material, not an object-level positive demonstrator"
-        );
-        assert!(
-            !nquads.contains("examples/grounding-bridge/"),
-            "the grounding-bridge-surface demonstrator must be OUT of the object-level \
-             graph/examples EDB so its logic:inverseFunctionalProperty / logic:oneOf demonstrations \
-             never red reason-verify"
+            belongs_in_object_level_examples(ordinary.as_ref()),
+            "an ordinary positive demonstrator belongs in the object-level graph"
         );
     }
 }

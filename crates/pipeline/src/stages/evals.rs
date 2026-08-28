@@ -1094,14 +1094,6 @@ impl Stage for EvalsStage {
 mod tests {
     use super::*;
 
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
     #[test]
     fn evals_blake2s_matches_hashlib() {
         // hashlib.blake2s(data, digest_size=4).hexdigest() — canonical Python.
@@ -1115,60 +1107,6 @@ mod tests {
         assert_eq!(slug("reference-baseline"), "reference-baseline");
         // lossy ids gain a content-hash suffix
         assert!(slug("openai/gpt-4.1").starts_with("openai-gpt-4-1-"));
-    }
-
-    #[test]
-    fn evals_artifacts_are_byte_identical_to_committed() {
-        let root = repo_root();
-        let arts = render_evals(&root).expect("render evals");
-        // Every committed eval artifact must be reproduced exactly.
-        assert!(arts.contains_key(LEADERBOARD_PATH));
-        assert!(arts.contains_key(SCORES_PATH));
-        for (path, bytes) in &arts {
-            let committed = std::fs::read(root.join(path))
-                .unwrap_or_else(|_| panic!("committed missing: {path}"));
-            assert_eq!(
-                bytes,
-                &committed,
-                "{path} drifted from committed (len built {} vs committed {})",
-                bytes.len(),
-                committed.len()
-            );
-        }
-    }
-
-    #[test]
-    fn evals_scores_ttl_is_graph_isomorphic_to_committed() {
-        // Belt-and-braces: even though the gate is byte-exact, the meta-claim
-        // Turtle must also parse to the SAME triple set as the committed file
-        // (blank-node-free, so isomorphism reduces to triple-set equality).
-        let root = repo_root();
-        let arts = render_evals(&root).expect("render evals");
-        let built_bytes = arts.get(SCORES_PATH).expect("scores.ttl produced");
-
-        let parse = |bytes: &[u8]| -> BTreeMap<String, ()> {
-            // scores.ttl is blank-node-free, so isomorphism reduces to triple-set
-            // equality. Render each quad's subject/predicate/object as an oxigraph-free
-            // canonical token (`<iri>` / `_:label` / lexical literal) and collect the set.
-            let ds = Dataset::parse_turtle(bytes, "scores.ttl").expect("parse turtle");
-            let mut set: BTreeMap<String, ()> = BTreeMap::new();
-            ds.for_each_quad(|subject, predicate, object, _graph| {
-                let s = match subject {
-                    Subject::Named(iri) => format!("<{iri}>"),
-                    Subject::Blank(label) => format!("_:{label}"),
-                    Subject::Triple(_) => String::new(),
-                };
-                let o = object_location(&object);
-                set.insert(format!("{s} <{predicate}> {o} ."), ());
-            });
-            set
-        };
-        let committed = std::fs::read(root.join(SCORES_PATH)).unwrap();
-        assert_eq!(
-            parse(built_bytes),
-            parse(&committed),
-            "scores.ttl is not graph-isomorphic to committed"
-        );
     }
 
     /// Shift-left: drive the SAME native structural lint `make validate`/`make

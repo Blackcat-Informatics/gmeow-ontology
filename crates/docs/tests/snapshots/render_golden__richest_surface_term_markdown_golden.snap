@@ -1,6 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 130
+assertion_line: 128
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Doxastic State
@@ -14,7 +14,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Class |
 | Slice | [GMEOW Epistemics Module](../../slices/epistemics/index.md) |
 
-![completeness: Docs 15/17](../../badges/completeness/15.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 15/17](../../badges/completeness/15.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Class](../../badges/stereotype/class.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
@@ -134,7 +134,7 @@ gmeow:DoxasticState ⊑ gmeow:MentalMoment
 
 ## Logic stereotypes
 
-`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:Class` · `logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
@@ -161,7 +161,7 @@ gmeow:DoxasticState ⊑ gmeow:MentalMoment
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/DoxasticState>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:50555411cbaed535dcd924ae2340fc9e04babc3d89d2f3544e15a9c22b80f82b`
+- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:49b969bec06dc4017f228f75decd1fc285720d4c6e087985b00bc5543da073e6`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

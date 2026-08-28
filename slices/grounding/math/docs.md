@@ -329,17 +329,18 @@ five artifacts that realize and enforce it —
 The wiring is gated on three static surfaces (the module/examples vs. `tests/` dataset split forces
 the split) **plus execution**: the shared `gmeow:FlagshipScenarioShape` (SHACL cardinality, producer
 now required) and the thin slice `math:FlagshipScenarioShape` (failure-range) with `ex:saFlagshipCoverage`
-(structural) prove the five are present and fully linked to a real failure class; a native cross-check
-in `crates/slicetest` resolves each competency reference into `tests/competency.ttl` and confirms it is
-a registered, green (`cqExpectRow`) question with an existing query file; and the execution-discharge
-harness (`crates/pipeline/tests/math_flagship_discharge.rs`) RUNS each counter-example (asserting it
-raises exactly its declared failure class), each worked example (asserting nothing fires), and each
-native producer (asserting its pinned output). A scenario that is not fully wired is the typed failure
-`math:UnwiredFlagshipScenario` — the depth bar cannot silently regress.
+(structural) prove the five are present and fully linked to a real failure class. The explicit cached
+slice-spec producer resolves every competency reference into `tests/competency.ttl`, verifies the
+registered green (`cqExpectRow`) question and query file, and executes the declared positive and
+negative cells. The production `stage-math-producers` runs the native producers once and graph-compares
+their seven pinned fixtures; read-only authenticated-bundle conformance covers all ten emitted producer
+graphs. A scenario that is not fully wired is the typed failure `math:UnwiredFlagshipScenario` — the
+depth bar cannot silently regress, and no test rebuilds the corpus to prove it.
 
 | Rule | Gate | Failure class |
 | --- | --- | --- |
 | A flagship scenario binds all five artifacts (incl. a native producer) to a real conformance-failure subclass | `gmeow:FlagshipScenarioShape` (shared SHACL) | `gmeow:UnwiredFlagshipScenario` |
 | The five canonical scenarios are all present and fully wired | `ex:saFlagshipCoverage` (structural) | — |
-| Each competency reference is a registered, green question with an existing query file | `flagship_manifest` (native cross-check) | — |
-| Each counter-example raises exactly its class, each worked example is clean, each producer runs to its pinned output | `math_flagship_discharge` (execution) | — |
+| Each competency reference is a registered, green question with an existing query file | cached slice-spec producer verdict | — |
+| Each counter-example raises exactly its class and each worked example is clean | cached slice-spec producer verdict | — |
+| Each native producer emits its authenticated graph and every pinned fixture agrees | `stage-math-producers` plus read-only `conformance_math_producers` | — |

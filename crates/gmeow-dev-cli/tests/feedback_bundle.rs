@@ -142,6 +142,7 @@ fn verify_returns_false_when_snapshot_id_is_tampered() {
     builder
         .add_dataset(&snapshot_dataset)
         .expect("re-add findings dataset");
+    // gmeow-test-input: synthetic-only
     let snapshot_bytes = purrdf::gts_compose::emit_gts(
         &builder,
         "dist",

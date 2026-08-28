@@ -5,10 +5,12 @@
 //!
 //! Replaces the inline Python one-liner in `make perf-gate`. Reads
 //! `validate.json`, `sync.json`, and `reason-verify.json` from the
-//! given directory and emits a single JSON object with the identical schema:
+//! given directory and emits one versioned envelope. Deterministic work counters and
+//! observational timings/cache-transfer evidence are projected into separate arrays so
+//! a faster sample cannot masquerade as less work:
 //!
 //! ```json
-//! {"commands": [<validate>, <sync>, <reason-verify>]}
+//! {"schema_version": 1, "commands": [...], "deterministic_work": [...], "observations": [...]}
 //! ```
 
 use std::io::IsTerminal;
@@ -19,6 +21,7 @@ use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
 use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
 
 const FILES: [&str; 3] = ["validate.json", "sync.json", "reason-verify.json"];
+const SCHEMA_VERSION: u32 = 1;
 
 /// The emitting tool name every diagnostic here is stamped with.
 const TOOL: &str = "perf-gate-merge";
@@ -107,7 +110,31 @@ fn run(perf_dir: &Path, reporter: &dyn Reporter) -> i32 {
         commands.push(value);
     }
 
-    let output = serde_json::json!({ "commands": commands });
+    let deterministic_work = commands
+        .iter()
+        .map(|command| {
+            serde_json::json!({
+                "command": command.get("command"),
+                "work": command.get("deterministic_work"),
+            })
+        })
+        .collect::<Vec<_>>();
+    let observations = commands
+        .iter()
+        .map(|command| {
+            serde_json::json!({
+                "command": command.get("command"),
+                "observations": command.get("observations"),
+            })
+        })
+        .collect::<Vec<_>>();
+    let output = serde_json::json!({
+        "schema_version": SCHEMA_VERSION,
+        "command": "perf-gate",
+        "deterministic_work": deterministic_work,
+        "observations": observations,
+        "commands": commands,
+    });
     let out_path = perf_dir.join("gate-timings.json");
     let text = match serde_json::to_string_pretty(&output) {
         Ok(s) => format!("{s}\n"),

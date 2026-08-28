@@ -148,12 +148,13 @@ ASK {
     gmeow:StageDisposition a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
     gmeow:StageObligation a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
     gmeow:StageStability  a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
+    gmeow:StageCacheDisposition a owl:Class , logic:Kind ; rdfs:subClassOf logic:QualityValue .
     gmeow:StageExecution  a owl:Class , logic:Kind ; rdfs:subClassOf logic:Event .
     gmeow:PipelineRun     a owl:Class , logic:Kind ; rdfs:subClassOf logic:Event .
     gmeow:StageBudget     a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
     gmeow:StageReceipt    a owl:Class , logic:Kind ; rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "The general runtime-DAG vocabulary MUST carry its TBox spine: gmeow:FlowReason / gmeow:StageDisposition / gmeow:StageObligation / gmeow:StageStability are QualityValue vocabularies (closed value classes); gmeow:StageExecution and gmeow:PipelineRun are perdurant occurrences (logic:Event) — one run of a stage and one run of a whole DAG; gmeow:StageBudget and gmeow:StageReceipt are reified SocialObject records (a per-stage budget and a content-addressed receipt)." .
+    gmeow:saRationale "The general runtime-DAG vocabulary MUST carry its TBox spine: gmeow:FlowReason / gmeow:StageDisposition / gmeow:StageObligation / gmeow:StageStability / gmeow:StageCacheDisposition are QualityValue vocabularies (closed value classes); gmeow:StageExecution and gmeow:PipelineRun are perdurant occurrences (logic:Event) — one run of a stage and one run of a whole DAG; gmeow:StageBudget and gmeow:StageReceipt are reified SocialObject records (a per-stage budget and a content-addressed receipt)." .
 
 # --- 9. The closed FlowReason value vocabulary (MUST hold) --------------------
 ex:saFlowReasonSeeds a gmeow:StructuralAssertion ;
@@ -203,8 +204,10 @@ ASK {
     gmeow:obligationDegradable    a gmeow:StageObligation .
     gmeow:stabilityStablePrefix   a gmeow:StageStability .
     gmeow:stabilityPerTurnVariance a gmeow:StageStability .
+    gmeow:cachePersistentContribution a gmeow:StageCacheDisposition .
+    gmeow:cacheRecomputeAggregate a gmeow:StageCacheDisposition .
 }""" ;
-    gmeow:saRationale "The stage-level declarations MUST seed their closed sets: gmeow:StageObligation over {mandatory, degradable} ('this stage's absence invalidates the run' is a declared property), and gmeow:StageStability over {stablePrefix (byte-identical across turns — enables prefix-cache ordering), perTurnVariance}." .
+    gmeow:saRationale "The stage-level declarations MUST seed their closed sets: gmeow:StageObligation over {mandatory, degradable} ('this stage's absence invalidates the run' is a declared property), gmeow:StageStability over {stablePrefix (byte-identical across turns — enables prefix-cache ordering), perTurnVariance}, and gmeow:StageCacheDisposition over {cachePersistentContribution, cacheRecomputeAggregate}." .
 
 # --- 12. The runtime-DAG property shapes (MUST hold) -------------------------
 ex:saRuntimeDagProperties a gmeow:StructuralAssertion ;
@@ -219,6 +222,7 @@ ASK {
     gmeow:stageDisposition a owl:ObjectProperty ;   rdfs:domain gmeow:StageExecution ; rdfs:range gmeow:StageDisposition .
     gmeow:stageObligation  a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ;  rdfs:range gmeow:StageObligation .
     gmeow:stageStability   a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ;  rdfs:range gmeow:StageStability .
+    gmeow:stageCacheDisposition a owl:ObjectProperty ; rdfs:domain gmeow:PipelineStage ; rdfs:range gmeow:StageCacheDisposition .
     gmeow:hasStageBudget   a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage ;  rdfs:range gmeow:StageBudget .
     gmeow:budgetDeadline   a owl:DatatypeProperty ; rdfs:domain gmeow:StageBudget ;    rdfs:range xsd:duration .
     gmeow:budgetMaxSteps   a owl:DatatypeProperty ; rdfs:domain gmeow:StageBudget ;    rdfs:range xsd:nonNegativeInteger .
@@ -229,7 +233,7 @@ ASK {
     gmeow:receiptOfStage   a owl:ObjectProperty ;   rdfs:domain gmeow:StageReceipt ;   rdfs:range gmeow:PipelineStage .
     gmeow:receiptDigest    a owl:DatatypeProperty ; rdfs:domain gmeow:StageReceipt ;   rdfs:range xsd:string .
 }""" ;
-    gmeow:saRationale "The runtime-DAG properties MUST hold their shapes: the required edge reason (gmeow:flowReason: BuildDataFlow→FlowReason), the per-execution disposition (StageExecution→StageDisposition), the stage-level obligation and stability (PipelineStage→StageObligation/StageStability), the per-stage budget (gmeow:hasStageBudget plus the five typed-literal ceilings on gmeow:StageBudget), and the run receipts (gmeow:hasStageReceipt: PipelineRun→StageReceipt, gmeow:receiptOfStage: StageReceipt→PipelineStage, gmeow:receiptDigest: StageReceipt→xsd:string)." .
+    gmeow:saRationale "The runtime-DAG properties MUST hold their shapes: the required edge reason (gmeow:flowReason: BuildDataFlow→FlowReason), the per-execution disposition (StageExecution→StageDisposition), the stage-level obligation, stability, and cache persistence declaration (PipelineStage→StageObligation/StageStability/StageCacheDisposition), the per-stage budget (gmeow:hasStageBudget plus the five typed-literal ceilings on gmeow:StageBudget), and the run receipts (gmeow:hasStageReceipt: PipelineRun→StageReceipt, gmeow:receiptOfStage: StageReceipt→PipelineStage, gmeow:receiptDigest: StageReceipt→xsd:string)." .
 
 # --- 13. Every gmeow:BuildDataFlow carries a flow reason (MUST NOT be absent) --
 # gmeow:flowReason is REQUIRED on gmeow:BuildDataFlow, so no reified edge (including
@@ -262,7 +266,8 @@ ASK {
 # The declarative derive-source axioms the projected SHACL/ShEx read: gmeow:BuildDataFlow
 # carries EXACTLY ONE gmeow:flowReason (owl min- AND max-qualified-cardinality 1 on
 # gmeow:FlowReason), and gmeow:flowReason / gmeow:stageDisposition / gmeow:stageObligation /
-# gmeow:stageStability are each closed to their declared individuals via logic:oneOf. These
+# gmeow:stageStability / gmeow:stageCacheDisposition are each closed to their declared
+# individuals via logic:oneOf. These
 # axioms MUST remain present (projection-purity: the sh:in / sh:qualifiedMaxCount surfaces
 # are DERIVED from them, never hand-authored), so their disappearance is a structural regression.
 ex:saRuntimeDagClosedAxioms a gmeow:StructuralAssertion ;
@@ -294,5 +299,11 @@ ASK {
     gmeow:PipelineStage logic:subClassOf ?ssR .
     ?ssR logic:onProperty gmeow:stageStability ; logic:allValuesFrom ?ssOne .
     ?ssOne logic:oneOf/rdf:rest*/rdf:first gmeow:stabilityStablePrefix .
+    # stageCacheDisposition is exact-one and closed on PipelineStage.
+    gmeow:PipelineStage logic:subClassOf ?scdMin , ?scdMax , ?scdR .
+    ?scdMin logic:onProperty gmeow:stageCacheDisposition ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:StageCacheDisposition .
+    ?scdMax logic:onProperty gmeow:stageCacheDisposition ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:StageCacheDisposition .
+    ?scdR logic:onProperty gmeow:stageCacheDisposition ; logic:allValuesFrom ?scdOne .
+    ?scdOne logic:oneOf/rdf:rest*/rdf:first gmeow:cachePersistentContribution .
 }""" ;
-    gmeow:saRationale "The runtime-DAG value vocabularies MUST stay closed by declarative axioms in module.ttl, because the projected sh:in enumerations and the sh:qualifiedMinCount/qualifiedMaxCount-1 on gmeow:flowReason are DERIVED from exactly these (projection-purity: never hand-authored on a shape surface). This assertion pins their presence: gmeow:BuildDataFlow's exact-one gmeow:flowReason (owl min- and max-qualified-cardinality 1 onClass gmeow:FlowReason) and the four logic:oneOf closures (gmeow:flowReason, gmeow:stageDisposition, gmeow:stageObligation, gmeow:stageStability), so a dropped closure is caught as a structural regression rather than silently widening a value set." .
+    gmeow:saRationale "The runtime-DAG value vocabularies MUST stay closed by declarative axioms in module.ttl, because the projected sh:in enumerations and qualified cardinalities are DERIVED from exactly these (projection-purity: never hand-authored on a shape surface). This assertion pins gmeow:BuildDataFlow's exact-one gmeow:flowReason, the existing flow/disposition/obligation/stability closures, and gmeow:PipelineStage's exact-one closed gmeow:stageCacheDisposition. A dropped cache closure or cardinality would otherwise let the executable scheduler choose a persistence policy that the authored DAG did not state." .

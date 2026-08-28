@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 753
 expression: "gmeow_docs::render::term_card_md(&model, term)"
 ---
 # gmeow:DoxasticState (⊑ JustificationGround, JustificationSubject, MentalMoment)
@@ -26,7 +27,7 @@ An agent's intrinsic believing mode toward a proposition — the reified, first-
 
 **Examples:** ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence "0.92"^^xsd:decimal .
 
-**Logic:** logic:Kind
+**Logic:** logic:Class; logic:Kind
 
 **Related:** DoxasticTenure; believes
 

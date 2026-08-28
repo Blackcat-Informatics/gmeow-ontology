@@ -8,6 +8,3 @@
 //! recompiled into each test binary that declares it; a submodule not referenced by a given
 //! test is (harmlessly) dead in that binary, so each submodule is `#![allow(dead_code)]` at
 //! its own head rather than here.
-
-pub mod flagship_discharge;
-pub mod math_projection_producer;

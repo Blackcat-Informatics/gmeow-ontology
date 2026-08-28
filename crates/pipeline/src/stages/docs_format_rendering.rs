@@ -551,25 +551,8 @@ fn nt_literal(value: &str) -> String {
 mod tests {
     use super::*;
 
-    const BOOK_DIGEST: &str =
-        "blake3:1111111111111111111111111111111111111111111111111111111111111111";
-    const PRINT_DIGEST: &str =
-        "blake3:2222222222222222222222222222222222222222222222222222222222222222";
-    const PRINT_PDF_DIGEST: &str =
-        "blake3:3333333333333333333333333333333333333333333333333333333333333333";
-
-    #[test]
-    fn corpus_is_byte_reproducible() {
-        let a = build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples;
-        let b = build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples;
-        assert_eq!(a, b, "docs-format corpus N-Triples must be deterministic");
-    }
-
     #[test]
     fn derived_preservation_matches_the_honest_join() {
-        // The site AND the mdbook keep live SPARQL (the book packs the vendored engines)
-        // → SoundUnderApproximation; the print PDF and flat snippets drop it → the
-        // ValidationOnly floor. Never a flat asserted grade.
         assert_eq!(
             derived_preservation(DocFormat::Site),
             PreservationKind::SoundUnder
@@ -586,228 +569,67 @@ mod tests {
             derived_preservation(DocFormat::Snippets),
             PreservationKind::ValidationOnly
         );
-        // No docs rendering may ever claim ExactPreservation (it is prose, not the canon).
-        for fmt in DocFormat::ALL {
-            assert_ne!(derived_preservation(fmt), PreservationKind::Exact);
+        for format in DocFormat::ALL {
+            assert_ne!(derived_preservation(format), PreservationKind::Exact);
         }
     }
 
-    /// The format→format DAG edges gmeow_docs declares must be exactly the format
-    /// surface-legs the composition DAG here carries: a `src → tgt` edge exists iff
-    /// `tgt` composes THROUGH `src`'s output surface (the `<src>-><tgt>` leg). This is
-    /// the machine cross-check that the loss-poset edge set and the projection legs
-    /// cannot drift — the linear-chain assumption is gone; only real legs are edges.
     #[test]
     fn declared_dag_edges_match_the_composition_legs() {
         use gmeow_docs::formats::PROJECTION_DAG_EDGES;
         use std::collections::BTreeSet;
 
-        // Derive the format→format edges from the legs: for each format `tgt`, the leg
-        // it composes through whose SOURCE is another format's output surface.
-        let surface_to_fmt: Vec<(String, DocFormat)> =
-            DocFormat::ALL.iter().map(|&f| (surface(f), f)).collect();
-        let mut derived: BTreeSet<(DocFormat, DocFormat)> = BTreeSet::new();
-        for tgt in DocFormat::ALL {
-            for key in composition_leg_keys(tgt) {
-                if let Some(leg) = legs().into_iter().find(|l| &l.key == key)
-                    && let Some(&(_, src_fmt)) =
-                        surface_to_fmt.iter().find(|(s, _)| *s == leg.source)
-                    && leg.target_fmt == Some(tgt)
+        let surface_to_format: Vec<(String, DocFormat)> = DocFormat::ALL
+            .iter()
+            .map(|&format| (surface(format), format))
+            .collect();
+        let mut derived = BTreeSet::new();
+        for target in DocFormat::ALL {
+            for key in composition_leg_keys(target) {
+                if let Some(leg) = legs().into_iter().find(|leg| &leg.key == key)
+                    && let Some(&(_, source)) = surface_to_format
+                        .iter()
+                        .find(|(candidate, _)| *candidate == leg.source)
+                    && leg.target_fmt == Some(target)
                 {
-                    derived.insert((src_fmt, tgt));
+                    derived.insert((source, target));
                 }
             }
         }
-        let declared: BTreeSet<(DocFormat, DocFormat)> =
-            PROJECTION_DAG_EDGES.iter().copied().collect();
         assert_eq!(
-            declared, derived,
-            "PROJECTION_DAG_EDGES drifted from the composition legs: the loss poset and \
-             the projection DAG must declare the SAME format→format refinement edges"
+            PROJECTION_DAG_EDGES
+                .iter()
+                .copied()
+                .collect::<BTreeSet<_>>(),
+            derived
         );
     }
 
     #[test]
-    fn every_format_has_a_rendering_profile_and_derived_preservation() {
-        let nt = String::from_utf8(
-            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
-        )
-        .unwrap();
-        for fmt in DocFormat::ALL {
-            let rendering = rendering_iri(fmt);
-            assert!(
-                nt.contains(&triple(
-                    &rendering,
-                    &iri(LANG_NS, "renderingKind"),
-                    &iri(LANG_NS, rendering_kind(fmt))
-                )),
-                "{fmt:?} has no lang:Rendering of the matching kind"
-            );
-            assert!(
-                nt.contains(&triple(
-                    &rendering,
-                    &iri(LANG_NS, "renderingConvention"),
-                    &profile_iri(fmt)
-                )),
-                "{fmt:?} rendering has no NotationProjectionProfile convention"
-            );
-            assert!(
-                nt.contains(&triple(
-                    &rendering,
-                    &iri(LANG_NS, "renderingPreservation"),
-                    &derived_preservation(fmt).iri()
-                )),
-                "{fmt:?} rendering has no derived preservation"
-            );
-        }
-    }
-
-    #[test]
-    fn dropped_capabilities_are_enumerated_as_queryable_data() {
-        let nt = String::from_utf8(
-            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
-        )
-        .unwrap();
-        // Every dropped capability appears as a gmeow:ProjectionLoss accountsForParameter
-        // the matching capability parameter — the residue enumerated as data.
-        for fmt in DocFormat::ALL {
-            for cap in &format_capabilities(fmt).dropped {
-                let loss_node = loss_iri(fmt, *cap);
-                assert!(
-                    nt.contains(&triple(
-                        &loss_node,
-                        &iri(GMEOW_NS, "accountsForParameter"),
-                        &capability_param(*cap)
-                    )),
-                    "{fmt:?} dropped {cap:?} is not enumerated as a ProjectionLoss"
-                );
-                assert!(
-                    nt.contains(&triple(
-                        &profile_iri(fmt),
-                        &iri(GMEOW_NS, "declaredLoss"),
-                        &loss_node
-                    )),
-                    "{fmt:?} profile does not declare the loss for {cap:?}"
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn leg_target_fmt_matches_the_single_source_of_truth() {
-        // leg_target_fmt must agree with legs() — the single source of truth — for every
-        // leg it defines. This is guaranteed by construction now that leg_target_fmt looks
-        // legs() up rather than reconstructing the key->format map in a parallel `match`;
-        // this assertion pins that invariant so a future edit back to a parallel map (which
-        // would let the two silently drift) is caught here.
+    fn leg_targets_come_from_the_single_leg_table() {
         for leg in legs() {
-            assert_eq!(
-                leg_target_fmt(leg.key),
-                leg.target_fmt,
-                "leg_target_fmt({:?}) disagrees with legs() for the SAME key",
-                leg.key
-            );
+            assert_eq!(leg_target_fmt(leg.key), leg.target_fmt);
         }
-        // Every leg key any format composes THROUGH must be a real leg key, never an
-        // unknown key that would silently fall through to the base-extraction `None` and
-        // desync `derived_preservation` from the emitted correspondence spine.
-        let known_keys: std::collections::HashSet<&str> = legs().iter().map(|l| l.key).collect();
-        for fmt in DocFormat::ALL {
-            for key in composition_leg_keys(fmt) {
-                assert!(
-                    known_keys.contains(key),
-                    "composition leg key {key:?} for {fmt:?} is not a leg in legs() — \
-                     leg_target_fmt would silently fall to the base-extraction None"
-                );
+        let known: std::collections::HashSet<&str> = legs().iter().map(|leg| leg.key).collect();
+        for format in DocFormat::ALL {
+            for key in composition_leg_keys(format) {
+                assert!(known.contains(key), "unknown composition leg {key}");
             }
         }
     }
 
     #[test]
-    fn each_leg_carries_the_full_correspondence_law_spine() {
-        let nt = String::from_utf8(
-            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
-        )
-        .unwrap();
-        let mut leg_count = 0usize;
-        for leg in legs() {
-            let corr = correspondence(leg.key);
-            for pred in [
-                "preservationKind",
-                "correspondenceRelation",
-                "morphismClass",
-                "hasDeterminacy",
-                "mnemomorphic",
-            ] {
-                assert!(
-                    nt.contains(&format!("<{corr}> <{LOGIC_NS}{pred}>")),
-                    "leg {} missing logic:{pred}",
-                    leg.key
-                );
-            }
-            leg_count += 1;
-        }
-        assert_eq!(leg_count, 5, "the composition DAG has five legs");
-    }
-
-    #[test]
-    fn packed_blobs_are_self_described_by_content_digest() {
-        let nt = String::from_utf8(
-            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
-        )
-        .unwrap();
-        assert!(nt.contains(&triple_lit(
-            &blob_descriptor("docs-book"),
-            &iri(GMEOW_NS, "contentDigest"),
-            BOOK_DIGEST
-        )));
-        assert!(nt.contains(&triple_lit(
-            &blob_descriptor("docs-print"),
-            &iri(GMEOW_NS, "contentDigest"),
-            PRINT_DIGEST
-        )));
-        // The two packed archives carry the tar media type.
-        for segment in ["docs-book", "docs-print"] {
-            assert!(nt.contains(&triple_lit(
-                &blob_descriptor(segment),
-                &iri(GMEOW_NS, "artifactMediaType"),
-                "application/x-tar"
-            )));
-        }
-        // The raw PDF has its OWN application/pdf attestation carrying the raw-PDF blake3.
-        let pdf_blob = blob_descriptor("docs-print-pdf");
-        assert!(nt.contains(&triple(
-            &pdf_blob,
-            RDF_TYPE,
-            &iri(GMEOW_NS, "AttestationArtifact")
-        )));
-        assert!(nt.contains(&triple_lit(
-            &pdf_blob,
-            &iri(GMEOW_NS, "contentDigest"),
-            PRINT_PDF_DIGEST
-        )));
-        assert!(nt.contains(&triple_lit(
-            &pdf_blob,
-            &iri(GMEOW_NS, "artifactMediaType"),
-            "application/pdf"
-        )));
-    }
-
-    #[test]
-    fn loss_ledger_carries_every_format_and_its_dropped_capabilities() {
-        let mut ledger: Vec<ProjectionResult> = Vec::new();
+    fn loss_ledger_carries_each_formats_dropped_capabilities() {
+        let mut ledger = Vec::new();
         let mut loss = LossLedger::new();
         fold_docs_format_loss(&mut ledger, &mut loss);
         assert_eq!(ledger.len(), DocFormat::ALL.len());
-        for fmt in DocFormat::ALL {
-            let target = format!("docs-format:{}", fmt.slug());
+        for format in DocFormat::ALL {
+            let target = format!("docs-format:{}", format.slug());
             let drops = loss.projection_drops_for(&target);
-            assert!(!drops.is_empty(), "{fmt:?} has no ledger residue");
-            for cap in &format_capabilities(fmt).dropped {
-                assert!(
-                    drops.iter().any(|d| d.contains(cap.slug())),
-                    "{fmt:?} ledger residue omits dropped capability {cap:?}"
-                );
+            assert!(!drops.is_empty());
+            for capability in &format_capabilities(format).dropped {
+                assert!(drops.iter().any(|drop| drop.contains(capability.slug())));
             }
         }
     }

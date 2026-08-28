@@ -9,12 +9,8 @@
 //! and individual must carry `rdfs:label`, `skos:definition`, and
 //! `rdfs:isDefinedBy`. These run the native `structural_lint_dataset` directly:
 //!   - `test_merged_ontology_has_no_missing_annotations` →
-//!     `merged_ontology_has_no_missing_annotations` (real-corpus sweep over
-//!     `slices/*/*/module.ttl`, the native twin of `load_merged_graph`).
-//!   - `test_mapping_dsl_vocabulary_has_no_missing_annotations` →
-//!     `mapping_dsl_vocabulary_has_no_missing_annotations`.
-//!   - `test_statement_dsl_vocabulary_has_no_missing_annotations` →
-//!     `statement_dsl_vocabulary_has_no_missing_annotations`.
+//!     `merged_ontology_has_no_missing_annotations` (consumer check over the
+//!     producer-authenticated authored graph).
 //!   - `test_structural_lint_flags_missing_label_definition_and_isdefinedby` →
 //!     `flags_missing_label_definition_and_isdefinedby`.
 //!   - `test_structural_lint_covers_individuals` → `covers_individuals`.
@@ -23,9 +19,11 @@
 
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
+use std::sync::{Arc, OnceLock};
 
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use gmeow_validate::store::dataset_from_paths;
+use purrdf::{RdfDataset, SerializeGraph, parse_dataset, serialize_dataset};
 
 const NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -75,74 +73,41 @@ fn lint_inline(name: &str, ttl: &str) -> Vec<String> {
     lint_errors(std::slice::from_ref(&file.path().to_path_buf()))
 }
 
-/// Every slice's `module.ttl` (`slices/*/*/module.ttl`) — the native twin of the
-/// Python `load_merged_graph` source set.
-fn slice_module_paths() -> Vec<PathBuf> {
-    let mut paths = Vec::new();
-    let slices = repo_root().join("slices");
-    for tier in std::fs::read_dir(&slices).expect("slices dir") {
-        let tier = tier.expect("tier entry").path();
-        if !tier.is_dir() {
-            continue;
-        }
-        for slice in std::fs::read_dir(&tier).expect("tier subdir") {
-            let module = slice.expect("slice entry").path().join("module.ttl");
-            if module.is_file() {
-                paths.push(module);
-            }
-        }
-    }
-    paths.sort();
-    assert!(!paths.is_empty(), "expected at least one slice module.ttl");
-    paths
+/// The exact authored graph selected from the pre-test producer's terminal bundle.
+///
+/// Loading is receipt- and source-identity checked by `gmeow-bundle-import`; a
+/// missing or mismatched fixture is terminal. The pipeline's internal
+/// `graph/authored-default` transport graph is deliberately re-rooted into the shipped
+/// GTS default graph, which this consumer projects directly. This test never parses or
+/// merges the repository module tree.
+fn authenticated_authored_dataset() -> &'static Arc<RdfDataset> {
+    static DATASET: OnceLock<Arc<RdfDataset>> = OnceLock::new();
+    DATASET.get_or_init(|| {
+        let imported = gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
+            .expect("load authenticated repository corpus without rebuilding it");
+        let authored = serialize_dataset(
+            imported.dataset.as_ref(),
+            "application/n-quads",
+            SerializeGraph::DefaultGraph,
+        )
+        .expect("serialize authenticated terminal authored graph");
+        assert!(
+            !authored.is_empty(),
+            "authenticated bundle omitted its terminal authored default graph"
+        );
+        parse_dataset(&authored, "application/n-triples", None)
+            .expect("authenticated terminal authored graph must parse")
+    })
 }
 
 // ── Real-corpus sweeps ────────────────────────────────────────────────────────
 
 #[test]
 fn merged_ontology_has_no_missing_annotations() {
-    let errors = lint_errors(&slice_module_paths());
+    let errors = structural_lint_dataset(authenticated_authored_dataset(), &lint_config()).errors();
     assert!(
         errors.is_empty(),
         "merged ontology has missing annotations:\n{}",
-        errors.join("\n")
-    );
-}
-
-#[test]
-fn mapping_dsl_vocabulary_has_no_missing_annotations() {
-    let root = repo_root();
-    let paths = vec![
-        root.join("slices/core/kernel/module.ttl"),
-        // The gmeow:GraphBoxRole value type and its five role individuals are
-        // description-logic knowledge-base partitioning — a logical grounding
-        // concept — so they live in `logic:`, not in `kernel`. Without it the
-        // sweep sees every gmeow:graphBoxRole value as an untyped IRI.
-        root.join("slices/grounding/logic/module.ttl"),
-        root.join("dsl/mappings/vocabulary.ttl"),
-    ];
-    let errors = lint_errors(&paths);
-    assert!(
-        errors.is_empty(),
-        "mapping DSL vocabulary has missing annotations:\n{}",
-        errors.join("\n")
-    );
-}
-
-#[test]
-fn statement_dsl_vocabulary_has_no_missing_annotations() {
-    let root = repo_root();
-    let paths = vec![
-        root.join("slices/core/kernel/module.ttl"),
-        // See mapping_dsl_vocabulary_has_no_missing_annotations: the
-        // gmeow:GraphBoxRole cluster is owned by the `logic:` grounding slice.
-        root.join("slices/grounding/logic/module.ttl"),
-        root.join("dsl/statements/vocabulary.ttl"),
-    ];
-    let errors = lint_errors(&paths);
-    assert!(
-        errors.is_empty(),
-        "statement DSL vocabulary has missing annotations:\n{}",
         errors.join("\n")
     );
 }

@@ -12,7 +12,7 @@
 //! individuals live in `tests/competency.ttl`, which the module/examples-scoped
 //! validators never load (the dataset split, documented in each manifest).
 //!
-//! [`assert_flagship_manifest`] is that missing surface. It unions the flagship manifest
+//! [`validate_flagship_manifest`] is that missing surface. It unions the flagship manifest
 //! with the competency corpus and asserts, for each scenario:
 //!
 //! * its competency reference resolves to a real `gmeow:CompetencyQuestion` that carries a
@@ -30,39 +30,50 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
+use gmeow_errors::{Diag, Result};
+
+use crate::error::SpecCell;
 use crate::native_query::{dataset_from_file, render_term, select, union};
 use crate::paths::{example_file, query_file};
 
 /// The shared `gmeow:` namespace the flagship acceptance manifest vocabulary lives under.
 use gmeow_ns::GMEOW_NS;
 
+fn fail(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(SpecCell {
+        detail: detail.into(),
+    })
+}
+
 /// Render one bound cell to its N-Triples lexical form, hard-failing on an unbound slot —
 /// every column projected below is required, so an unbound cell is a bug in the manifest,
 /// not an expected optional.
-fn rendered(cell: &Option<purrdf::TermValue>) -> String {
-    render_term(cell.as_ref().expect("required column was unbound"))
+fn rendered(cell: &Option<purrdf::TermValue>) -> Result<String> {
+    cell.as_ref()
+        .map(render_term)
+        .ok_or_else(|| fail("required flagship-manifest column was unbound"))
 }
 
-/// Strip the `<...>` of a rendered IRI, panicking if the term is not an IRI.
-fn as_iri(rendered: &str) -> &str {
+/// Strip the `<...>` of a rendered IRI, failing if the term is not an IRI.
+fn as_iri(rendered: &str) -> Result<String> {
     rendered
         .strip_prefix('<')
         .and_then(|s| s.strip_suffix('>'))
-        .unwrap_or_else(|| panic!("expected an IRI term, got {rendered}"))
+        .map(str::to_owned)
+        .ok_or_else(|| fail(format!("expected an IRI term, got {rendered}")))
 }
 
 /// Extract the lexical form of a rendered string literal (`"lexical"^^<datatype>`). The
 /// manifest's path literals contain no quotes or escapes, so the first closing quote is
 /// the lexical boundary.
-fn as_literal(rendered: &str) -> String {
+fn as_literal(rendered: &str) -> Result<String> {
     let inner = rendered
         .strip_prefix('"')
-        .unwrap_or_else(|| panic!("expected a literal term, got {rendered}"));
+        .ok_or_else(|| fail(format!("expected a literal term, got {rendered}")))?;
     inner
         .split_once('"')
-        .unwrap_or_else(|| panic!("literal term missing closing quote: {rendered}"))
-        .0
-        .to_owned()
+        .map(|(lexical, _)| lexical.to_owned())
+        .ok_or_else(|| fail(format!("literal term missing closing quote: {rendered}")))
 }
 
 /// Cross-check the flagship acceptance manifest of the slice at `slice_dir`, whose
@@ -76,12 +87,14 @@ fn as_literal(rendered: &str) -> String {
 /// not bound by the SELECT and so drops out of the coverage set, failing the pin below).
 /// Then pins the coverage set to `canonical` — a 6th or dropped scenario fails the
 /// assertion.
-pub fn assert_flagship_manifest(slice_dir: &Path, canonical: &[&str]) {
+pub fn validate_flagship_manifest(slice_dir: &Path, canonical: &[&str]) -> Result<()> {
     let manifest_path = slice_dir.join("examples").join("flagship-acceptance.ttl");
     let competency_path = slice_dir.join("tests").join("competency.ttl");
 
-    let manifest = dataset_from_file(&manifest_path).expect("parse flagship-acceptance.ttl");
-    let competency = dataset_from_file(&competency_path).expect("parse competency.ttl");
+    let manifest = dataset_from_file(&manifest_path)
+        .map_err(|error| fail(format!("parse {}: {error}", manifest_path.display())))?;
+    let competency = dataset_from_file(&competency_path)
+        .map_err(|error| fail(format!("parse {}: {error}", competency_path.display())))?;
     let dataset = union(&[manifest, competency]);
 
     // Every scenario and its five realizing/enforcing links, in one pass. The producer is a
@@ -102,57 +115,66 @@ pub fn assert_flagship_manifest(slice_dir: &Path, canonical: &[&str]) {
             }}"
         ),
     )
-    .expect("scenario query runs");
+    .map_err(|error| {
+        fail(format!(
+            "query flagship scenarios in {}: {error}",
+            manifest_path.display()
+        ))
+    })?;
 
     let mut seen = BTreeSet::new();
     for row in &scenarios.rows {
-        let scenario = as_iri(&rendered(&row[0])).to_owned();
-        let example = as_literal(&rendered(&row[1]));
-        let competency_iri = as_iri(&rendered(&row[2])).to_owned();
-        // ?prod must be a bound literal; running the producer is the discharge harness's job.
-        let _producer = as_literal(&rendered(&row[3]));
-        let counter_example = as_literal(&rendered(&row[4]));
+        let scenario = as_iri(&rendered(&row[0])?)?;
+        let example = as_literal(&rendered(&row[1])?)?;
+        let competency_iri = as_iri(&rendered(&row[2])?)?;
+        // ?prod must be a bound literal. Its production stage is authenticated separately.
+        let _producer = as_literal(&rendered(&row[3])?)?;
+        let counter_example = as_literal(&rendered(&row[4])?);
         // ?fc must be an IRI; the subclass check is the structural/SHACL gate's job.
-        let _failure_class = as_iri(&rendered(&row[5]));
+        let counter_example = counter_example?;
+        let _failure_class = as_iri(&rendered(&row[5])?)?;
 
         // The worked example and the counter-example must exist on disk.
         let example_abs = example_file(slice_dir, &example);
-        assert!(
-            example_abs.exists(),
-            "{scenario}: gmeow:demonstratedByExample {example} does not exist at {}",
-            example_abs.display()
-        );
+        if !example_abs.exists() {
+            return Err(fail(format!(
+                "{scenario}: gmeow:demonstratedByExample {example} does not exist at {}",
+                example_abs.display()
+            )));
+        }
         let counter_abs = example_file(slice_dir, &counter_example);
-        assert!(
-            counter_abs.exists(),
-            "{scenario}: gmeow:guardedByCounterExample {counter_example} does not exist at {}",
-            counter_abs.display()
-        );
+        if !counter_abs.exists() {
+            return Err(fail(format!(
+                "{scenario}: gmeow:guardedByCounterExample {counter_example} does not exist at {}",
+                counter_abs.display()
+            )));
+        }
 
         // The competency reference must resolve to a real, pinned (cqExpectRow) competency
         // question whose query file exists.
-        assert_competency_is_green(&dataset, &scenario, &competency_iri);
+        validate_competency_is_green(&dataset, &scenario, &competency_iri)?;
 
-        assert!(
-            seen.insert(scenario.clone()),
-            "duplicate scenario {scenario}"
-        );
+        if !seen.insert(scenario.clone()) {
+            return Err(fail(format!("duplicate scenario {scenario}")));
+        }
     }
 
     let expected: BTreeSet<String> = canonical.iter().map(|s| (*s).to_owned()).collect();
-    assert_eq!(
-        seen, expected,
-        "the flagship coverage set must be EXACTLY the canonical scenarios"
-    );
+    if seen != expected {
+        return Err(fail(format!(
+            "the flagship coverage set must be EXACTLY the canonical scenarios; expected {expected:?}, got {seen:?}"
+        )));
+    }
+    Ok(())
 }
 
 /// Assert `competency_iri` names a `gmeow:CompetencyQuestion` carrying at least one
 /// `gmeow:cqExpectRow` and a `gmeow:cqQueryFile` that exists on disk.
-fn assert_competency_is_green(
+fn validate_competency_is_green(
     dataset: &std::sync::Arc<purrdf::RdfDataset>,
     scenario: &str,
     competency_iri: &str,
-) {
+) -> Result<()> {
     let q = format!(
         r"
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
@@ -162,19 +184,26 @@ fn assert_competency_is_green(
                 gmeow:cqExpectRow ?row .
         }}"
     );
-    let hits = select(dataset, &q).expect("competency resolution query runs");
-    assert!(
-        !hits.rows.is_empty(),
-        "{scenario}: demonstratedByCompetency {competency_iri} does not resolve to a \
-         gmeow:CompetencyQuestion carrying gmeow:cqQueryFile + gmeow:cqExpectRow \
-         (a dangling or unpinned competency reference)"
-    );
+    let hits = select(dataset, &q).map_err(|error| {
+        fail(format!(
+            "{scenario}: resolve demonstrated competency {competency_iri}: {error}"
+        ))
+    })?;
+    if hits.rows.is_empty() {
+        return Err(fail(format!(
+            "{scenario}: demonstratedByCompetency {competency_iri} does not resolve to a \
+             gmeow:CompetencyQuestion carrying gmeow:cqQueryFile + gmeow:cqExpectRow \
+             (a dangling or unpinned competency reference)"
+        )));
+    }
     // Every row shares the same cqQueryFile; check the first exists on disk.
-    let query_rel = as_literal(&rendered(&hits.rows[0][0]));
+    let query_rel = as_literal(&rendered(&hits.rows[0][0])?)?;
     let query_abs = query_file(&query_rel);
-    assert!(
-        query_abs.exists(),
-        "{scenario}: cqQueryFile {query_rel} for {competency_iri} does not exist at {}",
-        query_abs.display()
-    );
+    if !query_abs.exists() {
+        return Err(fail(format!(
+            "{scenario}: cqQueryFile {query_rel} for {competency_iri} does not exist at {}",
+            query_abs.display()
+        )));
+    }
+    Ok(())
 }

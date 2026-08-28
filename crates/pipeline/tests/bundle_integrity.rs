@@ -13,20 +13,28 @@
 //! lives only in `pipeline`, so this conformance is hosted here rather than in
 //! `crates/validate/tests/` — still gated by the workspace-wide `make check`.
 
-use std::path::PathBuf;
-
 use gmeow_pipeline::bundle_blobs::Bundle;
+use std::sync::OnceLock;
 
-/// The committed bundle path (`generated/dist/gmeow.gts`), resolved off the
-/// crate manifest dir so the test runs from any cwd — mirrors the
-/// `committed_snapshot` helper in `bundle_blobs.rs`'s own unit tests (a private
-/// helper this integration test, a separate compilation unit, cannot import).
-fn committed_snapshot() -> Vec<u8> {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("generated/dist/gmeow.gts");
-    std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
+
+/// Parse the exact producer-selected bundle once for the entire integration binary.
+fn committed_bundle() -> &'static Bundle {
+    static BUNDLE: OnceLock<Bundle> = OnceLock::new();
+    BUNDLE.get_or_init(|| {
+        Bundle::from_snapshot(authenticated_bundle::source_bytes())
+            .expect("fold authenticated gmeow.gts")
+    })
+}
+
+fn integrity_report() -> &'static gmeow_pipeline::bundle_blobs::BundleIntegrityReport {
+    static REPORT: OnceLock<gmeow_pipeline::bundle_blobs::BundleIntegrityReport> = OnceLock::new();
+    REPORT.get_or_init(|| {
+        committed_bundle()
+            .integrity_report()
+            .expect("compute blob-integrity report over authenticated gmeow.gts")
+    })
 }
 
 /// Mirrors `tests/test_bundle_carries_the_consumer_archives`: every consumer
@@ -35,8 +43,7 @@ fn committed_snapshot() -> Vec<u8> {
 /// which rep-string drifted if one silently resolves to `{}`.
 #[test]
 fn consumer_archives_present_and_non_empty() {
-    let snapshot = committed_snapshot();
-    let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+    let bundle = committed_bundle();
 
     assert!(
         !bundle.sssom().unwrap().is_empty(),
@@ -72,11 +79,7 @@ fn consumer_archives_present_and_non_empty() {
 /// content-addressed references belong in the logical bundle.
 #[test]
 fn guide_blob_references_are_absent() {
-    let snapshot = committed_snapshot();
-    let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
-    let report = bundle
-        .integrity_report()
-        .expect("compute blob-integrity report over committed gmeow.gts");
+    let report = integrity_report();
 
     let guide_predicate = "https://blackcatinformatics.ca/gmeow/guideBlob";
     assert!(
@@ -91,11 +94,7 @@ fn guide_blob_references_are_absent() {
 /// offending predicate/digest so a red test is immediately actionable.
 #[test]
 fn integrity_report_is_clean() {
-    let snapshot = committed_snapshot();
-    let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
-    let report = bundle
-        .integrity_report()
-        .expect("compute blob-integrity report over committed gmeow.gts");
+    let report = integrity_report();
 
     assert!(
         report.is_clean(),

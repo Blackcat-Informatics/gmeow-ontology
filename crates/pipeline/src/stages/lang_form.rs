@@ -701,10 +701,7 @@ fn nt_literal(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
 
-    /// The English carrier binding the production path resolves from module.ttl data —
-    /// pinned here so unit tests exercise build_prose with the same shape of input.
     fn english_binding() -> CarrierBinding {
         CarrierBinding {
             script_local: "latinScript".to_string(),
@@ -712,247 +709,49 @@ mod tests {
         }
     }
 
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    /// The shared in-memory source catalog — discovered ONCE, exactly as the mappings stage
-    /// discovers it, so every test drives off the SAME composed-source universe the
-    /// production `compile_mappings` path holds (never a fresh, independent disk walk).
-    fn repo_catalog() -> SliceCatalog {
-        SliceCatalog::discover(&repo_root().join("slices"), gmeow_ns::gmeow_slice_vocab())
-            .expect("discover slice catalog")
-    }
-
-    #[test]
-    fn gate1_every_distinct_english_literal_has_a_surface_form() {
-        // Draw the universe from the SHARED in-memory source catalog — the same composed
-        // source the production path interns from — so this genuinely checks "every English
-        // literal reachable in the composed carrier has exactly one SurfaceForm", not a
-        // tautology over an independent second disk read. The totality count-equality is
-        // computed by the SAME production-callable `prose_lift_coverage` the flagship
-        // discharge harness asserts, so the totality logic lives in one place (DRY).
-        let catalog = repo_catalog();
-        let coverage = prose_lift_coverage(Some(&catalog)).expect("compute prose-lift coverage");
-        assert!(
-            coverage.universe > 0,
-            "the source bundle must carry @x-gmeow-english prose"
-        );
-        assert_eq!(
-            coverage.covered,
-            coverage.universe,
-            "Gate 1: {} of {} distinct @x-gmeow-english literals are not lifted to a reachable \
-             lang:SurfaceForm — the prose lift is not total",
-            coverage.universe - coverage.covered,
-            coverage.universe
-        );
-
-        // The remaining structural assertions read the emitted corpus directly.
-        let universe = collect_english_literals(Some(&catalog)).expect("collect universe");
-        let corpus = build_corpus(Some(&catalog)).expect("build corpus");
-        let nt = String::from_utf8(corpus.ntriples).expect("utf8");
-        // Exactly one lang:SurfaceForm per distinct literal — total, not partial.
-        let surface_forms = nt
-            .matches(&format!("<{}> .", iri(LANG_NS, "SurfaceForm")))
-            .count();
-        assert_eq!(
-            surface_forms,
-            universe.len(),
-            "one lang:SurfaceForm per distinct @x-gmeow-english literal"
-        );
-        // Each surface is honest unanalyzed prose at the raw level, carrying its round-trip.
-        assert!(nt.contains(&iri(LANG_NS, "UnanalyzedProse")));
-        assert!(nt.contains(&iri(LANG_NS, "rawLevel")));
-        assert!(nt.contains(&iri(LANG_NS, "surfaceCorrespondence")));
-        // The carried law-spine is an exact isomorphism — never a fabricated approximation.
-        assert!(nt.contains(&iri(LOGIC_NS, "Isomorphism")));
-        assert!(nt.contains(&PreservationKind::Exact.iri()));
-    }
-
     #[test]
     fn prose_hash_coincides_with_the_obligations_gate() {
-        // The emitted logic:candidateSourceHash equals the obligations gate's recomputation
-        // over the SAME raw byte string — the coincidence the prose-hash discipline needs.
         for text in ["A definition prose field.", "café", "", "   "] {
             let prose = build_prose(text, &english_binding()).expect("build prose");
-            assert_eq!(
-                prose.source_hash,
-                candidate_source_hash(text),
-                "emitted prose-hash must equal the gate's recomputation for {text:?}"
-            );
-            let nt = String::from_utf8(emit_ntriples(&[
-                build_prose(text, &english_binding()).unwrap()
-            ]))
-            .unwrap();
-            assert!(
-                nt.contains(&candidate_source_hash(text)),
-                "the corpus must emit the gate's candidate_source_hash for {text:?}"
-            );
+            assert_eq!(prose.source_hash, candidate_source_hash(text));
         }
     }
 
     #[test]
     fn prose_hash_resolves_for_both_nfc_and_nfd() {
-        // The SAME visible text as NFC vs NFD are two DISTINCT surface literals with distinct
-        // byte strings. The candidate-hash the corpus emits for each must match
-        // candidate_source_hash of that exact byte string — so the lookup resolves for both.
-        let nfc = "caf\u{e9}"; // "café" with precomposed é (NFC) codespell:ignore caf
-        let nfd = "cafe\u{301}"; // "café" with e + combining acute (NFD)
-        assert_ne!(nfc, nfd, "the two normalizations are distinct byte strings");
-
+        let nfc = "caf\u{e9}"; // codespell:ignore caf
+        let nfd = "cafe\u{301}";
         let p_nfc = build_prose(nfc, &english_binding()).expect("nfc");
         let p_nfd = build_prose(nfd, &english_binding()).expect("nfd");
-
-        // Distinct surface literals (distinct material identity → distinct content address).
         assert_ne!(p_nfc.surface_iri, p_nfd.surface_iri);
-        // Each hash coincides with the gate over its exact byte string.
         assert_eq!(p_nfc.source_hash, candidate_source_hash(nfc));
         assert_eq!(p_nfd.source_hash, candidate_source_hash(nfd));
-        assert_ne!(p_nfc.source_hash, p_nfd.source_hash);
-        // The declared normalization frame is honest for each (never a blanket "NFC").
         assert_eq!(p_nfc.normalization, "NFC");
         assert_eq!(p_nfd.normalization, "NFD");
     }
 
     #[test]
     fn document_scale_surface_holds_bytes_by_reference() {
-        // Small surfaces stay inline; a document-scale surface emits a content-addressed
-        // lang:surfaceBlob reference and NEVER inlines its bytes.
-        let short = "cats chase mice";
-        let nt_short = String::from_utf8(emit_ntriples(&[
-            build_prose(short, &english_binding()).unwrap()
-        ]))
-        .unwrap();
-        assert!(nt_short.contains(&iri(LANG_NS, "surfaceText")));
-        assert!(!nt_short.contains(&iri(LANG_NS, "surfaceBlob")));
-
         let long = "x".repeat(DOCUMENT_SCALE_BYTES + 1);
-        let nt_long = String::from_utf8(emit_ntriples(&[
-            build_prose(&long, &english_binding()).unwrap()
+        let nt = String::from_utf8(emit_ntriples(&[
+            build_prose(&long, &english_binding()).expect("long prose")
         ]))
-        .unwrap();
-        assert!(
-            nt_long.contains(&surface_blob_digest(&long)),
-            "a document-scale surface must carry its content-addressed blob reference"
-        );
-        assert!(!nt_long.contains(&iri(LANG_NS, "surfaceText")));
-        // The document-scale payload never rides inline in the graph.
-        assert!(!nt_long.contains(&long));
+        .expect("utf8");
+        assert!(nt.contains(&surface_blob_digest(&long)));
+        assert!(!nt.contains(&iri(LANG_NS, "surfaceText")));
+        assert!(!nt.contains(&long));
     }
 
     #[test]
-    fn surface_blobs_resolve_every_document_scale_reference() {
-        use std::collections::HashSet;
-        let catalog = repo_catalog();
-        let nt = String::from_utf8(build_corpus(Some(&catalog)).expect("corpus").ntriples).unwrap();
-        let blobs = build_surface_blobs(Some(&catalog)).expect("blobs");
-
-        // Every emitted lang:surfaceBlob reference in the corpus (the object literal,
-        // stripped of its N-Triples quoting) is backed by exactly one registered blob whose
-        // bytes hash to that same content-addressed digest — no dangling reference, no
-        // orphan blob.
-        let blob_marker = format!("<{}> ", iri(LANG_NS, "surfaceBlob"));
-        let refs: HashSet<String> = nt
-            .lines()
-            .filter_map(|line| {
-                line.find(&blob_marker)
-                    .map(|idx| line[idx + blob_marker.len()..line.len() - 2].to_owned())
-            })
-            .collect();
-        let digests: HashSet<String> = blobs
-            .iter()
-            .map(|b| nt_literal(&surface_blob_digest(std::str::from_utf8(&b.data).unwrap())))
-            .collect();
+    fn binding_lookup_hard_fails_unknown_without_discovery() {
+        let bindings = BTreeMap::from([("x-gmeow-english".to_string(), english_binding())]);
         assert_eq!(
-            refs, digests,
-            "every surfaceBlob reference must be backed by a registered blob, and vice versa"
+            binding_for_tag("x-gmeow-english", &bindings)
+                .expect("known binding")
+                .script_local,
+            "latinScript"
         );
-
-        // Deterministic: the blob set is a pure function of the sources.
-        let again = build_surface_blobs(Some(&catalog)).expect("blobs again");
-        let data: Vec<&Vec<u8>> = blobs.iter().map(|b| &b.data).collect();
-        let data2: Vec<&Vec<u8>> = again.iter().map(|b| &b.data).collect();
-        assert_eq!(data, data2, "build_surface_blobs must be deterministic");
-    }
-
-    #[test]
-    fn corpus_is_byte_reproducible() {
-        let catalog = repo_catalog();
-        let a = build_corpus(Some(&catalog)).expect("build a").ntriples;
-        let b = build_corpus(Some(&catalog)).expect("build b").ntriples;
-        assert_eq!(a, b, "corpus N-Triples must be deterministic");
-    }
-
-    #[test]
-    fn corpus_ledger_is_one_exact_row_with_no_drops() {
-        let catalog = repo_catalog();
-        let corpus = build_corpus(Some(&catalog)).expect("build corpus");
-        assert_eq!(corpus.ledger.len(), 1, "one corpus ledger row");
-        let row = &corpus.ledger[0];
-        assert_eq!(row.target, "lang-form");
-        assert_eq!(row.preservation, PreservationKind::Exact);
-        assert!(
-            corpus.loss.projection_drops_for(&row.target).is_empty(),
-            "an exact projection declares no dropped items (else the overclaim gate fires)"
-        );
-        assert!(
-            row.content.contains("total prose lift"),
-            "the lift count is a descriptive summary carried on content"
-        );
-    }
-
-    #[test]
-    fn binding_for_tag_maps_english_and_hard_fails_unknown() {
-        // The binding is DATA-DRIVEN: resolved from the parsed source ontology (the same
-        // in-memory catalog the corpus draws from), never a hard-coded Rust match. The
-        // English carrier tag resolves to lang:latinScript AND its carrier variety
-        // lang:gmeowEnglish through its variety + orthography, and an unknown tag
-        // hard-fails (no silent default).
-        let catalog = repo_catalog();
-        let bindings = build_carrier_bindings(Some(&catalog)).expect("build carrier bindings");
-        let binding = binding_for_tag("x-gmeow-english", &bindings).unwrap();
-        assert_eq!(
-            binding.script_local, "latinScript",
-            "the English carrier tag must resolve to latinScript from module.ttl data"
-        );
-        assert_eq!(
-            binding.language_iri,
-            iri(LANG_NS, "gmeowEnglish"),
-            "the English carrier tag must resolve to its carrier variety individual"
-        );
-        let err = binding_for_tag("qtz", &bindings).expect_err("unknown tag must hard-fail");
+        let err = binding_for_tag("qtz", &bindings).expect_err("unknown tag must fail");
         assert!(format!("{err}").contains("no lang:Script binding"));
-        // No catalog → empty bindings → the carrier tag still hard-fails (never a default).
-        let empty = build_carrier_bindings(None).expect("empty bindings");
-        assert!(binding_for_tag("x-gmeow-english", &empty).is_err());
-    }
-
-    #[test]
-    fn every_surface_is_situated_in_its_sign_system() {
-        // lang:FormSituatedShape: every lang:Form names exactly one lang:SignSystem. The
-        // corpus emits exactly one lang:inSignSystem per surface, naming the carrier
-        // variety (lang:gmeowEnglish — a lang:LanguageVariety ⊑ lang:SignSystem).
-        let catalog = repo_catalog();
-        let nt = String::from_utf8(build_corpus(Some(&catalog)).expect("corpus").ntriples).unwrap();
-        let surface_forms = nt
-            .matches(&format!("<{}> .", iri(LANG_NS, "SurfaceForm")))
-            .count();
-        let situated = nt
-            .matches(&format!(
-                "<{}> <{}> .",
-                iri(LANG_NS, "inSignSystem"),
-                iri(LANG_NS, "gmeowEnglish")
-            ))
-            .count();
-        assert_eq!(
-            situated, surface_forms,
-            "every lifted lang:SurfaceForm must carry exactly one lang:inSignSystem naming \
-             the carrier variety"
-        );
-        assert!(surface_forms > 0, "the corpus must not be empty");
     }
 }

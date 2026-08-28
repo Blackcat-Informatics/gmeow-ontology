@@ -18,6 +18,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
 use purrdf::RdfDatasetBuilder;
 #[cfg(test)]
 use purrdf::gts_compose::emit_gts;
@@ -27,10 +28,6 @@ use purrdf::{
     RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SerializeGraph, flat_rdf_quads_from_dataset,
     parse_dataset, serialize_dataset,
 };
-#[cfg(test)]
-use rayon::prelude::*;
-
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
 // The archive reps the `archive-blobs` stage owns. The presenter reads them ONLY to
 // answer the superset gate's "which rep carries which committed `generated/` path"
 // questions (`archive_rep_carries_generated` / `committed_path_for_archive_member`) —
@@ -52,12 +49,39 @@ use gmeow_ns::GMEOW_NS;
 /// this stage produces and every fold-reading leaf (and the sink) consumes.
 pub const SNAPSHOT_PATH: &str = "generated/dist/gmeow.gts";
 
+/// Internal, content-addressed receipt for the selection-independent pass-1 snapshot
+/// identities computed by the terminal sink. It rides the sink product's `pipeline/`
+/// lane, so it is cached with the exact action but never reconciled into `generated/`
+/// or shipped inside the bundle.
+pub(crate) const PASS_ONE_RECEIPT_PATH: &str = "pipeline/gts-pass-one-receipt.json";
+
+const PASS_ONE_RECEIPT_SCHEMA_VERSION: u32 = 1;
+const PASS_ONE_RECEIPT_ALGORITHM: &str = "gts-pass-one-canonical-identities-v1";
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct PassOneReceipt {
+    schema_version: u32,
+    algorithm: String,
+    input_digest: String,
+    snapshot_content_digest: String,
+    stratum_digest: String,
+}
+
+/// One terminal emission plus the authenticated intermediary evidence a second
+/// declared-medium emission may reuse.
+pub(crate) struct SerializedCarrierSnapshot {
+    pub bytes: Vec<u8>,
+    pub pass_one_receipt: Vec<u8>,
+    /// Report-only phase, structural-count, and Linux RSS observations.
+    pub timings: Vec<StageRunTiming>,
+}
+
 /// The named-graph IRIs (mirror `config.GTS_GRAPH_*`).
 const GRAPH_IMPORTS: &str = gmeow_logic::reasoning_graphs::GRAPH_IMPORTS;
 const GRAPH_METADATA: &str = "https://blackcatinformatics.ca/gmeow/graph/metadata";
 pub(crate) const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/alignments";
 pub(crate) const GRAPH_STATEMENTS: &str = gmeow_logic::reasoning_graphs::GRAPH_STATEMENTS;
-const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
+pub(crate) const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
 /// The grounding seam registry: every `gmeow:Seam` individual authored in a grounding
 /// slice's `manifest.ttl` — the CLOSED set of sanctioned cross-grounding reference
@@ -121,9 +145,6 @@ pub(crate) const AUTHORING_BRIEFS_PATH: &str = "generated/briefs/authoring-packe
 /// update/check never treat it as a committed flat artifact; it exists only to let the
 /// terminal snapshot embed the report in the ontology-docs archive.
 pub(crate) const SLICE_QUALITY_REPORT_HTML_ARTIFACT: &str = "pipeline/slice-quality-report.html";
-/// Bundle-relative docs path exported by `gmeow export-docs`.
-#[cfg(test)]
-const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 /// The documentation and diagnostics corpora graphs. DEFINED ONCE in
 /// [`gmeow_bundle_view::graph_iris`] — both are addressed by the read side (the
 /// bundle readers, the `graph/diagnostics` section, the MCP tool surface), so
@@ -291,10 +312,13 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
 
-/// The complete authored corpus `stage-compile-logic` reads: root ontology, every slice
-/// `module.ttl`, and every import, preserved as one typed carrier entity. Ownership and
-/// projection metadata are reader inputs, so predicate-level narrowing is unsound. The
-/// `logic_compile_input_subgraph_preserves_reader_output` guard pins exact reader identity.
+/// The complete authored RDF 1.2 corpus `stage-compile-logic` reads: the WHOLE merged
+/// dataset (`load_authored_dataset` — root ontology + every slice `module.ttl` + every
+/// `imports/*.ttl`), including ownership, annotation, correspondence, and projection
+/// metadata. Attaching it as its own named graph on the `stage-source-load` product lets
+/// compile-logic declare a typed `consumed_entities` edge without re-parsing the corpus.
+/// The graph is lossless by design: predicate-level filtering is not a stable contract for
+/// an evolving reader set.
 pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
@@ -397,7 +421,7 @@ const VALIDATION_SHEX_MEDIA_TYPE: &str = "text/shex";
 /// product's bundle, never re-assembled (the razor: transform transport→form at most
 /// once per pipeline).
 ///
-/// The nine TAR archives (REP_AXIOMS / REP_SCHEMAS / REP_SHAPES / REP_LANG_PROJECTIONS / …) are READ off the
+/// The eleven TAR archives (REP_AXIOMS / REP_SCHEMAS / REP_SHAPES / REP_LANG_PROJECTIONS / …) are READ off the
 /// `stage-archive-blobs` product, which folded them once mid-DAG; the presenter still
 /// folds the channels only it can see — the lang surface blobs, the reasoning reports
 /// from `stage-reason`, the opaque `generated/` fanout archive over THIS run's carrier,
@@ -418,8 +442,9 @@ const VALIDATION_SHEX_MEDIA_TYPE: &str = "text/shex";
 /// — a zstd-compressed claim is the SAME claim — because the two emissions being
 /// compared would then differ in the code that produced them as well as in the
 /// medium. Reached this way they differ in priming and in nothing else, so their
-/// decoded folds must agree everywhere the wire medium is not itself the subject
-/// (`tests/medium_identity_gate.rs`).
+/// decoded folds must agree everywhere the wire medium is not itself the subject.
+/// The declared codec law is checked compositionally without rebuilding the corpus,
+/// while the authored shipped bytes are audited read-only by `medium_bundle`.
 ///
 /// The baseline selection is deliberately NOT an "unprimed mode": the plan still pins
 /// every declared dictionary (the pack is the dictionary family's distribution
@@ -435,31 +460,18 @@ pub fn serialize_carrier_snapshot(
     carrier: &purrdf::RdfDataset,
     selection: &crate::medium::registry::MediumSelection,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    Ok(serialize_carrier_snapshot_observed(root, upstream, carrier, selection)?.bytes)
+    Ok(serialize_carrier_snapshot_with_receipt(root, upstream, carrier, selection)?.bytes)
 }
 
-/// The terminal bytes plus report-only phase evidence captured while producing them.
-///
-/// Timings and residency observations never enter the product, its cache key, or any
-/// generated artifact. They are carried only through [`StageOutput::timings`] so an
-/// opted-in cold run can identify the exact resident phase instead of inferring it from
-/// the last progress line.
-pub(crate) struct SnapshotSerialization {
-    /// The byte-identical terminal GTS artifact.
-    pub bytes: Vec<u8>,
-    /// Stage-local timing, structural-count, and Linux RSS observations.
-    pub timings: Vec<StageRunTiming>,
-}
-
-/// The observed production path used by the real GTS sink. The public convenience
-/// wrapper above deliberately returns only bytes so fixture callers keep the narrow
-/// serialization API and cannot accidentally make telemetry part of product identity.
-pub(crate) fn serialize_carrier_snapshot_observed(
+/// The terminal's internal form of [`serialize_carrier_snapshot`], returning both the
+/// emitted bytes and the selection-independent pass-one receipt that the sink persists.
+/// Public callers still receive only the bundle; there remains one production writer.
+pub(crate) fn serialize_carrier_snapshot_with_receipt(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
     selection: &crate::medium::registry::MediumSelection,
-) -> Result<SnapshotSerialization, gmeow_errors::Diag> {
+) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
     let started = std::time::Instant::now();
     let frames = snapshot_frames(root, upstream, carrier)?;
     let frame_count = frames.blobs.len() + frames.report_blobs.len();
@@ -478,7 +490,7 @@ pub(crate) fn serialize_carrier_snapshot_observed(
         None,
         None,
     )];
-    let bytes = serialize_snapshot(
+    serialize_snapshot(
         carrier,
         &frames.extra_graphs,
         frames.blobs,
@@ -486,19 +498,12 @@ pub(crate) fn serialize_carrier_snapshot_observed(
         upstream,
         selection,
         &mut timings,
-    )?;
-    Ok(SnapshotSerialization { bytes, timings })
+    )
 }
 
-/// Build one report-only sink phase record. `live_scratch` names the whole-corpus
-/// representation that is RESIDENT at the observation boundary and its byte length;
-/// `released_scratch` names a whole-corpus document that was PROCESSED and then dropped
-/// BEFORE this record is taken, so its bytes are no longer resident. The two are kept
-/// distinct on purpose: reporting a released document as live would misstate the exact
-/// ownership shape this stage exists to prove (the stratum canonical bytes are freed inside
-/// `snapshot_stratum_digest`, so `canonicalize-stratum` observes them as released, not live).
-/// Linux RSS is sampled from `/proc/self/status`; other hosts retain the structural evidence
-/// and report RSS as unavailable. None of this data is content-addressed.
+/// Build one report-only sink phase record. `live_scratch` names a representation
+/// resident at the observation boundary; `released_scratch` names one processed and
+/// dropped before the record. These observations never contribute to product identity.
 fn sink_phase_timing(
     phase: &str,
     elapsed: std::time::Duration,
@@ -514,17 +519,17 @@ fn sink_phase_timing(
             .map(|(name, bytes)| format!("{name}:{bytes}"))
             .unwrap_or_else(|| "none:0".to_string())
     };
-    let live = render(live_scratch);
-    let released = render(released_scratch);
     StageRunTiming {
         phase: phase.to_string(),
         elapsed_ms: elapsed.as_millis(),
         metadata: Some(format!(
             "carrier_terms={};carrier_quads={};payload_frames={frame_count};\
-             payload_frame_bytes={frame_bytes};live_scratch={live};released_scratch={released};\
+             payload_frame_bytes={frame_bytes};live_scratch={};released_scratch={};\
              rss_kib={};peak_rss_kib={}",
             carrier.term_count(),
             carrier.quad_count(),
+            render(live_scratch),
+            render(released_scratch),
             rss_kib
                 .map(|value| value.to_string())
                 .unwrap_or_else(|| "unavailable".to_string()),
@@ -535,9 +540,6 @@ fn sink_phase_timing(
     }
 }
 
-/// Linux current/high-water RSS for this single-process, Rust-native producer.
-/// Reading failure is observational only and therefore returns `(None, None)` rather
-/// than changing the build verdict.
 fn linux_process_rss_kib() -> (Option<u64>, Option<u64>) {
     let Ok(status) = std::fs::read_to_string("/proc/self/status") else {
         return (None, None);
@@ -552,75 +554,6 @@ fn linux_process_rss_kib() -> (Option<u64>, Option<u64>) {
         })
     };
     (value("VmRSS:"), value("VmHWM:"))
-}
-
-#[cfg(test)]
-mod sink_phase_timing_release_tests {
-    use super::*;
-
-    /// A tiny frozen carrier; a phase record only reads its term/quad counts.
-    fn tiny_carrier() -> std::sync::Arc<purrdf::RdfDataset> {
-        let mut b = RdfDatasetBuilder::new();
-        let s = b.intern_iri("https://example.org/s");
-        let p = b.intern_iri("https://example.org/p");
-        let o = b.intern_iri("https://example.org/o");
-        b.push_quad(s, p, o, None);
-        b.freeze().expect("freeze tiny carrier")
-    }
-
-    /// The sink's ownership evidence: `canonicalize-stratum` MUST report the stratum bytes as
-    /// RELEASED (they are dropped inside `snapshot_stratum_digest`), never as live scratch,
-    /// while `emit-final-gts` reports the returned bundle bytes as the one live document. If
-    /// this regressed, the telemetry would claim a second whole-corpus copy is resident exactly
-    /// where the repair guarantees it is not.
-    #[test]
-    fn stratum_is_reported_released_and_emitted_gts_is_reported_live() {
-        let carrier = tiny_carrier();
-        let dur = std::time::Duration::from_millis(1);
-
-        let canon = sink_phase_timing(
-            "canonicalize-stratum",
-            dur,
-            carrier.as_ref(),
-            3,
-            100,
-            None,
-            Some(("stratum-nquads", 12_345)),
-        );
-        assert_eq!(canon.phase, "canonicalize-stratum");
-        let meta = canon.metadata.as_deref().expect("phase metadata");
-        assert!(
-            meta.contains("live_scratch=none:0"),
-            "the stratum canonical bytes are released before this boundary: {meta}"
-        );
-        assert!(
-            meta.contains("released_scratch=stratum-nquads:12345"),
-            "the stratum must be reported released with its processed length: {meta}"
-        );
-        assert!(
-            !meta.contains("live_scratch=stratum-nquads"),
-            "a released stratum must never be reported as live scratch: {meta}"
-        );
-
-        let emit = sink_phase_timing(
-            "emit-final-gts",
-            dur,
-            carrier.as_ref(),
-            3,
-            100,
-            Some(("gts", 999)),
-            None,
-        );
-        let meta = emit.metadata.as_deref().expect("phase metadata");
-        assert!(
-            meta.contains("live_scratch=gts:999"),
-            "the returned gts bytes are the one live document at emit: {meta}"
-        );
-        assert!(
-            meta.contains("released_scratch=none:0"),
-            "nothing is released at the emit boundary: {meta}"
-        );
-    }
 }
 
 /// Every payload-bearing BLOB frame this emission authors, plus the carrier-time
@@ -745,44 +678,6 @@ pub fn snapshot_frames(
     })
 }
 
-/// Hard-fail if any documented class/property/individual term would link to an OKF
-/// document the OKF bundle does not emit. The docs term surface
-/// (`gmeow_docs::model::DocsModel::terms`) and the OKF term surface
-/// (`crate::stages::export::collect_term_surface`) are collected by different paths, so
-/// this enforces "no dangling OKF link" — a missing document is a HARD FAIL, never a
-/// silent dangling reference. Reuses the renderer's own `okf_doc_reference` (the exact
-/// path the site links) and the OKF stage's `doc_relpath` (the exact path it emits), so
-/// the two can never diverge in scheme; this gate only checks existence.
-#[cfg(test)]
-fn assert_okf_docs_cover_documented_terms(
-    carrier: &purrdf::RdfDataset,
-    model: &gmeow_docs::model::DocsModel,
-) -> Result<(), gmeow_errors::Diag> {
-    let (_, _, terms) = crate::stages::export::collect_term_surface(carrier)?;
-    let emitted: std::collections::BTreeSet<String> =
-        terms.iter().map(crate::stages::okf::doc_relpath).collect();
-    let links: Vec<Option<String>> = model
-        .terms
-        .iter()
-        .map(gmeow_docs::okf_doc_reference)
-        .collect();
-    let missing = okf_link_targets_missing_from(&emitted, &links);
-    if !missing.is_empty() {
-        let mut curies: Vec<String> = missing
-            .into_iter()
-            .map(|i| model.terms[i].curie.clone())
-            .collect();
-        curies.sort();
-        return Err(stage_err(&format!(
-            "OKF projection is missing documents for {} documented term(s), which would \
-             ship as dangling links: {}",
-            curies.len(),
-            curies.join(", ")
-        )));
-    }
-    Ok(())
-}
-
 /// The pure set-comparison the OKF-coverage gate delegates to: given the bundle-relative
 /// paths the OKF projection actually emits and the ordered list of link targets the docs
 /// site would generate (`None` for categories the OKF bundle deliberately skips), return
@@ -814,7 +709,7 @@ fn okf_link_targets_missing_from(
 /// / reasoning graphs ride in from the upstream producers' carriers (no re-derivation),
 /// while only logic / relational-core enter the object-level reasoning EDB;
 /// the snapshot-owned graphs (authored default, statement layer, imports, metadata,
-/// alignments, slice-analysis, verify, documentation, diagnostics, conformance,
+/// alignments, slice-analysis, documentation, diagnostics, conformance,
 /// projection-ledger, provenance) are parsed and re-rooted here. This carrier is the
 /// single internal transport — it is BOTH serialized to gts and carried as the snapshot
 /// product's bundle, so the snapshot is assembled ONCE.
@@ -822,8 +717,10 @@ fn okf_link_targets_missing_from(
 /// `stage-source-load` cache busts when any of them changes (cache soundness — a stale
 /// self-description graph would ship a stale bundle). Over-covers rather than under: the
 /// authored ontology + modules + imports (base / provenance), the self-description
-/// metadata, the slice manifests (slice-analysis), the full SHACL shape surface (verify),
-/// and the docs sources (translations + guides folded into the authored default). The
+/// metadata, the slice manifests (slice-analysis), and the docs sources (translations +
+/// guides folded into the authored default). The verify attestation is now produced by
+/// `stage-reason` from that stage's existing closure, so source-load neither reads its
+/// queries nor launches a second native chase. The
 /// generated SSSOM alignments (`generated/mappings/`) are a produced artifact, not an
 /// authored source, so they are covered by the producing stage's own cache, not here.
 pub(crate) fn self_description_source_files(
@@ -836,13 +733,6 @@ pub(crate) fn self_description_source_files(
     if metadata.is_file() {
         files.push(metadata);
     }
-    files.extend(list_files(&root.join("shapes"), "ttl")?);
-    // The `generated/shapes/*.ttl` are NOT declared here: they are produced projections,
-    // not authored sources source-load reads at run(), and each is covered by its own
-    // producing stage's cache (frame/result/constraint-shapes + compile-logic). Reading
-    // `generated/` from disk to cache-key a stage is the stale-disk-fold class this change
-    // retires — freshness rides the consumes chain, not a disk enumeration here.
-    files.extend(slice_named_files(root, "shapes.ttl")?);
     // The quality-assessment graph is built here by scoring every slice, so the cache must
     // bust when ANY scored input changes (rubric module, each slice's manifest / module /
     // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
@@ -869,8 +759,7 @@ pub(crate) fn self_description_source_files(
 /// The returned dataset carries, each in its final named graph: the authored default
 /// ([`GRAPH_AUTHORED_DEFAULT`], re-rooted into the carrier's default graph by the
 /// presenter), the import closure ([`GRAPH_IMPORTS`]), self-description metadata
-/// ([`GRAPH_METADATA`]), the slice-analysis graph ([`GRAPH_SLICE_ANALYSIS`]), the native
-/// verify attestation ([`GRAPH_VERIFY`], over the authored ∪ imports EDB), and the
+/// ([`GRAPH_METADATA`]), the slice-analysis graph ([`GRAPH_SLICE_ANALYSIS`]), and the
 /// occurrence-based provenance projection
 /// ([`crate::stages::provenance_graph::GRAPH_PROVENANCE`]). Byte-identical to the former
 /// in-snapshot construction — the SAME loaders and canonicalizers, relocated verbatim.
@@ -880,16 +769,6 @@ pub(crate) fn self_description_source_files(
 /// product (via [`alignment_nquads_from_artifacts`]) and the presenter reads it back through
 /// `producer_graph`; it remains outside object-level reasoning. Building it here would re-read the stale committed
 /// `generated/mappings/*.sssom.tsv` off disk (the stale-disk-fold class).
-#[cfg(test)]
-pub(crate) fn build_self_description_dataset(
-    root: &Path,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
-    let quality = gmeow_slice_quality::assessment_artifacts(root)
-        .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
-    let authored_base = crate::stages::source_load::load_authored_dataset(root)?;
-    build_self_description_dataset_with_quality(root, &authored_base, &quality.nquads)
-}
-
 /// Build the self-description named graphs with a caller-supplied slice-quality graph.
 /// `stage-source-load` uses this after scoring once so the same pass can also publish the
 /// diagnostics HTML; tests keep a wrapper that scores and calls this helper directly.
@@ -897,7 +776,7 @@ pub(crate) fn build_self_description_dataset(
 /// `authored_base` is the WHOLE merged authored dataset
 /// ([`crate::stages::source_load::load_authored_dataset`] — root ontology + slice modules +
 /// imports). It is the EXACT corpus `stage-compile-logic` used to re-parse for its five
-/// augmentation readers; the complete typed copy of it is published as
+/// augmentation readers; the complete carrier is published as
 /// [`GRAPH_LOGIC_COMPILE_INPUTS`] so compile-logic reads a typed entity instead. It is NOT
 /// the same dataset as the local `base` below (the authored DEFAULT graph — imports
 /// excluded, `.po` translations merged), so the two must not be conflated.
@@ -910,7 +789,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
     let authored_canon = canonicalize_nq(&authored, "base")?;
     reject_quoted_triples(&parse_nq(authored_canon.as_bytes())?, "<default>")?;
     // The authored default rides its own named graph (re-rooted to default by the
-    // presenter); base ∪ imports is the EDB the verify attestation runs over.
+    // presenter).
     let base = parse_dataset(authored_canon.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err(&format!("base parse: {e}")))?;
 
@@ -925,12 +804,6 @@ pub(crate) fn build_self_description_dataset_with_quality(
     // A `manifest.ttl` never enters the composed fold, so this graph is the ONLY way the
     // closed set of sanctioned cross-grounding channels reaches `gmeow.gts`.
     let grounding_seams = build_grounding_seams(&catalog)?;
-    let verify_attestation = {
-        let imports_ds = parse_dataset(&imports, "text/turtle", None)
-            .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
-        let edb = purrdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
-        run_verify_attestation(&edb)?
-    };
     let provenance_nt = build_provenance_projection(root)?;
     // graph/provenance also carries the substrate reconciliation A-Box (issue 1672): one
     // gmeow:SubstrateComponent per external engine/library, a gmeow:PinClaim per (site,
@@ -962,7 +835,6 @@ pub(crate) fn build_self_description_dataset_with_quality(
             "application/n-quads",
             GRAPH_QUALITY_ASSESSMENT,
         )?,
-        parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
         parse_into_graph(
             provenance_nt.as_bytes(),
             "application/n-triples",
@@ -975,13 +847,11 @@ pub(crate) fn build_self_description_dataset_with_quality(
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
         )?,
-        // graph/logic-compile-inputs — the complete merged authored corpus
-        // `stage-compile-logic` reads (root ontology + slices + imports). Published here so
-        // compile-logic declares a
-        // typed `consumed_entities` edge on THIS graph and drops the whole-corpus file list
-        // from its cache key. Built from `authored_base` (the same `load_authored_dataset`
-        // compile-logic used), NOT the `base` authored-default above (which excludes imports
-        // and merges translations), so the five readers see a reader-identical corpus.
+        // graph/logic-compile-inputs — the complete RDF 1.2 authored corpus compile-logic
+        // reads (root ontology + slices + imports). Published here so compile-logic declares
+        // a typed consumed-entity edge on THIS graph without re-parsing. Built from
+        // `authored_base` (the same `load_authored_dataset` compile-logic used), NOT the
+        // `base` authored-default above (which excludes imports and merges translations).
         rooted_in_graph(
             crate::stages::source_load::logic_compile_input_subgraph(authored_base)?.as_ref(),
             GRAPH_LOGIC_COMPILE_INPUTS,
@@ -1048,14 +918,21 @@ pub fn with_owl_rdfs_projection(
 ) -> std::sync::Arc<purrdf::RdfDataset> {
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     let mut builder = purrdf::RdfDatasetBuilder::new();
-    for quad in dataset.owned_quads() {
-        let predicate = gmeow_ns::owl_view_of_predicate(&quad.predicate);
-        let object = match &quad.object {
-            purrdf::RdfTerm::Iri(iri) if quad.predicate == RDF_TYPE => {
+    let mut remap = vec![None; dataset.term_count()];
+    for quad in dataset.quads() {
+        let source_predicate = match dataset.resolve(quad.p) {
+            purrdf::TermRef::Iri(iri) => iri,
+            other => unreachable!("RDF predicate must be an IRI, got {other:?}"),
+        };
+        let predicate = gmeow_ns::owl_view_of_predicate(source_predicate);
+        let object = match dataset.resolve(quad.o) {
+            purrdf::TermRef::Iri(iri) if source_predicate == RDF_TYPE => {
                 gmeow_ns::owl_view_of_type_marker(iri)
             }
-            purrdf::RdfTerm::Iri(iri) if gmeow_ns::is_class_position_predicate(&quad.predicate) => {
-                match iri.as_str() {
+            purrdf::TermRef::Iri(iri)
+                if gmeow_ns::is_class_position_predicate(source_predicate) =>
+            {
+                match iri {
                     gmeow_ns::LOGIC_THING => Some(gmeow_ns::OWL_THING),
                     gmeow_ns::LOGIC_NOTHING => Some(gmeow_ns::OWL_NOTHING),
                     _ => None,
@@ -1063,30 +940,96 @@ pub fn with_owl_rdfs_projection(
             }
             _ => None,
         };
-        for (p, o) in [(predicate, object), (predicate, None), (None, object)] {
-            if p.is_none() && o.is_none() {
-                continue;
+
+        let s = intern_preserving_term(&mut builder, dataset, &mut remap, quad.s);
+        let p = intern_preserving_term(&mut builder, dataset, &mut remap, quad.p);
+        let o = intern_preserving_term(&mut builder, dataset, &mut remap, quad.o);
+        let g = quad
+            .g
+            .map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term));
+        let projected_p = predicate.map(|iri| builder.intern_iri(iri));
+        let projected_o = object.map(|iri| builder.intern_iri(iri));
+        match (projected_p, projected_o) {
+            (Some(projected_p), Some(projected_o)) => {
+                builder.push_quad(s, projected_p, projected_o, g);
+                builder.push_quad(s, projected_p, o, g);
+                builder.push_quad(s, p, projected_o, g);
             }
-            let mut projected = quad.clone();
-            if let Some(p) = p {
-                projected.predicate = p.to_owned();
-            }
-            if let Some(o) = o {
-                projected.object = purrdf::RdfTerm::iri(o);
-            }
-            builder.push_owned_quad(&projected);
+            (Some(projected_p), None) => builder.push_quad(s, projected_p, o, g),
+            (None, Some(projected_o)) => builder.push_quad(s, p, projected_o, g),
+            (None, None) => {}
         }
-        builder.push_owned_quad(&quad);
+        builder.push_quad(s, p, o, g);
     }
-    for reifier in dataset.owned_reifiers() {
-        builder.push_owned_reifier(&reifier);
+    for (reifier, triple, graph) in dataset.reifiers_with_graph() {
+        let reifier = intern_preserving_term(&mut builder, dataset, &mut remap, reifier);
+        let triple = intern_preserving_term(&mut builder, dataset, &mut remap, triple);
+        let graph =
+            graph.map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term));
+        builder.push_reifier_in_graph(reifier, triple, graph);
     }
-    for annotation in dataset.owned_annotations() {
-        builder.push_owned_annotation(&annotation);
+    for (reifier, predicate, object, graph) in dataset.annotations_with_graph() {
+        let reifier = intern_preserving_term(&mut builder, dataset, &mut remap, reifier);
+        let predicate = intern_preserving_term(&mut builder, dataset, &mut remap, predicate);
+        let object = intern_preserving_term(&mut builder, dataset, &mut remap, object);
+        let graph =
+            graph.map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term));
+        builder.push_annotation_in_graph(reifier, predicate, object, graph);
     }
+    for graph in dataset.named_graphs() {
+        let graph = intern_preserving_term(&mut builder, dataset, &mut remap, graph);
+        builder.declare_named_graph(graph);
+    }
+    // The source-to-builder id map is build-only scratch. Release it before freeze
+    // materializes the immutable dataset so the two full-width tables do not overlap
+    // at the projection boundary's peak-live allocation point.
+    drop(remap);
     builder
         .freeze()
         .expect("OWL/RDFS projection of a valid dataset must freeze")
+}
+
+/// Re-intern one source term without allocating an owned quad around it. Blank scopes
+/// are preserved because this is a one-source projection, not a standardize-apart union.
+fn intern_preserving_term(
+    builder: &mut purrdf::RdfDatasetBuilder,
+    source: &purrdf::RdfDataset,
+    remap: &mut [Option<purrdf::TermId>],
+    source_id: purrdf::TermId,
+) -> purrdf::TermId {
+    if let Some(mapped) = remap[source_id.index()] {
+        return mapped;
+    }
+
+    let mapped = match source.resolve(source_id) {
+        purrdf::TermRef::Iri(iri) => builder.intern_iri(iri),
+        purrdf::TermRef::Blank { label, scope } => builder.intern_blank(label, scope),
+        purrdf::TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            let datatype = match source.resolve(datatype) {
+                purrdf::TermRef::Iri(iri) => iri.to_owned(),
+                other => unreachable!("literal datatype must be an IRI, got {other:?}"),
+            };
+            builder.intern_literal(RdfLiteral {
+                lexical_form: lexical.to_owned(),
+                datatype: Some(datatype),
+                language: language.map(str::to_owned),
+                direction,
+            })
+        }
+        purrdf::TermRef::Triple { s, p, o } => {
+            let s = intern_preserving_term(builder, source, remap, s);
+            let p = intern_preserving_term(builder, source, remap, p);
+            let o = intern_preserving_term(builder, source, remap, o);
+            builder.intern_triple(s, p, o)
+        }
+    };
+    remap[source_id.index()] = Some(mapped);
+    mapped
 }
 
 /// Read a first-class carrier named graph off its PRODUCER's attached dataset, re-rooted
@@ -1119,7 +1062,7 @@ fn assemble_carrier(
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     // ── the self-description graphs ride in from stage-source-load's carrier ────
     // The presenter no longer loads or canonicalizes any source: the authored default,
-    // imports, metadata, alignments, slice-analysis, verify attestation, and provenance
+    // imports, metadata, alignments, slice-analysis, and provenance
     // were all built ONCE at the parallel DAG root (`build_self_description_dataset`) and
     // are read here as pure projections. The authored default rides its own named graph;
     // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
@@ -1229,7 +1172,7 @@ fn assemble_carrier(
         // like graph/norm-claims: it carries no committed `generated/` file, so it maps to
         // no reconstruction rep, and it stays OUT of the reasoned object-level EDB.
         source_load_graph(upstream, GRAPH_GROUNDING_SEAMS)?,
-        source_load_graph(upstream, GRAPH_VERIFY)?,
+        producer_graph(upstream, "stage-verify-attestation", GRAPH_VERIFY)?,
         source_load_graph(upstream, crate::stages::provenance_graph::GRAPH_PROVENANCE)?,
         documentation,
         std::sync::Arc::new(diagnostics),
@@ -1281,6 +1224,11 @@ fn assemble_carrier(
         upstream,
         gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
     )?);
+    // The three code-authored termination-class worlds are direct object-level EDB
+    // inputs to stage-reason. Ship those exact worlds too: the repo-free
+    // `snapshot_reasoning_edb` projection must reconstruct the byte-identical EDB the
+    // producer reasoned over, including the 62 demonstrator quads.
+    datasets.extend(termination_demonstrator_graphs()?);
     datasets.extend(compile_logic_carrier_graphs(upstream)?);
     datasets.push(rooted_in_graph(
         &reason.bundle().dataset().project_named_graph(reasoning_iri),
@@ -1408,6 +1356,17 @@ fn assemble_carrier(
     // reasoning pass (no second reason) and the ONE `build_coherence_outcome` construction
     // the release lane also uses.
     fold_coherence_certificate(composed_final, upstream)
+}
+
+/// Parse the three code-authored termination-class worlds through one shared boundary.
+/// Both the reason-stage EDB and the shipped snapshot call this helper, preventing the
+/// producer and the repo-free EDB reconstruction from drifting apart again.
+fn termination_demonstrator_graphs()
+-> Result<Vec<std::sync::Arc<purrdf::RdfDataset>>, gmeow_errors::Diag> {
+    gmeow_logic::termination_demonstrators::termination_ladder_demonstrators()
+        .into_iter()
+        .map(|(graph, turtle)| parse_into_graph(turtle.as_bytes(), "text/turtle", graph))
+        .collect()
 }
 
 /// The INJECTED issue timestamp the terminal coherence certificate carries. The
@@ -1639,11 +1598,7 @@ pub(crate) fn assemble_object_level_edb(
     // broader chase-termination class, each rooted into its own reasoning world so its
     // per-world certificate ships into `gmeow.gts` (the reasoner dogfooding its full
     // termination-certification power into the deliverable).
-    for (graph, turtle) in
-        gmeow_logic::termination_demonstrators::termination_ladder_demonstrators()
-    {
-        datasets.push(parse_into_graph(turtle.as_bytes(), "text/turtle", graph)?);
-    }
+    datasets.extend(termination_demonstrator_graphs()?);
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     // Exclude any inline `logic:GroundingCorrespondence` records (authored in an object-level
     // graph body) exactly as the snapshot twin `project_object_level_edb` does, so the shipped
@@ -1688,6 +1643,22 @@ pub fn snapshot_reasoning_edb(
 #[cfg(test)]
 mod reasoning_edb_projection_tests {
     use super::*;
+
+    #[test]
+    fn termination_demonstrators_are_complete_object_level_worlds() {
+        let worlds = termination_demonstrator_graphs().expect("parse termination worlds");
+        assert_eq!(worlds.len(), 3);
+        assert_eq!(
+            worlds.iter().map(|world| world.quad_count()).sum::<usize>(),
+            62
+        );
+        for world in worlds {
+            assert!(world.owned_quads().all(|quad| {
+                matches!(quad.graph_name, Some(purrdf::RdfTerm::Iri(ref graph))
+                    if gmeow_logic::reasoning_graphs::is_object_level_named_graph(graph))
+            }));
+        }
+    }
 
     #[test]
     fn recovery_formula_envelope_is_meta_level_but_referenced_terms_remain() {
@@ -1964,10 +1935,9 @@ fn serialize_snapshot(
     upstream: &BTreeMap<String, StageProduct>,
     selection: &crate::medium::registry::MediumSelection,
     timings: &mut Vec<StageRunTiming>,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
+) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
     use crate::stages::medium_dictionaries as medium;
 
-    let phase_started = std::time::Instant::now();
     let registry = medium::registry_from_carrier(upstream)?;
     let trained = medium::trained_dictionaries(upstream)?;
     let realizations = medium::realization_quads(upstream)?;
@@ -1995,6 +1965,9 @@ fn serialize_snapshot(
     // unassigned one is a HARD FAIL at this point rather than an unprimed frame on a
     // shipped artifact.
     let frames: Vec<&BlobRow> = blobs.iter().chain(report_blobs.iter()).collect();
+    let frame_count = frames.len();
+    let frame_bytes = frames.iter().map(|row| row.data.len()).sum();
+    let phase_started = std::time::Instant::now();
     let (measured_codec, measured_level) =
         crate::medium::measure::mandated_chain(&registry, &frames)?;
     let sample_counts = crate::medium::rdf::corpus_sample_counts(&registry, realizations.as_ref())?;
@@ -2040,9 +2013,6 @@ fn serialize_snapshot(
     };
     strata.push(measurement);
     strata.push(measurement_fanout);
-
-    let frame_count = frames.len();
-    let frame_bytes = frames.iter().map(|row| row.data.len()).sum();
     timings.push(sink_phase_timing(
         "measure-medium",
         phase_started.elapsed(),
@@ -2053,28 +2023,56 @@ fn serialize_snapshot(
         None,
     ));
 
-    let phase_started = std::time::Instant::now();
-    let (snapshot_strata_digest, stratum_len) = snapshot_stratum_digest(carrier, &strata)?;
-    timings.push(sink_phase_timing(
-        "canonicalize-stratum",
-        phase_started.elapsed(),
-        carrier,
-        frame_count,
-        frame_bytes,
-        // No live scratch at this boundary: `snapshot_stratum_digest` already dropped both the
-        // id-native union and the canonical N-Quads string. Only the stratum's PROCESSED byte
-        // length survives, reported as released evidence rather than as a resident copy.
-        None,
-        Some(("stratum-nquads", stratum_len)),
-    ));
+    // Bound the terminal's live set. Both identities are over whole-carrier
+    // representations, but the envelope needs only their digests. Materialize each
+    // preimage in its own scope so the canonical buffers are released before envelope
+    // sealing and the terminal writer. Both identities are functions of pass 1, before
+    // the medium selection contributes envelopes; a same-carrier counterfactual can
+    // therefore reuse the terminal's exact keyed receipt instead of allocating either
+    // whole-carrier canonical preimage twice.
+    let pass_one_input_digest = pass_one_receipt_input_digest(upstream, carrier, &strata)?;
+    let receipt_started = std::time::Instant::now();
+    let (cached_content_digest, snapshot_strata_digest) =
+        match reusable_pass_one_receipt(upstream, &pass_one_input_digest)? {
+            Some(receipt) => {
+                timings.push(sink_phase_timing(
+                    "reuse-pass-one-receipt",
+                    receipt_started.elapsed(),
+                    carrier,
+                    frame_count,
+                    frame_bytes,
+                    None,
+                    None,
+                ));
+                (
+                    Some(receipt.snapshot_content_digest),
+                    receipt.stratum_digest,
+                )
+            }
+            None => {
+                let phase_started = std::time::Instant::now();
+                let (stratum_digest, stratum_len) = snapshot_stratum_digest(carrier, &strata)?;
+                timings.push(sink_phase_timing(
+                    "canonicalize-stratum",
+                    phase_started.elapsed(),
+                    carrier,
+                    frame_count,
+                    frame_bytes,
+                    None,
+                    Some(("stratum-nquads", stratum_len)),
+                ));
+                (None, stratum_digest)
+            }
+        };
 
+    // Build the snapshot only after the miss-path stratum union and canonical document
+    // have both been released. This ordering is the peak-residency contract: the builder's
+    // carrier-sized interning tables never overlap the stratum's carrier-sized scratch.
     let phase_started = std::time::Instant::now();
     let mut builder = SnapshotBuilder::new();
     builder
         .add_dataset(carrier)
         .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
-    // Carrier-time named graphs (e.g. the docs-format grounding, which content-addresses
-    // the packed docs blobs built in this stage) fold in alongside the assembled carrier.
     for graph in &strata {
         builder
             .add_dataset(graph)
@@ -2090,20 +2088,23 @@ fn serialize_snapshot(
         None,
     ));
 
-    // `snapshot_content_id` owns and releases the pass-1 canonical CBOR internally.
-    // Only its 71-byte identity crosses this boundary; retaining the 200+ MiB payload
-    // until final emission would be a second whole-corpus representation.
-    let phase_started = std::time::Instant::now();
-    let snapshot_content_digest = builder.snapshot_content_id();
-    timings.push(sink_phase_timing(
-        "fingerprint-snapshot",
-        phase_started.elapsed(),
-        carrier,
-        frame_count,
-        frame_bytes,
-        None,
-        None,
-    ));
+    let snapshot_content_digest = match cached_content_digest {
+        Some(content_digest) => content_digest,
+        None => {
+            let phase_started = std::time::Instant::now();
+            let content_digest = builder.snapshot_content_id();
+            timings.push(sink_phase_timing(
+                "fingerprint-snapshot",
+                phase_started.elapsed(),
+                carrier,
+                frame_count,
+                frame_bytes,
+                None,
+                None,
+            ));
+            content_digest
+        }
+    };
 
     let reps: std::collections::BTreeSet<String> =
         frames.iter().map(|row| row.rep.clone()).collect();
@@ -2126,32 +2127,136 @@ fn serialize_snapshot(
         .add_dataset(&envelope_graph)
         .map_err(|e| stage_err(&format!("fold the medium envelopes into snapshot: {e}")))?;
 
+    // Consume the builder.  The profile extracts its owned wire payload and drops
+    // these full interning tables before the writer canonicalizes/compresses the
+    // snapshot; it also skips purrdf's redundant length-probe serialization because
+    // this profile selects zstd-rsyncable explicitly, independent of payload size.
     let phase_started = std::time::Instant::now();
-    let bytes = gmeow_gts_profile::emit_gmeow_gts_with_medium(
-        &builder,
-        blobs,
-        report_blobs,
-        None,
-        None,
-        None,
-        &plan,
-    )
-    .map_err(|e| stage_err(&format!("emit_gts: {e}")))?;
+    let bytes =
+        gmeow_gts_profile::emit_owned_gmeow_gts_with_medium(builder, blobs, report_blobs, &plan)
+            .map_err(|e| stage_err(&format!("emit_gts: {e}")))?;
     timings.push(sink_phase_timing(
         "emit-final-gts",
         phase_started.elapsed(),
         carrier,
         frame_count,
         frame_bytes,
-        // The returned GTS bytes ARE resident at this boundary; nothing was released here.
         Some(("gts", bytes.len())),
         None,
     ));
-    Ok(bytes)
+    let pass_one_receipt = serde_json::to_vec(&PassOneReceipt {
+        schema_version: PASS_ONE_RECEIPT_SCHEMA_VERSION,
+        algorithm: PASS_ONE_RECEIPT_ALGORITHM.to_string(),
+        input_digest: pass_one_input_digest,
+        snapshot_content_digest,
+        stratum_digest: snapshot_strata_digest,
+    })
+    .map_err(|e| stage_err(&format!("serialize the GTS pass-one receipt: {e}")))?;
+    Ok(SerializedCarrierSnapshot {
+        bytes,
+        pass_one_receipt,
+        timings: std::mem::take(timings),
+    })
 }
 
-/// The digest and byte length of the canonical serialization of the snapshot
-/// payload's quad set MINUS the
+/// Content identity of the selection-independent pass-1 stratum.
+///
+/// The snapshot product digest names the exact whole carrier without serializing it a
+/// second time. Pointer identity binds the caller's borrowed dataset to that product,
+/// while each small carrier-time graph is canonicalized independently and framed by
+/// source position. Equal keys therefore mean equal standardize-apart stratum inputs;
+/// changes may cause a conservative miss but never a false hit.
+fn pass_one_receipt_input_digest(
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+) -> Result<String, gmeow_errors::Diag> {
+    let snapshot = snapshot_product(upstream)?;
+    if snapshot.carrier_released {
+        return Err(stage_err(
+            "cannot key a GTS pass-one receipt from a released stage-snapshot carrier",
+        ));
+    }
+    if !std::ptr::eq(snapshot.bundle().dataset(), carrier) {
+        return Err(stage_err(
+            "the GTS serializer carrier is not the stage-snapshot product's exact dataset",
+        ));
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    hash_receipt_field(&mut hasher, PASS_ONE_RECEIPT_ALGORITHM.as_bytes());
+    hash_receipt_field(&mut hasher, crate::cache::BUILD_FINGERPRINT.as_bytes());
+    hash_receipt_field(&mut hasher, snapshot.digest.as_bytes());
+    for (index, graph) in extra_graphs.iter().enumerate() {
+        hash_receipt_field(&mut hasher, &(index as u64).to_le_bytes());
+        let canonical = purrdf::canonical_flat_nquads(graph.as_ref()).map_err(|e| {
+            stage_err(&format!(
+                "canonicalize GTS pass-one receipt input {index}: {e}"
+            ))
+        })?;
+        hash_receipt_field(&mut hasher, canonical.as_bytes());
+    }
+    Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+fn hash_receipt_field(hasher: &mut blake3::Hasher, bytes: &[u8]) {
+    hasher.update(&(bytes.len() as u64).to_le_bytes());
+    hasher.update(bytes);
+}
+
+/// Read the previous terminal's receipt when an out-of-band proof re-emits the exact
+/// completed run under a second declared medium. Absence of the terminal product is a
+/// normal first-emission miss. Once that product exists, however, its receipt is part
+/// of the typed result: missing, malformed, stale, or non-canonical evidence is a hard
+/// failure rather than an opportunistic recomputation that could hide corruption.
+fn reusable_pass_one_receipt(
+    upstream: &BTreeMap<String, StageProduct>,
+    expected_input_digest: &str,
+) -> Result<Option<PassOneReceipt>, gmeow_errors::Diag> {
+    let Some(sink) = upstream.get("stage-gts-sink") else {
+        return Ok(None);
+    };
+    let bytes = sink.artifact(PASS_ONE_RECEIPT_PATH).ok_or_else(|| {
+        stage_err(&format!(
+            "stage-gts-sink is present but its required `{PASS_ONE_RECEIPT_PATH}` receipt is missing"
+        ))
+    })?;
+    let receipt: PassOneReceipt = serde_json::from_slice(bytes)
+        .map_err(|e| stage_err(&format!("parse `{PASS_ONE_RECEIPT_PATH}`: {e}")))?;
+    if receipt.schema_version != PASS_ONE_RECEIPT_SCHEMA_VERSION {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` schema version {} does not equal required {}",
+            receipt.schema_version, PASS_ONE_RECEIPT_SCHEMA_VERSION
+        )));
+    }
+    if receipt.algorithm != PASS_ONE_RECEIPT_ALGORITHM {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` algorithm `{}` does not equal required `{PASS_ONE_RECEIPT_ALGORITHM}`",
+            receipt.algorithm
+        )));
+    }
+    if receipt.input_digest != expected_input_digest {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` input digest `{}` does not match current `{expected_input_digest}`",
+            receipt.input_digest
+        )));
+    }
+    if !crate::medium::is_canonical_digest(&receipt.snapshot_content_digest) {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` carries non-canonical snapshot content digest `{}`",
+            receipt.snapshot_content_digest
+        )));
+    }
+    if !crate::medium::is_canonical_digest(&receipt.stratum_digest) {
+        return Err(stage_err(&format!(
+            "`{PASS_ONE_RECEIPT_PATH}` carries non-canonical stratum digest `{}`",
+            receipt.stratum_digest
+        )));
+    }
+    Ok(Some(receipt))
+}
+
+/// The canonical serialization of the snapshot payload's quad set MINUS the
 /// medium-envelope subgraph — the region `gmeow:stratumPayloadExcludingMediumEnvelope`
 /// names, taken over the pass-1 union (which is exactly that region, because the
 /// envelopes do not exist yet).
@@ -2162,13 +2267,24 @@ fn serialize_snapshot(
 ///
 /// # Errors
 /// The union fails dataset validation or canonicalization.
+#[cfg(test)]
+fn stratum_nquads(
+    carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+) -> Result<String, gmeow_errors::Diag> {
+    let union = flat_stratum_union(carrier, extra_graphs)?;
+    Ok(purrdf::canonicalize(&union).nquads)
+}
+
+/// The digest and byte length of the canonical pass-one stratum.
+///
+/// The id-native union and canonical byte buffer are released before returning, so callers
+/// retain only the compact identities needed by the envelope and report the processed size.
 pub fn snapshot_stratum_digest(
     carrier: &purrdf::RdfDataset,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<(String, usize), gmeow_errors::Diag> {
     let union = flat_stratum_union(carrier, extra_graphs)?;
-    // `union` is already the flattened quad set. Calling `canonical_flat_nquads`
-    // here would re-materialize it into owned quads and freeze a second dataset.
     let canonical = purrdf::canonicalize(&union).nquads;
     drop(union);
     let len = canonical.len();
@@ -2179,12 +2295,9 @@ pub fn snapshot_stratum_digest(
 
 /// Build the flattened multi-source stratum directly over PurRDF's interned ids.
 ///
-/// The former route expanded every source into `Vec<RdfQuad>`, re-interned that
-/// owned union, expanded the union a second time, and froze a second dataset before
-/// RDFC canonicalization. This keeps one destination term table and one quad table.
-/// Blank labels are qualified and sources are scoped exactly as
-/// `flat_dataset_from_quad_sources(flat_rdf_quads_from_dataset(..))` did, including
-/// the statement overlay's deliberate loss of its source graph coordinate.
+/// The former route expanded every source into owned quads before re-interning the union.
+/// This keeps one destination term table and one quad table while preserving the exact
+/// source-scoped blank-label and RDF 1.2 side-table flattening contract.
 fn flat_stratum_union(
     carrier: &purrdf::RdfDataset,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
@@ -2195,7 +2308,10 @@ fn flat_stratum_union(
         .enumerate()
     {
         let mut remap = vec![None; source.term_count()];
-        let outer_scope = purrdf::BlankScope(source_index as u32);
+        let outer_scope =
+            purrdf::BlankScope(u32::try_from(source_index).map_err(|_| {
+                stage_err("too many medium digest strata to assign blank-node scopes")
+            })?);
         for quad in source.quads() {
             let s = intern_flat_term(&mut builder, source, &mut remap, quad.s, outer_scope);
             let p = intern_flat_term(&mut builder, source, &mut remap, quad.p, outer_scope);
@@ -2206,8 +2322,6 @@ fn flat_stratum_union(
             builder.push_quad(s, p, o, g);
         }
 
-        // `flat_rdf_quads_from_dataset` materializes both side tables as ordinary
-        // default-graph quads. Preserve that exact flat contract here.
         let reifies = builder.intern_iri(purrdf::gts_compose::RDF_REIFIES);
         for (reifier, triple) in source.reifiers() {
             let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope);
@@ -2242,12 +2356,6 @@ fn intern_flat_term(
     let mapped = match source.resolve(source_id) {
         purrdf::TermRef::Iri(iri) => builder.intern_iri(iri),
         purrdf::TermRef::Blank { label, scope } => {
-            // Preserve BOTH owned compatibility boundaries in the former route:
-            // source inner-scope -> source-qualified label, then multi-source outer
-            // scope -> union-qualified label, followed by the final flat freeze in
-            // DEFAULT scope. This includes its historical collision behaviour and
-            // therefore keeps the canonical bytes exact rather than merely
-            // isomorphic on ordinary labels.
             let source_qualified = scope.qualify_label(label);
             let union_qualified = outer_scope.qualify_label(source_qualified.as_ref());
             builder.intern_blank(union_qualified.as_ref(), purrdf::BlankScope::DEFAULT)
@@ -2280,9 +2388,145 @@ fn intern_flat_term(
     mapped
 }
 
+#[cfg(test)]
+mod stratum_canonical_tests {
+    use super::*;
+
+    fn fixture_dataset(object: &str) -> std::sync::Arc<purrdf::RdfDataset> {
+        parse_dataset(
+            format!(
+                "<https://example.org/s> <https://example.org/p> <https://example.org/{object}> ."
+            )
+            .as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .expect("fixture dataset")
+    }
+
+    #[test]
+    fn streamed_flat_union_matches_the_prior_flat_canonical_path() {
+        let first = parse_dataset(
+            br#"@prefix ex: <https://example.org/> .
+                @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                _:same ex:p ex:o .
+                ex:r rdf:reifies <<( _:same ex:q "value" )>> .
+                ex:r ex:confidence "1" ."#,
+            "text/turtle",
+            None,
+        )
+        .expect("first RDF 1.2 source");
+        let second = parse_dataset(
+            br#"@prefix ex: <https://example.org/> .
+                _:same ex:p ex:other ."#,
+            "text/turtle",
+            None,
+        )
+        .expect("second independently parsed source");
+
+        let old_sources = [
+            purrdf::flat_rdf_quads_from_dataset(first.as_ref()),
+            purrdf::flat_rdf_quads_from_dataset(second.as_ref()),
+        ];
+        let old_refs: Vec<&[RdfQuad]> = old_sources.iter().map(Vec::as_slice).collect();
+        let old_union = purrdf::flat_dataset_from_quad_sources(&old_refs).expect("old flat union");
+        let expected = purrdf::canonical_flat_nquads(old_union.as_ref())
+            .expect("old flat union canonicalizes");
+
+        let actual = stratum_nquads(first.as_ref(), &[second]).expect("streamed flat union");
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn pass_one_receipt_key_binds_the_exact_snapshot_and_each_extra_graph() {
+        let carrier = fixture_dataset("carrier");
+        let mut upstream = BTreeMap::new();
+        upstream.insert(
+            "stage-snapshot".to_string(),
+            StageProduct::from_artifacts_over(
+                "stage-snapshot",
+                std::sync::Arc::clone(&carrier),
+                BTreeMap::new(),
+            ),
+        );
+        let first_graph = fixture_dataset("first");
+        let second_graph = fixture_dataset("second");
+
+        let key = pass_one_receipt_input_digest(
+            &upstream,
+            carrier.as_ref(),
+            &[std::sync::Arc::clone(&first_graph)],
+        )
+        .expect("receipt key");
+        assert_eq!(
+            key,
+            pass_one_receipt_input_digest(&upstream, carrier.as_ref(), &[first_graph])
+                .expect("stable receipt key")
+        );
+        assert_ne!(
+            key,
+            pass_one_receipt_input_digest(&upstream, carrier.as_ref(), &[second_graph])
+                .expect("changed receipt key"),
+            "an auxiliary stratum-graph change must invalidate the receipt"
+        );
+
+        let unrelated = fixture_dataset("unrelated");
+        assert!(
+            pass_one_receipt_input_digest(&upstream, unrelated.as_ref(), &[]).is_err(),
+            "a lookalike caller cannot key evidence for a dataset other than the exact snapshot"
+        );
+    }
+
+    #[test]
+    fn present_pass_one_receipt_is_typed_and_fail_closed() {
+        let expected_input = crate::medium::blake3_digest(b"input");
+        let expected_content = crate::medium::blake3_digest(b"content");
+        let expected_stratum = crate::medium::blake3_digest(b"stratum");
+        let receipt = PassOneReceipt {
+            schema_version: PASS_ONE_RECEIPT_SCHEMA_VERSION,
+            algorithm: PASS_ONE_RECEIPT_ALGORITHM.to_string(),
+            input_digest: expected_input.clone(),
+            snapshot_content_digest: expected_content.clone(),
+            stratum_digest: expected_stratum.clone(),
+        };
+        let mut artifacts = BTreeMap::new();
+        artifacts.insert(
+            PASS_ONE_RECEIPT_PATH.to_string(),
+            serde_json::to_vec(&receipt).expect("receipt JSON"),
+        );
+        let mut upstream = BTreeMap::new();
+        upstream.insert(
+            "stage-gts-sink".to_string(),
+            StageProduct::from_artifacts("stage-gts-sink", artifacts),
+        );
+
+        assert_eq!(
+            reusable_pass_one_receipt(&upstream, &expected_input)
+                .expect("matching receipt")
+                .expect("receipt is present")
+                .snapshot_content_digest,
+            expected_content
+        );
+        assert!(
+            reusable_pass_one_receipt(&upstream, &crate::medium::blake3_digest(b"changed"))
+                .is_err(),
+            "a stale same-stage receipt must hard-fail"
+        );
+
+        upstream.insert(
+            "stage-gts-sink".to_string(),
+            StageProduct::from_artifacts("stage-gts-sink", BTreeMap::new()),
+        );
+        assert!(
+            reusable_pass_one_receipt(&upstream, &expected_input).is_err(),
+            "a completed terminal without its required receipt must hard-fail"
+        );
+    }
+}
+
 /// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
 /// snapshot payload: its quad set minus the medium-envelope subgraph, canonicalized
-/// exactly as [`snapshot_stratum_digest`] does.
+/// exactly as [`stratum_nquads`] does.
 ///
 /// This is the reader-side inverse. It is what makes the stratum CHECKABLE rather
 /// than merely asserted: a consumer folds the bundle, strips the envelope quads by
@@ -2293,8 +2537,6 @@ fn intern_flat_term(
 pub fn snapshot_stratum_nquads(payload: &purrdf::RdfDataset) -> Result<String, gmeow_errors::Diag> {
     let stripped = purrdf::flat_dataset_from_quads(&snapshot_stratum_quads(payload))
         .map_err(|e| stage_err(&format!("strip the medium-envelope subgraph: {e}")))?;
-    // `stripped` is already flat; canonicalizing it directly avoids an owned-quad
-    // expansion plus a second identical flat dataset.
     Ok(purrdf::canonicalize(&stripped).nquads)
 }
 
@@ -2447,15 +2689,12 @@ pub(crate) const REP_GENERATED: &str = "generated-opaque-archive";
 // the dictionary selecting it primed nothing. It is now a real archive folded by
 // [`crate::stages::archive_blobs`] (which owns every by-reference TAR rep) off
 // `stage-statements`' rendered claim-corpus surface, and the sink READS it back with
-// the other nine — one authority for archive membership, no inline sink fold.
+// the other archive representations — one authority for archive membership, no inline sink fold.
 
 /// The archive representation ids, from the crate that OWNS them: `gmeow-bundle-view`
 /// addresses these blobs on the read side, and a second definition here would be a second
 /// source of truth for a string the two sides have to agree on exactly.
 pub(crate) use gmeow_bundle_view::bundle_blobs::REP_REASONING;
-/// The archive ids this module only names from its tests, owned by `gmeow-bundle-view`.
-#[cfg(test)]
-pub(crate) use gmeow_bundle_view::bundle_blobs::{REP_OKF, REP_ONTOLOGY_DOCS};
 
 pub(crate) const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 
@@ -2958,6 +3197,10 @@ fn collect_fanout_opaque_members(
             "stage-compile-logic",
             crate::stages::compile_logic::DIAG_HTML_PATH,
         ),
+        (
+            "stage-verify-attestation",
+            crate::stages::verify_attestation::VERIFY_JSON_PATH,
+        ),
     ] {
         let bytes = upstream
             .get(stage)
@@ -3292,93 +3535,6 @@ fn build_reasoning_blob(
     archive_blob(REP_REASONING, &members)
 }
 
-/// Build the OKF archive from the carrier dataset — the SAME native carrier the
-/// fold-reading export leaves consume, avoiding a `stage-snapshot` ↔
-/// `stage-export-okf` DAG cycle (no gts round-trip).
-///
-/// The public reader (`gmeow_tools.bundle.bundled_okf`) expects members relative to
-/// the bundle root (`gmeow-okf/classes/Foo.md`), while the export leaf product is a
-/// disk artifact under `dist/`. Strip only that leading `dist/` boundary and hard-fail
-/// if a renderer path escapes it.
-#[cfg(test)]
-fn build_okf_blob_from_dataset(
-    carrier: &purrdf::RdfDataset,
-) -> Result<BlobRow, gmeow_errors::Diag> {
-    let (title, version, terms) = crate::stages::export::collect_term_surface(carrier)?;
-    let artifacts = crate::stages::okf::render_okf(&title, &version, &terms)?;
-    let mut members: Vec<(String, Vec<u8>)> = Vec::with_capacity(artifacts.len());
-    for (path, bytes) in artifacts {
-        let member = path
-            .strip_prefix("dist/")
-            .ok_or_else(|| stage_err(&format!("OKF export path is not under dist/: {path}")))?;
-        members.push((member.to_string(), bytes));
-    }
-    archive_blob(REP_OKF, &members)
-}
-
-/// Render the full ontology-docs static site and pack it into the single
-/// `ontology-docs` archive blob — the producer half of repo-free
-/// `gmeow export-docs`.
-///
-/// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
-/// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
-/// `search-index.json`, `llms.txt`/`llms-full.txt`, alias redirects) as a deterministic
-/// `BTreeMap<path, bytes>`. We render it once per available language and prefix
-/// every member with that language's INTERNAL tag (`x-gmeow-english`,
-/// `x-gmeow-<lang>`, …) — the exact `{tag}/` prefix `_unpack_doc_archive` filters
-/// on (`resolve_doc_language` returns these internal tags). The prefix comes from
-/// `Translations::internal_tag`, never the carrier key or a hardcoded string, so a
-/// new `.po` catalog is picked up with the correct tag automatically.
-// The docs model (with the reasoning verdict already attached by the caller) + the
-// executable-docs data are passed in — both are shared with `build_executable_docs_data`
-// so the model is discovered and the reasoner run once per snapshot.
-#[cfg(test)]
-fn build_docs_archive(
-    root: &Path,
-    model: &gmeow_docs::model::DocsModel,
-    exec: &gmeow_docs::ExecutableDocsData,
-    slice_quality_html: &[u8],
-) -> Result<BlobRow, gmeow_errors::Diag> {
-    let catalog =
-        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
-    let translations = gmeow_docs::Translations::from_catalog(&catalog);
-
-    // Render each language's full site in parallel: the per-language renders are
-    // independent pure functions of the shared read-only model + executable data, and
-    // this is the dominant cost of the snapshot stage (which sits on the build DAG's
-    // serial critical path). Results are collected then sorted by member path, so the
-    // archive is byte-identical regardless of completion order.
-    let langs = gmeow_docs::available_languages(&translations);
-    // The purrdf graph diagrams (thousands of per-term / per-slice SVGs) are
-    // language-invariant and dominate the render cost — render them ONCE and share the
-    // identical bytes across every language tree, rather than re-rendering per locale.
-    let diagrams = gmeow_docs::render_purrdf_diagrams(model);
-    let mut members: Vec<(String, Vec<u8>)> = langs
-        .par_iter()
-        .flat_map_iter(|lang| {
-            let site =
-                gmeow_docs::render_site_lang_exec_with_diagrams(model, lang, exec, &diagrams);
-            let prefix = translations.internal_tag(lang);
-            site.files
-                .into_iter()
-                .map(move |(path, bytes)| (format!("{prefix}/{path}"), bytes))
-        })
-        .collect();
-    for lang in &langs {
-        let prefix = translations.internal_tag(lang);
-        let member = format!("{prefix}/{SLICE_QUALITY_DOC_PATH}");
-        if members.iter().any(|(path, _)| path == &member) {
-            return Err(stage_err(&format!(
-                "ontology-docs renderer already emitted reserved slice-quality report path {member}"
-            )));
-        }
-        members.push((member, slice_quality_html.to_vec()));
-    }
-    members.sort_by(|a, b| a.0.cmp(&b.0));
-    archive_blob(REP_ONTOLOGY_DOCS, &members)
-}
-
 /// Render the mdbook `src/` source tree and pack it into the single `docs-book` archive blob
 /// — the producer half of the mdbook documentation projection.
 ///
@@ -3466,68 +3622,6 @@ fn build_docs_print_blob(
         (format!("{prefix}/gmeow.typ"), typ.into_bytes()),
     ];
     Ok((archive_blob(REP_DOCS_PRINT, &members)?, pdf_digest))
-}
-
-/// Compute the build-time [`gmeow_docs::ExecutableDocsData`] the "live" docs surfaces
-/// need — from the carrier, the authored ontology, and the on-disk worked examples.
-///
-/// - **Try it:** reason over `(authored default-world ontology ∪ all example ABoxes)` and
-///   slice the resulting closure by each example's own subjects, diffed (witness-
-///   insensitively) against `stage-reason`'s committed base closure and the example's
-///   asserted triples. Inferences not attributable to a single example go to a
-///   `cross_example` bucket — never silently dropped. This does NOT re-derive the full
-///   ontology closure: that runs ONCE, in stage-reason (reason-once, project-many); the
-///   examples can only propagate through the authored default-world axioms (the calculus
-///   is same-world and imports ride named worlds), so the small seed is sufficient.
-///
-/// The carrier itself is no longer an input. It was one only to project the playground's
-/// TriG query asset; the interactive surfaces query the shipped `gmeow.gts` directly now,
-/// so nothing here needs the whole graph.
-#[cfg(test)]
-fn build_executable_docs_data(
-    upstream: &BTreeMap<String, StageProduct>,
-    model: &gmeow_docs::model::DocsModel,
-) -> Result<gmeow_docs::ExecutableDocsData, gmeow_errors::Diag> {
-    // The reasoning seed for the "try it" hypothetical is the AUTHORED default-world
-    // ontology ALONE — NOT the full object-level EDB. Reason-once, project-many
-    // (PIPELINE_SPINE §3.2/§8): the expensive full-EDB closure is computed exactly ONCE, in
-    // stage-reason. The try-it must not re-derive it. It can't: worked examples parse into
-    // the DEFAULT world and the EL/RL calculus is same-world (`?w`), while imports /
-    // statements / alignments / logic ride NAMED worlds — so an example can ONLY propagate
-    // through the authored default-world axioms. Reasoning that small seed (instead of the
-    // full EDB with its import bulk) yields byte-identical attributed inferences at a
-    // fraction of the cost (verified against the full EDB over the real ontology).
-    let base_seed = std::sync::Arc::new(
-        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
-    );
-    // The base ontology closure stage-reason already committed: the core subtracts it
-    // (witness-insensitively) so only EXAMPLE-INDUCED inferences remain — reuse, not a
-    // second authority.
-    let base_bytes = upstream
-        .get("stage-reason")
-        .and_then(|p| p.artifact(crate::stages::reason::CLOSURE_PATH))
-        .ok_or_else(|| stage_err("missing stage-reason inferred-closure artifact"))?;
-    // Lower the discovered docs model to the reason-and-attribute core's plain inputs, so
-    // the core is exercisable over a fixed fixture without a full pipeline product map.
-    let sources: Vec<ExampleSource> = model
-        .examples
-        .iter()
-        .map(|ex| ExampleSource {
-            slice: ex.slice.clone(),
-            logical_path: ex.logical_path.clone(),
-            text: ex.text.clone(),
-        })
-        .collect();
-    let mut data = executable_docs_from_sources(base_seed.as_ref(), base_bytes, &sources)?;
-    // B3: the per-term entailment "why" panels, parsed from `stage-reason`'s materialized
-    // `reasoning-explanations` proof skeletons (reason-once — this reads the SAME product
-    // the CLOSURE_PATH fetch above already reads, a different artifact key on the identical
-    // upstream product, never a second reasoning pass). Joined against every documented
-    // term's IRI, so a term with no matching derivation is honestly absent from the map.
-    let term_iris: std::collections::BTreeSet<String> =
-        model.terms.iter().map(|t| t.iri.clone()).collect();
-    data.term_entailments = term_entailments_from_upstream(upstream, &term_iris)?;
-    Ok(data)
 }
 
 /// One reasoner-derivation's raw shape, accumulated per blank-node subject while
@@ -4206,16 +4300,18 @@ impl SnapshotStage {
                 "stage-goal-directed".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
-                // The self-description named graphs (authored default / imports / metadata
-                // / alignments / slice-analysis / verify / provenance) are attached by
-                // stage-source-load; the presenter reads them off this product instead of
-                // re-loading + re-canonicalizing the sources (PIPELINE_SPINE §3.2/§4).
+                // The source self-description graphs (authored default / imports /
+                // metadata / alignments / slice-analysis / provenance) are attached by
+                // stage-source-load. The presenter reads them without reloading sources.
                 "stage-source-load".to_string(),
                 "stage-statements".to_string(),
                 // The generated term content manifest `.nq`, folded as the
                 // graph/fanout/catalog/term-content-manifest.nq named graph.
                 "stage-term-manifest".to_string(),
                 "stage-validate".to_string(),
+                // The dedicated bounded transform evaluates graph/verify against
+                // stage-reason's typed result without constructing another closure.
+                "stage-verify-attestation".to_string(),
             ],
         }
     }
@@ -4362,7 +4458,11 @@ impl Stage for SnapshotStage {
         // `assemble_object_level_edb`, the reasoned closure) instead of being read only by
         // the docs/competency-question harvest. Same reasoning as v32: the merged product
         // differs from either line alone, so it needs its own key.
-        "snapshot.v33-grounding-seams-executable-lifts-and-examples"
+        // v34 reads graph/verify from its dedicated downstream producer rather than
+        // treating it as part of stage-reason's cumulative product.
+        // v35 ships the three termination-ladder EDB worlds that stage-reason consumes,
+        // so repo-free object-level projection reconstructs the producer's exact EDB.
+        "snapshot.v35-termination-edb-worlds"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();
@@ -5484,117 +5584,6 @@ fn expand_curie(
     Err(stage_err(&format!("unresolvable CURIE {curie:?}")))
 }
 
-// ── verify attestation (graph/verify) ───────────────────────────────────────────
-
-/// Run the native verify lane over `edb` and build the attestation graph as
-/// N-Quads. Mirrors `gts_gen.build_verify_attestation_graph` exactly (the same
-/// `gmeow:QualityAssessment` vocabulary, one per query).
-///
-/// The query set is compile-time-embedded (`gmeow_logic::verify::
-/// embedded_verify_queries`) rather than walked off disk: `queries/verify/` and
-/// `slices/**/queries/verify/` are baked into the `gmeow-logic` binary by its
-/// `build.rs`, sorted by stem.
-fn run_verify_attestation(edb: &purrdf::RdfDataset) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let pairs = gmeow_logic::verify::embedded_verify_queries();
-
-    let report = gmeow_logic::verify::verify(edb, &pairs)
-        .map_err(|e| stage_err(&format!("native verify: {e}")))?;
-
-    // The failed set: stems whose finding is an error coded `verify.<stem>`.
-    let mut failed: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for finding in &report.findings {
-        if matches!(finding.severity, gmeow_errors::Severity::Error)
-            && finding.code.starts_with("verify.")
-        {
-            failed.insert(finding.code["verify.".len()..].to_string());
-        }
-    }
-
-    let attestation = emit_verify_attestation(&pairs, &failed);
-    turtle_to_nquads(attestation.as_bytes())
-}
-
-/// Emit the verify-attestation Turtle (pure, deterministic). One
-/// `gmeow:QualityAssessment` per query; mirrors `build_verify_attestation_graph`.
-fn emit_verify_attestation(
-    query_paths: &[(String, String)],
-    failed: &std::collections::BTreeSet<String>,
-) -> String {
-    use std::fmt::Write;
-    let mut body = String::new();
-    writeln!(body, "@prefix gmeow: <{GMEOW_NS}> .").unwrap();
-    writeln!(body, "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .").unwrap();
-    writeln!(
-        body,
-        "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> ."
-    )
-    .unwrap();
-    writeln!(body).unwrap();
-
-    let ontology_iri = GMEOW_NS.trim_end_matches('/');
-    // The verify activity and per-query assessments are generated A-Box
-    // instance data folded into the bundle's `graph/verify`, not vocabulary
-    // surface: each typed subject carries a human label, its named-graph
-    // provenance anchor, and the assertional `gmeow:boxABox` role so the bundle
-    // satisfies the assertional-tier validation contract (no `skos:definition`).
-    writeln!(
-        body,
-        "<{GMEOW_NS}activity/native-verify> a <{GMEOW_NS}Activity> ;"
-    )
-    .unwrap();
-    writeln!(body, "    rdfs:label \"Native verify activity\" ;").unwrap();
-    writeln!(body, "    rdfs:isDefinedBy <{GMEOW_NS}graph/verify> ;").unwrap();
-    writeln!(body, "    gmeow:graphBoxRole gmeow:boxABox ;").unwrap();
-    writeln!(
-        body,
-        "    <{GMEOW_NS}wasAssociatedWith> <{GMEOW_NS}agent/native-verify> ."
-    )
-    .unwrap();
-    writeln!(body).unwrap();
-
-    for (name, _sparql) in query_paths {
-        let stem = query_stem(name);
-        let passed = !failed.contains(stem);
-        writeln!(body, "<{GMEOW_NS}verify-attestation/{stem}>").unwrap();
-        writeln!(body, "    a <{GMEOW_NS}QualityAssessment> ;").unwrap();
-        writeln!(body, "    rdfs:label \"Verify attestation: {stem}\" ;").unwrap();
-        writeln!(body, "    rdfs:isDefinedBy <{GMEOW_NS}graph/verify> ;").unwrap();
-        writeln!(body, "    gmeow:graphBoxRole gmeow:boxABox ;").unwrap();
-        writeln!(body, "    <{GMEOW_NS}assessedEntity> <{ontology_iri}> ;").unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}qualityDimension> <{GMEOW_NS}qualityDimensionLogicalConsistency> ;"
-        )
-        .unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}observationResult> \"{}\"^^xsd:boolean ;",
-            if passed { "true" } else { "false" }
-        )
-        .unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}wasDerivedFrom> <{GMEOW_NS}verify-query/{stem}> ;"
-        )
-        .unwrap();
-        writeln!(
-            body,
-            "    <{GMEOW_NS}wasGeneratedBy> <{GMEOW_NS}activity/native-verify> ."
-        )
-        .unwrap();
-        writeln!(body).unwrap();
-    }
-    body
-}
-
-fn query_stem(name: &str) -> &str {
-    name.rsplit('/')
-        .next()
-        .unwrap_or(name)
-        .strip_suffix(".rq")
-        .unwrap_or(name)
-}
-
 // ── small helpers ───────────────────────────────────────────────────────────────
 
 /// Canonicalize N-Quads bytes and route them into `graph_name` on `builder` — the
@@ -6021,84 +6010,6 @@ mod ustar_tests {
     }
 
     #[test]
-    fn build_docs_archive_packs_the_rendered_site() {
-        // The archive packing is exercised with a model-only render (empty executable
-        // data): the reasoned "try it" / playground surfaces need a full pipeline run,
-        // covered by the regenerate gate, not this structural packing test.
-        let root = repo_root();
-        let model = gmeow_docs::model::DocsModel::discover(&root).expect("docs model");
-        let slice_quality_html = b"<!doctype html><title>slice-quality</title>\n";
-        let blob = build_docs_archive(
-            &root,
-            &model,
-            &gmeow_docs::ExecutableDocsData::default(),
-            slice_quality_html,
-        )
-        .expect("docs archive");
-        assert_eq!(blob.rep, REP_ONTOLOGY_DOCS);
-        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
-
-        let members = parse(&blob.data);
-        assert!(!members.is_empty(), "the site archive must carry members");
-
-        // Every member is under an INTERNAL `x-gmeow-*/` tag (English carrier plus
-        // any translation language) — exactly the `{tag}/` prefix
-        // `_unpack_doc_archive` filters on, NOT the carrier key (`english/`).
-        assert!(
-            members.iter().all(|(n, _)| n.starts_with("x-gmeow-")),
-            "every member must carry an internal-tag prefix, got e.g. {:?}",
-            members.iter().map(|(n, _)| n).take(3).collect::<Vec<_>>()
-        );
-        assert!(
-            members
-                .iter()
-                .any(|(n, _)| n == "x-gmeow-english/index.html"),
-            "the English landing page must be present"
-        );
-        let report = members
-            .iter()
-            .find(|(n, _)| n == "x-gmeow-english/slice-quality/index.html")
-            .expect("slice-quality HTML report must be embedded in English docs");
-        assert_eq!(
-            report.1.as_slice(),
-            slice_quality_html,
-            "slice-quality report bytes must ride unchanged in the docs archive"
-        );
-        // The site carries its structural assets (deterministic, language-keyed).
-        for asset in [
-            "assets/gmeow.css",
-            "search-index.json",
-            "llms.txt",
-            "llms-full.txt",
-        ] {
-            let want = format!("x-gmeow-english/{asset}");
-            assert!(
-                members.iter().any(|(n, _)| n == &want),
-                "expected site asset {want}"
-            );
-        }
-        // The per-term card surface: at least one `card.md` file must
-        // be present in the archive under the English carrier tag.
-        let card_md_present = members
-            .iter()
-            .any(|(n, _)| n.starts_with("x-gmeow-english/terms/") && n.ends_with("/card.md"));
-        assert!(
-            card_md_present,
-            "expected at least one x-gmeow-english/terms/<slug>/card.md in the docs archive"
-        );
-        // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
-        // Today's longest stays under it, so LongLink is a defensive net rather
-        // than currently-triggered — `long_member_name_round_trips_via_longlink`
-        // is the dedicated proof. The longest member name must stay a valid tar
-        // member (non-empty archive), asserted rather than merely logged.
-        let max_len = members.iter().map(|(n, _)| n.len()).max().unwrap_or(0);
-        assert!(
-            max_len > 0,
-            "the docs archive must carry at least one named member"
-        );
-    }
-
-    #[test]
     fn build_reasoning_blob_folds_the_report_artifacts() {
         // Construct a fake stage-reason product with the two report artifacts (avoids
         // running the reasoner); proves the wiring (rep, keys, fail-closed).
@@ -6143,66 +6054,6 @@ mod ustar_tests {
             build_reasoning_blob(&empty).is_err(),
             "a missing stage-reason product must fail closed"
         );
-    }
-
-    #[test]
-    fn build_okf_archive_packs_the_rust_rendered_bundle() {
-        let root = repo_root();
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gts");
-        let dataset = purrdf::import_gts_events(&gts)
-            .expect("import committed gts")
-            .dataset;
-        let blob = build_okf_blob_from_dataset(dataset.as_ref()).expect("okf archive");
-        assert_eq!(blob.rep, REP_OKF);
-        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
-
-        let members = parse(&blob.data);
-        assert!(!members.is_empty(), "the OKF archive must carry members");
-        assert!(
-            members.iter().all(|(n, _)| n.starts_with("gmeow-okf/")),
-            "every OKF member must be bundle-relative under gmeow-okf/, got e.g. {:?}",
-            members.iter().map(|(n, _)| n).take(3).collect::<Vec<_>>()
-        );
-        assert!(
-            members.iter().any(|(n, _)| n == "gmeow-okf/index.md"),
-            "root OKF index must be present"
-        );
-        for required_dir in ["classes", "properties", "individuals"] {
-            let prefix = format!("gmeow-okf/{required_dir}/");
-            assert!(
-                members
-                    .iter()
-                    .any(|(n, _)| n.starts_with(&prefix) && !n.ends_with("/index.md")),
-                "expected at least one OKF document under {prefix}"
-            );
-        }
-        let root_index = members
-            .iter()
-            .find(|(n, _)| n == "gmeow-okf/index.md")
-            .map(|(_, bytes)| String::from_utf8_lossy(bytes).into_owned())
-            .expect("root index bytes");
-        assert!(
-            root_index.contains("LOSSY projection"),
-            "root OKF index must declare projection loss"
-        );
-
-        let blob2 = build_okf_blob_from_dataset(dataset.as_ref()).expect("second okf archive");
-        assert_eq!(blob.data, blob2.data, "OKF archive must be deterministic");
-    }
-
-    #[test]
-    fn okf_docs_cover_every_documented_term_on_the_committed_ontology() {
-        // Happy path: the real committed ontology must not ship a single dangling
-        // OKF link — every documented class/property/individual term the docs site
-        // would link to has a corresponding document in the OKF projection.
-        let root = repo_root();
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gts");
-        let dataset = purrdf::import_gts_events(&gts)
-            .expect("import committed gts")
-            .dataset;
-        let model = gmeow_docs::model::DocsModel::discover(&root).expect("docs model");
-        assert_okf_docs_cover_documented_terms(dataset.as_ref(), &model)
-            .expect("committed ontology must not have dangling OKF links");
     }
 
     #[test]
@@ -6461,12 +6312,8 @@ mod ustar_tests {
         );
     }
 
-    /// The `application/pdf` attestation the SHIPPED bundle carries (F4) must bind the
-    /// RAW `gmeow.pdf` bytes, not the tar that packs them. Recompute the raw PDF blake3
-    /// straight from the docs-print blob (untar, find the `gmeow.pdf` member, digest it)
-    /// and assert it EQUALS the `gmeow:contentDigest` the docs-format corpus emits on the
-    /// `application/pdf` attestation artifact — proving the binding is real and non-DARK
-    /// on the committed-bundle production path (the exact path `make check` runs).
+    /// The threaded PDF digest must bind the raw `gmeow.pdf` bytes, not the tar that
+    /// packs them. The producer-stage gate owns the corpus-level attestation assertion.
     #[test]
     fn shipped_pdf_attestation_binds_the_raw_pdf_bytes() {
         let model = small_docs_model();
@@ -6485,30 +6332,6 @@ mod ustar_tests {
         assert_eq!(
             recomputed, print_pdf_digest,
             "the threaded raw-PDF digest must equal the blake3 of the shipped gmeow.pdf"
-        );
-
-        // The corpus emits that digest on an application/pdf AttestationArtifact — the
-        // literal that lands in the committed bundle. HARD-FAIL if the binding drifts.
-        let corpus = crate::stages::docs_format_rendering::build_docs_format_corpus(
-            "blake3:0000000000000000000000000000000000000000000000000000000000000000",
-            "blake3:1111111111111111111111111111111111111111111111111111111111111111",
-            &print_pdf_digest,
-        );
-        let nt = String::from_utf8(corpus.ntriples).expect("utf8 n-triples");
-        let pdf_blob = "http://example.org/docs-format/blob/docs-print-pdf";
-        let media = format!(
-            "<{pdf_blob}> <https://blackcatinformatics.ca/gmeow/artifactMediaType> \"application/pdf\" ."
-        );
-        let digest = format!(
-            "<{pdf_blob}> <https://blackcatinformatics.ca/gmeow/contentDigest> \"{recomputed}\" ."
-        );
-        assert!(
-            nt.contains(&media),
-            "the corpus must mint an application/pdf attestation artifact"
-        );
-        assert!(
-            nt.contains(&digest),
-            "the application/pdf attestation must carry the RAW gmeow.pdf blake3, got:\n{nt}"
         );
     }
 
@@ -6535,6 +6358,7 @@ mod ustar_tests {
             "base",
         )
         .expect("fold base graph");
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -6640,6 +6464,7 @@ mod conformance_fold_tests {
         )
         .expect("fold conformance graph");
 
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -6692,6 +6517,7 @@ mod conformance_fold_tests {
         )
         .expect("fold conformance graph");
 
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -6745,6 +6571,7 @@ mod conformance_fold_tests {
             add_named(&mut builder, &conformance, GRAPH_CONFORMANCE, "conformance").expect("fold");
         }
 
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -6816,6 +6643,7 @@ mod validation_shape_typed_lookaside_tests {
             "base",
         )
         .expect("fold base graph");
+        // gmeow-test-input: synthetic-only
         let gts = emit_gts(
             &builder,
             "dist",
@@ -6962,6 +6790,7 @@ mod logic_graph_golden_tests {
             )
             .expect("fold base graph");
             add_named(&mut builder, &logic_nq, GRAPH_LOGIC, "logic").expect("fold graph/logic");
+            // gmeow-test-input: synthetic-only
             emit_gts(
                 &builder,
                 "dist",
@@ -7042,6 +6871,7 @@ mod logic_graph_golden_tests {
                 "reasoning",
             )
             .expect("fold graph/reasoning");
+            // gmeow-test-input: synthetic-only
             emit_gts(
                 &builder,
                 "dist",
@@ -7133,6 +6963,7 @@ mod logic_graph_golden_tests {
                 "relcore",
             )
             .expect("fold graph/relational-core");
+            // gmeow-test-input: synthetic-only
             emit_gts(
                 &builder,
                 "dist",
@@ -7197,6 +7028,7 @@ mod logic_graph_golden_tests {
                 "correspondence",
             )
             .expect("fold graph/correspondence");
+            // gmeow-test-input: synthetic-only
             emit_gts(
                 &builder,
                 "dist",
@@ -7308,6 +7140,7 @@ mod logic_graph_golden_tests {
                 "provenance",
             )
             .expect("fold graph/provenance");
+            // gmeow-test-input: synthetic-only
             emit_gts(
                 &builder,
                 "dist",
@@ -7352,77 +7185,11 @@ mod logic_graph_golden_tests {
             "the graph/provenance fold must be byte-deterministic"
         );
     }
-
-    /// The hard-fail attribution gate passes on the REAL ontology: every
-    /// authored quad carries ≥1 stage-origin occurrence. Builds the real per-quad
-    /// provenance sidecar and runs `check_provenance` over its full coverage set.
-    #[test]
-    fn real_ontology_every_quad_is_attributed() {
-        let root = repo_root();
-        let (prov, expected) =
-            crate::stages::source_load::attributed_base_provenance(&root).expect("attribute");
-        assert!(
-            expected.len() > 5_000,
-            "real authored base graph unexpectedly small: {} quads",
-            expected.len()
-        );
-        purrdf::provenance::check_provenance(&prov, &expected)
-            .expect("every authored quad must carry ≥1 stage-origin occurrence");
-        // The public projection over the real ontology must carry NO runtime id.
-        for (_quad, name, kind, artifact, _loc) in prov.public_projection() {
-            for field in [&name, &kind, &artifact] {
-                assert!(!field.contains("unit#"), "runtime UnitId leaked: {field}");
-                assert!(
-                    !field.contains("artifact#"),
-                    "runtime ArtifactId leaked: {field}"
-                );
-                assert!(
-                    !field.contains("origin-set#"),
-                    "runtime OriginSetId leaked: {field}"
-                );
-            }
-        }
-    }
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
 }
 
 #[cfg(test)]
 mod native_assembly_tests {
     use super::*;
-
-    #[test]
-    fn canonical_logic_types_gain_the_required_owl_reader_view() {
-        let source = br#"@prefix logic: <https://blackcatinformatics.ca/logic/> .
-@prefix ex: <https://example.org/> .
-ex:ontology a logic:Ontology .
-ex:Class a logic:Class .
-ex:value a logic:DatatypeProperty .
-"#;
-        let canonical = purrdf::parse_dataset(source, "text/turtle", None)
-            .expect("parse canonical logic fixture");
-        let projected = with_owl_rdfs_projection(canonical.as_ref());
-        let nq = String::from_utf8(
-            dataset_to_nquads(projected.as_ref()).expect("serialize projected fixture"),
-        )
-        .expect("N-Quads is UTF-8");
-        for required in ["owl#Ontology", "owl#Class", "owl#DatatypeProperty"] {
-            assert!(
-                nq.contains(required),
-                "missing required projection {required}: {nq}"
-            );
-        }
-        assert!(
-            nq.contains("blackcatinformatics.ca/logic/Ontology"),
-            "projection must retain canonical authority: {nq}"
-        );
-    }
 
     /// Count the `owl:AllDisjointClasses` typed subjects (blank nodes) and the
     /// `owl:members` list-head triples in a canonical N-Quads blob.
@@ -7534,42 +7301,6 @@ ex:value a logic:DatatypeProperty .
         assert!(
             native_canon.contains("_:c14n"),
             "the blank structural-drop node must carry a canonical RDFC-1.0 label"
-        );
-    }
-
-    /// `load_authored_default` over the real repo tree produces a non-empty
-    /// multilingual default graph (the union path + native translation fold),
-    /// without external documentation payload references.
-    #[test]
-    fn authored_default_assembles_natively() {
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap();
-        let nq = load_authored_default(&root).expect("authored default graph");
-        let text = String::from_utf8(nq).expect("utf-8 n-quads");
-        assert!(
-            !text.trim().is_empty(),
-            "the default graph must be non-empty"
-        );
-        // The root ontology declaration must be present (the ontology IRI has no
-        // trailing slash — `…/gmeow`, distinct from the `…/gmeow/` namespace prefix).
-        assert!(
-            text.contains("<https://blackcatinformatics.ca/gmeow>"),
-            "the authored default graph must carry the root ontology subject"
-        );
-        let guide_predicate = " <https://blackcatinformatics.ca/gmeow/guideBlob> ";
-        assert!(
-            !text.lines().any(|line| line.contains(guide_predicate)),
-            "external guideBlob references must not enter the logical bundle"
-        );
-        // Determinism: a second assembly is byte-identical.
-        let again = load_authored_default(&root).expect("authored default graph (2)");
-        assert_eq!(
-            text.as_bytes(),
-            again.as_slice(),
-            "the native authored assembly must be byte-deterministic"
         );
     }
 }
@@ -8170,99 +7901,6 @@ mod term_entailments_tests {
             "a stage-reason product missing the explanations artifact must hard-fail"
         );
     }
-
-    /// F1 (binding, production-surface non-vacuity): `term_entailments` parsed from the
-    /// REAL materialized `stage-reason` explanations over the real ontology must
-    /// populate ≥1 per-term inferred-facts panel — a reasoner-derived OWL/RL closure
-    /// over an ontology this size entails real subsumption/property-characteristic
-    /// axioms, so the panel must never ship vacuous. Runs the real
-    /// `source_load` → `statements` / `compile_logic` → `mappings` → `reason` stage
-    /// chain directly (each `Stage::run` call is pure in-memory — no disk write; the
-    /// committed `generated/` tree is untouched), mirroring the chaining pattern
-    /// `mappings::projection_report_unions_logic_and_correspondence_rows` already uses.
-    #[test]
-    fn term_entailments_are_non_vacuous_on_the_real_repo() {
-        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap();
-        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
-
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        let source_load = crate::stages::source_load::SourceLoadStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real source-load");
-        upstream.insert("stage-source-load".to_string(), source_load.product);
-
-        let statements = crate::stages::statements::StatementsStage
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real statements");
-        upstream.insert("stage-statements".to_string(), statements.product);
-
-        let compile = crate::stages::compile_logic::CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("real compile-logic");
-        upstream.insert("stage-compile-logic".to_string(), compile.product);
-
-        let constraint_shapes = crate::stages::constraint_shapes::ConstraintShapesStage
-            .run(StageInput {
-                root: &root,
-                upstream: &empty,
-            })
-            .expect("real constraint-shapes");
-        upstream.insert(
-            "stage-export-constraint-shapes".to_string(),
-            constraint_shapes.product,
-        );
-
-        let mappings = crate::stages::mappings::MappingsStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("real mappings");
-        upstream.insert("stage-mappings".to_string(), mappings.product);
-
-        let reason = crate::stages::reason::ReasonStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("real reason");
-        upstream.insert("stage-reason".to_string(), reason.product);
-
-        let model =
-            gmeow_docs::model::DocsModel::discover(&root).expect("real docs model discovery");
-        let data =
-            build_executable_docs_data(&upstream, &model).expect("real executable docs data");
-
-        assert!(
-            !data.term_entailments.is_empty(),
-            "term_entailments must be non-vacuous on the real repo (F1) — if this trips, \
-             investigate whether the join logic (not merely real-data sparsity) is at fault"
-        );
-        let (term_iri, entailments) = data
-            .term_entailments
-            .iter()
-            .next()
-            .expect("at least one populated panel");
-        assert!(
-            !entailments.is_empty(),
-            "panel for {term_iri} must be non-empty"
-        );
-        assert!(!entailments[0].conclusion.is_empty());
-        assert!(!entailments[0].rule.is_empty());
-    }
 }
 
 #[cfg(test)]
@@ -8275,58 +7913,6 @@ mod quality_assessment_tests {
             .join("..")
             .canonicalize()
             .unwrap()
-    }
-
-    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    const QUALITY_ASSESSMENT_CLASS: &str = "https://blackcatinformatics.ca/gmeow/QualityAssessment";
-
-    /// Count `?s a gmeow:QualityAssessment` in a projected graph.
-    fn count_quality_assessments(ds: &purrdf::RdfDataset) -> usize {
-        ds.owned_quads()
-            .filter(|q| {
-                q.predicate.as_str() == RDF_TYPE
-                    && matches!(&q.object, RdfTerm::Iri(o) if o == QUALITY_ASSESSMENT_CLASS)
-            })
-            .count()
-    }
-
-    #[test]
-    fn quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate() {
-        // G2 dogfooding: scoring every slice attaches the `graph/quality-assessment`
-        // named graph to the source-load self-description carrier, so it folds into
-        // gmeow.gts (the presenter reads it back and also emits the fanout twin).
-        //
-        // Off-gate (`_heavy_offgate`): builds the full self-description carrier, which
-        // scores all ~81 slices (~86 s) — irreducibly O(slice count), the same
-        // whole-repo class as `end_to_end`/`fold_parity`. The attach↔fanout bijection
-        // and N-Triples fold form stay on-gate via the fast sibling tests
-        // `quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
-        // `superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
-        // and any real drift is caught on every `make check` by `make check-sync SYNC_MODE=check`.
-        let root = repo_root();
-        let ds = build_self_description_dataset(&root).expect("self-description dataset");
-
-        let base = ds.project_named_graph(GRAPH_QUALITY_ASSESSMENT);
-        assert!(
-            base.quad_count() > 0,
-            "graph/quality-assessment must carry the scored slice corpus"
-        );
-        let n = count_quality_assessments(&base);
-        assert!(
-            n >= 1,
-            "graph/quality-assessment must carry real gmeow:QualityAssessment triples, got {n}"
-        );
-
-        // The fanout twin (the superset gate's on-disk fold) carries the SAME triples
-        // re-rooted into the `graph/fanout/<path>` reconstruction container.
-        let fanout_iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
-            .expect("quality-assessment path is an RDF path");
-        let fanout = rooted_in_graph(&base, &fanout_iri).expect("re-root into fanout container");
-        assert_eq!(
-            count_quality_assessments(&fanout.project_named_graph(&fanout_iri)),
-            n,
-            "the fanout twin must carry the same QualityAssessment triples as the base graph"
-        );
     }
 
     #[test]

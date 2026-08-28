@@ -16,8 +16,8 @@
 //! BLAKE3 content-digest manifest (`assets/query/DIGESTS.blake3`) pins the exact
 //! bytes, so a *stale-but-still-functional* engine (one that kept the `query` glue
 //! string but drifted in its wasm bytes) cannot slip through. Any change to a
-//! committed file without re-running `make maint-refresh-query-asset` (which
-//! rewrites the manifest under `GMEOW_QUERY_BLESS=1`) fails this gate.
+//! committed file without first running the explicit
+//! `make maint-refresh-query-asset` producer fails this read-only gate.
 //!
 use gmeow_docs::vendored_asset::QUERY_ASSET;
 

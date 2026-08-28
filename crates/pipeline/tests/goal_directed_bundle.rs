@@ -12,42 +12,18 @@
 //! carrier, but here asserted over the COMMITTED artifact a regression could silently empty
 //! without any other gate noticing.
 
-use std::path::{Path, PathBuf};
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/goal-directed";
 
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .unwrap()
-}
-
 /// The ground triples (subject, predicate, object as IRI/label strings) of ONE named graph of
 /// the committed `gmeow.gts`, read through the kernel GTS reader.
 fn graph_triples(graph_iri: &str) -> Vec<(String, String, String)> {
-    let bytes =
-        std::fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("committed gmeow.gts");
-    let g = purrdf::gts::read_graph(&bytes, true).expect("read_graph");
-    let term = |id: usize| -> String {
-        g.terms
-            .get(id)
-            .and_then(|t| t.value.clone())
-            .unwrap_or_else(|| format!("<term {id}>"))
-    };
-    let mut out = Vec::new();
-    for &(s, p, o, gname) in &g.quads {
-        let Some(gid) = gname else { continue };
-        if term(gid) != graph_iri {
-            continue;
-        }
-        out.push((term(s), term(p), term(o)));
-    }
-    out
+    authenticated_bundle::graph_triples(graph_iri)
 }
 
 /// Objects `o` such that `(subject, predicate, o)` is present.

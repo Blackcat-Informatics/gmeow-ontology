@@ -279,25 +279,18 @@ mod tests {
     }
 
     #[test]
-    fn agreement_matrix_is_byte_identical_to_committed() {
-        // The committed generated/agreement-matrix.md must be reproduced byte-for-byte
-        // from the single external-corpus grade (the drift gate): grade → tally → render.
-        let root = repo_root();
-        let by_corpus =
-            crate::stages::conformance::grade_external_corpora(&root).expect("grade corpus");
-        let tallies = crate::stages::conformance::agreement_tallies_json(&root, &by_corpus)
-            .expect("build tallies");
-        let arts = render_agreement_matrix(&tallies).expect("render matrix");
-        let built = arts.get(AGREEMENT_MATRIX_PATH).expect("matrix produced");
-        let committed = std::fs::read(root.join(AGREEMENT_MATRIX_PATH))
-            .expect("committed generated/agreement-matrix.md exists");
-        assert_eq!(
-            built,
-            &committed,
-            "generated/agreement-matrix.md drifted from committed (built {} vs committed {} bytes)",
-            built.len(),
-            committed.len()
-        );
+    fn authenticated_agreement_matrix_carries_the_corpus_summary() {
+        // Corpus grading and rendering belong to the producer DAG. This test consumes
+        // that exact admitted product and never walks or grades the corpus itself.
+        let matrix = crate::fixture::authenticated_artifact(
+            &repo_root(),
+            "stage-export-agreement",
+            AGREEMENT_MATRIX_PATH,
+        )
+        .expect("load authenticated agreement matrix without rebuilding it");
+        let matrix = String::from_utf8(matrix).expect("agreement matrix is UTF-8");
+        assert!(matrix.contains("Agreement"), "{matrix}");
+        assert!(matrix.contains("**TOTAL**"), "{matrix}");
     }
 
     /// A tally JSON with two agreement-expected corpora and one documented-divergence

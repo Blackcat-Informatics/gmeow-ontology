@@ -80,7 +80,7 @@ pub mod lpg;
 pub mod mappings;
 pub mod math_producers;
 pub mod matrix;
-// The medium axis's producer: the seven declared zstd dictionaries trained over
+// The medium axis's producer: the six declared zstd dictionaries trained over
 // their declared corpora, measured into gmeow:CompressionDictionaryRealization
 // records, and projected as graph/medium-registry. The terminal reads its product
 // to pin the pack's in-band "dct" map and to seal one gmeow:MediumEnvelope per
@@ -135,6 +135,7 @@ pub mod superset;
 pub mod term_manifest;
 pub mod validate;
 pub(crate) mod value_vocab;
+pub mod verify_attestation;
 pub mod yaml_ld;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
@@ -149,6 +150,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     );
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
+    registry.register(
+        "verify_attestation",
+        Arc::new(verify_attestation::VerifyAttestationStage::new()),
+    );
     registry.register(
         "goal_directed",
         Arc::new(goal_directed::GoalDirectedStage::new()),

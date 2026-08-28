@@ -42,8 +42,7 @@
 //!
 //! A test-support module rather than a `crates/pipeline` library module: nothing in the
 //! shipped pipeline calls any of it. Its ONE consumer is
-//! `crates/pipeline/tests/model_facing_invariance.rs`, which `#[path]`-includes this file
-//! exactly as the medium negative controls in `support/medium_tamper.rs` are included.
+//! `crates/pipeline/tests/model_facing_invariance.rs`, which `#[path]`-includes this file.
 //!
 //! Everything below except [`declared_surfaces`] is a PURE function over source text, so
 //! each clause has a reachable red arm — the gate's fixtures perturb the working text and

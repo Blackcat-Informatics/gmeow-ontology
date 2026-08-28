@@ -708,16 +708,18 @@ mod tests {
             .unwrap()
     }
 
+    fn authenticated_conformance_artifact(path: &str) -> Vec<u8> {
+        crate::fixture::authenticated_artifact(&repo_root(), "stage-conformance", path)
+            .unwrap_or_else(|error| {
+                panic!("load authenticated stage-conformance artifact {path}: {error}")
+            })
+    }
+
     #[test]
     fn agreement_tallies_are_deterministic_sorted_and_cover_lane_a() {
-        // The single grade feeds a deterministic, sorted tally JSON. Every committed
-        // Lane-A corpus must appear with cases == agree + corpus_only + dl_gap.
-        let root = repo_root();
-        let by_corpus = grade_external_corpora(&root).expect("grade");
-        let a = agreement_tallies_json(&root, &by_corpus).expect("tallies a");
-        let b = agreement_tallies_json(&root, &by_corpus).expect("tallies b");
-        assert_eq!(a, b, "agreement tallies must be deterministic");
-
+        // The producer receipt owns determinism. The test only inspects the exact
+        // admitted tally product and never grades the external corpus.
+        let a = authenticated_conformance_artifact(AGREEMENT_TALLIES_PATH);
         let records: BTreeMap<String, TallyRecord> =
             serde_json::from_slice(&a).expect("tally JSON parses");
         assert!(
@@ -744,13 +746,11 @@ mod tests {
     }
 
     #[test]
-    fn grades_committed_corpus_deterministically() {
-        let root = repo_root();
-        let a = build_conformance_divergence(&root).expect("grade run a");
-        let b = build_conformance_divergence(&root).expect("grade run b");
-        assert_eq!(a, b, "divergence fold must be deterministic");
+    fn authenticated_conformance_product_stays_in_its_named_graph() {
+        let a = authenticated_conformance_artifact(CONFORMANCE_NQ_PATH);
         // Every emitted quad lands in the conformance graph (never elsewhere).
         let text = String::from_utf8(a).expect("utf-8");
+        assert!(!text.is_empty(), "conformance product must not be empty");
         for line in text.lines() {
             assert!(
                 line.ends_with(&format!(
@@ -770,11 +770,7 @@ mod tests {
         // producer `run()` and `build_conformance_divergence` share) must reify both as
         // `gmeow:CapabilityGap` individuals pointing at the correct `gmeow:GapShape`
         // ontology individuals — the G3 fold this test guards.
-        let root = repo_root();
-        let a = build_conformance_divergence(&root).expect("grade run a");
-        let b = build_conformance_divergence(&root).expect("grade run b");
-        assert_eq!(a, b, "the combined conformance NQ must be deterministic");
-
+        let a = authenticated_conformance_artifact(CONFORMANCE_NQ_PATH);
         let text = String::from_utf8(a).expect("utf-8");
         for line in text.lines() {
             assert!(

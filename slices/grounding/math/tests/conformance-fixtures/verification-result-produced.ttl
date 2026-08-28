@@ -3,7 +3,7 @@
 #
 # The proofAsProcess flagship's worked example: the exact output of the native producer
 # math::producers::proof_ingest (dogfooded — the worked example IS what the producer emits;
-# the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# the explicit `stage-math-producers` boundary asserts this fixture is graph-isomorphic to the
 # producer's Turtle, so neither can silently drift). A proof trace whose QED
 # math:FormalVerificationResult is grounded BY a separate gmeow:Observation that names it
 # through gmeow:observationResult and carries a gmeow:vantage (the checker's standpoint) — the

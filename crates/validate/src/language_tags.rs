@@ -246,9 +246,17 @@ pub fn load_inverse_tag_map(
         })
     })?;
 
-    let lang_class = format!("{NAMESPACE}Language");
-    let variety_class = format!("{LANG_NAMESPACE}LanguageVariety");
-    let natural = build_tag_map_for(&dataset, &[&lang_class, &variety_class])?;
+    load_inverse_tag_map_from_dataset(&dataset)
+}
+
+/// Build the BCP-47 → internal mapping from an already-frozen dataset.
+///
+/// This is the parsed-dataset counterpart to [`load_inverse_tag_map`], for resident
+/// consumers that already authenticated and restored a bundle corpus.
+pub fn load_inverse_tag_map_from_dataset(
+    dataset: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<HashMap<String, String>> {
+    let natural = load_tag_map_from_dataset(dataset)?;
 
     // Group internal tags by their lowercased BCP-47 value, then keep only the
     // BCP-47 keys that map to EXACTLY ONE internal tag (drop ambiguous).

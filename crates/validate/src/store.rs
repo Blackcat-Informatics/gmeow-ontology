@@ -796,7 +796,7 @@ mod tests {
 
         let writer = Writer::deterministic(&graph, "gmeow-validate-test")
             .expect("deterministic GTS writer must succeed");
-        let nq = core_browser_bundle_nquads(&writer.to_bytes(), &[])
+        let nq = core_browser_bundle_nquads(&writer.to_bytes(), &[]) // gmeow-test-input: synthetic-only
             .expect("core browser bundle must serialize");
         assert!(
             nq.contains("https://blackcatinformatics.ca/gmeow/Cat"),

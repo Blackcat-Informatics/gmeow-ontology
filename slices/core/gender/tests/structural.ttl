@@ -3,7 +3,7 @@
 #
 # Declarative structural assertions for the gender slice — the slice-resident
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
-# hand-written in crates/validate/tests/conformance_gender.rs. Each runs as a SPARQL ASK over the
+# hand-written in crates/validate/tests/conformance_cases/conformance_gender.rs. Each runs as a SPARQL ASK over the
 # gender module graph (gmeow:scopeModule) under the native Rust slicetest
 # harness. Gender is migrated, so the class stereotypes are
 # logic: (logic:SubKind, logic:AbstractIndividualType, logic:QualityValue),

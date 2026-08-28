@@ -19,7 +19,9 @@ use purrdf::RdfDataset;
 
 pub use gmeow_bundle_view::export::*;
 
-use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{
+    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct,
+};
 
 /// Borrow THIS run's carrier dataset. The runtime path every fold-reading
 /// export leaf (export / okf) uses: the `stage-snapshot` product carries the
@@ -34,7 +36,7 @@ pub(crate) fn read_fold_upstream(
 /// THIS run's JSON Schema `$defs` key set, read directly off the in-memory
 /// `stage-export-json-schema` product (never a stale disk read of the previously
 /// committed `generated/schemas/gmeow.schema.json`) — the model-existence signal
-/// [`class_is_modeled`] gates `python_model` on. Hard-fails if the declared
+/// `class_is_modeled` gates `python_model` on. Hard-fails if the declared
 /// upstream product or its `gmeow.schema.json` artifact is missing
 /// (no-optionality): [`ExportStage`] declares this dependency explicitly, so its
 /// absence is a genuine wiring defect, never an honest absence.
@@ -74,8 +76,7 @@ pub struct ExportStage {
 impl ExportStage {
     /// Construct the stage; it consumes THIS run's snapshot fold plus the
     /// `stage-export-json-schema` product, whose freshly-emitted `$defs` drive the
-    /// `llms-full.txt` cards' `python_model` gate (see
-    /// `gmeow_docs_model::describe::class_is_modeled`) —
+    /// `llms-full.txt` cards' `python_model` gate (see `class_is_modeled`) —
     /// without this edge the stage would only ever see the PREVIOUS run's
     /// committed schema (or none on a first run).
     ///
@@ -112,6 +113,12 @@ impl Stage for ExportStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 2.543 GB serialized / ~34.5 s rebuild, while the
+        // renderer itself peaks at 9.06 GiB. Persisting it duplicates the two complete
+        // whole-document buffers and is not a bounded-cache win.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         "export.v1"

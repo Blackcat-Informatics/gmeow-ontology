@@ -8,7 +8,7 @@
 //!
 //! * [`VALIDATE_PHASE_COVERAGE`] — the single declarative source of truth for
 //!   *which* validation phase runs *where*: live in `gmeow-dev validate` (the
-//!   `make validate` gate) or in a named Rust test on `make check`. The
+//!   `make validate` gate) or in a named focused Rust test on `make check`. The
 //!   `validate` help string, the CLI wiring, and the help⟺registry /
 //!   liveness tests all read this table; `docs/DSL-VALIDATION-COVERAGE.md` is
 //!   its prose companion.
@@ -66,11 +66,6 @@ pub const VALIDATE_PHASE_COVERAGE: &[PhaseCoverage] = &[
         home: PhaseHome::OnValidate,
     },
     PhaseCoverage {
-        phase: "per-example-shacl",
-        surface: "slices/*/*/examples/*.ttl",
-        home: PhaseHome::OnRustTest("example_sweep"),
-    },
-    PhaseCoverage {
         phase: "mapping-dsl-shacl",
         surface: "dsl/mappings/",
         home: PhaseHome::OnValidate,
@@ -84,11 +79,6 @@ pub const VALIDATE_PHASE_COVERAGE: &[PhaseCoverage] = &[
         phase: "test-dsl-shacl",
         surface: "dsl/tests/",
         home: PhaseHome::OnValidate,
-    },
-    PhaseCoverage {
-        phase: "test-dsl-shacl-slice-local",
-        surface: "slices/*/*/tests/*.ttl",
-        home: PhaseHome::OnRustTest("slicetest"),
     },
 ];
 

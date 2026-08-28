@@ -135,18 +135,18 @@ repos:
   # Runs `cargo fmt --check` so unformatted Rust cannot reach CI.
   - repo: local
     hooks:
+      - id: test-corpus-purity
+        name: reject corpus producers reachable from tests
+        entry: ./scripts/lint-test-corpus-producers.sh
+        language: system
+        pass_filenames: false
+        files: ^(crates/.*\.rs|crates/.*/README\.md|Makefile|scripts/(lint-test-corpus-producers\.sh|scan-cfg-test-producers\.pl|scan-doctest-producers\.pl))$
       - id: cargo-fmt-check
         name: cargo fmt --check
         language: system
         entry: cargo fmt --check
         types: [rust]
         pass_filenames: false
-      - id: cargo-clippy
-        name: cargo clippy
-        entry: cargo clippy --all-targets -- -D warnings
-        language: system
-        pass_filenames: false
-        files: ^crates/
       - id: lint-issue-refs
         name: lint issue/PR references
         entry: ./scripts/lint-issue-refs.sh

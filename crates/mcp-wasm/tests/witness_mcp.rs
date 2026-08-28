@@ -10,7 +10,7 @@
 //! lane (`crates/mcp-wasm/js/tests/witness.test.mjs`) drives the WASM `init`/`mcp` over
 //! the SAME snapshot and the SAME frame and asserts byte-identity with the same
 //! attestation; both matching the one attestation proves native ≡ wasm. Refreshed via
-//! `GMEOW_WITNESS_BLESS=1`.
+//! The attestation is refreshed only by an explicit maintainer producer.
 //!
 //! ## Why `conjecture_test`, and why the attestation is bundle-stable
 //!
@@ -84,13 +84,8 @@ fn attestation_path() -> PathBuf {
 /// checkout that has not run `make regen`) the parity witness cannot run. That is
 /// unfinished work for the sync gate, not a pass — surface it loudly.
 fn snapshot() -> Vec<u8> {
-    let path = repo_root().join("generated/dist/gmeow.gts");
-    std::fs::read(&path).unwrap_or_else(|e| {
-        panic!(
-            "the MCP parity witness needs the generated bundle {} (run `make regen`): {e}",
-            path.display()
-        )
-    })
+    gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("authenticated bundle; tests never produce it")
 }
 
 #[test]
@@ -174,21 +169,14 @@ fn native_mcp_frame_matches_the_witness_attestation() {
     );
 
     let path = attestation_path();
-    // Require the EXACT documented value: only `GMEOW_WITNESS_BLESS=1` may overwrite the
-    // committed witness (an empty or `=0` value must not silently replace it).
-    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
-        std::fs::write(&path, &out).expect("write mcp attestation");
-        eprintln!("blessed mcp witness at {}", path.display());
-        return;
-    }
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "mcp witness attestation {} missing (bless with GMEOW_WITNESS_BLESS=1): {e}",
+            "mcp witness attestation {} missing; refresh it through the explicit maintainer producer: {e}",
             path.display()
         )
     });
     assert_eq!(
         out, committed,
-        "the native MCP response frame drifted from the committed witness attestation — re-bless"
+        "the native MCP response frame drifted from the committed witness attestation"
     );
 }

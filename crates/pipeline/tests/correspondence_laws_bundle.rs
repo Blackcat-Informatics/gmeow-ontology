@@ -16,10 +16,10 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use gmeow_logic_compile::ingest::DslView;
-use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences;
 use gmeow_pipeline::catalog_families::{check_target_catalogs, load_catalog_families};
-use gmeow_validate::store::dataset_from_paths;
+
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
@@ -40,54 +40,24 @@ fn repo_root() -> PathBuf {
 /// The ground triples (subject, predicate, object as IRI/label strings) of ONE named graph of
 /// the committed `gmeow.gts`, read through the kernel GTS reader.
 fn graph_triples(graph_iri: &str) -> Vec<(String, String, String)> {
-    let bytes =
-        std::fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("committed gmeow.gts");
-    let g = purrdf::gts::read_graph(&bytes, true).expect("read_graph");
-    let term = |id: usize| -> String {
-        g.terms
-            .get(id)
-            .and_then(|t| t.value.clone())
-            .unwrap_or_else(|| format!("<term {id}>"))
-    };
-    let mut out = Vec::new();
-    for &(s, p, o, gname) in &g.quads {
-        let Some(gid) = gname else { continue };
-        if term(gid) != graph_iri {
-            continue;
-        }
-        out.push((term(s), term(p), term(o)));
-    }
-    out
+    authenticated_bundle::graph_triples(graph_iri)
 }
 
-/// Compile the three canonical grounding mapping directories and return the exact
-/// content-addressed correspondence subjects they produce. Comparing frontend cell IRIs to the
-/// bundle would be wrong because the shipped subjects are compiler-minted; comparing only counts
-/// would let one stale extra mask one missing canonical correspondence.
+/// Return the exact correspondence subjects from the authenticated mappings-stage product.
+/// This preserves the producer-to-shipped transport parity proof without recompiling mappings
+/// inside the test process.
 fn canonical_grounding_correspondence_subjects() -> BTreeSet<String> {
-    let root = repo_root();
-    let mut paths = Vec::new();
-    for slice in ["logic", "math", "lang"] {
-        let mappings = root.join("slices/grounding").join(slice).join("mappings");
-        for entry in std::fs::read_dir(&mappings)
-            .unwrap_or_else(|error| panic!("read {}: {error}", mappings.display()))
-        {
-            let path = entry.expect("mapping directory entry").path();
-            if path.extension().and_then(|extension| extension.to_str()) == Some("ttl") {
-                paths.push(path);
-            }
-        }
-    }
-    paths.sort();
-    let dataset = dataset_from_paths(&paths).expect("canonical grounding mappings parse");
-    let view = DslView::new(dataset.as_ref());
-    transpile_correspondences(&view, &view)
-        .expect("canonical grounding correspondences compile")
-        .correspondences
-        .into_iter()
-        .filter(|correspondence| correspondence.grounding)
-        .map(|correspondence| correspondence.iri)
-        .collect()
+    let fixture = gmeow_pipeline::fixture::stage_fixture(&repo_root(), 1, "stage-mappings")
+        .expect("authenticated mappings-stage product; tests never produce it");
+    let grounding_type = format!("{LOGIC}GroundingCorrespondence");
+    authenticated_bundle::graph_triples_from(
+        fixture.outcome.product.dataset(),
+        CORRESPONDENCE_LAWS_GRAPH,
+    )
+    .into_iter()
+    .filter(|(_, predicate, object)| predicate == RDF_TYPE && object == &grounding_type)
+    .map(|(subject, _, _)| subject)
+    .collect()
 }
 
 /// Objects `o` such that `(subject, predicate, o)` is present.
@@ -321,8 +291,15 @@ fn ac3_mapsioctopic_carries_no_discharged_section_law_and_no_put_atom() {
 
     // Part 2 (committed put query): mapSiocTopic's `sioc:topic` inverse contributes no atom.
     // The put query has ONLY the three recoverable branches.
-    let put = std::fs::read_to_string(repo_root().join("generated/queries/sioc.put.rq"))
-        .expect("committed sioc.put.rq");
+    let put = String::from_utf8(
+        gmeow_pipeline::fixture::authenticated_artifact(
+            &repo_root(),
+            "stage-mappings",
+            "generated/queries/sioc.put.rq",
+        )
+        .expect("authenticated sioc.put.rq; tests never produce it"),
+    )
+    .expect("authenticated sioc.put.rq is UTF-8");
     assert!(
         !put.contains("topic"),
         "sioc.put.rq must not re-assert any sioc:topic atom (mapSiocTopic is Unsupported)"

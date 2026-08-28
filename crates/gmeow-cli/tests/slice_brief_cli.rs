@@ -5,7 +5,7 @@
 //! `gmeow:AuthoringPacket` straight from the embedded bundle via
 //! `gmeow slice brief --from-bundle <slice>` — the real `Cli`/`Commands::Slice`
 //! clap dispatch in `src/lib.rs`, checkout-free (no `slices/`, no `generated/shapes/`).
-//! Drives the built binary through `assert_cmd`, exactly like `slice_quality_cli.rs`.
+//! Drives the built binary through `assert_cmd`, exactly like the retained focused CLI tests.
 
 use assert_cmd::Command;
 use predicates::prelude::*;

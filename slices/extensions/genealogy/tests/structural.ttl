@@ -16,7 +16,7 @@
 # explicitly.
 #
 # The whole-ontology negative sweeps and the SHACL fixture-conformance + ABox
-# checks now live natively in crates/validate/tests/conformance_genealogy.rs
+# checks now live natively in crates/validate/tests/conformance_cases/conformance_genealogy.rs
 # (former_event_subclasses_are_not_reintroduced and
 # no_preferred_or_primary_genealogy_term via GraphStore::ontology(); the
 # contested/withdrawn conform cases + GraphStore ABox twins over

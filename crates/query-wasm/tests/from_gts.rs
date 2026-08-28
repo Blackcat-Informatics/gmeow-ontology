@@ -42,6 +42,7 @@ fn build_test_gts() -> Vec<u8> {
         .expect("parse fixture trig");
     let mut builder = SnapshotBuilder::new();
     builder.add_dataset(&dataset).expect("add_dataset");
+    // gmeow-test-input: synthetic-only
     let bytes = emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
         .expect("emit fixture gmeow.gts");
     gmeow_gts_profile::validate_mandated_frames(&bytes)

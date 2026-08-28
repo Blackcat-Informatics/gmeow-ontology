@@ -11,7 +11,7 @@
 # (logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # The SHACL / example-conformance and dynamic ABox checks live natively in
-# crates/validate/tests/conformance_deception.rs (fixture cases + GraphStore
+# crates/validate/tests/conformance_cases/conformance_deception.rs (fixture cases + GraphStore
 # example-membership and cross-slice vocabulary twins):
 #   standpoint_divergence_coexists, deception_event_shacl_passes,
 #   deception_cue_shacl_passes, paltering_implicates_structure,

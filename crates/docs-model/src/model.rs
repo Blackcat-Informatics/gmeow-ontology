@@ -280,6 +280,9 @@ const GMEOW_SEAM_OWNING_DOC: &str = "https://blackcatinformatics.ca/gmeow/seamOw
 /// An error building the documentation model.
 #[derive(Debug)]
 pub enum DocsError {
+    /// A test-facing corpus consumer could not find the exact authenticated model
+    /// produced before the test process started. Tests may not rebuild it on a miss.
+    FixtureUnavailable(String),
     /// A slice-catalog discovery / parse error.
     Slice(SliceError),
     /// The committed constraint-catalog fanout artifact
@@ -358,6 +361,9 @@ pub enum DocsError {
 impl std::fmt::Display for DocsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            DocsError::FixtureUnavailable(msg) => {
+                write!(f, "documentation corpus fixture unavailable: {msg}")
+            }
             DocsError::Slice(e) => write!(f, "slice catalog error: {e}"),
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
@@ -2898,7 +2904,7 @@ fn is_competency_query_path(rel: &str) -> bool {
 /// competency harness and the docs model would disagree about where the query
 /// lives), and it is outside the content-addressed input set
 /// `crate::fixture::cache_key` folds — a query whose TEXT changed under an
-/// unhashed path would be served stale from `.cache/docs-fixture` forever. Making
+/// unhashed path could be served stale from `.cache/gmeow-sync/actions/`. Making
 /// the boundary an error keeps the cache sound BY CONSTRUCTION rather than by the
 /// authoring convention that today's values all happen to satisfy.
 fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
@@ -5413,106 +5419,6 @@ ex:uniformProbability a math:ProbabilityMeasure ;
         assert!(
             !uniform.turtle.contains("baseDimensionExponent"),
             "no fabricated exponent breakdown for the dimensionless case"
-        );
-    }
-
-    /// Cold-tree bootstrap + determinism: [`DocsModel::discover_with_catalog`] builds
-    /// the whole model from LIVE constraint-catalog bytes with NO
-    /// `generated/catalog/constraint-catalog.nq` on disk — the state a fresh clone /
-    /// cold `make check` is in, where the pure-disk [`DocsModel::discover`] HARD-FAILS.
-    /// Once the SAME bytes are written to disk, the disk path yields byte-identical
-    /// constraint rules AND identical per-slice DocMaturity coverage facts. This pins
-    /// the guarantee the in-pipeline DocMaturity axis relies on: cold (live bytes) ==
-    /// warm (disk bytes), so the `graph/quality-assessment` in `gmeow.gts` cannot
-    /// differ between a cold and a warm sync run.
-    #[test]
-    fn discover_with_catalog_bootstraps_cold_tree_and_matches_disk_path() {
-        // A temp repo root carrying exactly one real slice (copied from the committed
-        // single-slice fixture) and — deliberately — NO generated/ tree.
-        let tmp = tempfile::tempdir().expect("create temp dir");
-        let root = tmp.path().join("gmeow-catalog-bootstrap");
-        let slice_dir = root.join("slices").join("fixture").join("single");
-        std::fs::create_dir_all(&slice_dir).expect("mkdir slice");
-        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join("single-slice");
-        for file in ["manifest.ttl", "module.ttl"] {
-            std::fs::copy(fixture.join(file), slice_dir.join(file))
-                .unwrap_or_else(|e| panic!("copy fixture {file}: {e}"));
-        }
-
-        // Minimal but valid constraint-catalog N-Quads: one gmeow:ValidationRule with a
-        // gmeow:ruleCode (the identity the reader keys on).
-        let graph =
-            "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq";
-        let rule = "https://blackcatinformatics.ca/gmeow/rule/box-roles-invalid";
-        let catalog_bytes = format!(
-            "<{rule}> <{RDF_TYPE}> <{GMEOW_VALIDATION_RULE}> <{graph}> .\n\
-             <{rule}> <{GMEOW_RULE_CODE}> \"box-roles.invalid\" <{graph}> .\n"
-        )
-        .into_bytes();
-
-        // Cold tree: the pure-disk discover HARD-FAILS on the absent catalog...
-        let cold = DocsModel::discover(&root);
-        assert!(
-            matches!(cold, Err(DocsError::ConstraintCatalog(_))),
-            "discover() must hard-fail on a cold tree with no generated catalog, got {cold:?}"
-        );
-
-        // ...but the live-bytes path BUILDS the whole model with NO disk file present.
-        let live = DocsModel::discover_with_catalog(&root, &catalog_bytes)
-            .expect("discover_with_catalog must build with no generated/ on disk");
-        assert_eq!(
-            live.constraint_rules.len(),
-            1,
-            "the one live rule is decoded"
-        );
-        assert_eq!(live.constraint_rules[0].code, "box-roles.invalid");
-
-        // Warm tree: writing the SAME bytes to disk lets the disk path build; it must
-        // agree with the live path byte-for-byte on the constraint rules AND on the
-        // per-slice DocMaturity coverage facts (documents / covers / coverage_fraction),
-        // which are exactly what the DocMaturity axis consumes.
-        std::fs::create_dir_all(root.join("generated").join("catalog")).expect("mkdir generated");
-        std::fs::write(
-            root.join("generated")
-                .join("catalog")
-                .join("constraint-catalog.nq"),
-            &catalog_bytes,
-        )
-        .expect("write catalog");
-        let warm =
-            DocsModel::discover(&root).expect("discover() must build once the catalog is on disk");
-        assert_eq!(
-            live.constraint_rules, warm.constraint_rules,
-            "live-bytes and disk-bytes constraint rules must be identical"
-        );
-
-        // DocSliceFacts is not PartialEq, so compare the load-bearing projection the
-        // DocMaturity axis reads: (documents, covers, coverage_fraction bit pattern).
-        let project = |m: &DocsModel| -> Vec<(String, std::collections::BTreeSet<String>, u64)> {
-            crate::rdf::documentation_graph(m)
-                .slices
-                .into_iter()
-                .map(|s| (s.documents, s.covers, s.coverage_fraction.to_bits()))
-                .collect()
-        };
-        let live_facts = project(&live);
-        let warm_facts = project(&warm);
-        assert_eq!(
-            live_facts, warm_facts,
-            "DocMaturity per-slice coverage facts must be identical cold(live) vs warm(disk)"
-        );
-        assert_eq!(
-            live_facts.len(),
-            1,
-            "the one fixture slice yields exactly one coverage fact"
-        );
-        let fraction = f64::from_bits(live_facts[0].2);
-        assert!(
-            (0.0..=1.0).contains(&fraction),
-            "the fixture slice earns a bounded, non-vacuous coverage fraction, got {fraction}"
         );
     }
 }

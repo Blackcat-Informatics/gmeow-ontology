@@ -339,13 +339,35 @@ mod tests {
             .unwrap()
     }
 
-    #[test]
-    fn frame_shapes_are_byte_identical_to_committed() {
+    fn authenticated_frame_shapes() -> String {
         let root = repo_root();
-        let fresh = render_frame_shapes(&root).expect("render");
-        let committed =
-            std::fs::read_to_string(root.join(FRAME_SHAPES_PATH)).expect("committed frame-shapes");
-        assert_eq!(fresh, committed, "frame-shapes.ttl drifted from committed");
+        let artifacts = crate::fixture::stage_artifacts(&root, 1, "stage-export-frame-shapes")
+            .expect("authenticated frame-shapes fixture");
+        String::from_utf8(
+            artifacts
+                .get(FRAME_SHAPES_PATH)
+                .expect("frame-shapes artifact")
+                .clone(),
+        )
+        .expect("frame-shapes utf8")
+    }
+
+    fn synthetic_frame_store() -> Dataset {
+        Dataset::parse_turtle(
+            br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+gmeow:CharacterArc
+    gmeow:requiresFrame gmeow:arcFrame ;
+    gmeow:frameCardinality "exactly-one" ;
+    gmeow:ruleSeverity "binding" .
+
+gmeow:arcFrame a owl:FunctionalProperty .
+"#,
+            "synthetic frame declarations",
+        )
+        .expect("parse synthetic frame declarations")
     }
 
     /// Semantic drift-guard: the bespoke `render_frame_shape` and the shared canonical
@@ -364,10 +386,13 @@ mod tests {
         use purrdf::shapes::engine::{parse_shapes, validate_dataset};
         use std::collections::BTreeSet;
 
-        let root = repo_root();
-        let store = load_authored_no_imports(&root).expect("load authored");
+        let store = synthetic_frame_store();
         let shapes = frame_shapes(&store).expect("build frame IR");
-        assert!(!shapes.is_empty(), "expected at least one frame shape");
+        assert_eq!(
+            shapes.len(),
+            1,
+            "the synthetic graph declares one frame shape"
+        );
 
         let flagged = |report: &purrdf::shapes::report::ValidationReport| -> BTreeSet<String> {
             report
@@ -449,8 +474,7 @@ mod tests {
     fn frame_shapes_flow_through_validation_shape_ir() {
         use gmeow_logic_compile::ir::NodeKind;
 
-        let root = repo_root();
-        let store = load_authored_no_imports(&root).expect("load authored");
+        let store = synthetic_frame_store();
         let shapes = frame_shapes(&store).expect("build validation-shape IR");
 
         // The constraint data is now the canonical ValidationShapeIr.
@@ -505,8 +529,7 @@ mod tests {
             LintConfig, default_annotation_predicates, structural_lint_dataset,
         };
 
-        let root = repo_root();
-        let ttl = render_frame_shapes(&root).expect("render");
+        let ttl = authenticated_frame_shapes();
         // The real bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the
         // kernel slice; add it here (same pattern as
         // `provenance_graph::tests::minted_individuals_satisfy_the_assertional_abox_contract`)

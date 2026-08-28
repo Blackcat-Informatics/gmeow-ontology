@@ -295,6 +295,6 @@ in the solver layer (Principle 12).
 - `slices/core/attestation/module.ttl` — canonical module source.
 - `slices/core/attestation/mappings/equivalences.ttl` — mapping DSL alignments.
 - `slices/core/attestation/tests/structural.ttl` — structural slice tests.
-- `crates/validate/tests/ontology_conformance.rs` — native negative fixture tests.
+- `crates/validate/tests/conformance_cases/ontology_conformance.rs` — native negative fixture tests.
 - `slices/extensions/email/docs.md` — how `hasSignature` is used for DKIM / S/MIME / PGP in email.
 - `slices/core/trust/module.ttl` — `gmeow:Certification`, the key-to-identity specialisation.

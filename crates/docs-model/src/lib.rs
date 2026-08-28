@@ -33,6 +33,7 @@ pub mod exec;
 // root, and an edge from that crate to `gmeow-docs` would close a first-party cycle
 // (`gmeow-docs` dev-depends on `gmeow-mcp`, which depends on `gmeow-slice-quality`).
 // The renderer-only site/book caches layer on top of this key in `gmeow_docs::fixture`.
+#[cfg(not(target_arch = "wasm32"))]
 pub mod fixture;
 pub mod formats;
 pub mod gmn1_primer;

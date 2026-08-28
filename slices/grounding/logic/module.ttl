@@ -5934,7 +5934,7 @@ logic:demonstratedByExampleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "demonstratedByExample is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByExample is functional: a gmeow:FlagshipScenario is realized by exactly one worked example — a single slice-relative *.ttl path the discharge harness validates clean, never more than one per scenario."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByExample is functional: a gmeow:FlagshipScenario is realized by exactly one worked example — a single slice-relative *.ttl path covered by the authenticated slice-spec verdict, never more than one per scenario."@x-gmeow-english ;
     logic:characterizes gmeow:demonstratedByExample ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByExample ;
@@ -5949,7 +5949,7 @@ logic:demonstratedByProducerFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "demonstratedByProducer is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier the execution-discharge harness dispatches, runs, and pins the output of to discharge the acceptance bar. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:demonstratedByProducer is functional: a gmeow:FlagshipScenario names exactly one native producer entrypoint — the single path-like identifier owned by the explicit production DAG and bound to its authenticated output receipt. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:demonstratedByProducer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByProducer ;
@@ -5964,7 +5964,7 @@ logic:guardedByCounterExampleFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "guardedByCounterExample is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the discharge harness runs to confirm the gate bites. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:guardedByCounterExample is functional: a gmeow:FlagshipScenario is guarded by exactly one counter-example — the single slice-relative negative fixture that raises the scenario's gmeow:enforcesFailureClass, which the authenticated slice-spec producer executes once to confirm the gate bites. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     logic:characterizes gmeow:guardedByCounterExample ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:guardedByCounterExample ;
@@ -18937,7 +18937,7 @@ logic:candidateCounterpartNonTransitive
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "counterpart stays symmetric-only, never transitive"@x-gmeow-english ;
     skos:definition "The deliberate-non-assertion formalization candidate carrying the standing commitment that cross-realm counterpart identity (gmeow:counterpartOf) stays non-transitive: it is symmetric by design but must never chain, so contested, standpoint-indexed, or context-dependent claims are never transitively collapsed into OWL sameAs identity. Realized as the logic:NonEntailmentObligation logic:CounterpartNonTransitivityObligation and enforced by Arm A syntactic reachability over the counterpart rule heads (no rule head produces the predicate). Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation). The semantic risk is core-contaminating: a careless transitivity rule would corrupt the reasoned core by merging entities the design keeps distinct. Its harvest back-link (logic:candidateFormalizes gmeow:counterpartOf, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose that commits to non-transitivity, and logic:candidateSourceHash is the sha256 of that skos:definition text so a later edit surfaces as drift."@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:b2318705c42e37e940f1c2809e1c6a081517082ce26a6e15bbcca4e2f49deff5"^^xsd:string ;
+    logic:candidateSourceHash "sha256:40dfbdf39dd5a841a551423aeeb06b8cc5a0c78a6a933aba7932484c18440b96"^^xsd:string ;
     logic:candidateExtractionProvenance "hand-harvested from gmeow:counterpartOf's skos:definition, which states it is symmetric but deliberately not transitive (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
     logic:candidateScope "gmeow:counterpartOf across realms, frames and datasets: symmetric-only, never transitively chained"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -19702,9 +19702,9 @@ gmeow:demonstratedByExample a logic:DatatypeProperty ;
     rdfs:label "demonstrated by example"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    skos:definition "Names the worked example that realizes a gmeow:FlagshipScenario, as a SLICE-RELATIVE path string (the same base as gmeow:exampleFile). The referenced *.ttl is the concrete artifact a reader inspects to see the scenario built, and the execution-discharge harness validates it clean."@x-gmeow-english ;
+    skos:definition "Names the worked example that realizes a gmeow:FlagshipScenario, as a SLICE-RELATIVE path string (the same base as gmeow:exampleFile). The referenced *.ttl is the concrete artifact a reader inspects to see the scenario built, and the authenticated slice-spec producer validates it once before tests start."@x-gmeow-english ;
     skos:example "exa:e8Symmetry gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative worked example that realizes it — the positive artifact the discharge harness validates clean."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative worked example that realizes it — the positive artifact covered by the authenticated slice-spec verdict."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative, like gmeow:exampleFile) and avoid naming more than one worked example per scenario."@x-gmeow-english .
 
 gmeow:demonstratedByCompetency a logic:ObjectProperty ;
@@ -19723,10 +19723,10 @@ gmeow:demonstratedByProducer a logic:DatatypeProperty ;
     rdfs:label "demonstrated by producer"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    skos:definition "Names the native producer entrypoint that emits a gmeow:FlagshipScenario's output, as a path-like identifier string (e.g. math::producers::e8_weyl_order, pipeline::stages::lang_form::build_corpus). REQUIRED on every gmeow:FlagshipScenario: a scenario carries this binding if and only if the execution-discharge harness actually runs that producer and pins its output — the acceptance bar is discharged by execution, never by an unrun label."@x-gmeow-english ;
+    skos:definition "Names the native producer entrypoint that emits a gmeow:FlagshipScenario's output, as a path-like identifier string (e.g. math::producers::e8_weyl_order, pipeline::stages::lang_form::build_corpus). REQUIRED on every gmeow:FlagshipScenario: a scenario carries this binding only when the explicit production DAG owns that producer and records its authenticated output — the acceptance bar is discharged by execution, never by an unowned label."@x-gmeow-english ;
     skos:example "exa:e8Symmetry gmeow:demonstratedByProducer \"math::producers::e8_weyl_order\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use on every gmeow:FlagshipScenario to name the native producer identifier the execution-discharge harness dispatches and runs."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid omitting it (the producer binding is required) and avoid naming a producer the discharge harness does not actually run — an unrun label is not a discharged acceptance bar."@x-gmeow-english .
+    gmeow:useWhen "Use on every gmeow:FlagshipScenario to name the native producer identifier owned by the explicit production DAG."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it (the producer binding is required) and avoid naming a producer the explicit production DAG does not own and receipt — an unowned label is not a discharged acceptance bar."@x-gmeow-english .
 
 gmeow:guardedByCounterExample a logic:DatatypeProperty ;
     logic:domain gmeow:FlagshipScenario ;
@@ -19734,7 +19734,7 @@ gmeow:guardedByCounterExample a logic:DatatypeProperty ;
     rdfs:label "guarded by counter-example"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    skos:definition "Names the counter-example that proves a gmeow:FlagshipScenario's gate bites, as a SLICE-RELATIVE path string. The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's gmeow:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced, and the execution-discharge harness runs the fixture and confirms exactly that class fires."@x-gmeow-english ;
+    skos:definition "Names the counter-example that proves a gmeow:FlagshipScenario's gate bites, as a SLICE-RELATIVE path string. The referenced tests/counter-examples/*.ttl is the minimal violation that raises the scenario's gmeow:enforcesFailureClass; per the conformance discipline, a rule with no negative fixture is not considered enforced, and the authenticated slice-spec producer runs the fixture once and confirms exactly that class fires."@x-gmeow-english ;
     skos:example "exa:e8Symmetry gmeow:guardedByCounterExample \"tests/counter-examples/e8-wrong-weyl-order.ttl\" ."@x-gmeow-english ;
     gmeow:useWhen "Use on a gmeow:FlagshipScenario to name the slice-relative minimal counter-example that raises its enforcing failure class — the negative fixture that proves the gate bites."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a repo-root-relative path (this property is slice-relative) and avoid a counter-example that raises any failure class other than the scenario's gmeow:enforcesFailureClass."@x-gmeow-english .

@@ -160,14 +160,11 @@ fn all_manifests(slices_dir: &Path) -> Result<Vec<PathBuf>> {
 /// it). Any read/parse failure is a HARD FAIL (propagated), never a silently
 /// skipped gate.
 ///
-/// Before folding any detector, the corpus is checked against the SAME
-/// non-vacuity floors the whole-corpus integration tests assert independently
-/// (`crates/validate/tests/authoring_integrity.rs`): a genuinely populated merged
-/// shape-file set, declared-term set, and catalog `<uri>` set. Those tests only
-/// guard the test binary; without this floor here, an environmental fault that
-/// silently shrank the live corpus to empty (e.g. a subtree that failed to read
-/// down to zero files, or a symlink loop that skipped every file) would still
-/// report zero findings — a VACUOUS PASS on the real `make validate` path.
+/// Before folding any detector, the production path checks non-vacuity floors for
+/// the merged shape-file set, declared-term set, and catalog `<uri>` set. Keeping
+/// the floor here makes the explicit validator producer fail closed if an
+/// environmental fault silently shrinks its input corpus; tests exercise the
+/// detectors with synthetic inputs and never rebuild the repository corpus.
 fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
     let shape_files = purrdf::shapes::shape_union::shape_files(project_root)
         .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;

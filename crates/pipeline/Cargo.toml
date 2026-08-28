@@ -10,6 +10,23 @@ license.workspace = true
 repository.workspace = true
 readme = "README.md"
 keywords = ["pipeline", "dag", "build", "rdf", "gmeow"]
+autobins = false
+
+[[bin]]
+name = "bench-compare"
+path = "src/bin/bench-compare.rs"
+
+[[bin]]
+name = "gmn-dialect-paths"
+path = "src/bin/gmn-dialect-paths.rs"
+
+[[bin]]
+name = "medium-sweep"
+path = "src/bin/medium-sweep.rs"
+
+[[bin]]
+name = "perf_gate_merge"
+path = "src/bin/perf_gate_merge.rs"
 
 [lib]
 # rlib-only: a pure-Rust engine crate consumed by the workspace.
@@ -20,6 +37,7 @@ path = "src/lib.rs"
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
 purrdf.workspace = true
+gmeow-action-cache = { path = "../action-cache" }
 # The native, zero-dependency XSD value space: the snapshot carrier
 # canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
 # `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
@@ -78,9 +96,8 @@ gmeow-affect = { path = "../affect" }
 # `math_producers` stage RUNS them and folds each producer's deterministic RDF
 # graph into gmeow.gts (Design A — the producer output ships in the bundle, the
 # shippable deliverable, not merely a test-side equality gate). Leaf compute crate
-# (no dependency back on gmeow-pipeline), so no cycle. A normal dependency also
-# satisfies the dev-only math flagship discharge harness, so it is NOT duplicated
-# in [dev-dependencies]
+# (no dependency back on gmeow-pipeline), so no cycle. It is a normal dependency
+# because the explicit producer boundary owns this work.
 gmeow-math = { path = "../math" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
@@ -147,6 +164,12 @@ serde.workspace = true
 # remains the deterministic human-readable cache index and several export formats.
 bincode = "1.3"
 serde_json.workspace = true
+# Report-only `perf_sample` binary: Unix child CPU/RSS/fault/block-I/O counters; the
+# scheduler also uses glibc's thread-safe `malloc_trim` at declarative serialization-
+# resource handoffs and the sole-terminal level boundary to return already-freed cold-
+# wave pages before the next whole-carrier serialization. Non-glibc targets compile
+# that reclamation hint as a no-op.
+libc.workspace = true
 # YAML-LD-star emission: deterministic, anchor-free YAML from the JSON-LD-star lead.
 serde_yaml = "0.9"
 # The release-as-evidence fold reads the committed snapshot's blob `pub`
@@ -175,8 +198,8 @@ tracing.workspace = true
 ed25519-dalek = "2"
 
 [build-dependencies]
-# Hash the workspace source into GMEOW_BUILD_FINGERPRINT (build.rs) so the
-# persistent per-stage cache invalidates on any code/toolchain change.
+# Hash the pipeline library's exact local implementation closure into
+# GMEOW_BUILD_FINGERPRINT so unrelated workspace edits retain stage receipts.
 sha2.workspace = true
 
 [dev-dependencies]
@@ -184,20 +207,9 @@ sha2.workspace = true
 # canonicalization. The single-test binary installs the allocator; the pipeline
 # library and shipped CLIs do not.
 gmeow-cost-measure.workspace = true
-# The consumer MCP engine, TEST-ONLY: the medium gate drives the runtime-store lane
-# (`store_medium` + the memory dictionaries) that moved out of this crate into the
-# `gmeow-mcp` leaf. A normal dependency would invert the layering — gmeow-mcp is a leaf
-# precisely so the shippable engine never inherits the build executor.
-gmeow-mcp = { path = "../mcp" }
-tempfile.workspace = true
-# The whole-bundle medium gate (tests/medium_bundle.rs) walks the emitted pack's raw
-# CBOR item stream (header catalog + `"dct"` map + per-frame `pub` metadata) and
-# recomputes the stratified digest independently of the producer. Integration-test
-# crates do NOT inherit the normal dependency table, so the crates it touches are
-# redeclared here.
-ciborium = "0.2"
-blake3 = "1"
-gmeow-gts-profile = { path = "../gts-profile" }
+# Required-path integration tests only import the explicit producer's authenticated
+# artifacts through this read-only consumer. It has no corpus-production entry point.
+gmeow-bundle-import = { path = "../bundle-import" }
 # The whole-artifact declared-media audit (tests/whole_artifact_media.rs) drives the
 # music producer's own GTS door and holds its output to the branch the ontology
 # routes it to. Music is not otherwise a dependency of this crate, so it is dev-only;
@@ -210,66 +222,13 @@ gmeow-music = { path = "../music" }
 # and round-trips, so this pins the property that actually matters rather than a
 # proxy for it.
 fastrand = "2"
-# The diagnostic substrate is a normal dependency; integration tests build typed
-# `gmeow_errors::Diag` values off the `error::*` DiagKinds, so it is also a
-# dev-dependency (integration-test crates do not inherit normal dependencies).
-gmeow-errors = { path = "../errors" }
-# The abductive-wing integration test (tests/abductive_wing.rs) drives the REAL
-# ValidateStage: it serializes an empty `gmeow_pipeline::ingest::SpanIndex` into the
-# source-load product's `spans:source-table` blob (the format `StageProduct::span_index`
-# deserializes), exactly as the crate-internal `run_full_stage` unit harness does.
-# Integration-test crates do NOT inherit the normal dependency table, so serde_json
-# (a normal dependency) is redeclared here.
-serde_json.workspace = true
 # Byte goldens for the per-graph `graph/logic` fold: a deterministic
 # snapshot of the canonical RDF-1.2 named-graph carriage, regression-pinned
 # independent of the full gmeow.gts.
 insta = { workspace = true, features = ["json"] }
-# The release-as-evidence fold tests build a deterministic Ed25519 signing key +
-# a synthetic OpenPGP public-key armor; same dalek the snapshot signer uses.
-ed25519-dalek = "2"
 # Determinism tests for the YAML-LD-star / JSON-LD-star emitter vary hash-map
 # seeds to prove that output order is independent of input collection order.
 ahash = "0.8"
 # Validate sample @annotation fragments against the SHACL-derived JSON Schema
 # the `json_schema` export leaf compiles.
 jsonschema.workspace = true
-# The gmeow:FlagshipScenario execution-discharge harness (tests/lang_flagship_discharge.rs)
-# drives BOTH validation channels over each flagship's counter-example and worked example,
-# and RUNS each named native producer. Integration-test crates do NOT inherit the normal
-# dependency table, so the crates the harness touches are redeclared here.
-#   * gmeow-validate — the native structural lint + native SHACL channels
-#     (structural_lint_dataset / shacl_validate_dataset / parse_file_dataset).
-gmeow-validate = { path = "../validate" }
-# Reuse the slice harness's canonical conformance-data scope. In particular,
-# logic:/lang:/math: validation sees the three-module grounding kernel while
-# enforcing shapes remain slice-owned; keeping this in one helper prevents the
-# flagship and declarative conformance lanes from drifting apart.
-gmeow-slicetest = { path = "../slicetest" }
-#   * gmeow-lang-bridge — the FS1 producer `lower::lower_svo` + `flagship_svo_sentence`.
-gmeow-lang-bridge = { path = "../lang-bridge" }
-#   * gmeow-logic-compile — `ir::PreservationKind`, the per-stage preservation record the
-#     FS1 lowering carries.
-gmeow-logic-compile = { path = "../logic-compile" }
-#   * purrdf — the frozen RdfDataset carrier (DatasetView), the parsed SHACL Shapes, the
-#     ValidationReport terms, and the SliceCatalog the FS2/FS4/FS5 producers ingest.
-purrdf.workspace = true
-#   * gmeow-math — the five native math producers (gmeow_math::producers) the math
-#     execution-discharge harness (tests/math_flagship_discharge.rs) RUNS and pins. It is
-#     now a NORMAL [dependencies] entry (the `math_producers` stage folds the producer
-#     output into gmeow.gts), which the integration-test crates also see — so it is NOT
-#     redeclared here (no duplicate entry).
-#   * gmeow-logic — the five native logic producers the logic execution-discharge harness
-#     (tests/logic_flagship_discharge.rs) RUNS and pins: reason::reason_all,
-#     correspondence_exec::leg_pair_verdict, counterfactual::construct_and_resolve,
-#     conjecture::conjecture_test, and materialize::materialize_routed (with its surfaced
-#     ChaseAdmission termination certificate + explain::assert_faithful trace). The math
-#     execution-discharge harness (tests/math_conformance_discharge.rs) additionally RUNS
-#     two reasoned-graph gate producers directly, over the SAME merged-fixture dataset it
-#     drives every other channel with: math_expression::check_math_expression_findings
-#     (also a genuine cross-crate production dependency of gmeow-slicetest) and
-#     reason::math_gate::dimension_gate_markers (whose only OTHER caller is verify.rs,
-#     same-crate) — `pub` on both, mirroring correspondence_exec::leg_pair_verdict's own
-#     precedent above (a same-crate production function additionally pinned by a
-#     cross-crate discharge harness), not an unjustified visibility widening.
-gmeow-logic = { path = "../logic" }

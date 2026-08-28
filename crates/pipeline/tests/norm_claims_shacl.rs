@@ -1,190 +1,69 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Falsifiable SHACL acceptance test over the SHIPPED bundle's `graph/norm-claims`.
+//! SHACL acceptance over the shipped bundle's authenticated `graph/norm-claims` product.
 //!
-//! `gmeow-dev validate --gts` (the flattened-bundle SHACL path) SHACL-validates the SHIPPED
-//! bundle through `ValidationRun::run(gts_bytes: Some(..))` →
-//! `gmeow_validate::store::dataset_from_gts` → `purrdf::gts::flattened_dataset_from_bytes`,
-//! which re-homes EVERY named graph (including `graph/norm-claims`) onto the default
-//! graph before the merged-SHACL phase runs `store::shacl_validate_dataset` over that
-//! same flattened dataset (`crates/validate/src/validate_all.rs`, phase "merged-shacl").
-//! So any content the shipped bundle's `graph/norm-claims` carries IS already part of the
-//! dataset `gmeow-dev validate --gts` SHACL-checks — not merely present in the bundle but
-//! structurally invisible to the validator.
-//!
-//! Advice fires from a DATA MATCH (see `norm_claims_bundle.rs`'s module docs), and the shipped
-//! bundle's base graph folds bare `gmeow:Entity` A-Box individuals that match the advisory guard,
-//! so `graph/norm-claims` DOES carry advisory-harvested `gmeow:ComplianceAssessment`s. This test
-//! proves two things, keyed on the `advice.` FAMILY rather than a specific harvested code:
-//!   1. `graph/norm-claims` carries at least one `gmeow:ComplianceAssessment` embedding an
-//!      `advice.`-family code (the reified advice wing SHIPS).
-//!   2. That re-homed fragment SHACL-conforms against the merged shape union — well-formed as
-//!      shipped, and structurally visible to the flattened-bundle SHACL path, not just present
-//!      in the bundle.
-//!
-//! The isolated, deterministic proof over a controlled fixture — including the derived SHACL
-//! shape firing on a supplied anti-pattern individual — lives in `advice_wing_fixture.rs`.
-//!
-//! Like `norm_claims_bundle.rs`, this test `.expect()`s the committed bundle AND the
-//! post-sync `generated/shapes/*.ttl` shape union (`purrdf::shapes::shape_union::shape_files`
-//! fails closed when `generated/shapes/` is empty) — it runs green only after `make check`.
+//! The explicit pre-test producer imports the exact bundle and extracts the exact shape
+//! union once. This test projects and validates those immutable products; it never reads
+//! or assembles the source corpus.
 
-use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
-use purrdf::gts::model::Graph;
+use purrdf::{RdfDataset, flat_dataset_from_quads, flat_rdf_quads_from_dataset};
+
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
-
-/// The `advice.` family code prefix (`crates/validate/src/codes.rs::ADVICE_FAMILY`) — the family
-/// this test proves SHIPS (and SHACL-conforms) in the bundle's `graph/norm-claims`.
 const ADVICE_FAMILY: &str = "advice.";
 
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .unwrap()
-}
-
-/// Fold the committed `generated/dist/gmeow.gts` into the native GTS `Graph` (term-id
-/// space), the same reader path `norm_claims_bundle.rs` uses.
-fn read_committed_gts_graph() -> Graph {
-    let bytes =
-        std::fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("committed gmeow.gts");
-    purrdf::gts::read_graph(&bytes, true).expect("read_graph")
-}
-
-/// A term-id's display value (IRI/literal lexical form), matching `norm_claims_bundle.rs`'s
-/// `term` closure.
-fn term_value(g: &Graph, id: usize) -> String {
-    g.terms
-        .get(id)
-        .and_then(|t| t.value.clone())
-        .unwrap_or_else(|| format!("<term {id}>"))
-}
-
-/// `(subject, predicate, object)` display triples of every quad in `g`.
-fn graph_triples(g: &Graph) -> Vec<(String, String, String)> {
-    g.quads
-        .iter()
-        .map(|&(s, p, o, _)| (term_value(g, s), term_value(g, p), term_value(g, o)))
-        .collect()
-}
-
-/// Build a native GTS [`Graph`] carrying ONLY the `graph/norm-claims` quads of the shipped
-/// bundle, re-homed onto the default graph (mirroring exactly what `dataset_from_gts` /
-/// `flattened_dataset_from_bytes` does on the real `gmeow-dev validate --gts` path — see the
-/// module docs above). Returns `None` when the named graph is entirely absent from the bundle (no
-/// such graph-name term interned) or carries zero quads — an absent graph and an empty graph
-/// are both honest "no norm-claims content" states, never a panic.
-fn norm_claims_only_graph() -> Option<Graph> {
-    let g = read_committed_gts_graph();
-    let graph_id = g
-        .terms
-        .iter()
-        .position(|t| t.value.as_deref() == Some(GRAPH_NORM_CLAIMS))?;
-
-    let quads: Vec<_> = g
-        .quads
-        .iter()
-        .filter(|&&(_, _, _, gname)| gname == Some(graph_id))
-        .map(|&(s, p, o, _)| (s, p, o, None))
-        .collect();
-    if quads.is_empty() {
-        return None;
+fn norm_claims_dataset() -> Arc<RdfDataset> {
+    let scoped = authenticated_bundle::dataset().project_named_graph_full(GRAPH_NORM_CLAIMS);
+    let mut quads = flat_rdf_quads_from_dataset(&scoped);
+    for quad in &mut quads {
+        quad.graph_name = None;
     }
-
-    Some(Graph {
-        terms: g.terms,
-        quads,
-        ..Graph::default()
-    })
+    flat_dataset_from_quads(&quads).expect("authenticated norm-claims graph must freeze")
 }
 
-/// The merged SHACL shape union, assembled by the SAME loader every in-repo consumer
-/// uses (`purrdf::shapes::shape_union::load_shapes`, which `gmeow-dev validate` selects
-/// via `ValidateOptions::shape_union_root`) — `shapes/*.ttl` (minus the DSL/manifest
-/// exclusions) + `generated/shapes/*.ttl` (fail-closed if empty; present post-sync) +
-/// `slices/*/*/shapes.ttl`.
-///
-/// The loader, not a text concatenation of the same files: it parses each member
-/// separately and unions them, which scopes blank-node labels per file and applies
-/// last-declaration-wins prefix recovery. Concatenating the text instead would fuse
-/// same-labelled blanks across files and let a second `@base` re-resolve earlier
-/// relative IRIs — so this test would be validating against a shape set the live
-/// validator never assembles.
-fn merged_shapes(root: &Path) -> purrdf::shapes::shapes::Shapes {
-    purrdf::shapes::shape_union::load_shapes(root)
-        .unwrap_or_else(|e| {
-            panic!(
-                "cannot load the SHACL shape union (requires post-sync generated/shapes/*.ttl): {e}"
-            )
-        })
-        .1
+fn authenticated_shapes() -> purrdf::shapes::shapes::Shapes {
+    let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(
+        &authenticated_bundle::repo_root(),
+        "validate-conformance-shapes.ttl",
+    )
+    .expect("authenticated validation-shapes product; tests never produce it");
+    let ttl = String::from_utf8(bytes).expect("authenticated validation-shapes product is UTF-8");
+    purrdf::shapes::engine::parse_shapes(&ttl).expect("authenticated validation shapes parse")
 }
 
-/// The invariant: the shipped `graph/norm-claims` carries at least one advisory-harvested
-/// `gmeow:ComplianceAssessment` (an `advice.`-family code in its subject IRI — the reified advice
-/// wing SHIPS), and the whole re-homed fragment SHACL-conforms against the merged shape union,
-/// exactly as `gmeow-dev validate --gts` re-homes and checks it.
 #[test]
 fn shipped_norm_claims_conforms_and_carries_the_advisory_compliance_assessment() {
-    let root = repo_root();
-
-    let graph = norm_claims_only_graph().expect(
-        "the shipped bundle's graph/norm-claims must be present and non-empty — the base graph \
-         folds bare gmeow:Entity individuals that match the advisory guard, so the reified advice \
-         wing ships",
+    let dataset = norm_claims_dataset();
+    assert!(
+        dataset.quad_count() > 0,
+        "the authenticated graph/norm-claims product must be non-empty"
     );
 
-    let triples = graph_triples(&graph);
-
+    let triples = authenticated_bundle::graph_triples(GRAPH_NORM_CLAIMS);
     let assessment_class = format!("{GMEOW}ComplianceAssessment");
     let advisory_assessment_subjects: Vec<&str> = triples
         .iter()
-        .filter(|(_, p, o)| p == RDF_TYPE && o == &assessment_class)
-        .map(|(s, _, _)| s.as_str())
-        .filter(|s| s.contains(ADVICE_FAMILY))
+        .filter(|(_, predicate, object)| predicate == RDF_TYPE && object == &assessment_class)
+        .map(|(subject, _, _)| subject.as_str())
+        .filter(|subject| subject.contains(ADVICE_FAMILY))
         .collect();
     assert!(
         !advisory_assessment_subjects.is_empty(),
-        "the shipped bundle's graph/norm-claims must carry at least one gmeow:ComplianceAssessment \
-         whose IRI embeds an `{ADVICE_FAMILY}` code (the reified advice wing must ship)"
+        "the authenticated norm-claims graph must carry an advice-family ComplianceAssessment"
     );
 
-    // The re-homed graph/norm-claims fragment must SHACL-conform against the merged shape union,
-    // re-homed exactly as `gmeow-dev validate --gts` re-homes it.
-    let shapes = merged_shapes(&root);
-    let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
-        .expect("build an RdfDataset from the re-homed graph/norm-claims quads");
-    let report = purrdf::shapes::engine::validate_dataset(&dataset, &shapes)
-        .expect("run SHACL over the re-homed graph/norm-claims dataset");
+    let report = purrdf::shapes::engine::validate_dataset(&dataset, &authenticated_shapes())
+        .expect("run SHACL over authenticated graph/norm-claims");
     assert!(
         report.conforms,
-        "the shipped graph/norm-claims dataset must SHACL-conform as emitted; violations: {:#?}",
+        "the shipped graph/norm-claims dataset must SHACL-conform; violations: {:#?}",
         report.results
     );
 }
-
-// WHOLE-BUNDLE (cross-graph-typing) SHACL conformance of the shipped norm-claims subjects is the
-// remit of the flattened-bundle SHACL path (`gmeow-dev validate --gts` → `ValidationRun::run` over
-// `flattened_dataset_from_bytes`), NOT of a unit test here. That is a deliberate boundary, not a
-// gap:
-//   * The Observation family imposes value-TYPE shapes on `gmeow:vantage`
-//     (`Observation-shape`: `sh:path gmeow:vantage ; sh:class gmeow:Entity`). Deciding whether a
-//     `gmeow:vantage` value (a `gmeow:Standpoint`) satisfies `sh:class gmeow:Entity` requires the
-//     COMPLETE `rdfs:subClassOf` TBox closure (`Standpoint ⊑ … ⊑ Entity`) — a whole-bundle fact. A
-//     raw `validate_dataset` over the full 23M-triple flattened bundle is O(all shapes × all
-//     nodes) and does not terminate within any test budget; a dependency-closure subset is WORSE
-//     THAN USELESS — it makes a node a `sh:class`-checked `Observation` target without its full
-//     superclass chain, so it FALSE-POSITIVES. There is no cheap, correct middle: `validate_dataset`
-//     has no focus-node scoping, so a correct whole-bundle-semantics check IS the whole-bundle
-//     validation, which is exactly what `gmeow-dev validate --gts` already runs.
-//   * The isolated-fragment test above fully covers the D4 constraints that are actually authored
-//     (`ComplianceAssessment{Vantage,Verdict,AssessedEvent,AssessedNorm}Constraint` — all
-//     `logic:directType`-guarded property-PRESENCE `sh:minCount` shapes over the emitter's
-//     self-typed A-box; no `sh:class` among them).

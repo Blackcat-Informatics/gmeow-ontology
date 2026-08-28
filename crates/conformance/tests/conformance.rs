@@ -12,25 +12,17 @@
 //!
 //! Each case runs the native engine ([`gmeow_conformance::run`]) and diffs the
 //! produced artifacts against the committed `expected/` goldens
-//! ([`gmeow_conformance::compare::diff_case`]). When `GMEOW_CONFORMANCE_BLESS=1`
-//! is set the harness writes the goldens instead of asserting — the
-//! golden-regeneration path that replaces `gmeow-dev conformance --update`.
+//! ([`gmeow_conformance::compare::diff_case`]). The harness is read-only: corpus
+//! generation is never reachable from a test process.
 
 use datatest_stable::Utf8Path;
 
-use gmeow_conformance::{bless, compare, discover, run};
-
-/// The environment variable that switches the harness into golden-regeneration
-/// (bless) mode: when set to a truthy value, each case writes its goldens instead
-/// of asserting against them.
-const BLESS_ENV: &str = "GMEOW_CONFORMANCE_BLESS";
+use gmeow_conformance::{compare, discover, run};
 
 /// Run one conformance case, identified by its `profile.json` sentinel path.
 ///
-/// Default (assert) mode: discover → run the native engine → diff against the
-/// committed `expected/` goldens, surfacing every mismatch as one aggregated
-/// error. Bless mode (`GMEOW_CONFORMANCE_BLESS=1`): regenerate the reproducible
-/// goldens instead of asserting.
+/// Discover → run the native engine → diff against the committed `expected/`
+/// goldens, surfacing every mismatch as one aggregated error.
 fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     let case_dir = gmeow_conformance::paths::case_dir(profile_json.as_std_path());
 
@@ -70,11 +62,6 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
 
     let outputs = run::run_case(&case_dir).map_err(|d| d.to_string())?;
 
-    if bless_enabled() {
-        bless::write_expected(&case_dir, &outputs).map_err(|d| d.to_string())?;
-        return Ok(());
-    }
-
     let diffs = compare::diff_case(&case_dir, &outputs);
     if diffs.is_empty() {
         Ok(())
@@ -87,13 +74,6 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
         )
         .into())
     }
-}
-
-/// Whether the bless env var is set to a truthy value (`1`/`true`/`yes`, any case).
-fn bless_enabled() -> bool {
-    std::env::var(BLESS_ENV)
-        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes"))
-        .unwrap_or(false)
 }
 
 datatest_stable::harness! {

@@ -11,7 +11,7 @@
 # realize and enforce it —
 #   gmeow:demonstratedByExample     -> the worked example fixture
 #   gmeow:demonstratedByCompetency  -> the gmeow:CompetencyQuestion that pins it
-#   gmeow:demonstratedByProducer    -> the native entrypoint the discharge harness RUNS
+#   gmeow:demonstratedByProducer    -> the native entrypoint the production DAG owns
 #   gmeow:guardedByCounterExample   -> the minimal violation that proves the gate bites
 #   gmeow:enforcesFailureClass      -> the lang:LangConformanceFailure subclass it raises
 #
@@ -21,10 +21,9 @@
 # gmeow:demonstratedByCompetency into tests/competency.ttl and confirms it carries a
 # gmeow:cqExpectRow expectation and an existing query file (the competency-question
 # individuals live in the tests dataset, which SHACL never loads — hence the split). The
-# execution-discharge harness goes further than the math precedent: it RUNS each named
-# producer and each counter-example, asserting the guard raises exactly its failure class
-# and the worked example is clean — the acceptance bar discharged by execution, not
-# existence. Validates cleanly.
+# authenticated slice-spec producer executes the competency and conformance cells once,
+# while the named language producers run in the production DAG and publish cached stage
+# receipts. Tests consume those receipts and never rebuild either corpus. Validates cleanly.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .

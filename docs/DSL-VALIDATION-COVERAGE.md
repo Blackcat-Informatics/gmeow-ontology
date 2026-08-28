@@ -34,11 +34,9 @@ cannot pass silently.
 | Phase | Surface | Gate | Home (who executes it) | Citation |
 |---|---|---|---|---|
 | 9 — example **coverage** (every slice ships ≥1 example) | `slices/*/*/examples/` | `make check` | The live `validate` gate, via Phase 5c | `crates/validate/src/validate_all.rs:749` (`check_example_coverage`, `:1819`) |
-| 10 — per-example **SHACL** (each example vs merged-module TBox) | `slices/*/*/examples/*.ttl` (204 files) | `make check` | `crates/validate/tests/example_sweep.rs` (rust-test) — **deliberately not** re-run in the `validate` gate | `crates/validate/tests/example_sweep.rs`; `validate_all.rs:876` (the `slices_dir`-guarded in-gate copy left OFF) |
 | 11 — **mapping** DSL SHACL | `dsl/mappings/**/*.ttl` vs `shapes/mapping-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:910`; `dev_validate.rs` (authored-source path) |
 | 12 — **statement** DSL SHACL | `dsl/statements/**/*.ttl` vs `shapes/statement-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:930`; `dev_validate.rs` |
 | 13 — **test** DSL SHACL, central | `dsl/tests/**/*.ttl` vs `shapes/test-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:950`; `dev_validate.rs` |
-| 13 — **test** DSL SHACL, slice-local | `slices/*/*/tests/*.ttl` | `make check` | `crates/slicetest` (`datatest-stable` rust-test) — already SHACL-validates these vs `shapes/test-dsl-shapes.ttl` | `crates/slicetest/src/exec.rs:764`, `:1005` |
 
 ### Why these placements
 
@@ -47,17 +45,18 @@ cannot pass silently.
   `make check`. The three central DSL trees are tiny (the whole `dsl/` tree is a
   few dozen `.ttl` files) and `validate_dsl` merges them standalone (no TBox
   fan-out), so runtime is set by the edit, not by corpus breadth.
-- **Per-example SHACL (10) is owned by `example_sweep.rs`, not the gate.** The
-  in-gate copy (`validate_all.rs:876`) is guarded on `options.slices_dir`. Setting
-  `slices_dir` on the live path would turn phase 10 ON and re-validate all 204
-  examples that `example_sweep` already validates — a duplicate whole-corpus
-  computation, exactly what `GATE-AND-PIPELINE.md` P2/P3 forbid. So the live
-  entry leaves `slices_dir` unset; per-example SHACL runs once, in the rust-test.
-- **Slice-local test DSL is owned by `slicetest`, not the gate.** For the same
-  reason (collecting slice-local test files also requires `slices_dir`), the live
-  `validate` test-DSL phase covers the **central** `dsl/tests/` tree only;
-  slice-local `slices/*/*/tests/*.ttl` are already SHACL-validated by the
-  `slicetest` `datatest-stable` harness.
+- **No Rust test rebuilds the example corpus.** The former `example_sweep` test
+  walked all authored examples and materialized `TBox + example` corpora inside
+  nextest. That producer-reachable lane was removed under the repository's absolute
+  no-test-corpus-production policy. Example-directory coverage remains on the live
+  validation gate; focused projection semantics remain covered by synthetic tests.
+- **Slice-local test DSL is not materialized by a Rust test.** The former
+  `datatest-stable` corpus walker was removed under the no-test-corpus-production
+  rule. Its 143 fixed-name files plus three flagship manifests now execute in the
+  explicit, cache-keyed pre-test producer. Every spec yields an independently reusable
+  receipt, and the producer binds those into an authenticated all-specs verdict; warm
+  runs verify that receipt without executing cells. The live validation entry continues to cover
+  the central `dsl/tests/` surface, and focused slice-engine behavior remains synthetic.
 
 ## Scope: authored-source entry only
 

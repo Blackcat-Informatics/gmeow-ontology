@@ -14,12 +14,8 @@
 //! identity is a stable absolute IRI, so the goldens are machine-independent and
 //! change only when a render format changes.
 //!
-//! Update mechanism: mirrors the repo's existing byte-file golden convention
-//! (`crates/foundation-corpus/tests/golden.rs` reads committed golden files and
-//! compares bytes) plus the conformance-suite bless-env pattern
-//! (`GMEOW_CONFORMANCE_BLESS`). Run `UPDATE_GOLDENS=1 cargo test -p
-//! gmeow-slice-quality --test render_goldens` to regenerate the four goldens from
-//! the REAL output of the committed code (never hand-authored idealized bytes).
+//! This test is read-only. Golden production is an explicit maintainer operation,
+//! never an environment-controlled branch inside the test runner.
 
 use std::path::{Path, PathBuf};
 
@@ -41,10 +37,6 @@ fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
         },
     )
 }
-
-/// The env var that flips the test into bless mode: write the produced output back
-/// to the golden files instead of asserting against them.
-const UPDATE_ENV: &str = "UPDATE_GOLDENS";
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -97,25 +89,11 @@ fn assert_no_machine_paths(name: &str, produced: &str) {
 fn four_renderings_match_committed_byte_goldens() {
     let report = score(&repo_root(), &fixture_dir()).expect("the fixture slice scores");
     let goldens = goldens_dir();
-    let bless = std::env::var(UPDATE_ENV).is_ok_and(|v| !v.is_empty() && v != "0");
-
     let produced = render_all(&report);
 
-    // First: no rendering may contain a machine-specific path, whether we are
-    // blessing or asserting — a leaked path must never be written into a golden.
+    // No rendering may contain a machine-specific path.
     for (name, bytes) in &produced {
         assert_no_machine_paths(name, bytes);
-    }
-
-    if bless {
-        std::fs::create_dir_all(&goldens).expect("create goldens dir");
-        for (name, bytes) in &produced {
-            std::fs::write(goldens.join(name), bytes.as_bytes())
-                .unwrap_or_else(|e| panic!("write golden {name}: {e}"));
-        }
-        // A bless run does not also assert (the files were just overwritten); a
-        // normal `cargo test` run (no env) exercises the byte-for-byte compare.
-        return;
     }
 
     for (name, bytes) in &produced {
@@ -123,7 +101,7 @@ fn four_renderings_match_committed_byte_goldens() {
         assert_eq!(
             bytes.as_bytes(),
             golden.as_slice(),
-            "byte mismatch in {name} — the render format changed. If intentional, regenerate with `UPDATE_GOLDENS=1 cargo test -p gmeow-slice-quality --test render_goldens`.\n--- produced ---\n{bytes}\n--- golden ---\n{}",
+            "byte mismatch in {name} — the render format changed; refresh goldens through the explicit maintainer producer.\n--- produced ---\n{bytes}\n--- golden ---\n{}",
             String::from_utf8_lossy(&golden),
         );
     }
@@ -131,9 +109,7 @@ fn four_renderings_match_committed_byte_goldens() {
 
 fn read_golden(dir: &Path, name: &str) -> Vec<u8> {
     std::fs::read(dir.join(name)).unwrap_or_else(|e| {
-        panic!(
-            "missing golden {name}: {e} — generate it with `UPDATE_GOLDENS=1 cargo test -p gmeow-slice-quality --test render_goldens`"
-        )
+        panic!("missing golden {name}: {e} — generate it through the explicit maintainer producer")
     })
 }
 

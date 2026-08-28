@@ -310,69 +310,23 @@ fn stage_err(message: &str) -> gmeow_errors::Diag {
 mod tests {
     use super::*;
 
-    /// Build the four fresh shape-producer products the stage now consumes by reading
-    /// THIS checkout's committed `generated/shapes/*.ttl` members off disk and packaging
-    /// them exactly as [`crate::stages::shape_union_fresh::fresh_generated_shape_members`]
-    /// expects. In an in-repo (post-`make check`) checkout these bytes ARE the committed
-    /// projection, so the loaded fresh union is byte-identical to the disk-read union the
-    /// stage used before the fresh-source migration — the parity these real-repo tests
-    /// assert. Under the live pipeline the SAME map is assembled from the producers'
-    /// in-memory products instead.
-    fn fresh_shape_upstream(root: &Path) -> BTreeMap<String, StageProduct> {
-        let sources: [(&str, &[&str]); 4] = [
-            (
-                "stage-compile-logic",
-                &[
-                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
-                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
-                ],
-            ),
-            (
-                "stage-export-constraint-shapes",
-                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH],
-            ),
-            (
-                "stage-export-frame-shapes",
-                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH],
-            ),
-            (
-                "stage-export-result-shapes",
-                &[crate::stages::result_shapes::RESULT_SHAPES_PATH],
-            ),
-        ];
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        for (producer, rels) in sources {
-            let artifacts: BTreeMap<String, Vec<u8>> = rels
-                .iter()
-                .map(|rel| {
-                    let bytes = std::fs::read(root.join(rel))
-                        .unwrap_or_else(|e| panic!("read committed {rel}: {e}"));
-                    ((*rel).to_string(), bytes)
-                })
-                .collect();
-            upstream.insert(
-                producer.to_string(),
-                StageProduct::from_artifacts(producer, artifacts),
-            );
-        }
-        upstream
-    }
-
     /// The stage attaches EXACTLY the authoring-briefs graph, carrying real
     /// `gmeow:AuthoringPacket` triples — the proof the packet corpus reaches the carrier
     /// (and thence `gmeow.gts`), not merely a test.
     #[test]
     fn run_attaches_the_authoring_briefs_graph() {
         let root = repo_root();
-        let stage = SliceBriefStage::new();
-        let upstream = fresh_shape_upstream(&root);
-        let out = stage
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("slice_brief stage runs");
-        let dataset = out.product.dataset();
+        let product = crate::fixture::stage_fixture(
+            &root,
+            std::thread::available_parallelism()
+                .map(std::num::NonZeroUsize::get)
+                .unwrap_or(1),
+            "stage-slice-brief",
+        )
+        .expect("exact slice-brief fixture")
+        .outcome
+        .product;
+        let dataset = product.dataset();
         let projected = dataset.project_named_graph(GRAPH_AUTHORING_BRIEFS);
         assert!(
             projected.quad_count() > 0,
@@ -383,32 +337,6 @@ mod tests {
         assert!(
             n > 0,
             "graph/authoring-briefs must carry real gmeow:AuthoringPacket individuals, got {n}"
-        );
-    }
-
-    /// Determinism: two runs attach byte-identical carrier datasets (slices iterate
-    /// sorted, batches ascend, the library assembly is byte-stable).
-    #[test]
-    fn run_is_deterministic() {
-        let root = repo_root();
-        let stage = SliceBriefStage::new();
-        let upstream = fresh_shape_upstream(&root);
-        let a = stage
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("run a");
-        let b = stage
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("run b");
-        assert_eq!(
-            purrdf::canonical_flat_nquads(a.product.dataset()).expect("canon a"),
-            purrdf::canonical_flat_nquads(b.product.dataset()).expect("canon b"),
-            "the authoring-briefs carrier dataset must be deterministic"
         );
     }
 

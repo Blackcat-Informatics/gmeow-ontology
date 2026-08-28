@@ -1,13 +1,13 @@
 # ROBOT verify QC (#39) — orthogonality matrix integrity (CONSTITUTION P9).
-# Each of the seven orthogonal identity axes MUST be a member of an
-# owl:AllDisjointClasses set, so the reasoner can reject an individual placed in
-# two of them (see ontology/modules/gender.ttl and
-# tests/test_identity_orthogonality.py). If any axis is missing from the
+# Each of the seven orthogonal identity axes MUST be a member of the canonical
+# logic:AllDisjointClasses set, so the reasoner can reject an individual placed
+# in two of them. OWL is the generated target view; this verification query
+# authenticates the authored logic: carrier. If any axis is missing from the
 # disjointness matrix, this returns a row → FAILURE.
 
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 
 SELECT ?axis WHERE {
     VALUES ?axis {
@@ -20,7 +20,7 @@ SELECT ?axis WHERE {
         gmeow:Honorific
     }
     FILTER NOT EXISTS {
-        ?disjoint a owl:AllDisjointClasses ;
-                  owl:members/rdf:rest*/rdf:first ?axis .
+        ?disjoint a logic:AllDisjointClasses ;
+                  logic:members/rdf:rest*/rdf:first ?axis .
     }
 }

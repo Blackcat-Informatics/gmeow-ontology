@@ -4,9 +4,9 @@
 //! ZERO MODEL-FACING CHANGE — the two legs that need no bundle.
 //!
 //! The medium axis re-CODES the bundle's bytes. Its whole claim is that coding is not
-//! meaning, so nothing a model reads may move. Three legs carry that claim; the
-//! artifact-invariance leg needs a live emission and lives with the identity gate
-//! (`tests/medium_identity_gate.rs`), while the two here are cheap and run on every
+//! meaning, so nothing a model reads may move. The producer-authenticated bundle is
+//! audited read-only by `medium_bundle`, and the declared codec law is covered by
+//! `medium_codec_composition`; the two cheap branch/source legs here run on every
 //! `cargo nextest` pass:
 //!
 //! * **producer non-interference** — this branch's diff against the merge base must not
@@ -34,9 +34,9 @@ use gmeow_pipeline::gmn_dialect::{
     check_producer_census_is_complete,
 };
 
-/// The llms-family SHAPE freeze, `#[path]`-included exactly as the shared MEDIUM negative
-/// controls in `support/medium_tamper.rs` are: nothing in the shipped pipeline library
-/// calls any of it, so it is test support rather than a `crates/pipeline/src` module.
+/// The llms-family SHAPE freeze is `#[path]`-included here: nothing in the shipped
+/// pipeline library calls any of it, so it remains test support rather than a
+/// `crates/pipeline/src` module.
 #[path = "support/llms_shape.rs"]
 mod llms_shape;
 

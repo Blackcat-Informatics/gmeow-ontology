@@ -53,13 +53,16 @@
     a gmeow:NarrativeTimeFrame ;
     <http://www.w3.org/2000/01/rdf-schema#label> "discourse order"@x-gmeow-english ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
-    gmeow:dimensionCount 1 ;
+    gmeow:dimensionCount "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
     gmeow:discourseTimeOf <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
     gmeow:frameKind gmeow:frameKindNarrative ;
     gmeow:frameRealm gmeow:frameRealmNarrative ;
     gmeow:hasAxis <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/axis> ;
     gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
     gmeow:requiresHost false .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/axis>
+    a gmeow:Axis .
 
 <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/1>
     a gmeow:NarrativePosition ;
@@ -76,6 +79,7 @@
 <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/expression>
     a gmeow:Expression ;
     <http://www.w3.org/2000/01/rdf-schema#label> "The Clockwork Steerswoman (text)"@x-gmeow-english ;
+    gmeow:hasReferenceFrame <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame> ;
     gmeow:realizes <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> .
 
 <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/release>
@@ -258,8 +262,8 @@
 
 <https://blackcatinformatics.ca/gmeow/corpus/foundation/scale/unit>
     a gmeow:ScoreScale ;
-    gmeow:scaleMax "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
-    gmeow:scaleMin "0"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+    gmeow:scaleMax 1.0 ;
+    gmeow:scaleMin 0.0 .
 
 <https://blackcatinformatics.ca/gmeow/corpus/foundation/section/test-bedrock>
     a gmeow:SocialObject ;

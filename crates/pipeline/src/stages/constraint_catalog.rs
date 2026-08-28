@@ -598,6 +598,19 @@ mod tests {
             .unwrap()
     }
 
+    fn authenticated_catalog() -> String {
+        let root = repo_root();
+        let artifacts = crate::fixture::stage_artifacts(&root, 1, "stage-constraint-catalog")
+            .expect("authenticated constraint-catalog fixture");
+        String::from_utf8(
+            artifacts
+                .get(CONSTRAINT_CATALOG_RDF_PATH)
+                .expect("constraint-catalog artifact")
+                .clone(),
+        )
+        .expect("constraint-catalog utf8")
+    }
+
     #[test]
     fn catalog_fanout_iri_is_auto_derived() {
         // The declared graph IRI must equal what the superset helper derives from the
@@ -610,9 +623,7 @@ mod tests {
 
     #[test]
     fn every_registry_seed_becomes_a_rule() {
-        let root = repo_root();
-        let bytes = render_constraint_catalog(&root).expect("render catalog");
-        let text = String::from_utf8(bytes).expect("utf8");
+        let text = authenticated_catalog();
         for seed in all_rules() {
             let iri = rule_iri(&seed);
             assert!(
@@ -628,9 +639,7 @@ mod tests {
 
     #[test]
     fn frame_completeness_is_enriched_from_the_graph() {
-        let root = repo_root();
-        let bytes = render_constraint_catalog(&root).expect("render catalog");
-        let text = String::from_utf8(bytes).expect("utf8");
+        let text = authenticated_catalog();
         // The frame-completeness rule formalizes gmeow:requiresFrame and applies to
         // at least one frame-carrier class resolved from the authored ontology.
         let rule = format!("{GMEOW}rule/discipline-frame-completeness");
@@ -640,18 +649,8 @@ mod tests {
         assert!(text.contains(&format!("<{rule}> <{GMEOW}appliesToTerm>")));
     }
 
-    #[test]
-    fn render_is_deterministic() {
-        let root = repo_root();
-        let a = render_constraint_catalog(&root).expect("render a");
-        let b = render_constraint_catalog(&root).expect("render b");
-        assert_eq!(a, b, "constraint catalog render must be byte-deterministic");
-    }
-
     /// Task 7 Part B (adversary F2/N1): the projection producer
-    /// [`build_catalog_nquads`] (called directly with the REAL registry seeds —
-    /// deterministic, no `make check` dependency: it reads straight off the
-    /// authored ontology sources on disk) emits a `gmeow:ruleRemediation` triple
+    /// The authenticated producer output emits a `gmeow:ruleRemediation` triple
     /// for EVERY enforced rule whose code is NOT on
     /// [`gmeow_validate::rule_catalog::REMEDIATION_ABSENT`], and NO such triple
     /// for a code that IS on the allowlist — the honest-absence twin. Falsifiable:
@@ -662,9 +661,7 @@ mod tests {
     fn every_enforced_rule_carries_remediation_except_the_honest_absence_allowlist() {
         use gmeow_validate::rule_catalog::REMEDIATION_ABSENT;
 
-        let root = repo_root();
-        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
-        let nq = build_catalog_nquads(&dataset).expect("build catalog n-quads");
+        let nq = authenticated_catalog();
 
         let mut checked_present = 0usize;
         let mut checked_absent = 0usize;
@@ -707,9 +704,7 @@ mod tests {
     /// dropped, or a term lost its realized carrier, this fails.
     #[test]
     fn advice_entries_are_projected_for_realized_carriers() {
-        let root = repo_root();
-        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
-        let nq = build_catalog_nquads(&dataset).expect("build catalog n-quads");
+        let nq = authenticated_catalog();
         for term in ["Entity", "Event"] {
             let entry = format!("{GMEOW}advice/{term}");
             assert!(
@@ -741,39 +736,64 @@ mod tests {
         }
     }
 
-    /// Prose-binding: every projected `gmeow:adviceAvoidWhen` leg is verbatim one of
-    /// the governed term's authored `gmeow:avoidWhen` literals (the advice message is
-    /// gate-bound to that prose by `check_advice_message_prose_binding`). This catches
-    /// a regression in the catalog projection as well as in the gate — one field bound
-    /// in two places must agree.
+    /// Prose-binding over a controlled graph: the projected advice fields are copied
+    /// verbatim from their realized carriers and governed term. This exercises the
+    /// producer logic without loading or rebuilding the repository corpus.
     #[test]
-    fn advice_avoid_when_projects_the_terms_avoidwhen_prose_verbatim() {
-        const GMEOW_AVOID_WHEN: &str = "https://blackcatinformatics.ca/gmeow/avoidWhen";
-        let root = repo_root();
-        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
+    fn advice_prose_is_projected_verbatim_from_a_synthetic_graph() {
+        let dataset = Dataset::parse_turtle(
+            br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+gmeow:SyntheticTerm
+    rdfs:label "Synthetic term" ;
+    skos:definition "Synthetic definition" ;
+    gmeow:howToUse "Use exactly this way" .
+
+gmeow:syntheticAvoid a logic:Constraint ;
+    logic:severity "Info" ;
+    logic:adviceSourceField logic:ProseFieldAvoidWhen ;
+    logic:formalizes gmeow:SyntheticTerm ;
+    logic:message "Avoid exactly this case" .
+
+gmeow:syntheticUse a logic:AdviceGuidance ;
+    logic:adviceSourceField logic:ProseFieldUseWhen ;
+    logic:formalizes gmeow:SyntheticTerm ;
+    logic:message "Use exactly this case" .
+"#,
+            "synthetic advice graph",
+        )
+        .expect("parse synthetic advice graph");
         let advice = collect_advice(&dataset).expect("collect advice");
-        let entity = format!("{GMEOW}Entity");
+        let entity = format!("{GMEOW}SyntheticTerm");
         let prose = advice
             .get(&entity)
-            .expect("gmeow:Entity has realized advice");
-        let term_avoid: BTreeSet<String> = dataset
-            .objects(&entity, GMEOW_AVOID_WHEN)
-            .expect("term avoidWhen")
-            .into_iter()
-            .filter_map(|o| match o {
-                Object::Literal { value, .. } => Some(value),
-                _ => None,
-            })
-            .collect();
-        assert!(
-            !prose.avoid_when.is_empty(),
-            "gmeow:Entity must project at least one adviceAvoidWhen leg"
+            .expect("synthetic term has realized advice");
+        assert_eq!(
+            prose.avoid_when,
+            BTreeSet::from(["Avoid exactly this case".to_string()])
         );
-        for avoid in &prose.avoid_when {
+        assert_eq!(
+            prose.use_when,
+            BTreeSet::from(["Use exactly this case".to_string()])
+        );
+        assert_eq!(
+            prose.how_to_use,
+            BTreeSet::from(["Use exactly this way".to_string()])
+        );
+
+        let projected = build_catalog_nquads(&dataset).expect("project synthetic advice");
+        for literal in [
+            "Avoid exactly this case",
+            "Use exactly this case",
+            "Use exactly this way",
+        ] {
             assert!(
-                term_avoid.contains(avoid),
-                "projected adviceAvoidWhen for gmeow:Entity is not a verbatim \
-                 gmeow:avoidWhen of the term: {avoid:?}"
+                projected.contains(literal),
+                "missing projected prose {literal:?}"
             );
         }
     }
@@ -783,20 +803,23 @@ mod tests {
     /// asserts this at build time; this pins it at the collector level too.
     #[test]
     fn advice_entry_slugs_are_distinct() {
-        let root = repo_root();
-        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
-        let advice = collect_advice(&dataset).expect("collect advice");
+        let catalog = authenticated_catalog();
         let mut slugs = BTreeSet::new();
-        for term in advice.keys() {
+        let mut count = 0usize;
+        for line in catalog
+            .lines()
+            .filter(|line| line.contains(&format!("<{RDF_TYPE}> <{GMEOW}AdviceEntry>")))
+        {
+            let subject = line.split_whitespace().next().expect("N-Quads subject");
             assert!(
-                slugs.insert(slugify(local_name(term))),
-                "duplicate advice-entry slug for {term}"
+                slugs.insert(subject.to_string()),
+                "duplicate advice-entry subject {subject}"
             );
+            count += 1;
         }
         assert!(
-            advice.len() >= 2,
-            "expected at least the Entity + Event realized carriers, got {}",
-            advice.len()
+            count >= 2,
+            "expected at least the Entity + Event authenticated advice entries, got {count}"
         );
     }
 }

@@ -8,11 +8,10 @@
 //! violation → [`gmeow_validate::advisory::split_advisory_results`] → [`Advisory::project`]
 //! → [`gmeow_validate::advisory::project_compliance_assessment`] N-Quads.
 //!
-//! This is deliberately NOT a hand-authored shape: step 1 reads the canonical logic module
-//! text, step 2 compiles it with the same `gmeow_logic_compile::frontend::parse_logic_str` +
-//! `gmeow_logic_compile::projections::shapes::project_procedural_constraints` pipeline the
-//! real `compile_logic` pipeline stage uses (`crates/pipeline/src/stages/compile_logic.rs`),
-//! and the assertions below pin that the projected shape traces back to
+//! This is deliberately NOT a hand-authored shape: the test consumes the exact
+//! producer-authenticated SHACL projection selected by the bundle identity. It never
+//! compiles the logic module itself. The assertions below pin that the projected shape
+//! traces back to
 //! `gmeow:BareEntitySortalAdviceConstraint`'s own `logic:formalizes gmeow:Entity` /
 //! `logic:severity "Info"` / verbatim `logic:message` (== `gmeow:Entity`'s `avoidWhen` prose,
 //! kept in sync by the G4 drift gate).
@@ -65,29 +64,17 @@ const EXPECTED_EAE_MESSAGE: &str = "Avoid typing an endurant as an Event (a pers
      gmeow:eventType value, Principle 9), and reach for gmeow:Activity when the occurrence is an \
      agent-driven provenance act with inputs and outputs.";
 
-/// Read the real logic module text, compile it with the exact frontend + projection APIs the
-/// pipeline's `compile_logic` stage uses, and assert the projected `shapes_ttl` carries a shape
-/// derived from `gmeow:BareEntitySortalAdviceConstraint` itself (not a stand-in).
-fn compile_real_advisory_shapes() -> String {
-    let module_path = repo_root().join("slices/grounding/logic/module.ttl");
-    let module_text = std::fs::read_to_string(&module_path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", module_path.display()));
-
-    let (program, diags) = gmeow_logic_compile::frontend::parse_logic_str(&module_text, None)
-        .expect("the canonical logic: module must parse as a logic: program");
-    // MALFORMED_CONSTRAINT/MALFORMED_FORMULA diagnostics would mean the real constraint failed
-    // to extract — hard-fail rather than silently validate against a truncated program.
-    let hard_diags: Vec<_> = diags
-        .iter()
-        .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
-        .collect();
-    assert!(
-        hard_diags.is_empty(),
-        "parsing slices/grounding/logic/module.ttl must not raise error-grade diagnostics: {hard_diags:?}"
-    );
-
-    let shapes_ttl =
-        gmeow_logic_compile::projections::shapes::project_procedural_constraints(&program);
+/// Load the producer-authenticated SHACL projection and assert that it carries a
+/// shape derived from `gmeow:BareEntitySortalAdviceConstraint` itself.
+fn authenticated_advisory_shapes() -> String {
+    let shapes_ttl = String::from_utf8(
+        gmeow_bundle_import::load_authenticated_corpus_artifact(
+            &repo_root(),
+            "validate-production-shapes.ttl",
+        )
+        .expect("authenticated production SHACL projection; tests never compile it"),
+    )
+    .expect("authenticated SHACL projection is UTF-8");
 
     // The shape must trace back to the REAL constraint: its own `logic:formalizes gmeow:Entity`,
     // `sh:severity sh:Info`, and its own verbatim `logic:message` (the shape's `sh:message`).
@@ -146,7 +133,7 @@ fn fixture_abox_ntriples() -> String {
 /// fires neither.
 #[test]
 fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
-    let shapes_ttl = compile_real_advisory_shapes();
+    let shapes_ttl = authenticated_advisory_shapes();
     let data_nt = fixture_abox_ntriples();
 
     let report = purrdf::shapes::engine::validate_graphs(&data_nt, &shapes_ttl)
@@ -158,21 +145,11 @@ fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
     let shapes_dataset = purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None)
         .expect("the projected shapes_ttl must itself parse as Turtle");
 
-    // Union the logic module (carries the constraint + its `logic:formalizes gmeow:Entity`
-    // back-reference — though that provenance is read from `shapes_dataset`, not this one) with
-    // the kernel module (carries gmeow:Entity's own howToUse/useWhen source-language prose) so
-    // the advisory's suggestion/guidance surfacing actually resolves.
-    let module_path = repo_root().join("slices/grounding/logic/module.ttl");
-    let kernel_path = repo_root().join("slices/core/kernel/module.ttl");
-    let mut ontology_bytes = std::fs::read(&module_path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", module_path.display()));
-    ontology_bytes.push(b'\n');
-    ontology_bytes.extend(
-        std::fs::read(&kernel_path)
-            .unwrap_or_else(|e| panic!("read {}: {e}", kernel_path.display())),
-    );
-    let ontology_dataset = purrdf::parse_dataset(&ontology_bytes, "text/turtle", None)
-        .expect("the union of the logic + kernel modules must parse as Turtle");
+    // The ontology side is the exact authenticated repository dataset. A missing or
+    // wrong-identity corpus fails closed; the test has no authored-source fallback.
+    let ontology_dataset = gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
+        .expect("authenticated repository corpus; tests never rebuild it")
+        .dataset;
 
     let (retained, advisories) =
         split_advisory_results(report, shapes_dataset.as_ref(), ontology_dataset.as_ref());

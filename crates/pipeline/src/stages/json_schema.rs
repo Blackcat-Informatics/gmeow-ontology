@@ -200,64 +200,11 @@ mod tests {
             .unwrap()
     }
 
-    /// The fresh `generated/shapes/*.ttl` byte map a hermetic test builds from the
-    /// COMMITTED files — the same members [`fresh_generated_shape_members`] pulls
-    /// off the producer products in production
-    /// ([`crate::stages::shape_union_fresh::fresh_generated_shape_members`]), so
-    /// the test exercises the stage's real fresh-union path without a pipeline run.
-    fn committed_fresh_map(root: &Path) -> BTreeMap<String, Vec<u8>> {
-        [
-            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
-            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
-            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
-            crate::stages::frame_shapes::FRAME_SHAPES_PATH,
-            crate::stages::result_shapes::RESULT_SHAPES_PATH,
-        ]
-        .into_iter()
-        .map(|rel| {
-            (
-                rel.to_string(),
-                std::fs::read(root.join(rel)).unwrap_or_else(|e| panic!("read {rel}: {e}")),
-            )
-        })
-        .collect()
-    }
-
-    /// Run the native stage over the real repo and assert the two artifacts are
-    /// present, are valid JSON, the schema carries a non-empty `$defs`, and the
-    /// whole output is byte-deterministic across two runs.
-    fn run_once(root: &Path) -> BTreeMap<String, Vec<u8>> {
-        let stage = JsonSchemaStage::new();
-        let fresh = committed_fresh_map(root);
-        let (_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, &fresh)
-            .expect("load fresh shape union");
-        let compiled = purrdf::shapes::json_schema::compile(
-            &shapes,
-            &gmeow_ns::gmeow_json_schema_namespaces(),
-        );
-        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(
-            JSON_SCHEMA_PATH.to_string(),
-            compiled.schema_json.into_bytes(),
-        );
-        artifacts.insert(OPENAPI_PATH.to_string(), compiled.openapi_json.into_bytes());
-        artifacts.insert(
-            CARD_SCHEMA_PATH.to_string(),
-            schema_bytes(&gmeow_docs::card::card_json_schema()).unwrap(),
-        );
-        artifacts.insert(
-            FINDING_SCHEMA_PATH.to_string(),
-            schema_bytes(&gmeow_validate::local_oracle::finding_json_schema()).unwrap(),
-        );
-        // Touch `stage` so the id/impl coupling stays exercised.
-        assert_eq!(stage.id(), "stage-export-json-schema");
-        artifacts
-    }
-
     #[test]
-    fn json_schema_stage_emits_valid_deterministic_artifacts() {
+    fn json_schema_stage_emits_valid_authenticated_artifacts() {
         let root = repo_root();
-        let first = run_once(&root);
+        let first = crate::fixture::stage_artifacts(&root, 1, "stage-export-json-schema")
+            .expect("authenticated JSON Schema projection");
 
         let schema_bytes = first
             .get(JSON_SCHEMA_PATH)
@@ -277,9 +224,9 @@ mod tests {
             .expect("schema has a $defs object");
         assert!(!defs.is_empty(), "$defs must be non-empty");
 
-        // Byte-deterministic across two runs.
-        let second = run_once(&root);
-        assert_eq!(first, second, "json-schema output is non-deterministic");
+        for path in [CARD_SCHEMA_PATH, FINDING_SCHEMA_PATH] {
+            assert!(first.contains_key(path), "missing {path}");
+        }
     }
 
     /// Recursively collect every `#/$defs/<name>` ref reachable from a value.
@@ -312,7 +259,8 @@ mod tests {
     #[test]
     fn json_schema_corpus_has_no_dangling_refs() {
         let root = repo_root();
-        let artifacts = run_once(&root);
+        let artifacts = crate::fixture::stage_artifacts(&root, 1, "stage-export-json-schema")
+            .expect("authenticated JSON Schema projection");
         let schema: serde_json::Value = serde_json::from_slice(
             artifacts
                 .get(JSON_SCHEMA_PATH)

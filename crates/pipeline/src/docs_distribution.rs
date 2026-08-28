@@ -519,36 +519,33 @@ pub fn verify_docs_distribution(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::{Path, PathBuf};
 
-    fn repo_root() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .expect("workspace root")
-    }
+    /// Minimal query fixture for unit-testing the manifest projection seam. It is not
+    /// compiled from repository mappings and therefore cannot rebuild the corpus.
+    const TEST_DCAT_QUERY: &[u8] = br#"
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX spdx: <http://spdx.org/rdf/terms#>
+CONSTRUCT {
+  ?corpus a dcat:Dataset ; dcat:distribution ?doc .
+  ?doc a dcat:Distribution ; dcat:downloadURL ?url ; spdx:checksum ?checksum .
+  ?checksum a spdx:Checksum ; spdx:checksumValue ?digest .
+}
+WHERE {
+  ?corpus gmeow:corpusMember ?doc .
+  ?doc gmeow:contentDigest ?digest .
+  OPTIONAL { ?doc gmeow:sourceLocation ?url }
+  BIND(IRI(CONCAT(STR(?doc), "-checksum")) AS ?checksum)
+}
+"#;
 
-    /// Compile the REAL `dcat.rq` from the authored `dsl/mappings/projections/dcat.ttl`
-    /// source (a pure function of committed, tracked sources — no dependency on a
-    /// prior `make check` materializing the git-ignored `generated/` tree) and fold it
-    /// into a minimal synthetic GTS snapshot carrying just the `queries-archive` blob,
-    /// exactly as the real bundle carries it (`REP_QUERIES`, basename-keyed member
-    /// `dcat.rq`). This is the same fixture-construction idiom
-    /// [`crate::docs_measure`]'s GTS-framing tests use.
+    /// Build only a tiny synthetic transport fixture around [`TEST_DCAT_QUERY`].
     fn synthetic_gts_with_dcat_query() -> Vec<u8> {
-        let root = repo_root();
-        let compiled = crate::stages::mappings::compile_mappings(&root).expect("compile mappings");
-        let dcat_rq_path = format!("{}/dcat.rq", crate::stages::mappings::QUERIES_DIR);
-        let dcat_rq = compiled
-            .artifacts
-            .get(&dcat_rq_path)
-            .unwrap_or_else(|| panic!("compiled mappings missing {dcat_rq_path}"))
-            .clone();
-
-        let archive = purrdf::ustar::write_archive(&[("dcat.rq".to_string(), dcat_rq)])
-            .expect("tar the synthetic queries archive");
+        let archive =
+            purrdf::ustar::write_archive(&[("dcat.rq".to_string(), TEST_DCAT_QUERY.to_vec())])
+                .expect("tar the synthetic queries archive");
         let builder = purrdf::gts_compose::SnapshotBuilder::new();
+        // gmeow-test-input: synthetic-only
         gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
@@ -698,6 +695,7 @@ mod tests {
         // returns an empty map (the "wheel-only-install" contract), and this module must
         // still hard-fail rather than silently build an empty manifest.
         let builder = purrdf::gts_compose::SnapshotBuilder::new();
+        // gmeow-test-input: synthetic-only
         let gts_bytes = gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
@@ -804,6 +802,7 @@ mod tests {
         builder
             .add_dataset(&dataset)
             .expect("add catalog dataset to snapshot builder");
+        // gmeow-test-input: synthetic-only
         gmeow_gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
             .expect("frame the synthetic GTS snapshot")
     }
@@ -985,6 +984,7 @@ mod tests {
     #[test]
     fn read_distribution_matrix_fails_closed_without_the_catalog_graph() {
         let builder = purrdf::gts_compose::SnapshotBuilder::new();
+        // gmeow-test-input: synthetic-only
         let gts_bytes = gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {

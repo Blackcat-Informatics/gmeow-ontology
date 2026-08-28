@@ -221,7 +221,8 @@ mod tests {
     }
 
     fn snapshot() -> Vec<u8> {
-        fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("read committed snapshot")
+        gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+            .expect("authenticated snapshot; tests never produce it")
     }
 
     /// The DEV surface is the 38 consumer tools plus exactly 4, and the 5 consumer

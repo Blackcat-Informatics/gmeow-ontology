@@ -456,6 +456,55 @@ pub fn bundle_artifacts(bundle: &PipelineBundle<PipelineHandle>) -> BTreeMap<Str
     out
 }
 
+/// Borrow the complete byte-artifact lane without cloning payload bytes.
+///
+/// This is the read path for consumers that select a small subset of a large
+/// producer lane. Building an owned [`BTreeMap`] first would duplicate every
+/// artifact before the selector discarded most of them. Unlike the legacy
+/// convenience projection above, this boundary is fail-closed: malformed lane
+/// metadata is a corrupt carrier rather than an absent artifact.
+///
+/// # Errors
+/// A byte-artifact resource is structurally incomplete or references invalid or
+/// missing content.
+pub fn bundle_artifact_refs(
+    bundle: &PipelineBundle<PipelineHandle>,
+) -> Result<BTreeMap<&str, &[u8]>, gmeow_errors::Diag> {
+    let mut out: BTreeMap<&str, &[u8]> = BTreeMap::new();
+    for resource in bundle.lookaside().resources_of_kind(ARTIFACT_KIND) {
+        let name = resource.name.as_deref().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: "byte-artifact resource carries no logical name".to_string(),
+            })
+        })?;
+        let hex = resource.content_digest.as_deref().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("byte-artifact resource {name:?} carries no content digest"),
+            })
+        })?;
+        let digest = ContentDigest::from_hex(hex).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "byte-artifact resource {name:?} carries malformed content digest {hex:?}"
+                ),
+            })
+        })?;
+        let bytes = bundle.blobs().get(&digest).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!(
+                    "byte-artifact resource {name:?} references missing content-store digest {hex}"
+                ),
+            })
+        })?;
+        if out.insert(name, bytes.as_slice()).is_some() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
+                message: format!("byte-artifact lane carries duplicate logical name {name:?}"),
+            }));
+        }
+    }
+    Ok(out)
+}
+
 /// Replace a bundle's provenance sidecar with `provenance` in place, cloning the
 /// shared carrier only if needed (`Arc::make_mut`). The pipeline scheduler uses
 /// this to thread the run's per-stage provenance into the produced carrier

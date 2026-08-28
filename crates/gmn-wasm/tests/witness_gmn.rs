@@ -17,7 +17,7 @@
 //!
 //! The Node lane runs the WASM `to_gmn1`/`from_gmn1` over the SAME input and asserts
 //! byte-identity with the same attestation; both matching proves native ≡ wasm.
-//! Refreshed via `GMEOW_WITNESS_BLESS=1`.
+//! Refreshed only by an explicit maintainer producer; this test is read-only.
 
 use std::path::PathBuf;
 
@@ -71,22 +71,15 @@ fn native_gmn1_transcode_matches_the_witness_attestation_and_round_trips() {
     );
 
     let path = attestation_path();
-    // Require the EXACT documented value: only `GMEOW_WITNESS_BLESS=1` may overwrite the
-    // committed witness (an empty or `=0` value must not silently replace it).
-    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
-        std::fs::write(&path, &gmn1).expect("write gmn witness");
-        eprintln!("blessed gmn witness at {}", path.display());
-        return;
-    }
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "gmn witness attestation {} missing (bless with GMEOW_WITNESS_BLESS=1): {e}",
+            "gmn witness attestation {} missing; refresh it through the explicit maintainer producer: {e}",
             path.display()
         )
     });
     assert_eq!(
         gmn1, committed,
-        "native GMN-1 transcode drifted from the committed witness attestation — re-bless"
+        "native GMN-1 transcode drifted from the committed witness attestation"
     );
 }
 

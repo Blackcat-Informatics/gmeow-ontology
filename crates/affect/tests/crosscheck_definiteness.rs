@@ -14,15 +14,13 @@ use gmeow_affect::crosscheck_authored_definiteness;
 
 const CORE_AFFECT_GRAM: &str = "https://blackcatinformatics.ca/gmeow/coreAffectGram";
 
-/// The committed bundle, resolved by walking up from this crate to the repo root
-/// (mirrors `crates/pipeline/tests/full_parity.rs::repo_root`).
-fn committed_gts() -> PathBuf {
+/// Repository root used to authenticate the exact producer-selected bundle.
+fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("..")
         .canonicalize()
         .expect("canonicalize repo root")
-        .join("generated/dist/gmeow.gts")
 }
 
 // The shipped core-affect Gram (diagonal 1, valence–arousal coupling 1/4) is
@@ -30,7 +28,8 @@ fn committed_gts() -> PathBuf {
 // with pivots [1, 15/16, 1, 1] — all strictly positive (Sylvester's criterion).
 #[test]
 fn shipped_core_affect_gram_authored_pd_is_certified() {
-    let bytes = std::fs::read(committed_gts()).expect("read committed gmeow.gts");
+    let bytes = gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("load the exact authenticated producer bundle without rebuilding it");
     let pivots = crosscheck_authored_definiteness(&bytes, CORE_AFFECT_GRAM)
         .expect("authored PD is certified by the LDLᵀ witness");
     assert_eq!(

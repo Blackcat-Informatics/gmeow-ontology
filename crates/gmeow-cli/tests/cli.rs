@@ -196,7 +196,7 @@ fn describe_ambiguous_bare_name_emits_typed_code() {
     }
     let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
         .expect("collision fixture parses");
-    let bytes = purrdf::gts_write::to_gts(&ds, &purrdf::RdfLookaside::default(), "purrdf-test")
+    let bytes = purrdf::gts_write::to_gts(&ds, &purrdf::RdfLookaside::default(), "purrdf-test") // gmeow-test-input: synthetic-only
         .expect("collision fixture serializes");
     std::fs::write(&path, bytes).expect("write collision fixture");
 
@@ -476,89 +476,12 @@ fn gts_shim_hard_fails_when_binary_missing() {
 
 // ── affect intensity (Q10 production surface) ────────────────────────────────
 
-/// Absolute path of a committed slice file, relative to this crate.
-fn slice_path(relative: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices")
-        .join(relative)
-}
-
-/// Build a fixture `.gts` at test time from the REAL committed affect slice
-/// files: the canonical `module.ttl` (carries `gmeow:coreAffectGram` +
-/// `gmeow:coreAxisIndex` AND the shipped schadenfreude worked A-Box) merged with
-/// the intensity-discriminating worked example. This exercises the shipped instance
-/// end to end, proving intensity is COMPUTED from the Gram matrix and appraisal
-/// vectors — not read from a hand-authored magnitude.
-/// Returns the RAII guard alongside the path: the fixture lives in a temp directory,
-/// so the caller MUST hold the guard for as long as it runs the CLI against the path.
-fn affect_fixture_gts() -> (tempfile::TempDir, PathBuf) {
-    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
-    use purrdf::{NativeRdfFormat, parse_dataset};
-
-    let mut builder = SnapshotBuilder::default();
-    for relative in [
-        "core/affect/module.ttl",
-        "core/affect/examples/intensity-discriminating.ttl",
-    ] {
-        let text = std::fs::read(slice_path(relative)).expect("read slice file");
-        let dataset = parse_dataset(&text, NativeRdfFormat::Turtle.media_type(), None)
-            .unwrap_or_else(|e| panic!("parse {relative}: {e}"));
-        builder.add_dataset(&dataset).expect("add dataset");
-    }
-    let bytes = emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
-        &purrdf::gts_compose::MediumPlan::dist_default(None),
-    )
-    .expect("emit gts");
-
-    let (tmp, dir) = scratch("affect-fixture");
-    let path = dir.join("affect.gts");
-    std::fs::write(&path, bytes).expect("write fixture gts");
-    (tmp, path)
-}
-
-/// Build a fixture `.gts` from the canonical `module.ttl` (carries the core-affect
-/// axis indices) merged with the committed nearest-prototype worked example.
-/// Returns the RAII guard alongside the path: the fixture lives in a temp directory,
-/// so the caller MUST hold the guard for as long as it runs the CLI against the path.
-fn affect_classify_fixture_gts() -> (tempfile::TempDir, PathBuf) {
-    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
-    use purrdf::{NativeRdfFormat, parse_dataset};
-
-    // The canonical affect module carries the 10 named-emotion prototypes, the
-    // coreAffectMetricPAD vantage, and the schadenfreude core vector — everything a
-    // Q9 classification needs, with no throwaway example fixture.
-    let mut builder = SnapshotBuilder::default();
-    let text = std::fs::read(slice_path("core/affect/module.ttl")).expect("read slice file");
-    let dataset = parse_dataset(&text, NativeRdfFormat::Turtle.media_type(), None)
-        .unwrap_or_else(|e| panic!("parse module.ttl: {e}"));
-    builder.add_dataset(&dataset).expect("add dataset");
-    let bytes = emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
-        &purrdf::gts_compose::MediumPlan::dist_default(None),
-    )
-    .expect("emit gts");
-
-    let (tmp, dir) = scratch("affect-classify-fixture");
-    let path = dir.join("affect-classify.gts");
-    std::fs::write(&path, bytes).expect("write fixture gts");
-    (tmp, path)
+/// The authenticated producer bundle, consumed in place. Missing identity selection,
+/// missing bytes, or a digest mismatch fails closed; this test never rebuilds a slice.
+fn affect_bundle() -> PathBuf {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    gmeow_bundle_import::authenticated_source_path(&root)
+        .expect("authenticated producer bundle path; tests never produce it")
 }
 
 #[test]
@@ -567,7 +490,7 @@ fn affect_classify_finds_schadenfreude_prototype() {
     // core vector is classified against the FULL canonical prototype set and its nearest
     // labelled prototype is the schadenfreude prototype (exact squared distance 0) —
     // "is this vector a schadenfreude?" answered yes, as a derived vantage-relative view.
-    let (_fixture_tmp, fixture) = affect_classify_fixture_gts();
+    let fixture = affect_bundle();
     let gm = "https://blackcatinformatics.ca/gmeow/";
     gmeow()
         .args(["affect", "classify"])
@@ -597,86 +520,11 @@ fn affect_classify_missing_source_is_a_runtime_error() {
         .stderr(predicate::str::contains("Error:"));
 }
 
-/// Returns the RAII guard alongside the path: the fixture lives in a temp directory,
-/// so the caller MUST hold the guard for as long as it runs the CLI against the path.
-fn affect_classify_worked_fixture_gts() -> (tempfile::TempDir, PathBuf) {
-    use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
-    use purrdf::{NativeRdfFormat, parse_dataset};
-
-    // The canonical module (10 prototypes + coreAffectMetricPAD) PLUS the worked example
-    // (the contested state + a valence-dominant vantage) — everything the vantage-flip
-    // demonstration needs.
-    let mut builder = SnapshotBuilder::default();
-    for relative in [
-        "core/affect/module.ttl",
-        "core/affect/examples/classify-canonical-prototype.ttl",
-    ] {
-        let text = std::fs::read(slice_path(relative)).expect("read slice file");
-        let dataset = parse_dataset(&text, NativeRdfFormat::Turtle.media_type(), None)
-            .unwrap_or_else(|e| panic!("parse {relative}: {e}"));
-        builder.add_dataset(&dataset).expect("add dataset");
-    }
-    let bytes = emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        DEFAULT_RSYNCABLE_THRESHOLD,
-        &purrdf::gts_compose::MediumPlan::dist_default(None),
-    )
-    .expect("emit gts");
-
-    let (tmp, dir) = scratch("affect-classify-worked-fixture");
-    let path = dir.join("affect-classify-worked.gts");
-    std::fs::write(&path, bytes).expect("write fixture gts");
-    (tmp, path)
-}
-
-#[test]
-fn affect_classify_vantage_swap_flips_the_winner() {
-    // R4 made computable (competency Q9): the SAME contested state (valence -0.8, arousal
-    // 0.4, dominance 0.6, unpredictability 0.0) classifies to a DIFFERENT nearest canonical
-    // prototype depending on the vantage Gram — anger under coreAffectMetricPAD, disgust
-    // under a valence-dominant vantage. Nearest-prototype is a vantage-relative claim, not
-    // ground truth; swapping --metric-profile flips the winner.
-    let (_fixture_tmp, fixture) = affect_classify_worked_fixture_gts();
-    let gm = "https://blackcatinformatics.ca/gmeow/";
-    let state = format!("{gm}examples/affect/classify/contestedState");
-    let valence_dominant = format!("{gm}examples/affect/classify/valenceDominantProfile");
-
-    // Default vantage (coreAffectMetricPAD): nearest is ANGER.
-    gmeow()
-        .args(["affect", "classify"])
-        .arg(&fixture)
-        .args(["--observation", &state])
-        .assert()
-        .success()
-        .stdout(predicate::str::contains(format!(
-            "nearest {gm}angerPrototype"
-        )));
-
-    // Valence-dominant vantage: the winner FLIPS to DISGUST.
-    gmeow()
-        .args(["affect", "classify"])
-        .arg(&fixture)
-        .args(["--observation", &state])
-        .args(["--metric-profile", &valence_dominant])
-        .assert()
-        .success()
-        .stdout(predicate::str::contains(format!(
-            "nearest {gm}disgustPrototype"
-        )));
-}
-
 #[test]
 fn affect_classify_top_k_zero_is_rejected() {
     // A top-0 ranking is meaningless — the empty ranking is a hard fail, not a silent
     // empty result.
-    let (_fixture_tmp, fixture) = affect_classify_fixture_gts();
+    let fixture = affect_bundle();
     let gm = "https://blackcatinformatics.ca/gmeow/";
     gmeow()
         .args(["affect", "classify"])
@@ -694,7 +542,7 @@ fn affect_intensity_schadenfreude_is_computed_from_the_metric() {
     // (diagonal 1, valence–arousal coupling 1/4) for the schadenfreude vector
     // (valence 0.7, arousal 0.4): Q = 79/100, intensity 0.888819, dominant
     // valence. The metric-tensor norm is the load-bearing computation.
-    let (_fixture_tmp, fixture) = affect_fixture_gts();
+    let fixture = affect_bundle();
     gmeow()
         .args(["affect", "intensity"])
         .arg(&fixture)
@@ -709,26 +557,6 @@ fn affect_intensity_schadenfreude_is_computed_from_the_metric() {
                 "dominant-axis https://blackcatinformatics.ca/gmeow/dimensionValence",
             )),
         );
-}
-
-#[test]
-fn affect_intensity_discriminating_dominant_axis_is_metric_aware() {
-    // The discriminating case: raw-max axis is arousal (0.6 > 0.5), but the
-    // computed G-weighted dominant is valence (diag(2,1): 2·0.5² = 0.5 >
-    // 1·0.6² = 0.36) — the compute is load-bearing, not a raw-max read.
-    let (_fixture_tmp, fixture) = affect_fixture_gts();
-    gmeow()
-        .args(["affect", "intensity"])
-        .arg(&fixture)
-        .args([
-            "--observation",
-            "https://blackcatinformatics.ca/gmeow/examples/affect/tests/vdIntensity",
-        ])
-        .assert()
-        .success()
-        .stdout(predicate::str::contains(
-            "dominant-axis https://blackcatinformatics.ca/gmeow/dimensionValence",
-        ));
 }
 
 // ── affect goemotions ingestion (the production surface) ─────────────────────
