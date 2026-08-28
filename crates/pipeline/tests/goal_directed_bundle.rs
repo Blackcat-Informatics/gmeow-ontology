@@ -138,15 +138,16 @@ fn shipped_bundle_goal_directed_graph_is_nonvacuous() {
     }
 
     // peanoAdd: the proof-checked R = s(s(s(zero))) answer atom.
+    // PurRDF's `render` joins application arguments with `", "`.
     let peano_atom =
-        format!("{EX}add({EX}s({EX}s({EX}zero)),{EX}s({EX}zero),{EX}s({EX}s({EX}s({EX}zero))))");
+        format!("{EX}add({EX}s({EX}s({EX}zero)), {EX}s({EX}zero), {EX}s({EX}s({EX}s({EX}zero))))");
     let peano_answers = answers_of(&triples, "peanoAdd");
     assert!(
         peano_answers.contains(&peano_atom),
         "peanoAdd: expected the answer atom {peano_atom:?}, got {peano_answers:?}"
     );
 
-    // peanoAdd (proof-carrying, CodeRabbit #15): the shipped answer is not merely PRESENT —
+    // peanoAdd (proof-carrying): the shipped answer is not merely PRESENT —
     // it carries the proof-checked flag AND a non-empty derivation IRI, proving the answer is
     // genuinely proof-carrying rather than a bare atom/binding pair.
     let atom_pred = format!("{GMEOW}goalDirectedAtom");
@@ -173,8 +174,8 @@ fn shipped_bundle_goal_directed_graph_is_nonvacuous() {
     // reachability: both reachable-pair answer atoms.
     let reach_answers = answers_of(&triples, "reachability");
     for expected in [
-        format!("{EX}reach({EX}a,{EX}b)"),
-        format!("{EX}reach({EX}a,{EX}c)"),
+        format!("{EX}reach({EX}a, {EX}b)"),
+        format!("{EX}reach({EX}a, {EX}c)"),
     ] {
         assert!(
             reach_answers.contains(&expected),

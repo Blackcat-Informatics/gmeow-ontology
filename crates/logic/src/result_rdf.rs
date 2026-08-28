@@ -173,7 +173,12 @@ fn escape_literal(s: &str) -> String {
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
-            _ => out.push(ch),
+            // Never emit a raw control scalar into the RDF transport. In particular,
+            // structured formula content keys deliberately contain NUL separators;
+            // preserving those bytes as UCHAR escapes keeps the N-Triples parseable
+            // while round-tripping the exact lexical form.
+            c if c.is_control() => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c => out.push(c),
         }
     }
     out

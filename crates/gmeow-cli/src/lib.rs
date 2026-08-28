@@ -336,6 +336,65 @@ pub enum Commands {
         /// The conclusion RDF graph `C`.
         conclusion: PathBuf,
     },
+    /// Decide whether an ontology has a model (OWL 2 Direct-Semantics consistency),
+    /// natively over the purrdf DL reasoner. Prints the three-valued verdict
+    /// (`true` / `false` / `unknown`), the completeness of the run, its measured
+    /// cost, and every construct boundary the reverse mapping could not turn into a
+    /// DL clause. Syntax is inferred from the file's extension (`.ttl`, `.nt`,
+    /// `.nq`, `.rdf`/`.owl`/`.xml`, `.trig`).
+    Consistency {
+        /// The ontology RDF graph to test for a model.
+        ontology: PathBuf,
+        /// Narrow the per-decision tableau step cap (clamped to the reasoner's
+        /// size-derived ceiling; it can only LOWER the budget, never raise it). Exposes the
+        /// deterministic budget-exhausted path: a small cap makes the reasoner report the
+        /// honest `unknown` verdict (exit 0) rather than a fabricated `true`/`false`.
+        #[arg(long = "step-cap")]
+        step_cap: Option<u64>,
+    },
+    /// Certify an ontology against the OWL 2 profiles (EL, QL, RL, DL, Full),
+    /// natively over the purrdf profile checker. Prints every profile the ontology
+    /// is provably in and every structural violation blocking the others. A clean
+    /// certification proves membership; a violation proves only that the cheap
+    /// syntactic check failed. Syntax is inferred from the file's extension.
+    Profile {
+        /// The ontology RDF graph to certify.
+        ontology: PathBuf,
+    },
+    /// Classify an ontology: print the subsumption hierarchy over its named classes,
+    /// natively over the purrdf DL reasoner. Emits every established subsumption
+    /// (`subsumption C D`), the transitive reduction (`direct C D`), every
+    /// equivalence (`equivalence C D`), every class forced empty (`unsatisfiable C`),
+    /// and the run's completeness + measured cost. Syntax is inferred from the file's
+    /// extension.
+    Classify {
+        /// The ontology RDF graph to classify.
+        ontology: PathBuf,
+    },
+    /// Realize an ontology: print the entailed types of its named individuals,
+    /// natively over the purrdf DL reasoner. Emits every established type
+    /// (`type a C`), the most-specific ones (`direct-type a C`), and the run's
+    /// completeness + measured cost. Syntax is inferred from the file's extension.
+    Realize {
+        /// The ontology RDF graph to realize.
+        ontology: PathBuf,
+    },
+    /// Extract the syntactic-locality module of an ontology for a seed signature,
+    /// natively over the purrdf module extractor. Emits the method, the kept-axiom
+    /// count, the signature the fixpoint closed to (`signature IRI`), and every
+    /// triple kept conservatively rather than by exact locality
+    /// (`conservative-keep S P`). Syntax is inferred from the file's extension.
+    Module {
+        /// The ontology RDF graph to extract a module from.
+        ontology: PathBuf,
+        /// A seed-signature IRI (repeat for several). The module closes over these.
+        #[arg(long = "seed", required = true)]
+        seed: Vec<String>,
+        /// The locality notion: `bot` (⊥), `top` (⊤), or `star` (the smallest sound
+        /// `⊥⊤*` module). Defaults to `star`.
+        #[arg(long = "method", default_value = "star")]
+        method: String,
+    },
     /// Native `logic:` reasoning-engine tools, driven directly over authored
     /// `logic:` cells (no repository or pipeline run required).
     Logic {
@@ -1492,6 +1551,17 @@ pub fn run() -> i32 {
             premise,
             conclusion,
         } => commands::entails(reporter, &premise, &conclusion),
+        Commands::Consistency { ontology, step_cap } => {
+            commands::consistency(reporter, &ontology, step_cap)
+        }
+        Commands::Profile { ontology } => commands::profile(reporter, &ontology),
+        Commands::Classify { ontology } => commands::classify(reporter, &ontology),
+        Commands::Realize { ontology } => commands::realize(reporter, &ontology),
+        Commands::Module {
+            ontology,
+            seed,
+            method,
+        } => commands::module(reporter, &ontology, &seed, &method),
         Commands::Logic { command } => match command {
             LogicCommands::Frontier {
                 input,

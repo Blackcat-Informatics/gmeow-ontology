@@ -62,6 +62,19 @@ fn validate_answer(frame: &str) -> Result<(), Box<dyn std::error::Error>> {
             "producer response did not execute the corroborated reasoning path: {frame}"
         )));
     }
+    let judgment = payload["judgment_nquads"]
+        .as_str()
+        .ok_or_else(|| fail("producer response has no judgment_nquads attestation"))?;
+    if judgment
+        .chars()
+        .any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t'))
+    {
+        return Err(fail(
+            "producer response contains a raw control scalar in judgment_nquads",
+        ));
+    }
+    purrdf::parse_dataset(judgment.as_bytes(), "application/n-quads", None)
+        .map_err(|error| fail(format!("producer judgment_nquads is invalid RDF: {error}")))?;
     Ok(())
 }
 

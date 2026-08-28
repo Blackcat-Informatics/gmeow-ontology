@@ -384,7 +384,7 @@ fn every_medium_axis_class_carries_a_ufo_meta_type_and_a_docs_concern() {
             .collect();
         assert!(
             types.contains(LOGIC_CLASS),
-            "gmeow:{local} must be declared a canonical logic:Class"
+            "gmeow:{local} must be declared a logic:Class"
         );
 
         let stereotypes: Vec<&String> = types.intersection(&meta_types).collect();

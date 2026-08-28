@@ -1901,9 +1901,9 @@ mod tests {
         assert_eq!(
             names,
             vec![
-                "d_7acf4e9d9037faca7a00b6151eb4528f6f41840d",
-                "d_29e8ab9f3c2b3beff56160d5073b6e6d7bee576c",
-                "d_1ad92f008ebfa11c6dcc62cb8c78d2980e55afe4",
+                "d_b17bff2379a308d9d6b50b0f9a073ef5e051b853",
+                "d_0e9d1c683cc59b3da5626f16bd835a646aefd1ac",
+                "d_2f2cb9320e4a9d0302cb5797a1e21f10d26a3e26",
             ]
         );
         assert_eq!(derivation.steps()[0].role, Role::Axiom);
@@ -1911,7 +1911,7 @@ mod tests {
         assert_eq!(derivation.steps()[1].role, Role::Plain);
         assert_eq!(
             derivation.steps()[1].parents,
-            vec!["d_7acf4e9d9037faca7a00b6151eb4528f6f41840d".to_owned()]
+            vec!["d_b17bff2379a308d9d6b50b0f9a073ef5e051b853".to_owned()]
         );
         assert_eq!(
             derivation.steps()[1].status(),
@@ -1948,8 +1948,8 @@ mod tests {
         let rule = derivation.steps()[2].rule().expect("a rule");
         assert_eq!(
             rule,
-            "https://blackcatinformatics.ca/logic/dag/firing/\
-             e333748014025c765c88458a6275b4b2e1ac78826b7f91e1defbff323ab982e3"
+            "https://blackcatinformatics.ca/gmeow/goal-directed/rule/\
+             772035b62784cf12dce87129ba59bf14365477017a1c8c5fed58ada7d4ad35be"
         );
     }
 
@@ -1958,7 +1958,7 @@ mod tests {
         let derivation = one(FIXTURE);
         assert_eq!(
             derivation.conclusion().name,
-            "d_1ad92f008ebfa11c6dcc62cb8c78d2980e55afe4"
+            "d_2f2cb9320e4a9d0302cb5797a1e21f10d26a3e26"
         );
         assert!(derivation.conclusion().is_derived());
     }

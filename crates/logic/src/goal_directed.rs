@@ -4,23 +4,26 @@
 //! The goal-directed (backward) demonstrator façade — the production surface that makes
 //! the proof-carrying full-FOL backward engine non-dark.
 //!
-//! The proof-carrying backward engine (`crate::physical::resolve_fol`) and its
-//! Curry–Howard proof checker (`crate::physical::proof::check`) are `pub(crate)` behind
-//! the private `physical` module, so no other crate can reach them. This module is the
-//! single thin, honest `pub` façade over them: it lowers the AUTHORED
-//! `logic:ReasoningProgram` corpus (structured — function-symbol — logic programs the flat
-//! query text-parser cannot express) into the resolver's `TermDag` via
-//! [`evaluate_reasoning_programs`](crate::goal_directed::evaluate_reasoning_programs), evaluates each through [`resolve_fol`](crate::physical::resolve_fol::resolve_fol), validates every
-//! answer's proof with [`check`](crate::physical::proof::check), and projects the checked answers + their
+//! The proof-carrying backward engine is PurRDF's order-sorted
+//! [`resolve_fol`](purrdf::datalog::resolve_fol::resolve_fol), paired with its
+//! Curry–Howard [`check_fol_proof`](purrdf::datalog::resolve_fol::check_fol_proof).
+//! This module is the single thin, honest `pub` façade over that shared substrate: it
+//! lowers the AUTHORED `logic:ReasoningProgram` corpus (structured — function-symbol —
+//! logic programs the flat query text-parser cannot express) into PurRDF's
+//! [`TermDag`](purrdf::datalog::term::TermDag), evaluates each program through
+//! [`evaluate_reasoning_programs`](crate::goal_directed::evaluate_reasoning_programs),
+//! validates every answer's proof, and projects the checked answers plus their
 //! content-addressed derivation IRIs into RDF-serializable data the `gmeow-pipeline`
 //! `stage-goal-directed` folds into `graph/goal-directed` of `gmeow.gts`.
 //!
-//! It is NOT a fork of the engine: it constructs programs and reads back the engine's own
-//! [`FolOutcome`](crate::physical::resolve_fol::FolOutcome), never re-implementing resolution. There is exactly ONE production source
-//! of goal-directed programs — the authored `logic:ReasoningProgram` cells compiled by
-//! `gmeow-logic-compile` (see `slices/grounding/logic/examples/reasoning-programs.ttl`);
-//! the earlier hand-interned Rust-constant demonstrator corpus has been removed
-//! (GREENFIELD — no second source of goal-directed programs may remain).
+//! It is NOT a fork of the engine: it constructs PurRDF [`FolProgram`]s, reads back
+//! PurRDF [`FolProof`](purrdf::datalog::resolve_fol::FolProof)s, and never re-implements
+//! resolution or proof checking. There is
+//! exactly ONE production source of goal-directed programs — the authored
+//! `logic:ReasoningProgram` cells compiled by `gmeow-logic-compile` (see
+//! `slices/grounding/logic/examples/reasoning-programs.ttl`); the earlier hand-interned
+//! Rust-constant demonstrator corpus has been removed (GREENFIELD — no second source of
+//! goal-directed programs may remain).
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -29,20 +32,42 @@ use gmeow_logic_compile::ir::{
 };
 use purrdf::TermValue;
 
-use crate::physical::id::{MetaId, NodeId, TermId};
-use crate::physical::proof::{check, structured_derivation_iri};
-use crate::physical::resolve_fol::{
-    FolClause, FolControl, FolLit, FolProgram, Truth, render, resolve_fol,
+// The goal-directed backward lane resolves on the SHARED PurRDF datalog SLG-WFS substrate
+// (order-sorted `resolve_fol`), NOT the native `crate::physical::` backward engine. Independent
+// native forward/DL-EL and non-goal-directed query surfaces remain separate. The RDF-authored
+// `logic:ReasoningProgram` corpus-lowering stays here (PurRDF mints no `logic:` vocabulary); it
+// now lowers into PurRDF's `TermDag`/`FolProgram` and reads back PurRDF's `FolProof`. gmeow keeps
+// its OWN derivation-IRI scheme
+// (`provenance::DERIVATION_PREFIX` over PurRDF's content digest) — PurRDF mints no IRIs
+// (`docs/CUTOVER.md`: "deriving an IRI from the digest is caller vocabulary").
+use purrdf::datalog::id::{MetaId, NodeId};
+use purrdf::datalog::resolve_fol::{
+    FolBudget, FolClause, FolControl, FolLit, FolProgram, FolStatus, Truth, check_fol_proof,
+    derivation_id, render, resolve_fol,
 };
-use crate::physical::unify::{SortContext, SortOrder};
-use crate::query_ir::Budget;
+use purrdf::datalog::term::TermDag;
+use purrdf::datalog::unify::{SortContext, SortOrder};
+// The native forward-chase differential oracle (below) is UNCHANGED by the backward-lane cutover:
+// it builds its own `rule_ir` least-model over the SAME authored program to cross-check PurRDF's
+// backward answers, and is arena-independent (its own `EvalAtom`/`Fact` representation, never the
+// resolver's `TermDag`), so it keeps using the native `rule_ir` forward evaluator.
 use crate::rule_ir::{
     EvalAtom, EvalRule, EvalTerm, Fact, FactStore, Solution, least_model_of_reduct, match_atom,
 };
-use gmeow_term_arena::engine::TermDag;
 
 /// The gmeow namespace every projected goal-directed IRI/predicate lives under.
-const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+pub(crate) const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The grounding step budget every authored `logic:ReasoningProgram` resolves under.
+///
+/// The retired native backward engine ran these with an *unbounded* budget (its `Budget`'s
+/// `max_steps` defaulted to `None`); PurRDF's [`FolBudget`] makes the bound mandatory, so the
+/// faithful port is `u64::MAX` — high enough that the authored, terminating corpus always
+/// grounds to [`FolStatus::Complete`], never demoted to [`FolStatus::Partial`] (which would
+/// distrust negation and silently change verdicts). This is a determinism-preserving constant,
+/// not a capability degradation: the same program grounds to the same fixpoint every run.
+pub(crate) const GROUNDING_BUDGET: FolBudget = FolBudget {
+    max_steps: u64::MAX,
+};
 /// The XSD boolean datatype IRI for the proof-checked flag.
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 /// `rdf:type`.
@@ -50,7 +75,8 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// One checked answer to a demonstrator's goal: the ground answer atom surface, the goal
 /// variable bindings, the content-addressed derivation (proof) IRI, and whether the proof
-/// [`check`]s to exactly that atom. Every field is RDF-serializable (strings), so the
+/// proof checker re-derives as exactly that atom. Every field is RDF-serializable
+/// (strings), so the
 /// pipeline can fold it without reaching into the engine's private term handles.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GoalDirectedAnswer {
@@ -60,10 +86,11 @@ pub struct GoalDirectedAnswer {
     /// The goal variable → resolved sub-term surface map (deterministic, sorted keys).
     pub bindings: BTreeMap<String, String>,
     /// The content-addressed derivation IRI of this answer's proof
-    /// ([`derivation_iri`](crate::physical::proof::derivation_iri) — byte-identical to the forward reasoner's rule-application id).
+    /// (the GMEOW derivation namespace over PurRDF's content-addressed
+    /// [`derivation_id`]).
     pub derivation_iri: String,
-    /// Whether the proof [`check`]ed and re-derived exactly [`Self::atom`]. Always `true`
-    /// for a shipped answer (a proof that fails to check HARD-fails the evaluation).
+    /// Whether PurRDF's [`check_fol_proof`] re-derived exactly [`Self::atom`]. Always
+    /// `true` for a shipped answer (a proof that fails to check HARD-fails the evaluation).
     pub proof_checks: bool,
 }
 
@@ -97,7 +124,7 @@ pub struct GoalDirectedEvaluation {
     /// The rendered goal template (free metavariables shown as `?n`), e.g.
     /// `add(s(s(zero)),s(zero),?0)`.
     pub goal: String,
-    /// The budget status of the resolution (`ok` / `partial` / `exhausted`).
+    /// The grounding status of the resolution (`ok` / `partial`).
     pub status: String,
     /// The proof-checked answers, in a TOTAL order over `(atom, bindings, derivation_iri)`
     /// for determinism (G12) — atom alone is not a total order, since two answers may share
@@ -175,7 +202,9 @@ fn evaluate_demonstrator(
         .iter()
         .map(|probe| render(&dag, *probe))
         .collect();
-    let outcome = match resolve_fol(&mut dag, &program, &ctx, &Budget::default())? {
+    // `resolve_fol` returns a `FolControl` directly (no `Result`): an `Unsupported` decision is a
+    // structural refusal of the backward engine, mapped here to a hard `Physical` diagnostic.
+    let outcome = match resolve_fol(&mut dag, &program, &ctx, &GROUNDING_BUDGET) {
         FolControl::Decided(outcome) => outcome,
         FolControl::Unsupported(kind) => {
             return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
@@ -185,13 +214,34 @@ fn evaluate_demonstrator(
             }));
         }
     };
-    let status = outcome.status.as_str().to_owned();
+    // Grounding-completion status. PurRDF's `FolStatus` is `{Complete, Partial}` (a budget-cut
+    // grounding is `Partial`, and its negation is no longer trusted); project it to the SAME
+    // stable surface the retired native engine shipped (`ok`/`partial`). With `GROUNDING_BUDGET`
+    // unbounded the authored corpus always grounds `Complete` ⇒ `ok`.
+    let status = match outcome.status {
+        FolStatus::Complete => "ok",
+        FolStatus::Partial => "partial",
+    }
+    .to_owned();
+    // The `not_false` predicate `check_fol_proof` charges each negative literal against: an atom
+    // is admissible as "not false" iff the well-founded model does not place it in the false set.
+    // Read straight from THIS outcome's three-valued model (`truth_of`), so the proof checker and
+    // the shipped verdicts agree by construction. Captures `&outcome` only; `dag` is passed in.
+    let not_false = |d: &TermDag, n: NodeId| outcome.truth_of(d, n) != Truth::False;
     let mut answers = Vec::with_capacity(outcome.answers.len());
     for ans in &outcome.answers {
         // Curry–Howard check: the proof MUST re-derive exactly the answer atom. A proof
         // that fails to check, or checks to a different atom, is a hard fail — the whole
         // point of shipping proof objects is that every shipped answer is proof-carrying.
-        let checked = check(&mut dag, ans.proof, &outcome.rule_ctx).map_err(|e| {
+        let checked = check_fol_proof(
+            &mut dag,
+            &ans.proof,
+            &program.clauses,
+            &program.meta_sorts,
+            &ctx,
+            &not_false,
+        )
+        .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Physical {
                 detail: format!(
                     "goal-directed program {iri:?} answer proof failed to check: {e:?}"
@@ -205,7 +255,15 @@ fn evaluate_demonstrator(
                 ),
             }));
         }
-        let derivation_iri = structured_derivation_iri(&dag, ans.proof)?;
+        // gmeow's derivation IRI = its OWN vocabulary (`DERIVATION_PREFIX`) over PurRDF's
+        // content-addressed proof digest (`derivation_id`, a SHA-1 over `FolProof::rule_identity`
+        // and the recursive sub-proof digests). PurRDF mints no IRIs; the digest is byte-stable
+        // run-to-run, so the derived IRI is too (`docs/CUTOVER.md` §4).
+        let derivation_iri = format!(
+            "{}{}",
+            crate::provenance::DERIVATION_PREFIX,
+            derivation_id(&dag, &ans.proof)
+        );
         answers.push(GoalDirectedAnswer {
             atom: render(&dag, ans.atom),
             bindings: ans.bindings.clone(),
@@ -286,7 +344,7 @@ fn render_clause(dag: &TermDag, clause: &FolClause) -> String {
 
 /// Intern an atomic IRI leaf under a program-local surface name.
 fn leaf(dag: &mut TermDag, s: &str) -> NodeId {
-    dag.intern_leaf(TermValue::iri(s.to_owned()))
+    dag.intern_leaf(s)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────
@@ -300,29 +358,18 @@ fn leaf(dag: &mut TermDag, s: &str) -> NodeId {
 // (as of Task 7) no second SOURCE either: the earlier hand-interned Rust-constant
 // demonstrator corpus has been removed.
 //
-// ## One lowering, policy-parameterized on the free-variable seam
+// ## One lowering onto the shared PurRDF arena
 //
-// `crate::physical::lower::lower_logic_term`/`lower_logic_formula` is THE single production
-// `Term::Iri`/`Term::Literal`/`Term::Var`/`Term::App`/`Formula::Atom` lowering into the
-// shared [`TermDag`] arena — this module never re-implements it. What differs here is only
-// the FREE-VARIABLE policy: `lower_logic_term`'s default `Term::Var` fallback (an unbound
-// name interns as a RIGID `NodeData::Free` leaf — `crate::physical::unify`'s unification rule
-// is that `Bound`/`Leaf`/`Free` unify only by equality, never bind) is right for `logic:` text
-// authored under an explicit binder, but wrong for a `logic:ReasoningProgram` clause/query,
-// which is an implicitly-universally-quantified Horn clause with NO explicit `Forall`
-// wrapper — every one of its variables is "free" from the lowering's point of view, yet the
-// backward engine needs each to be a `NodeData::Meta` metavariable (`resolve_fol` unifies
-// goal/clause atoms via `unify_sorted`, whose only bindable node kind is `NodeData::Meta`).
-//
-// `lower_logic_formula_with`/`lower_logic_term_with` (`crate::physical::lower`) expose exactly
-// this as a policy seam: a `free: &mut dyn FnMut(&mut TermDag, &str) -> Result<NodeId>`
-// closure invoked ONLY when a `Term::Var` has no enclosing `Forall`/`Exists` binder frame. This
-// module supplies that closure per clause/query/probe, backed by a [`VarScope`]: the FIRST
-// occurrence of a name in one scope mints a fresh [`TermDag::fresh_meta`], every LATER
-// occurrence of that SAME name in the SAME scope reuses it, and a fresh [`VarScope`] per
-// clause/query/probe means the SAME name in two DIFFERENT clauses mints two DIFFERENT
-// metavariables. The `Bound`/de-Bruijn path in `lower.rs` is untouched — quantified
-// sub-formulas inside a clause (if any) still resolve through the shared de-Bruijn machinery.
+// This module owns the vocabulary-boundary lowering from compiled `logic:` IR into
+// PurRDF's vocabulary-neutral [`TermDag`]. An IRI/function symbol becomes a rigid leaf, a
+// literal becomes an injectively quoted leaf, and an application becomes an app node.
+// Reasoning-program clauses and queries are implicitly universally quantified and carry no
+// explicit binder, so each `Term::Var` must become a bindable `NodeData::Meta`, not a rigid
+// leaf. A [`VarScope`] implements that policy: the FIRST occurrence of a name in one scope
+// mints a fresh [`TermDag::fresh_meta`], every LATER occurrence of the SAME name in the SAME
+// scope reuses it, and a fresh scope per clause/query/probe keeps same-named variables in
+// different clauses distinct. Unsupported sequence markers and non-atomic clause/query
+// positions HARD-FAIL at this boundary; they are never weakened into a different program.
 
 /// The per-scope variable→metavariable map a single clause/query/probe lowers under: the
 /// FIRST occurrence of a name mints a fresh metavariable ([`TermDag::fresh_meta`]); every
@@ -330,32 +377,90 @@ fn leaf(dag: &mut TermDag, s: &str) -> NodeId {
 /// clause/query/probe is what keeps two clauses' same-named variables from colliding.
 type VarScope = HashMap<String, (MetaId, NodeId)>;
 
-/// Lower an atomic `logic:` [`Formula::Atom`] under `scope` into an `App` node, HARD-FAILING
-/// on any other formula shape — the backward engine's clause head / body literal / query /
-/// verdict-probe position all require exactly one atomic predication. The actual
-/// `Term::Iri`/`Term::Literal`/`Term::Var`/`Term::App` lowering is
-/// `crate::physical::lower::lower_logic_formula_with`'s (the shared production seam); this
-/// wrapper supplies ONLY the free-variable policy — mint-or-reuse a metavariable in `scope` —
-/// and the atomic-shape assertion the shared lowering (which also accepts compound formulas,
-/// for its `math:`/`lang:` callers) does not itself enforce.
+/// Encode a `logic:` literal as an injective PurRDF leaf-symbol string.
+///
+/// PurRDF-datalog's `TermDag::intern_leaf` interns a bare `&str` symbol (the gmeow-term-arena
+/// `TermValue` coupling was stripped at the substrate boundary — `docs/CUTOVER.md` §4), so a
+/// literal is carried as its N-Triples-quoted lexical form (`"lex"` or `"lex"^^dt`) with the
+/// lexical form backslash/quote-escaped. The surrounding quotes keep a literal leaf injectively
+/// DISTINCT from an IRI/function-symbol leaf (which is interned as its bare IRI text), and the
+/// `^^dt` suffix keeps two same-lexical literals of different datatype distinct — the two
+/// discriminations `unify`/`canon` need to keep interned leaves that denote different terms apart.
+fn encode_literal(lexical: &str, datatype: Option<&str>) -> String {
+    let escaped = lexical.replace('\\', "\\\\").replace('"', "\\\"");
+    match datatype {
+        Some(dt) => format!("\"{escaped}\"^^{dt}"),
+        None => format!("\"{escaped}\""),
+    }
+}
+
+/// Lower a `logic:` [`Term`] into PurRDF's [`TermDag`] under `scope`'s free-variable policy: a
+/// `Term::Var` mints a fresh [`TermDag::fresh_meta`] on FIRST occurrence in this scope and reuses
+/// it on every later occurrence (a `logic:ReasoningProgram` clause/query carries no explicit
+/// binder, so each of its variables is a resolver metavariable). An IRI/function-symbol interns as
+/// a bare-symbol leaf, a literal as its injective encoded form, and a compound application recurses
+/// through this same function. Mirrors `crate::physical::lower::lower_term_in`'s rules, re-targeted
+/// onto PurRDF's arena. A [`Term::SequenceMarker`] is a HARD FAIL (no variadic node).
+fn lower_term(
+    dag: &mut TermDag,
+    term: &Term,
+    scope: &mut VarScope,
+) -> gmeow_errors::Result<NodeId> {
+    Ok(match term {
+        Term::Iri(s) => dag.intern_leaf(s),
+        Term::Literal { lexical, datatype } => {
+            dag.intern_leaf(&encode_literal(lexical, datatype.as_deref()))
+        }
+        Term::Var(name) => {
+            if let Some((_, node)) = scope.get(name) {
+                *node
+            } else {
+                let (meta, node) = dag.fresh_meta();
+                scope.insert(name.clone(), (meta, node));
+                node
+            }
+        }
+        Term::App { symbol, args } => {
+            let op = dag.intern_leaf(symbol);
+            let mut arg_nodes = Vec::with_capacity(args.len());
+            for a in args {
+                arg_nodes.push(lower_term(dag, a, scope)?);
+            }
+            dag.intern_app(op, arg_nodes)
+        }
+        Term::SequenceMarker(name) => {
+            return Err(reasoning_program_err(format!(
+                "sequence marker {name:?} binds a variable-length sequence, not a single term; the \
+                 fixed-arity backward engine has no variadic-binder node, so lowering it is a hard \
+                 fail rather than a silent single-term coercion"
+            )));
+        }
+    })
+}
+
+/// Lower an atomic `logic:` [`Formula::Atom`] under `scope` into a PurRDF `App` node (the relation
+/// IRI as the operator, the arguments as children), HARD-FAILING on any other formula shape — the
+/// backward engine's clause head / body literal / query / verdict-probe positions each require
+/// exactly one atomic predication.
 fn lower_atom(
     dag: &mut TermDag,
     formula: &Formula,
     scope: &mut VarScope,
 ) -> gmeow_errors::Result<NodeId> {
-    if !matches!(formula, Formula::Atom { .. }) {
-        return Err(reasoning_program_err(format!(
+    match formula {
+        Formula::Atom { relation, args } => {
+            let op = lower_term(dag, relation, scope)?;
+            let mut arg_nodes = Vec::with_capacity(args.len());
+            for a in args {
+                arg_nodes.push(lower_term(dag, a, scope)?);
+            }
+            Ok(dag.intern_app(op, arg_nodes))
+        }
+        other => Err(reasoning_program_err(format!(
             "reasoning-program atom position requires an atomic logic:Formula (a single \
-             predication); found a compound formula {formula:?}"
-        )));
+             predication); found a compound formula {other:?}"
+        ))),
     }
-    let mut free = |dag: &mut TermDag, name: &str| -> gmeow_errors::Result<NodeId> {
-        Ok(scope
-            .entry(name.to_owned())
-            .or_insert_with(|| dag.fresh_meta())
-            .1)
-    };
-    crate::physical::lower::lower_logic_formula_with(dag, formula, &mut free)
 }
 
 /// Lower a rule antecedent under `scope` into `out`'s [`FolLit`]s: a conjunction flattens
@@ -420,16 +525,24 @@ fn flatten_and_conjuncts<'a>(formula: &'a Formula, out: &mut Vec<&'a Formula>) {
 }
 
 /// Lower one clause [`Formula`] (a fact atom, or `Formula::Implies(antecedent, consequent)`
-/// rule) under a FRESH [`VarScope`] into a [`FolClause`], and mint its content-addressed
-/// `rule_iri` from the clause's own [`Formula::content_key`] — never from a [`NodeId`]/
-/// [`TermId`] index, so the same authored clause always mints the same rule identity run to
-/// run (pre-satisfies the authored path's content-addressing requirement independent of
-/// interning order).
+/// rule) under a FRESH [`VarScope`] into a [`FolClause`]. `rule_index` is the clause's position
+/// in AUTHORED program order (`program.clauses` is already the stable post-`ReasoningProgramIr`
+/// order), which is exactly what PurRDF's [`FolClause::rule`] addresses.
+///
+/// PurRDF (unlike the retired native engine) does NOT mint a digest-addressed rule-firing IRI
+/// on the clause: the content-addressed identity gmeow ships is now the PROOF digest — PurRDF's
+/// [`derivation_id`] hashes `FolProof::rule_identity` (which folds in the fired clause's content),
+/// and [`evaluate_demonstrator`] derives the answer's `derivation_iri` from it under
+/// [`crate::provenance::DERIVATION_PREFIX`]. So the run-to-run-stable content-addressing
+/// requirement is met at the proof layer, not on the clause; the clause carries only its
+/// authored-order index. See `docs/CUTOVER.md` §4 ("deriving an IRI from the digest is caller
+/// vocabulary").
 fn lower_clause(
     dag: &mut TermDag,
     program_iri: &str,
     clause: &Formula,
     scope: &mut VarScope,
+    rule_index: usize,
 ) -> gmeow_errors::Result<FolClause> {
     let (head_formula, body) = match clause {
         Formula::Atom { .. } => (clause, Vec::new()),
@@ -447,22 +560,11 @@ fn lower_clause(
         }
     };
     let head = lower_atom(dag, head_formula, scope)?;
-    let rule_iri = content_addressed_rule_iri(dag, program_iri, clause);
     Ok(FolClause {
         head,
         body,
-        rule_iri,
+        rule: rule_index,
     })
-}
-
-/// Mint a content-addressed rule-IRI handle for `clause`: `blake3` over the owning program's
-/// IRI plus the clause's own [`Formula::content_key`] (alpha- and order-normalized), so the
-/// SAME authored clause always mints the SAME rule identity regardless of interning/mint
-/// order — never a [`NodeId`]/[`TermId`] index, which is an interning-order artifact.
-fn content_addressed_rule_iri(dag: &mut TermDag, program_iri: &str, clause: &Formula) -> TermId {
-    let key = format!("{program_iri}\u{0}{}", clause.content_key());
-    let hash = blake3::hash(key.as_bytes()).to_hex();
-    dag.intern_atom(&TermValue::iri(format!("{GMEOW}goal-directed/rule/{hash}")))
 }
 
 /// A reasoning-program-compiler diagnostic, routed through the same `logic.ir` kind
@@ -503,7 +605,7 @@ pub(crate) fn lower_reasoning_program(
     let EvaluationMode::Backward = program.mode;
 
     let mut dag = TermDag::new();
-    let mut meta_sorts: HashMap<MetaId, NodeId> = HashMap::new();
+    let mut meta_sorts: BTreeMap<MetaId, NodeId> = BTreeMap::new();
     // Per-SCOPE variable-sort lookup: `program.variable_sorts` carries the owning scope with
     // every `(name → sort)` declaration, because each clause / the query is a FRESH variable
     // scope (fresh metavariables). Applying one program-global name→sort map to every scope
@@ -522,7 +624,7 @@ pub(crate) fn lower_reasoning_program(
     let mut clauses = Vec::with_capacity(program.clauses.len());
     for (idx, clause_formula) in program.clauses.iter().enumerate() {
         let mut scope: VarScope = HashMap::new();
-        let clause = lower_clause(&mut dag, &program.iri, clause_formula, &mut scope)?;
+        let clause = lower_clause(&mut dag, &program.iri, clause_formula, &mut scope, idx)?;
         // The scope is keyed by `content_key` PLUS the clause's occurrence index among clauses
         // sharing that key (the number of prior such clauses). `program.clauses` is the
         // post-`ReasoningProgramIr::new` order; because `new` sorts clauses STABLY and two
@@ -611,7 +713,7 @@ pub(crate) fn lower_reasoning_program(
             .or_default()
             .push(sort_iri.as_str());
     }
-    let mut term_sorts: HashMap<NodeId, NodeId> = HashMap::new();
+    let mut term_sorts: BTreeMap<NodeId, NodeId> = BTreeMap::new();
     for (const_iri, sort_iris) in &const_types {
         let const_node = leaf(&mut dag, const_iri);
         let tagged = if let [single] = sort_iris.as_slice() {
@@ -636,7 +738,7 @@ pub(crate) fn lower_reasoning_program(
     // Built AFTER the synthetic constant-meet edges are appended, so their reflexive-transitive
     // closure is part of the order `unify_sorted` consults.
     let order = SortOrder::from_subclass_edges(&edges);
-    let ctx = SortContext::new(order, term_sorts, HashMap::new());
+    let ctx = SortContext::new(order, term_sorts, BTreeMap::new());
 
     Ok(BuiltDemonstrator {
         dag,
@@ -883,12 +985,13 @@ fn oracle_eval_rule(idx: usize, clause: &Formula) -> gmeow_errors::Result<EvalRu
     })
 }
 
-/// Render one forward-derived ground [`Fact`] to the SAME functional surface
-/// `render`/`GoalDirectedAnswer::atom` uses (`pred(subject,object)`, bare IRI text), so the
-/// forward and backward answer sets compare as plain strings.
+/// Render one forward-derived ground [`Fact`] to the SAME functional surface PurRDF's
+/// [`render`]/[`GoalDirectedAnswer::atom`] uses — `pred(subject, object)` with PurRDF's `", "`
+/// argument separator (`resolve_fol::render` joins app arguments with `", "`), bare IRI text —
+/// so the forward and backward answer sets compare as plain strings.
 fn oracle_render_fact(fact: &Fact) -> String {
     format!(
-        "{}({},{})",
+        "{}({}, {})",
         fact.predicate,
         oracle_term_bare(&fact.subject),
         oracle_term_bare(&fact.object)
@@ -972,8 +1075,7 @@ fn query_iri(eval: &GoalDirectedEvaluation) -> String {
 /// the exact same order on every run; [`evaluate_demonstrator`]'s sort is a total order over
 /// this SAME content, but minting the IRI from the content directly (rather than from
 /// wherever it lands after sorting) makes the projection byte-stable and
-/// order-independent by construction, exactly like [`content_addressed_rule_iri`] /
-/// [`program_iri_for`].
+/// order-independent by construction, exactly like [`program_iri_for`].
 fn answer_iri(eval: &GoalDirectedEvaluation, ans: &GoalDirectedAnswer) -> String {
     let mut key = String::new();
     key.push_str(&eval.iri);
@@ -1012,7 +1114,7 @@ fn verdict_iri(eval: &GoalDirectedEvaluation, v: &GoalDirectedVerdict) -> String
 /// rendered program text (its name, clauses, query, and verdict-probe atoms) — a `blake3`
 /// hash, never a [`NodeId`]/index, so the SAME authored program always mints the SAME
 /// program IRI regardless of interning/evaluation order (byte-stable across independent
-/// runs, exactly like [`content_addressed_rule_iri`]).
+/// runs, exactly like [`answer_iri`]).
 fn program_iri_for(eval: &GoalDirectedEvaluation) -> String {
     let mut key = String::new();
     key.push_str(&eval.iri);
@@ -1254,7 +1356,11 @@ mod tests {
             Some(sss_zero.as_str()),
             "2 + 1 = 3 in Peano successors"
         );
-        assert_eq!(ans.atom, format!("{EX}add({ss_zero},{s_zero},{sss_zero})"));
+        // PurRDF's `render` joins application arguments with `", "` (space after the comma).
+        assert_eq!(
+            ans.atom,
+            format!("{EX}add({ss_zero}, {s_zero}, {sss_zero})")
+        );
         assert!(ans.proof_checks, "the compiled answer is proof-checked");
         assert!(
             ans.derivation_iri.starts_with("https://"),
@@ -1263,7 +1369,7 @@ mod tests {
         );
 
         // Two independent evaluations of the SAME parsed program mint the SAME derivation
-        // IRI — content-addressing (`content_addressed_rule_iri`), not mint-order.
+        // IRI — content-addressing (PurRDF's `derivation_id` proof digest), not mint-order.
         let evals2 =
             evaluate_reasoning_programs(&prog.reasoning_programs, &[]).expect("second evaluation");
         assert_eq!(
@@ -1746,8 +1852,9 @@ mod tests {
             "the projection types the query"
         );
         const EX: &str = "https://example.org/goal-directed-test/";
+        // PurRDF's `render` joins application arguments with `", "`.
         let expected_atom = format!(
-            "{EX}add({EX}s({EX}s({EX}zero)),{EX}s({EX}zero),{EX}s({EX}s({EX}s({EX}zero))))"
+            "{EX}add({EX}s({EX}s({EX}zero)), {EX}s({EX}zero), {EX}s({EX}s({EX}s({EX}zero))))"
         );
         assert!(
             nt.contains(&expected_atom),
@@ -1855,8 +1962,10 @@ mod tests {
         }
 
         let nt = project_goal_directed(&evals);
-        let expected_atom =
-            format!("{EX}member({EX}a,{EX}cons({EX}a,{EX}cons({EX}b,{EX}cons({EX}c,{EX}nil))))");
+        // PurRDF's `render` joins application arguments with `", "`.
+        let expected_atom = format!(
+            "{EX}member({EX}a, {EX}cons({EX}a, {EX}cons({EX}b, {EX}cons({EX}c, {EX}nil))))"
+        );
         assert!(
             nt.contains(&expected_atom),
             "the projection carries a structured member answer atom:\n{nt}"

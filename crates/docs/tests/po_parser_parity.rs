@@ -15,30 +15,36 @@
 //! The durable pin is `reviewed_coverage_matches_frozen_golden`, which recomputes
 //! the survivor set and asserts it against a checked-in golden.
 
-use std::path::{Path, PathBuf};
+use gmeow_docs::i18n_compile::parse_po as parse_po_survivor;
 
 #[path = "support/reviewed_coverage.rs"]
 mod reviewed_coverage;
 
-/// The repo root: `crates/docs` → `../..`, canonicalized.
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .expect("canonicalize repo root")
-}
+use reviewed_coverage::{
+    docs_template_pos, golden_path, live_slice_pos, repo_root, reviewed_coverage_map,
+};
 
 /// ENH-A: every live slice PO, every `ontology-docs-templates.*.po`, and the two
 /// fixtures parse cleanly under the survivor.
 #[test]
 fn all_live_po_files_parse_under_survivor() {
     let root = repo_root();
-    reviewed_coverage::assert_all_catalogs_parse(&root);
-}
+    let mut paths = live_slice_pos(&root).expect("walk live slice PO catalogs");
+    paths.extend(docs_template_pos(&root).expect("walk documentation template catalogs"));
+    paths.push(root.join("tests/fixtures/i18n/fr.po"));
+    paths.push(root.join("tests/fixtures/i18n/zh.po"));
 
-/// The frozen golden path (a `BTreeMap<slice-rel po path, sorted reviewed keys>`).
-fn golden_path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/reviewed_coverage_golden.json")
+    for path in paths {
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
+        let parsed = parse_po_survivor(&text, false);
+        assert!(
+            parsed.is_ok(),
+            "survivor parse_po failed for {}: {:?}",
+            path.display(),
+            parsed.err()
+        );
+    }
 }
 
 /// ENH-B pin (survives deletion): the survivor reviewed-coverage map equals the
@@ -46,12 +52,12 @@ fn golden_path() -> PathBuf {
 #[test]
 fn reviewed_coverage_matches_frozen_golden() {
     let root = repo_root();
-    let computed = reviewed_coverage::reviewed_coverage_map(&root);
+    let computed = reviewed_coverage_map(&root).expect("compute reviewed translation coverage");
     let path = golden_path();
 
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "missing golden {}: {e}; refresh with `make maint-refresh-reviewed-coverage-golden`",
+            "missing golden {}: {e}; run `make maint-refresh-reviewed-coverage-golden`",
             path.display()
         )
     });
@@ -59,7 +65,6 @@ fn reviewed_coverage_matches_frozen_golden() {
         serde_json::from_str(&text).expect("parse golden JSON");
     assert_eq!(
         golden, computed,
-        "survivor reviewed-coverage drifted from the frozen golden; inspect the delta, then \
-         refresh with `make maint-refresh-reviewed-coverage-golden`"
+        "survivor reviewed-coverage drifted from the frozen golden"
     );
 }

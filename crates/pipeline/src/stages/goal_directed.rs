@@ -400,8 +400,9 @@ mod tests {
         const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
         // The graph carries the Peano demonstrator's ground answer atom + a
         // proof-derivation IRI (the proof reached the bundle, not just the answer).
+        // PurRDF's `render` joins application arguments with `", "`.
         let peano_atom = format!(
-            "{EX}add({EX}s({EX}s({EX}zero)),{EX}s({EX}zero),{EX}s({EX}s({EX}s({EX}zero))))"
+            "{EX}add({EX}s({EX}s({EX}zero)), {EX}s({EX}zero), {EX}s({EX}s({EX}s({EX}zero))))"
         );
         let has_atom = quads.iter().any(
             |q| matches!(&q.object, purrdf::RdfTerm::Literal(l) if l.lexical_form == peano_atom),
@@ -416,8 +417,10 @@ mod tests {
         );
 
         // The structured member/append demonstrator's cons-list answer atom rode through.
-        let member_atom =
-            format!("{EX}member({EX}a,{EX}cons({EX}a,{EX}cons({EX}b,{EX}cons({EX}c,{EX}nil))))");
+        // PurRDF's `render` joins application arguments with `", "`.
+        let member_atom = format!(
+            "{EX}member({EX}a, {EX}cons({EX}a, {EX}cons({EX}b, {EX}cons({EX}c, {EX}nil))))"
+        );
         let has_structured = quads.iter().any(
             |q| matches!(&q.object, purrdf::RdfTerm::Literal(l) if l.lexical_form == member_atom),
         );

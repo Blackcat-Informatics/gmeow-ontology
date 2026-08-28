@@ -289,8 +289,10 @@ fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, SliceError> {
 }
 
 /// The referenced target prefixes: every alignment-target prefix that is the object of a
-/// `gmeow:`-subject property mapping whose subject is an ontology property. Mirrors the
-/// `referenced` set the retired `lint_alignment_directions` built.
+/// GMEOW-owned property mapping whose subject is an ontology property. The authored corpus
+/// uses canonical `logic:` typing markers, so this discovery edge must classify through the
+/// same OWL view as the pure soundness pass; otherwise the pass sees the mapping while its
+/// file-reading edge silently omits the corresponding vendored target axioms.
 fn referenced_prefixes(mappings: &[Mapping], onto: &DslView<'_>) -> BTreeSet<String> {
     let mut referenced: BTreeSet<String> = BTreeSet::new();
     for m in mappings {
@@ -303,12 +305,18 @@ fn referenced_prefixes(mappings: &[Mapping], onto: &DslView<'_>) -> BTreeSet<Str
         let Some(subj_iri) = expand_curie(&m.subject_id) else {
             continue;
         };
-        let is_property = onto.objects_of(&subj_iri, RDF_TYPE).into_iter().any(|t| {
-            matches!(
-                t.as_iri(),
-                Some(OWL_OBJECT_PROPERTY) | Some(OWL_DATATYPE_PROPERTY)
-            )
-        });
+        let is_property = onto
+            .objects_of(&subj_iri, RDF_TYPE)
+            .into_iter()
+            .any(|term| {
+                let Some(type_iri) = term.as_iri() else {
+                    return false;
+                };
+                matches!(
+                    gmeow_ns::to_owl_view(type_iri),
+                    OWL_OBJECT_PROPERTY | OWL_DATATYPE_PROPERTY
+                )
+            });
         if !is_property {
             continue;
         }
@@ -672,4 +680,34 @@ pub fn lint_correspondence_soundness(
         cells,
     };
     Ok(corpus.run())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn canonical_property_typing_loads_the_target_axiom_prefix() {
+        let ontology = parse_dataset(
+            b"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+              @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              gmeow:geometry a logic:ObjectProperty .\n",
+            NativeRdfFormat::Turtle.media_type(),
+            None,
+        )
+        .expect("parse canonical property fixture");
+        let view = DslView::new(&ontology);
+        let mappings = [Mapping {
+            subject_id: "gmeow:geometry".to_owned(),
+            predicate_id: "skos:closeMatch".to_owned(),
+            object_id: "geo:hasGeometry".to_owned(),
+            confidence: "1.0".to_owned(),
+            mapping_justification: "semapv:ManualMappingCuration".to_owned(),
+        }];
+
+        assert_eq!(
+            referenced_prefixes(&mappings, &view),
+            BTreeSet::from(["geo".to_owned()])
+        );
+    }
 }

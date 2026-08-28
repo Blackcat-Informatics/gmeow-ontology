@@ -10584,9 +10584,9 @@ mod tests {
     ///   signature-bearing term in the slice uses. An `rdfs:`-spelled signature is dropped
     ///   at ingestion and never ships; asserting it here is what keeps the authored
     ///   spelling honest.
-    /// * The default graph carries the OWL TYPING (`a owl:DatatypeProperty`) as authored.
-    ///   `graph/logic` types nothing as an OWL property — it has no `owl:DatatypeProperty`
-    ///   subject at all — so the typing must be resolved where it actually rides.
+    /// * The default graph carries the canonical typing (`a logic:DatatypeProperty`) as
+    ///   authored. `graph/logic` carries the term's signature, so the typing must be
+    ///   resolved where it actually rides.
     ///
     /// Checked against the bundle, which means this test can only pass once `gmeow.gts` has
     /// been regenerated over the minted term. It is deliberately NOT weakened to "the slice
@@ -10595,7 +10595,8 @@ mod tests {
     #[test]
     fn the_bundled_logic_vocabulary_declares_the_tool_name_property() {
         const GRAPH_LOGIC: &str = "https://blackcatinformatics.ca/gmeow/graph/logic";
-        const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+        const LOGIC_DATATYPE_PROPERTY: &str =
+            "https://blackcatinformatics.ca/logic/DatatypeProperty";
         const LOGIC_DOMAIN: &str = "https://blackcatinformatics.ca/logic/domain";
         const LOGIC_RANGE: &str = "https://blackcatinformatics.ca/logic/range";
         const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
@@ -10637,10 +10638,12 @@ mod tests {
 
         let declared_in_default_graph = iri_statements(&|g: &Option<purrdf::RdfTerm>| g.is_none());
         assert!(
-            declared_in_default_graph
-                .contains(&(RDF_TYPE_IRI.to_string(), OWL_DATATYPE_PROPERTY.to_string())),
+            declared_in_default_graph.contains(&(
+                RDF_TYPE_IRI.to_string(),
+                LOGIC_DATATYPE_PROPERTY.to_string()
+            )),
             "the shipped bundle's default graph must declare \
-             <{LOGIC_MCP_TOOL_NAME}> <{RDF_TYPE_IRI}> <{OWL_DATATYPE_PROPERTY}>; it declares \
+             <{LOGIC_MCP_TOOL_NAME}> <{RDF_TYPE_IRI}> <{LOGIC_DATATYPE_PROPERTY}>; it declares \
              {declared_in_default_graph:?}"
         );
     }

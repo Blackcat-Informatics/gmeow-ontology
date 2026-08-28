@@ -23,7 +23,7 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 # Must stay byte-identical to the root [workspace.dependencies] pin (repo-static gate).
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "a59d9f2d" }
+purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "3aa4ba51" }
 gmeow-logic = { path = "../crates/logic" }
 gmeow-logic-compile = { path = "../crates/logic-compile" }
 

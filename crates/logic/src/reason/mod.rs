@@ -23,7 +23,6 @@ pub mod math_gate;
 pub mod perf_ledger;
 pub(crate) mod refute;
 pub mod rl;
-pub(crate) mod rl_rules;
 
 pub use dl::{DlGap, DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
 pub use el::{ElClosure, InferredAxiom, el_closure};
@@ -109,11 +108,24 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
 }
 
-/// The content-addressed identity of the native EL/DL/RL reasoning contract —
+/// The content-addressed identity of the native EL/DL reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
 ///
-/// The hash covers ALL source that defines the reasoning contract:
-/// * the fixed typed EL/DL/RL rule sets whose change alters which axioms the
+/// The RL lane's SOURCE TEXT no longer participates: it is purrdf's OWL 2 RL chase
+/// ([`rl::rl_closure`]), not the native rule table, so `rl.rs` defines no native
+/// contract component. But that lane's behaviour — and the DL services in
+/// [`crate::reasoner_services`] and the datatype value-space decider in
+/// [`crate::reason::refute::datatype`] — now DELEGATE to the external `purrdf` crate,
+/// so a purrdf change can alter what those lanes decide WITHOUT moving any native
+/// source byte. To keep this identity honest about the substrate it stands on,
+/// [`native_contract_hash`] folds in a deterministic `purrdf`-PROVIDED engine identity
+/// ([`purrdf_substrate_identity`]) alongside the native component source. That folded
+/// value is NOT purrdf's own per-result `contract_hash` re-badged as ours: the two
+/// identities are distinct and must never be assumed interchangeable — the purrdf value
+/// is one INPUT to this native fold, framed under its own tag.
+///
+/// The hash covers ALL source that defines the native reasoning contract:
+/// * the fixed typed EL/DL rule sets whose change alters which axioms the
 ///   native chase derives;
 /// * the full source of `dl.rs`, which owns the post-pass functions
 ///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
@@ -127,7 +139,13 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 /// * the canonical-program lowering, selected-view materializer, and native
 ///   non-monotone evaluators exposed as the forward runtime materialization surface;
 /// * the source of this file (`mod.rs`), which owns the production reasoning
-///   orchestration and typed-result fold.
+///   orchestration and typed-result fold;
+/// * the source of `reasoner_services.rs`, the public OWL 2 Direct-Semantics DL
+///   service façade (consistency, classification, realization, instance retrieval,
+///   axiom entailment, profile certification, module extraction) — a change to how
+///   it wraps `purrdf::entail`'s services (the `CertifiedAnswer`/`DlCompleteness`
+///   contract or the verdict a caller receives) changes reasoning behaviour a
+///   consumer trusts, even when no native rule byte and no purrdf pin moved.
 ///
 /// A change to any of these files will produce a different hash, invalidating
 /// cached results produced under the old contract. Public so a consumer holding a
@@ -135,7 +153,6 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 /// contract than the engine it is about to trust it against.
 const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/el.rs", include_str!("el.rs")),
-    ("reason/rl_rules.rs", include_str!("rl_rules.rs")),
     ("reason/dl.rs", include_str!("dl.rs")),
     ("reason/refute.rs", include_str!("refute.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
@@ -154,21 +171,106 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ),
     ("physical/chase.rs", include_str!("../physical/chase.rs")),
     ("physical/store.rs", include_str!("../physical/store.rs")),
+    // The public OWL 2 Direct-Semantics DL service façade (consistency, class
+    // satisfiability, classification, realization, instance retrieval, axiom
+    // entailment, profile certification, module extraction) over `purrdf::entail`.
+    // A change to HOW this façade wraps purrdf's services — the `CertifiedAnswer` /
+    // `DlCompleteness` contract, the construct-boundary handling, which verdict a
+    // caller receives — changes the reasoning behaviour a consumer trusts, even when
+    // no rule byte and no purrdf pin moved. Its source therefore folds into the engine
+    // identity alongside the backward/forward core (the purrdf-owned rule surface it
+    // delegates to is folded separately by `purrdf_substrate_identity`).
+    (
+        "reasoner_services.rs",
+        include_str!("../reasoner_services.rs"),
+    ),
 ];
+
+/// The framed concatenation of every native source component, BEFORE the purrdf
+/// substrate identity is folded in.
+///
+/// Split out from [`native_contract_hash`] so the participation test
+/// (`native_contract_hash_folds_the_purrdf_substrate_identity`) can prove the purrdf
+/// identity genuinely moves the final hash: it recomputes the digest from this base
+/// alone and asserts it differs from the folded value.
+fn framed_native_component_source() -> String {
+    // Contract source is immutable for the lifetime of a compiled binary. Frame
+    // every component by name and byte length so neither path/content boundaries
+    // nor concatenation ambiguity can produce the same semantic identity.
+    let mut contract = String::new();
+    for (name, source) in NATIVE_CONTRACT_COMPONENTS {
+        use std::fmt::Write as _;
+        write!(&mut contract, "{}:{name}:{}:", name.len(), source.len())
+            .expect("String writes cannot fail");
+        contract.push_str(source);
+    }
+    contract
+}
+
+/// A deterministic, `purrdf`-PROVIDED identity of the external substrate the moved
+/// reasoning lanes now stand on — the value [`native_contract_hash`] folds in so a
+/// purrdf pin bump that changes those lanes is detected even though no native source
+/// byte moved.
+///
+/// It is composed of three purrdf-owned, side-effect-free identities, all pure
+/// functions of the pinned purrdf rule tables and version constant (no I/O, no git
+/// shell-out, no wall-clock):
+///
+/// * [`purrdf::datalog::cache::CALCULUS_VERSION`] — the datalog evaluator SEMANTICS
+///   (code, not data), the shared substrate under both the RL chase and every DL entail
+///   service that runs the datalog kernel. purrdf bumps it exactly when the evaluator's
+///   answers can change.
+/// * the OWL 2 RL calculus `contract_hash` — `purrdf`'s own BLAKE3 over the OWL-RL rule
+///   program PLUS the version PLUS the three evaluation ceilings
+///   (`contract_hash(&calculus_program(Regime::OwlRl))`, the exact identity
+///   `purrdf::entail`'s report carries for the RL lane the cutover moved to). Any change
+///   to the RL rule set the RL lane closes under moves this digest.
+/// * the `D` (datatype-entailment) calculus `contract_hash` — the finest purrdf-provided
+///   identity for the datatype rule surface the value-space decider
+///   ([`crate::reason::refute::datatype`]) sits beside. (`purrdf::xsd`'s pure value-space
+///   algebra exposes no independent version/contract const of its own, so the whole
+///   `purrdf::xsd` surface is pinned transitively by the git rev in `Cargo.lock`; this D
+///   digest is the closest purrdf-owned rule-surface identity available.)
+///
+/// This is NOT purrdf's per-result `contract_hash` re-badged as the native identity: it
+/// is one framed INPUT to [`native_contract_hash`]'s own SHA-1 fold. The two identities
+/// stay distinct — `native_contract_hash` remains a SHA-1 over native source plus this
+/// input; purrdf's `contract_hash` remains a BLAKE3 over a purrdf calculus — and are
+/// never assumed interchangeable.
+fn purrdf_substrate_identity() -> String {
+    let owl_rl = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
+        purrdf::entail::Regime::OwlRl,
+    ));
+    let datatype = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
+        purrdf::entail::Regime::D,
+    ));
+    format!(
+        "purrdf-substrate-v1|calculus:{}|owl-rl:{}|datatype:{}",
+        purrdf::datalog::cache::CALCULUS_VERSION,
+        owl_rl.to_hex(),
+        datatype.to_hex(),
+    )
+}
 
 pub fn native_contract_hash() -> String {
     static HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     HASH.get_or_init(|| {
-        // Contract source is immutable for the lifetime of a compiled binary. Frame
-        // every component by name and byte length so neither path/content boundaries
-        // nor concatenation ambiguity can produce the same semantic identity.
-        let mut contract = String::new();
-        for (name, source) in NATIVE_CONTRACT_COMPONENTS {
-            use std::fmt::Write as _;
-            write!(&mut contract, "{}:{name}:{}:", name.len(), source.len())
-                .expect("String writes cannot fail");
-            contract.push_str(source);
-        }
+        let mut contract = framed_native_component_source();
+        // Fold the purrdf substrate identity under its OWN framing tag, length-prefixed
+        // the same way as a source component so it cannot alias any file boundary. A
+        // purrdf pin bump that changes the moved lanes (RL chase, DL services, datatype
+        // value space) moves this segment and therefore the native contract hash.
+        let purrdf = purrdf_substrate_identity();
+        const PURRDF_TAG: &str = "purrdf-substrate";
+        use std::fmt::Write as _;
+        write!(
+            &mut contract,
+            "{}:{PURRDF_TAG}:{}:",
+            PURRDF_TAG.len(),
+            purrdf.len()
+        )
+        .expect("String writes cannot fail");
+        contract.push_str(&purrdf);
         crate::provenance::sha1_hex(&contract)
     })
     .clone()
@@ -1855,8 +1957,9 @@ pub(crate) fn calculus_term(iri: &str) -> &str {
 ///
 /// # Why the lowering lives at the EDB boundary
 ///
-/// The EL/DL/RL calculi ([`el::structured_el_rules`], [`dl::structured_dl_rules`],
-/// [`rl_rules`]) are FIXED and largely W3C-specified: every subsumption rule
+/// The native EL/DL calculi ([`el::structured_el_rules`], [`dl::structured_dl_rules`])
+/// and the RL lane's OWL 2 RL chase ([`rl::rl_closure`]) are FIXED and largely
+/// W3C-specified: every subsumption rule
 /// (`el:subClassOf-transitive`, `el:type-propagation`, `cax-sco`, `scm-sco`,
 /// `scm-spo`, `prp-spo1`, …) matches the `rdfs:subClassOf` / `rdfs:subPropertyOf`
 /// spelling *by specification*, and is not GMEOW's to re-author. But GMEOW's
@@ -2409,7 +2512,6 @@ mod tests {
             names,
             vec![
                 "reason/el.rs",
-                "reason/rl_rules.rs",
                 "reason/dl.rs",
                 "reason/refute.rs",
                 "reason/mod.rs",
@@ -2425,9 +2527,122 @@ mod tests {
                 "physical/seminaive.rs",
                 "physical/chase.rs",
                 "physical/store.rs",
+                "reasoner_services.rs",
             ]
         );
         assert_eq!(native_contract_hash().len(), 40, "SHA-1 hex contract id");
+    }
+
+    /// Regression for the DL-service-facade contract: the public OWL 2
+    /// Direct-Semantics service surface (`reasoner_services.rs`) MUST fold into the
+    /// engine descriptor, so a change to how the façade decides consistency /
+    /// classification / profile certification moves `native_contract_hash` — a
+    /// consumer holding a DL-service verdict can then refuse one minted under a
+    /// different façade contract. Framed by NAME AND BYTE LENGTH, so an edit to the
+    /// façade's actual source moves the framed base and therefore the final hash.
+    #[test]
+    fn native_contract_hash_folds_the_dl_service_facade() {
+        let facade = NATIVE_CONTRACT_COMPONENTS
+            .iter()
+            .find(|(name, _)| *name == "reasoner_services.rs")
+            .expect("the DL service facade must be a folded contract component");
+        assert!(
+            !facade.1.is_empty(),
+            "the folded reasoner_services.rs source must be non-empty"
+        );
+        // Its verbatim source reaches the framed base the final hash is computed over,
+        // so any behavioural edit to the façade changes the descriptor.
+        let framed = framed_native_component_source();
+        assert!(
+            framed.contains(facade.1),
+            "reasoner_services.rs source must reach the framed contract base"
+        );
+        // And the length-prefixed framing header for the façade is present, so the
+        // fold cannot be aliased away by a same-length neighbour.
+        assert!(
+            framed.contains(&format!(
+                "{}:reasoner_services.rs:{}:",
+                "reasoner_services.rs".len(),
+                facade.1.len()
+            )),
+            "the DL service facade must be framed by name and byte length"
+        );
+    }
+
+    #[test]
+    fn native_contract_hash_folds_the_purrdf_substrate_identity() {
+        // The moved lanes (RL chase, DL entail services, datatype value space) delegate to
+        // purrdf, so their behaviour can change on a purrdf pin bump WITHOUT moving any
+        // native source byte. This test proves the purrdf-provided identity genuinely
+        // participates in `native_contract_hash`, so such a bump is detected.
+
+        // 1. The purrdf identity is deterministic and carries every claimed sub-identity:
+        //    the datalog CALCULUS_VERSION and the two 64-hex calculus contract hashes.
+        let id = purrdf_substrate_identity();
+        assert_eq!(id, purrdf_substrate_identity(), "purrdf identity is stable");
+        assert!(
+            id.contains(purrdf::datalog::cache::CALCULUS_VERSION),
+            "the datalog calculus version must reach the folded identity: {id}"
+        );
+        let owl_rl = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
+            purrdf::entail::Regime::OwlRl,
+        ));
+        let datatype = purrdf::datalog::cache::contract_hash(&purrdf::entail::calculus_program(
+            purrdf::entail::Regime::D,
+        ));
+        assert!(
+            id.contains(&owl_rl.to_hex()),
+            "the OWL 2 RL calculus contract hash must reach the folded identity"
+        );
+        assert!(
+            id.contains(&datatype.to_hex()),
+            "the datatype calculus contract hash must reach the folded identity"
+        );
+        assert_ne!(
+            owl_rl.to_hex(),
+            datatype.to_hex(),
+            "distinct calculi must carry distinct purrdf contract hashes"
+        );
+
+        // 2. Participation proof: recompute the digest over the native component source
+        //    ALONE (no purrdf fold) and confirm it differs from `native_contract_hash`.
+        //    A regression that dropped the purrdf fold would make these two equal.
+        let native_only = crate::provenance::sha1_hex(&framed_native_component_source());
+        assert_ne!(
+            native_only,
+            native_contract_hash(),
+            "the purrdf substrate identity must move the native contract hash — if these \
+             are equal the purrdf fold was dropped and a purrdf pin bump would leave a \
+             stale engine seal"
+        );
+
+        // 3. And that the difference is EXACTLY the framed purrdf segment: folding the
+        //    same-framed purrdf identity onto the native base reproduces the real hash, so
+        //    the purrdf value is the sole additional input (no accidental extra framing).
+        let mut folded = framed_native_component_source();
+        use std::fmt::Write as _;
+        const PURRDF_TAG: &str = "purrdf-substrate";
+        write!(
+            &mut folded,
+            "{}:{PURRDF_TAG}:{}:",
+            PURRDF_TAG.len(),
+            id.len()
+        )
+        .expect("String writes cannot fail");
+        folded.push_str(&id);
+        assert_eq!(
+            crate::provenance::sha1_hex(&folded),
+            native_contract_hash(),
+            "the folded native+purrdf digest must reproduce native_contract_hash exactly"
+        );
+
+        // The purrdf identity is a DISTINCT surface from the native contract hash — a
+        // BLAKE3 purrdf calculus digest is never the SHA-1 native engine seal.
+        assert_ne!(
+            owl_rl.to_hex(),
+            native_contract_hash(),
+            "purrdf's contract_hash and native_contract_hash are distinct identities"
+        );
     }
 
     #[test]

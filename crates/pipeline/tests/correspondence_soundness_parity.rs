@@ -97,22 +97,45 @@ fn native_soundness_pass_matches_committed_corpus() {
         );
     }
 
+    // Build the stable content view before the count assertion. A count drift must expose
+    // the exact added and removed records; telling a maintainer to investigate a snapshot
+    // that the early assertion prevented insta from comparing made the failure needlessly
+    // opaque and invited the blind re-bless this test explicitly forbids.
+    let mut lines: Vec<String> = findings.iter().map(canonical_line).collect();
+    lines.sort();
+    let committed_snapshot =
+        include_str!("snapshots/correspondence_soundness_parity__committed_corpus_findings.snap");
+    let committed_body = committed_snapshot
+        .rsplit_once("---\n")
+        .expect("insta snapshot has a metadata separator")
+        .1;
+    let committed_lines: std::collections::BTreeSet<&str> = committed_body.lines().collect();
+    let live_lines: std::collections::BTreeSet<&str> = lines.iter().map(String::as_str).collect();
+    let added = live_lines
+        .difference(&committed_lines)
+        .copied()
+        .collect::<Vec<_>>()
+        .join("\n+ ");
+    let removed = committed_lines
+        .difference(&live_lines)
+        .copied()
+        .collect::<Vec<_>>()
+        .join("\n- ");
+
     // 3. The committed-corpus finding count is pinned (a fast, readable floor before the
-    //    content snapshot below).
+    //    content snapshot below), with the full delta available for review.
     assert_eq!(
         findings.len(),
         EXPECTED_FINDING_COUNT,
         "correspondence-soundness finding COUNT drifted from the committed-corpus floor \
          ({EXPECTED_FINDING_COUNT}) to {} — investigate a coverage regression, do not blindly \
-         re-bless",
-        findings.len()
+         re-bless\nadded:\n+ {added}\nremoved:\n- {removed}",
+        findings.len(),
     );
 
     // 4. The full finding CONTENT is pinned. Sort for order-independence (the pass does not
     //    promise a stable emission order), then snapshot every field of every finding. This
     //    is what catches a net-zero family swap that the count floor cannot.
-    let mut lines: Vec<String> = findings.iter().map(canonical_line).collect();
-    lines.sort();
     insta::assert_snapshot!("committed_corpus_findings", lines.join("\n"));
 }
 

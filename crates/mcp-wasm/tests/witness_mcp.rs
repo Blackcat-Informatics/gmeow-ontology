@@ -94,9 +94,9 @@ fn no_snapshot_is_loaded_before_init() {
     // one process per test — so this observes the genuine pre-`init` state.
     //
     // Only the STATE is asserted here, not the refusal itself: `mcp` before `init`
-    // returns a `JsError`, and CONSTRUCTING a `JsError` calls a wasm-bindgen imported
-    // function, which panics by design on a non-wasm target. The refusal is therefore
-    // asserted where it is real — the Node lane's
+    // throws a `JsError` in wasm and deliberately panics with the same diagnostic in a
+    // native parity process, where constructing `JsError` would invoke a missing wasm
+    // import. The refusal is therefore asserted where it is real — the Node lane's
     // `mcp() refuses frames before a snapshot is loaded` — rather than faked here.
     assert!(!ready(), "no snapshot is loaded before init");
 }
@@ -167,6 +167,17 @@ fn native_mcp_frame_matches_the_witness_attestation() {
         payload["verdict"]["evaluation"], "completed",
         "the evaluation must COMPLETE, not exhaust its budget: {out}"
     );
+    let judgment = payload["judgment_nquads"]
+        .as_str()
+        .unwrap_or_else(|| panic!("the answered payload carries judgment_nquads: {out}"));
+    assert!(
+        !judgment
+            .chars()
+            .any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t')),
+        "the judgment transport must not contain raw control scalars: {out}"
+    );
+    purrdf::parse_dataset(judgment.as_bytes(), "application/n-quads", None)
+        .unwrap_or_else(|error| panic!("judgment_nquads must be valid RDF: {error}\n{out}"));
 
     let path = attestation_path();
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {

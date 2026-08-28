@@ -78,7 +78,7 @@ fn degree_of_freedom_classes_exist() {
     ] {
         assert!(
             s.has(Some(&g(term)), Some(RDF_TYPE), Some(LOGIC_CLASS)),
-            "{term} should be a canonical logic:Class"
+            "{term} should be a logic:Class"
         );
     }
 }
