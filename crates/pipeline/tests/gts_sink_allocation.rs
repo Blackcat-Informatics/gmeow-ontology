@@ -60,21 +60,41 @@ fn synthetic_source(seed: usize) -> Arc<RdfDataset> {
 fn legacy_stratum_digest(
     carrier: &RdfDataset,
     extra_graphs: &[Arc<RdfDataset>],
-) -> (String, usize) {
+) -> (String, usize, usize) {
     let mut sources = vec![purrdf::flat_rdf_quads_from_dataset(carrier)];
     for graph in extra_graphs {
         sources.push(purrdf::flat_rdf_quads_from_dataset(graph));
     }
-    let borrowed: Vec<&[purrdf::RdfQuad]> = sources.iter().map(Vec::as_slice).collect();
-    let union = purrdf::flat_dataset_from_quad_sources(&borrowed).expect("legacy union freezes");
+
+    // Keep the former owned-quad path as the allocation reference, but assign every
+    // source a non-default outer scope. Reserving the default scope is load-bearing:
+    // its owned-model inverse restores a source's inner scope, which can otherwise
+    // collide with the next source's outer scope instead of standardizing it apart.
+    let mut builder = RdfDatasetBuilder::new();
+    for (index, quads) in sources.iter().enumerate() {
+        let scope = BlankScope(
+            u32::try_from(index + 1).expect("the synthetic reference has few enough sources"),
+        );
+        for quad in quads {
+            builder.push_owned_quad_scoped(quad, scope);
+        }
+    }
+    let union = builder.freeze().expect("legacy union freezes");
     let canonical = purrdf::canonical_flat_nquads(&union).expect("legacy union canonicalizes");
+    let blank_count = (0..union.term_count())
+        .filter(|index| {
+            matches!(
+                union.resolve(purrdf::TermId::from_index(*index as u32)),
+                purrdf::TermRef::Blank { .. }
+            )
+        })
+        .count();
     drop(union);
-    drop(borrowed);
     drop(sources);
     let len = canonical.len();
     let digest = blake3_digest(canonical.as_bytes());
     drop(canonical);
-    (digest, len)
+    (digest, len, blank_count)
 }
 
 #[test]
@@ -85,11 +105,17 @@ fn id_native_stratum_is_byte_identical_and_strictly_lowers_allocations() {
     let (candidate, candidate_alloc) = measure(|| {
         snapshot_stratum_digest(&carrier, &extra_graphs).expect("id-native digest succeeds")
     });
-    let (legacy, legacy_alloc) = measure(|| legacy_stratum_digest(&carrier, &extra_graphs));
+    let ((legacy_digest, legacy_len, legacy_blank_count), legacy_alloc) =
+        measure(|| legacy_stratum_digest(&carrier, &extra_graphs));
 
     assert_eq!(
-        candidate, legacy,
+        candidate,
+        (legacy_digest, legacy_len),
         "the ownership change must preserve bytes"
+    );
+    assert_eq!(
+        legacy_blank_count, 6,
+        "three source-local blank identities per input must remain standardized apart"
     );
     assert!(
         candidate_alloc.bytes < legacy_alloc.bytes,

@@ -268,6 +268,9 @@ serde = { version = "1", features = ["derive"] }
 # JSON is a first-class egress format across the workspace: tool envelopes, JSON-RPC
 # frames, the JSON card/schema projections and the JSONL export tiers.
 serde_json = "1"
+# Semantic release identities: the term changelog's tracked previous-release
+# authority must be ordered against the ontology release, never compared as text.
+semver = "1"
 # SHA-1 — legacy-interop digests only (git object names and the like), never a
 # content-integrity or security digest; blake3/sha2 above cover those.
 sha1 = "0.10"

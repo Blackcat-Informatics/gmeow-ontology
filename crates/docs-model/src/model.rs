@@ -311,12 +311,11 @@ pub enum DocsError {
         /// The underlying Turtle parser diagnostic, preserved verbatim.
         detail: String,
     },
-    /// The committed term content manifest
-    /// (`generated/catalog/term-content-manifest.nq`) is missing, unreadable,
-    /// unparsable, carries a term with no `gmeow:definitionDigest`, or omits a
-    /// documented term (a coverage gap). A regenerated tree always carries a
-    /// complete, well-formed manifest, so any of these is a broken invariant, never
-    /// an optional input.
+    /// A present materialized term content manifest
+    /// (`generated/catalog/term-content-manifest.nq`) is unreadable, unparsable, or
+    /// carries a manifest term with no `gmeow:definitionDigest`. Absence is allowed
+    /// only for source-first bootstrap; malformed present data is always a broken
+    /// invariant.
     TermManifest(String),
     /// A competency question declares `gmeow:cqQueryFile` (a repo-root-relative
     /// `.rq` path) but the file could not be read at that path. `cqQueryFile`
@@ -859,14 +858,40 @@ impl DocTermStability {
     }
 }
 
+/// Provenance kind for one per-term changelog record. The kind is part of the
+/// entry's identity: an authored note and a digest-computed change at the same
+/// release are independent evidence and must both survive.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+#[serde(rename_all = "kebab-case")]
+pub enum DocChangelogSource {
+    /// Explicit `gmeow:hasChangelogEntry` source data.
+    #[default]
+    Authored,
+    /// Release-boundary definition-digest divergence.
+    Computed,
+}
+
+impl DocChangelogSource {
+    /// Stable wire token used in documentation-entry identities.
+    #[must_use]
+    pub const fn wire(self) -> &'static str {
+        match self {
+            Self::Authored => "authored",
+            Self::Computed => "computed",
+        }
+    }
+}
+
 /// One reified per-release changelog entry for a term. Ordered by
-/// `(version, note)` for deterministic rendering.
+/// `(version, note, source)` for deterministic rendering.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
 pub struct DocChangelogEntry {
     /// `gmeow:entryVersion` — the release this entry pertains to.
     pub version: String,
     /// `gmeow:entryNote` — optional prose describing the change (English carrier).
     pub note: Option<String>,
+    /// Whether this is explicit authored history or release-digest computation.
+    pub source: DocChangelogSource,
 }
 
 /// A documented vocabulary term parsed from a slice's `module.ttl`.
@@ -974,7 +999,7 @@ pub struct DocTerm {
     /// read from the term content manifest. Empty when the term carries neither.
     pub changelog: Vec<DocChangelogEntry>,
     /// `gmeow:definitionDigest` — the RDFC-1.0-canonical blake3 content-address of
-    /// the term's defining triples, read from the committed term content manifest
+    /// the term's defining triples, read from the materialized term content manifest
     /// (`generated/catalog/term-content-manifest.nq`). Always populated on a
     /// discovered model; empty on a bare `from_catalog` model until the manifest is
     /// applied.
@@ -1994,7 +2019,11 @@ impl DocsModel {
     /// `ArtifactRole`, so `design/*.md` is a first-class document). The
     /// [`crate::source_map::SourceToPageMap`] is the single link-rewrite authority
     /// over that set (a pure function of the model).
-    pub const VERSION: &'static str = "17";
+    ///
+    /// v18: [`DocChangelogEntry`] grows a source identity so authored and computed
+    /// records at the same release remain independent rather than collapsing by
+    /// version.
+    pub const VERSION: &'static str = "18";
 
     /// An empty model with every collection cleared — for the [`crate::source_map`]
     /// unit tests, which populate only `slices` before exercising the page map.
@@ -2510,10 +2539,10 @@ impl DocsModel {
     /// prose at build time, if present.
     ///
     /// The per-term content manifest AND the constraint catalog are sourced from the
-    /// committed `<root>/generated/catalog/*.nq` files
+    /// materialized `<root>/generated/catalog/*.nq` files
     /// ([`read_term_manifest`] / [`read_constraint_catalog`]) — the disk-sourced path
     /// for the standalone `make docs` fanout, which runs post-pipeline against the
-    /// fanout-refreshed committed files. The in-pipeline `stage-docs-render` run uses
+    /// fanout-refreshed materialized files. The in-pipeline `stage-docs-render` run uses
     /// [`discover_with_manifest_and_catalog`](Self::discover_with_manifest_and_catalog)
     /// instead, so the model reflects THIS run's freshly-computed products rather than
     /// lagging one regenerate behind (the stale-disk-fold class).
@@ -2534,7 +2563,7 @@ impl DocsModel {
     /// Same as [`discover`](Self::discover) but sources BOTH the per-term content
     /// manifest AND the constraint catalog from THIS run's fresh pipeline stage
     /// products (`manifest_bytes` from `stage-term-manifest`, `catalog_bytes` from
-    /// `stage-constraint-catalog`), instead of the committed (previous-run)
+    /// `stage-constraint-catalog`), instead of the materialized
     /// `generated/catalog/*.nq` files on disk. This is the in-pipeline `stage-docs-render`
     /// entry point: when a term's definition digest changes this build the fresh
     /// manifest carries the newly-minted "Definition changed" changelog entry, and on
@@ -2563,7 +2592,7 @@ impl DocsModel {
 
     /// Same as [`discover`](Self::discover) but sources the constraint catalog from
     /// THIS run's freshly-rendered `stage-constraint-catalog` bytes instead of the
-    /// committed `generated/catalog/constraint-catalog.nq` on disk. The in-pipeline
+    /// materialized `generated/catalog/constraint-catalog.nq` on disk. The in-pipeline
     /// DocMaturity axis (slice-quality) uses this so a cold tree does not hard-fail
     /// on the not-yet-materialized catalog, and every run scores against the SAME
     /// freshly-produced catalog (cold == warm — the catalog content does not feed the
@@ -2621,7 +2650,7 @@ impl DocsModel {
         // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
         model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
         // The constraint catalog (`gmeow:ValidationRule` individuals). Sourced per
-        // `catalog`: the committed N-Quads fanout artifact on disk (post-pipeline /
+        // `catalog`: the materialized N-Quads fanout artifact on disk (post-pipeline /
         // CLI consumers), or THIS run's freshly-rendered `stage-constraint-catalog`
         // bytes (the in-pipeline consumers, which must not read a not-yet-materialized
         // `generated/` file). An unparsable/malformed catalog is a broken invariant
@@ -2644,14 +2673,13 @@ impl DocsModel {
         // root). Hard-fails on a dangling `cqQueryFile` — see `DocsError::CompetencyQuery`.
         apply_competency_query_text(&mut model, root)?;
         // The per-term content-address manifest (already obtained by the caller:
-        // from the committed N-Quads fanout artifact in `discover`, or from THIS
+        // from the materialized N-Quads fanout artifact in `discover`, or from THIS
         // run's fresh stage-term-manifest product in `discover_with_manifest_and_catalog`). It
         // sets each documented term's content digest and first-seen version and
-        // unions the computed changelog into the authored one. A term absent from
-        // the manifest is a term added since the last commit — its content-address
-        // self-heals on the next regenerate pass (the stage recomputes the manifest
-        // THIS build; the committed docs catch up the next), so it is skipped rather
-        // than a hard-fail (the two-phase fixed-point convergence, not a coverage bug).
+        // unions the computed changelog into the authored one. The in-pipeline path
+        // receives the complete live product; the standalone disk path can observe an
+        // absent newly-added term only before its first materialization, so that term
+        // keeps its authored provenance until the generated fanout exists.
         apply_term_manifest(&mut model, manifest);
         Ok(model)
     }
@@ -2698,7 +2726,8 @@ impl DocsModel {
     }
 }
 
-/// The prior-independent provenance a term carries in the committed manifest.
+/// The prior-independent provenance a term carries in the materialized manifest.
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct TermProvenance {
     /// `gmeow:definitionDigest` — the term's content-address (always present).
     digest: String,
@@ -2711,24 +2740,23 @@ struct TermProvenance {
 /// Read the term content manifest from
 /// `<root>/generated/catalog/term-content-manifest.nq` — every term's
 /// `gmeow:definitionDigest`, `gmeow:addedInVersion`, and reified
-/// `gmeow:hasChangelogEntry` records, keyed by term IRI. The file is a committed
+/// `gmeow:hasChangelogEntry` records, keyed by term IRI. The file is a materialized
 /// fixed-point projection of `gmeow.gts` (N-Quads: every triple in the manifest
 /// fanout named graph), so the reader queries graph-agnostically.
 ///
-/// This is a hard-fail read (mirrors [`read_constraint_catalog`]): a regenerated
-/// tree always carries this artifact, so a missing file, an unparsable one, or a
-/// term subject with no `gmeow:definitionDigest` is a broken invariant, never an
-/// optional input.
+/// A source-first bootstrap may not have materialized this projection yet, so absence
+/// yields an empty enrichment map; the in-pipeline entry point receives the fresh stage
+/// product in the same run. Once present, an unparsable file or a term subject with no
+/// `gmeow:definitionDigest` is a broken invariant and hard-fails.
 fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, DocsError> {
     let path = root.join("generated/catalog/term-content-manifest.nq");
     let bytes = match std::fs::read(&path) {
         Ok(bytes) => bytes,
         // Absent only during the one-shot bootstrap build that first mints the
-        // manifest (the stage writes it THIS build; the committed docs pick it up
-        // the next pass). An empty map skips every term's content-address for this
-        // pass — the two-phase fixed-point convergence. Strict sync still
-        // guarantees the committed manifest is present + current in a landed tree,
-        // so a genuinely-missing committed manifest is caught there, not silently.
+        // manifest. An empty map skips per-term content-address enrichment only for
+        // this standalone disk reader; the in-pipeline docs stage receives the fresh
+        // product directly in the same run, and strict sync verifies materialized
+        // fanout identity once the pipeline writes it.
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
         Err(e) => {
             return Err(DocsError::TermManifest(format!(
@@ -2741,7 +2769,7 @@ fn read_term_manifest(root: &Path) -> Result<BTreeMap<String, TermProvenance>, D
 }
 
 /// Parse term-content-manifest N-Quads (`source` names them for diagnostics) into
-/// the per-term provenance map. Shared by the committed-file reader
+/// the per-term provenance map. Shared by the materialized-file reader
 /// ([`read_term_manifest`]) and the fresh-stage-product path
 /// ([`DocsModel::discover_with_manifest_and_catalog`]).
 fn parse_term_manifest(
@@ -2772,7 +2800,11 @@ fn parse_term_manifest(
             let version = store.first_literal_of_any(&entry_node, GMEOW_ENTRY_VERSION);
             let note = store.first_literal_of_any(&entry_node, GMEOW_ENTRY_NOTE);
             if let Some(version) = version {
-                changelog.push(DocChangelogEntry { version, note });
+                changelog.push(DocChangelogEntry {
+                    version,
+                    note,
+                    source: DocChangelogSource::Computed,
+                });
             }
         }
         changelog.sort();
@@ -2791,19 +2823,17 @@ fn parse_term_manifest(
 
 /// Apply the term content manifest to a discovered model: set each documented
 /// term's `content_digest` and (manifest-authoritative) `added_in_version`, and
-/// UNION the manifest's computed changelog with the authored one (keyed by version;
-/// the authored `entryNote` wins a collision; authored-only and manifest-only
-/// versions are both kept).
+/// UNION the manifest's computed changelog with the authored one. Source kind is
+/// part of entry identity: authored and computed records at the same version both
+/// survive, while an exact duplicate from the same source is deduplicated.
 ///
-/// A documented term with NO manifest entry is a term added since the last commit:
-/// the stage recomputes the manifest to cover it THIS build, but the committed file
-/// the model reads still lags by one build. Such a term keeps its authored
+/// A documented term with NO manifest entry is a term added since the last
+/// materialization on the standalone disk path. Such a term keeps its authored
 /// provenance (empty `content_digest`, so the content-address citation line is
-/// simply omitted until the next regenerate pass promotes the fresh manifest) — the
-/// two-phase fixed-point convergence, never a hard-fail that would brick a
-/// term-adding regenerate.
+/// simply omitted until the live stage product is fanned out), never a hard-fail
+/// that would brick the materialization which creates that product.
 ///
-/// The `manifest` map is obtained by the caller — from the committed on-disk file
+/// The `manifest` map is obtained by the caller — from the materialized on-disk file
 /// ([`read_term_manifest`], used by [`DocsModel::discover`]) or from THIS run's
 /// fresh `stage-term-manifest` product bytes ([`parse_term_manifest`], used by
 /// [`DocsModel::discover_with_manifest_and_catalog`]) — so the pure application logic
@@ -2815,20 +2845,8 @@ fn apply_term_manifest(model: &mut DocsModel, manifest: BTreeMap<String, TermPro
         };
         term.content_digest = provenance.digest.clone();
         term.added_in_version = provenance.added_in_version.clone();
-        // Union by version: seed with the manifest entries, then let the authored
-        // entries override (authored note wins) — authored-only and manifest-only
-        // versions both survive.
-        let mut by_version: BTreeMap<String, Option<String>> = BTreeMap::new();
-        for entry in &provenance.changelog {
-            by_version.insert(entry.version.clone(), entry.note.clone());
-        }
-        for entry in &term.changelog {
-            by_version.insert(entry.version.clone(), entry.note.clone());
-        }
-        let mut merged: Vec<DocChangelogEntry> = by_version
-            .into_iter()
-            .map(|(version, note)| DocChangelogEntry { version, note })
-            .collect();
+        let mut merged = provenance.changelog.clone();
+        merged.extend(term.changelog.iter().cloned());
         merged.sort();
         merged.dedup();
         term.changelog = merged;
@@ -3353,7 +3371,7 @@ fn build_doc_terms(
             stability,
             added_in_version,
             changelog,
-            // The content-address is read from the committed term content manifest
+            // The content-address is read from the materialized term content manifest
             // in `discover` (a disk-read leaf), not from the module graph.
             content_digest: String::new(),
             // Profile membership needs the full slice set; computed in
@@ -3413,7 +3431,11 @@ fn extract_changelog(store: &Store, iri: &str) -> Vec<DocChangelogEntry> {
         let version = store.first_literal_of(&entry_node, GMEOW_ENTRY_VERSION);
         let note = store.first_literal_of(&entry_node, GMEOW_ENTRY_NOTE);
         if let Some(version) = version {
-            entries.push(DocChangelogEntry { version, note });
+            entries.push(DocChangelogEntry {
+                version,
+                note,
+                source: DocChangelogSource::Authored,
+            });
         }
     }
     entries.sort();
@@ -5053,8 +5075,8 @@ gmeow:Explicit    a owl:Class ;
         assert_eq!(by(&ext, "ExtDefault"), DocTermStability::Experimental);
     }
 
-    /// Reified changelog entries are parsed from blank nodes and sorted by
-    /// `(version, note)`; `addedInVersion` is the lowest literal.
+    /// Reified authored changelog entries are parsed from blank nodes, source-tagged,
+    /// and sorted by `(version, note, source)`; `addedInVersion` is the lowest literal.
     #[test]
     fn changelog_entries_parse_and_sort() {
         let ttl = r#"
@@ -5081,12 +5103,65 @@ gmeow:Thing a owl:Class ;
                 DocChangelogEntry {
                     version: "1.0.2".to_string(),
                     note: None,
+                    source: DocChangelogSource::Authored,
                 },
                 DocChangelogEntry {
                     version: "1.1.0".to_string(),
                     note: Some("Widened range.".to_string()),
+                    source: DocChangelogSource::Authored,
                 },
             ]
+        );
+    }
+
+    #[test]
+    fn authored_and_computed_changelog_entries_remain_distinct_and_stable() {
+        let term_iri = format!("{GMEOW_NS}BoundaryTerm");
+        let authored = DocChangelogEntry {
+            version: "1.0.0".to_string(),
+            note: Some("Authored release note.".to_string()),
+            source: DocChangelogSource::Authored,
+        };
+        let computed_same_release = DocChangelogEntry {
+            version: "1.0.0".to_string(),
+            note: Some("Definition changed".to_string()),
+            source: DocChangelogSource::Computed,
+        };
+        let computed_later = DocChangelogEntry {
+            version: "1.1.0".to_string(),
+            note: Some("Definition changed".to_string()),
+            source: DocChangelogSource::Computed,
+        };
+        let mut model = DocsModel {
+            terms: vec![DocTerm {
+                iri: term_iri.clone(),
+                changelog: vec![authored.clone()],
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+        let manifest = BTreeMap::from([(
+            term_iri,
+            TermProvenance {
+                digest: "blake3:0000000000000000000000000000000000000000000000000000000000000000"
+                    .to_string(),
+                added_in_version: Some("1.0.0".to_string()),
+                changelog: vec![computed_same_release.clone(), computed_later.clone()],
+            },
+        )]);
+
+        apply_term_manifest(&mut model, manifest.clone());
+        assert_eq!(
+            model.terms[0].changelog,
+            vec![authored.clone(), computed_same_release, computed_later],
+            "source kind is part of identity: authored and computed records at one release both \
+             remain visible"
+        );
+        let first = model.terms[0].changelog.clone();
+        apply_term_manifest(&mut model, manifest);
+        assert_eq!(
+            model.terms[0].changelog, first,
+            "reapplying the fixed-point manifest must not rewrite or duplicate authored history"
         );
     }
 

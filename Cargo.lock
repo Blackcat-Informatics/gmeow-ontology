@@ -2040,6 +2040,7 @@ dependencies = [
  "libc",
  "purrdf",
  "rayon",
+ "semver",
  "serde",
  "serde_json",
  "serde_yaml",

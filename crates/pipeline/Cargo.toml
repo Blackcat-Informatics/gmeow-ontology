@@ -28,6 +28,10 @@ path = "src/bin/medium-sweep.rs"
 name = "perf_gate_merge"
 path = "src/bin/perf_gate_merge.rs"
 
+[[bin]]
+name = "term-release-authority"
+path = "src/bin/term-release-authority.rs"
+
 [lib]
 # rlib-only: a pure-Rust engine crate consumed by the workspace.
 crate-type = ["rlib"]
@@ -164,6 +168,9 @@ serde.workspace = true
 # remains the deterministic human-readable cache index and several export formats.
 bincode = "1.3"
 serde_json.workspace = true
+# The tracked term-changelog authority is bound to an ordered ontology release
+# identity; arbitrary same-release boundary rewrites are rejected.
+semver.workspace = true
 # Report-only `perf_sample` binary: Unix child CPU/RSS/fault/block-I/O counters; the
 # scheduler also uses glibc's thread-safe `malloc_trim` at declarative serialization-
 # resource handoffs and the sole-terminal level boundary to return already-freed cold-

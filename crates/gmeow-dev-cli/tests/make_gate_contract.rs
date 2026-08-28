@@ -486,6 +486,10 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
         "the parallel fixture producer must contain only actions whose complete inputs are producer-independent"
     );
     assert!(
+        target_header(&makefile, "produce-producer-bound-test-fixtures").contains("rust-build"),
+        "a direct producer-bound invocation must establish the current shared Rust build before using gmeow-dev"
+    );
+    assert!(
         producer_bound.contains(
             "$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-bound"
         ),

@@ -30,7 +30,7 @@ use crate::badge;
 use crate::exec::ExecutableDocsData;
 use crate::i18n::{self, ENGLISH};
 use crate::llms::{self, LlmsBullet, LlmsSection};
-use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
+use crate::model::{DocChangelogEntry, DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
 use crate::source_map::{
     DocLinkResolution, LinkResolution, SLICE_PAGE_SOURCE, SourceToPageMap, fence_open,
 };
@@ -2035,10 +2035,10 @@ fn version_sort_key(version: &str) -> ((u64, u64, u64, u8), String) {
 /// Releases are listed newest-first; within a release, terms are CURIE-sorted.
 fn md_changelog(model: &DocsModel) -> String {
     let from = Page::Changelog.dir();
-    // release version → (added terms, changed (term, note) rows). BTreeMap keeps
+    // release version → (added terms, changed (term, entry) rows). BTreeMap keeps
     // the collection deterministic; the explicit version_sort_key drives display.
     let mut added: BTreeMap<String, Vec<&DocTerm>> = BTreeMap::new();
-    let mut changed: BTreeMap<String, Vec<(&DocTerm, Option<String>)>> = BTreeMap::new();
+    let mut changed: BTreeMap<String, Vec<(&DocTerm, &DocChangelogEntry)>> = BTreeMap::new();
     for term in &model.terms {
         if let Some(version) = &term.added_in_version {
             added.entry(version.clone()).or_default().push(term);
@@ -2047,7 +2047,7 @@ fn md_changelog(model: &DocsModel) -> String {
             changed
                 .entry(entry.version.clone())
                 .or_default()
-                .push((term, entry.note.clone()));
+                .push((term, entry));
         }
     }
 
@@ -2091,15 +2091,25 @@ fn md_changelog(model: &DocsModel) -> String {
                 a.0.curie
                     .cmp(&b.0.curie)
                     .then_with(|| a.0.iri.cmp(&b.0.iri))
+                    .then_with(|| a.1.source.cmp(&b.1.source))
+                    .then_with(|| a.1.note.cmp(&b.1.note))
             });
             heading(&mut out, 3, model.ui("body_changelog_changed"));
-            for (term, note) in rows {
-                match note {
+            for (term, entry) in rows {
+                let source = entry.source.wire();
+                match &entry.note {
                     Some(note) => push_line(
                         &mut out,
-                        &format!("- {} — {}", term_link(&from, term), md_escape(&note)),
+                        &format!(
+                            "- {} ({source}) — {}",
+                            term_link(&from, term),
+                            md_escape(note)
+                        ),
                     ),
-                    None => push_line(&mut out, &format!("- {}", term_link(&from, term))),
+                    None => push_line(
+                        &mut out,
+                        &format!("- {} ({source})", term_link(&from, term)),
+                    ),
                 }
             }
             blank(&mut out);
@@ -3180,12 +3190,20 @@ fn term_academic_surface(
             );
         }
         for entry in &term.changelog {
+            let source = entry.source.wire();
             match &entry.note {
                 Some(note) => push_line(
                     &mut out,
-                    &format!("- **{}** — {}", md_escape(&entry.version), md_escape(note)),
+                    &format!(
+                        "- **{}** ({source}) — {}",
+                        md_escape(&entry.version),
+                        md_escape(note)
+                    ),
                 ),
-                None => push_line(&mut out, &format!("- **{}**", md_escape(&entry.version))),
+                None => push_line(
+                    &mut out,
+                    &format!("- **{}** ({source})", md_escape(&entry.version)),
+                ),
             }
         }
         blank(&mut out);
