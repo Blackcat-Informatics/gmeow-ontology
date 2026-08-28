@@ -91,23 +91,36 @@ Stage kinds (source-load, transform, reason, validate, docs-render) differ only 
 *what* they contribute and *what they read*, never in *how* they deliver it: all
 deliver by attaching to the carrier.
 
-**The carrier's lifetime is bounded (drop-after-last-consumer).** Rule 4 is what
-makes a stage's carrier *provably dead* once the last stage declaring it has run:
-nothing can still read it. The whole-repository build therefore **releases** it at
-that point — the dataset, the typed handles, the blob records, the provenance, and
-the internal `pipeline/`-prefixed byte artifacts are freed — keeping only the
-committed byte artifacts the post-run reconcile still owes, and the product's
-`digest` verbatim. Peak residency is then the live frontier plus the run's outputs,
-not the **sum** of every stage's cumulative carrier snapshot over the DAG; the
-latter grows with both the corpus and the stage count, and is a build that dies as
-the ontology grows rather than one that scales with it.
+**The carrier's lifetime is bounded (drop-after-last-carrier-consumer).** Every
+`dataflowConsumes` edge remains the authored scheduling, action-key, and artifact
+dependency. The executable `carrier_consumes()` subset says which of those edges
+also reads the live transport lanes. The loader requires that subset to be unique
+and contained in `dataflowConsumes`; it cannot create a shadow DAG. A producer's
+carrier is therefore *provably dead* once its last declared carrier reader has run,
+or immediately after production when every later reader is artifact-only. The
+whole-repository build **releases** it at that point — the dataset, typed handles,
+blob records, provenance, and internal `pipeline/`-prefixed byte artifacts are freed
+— keeping only the committed byte artifacts later consumers and the post-run
+reconcile still read, plus the product's `digest` verbatim. Peak residency is then
+the live carrier frontier plus the run's outputs, not the **sum** of every stage's
+cumulative carrier snapshot over the DAG; the latter grows with both the corpus and
+the stage count, and is a build that dies as the ontology grows rather than one that
+scales with it.
 
 The release is invisible: it never changes a produced byte, and the run's
-order-independent `combined_digest` is identical with or without it. A reader that
-reaches for a released carrier — necessarily an out-of-band whole-run consumer, never
-a stage — HARD-fails on the released marker rather than seeing an empty dataset. Such
-a consumer selects full retention explicitly; that selection is a profile, not a
-degradation, because both profiles produce the identical products.
+order-independent `combined_digest` is identical with or without it. A stage that
+reaches for a carrier through an artifact-only edge, or an out-of-band whole-run
+reader that reaches for an unretained intermediate, HARD-fails on the released marker
+rather than treating the empty residue as data. A post-run proof names the exact
+intermediate carriers it retains in the run context; `RetainAll` remains an explicit
+diagnostic profile. These profiles change only residency, never produced bytes.
+On glibc Linux, the scheduler also requests allocator reclamation whenever ownership
+of the declarative serialization-buffer resource passes to the next carrier-scale
+serializer, and at the topological barrier immediately before the unique terminal.
+That returns pages already freed by cold export, mapping, and dictionary waves instead
+of carrying arena slack into the next whole-document buffer; on other allocators it is
+a no-op, and on every platform it changes only residency, never the live value graph or
+output.
 
 ## 4. One terminal
 
@@ -263,6 +276,13 @@ reconstruction does not match the committed bytes, is a hard failure: no skips, 
 optional coverage, no degraded pass (the project's low/no-optionality, hard-fail
 stance). The gate is the drift check that keeps the bundle honest as a superset, the
 same way the existing drift gates keep the projections honest (Principle 7).
+
+The read-only reconcile consumes stage products one at a time and handles the
+declared terminal last. By the time the superset gate imports `gmeow.gts`, every
+non-terminal committed-artifact store has already been compared and released. The
+independent import therefore overlaps only the terminal bytes it is proving, not the
+entire post-DAG artifact frontier; check and update retain the same bounded-residency
+contract while exercising the same exact carrier.
 
 ## 8. Consequences and non-goals
 

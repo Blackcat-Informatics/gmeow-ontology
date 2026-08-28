@@ -2068,10 +2068,12 @@ fn example_allows_focus_pruning(example: &RdfDataset) -> bool {
 }
 
 fn is_schema_type(term: &RdfTerm) -> bool {
-    matches!(
-        term,
-        RdfTerm::Iri(iri)
-            if iri == owl::CLASS
+    // A schema type is authored in the canonical `logic:` spelling; lower it to its
+    // `owl:` view so the test recognizes both spellings after the surface flip.
+    match term {
+        RdfTerm::Iri(iri) => {
+            let iri = gmeow_ns::to_owl_view(iri);
+            iri == owl::CLASS
                 || iri == rdfs::DATATYPE
                 || iri == RDF_PROPERTY
                 || iri == owl::OBJECT_PROPERTY
@@ -2079,7 +2081,9 @@ fn is_schema_type(term: &RdfTerm) -> bool {
                 || iri == owl::ANNOTATION_PROPERTY
                 || iri == owl::FUNCTIONAL_PROPERTY
                 || iri.starts_with(SHACL_NS)
-    )
+        }
+        _ => false,
+    }
 }
 
 fn affected_focus_terms(example_projected: &RdfDataset) -> HashSet<purrdf::shapes::term::Term> {
@@ -2715,6 +2719,7 @@ ex:x rdf:type ex:A .
     fn gts_bytes_from_turtle(ttl: &str) -> Vec<u8> {
         let dataset =
             purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse test turtle");
+        // gmeow-test-input: synthetic-only
         purrdf::gts_write::to_gts(
             &dataset,
             &purrdf::RdfLookaside::default(),

@@ -103,7 +103,9 @@ pub fn annotation_pred_is_load_bearing(predicate: &str) -> bool {
 /// `logic:` prefix), taken verbatim from `slices/grounding/logic/module.ttl` — any
 /// change there must be reflected here.  A preset is sugar the front-end expands
 /// to a full [`ReasoningContract`] facet selection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum SemanticProfileId {
     /// `logic:PositiveHornProfile`.
     PositiveHorn,
@@ -182,7 +184,19 @@ impl fmt::Display for SemanticProfileId {
 /// (law-spine, relation lattice, `get`/`put` legs, quantitative axes) is the
 /// correspondence calculus (`design/LOGIC-CORRESPONDENCE.md`); this slice only reserves
 /// the slot so identity and ordering are kind-aware before that body lands.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Default,
+    serde::Serialize,
+    serde::Deserialize,
+)]
 pub enum NodeKind {
     /// `logic:ObjectLevelFormula` — an ordinary first-order formula over the domain.
     /// The axiom default, and the canonical `NodeKind::default()`.
@@ -394,7 +408,19 @@ impl fmt::Display for PreservationKind {
 /// World/modal kinds from the `logic:World` taxonomy.
 ///
 /// [`LogicModality::None`] is the default, unmodalized reading.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Default,
+    serde::Serialize,
+    serde::Deserialize,
+)]
 pub enum LogicModality {
     /// No modal annotation (`"none"`).
     #[default]
@@ -458,7 +484,9 @@ impl fmt::Display for LogicModality {
 
 /// A typed wrapper for `logic:complexityClass` values (free-text, e.g. `"PTIME"`,
 /// `"N2EXPTIME"`, `"terminating/PTIME-data"`, `"undecidable"`).
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct ComplexityClass {
     label: String,
 }
@@ -493,7 +521,7 @@ impl fmt::Display for ComplexityClass {
 /// All fields are optional (`None` = not declared).  Note: the scope is **not**
 /// part of any `sort_key` (mirroring Python) — it participates in equality and the
 /// canonical content key, but not in canonical *ordering*.
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, serde::Serialize, serde::Deserialize)]
 pub struct ContextualScope {
     /// IRI string of the standpoint (`logic:World` individual).
     pub standpoint: Option<String>,
@@ -580,7 +608,7 @@ fn py_bool(b: bool) -> &'static str {
 /// Variables are encoded as `?`-prefixed strings inside `subject` / `obj` (there
 /// is no separate term enum at the compile layer — the lowering to the evaluable
 /// IR splits `?x` → variable, else IRI/literal).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct LogicAxiom {
     /// IRI string (or `?var`) of the axiom subject.
     pub subject: String,
@@ -720,7 +748,7 @@ impl LogicAxiom {
 /// computation surface (the "map" half is an ordinary derivation rule); it lowers to an
 /// aggregating rule and to a SHACL-AF `GROUP BY` sub-`SELECT`. A rule without an
 /// `AggregateSpec` is an ordinary Horn rule, so the existing corpus is byte-identical.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct AggregateSpec {
     /// The aggregate function, an upper-case name (`SUM`, `COUNT`, `MIN`, `MAX`, `AVG`).
     pub function: String,
@@ -770,7 +798,7 @@ impl AggregateSpec {
 /// The `body` is stored in canonical (sorted) order; the `distinct_pairs`
 /// inequality guards are canonicalized (each pair sorted internally, the
 /// whole set sorted).  Construct via [`LogicRule::new`] so the invariants hold.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct LogicRule {
     /// The derived axiom (consequent).
     pub head: LogicAxiom,
@@ -925,7 +953,7 @@ impl LogicRule {
 /// `set_*` builder methods; the front-end populates it from the graph.  Derives
 /// `Eq` but **not** `Hash` (it holds `BTreeMap`, and nothing keys a `HashMap` on
 /// it).
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub struct ReasoningContract {
     /// Set when the contract was authored as / expanded from a named preset.
     pub preset: Option<SemanticProfileId>,
@@ -1099,7 +1127,9 @@ impl ReasoningContract {
 /// The base step of a [`PathShapeIr`]: either one named predicate or a wildcard
 /// matching any predicate. The two are structurally exclusive (a step is a named
 /// edge XOR any edge); the front-end rejects a graph node that declares both.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum PathBase {
     /// A named-predicate step: the IRI string every hop traverses
     /// (`logic:pathStepPredicate`).
@@ -1116,7 +1146,7 @@ pub enum PathBase {
 /// This is the canonical form; the SPARQL property-path and Datalog renderings are
 /// projections (Principle 17). The depth range is `min_depth ..= max_depth`, with
 /// `max_depth == None` meaning unbounded (the `+` / transitive-closure reading).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct PathShapeIr {
     /// IRI string of the shape individual.
     pub iri: String,
@@ -1289,7 +1319,9 @@ impl PathShapeIr {
 /// The `logic:CorrespondenceRelation` lattice: `Equiv` ⊐ {`Subsumes`, `SubsumedBy`} ⊐
 /// `Overlaps` ⊐ `RelatedMatch`, with `Disjoint` the negative pole.  Variant order is
 /// the lattice order (strongest first), so the derived `Ord` ranks relations.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum CorrespondenceRelation {
     /// `logic:Equiv` — same extension (lattice top).
     Equiv,
@@ -1356,7 +1388,7 @@ impl fmt::Display for CorrespondenceRelation {
 /// A lawful `put` leg is the structural [`LegPath::invert`] of its `get` leg: that is what
 /// makes `put ∘ get = id` a *decidable* canonical-IR identity (the spec's graph-iso check)
 /// rather than a data-execution round-trip (the F3 executor, off this path).
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum LegPath {
     /// A single forward predicate step (`gm:SeqPath` member / bare predicate IRI).
     Step(String),
@@ -1430,7 +1462,7 @@ impl LegPath {
 /// [`LegPath`] body. The registry the `logic:getLeg` / `logic:putLeg` IRIs on a
 /// [`Correspondence`] resolve through, so the round-trip gate can compose the actual leg
 /// bodies rather than compare opaque IRIs.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct TransactionProgramIr {
     /// IRI of the leg program individual (what a `logic:getLeg` / `logic:putLeg` names).
     pub iri: String,
@@ -1453,7 +1485,9 @@ impl TransactionProgramIr {
 /// The `logic:MorphismClass` ordered law-spine — the seven rungs capping how much
 /// invertibility a correspondence may lawfully claim, strongest first.  The derived
 /// `Ord` is the spine order; composition can only weaken the rung, never strengthen it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum MorphismClass {
     /// `logic:Isomorphism` — full round-trip both ways (top rung).
     Isomorphism,
@@ -1525,7 +1559,9 @@ impl fmt::Display for MorphismClass {
 
 /// The `logic:MorphismKind` qualifier, orthogonal to the rung: the
 /// satisfaction-preserving / commitment-shifting split.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum MorphismKind {
     /// `logic:InstitutionMorphism` — satisfaction-preserving morphism.
     InstitutionMorphism,
@@ -1566,7 +1602,9 @@ impl fmt::Display for MorphismKind {
 
 /// The `logic:Determinacy` axis: whether the target relationship is ontically crisp or
 /// vague (kept distinct from `logic:confidence`).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum Determinacy {
     /// `logic:Crisp` — ontically sharp.
     Crisp,
@@ -1605,7 +1643,9 @@ impl fmt::Display for Determinacy {
 }
 
 /// The `logic:CorrespondenceLaw` value class: the lens laws a correspondence may claim.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum CorrespondenceLaw {
     /// `logic:GetPut` — `put(get(s), s) = s` (acquisition stability).
     GetPut,
@@ -1656,7 +1696,9 @@ impl fmt::Display for CorrespondenceLaw {
 /// of the `logic:DischargeVerdict` individuals in `module.ttl` — the foundation engine
 /// works over the graph in string wire form; this is the IR-layer enum so a
 /// `Correspondence` carries its law verdicts typed and content-addressed.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum DischargeVerdict {
     /// `logic:ObligationDischarged` — conclusively checked within a declared condition.
     ObligationDischarged,
@@ -1701,7 +1743,9 @@ impl fmt::Display for DischargeVerdict {
 
 /// The `logic:DischargeCondition` value class (reused from the foundation): the
 /// condition under which a law claim's verdict is conclusively checkable.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum DischargeCondition {
     /// `logic:DischargeCertifiedFragment`.
     DischargeCertifiedFragment,
@@ -1753,7 +1797,9 @@ impl fmt::Display for DischargeCondition {
 
 /// A `logic:LawClaim`: a claimed [`CorrespondenceLaw`] with its discharge state — the
 /// [`DischargeVerdict`] and, when checked under one, the [`DischargeCondition`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct LawClaimIr {
     /// The lens law being claimed (`logic:lawClaimed`).
     pub law: CorrespondenceLaw,
@@ -1793,7 +1839,7 @@ fn opt_axis_key(v: Option<f64>) -> String {
 /// The case is neutral evidence: its transform may discharge a genuine recovery or refute a
 /// lossy one.  It therefore never substitutes for the correspondence's `mnemomorphic` claim;
 /// the native executor decides the claim from the case's behavior.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct RecoveryCaseIr {
     /// IRI of the first-class `logic:RecoveryCase` node.
     pub iri: String,
@@ -1832,7 +1878,7 @@ impl RecoveryCaseIr {
 /// `iri` field) and [`Correspondence::content_key`] folds every field deterministically (the
 /// `law_claims` and recovery cases are canonicalized at construction). No `Eq`/`Hash` derive:
 /// the quantitative axes are `f64` (mirrors [`LogicAxiom`]).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Correspondence {
     /// IRI string of the correspondence individual (identity).
     pub iri: String,
@@ -2142,7 +2188,9 @@ fn assert_unique_recovery_case_iris(
 /// [`Term::Iri`], never as a higher-typed slot.  Variables carry their **authored**
 /// name (no `?` sigil — that is a surface convention); the canonical key replaces the
 /// name with a binder-relative token so alpha-equivalent formulas share identity.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum Term {
     /// A bound or free variable (authored name, no `?` sigil).
     Var(String),
@@ -2336,7 +2384,7 @@ fn resolve_binding(env: &[(String, String)], name: &str) -> String {
 /// Horn triple, so there is no separate triple leaf: the Horn sub-fragment lives in
 /// [`LogicProgram::axioms`] / [`LogicProgram::rules`], and a trivially-Horn atom may not
 /// enter [`LogicProgram::formulas`].
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Formula {
     /// An atomic predication `relation(arg₀, …, argₙ)`. `relation` is a [`Term::Iri`]
     /// (the reified relation / HiLog individual — the constructor rejects a
@@ -2388,7 +2436,9 @@ pub enum Formula {
 /// ledger token; it mirrors the `logic:FormulaShape` individuals in `module.ttl`
 /// (`formula_shape_values_match_module_ttl` pins the two in sync). Variants are declared in
 /// `as_str`-lexical order so the derived `Ord` is the canonical ledger order.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum FormulaShape {
     /// A disjunction `∨` appears — a choice the determinate Horn body cannot express.
     Disjunctive,
@@ -2729,7 +2779,7 @@ fn binder_key(
 /// diagnostic at parse time rather than either defaulting silently or smuggling an opaque
 /// string through as a would-be "mode" the rest of the compiler cannot dispatch on
 /// (no-optionality: explicit feature selection is fine, silent degradation is not).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum EvaluationMode {
     /// `logic:BackwardEvaluation` — goal-directed SLG-WFS backward resolution: tabled
     /// (SLG) demand-driven answer keying, structured-term unification over
@@ -2780,7 +2830,9 @@ impl EvaluationMode {
 /// `content_key` have an identical `sort_key` (`Formula::sort_key == Formula::content_key`),
 /// so their relative order — and hence each one's occurrence index — is preserved between the
 /// frontend's authoring order and the post-sort order the lowerer walks.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub enum VariableSortScope {
     /// A variable occurring in the clause whose [`Formula::content_key`] is `key`, further
     /// disambiguated by `occurrence` (the number of prior clauses sharing that same key) so
@@ -2843,7 +2895,7 @@ impl VariableSortScope {
 /// strategy SELECTOR over one strategy-neutral clause set, not a program-kind split, so a
 /// future forward-chase [`EvaluationMode`] member evaluates the identical clauses without
 /// re-authoring (see `module.ttl`'s `logic:ReasoningProgram` definition).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct ReasoningProgramIr {
     /// IRI of the `logic:ReasoningProgram` individual (identity / sort key).
     pub iri: String,
@@ -3036,7 +3088,7 @@ impl ReasoningProgramIr {
 /// Aggregates axioms, rules, and reasoning contracts; the unit of comparison for
 /// the round-trip isomorphism gate.  Construct via [`LogicProgram::new`] so the
 /// canonicalization contract (sorted collections) holds.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct LogicProgram {
     /// Axioms in canonical order.
     pub axioms: Vec<LogicAxiom>,

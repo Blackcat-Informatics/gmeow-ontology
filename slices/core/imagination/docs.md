@@ -138,12 +138,13 @@ asserted triples into those namespaces), so the slice stays DL-clean standalone.
 
 ## Verified by construction
 
-The slice-resident structural cells (`tests/structural.ttl`, run by `make slicetest`) pin
+The slice-resident structural cells (`tests/structural.ttl`, covered by the cached
+slice-spec producer verdict in `make check`) pin
 the term set, the value-vocab discipline (individuals, never subclasses), the OPEN
 domains/ranges, the absence of `rdfs:subPropertyOf` among the spine, the lang-tag
 discipline (`@x-gmeow-english` on every localizable literal), and the by-reference
 discipline (no asserted `logic:` triple). The exact-set invariant a module-scoped `ASK`
 cannot express — the manifest's `sliceDependsOn` = kernel only — is pinned by the native
-Rust conformance twin in `crates/validate/tests/conformance_imagination.rs`. The two
+Rust conformance twin in `crates/validate/tests/conformance_cases/conformance_imagination.rs`. The two
 `examples/` graphs — counterfactual rehearsal and reality-monitoring — load and validate
 against the merged SHACL shapes.

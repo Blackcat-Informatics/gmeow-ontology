@@ -47,6 +47,11 @@ gmeow-mcp = { path = "../mcp", default-features = false, features = ["reasoning"
 wasm-bindgen.workspace = true
 
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
+# The witness producer and native parity test parse the embedded judgment graph
+# before accepting it as durable evidence, so malformed N-Quads fails at the
+# producer boundary rather than shipping as an apparently valid attestation.
+purrdf.workspace = true
 # The native witness parses the JSON-RPC response frame back to assert the envelope
 # shape (`result.content[0].text`, `isError`) before pinning the attestation, so a
 # malformed frame fails as a frame defect rather than as a byte diff.

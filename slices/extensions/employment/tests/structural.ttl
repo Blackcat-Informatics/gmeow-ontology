@@ -12,7 +12,7 @@
 #
 # The cross-slice EventType invariant, the SHACL fixture-conformance checks, and
 # the whole-graph negative sweep now live natively in
-# crates/validate/tests/conformance_employment.rs
+# crates/validate/tests/conformance_cases/conformance_employment.rs
 # (employment_event_types_are_values, contested/withdrawn conform cases +
 # GraphStore ABox twins, no_preferred_or_primary_employment_term).
 

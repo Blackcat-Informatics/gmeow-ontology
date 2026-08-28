@@ -47,10 +47,10 @@ Every design decision, code modification, and schema change is governed by the n
 * **Validation is authored in `logic:`, never on a shape surface (Principle 17)**: OWL, SHACL, ShEx, and Datalog are **generated lossy projections** of the canonical `logic:` core, not authoring surfaces. See [`slices/grounding/logic/design/LOGIC-VALIDATION.md`](./slices/grounding/logic/design/LOGIC-VALIDATION.md) and [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./docs/MIGRATING-SHAPES-TO-LOGIC.md). Concretely, when you add a constraint to a slice:
   * **NEVER hand-author a `sh:NodeShape` / `sh:PropertyShape` in a slice's `shapes.ttl`** (or root `shapes/*.ttl`). A hand-authored shape is a **second source of truth** no reasoner backs, no loss ledger governs, and free to drift — it is sealed off by the projection-purity gate (`meta:gate-projection-shape-purity`). Any authored shape that remains must carry a `logic:formalizes` back-reference naming the `logic:` node it projects; an un-backed shape is flagged `slice-quality.projection.ungrounded-shape` by the `gmeow:axisShapeMigration` quality axis. (The many legacy `shapes.ttl` blocks are a **debt being migrated under equivalence-before-deletion**, not a pattern to copy.)
   * **The projection-vocabulary ratchet caps net-new ungrounded growth.** A `make check` gate holds a per-(slice, guarded-vocabulary) non-increasing ceiling on ungrounded residue — hand-authored constructs carrying no resolvable typed `logic:formalizes`, authored outside the vocabulary's grounding-slice owner boundary. Net-new second-source authoring in SHACL, gUFO, BFO/OBO/DOLCE/SUMO bridge vocabularies, RDFS subsumption (`rdfs:subClassOf`/`subPropertyOf`), and the alignment stack reds the gate; a ceiling only ever falls relative to its **relocation-adjusted base** (equivalence-before-deletion). A ceiling budgets net-new ungrounded *authoring*, which is location-independent, so a dated `gmeow:CeilingRelocation` re-projects the merge-base ceiling through a declared move **before** the unchanged lower-only comparison runs — every transported unit must be witnessed by a construct that genuinely departed the source and arrived at the destination, funded by a matching lowering, and pinned to the destination's measured residue. No tool ever creates headroom: a raise beyond that adjustment still reds and is still a maintainer-only decision authorized out-of-band. Axis floors are deliberately **not** netted by a relocation — a floor measures the documentation quality of the inventory a slice owns, which really is location-dependent. See [`docs/PROJECTION-VOCABULARY-RATCHET.md`](./docs/PROJECTION-VOCABULARY-RATCHET.md).
-  * **Declarative checks** (cardinality, `sh:class`/datatype/node-kind/value-set) are authored as **ordinary EL-safe OWL/RDFS axioms in the slice's `module.ttl`** — `rdfs:domain`/`rdfs:range`, `owl:allValuesFrom`/`someValuesFrom`/`hasValue`, `owl:oneOf`, `owl:disjointWith`, `owl:FunctionalProperty`, and `owl:maxQualifiedCardinality`/`minQualifiedCardinality` **+ `owl:onClass`**. The pipeline **derives** the SHACL Core + ShEx surfaces from these axioms (`derive_validation_shapes`); you write the axiom, never the shape. **Never** un-qualified `owl:cardinality`/`owl:minCardinality`/`owl:maxCardinality` (out of the EL fragment — hard-fails `make reason-verify`). A genuinely closed-world **required path** (`sh:minCount 1`) is `owl:allValuesFrom` **plus** an explicit `logic:ClosureEntry` (`logic:onClass K`, `logic:closureKey P`, `logic:closureValue logic:ClosedWorldClosure`), never a bare existential.
+  * **Declarative checks** (cardinality, `sh:class`/datatype/node-kind/value-set) are authored as **ordinary EL-safe `logic:` axioms in the slice's `module.ttl`** — `logic:domain`/`logic:range`, `logic:allValuesFrom`/`someValuesFrom`/`hasValue`, `logic:oneOf`, `logic:disjointWith`, `logic:functionalProperty`, and `logic:maxQualifiedCardinality`/`minQualifiedCardinality` **+ `logic:onClass`** (the generated OWL/RDFS projection spells these `owl:`/`rdfs:`, but that surface is a view, never an authoring surface — reintroducing `owl:` into a `module.ttl` reds the source lint). The pipeline **derives** the SHACL Core + ShEx surfaces from these axioms (`derive_validation_shapes`); you write the axiom, never the shape. **Never** un-qualified `logic:cardinality`/`logic:minCardinality`/`logic:maxCardinality` (out of the EL fragment — hard-fails `make reason-verify`). A genuinely closed-world **required path** (`sh:minCount 1`) is `logic:allValuesFrom` **plus** an explicit `logic:ClosureEntry` (`logic:onClass K`, `logic:closureKey P`, `logic:closureValue logic:ClosedWorldClosure`), never a bare existential.
   * **Procedural / cross-node checks** (value comparisons, guarded existence, uniqueness, forbidden patterns) are authored as a **`logic:Constraint`** whose `logic:integrity` is a realized `logic:Formula` tree (`∀/∃/∧/∨/¬/→`, `logic:relation` + `logic:argument`), carrying `logic:formalizes` and `logic:message`. The pipeline lowers it to a `sh:SPARQLConstraint`. Slice sugar (`logic:GuardedImplicationConstraint`, `logic:ChoiceGroupConstraint`, `logic:ForbiddenPatternConstraint`, …) is available; see [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./docs/MIGRATING-SHAPES-TO-LOGIC.md) for the cheatsheet and [`slices/core/ai/module.ttl`](./slices/core/ai/module.ttl) for worked examples.
   * **Mathematical / structural laws** are authored as real first-order `logic:Formula` ASTs (e.g. `math:continuityLaw`), attached via `math:definingLaw`/`math:preservesStructure`; a genuinely higher-order property that is not first-order axiomatizable is carried as an honest `logic:expressivenessBoundary` record (e.g. `math:compactnessBoundary`), never a faked formula.
-  * **In short — OWL as a downstream *surface* is a code smell; OWL/RDFS declarative *axioms in `module.ttl`* are the canonical derive-source and are correct.** If a check cannot be expressed as an EL-safe axiom or a `logic:Constraint`, it is carried as flagged unsupported residue in the loss ledger and the check is relocated — a STOP-and-ask, never a self-granted hand-authored-shape exception.
+  * **In short — a hand-authored OWL/RDFS or shape *surface* is a code smell; the `logic:` declarative *axioms in `module.ttl`* are the canonical authoring/derive-source, and OWL/RDFS is only their generated projection (never an authoring surface).** If a check cannot be expressed as an EL-safe `logic:` axiom or a `logic:Constraint`, it is carried as flagged unsupported residue in the loss ledger and the check is relocated — a STOP-and-ask, never a self-granted hand-authored-shape exception.
 
 ### No-optionality doctrine
 
@@ -104,7 +104,7 @@ When adding a command, ask the razor first. If it needs a repo path that the bin
 make help            # Show the grouped task plan
 make install         # Source-first bootstrap: build the producer, sync generated/, build the consumer CLIs
 make fmt             # Auto-format Rust sources with cargo fmt
-make lint            # Run the issue-ref lint and the pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets)
+make lint            # Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, source-policy seals)
 make clean           # Remove ephemeral build artifacts and native build stamps
 ```
 
@@ -247,9 +247,53 @@ second reasoner on-gate.
 
 ### Testing & Verification
 
+#### Corpus rebuilds from tests are malicious and forbidden
+
+**No test may ever rebuild, regenerate, materialize, compile, or otherwise
+produce the corpus. There are no exceptions.** This prohibition applies both
+to work performed inside the test and to work triggered indirectly through
+library or production code, fixtures, setup hooks, subprocesses, CLIs, Make
+targets, helper scripts, build scripts, or any other code or tool.
+
+Tests may only consume an already-produced, authenticated corpus whose exact
+identity is supplied to the test. If that corpus is absent, stale, corrupt, or
+has the wrong identity, the test must fail closed; a cache miss, retry, or
+fallback must never trigger corpus construction. Corpus production belongs in
+an explicit producer stage that completes before the test process starts, and
+the test runner may not invoke that stage. Any test path that attempts to
+produce the corpus, directly or indirectly, is to be treated as malicious code
+and blocks review, commit, and merge.
+
+`make produce-test-fixtures` is the explicit local producer boundary. It writes
+the selected stable-stage action receipts to
+`.cache/gmeow-sync/test-fixture-manifest-v2.json`; the runner supplies that
+manifest's exact SHA-256 to each test process. Loaders use those recorded action
+contexts directly, so a nonpersistent upstream never causes a dependency walk,
+and a test cannot turn a cache miss into DAG execution. `make nextest` verifies
+the selector read-only before starting the suite. CI transfers the selector and
+action store from the producer job and binds the selector digest into the
+authenticated nextest-archive receipt.
+
+The same selector carries the exact producer-profile bundle-import receipt and
+every bundle-derived corpus-artifact action. A test binary may be compiled under
+a different Cargo profile, but it must load the producer-selected action rather
+than derive a new key from its own profile. Nextest performs no automatic retry:
+a failed whole-bundle consumer is terminal instead of silently multiplying the
+dominant work.
+
+The 143 repository slice specifications and three grounding flagship manifests
+are also producer work, not nextest cases. Each declarative spec is an
+independently content-addressed DAG node; the aggregate verdict records every
+exact task receipt. A competency miss wave shares its merged and closed stores
+inside one isolated worker, while structural and conformance misses run in
+memory-reclaiming child processes. A completed task is published immediately,
+so later failure never discards its reusable result. The test runner may only
+verify the aggregate verdict read-only; slice tests may not call the repository
+sweep, its private worker, or its corpus stores directly.
+
 ```bash
 make check           # Synchronize outputs, then run the local gate DAG (every task)
-make heavy           # CI-ONLY breadth lane (wasm parity, transpile acceptance, golden soak)
+make heavy           # CI-ONLY breadth lane (wasm/browser parity, transpile acceptance, golden soak)
 make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
 make clippy          # Run cargo clippy on all Rust targets with warnings as errors
 make rust-build      # Compile Rust workspace test binaries without running them
@@ -266,20 +310,27 @@ it.
 selection profile. What it does own is an *accurate* dependency graph: a task
 declares `sync` as a prerequisite if and only if it reads a `generated/` artifact,
 so the lint, crate-layering, and translation gates start in the first scheduling
-wave rather than queueing behind synchronization, and the Rust surface runs as four
-concurrent siblings (`carrier-purity`, `clippy`, `nextest`, `doctests`) under one
-`rust-build`. Use `make check CHECK_ARGS="--explain"` to print the wave plan
+wave rather than queueing behind synchronization, and the Rust surface runs as three
+concurrent siblings (`clippy`, `nextest`, `doctests`) under one `rust-build`.
+Carrier-purity and coherence-teeth proofs are part of that single nextest inventory,
+so neither triggers a second workspace build. Use `make check CHECK_ARGS="--explain"` to print the wave plan
 without running anything or taking the host gate lock, and
 `CHECK_ARGS="--timings-json dist/check-timings.json"` to record per-task wall time.
 
 `make heavy` is the CI-only companion: the lanes whose runtime is set by breadth
 (a whole-external-corpus recall sweep, four release wasm builds plus four Node
-execution lanes) or by a repeat-for-confidence soak. It refuses to run unless both
+execution lanes, or the 41-case browser/package sweep) or by a repeat-for-confidence
+soak. It refuses to run unless both
 `CI=true` and a CI-vendor marker are set. Nothing was dropped — CI runs `make heavy`
 on every PR — and each task stays runnable by name (`make wasm-parity`).
 
-The entire toolchain is native Rust; there is no Python test suite. To run a
-single crate's tests, use `cargo nextest run -p <crate>`.
+The entire toolchain is native Rust; there is no Python test suite. A direct
+package-scoped Cargo invocation can create a second feature/build lineage after
+the workspace inventory is already compiled. Prefer `make nextest
+NEXTEST_FILTER='package(<crate>)'`, which filters the authenticated workspace
+inventory without changing its Cargo graph. A corpus-backed test must run after
+the explicit fixture producer and receive the producer-selected manifest
+identity; it must never synthesize that identity or run the producer itself.
 
 Generic RDF 1.2 / RDF\* and SPARQL compliance belongs to PurRDF's own test
 suite. GMEOW does not duplicate that authority with queries that merely prove

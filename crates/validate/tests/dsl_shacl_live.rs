@@ -14,9 +14,7 @@
 //!    non-empty inputs for every `OnValidate` DSL surface, and the three surfaces
 //!    partition every `.ttl` under `dsl/` (disjoint + exhaustive), so a new
 //!    `dsl/` subtree with no covering surface fails rather than going dark.
-//! 2. [`real_dsl_conforms_to_committed_shapes`] — the real corpus actually
-//!    conforms; this is the check the live gate now runs, proven green here.
-//! 3. [`dsl_shacl_can_fail`] — the failability proof: a deliberately
+//! 2. [`dsl_shacl_can_fail`] — the failability proof: a deliberately
 //!    nonconforming fixture against the REAL committed shapes yields an Error, so
 //!    the guard cannot degrade into a presence assertion.
 
@@ -29,7 +27,7 @@ use gmeow_validate::dsl_shacl::validate_dsl;
 use gmeow_validate::validate_all::collect_ttl_paths;
 
 /// Repository root: `crates/validate/../.. == <repo>` (same pattern as
-/// `example_sweep.rs` and the foundation-corpus tests).
+/// focused projection tests and the foundation-corpus tests).
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
@@ -113,45 +111,13 @@ fn live_dsl_wiring_resolves_all_three_surfaces() {
     );
 }
 
-/// The real `dsl/` corpus conforms to the committed shapes. This is the exact
-/// verdict the live `make validate` gate now produces; proving it green here is
-/// the PR-gating precondition. `validate_dsl` merges each surface
-/// standalone (no TBox), so a red here is either genuine content debt or a shape
-/// that (wrongly) assumes TBox-closed types — both fixed on-branch, never bypassed.
-#[test]
-fn real_dsl_conforms_to_committed_shapes() {
-    let root = repo_root();
-    let dsl = authored_dsl_shacl_inputs(&root).expect("resolve committed DSL inputs");
-
-    for (label, dir, shapes) in [
-        ("mapping", &dsl.mapping_dir, &dsl.mapping_shapes),
-        ("statement", &dsl.statement_dir, &dsl.statement_shapes),
-        ("test", &dsl.test_dir, &dsl.test_shapes),
-    ] {
-        let paths = collect_ttl_paths(dir).unwrap_or_else(|e| panic!("collect {dir}: {e}"));
-        let findings = validate_dsl(&paths, shapes, label)
-            .unwrap_or_else(|e| panic!("validate_dsl({label}): {e}"));
-        let errors: Vec<String> = findings
-            .iter()
-            .filter(|f| f.severity == Severity::Error)
-            .map(|f| f.message.clone())
-            .collect();
-        assert!(
-            errors.is_empty(),
-            "real {label} DSL corpus does not conform to shapes/{label}-dsl-shapes.ttl \
-             ({} error(s)): {errors:#?}",
-            errors.len()
-        );
-    }
-}
-
 /// Failability proof: a deliberately nonconforming fixture validated against the
 /// REAL committed statement shapes MUST yield at least one Error. A bare
 /// `gmeow:StatementMetadata` node carries none of the properties the shape
 /// requires (`gmeow:qSubject`/`gmeow:qPredicate` are `sh:minCount 1`), so it
 /// violates without needing any TBox. This is what keeps
-/// [`real_dsl_conforms_to_committed_shapes`] honest — it proves that test could
-/// fail if the corpus regressed, rather than passing vacuously.
+/// live production gate honest — it proves the selected shape can reject a
+/// regression rather than merely being present.
 #[test]
 fn dsl_shacl_can_fail() {
     let root = repo_root();

@@ -636,7 +636,7 @@ pub(crate) fn object_properties(ontology_nt: &str) -> gmeow_errors::Result<BTree
     let mut props = BTreeSet::new();
     for q in &graph.quads {
         if q.predicate == RDF_TYPE
-            && matches!(&q.object, RdfTerm::Iri(n) if n == OWL_OBJECT_PROPERTY)
+            && matches!(&q.object, RdfTerm::Iri(n) if n == OWL_OBJECT_PROPERTY || n == gmeow_ns::LOGIC_OBJECT_PROPERTY)
             && let RdfTerm::Iri(s) = &q.subject
         {
             props.insert(s.clone());

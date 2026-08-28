@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Attachment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Attachment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:BodyPart ;
@@ -18,7 +17,7 @@ gmeow:Attachment
 
 gmeow:AuthenticationResult
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Authentication Result"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -27,7 +26,7 @@ gmeow:AuthenticationResult
 
 gmeow:BodyPart
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Body Part"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -36,7 +35,7 @@ gmeow:BodyPart
 
 gmeow:BodyValue
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Body Value"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -45,7 +44,7 @@ gmeow:BodyValue
 
 gmeow:CalendarMethod
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Calendar Method"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -54,7 +53,7 @@ gmeow:CalendarMethod
 
 gmeow:ContentDisposition
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Content Disposition"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -63,7 +62,7 @@ gmeow:ContentDisposition
 
 gmeow:ContentTransferEncoding
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Content Transfer Encoding"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -72,7 +71,7 @@ gmeow:ContentTransferEncoding
 
 gmeow:DKIMSignature
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "DKIM Signature"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CryptographicSignature ;
@@ -81,7 +80,7 @@ gmeow:DKIMSignature
 
 gmeow:EmailMessage
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Email Message"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Message ;
@@ -90,7 +89,7 @@ gmeow:EmailMessage
 
 gmeow:EmailPatchDiff
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Email Patch Diff"@x-gmeow-english ;
     rdfs:subClassOf gmeow:BodyPart ;
@@ -99,7 +98,7 @@ gmeow:EmailPatchDiff
 
 gmeow:InlinePart
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Inline Part"@x-gmeow-english ;
     rdfs:subClassOf gmeow:BodyPart ;
@@ -108,7 +107,7 @@ gmeow:InlinePart
 
 gmeow:Mailbox
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Mailbox"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -117,7 +116,7 @@ gmeow:Mailbox
 
 gmeow:MailboxResidence
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Mailbox Residence"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -126,7 +125,7 @@ gmeow:MailboxResidence
 
 gmeow:MailingList
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Mailing List"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -135,7 +134,7 @@ gmeow:MailingList
 
 gmeow:Message
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -144,7 +143,7 @@ gmeow:Message
 
 gmeow:MessageHeader
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Header"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -153,7 +152,7 @@ gmeow:MessageHeader
 
 gmeow:MessageKeyword
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Keyword"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -162,7 +161,7 @@ gmeow:MessageKeyword
 
 gmeow:MessageKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Kind"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -171,33 +170,33 @@ gmeow:MessageKind
 
 gmeow:MessageParticipant
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Participant"@x-gmeow-english ;
     logic:mediates gmeow:participantMessage ,
         gmeow:participantAddress ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:participantMessage ;
-            owl:someValuesFrom gmeow:EmailMessage ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:participantMessage ;
+            logic:someValuesFrom gmeow:EmailMessage ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:participantAddress ;
-            owl:someValuesFrom gmeow:EmailAddress ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:participantAddress ;
+            logic:someValuesFrom gmeow:EmailAddress ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:participantRole ;
-            owl:someValuesFrom gmeow:MessageParticipantRole ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:participantRole ;
+            logic:someValuesFrom gmeow:MessageParticipantRole ;
         ] ;
     skos:definition "A reified occurrence of an email address in a particular message header or envelope context."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageParticipantRole
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Message Participant Role"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -206,7 +205,7 @@ gmeow:MessageParticipantRole
 
 gmeow:MultipartBodyPart
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Multipart Body Part"@x-gmeow-english ;
     rdfs:subClassOf gmeow:BodyPart ;
@@ -215,7 +214,7 @@ gmeow:MultipartBodyPart
 
 gmeow:MultipartType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Multipart Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -224,7 +223,7 @@ gmeow:MultipartType
 
 gmeow:RelayHop
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Relay Hop"@x-gmeow-english ;
     rdfs:subClassOf logic:Event ;
@@ -233,7 +232,7 @@ gmeow:RelayHop
 
 gmeow:Thread
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "Thread"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -241,7 +240,7 @@ gmeow:Thread
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:analysisInputBodyLine
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "analysis input body line"@x-gmeow-english ;
@@ -250,7 +249,7 @@ gmeow:analysisInputBodyLine
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:analysisScope
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "analysis scope"@x-gmeow-english ;
@@ -259,7 +258,7 @@ gmeow:analysisScope
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authMethod
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authentication method"@x-gmeow-english ;
@@ -268,7 +267,7 @@ gmeow:authMethod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authResult
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authentication result"@x-gmeow-english ;
@@ -277,7 +276,7 @@ gmeow:authResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authServer
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AuthenticationResult ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authentication server"@x-gmeow-english ;
@@ -286,7 +285,7 @@ gmeow:authServer
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:autoSubmitted
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "auto submitted"@x-gmeow-english ;
@@ -295,7 +294,7 @@ gmeow:autoSubmitted
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:bcc
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "bcc"@x-gmeow-english ;
@@ -304,7 +303,7 @@ gmeow:bcc
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:blobId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "blob id"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
@@ -313,7 +312,7 @@ gmeow:blobId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:bodyLineFingerprint
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "body line fingerprint"@x-gmeow-english ;
@@ -322,7 +321,7 @@ gmeow:bodyLineFingerprint
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:bodyStructure
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "body structure"@x-gmeow-english ;
@@ -331,7 +330,7 @@ gmeow:bodyStructure
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:calendarAttachment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "calendar attachment"@x-gmeow-english ;
@@ -397,7 +396,7 @@ gmeow:calendarMethodRequest
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:calendarUid
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "calendar UID"@x-gmeow-english ;
@@ -406,7 +405,7 @@ gmeow:calendarUid
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:canonicalFingerprint
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "canonical fingerprint"@x-gmeow-english ;
@@ -415,7 +414,7 @@ gmeow:canonicalFingerprint
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:cc
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "cc"@x-gmeow-english ;
@@ -424,7 +423,7 @@ gmeow:cc
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:charset
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "charset"@x-gmeow-english ;
@@ -433,13 +432,13 @@ gmeow:charset
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:childMailbox
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "child mailbox"@x-gmeow-english ;
     rdfs:range gmeow:Mailbox ;
     rdfs:subPropertyOf gmeow:hasPart ;
-    owl:inverseOf gmeow:parentMailbox ;
+    logic:inverseOf gmeow:parentMailbox ;
     skos:definition "A child mailbox in a folder hierarchy. Inverse of gmeow:parentMailbox; a specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -458,7 +457,7 @@ gmeow:contentDispositionInline
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:contentId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "content id"@x-gmeow-english ;
@@ -467,7 +466,7 @@ gmeow:contentId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:describesEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "describes event"@x-gmeow-english ;
@@ -476,7 +475,7 @@ gmeow:describesEvent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:displayName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "display name"@x-gmeow-english ;
@@ -485,7 +484,7 @@ gmeow:displayName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dispositionNotificationTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "disposition notification to"@x-gmeow-english ;
@@ -494,17 +493,17 @@ gmeow:dispositionNotificationTo
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:eventDescribedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "event described by"@x-gmeow-english ;
     rdfs:range gmeow:EmailMessage ;
-    owl:inverseOf gmeow:describesEvent ;
+    logic:inverseOf gmeow:describesEvent ;
     skos:definition "Links an event to an email message that describes it; the inverse of gmeow:describesEvent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:filename
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Attachment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "filename"@x-gmeow-english ;
@@ -513,7 +512,7 @@ gmeow:filename
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:from
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "from"@x-gmeow-english ;
@@ -522,7 +521,7 @@ gmeow:from
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasAttachment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has attachment"@x-gmeow-english ;
@@ -533,7 +532,7 @@ gmeow:hasAttachment
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasAuthenticationResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has authentication result"@x-gmeow-english ;
@@ -542,7 +541,7 @@ gmeow:hasAuthenticationResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasBodyPart
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has body part"@x-gmeow-english ;
@@ -552,7 +551,7 @@ gmeow:hasBodyPart
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasCalendarMethod
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has calendar method"@x-gmeow-english ;
@@ -561,7 +560,7 @@ gmeow:hasCalendarMethod
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasContentDisposition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has content disposition"@x-gmeow-english ;
@@ -570,7 +569,7 @@ gmeow:hasContentDisposition
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasContentTransferEncoding
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has content transfer encoding"@x-gmeow-english ;
@@ -579,7 +578,7 @@ gmeow:hasContentTransferEncoding
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasHeader
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has header"@x-gmeow-english ;
@@ -588,7 +587,7 @@ gmeow:hasHeader
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasInlinePart
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has inline part"@x-gmeow-english ;
@@ -599,7 +598,7 @@ gmeow:hasInlinePart
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasKeyword
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has keyword"@x-gmeow-english ;
@@ -608,7 +607,7 @@ gmeow:hasKeyword
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasMailingList
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has mailing list"@x-gmeow-english ;
@@ -617,7 +616,7 @@ gmeow:hasMailingList
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasMessageKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has message kind"@x-gmeow-english ;
@@ -626,17 +625,17 @@ gmeow:hasMessageKind
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasMessageParticipant
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has message participant"@x-gmeow-english ;
     rdfs:range gmeow:MessageParticipant ;
-    owl:inverseOf gmeow:participantMessage ;
+    logic:inverseOf gmeow:participantMessage ;
     skos:definition "Relates a message to one of its reified address occurrences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasMultipartType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MultipartBodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has multipart type"@x-gmeow-english ;
@@ -645,7 +644,7 @@ gmeow:hasMultipartType
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasPatchDiff
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has patch diff"@x-gmeow-english ;
@@ -655,7 +654,7 @@ gmeow:hasPatchDiff
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasRelayHop
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "has relay hop"@x-gmeow-english ;
@@ -664,7 +663,7 @@ gmeow:hasRelayHop
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:headerName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageHeader ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "header name"@x-gmeow-english ;
@@ -673,7 +672,7 @@ gmeow:headerName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:headerValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageHeader ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "header value"@x-gmeow-english ;
@@ -682,7 +681,7 @@ gmeow:headerValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hopOrdinal
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hop ordinal"@x-gmeow-english ;
@@ -691,7 +690,7 @@ gmeow:hopOrdinal
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:importance
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "importance"@x-gmeow-english ;
@@ -700,7 +699,7 @@ gmeow:importance
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:inReplyTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "in reply to"@x-gmeow-english ;
@@ -751,25 +750,25 @@ gmeow:keywordSeen
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:listArchive
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "list archive"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "An archive URI for the mailing list this message was distributed through (RFC 2369 List-Archive). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:listHelp
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "list help"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "A help URI for the mailing list this message was distributed through (RFC 2369 List-Help). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:listId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "list id"@x-gmeow-english ;
@@ -778,7 +777,7 @@ gmeow:listId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:listOwner
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "list owner"@x-gmeow-english ;
@@ -787,7 +786,7 @@ gmeow:listOwner
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:listPost
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "list post"@x-gmeow-english ;
@@ -796,25 +795,25 @@ gmeow:listPost
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:listSubscribe
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "list subscribe"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "A subscription URI for the mailing list this message was distributed through (RFC 2369 List-Subscribe). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:listUnsubscribe
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "list unsubscribe"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "An unsubscription URI for the mailing list this message was distributed through (RFC 2369 List-Unsubscribe). Non-functional: multiple URIs may be listed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox name"@x-gmeow-english ;
@@ -823,7 +822,7 @@ gmeow:mailboxName
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxOfAccount
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox of account"@x-gmeow-english ;
@@ -832,7 +831,7 @@ gmeow:mailboxOfAccount
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxPath
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox path"@x-gmeow-english ;
@@ -841,7 +840,7 @@ gmeow:mailboxPath
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxRole
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox role"@x-gmeow-english ;
@@ -850,7 +849,7 @@ gmeow:mailboxRole
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxSortOrder
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox sort order"@x-gmeow-english ;
@@ -859,7 +858,7 @@ gmeow:mailboxSortOrder
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxTotalMessages
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox total messages"@x-gmeow-english ;
@@ -868,7 +867,7 @@ gmeow:mailboxTotalMessages
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:mailboxUnreadMessages
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailbox unread messages"@x-gmeow-english ;
@@ -877,7 +876,7 @@ gmeow:mailboxUnreadMessages
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:messageIdCollision
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "message id collision"@x-gmeow-english ;
@@ -886,7 +885,7 @@ gmeow:messageIdCollision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:messageIdGenerated
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "message id generated"@x-gmeow-english ;
@@ -1098,7 +1097,7 @@ gmeow:multipartTypeSigned
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:parentMailbox
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Mailbox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "parent mailbox"@x-gmeow-english ;
@@ -1108,7 +1107,7 @@ gmeow:parentMailbox
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:partId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:BodyPart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "part id"@x-gmeow-english ;
@@ -1117,7 +1116,7 @@ gmeow:partId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:partOfThread
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "part of thread"@x-gmeow-english ;
@@ -1127,7 +1126,7 @@ gmeow:partOfThread
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantAddress
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant address"@x-gmeow-english ;
@@ -1136,7 +1135,7 @@ gmeow:participantAddress
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantGroup
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant group"@x-gmeow-english ;
@@ -1145,7 +1144,7 @@ gmeow:participantGroup
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantHeader
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant header"@x-gmeow-english ;
@@ -1154,7 +1153,7 @@ gmeow:participantHeader
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantMessage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant message"@x-gmeow-english ;
@@ -1163,7 +1162,7 @@ gmeow:participantMessage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantOrdinal
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant ordinal"@x-gmeow-english ;
@@ -1172,7 +1171,7 @@ gmeow:participantOrdinal
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantRole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant role"@x-gmeow-english ;
@@ -1181,7 +1180,7 @@ gmeow:participantRole
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:precedence
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "precedence"@x-gmeow-english ;
@@ -1190,7 +1189,7 @@ gmeow:precedence
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:preview
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "preview"@x-gmeow-english ;
@@ -1199,7 +1198,7 @@ gmeow:preview
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:priority
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "priority"@x-gmeow-english ;
@@ -1208,7 +1207,7 @@ gmeow:priority
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:rawAddressValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageParticipant ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "raw address value"@x-gmeow-english ;
@@ -1217,7 +1216,7 @@ gmeow:rawAddressValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:readReceiptRequested
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "read receipt requested"@x-gmeow-english ;
@@ -1226,7 +1225,7 @@ gmeow:readReceiptRequested
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:receivedAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "received at"@x-gmeow-english ;
@@ -1235,7 +1234,7 @@ gmeow:receivedAt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay at"@x-gmeow-english ;
@@ -1244,7 +1243,7 @@ gmeow:relayAt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayBy
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay by"@x-gmeow-english ;
@@ -1253,7 +1252,7 @@ gmeow:relayBy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayFrom
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay from"@x-gmeow-english ;
@@ -1262,7 +1261,7 @@ gmeow:relayFrom
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayProtocol
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:RelayHop ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relay protocol"@x-gmeow-english ;
@@ -1271,7 +1270,7 @@ gmeow:relayProtocol
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:replyTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "reply to"@x-gmeow-english ;
@@ -1280,7 +1279,7 @@ gmeow:replyTo
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:resentDate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "resent date"@x-gmeow-english ;
@@ -1289,7 +1288,7 @@ gmeow:resentDate
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:resentMessageId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "resent message id"@x-gmeow-english ;
@@ -1298,7 +1297,7 @@ gmeow:resentMessageId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:residenceMailbox
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MailboxResidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "residence mailbox"@x-gmeow-english ;
@@ -1307,7 +1306,7 @@ gmeow:residenceMailbox
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:residentMessage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MailboxResidence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "resident message"@x-gmeow-english ;
@@ -1316,7 +1315,7 @@ gmeow:residentMessage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:residesIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "resides in"@x-gmeow-english ;
@@ -1325,7 +1324,7 @@ gmeow:residesIn
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:rfcMessageId
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "RFC message id"@x-gmeow-english ;
@@ -1334,7 +1333,7 @@ gmeow:rfcMessageId
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sender
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "sender"@x-gmeow-english ;
@@ -1343,7 +1342,7 @@ gmeow:sender
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sentAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "sent at"@x-gmeow-english ;
@@ -1352,7 +1351,7 @@ gmeow:sentAt
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sentBySoftware
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "sent by software"@x-gmeow-english ;
@@ -1361,7 +1360,7 @@ gmeow:sentBySoftware
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sizeEstimate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "size estimate"@x-gmeow-english ;
@@ -1370,7 +1369,7 @@ gmeow:sizeEstimate
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:subject
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Message ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "subject"@x-gmeow-english ;
@@ -1379,7 +1378,7 @@ gmeow:subject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:subjectPrefix
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "subject prefix"@x-gmeow-english ;
@@ -1388,7 +1387,7 @@ gmeow:subjectPrefix
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:threadSubject
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Thread ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "thread subject"@x-gmeow-english ;
@@ -1397,7 +1396,7 @@ gmeow:threadSubject
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:to
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "to"@x-gmeow-english ;
@@ -1441,7 +1440,7 @@ gmeow:transferEncodingQuotedPrintable
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:userAgent
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:EmailMessage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "user agent"@x-gmeow-english ;
@@ -1450,7 +1449,7 @@ gmeow:userAgent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/email>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Email messages, threads, mailboxes and body structure — the JMAP (RFC 8621) superset layer, also covering RFC 5322 headers, MIME, IMAP keywords and the Gmail API. Messages are not disjoint from the entities (via EmailAddress) or accounts (via mailbox residence) they involve, and residence is temporally grounded."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
@@ -1460,7 +1459,7 @@ gmeow:userAgent
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of SuppressedMessageParticipantShape.
+# Suppression constraint — projection of SuppressedMessageParticipantShape.
 # A withdrawn/superseded MessageParticipant (one carrying gmeow:validUntil) that #
 # is not suppressed (gmeow:displayable false) is a Warning — a source may lag.    #
 # =========================================================================== #
@@ -1493,8 +1492,8 @@ logic:supMpDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/MessageParticipant> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participantMessage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/MessageParticipant> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participantRole> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/MessageParticipant> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participantMessage> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/MessageParticipant> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participantRole> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MessageParticipant> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/participantMessage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MessageParticipant> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/participantRole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
@@ -1502,15 +1501,15 @@ logic:supMpDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # gmeow:MessageParticipantHasPlayersShape — a MessageParticipant belongs to exactly one message,
 # references at most one address, and declares exactly one role.
 gmeow:MessageParticipant logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:participantMessage ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:participantAddress ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:participantRole ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:participantMessage ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:participantAddress ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:participantRole ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1518,7 +1517,7 @@ gmeow:MessageParticipant logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:authMethodFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authMethod is functional"@x-gmeow-english ;
@@ -1533,7 +1532,7 @@ gmeow:authMethodFunctionality
     skos:example "gmeow:authMethodFunctionality logic:characterizes gmeow:authMethod ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:authResultFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authResult is functional"@x-gmeow-english ;
@@ -1548,7 +1547,7 @@ gmeow:authResultFunctionality
     skos:example "gmeow:authResultFunctionality logic:characterizes gmeow:authResult ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:authServerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "authServer is functional"@x-gmeow-english ;
@@ -1563,7 +1562,7 @@ gmeow:authServerFunctionality
     skos:example "gmeow:authServerFunctionality logic:characterizes gmeow:authServer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:bodyStructureFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "bodyStructure is functional"@x-gmeow-english ;
@@ -1578,7 +1577,7 @@ gmeow:bodyStructureFunctionality
     skos:example "gmeow:bodyStructureFunctionality logic:characterizes gmeow:bodyStructure ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:filenameFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "filename is functional"@x-gmeow-english ;
@@ -1593,7 +1592,7 @@ gmeow:filenameFunctionality
     skos:example "gmeow:filenameFunctionality logic:characterizes gmeow:filename ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hasContentDispositionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hasContentDisposition is functional"@x-gmeow-english ;
@@ -1608,7 +1607,7 @@ gmeow:hasContentDispositionFunctionality
     skos:example "gmeow:hasContentDispositionFunctionality logic:characterizes gmeow:hasContentDisposition ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hasContentTransferEncodingFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hasContentTransferEncoding is functional"@x-gmeow-english ;
@@ -1623,7 +1622,7 @@ gmeow:hasContentTransferEncodingFunctionality
     skos:example "gmeow:hasContentTransferEncodingFunctionality logic:characterizes gmeow:hasContentTransferEncoding ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hasMultipartTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hasMultipartType is functional"@x-gmeow-english ;
@@ -1638,7 +1637,7 @@ gmeow:hasMultipartTypeFunctionality
     skos:example "gmeow:hasMultipartTypeFunctionality logic:characterizes gmeow:hasMultipartType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:headerNameFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "headerName is functional"@x-gmeow-english ;
@@ -1653,7 +1652,7 @@ gmeow:headerNameFunctionality
     skos:example "gmeow:headerNameFunctionality logic:characterizes gmeow:headerName ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:headerValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "headerValue is functional"@x-gmeow-english ;
@@ -1668,7 +1667,7 @@ gmeow:headerValueFunctionality
     skos:example "gmeow:headerValueFunctionality logic:characterizes gmeow:headerValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hopOrdinalFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "hopOrdinal is functional"@x-gmeow-english ;
@@ -1683,7 +1682,7 @@ gmeow:hopOrdinalFunctionality
     skos:example "gmeow:hopOrdinalFunctionality logic:characterizes gmeow:hopOrdinal ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:mailboxOfAccountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailboxOfAccount is functional"@x-gmeow-english ;
@@ -1698,7 +1697,7 @@ gmeow:mailboxOfAccountFunctionality
     skos:example "gmeow:mailboxOfAccountFunctionality logic:characterizes gmeow:mailboxOfAccount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:mailboxRoleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "mailboxRole is functional"@x-gmeow-english ;
@@ -1713,7 +1712,7 @@ gmeow:mailboxRoleFunctionality
     skos:example "gmeow:mailboxRoleFunctionality logic:characterizes gmeow:mailboxRole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:participantAddressFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantAddress is functional"@x-gmeow-english ;
@@ -1728,7 +1727,7 @@ gmeow:participantAddressFunctionality
     skos:example "gmeow:participantAddressFunctionality logic:characterizes gmeow:participantAddress ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:participantHeaderFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantHeader is functional"@x-gmeow-english ;
@@ -1743,7 +1742,7 @@ gmeow:participantHeaderFunctionality
     skos:example "gmeow:participantHeaderFunctionality logic:characterizes gmeow:participantHeader ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:participantMessageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantMessage is functional"@x-gmeow-english ;
@@ -1758,7 +1757,7 @@ gmeow:participantMessageFunctionality
     skos:example "gmeow:participantMessageFunctionality logic:characterizes gmeow:participantMessage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:participantOrdinalFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantOrdinal is functional"@x-gmeow-english ;
@@ -1773,7 +1772,7 @@ gmeow:participantOrdinalFunctionality
     skos:example "gmeow:participantOrdinalFunctionality logic:characterizes gmeow:participantOrdinal ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:participantRoleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participantRole is functional"@x-gmeow-english ;
@@ -1788,7 +1787,7 @@ gmeow:participantRoleFunctionality
     skos:example "gmeow:participantRoleFunctionality logic:characterizes gmeow:participantRole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relayAtFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayAt is functional"@x-gmeow-english ;
@@ -1803,7 +1802,7 @@ gmeow:relayAtFunctionality
     skos:example "gmeow:relayAtFunctionality logic:characterizes gmeow:relayAt ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relayByFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayBy is functional"@x-gmeow-english ;
@@ -1818,7 +1817,7 @@ gmeow:relayByFunctionality
     skos:example "gmeow:relayByFunctionality logic:characterizes gmeow:relayBy ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relayFromFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayFrom is functional"@x-gmeow-english ;
@@ -1833,7 +1832,7 @@ gmeow:relayFromFunctionality
     skos:example "gmeow:relayFromFunctionality logic:characterizes gmeow:relayFrom ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relayProtocolFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "relayProtocol is functional"@x-gmeow-english ;
@@ -1848,7 +1847,7 @@ gmeow:relayProtocolFunctionality
     skos:example "gmeow:relayProtocolFunctionality logic:characterizes gmeow:relayProtocol ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:residenceMailboxFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "residenceMailbox is functional"@x-gmeow-english ;
@@ -1863,7 +1862,7 @@ gmeow:residenceMailboxFunctionality
     skos:example "gmeow:residenceMailboxFunctionality logic:characterizes gmeow:residenceMailbox ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:residentMessageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "residentMessage is functional"@x-gmeow-english ;
@@ -1878,7 +1877,7 @@ gmeow:residentMessageFunctionality
     skos:example "gmeow:residentMessageFunctionality logic:characterizes gmeow:residentMessage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:rfcMessageIdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "rfcMessageId is functional"@x-gmeow-english ;

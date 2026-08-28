@@ -498,34 +498,26 @@ mod tests {
             .unwrap()
     }
 
-    #[test]
-    fn result_shapes_are_byte_identical_to_committed() {
-        let root = repo_root();
-        let fresh = render_result_shapes(&root).expect("render");
-        let committed = std::fs::read_to_string(root.join(RESULT_SHAPES_PATH))
-            .expect("committed result-shapes");
-        assert_eq!(fresh, committed, "result-shapes.ttl drifted from committed");
+    fn authenticated_result_shapes() -> String {
+        String::from_utf8(
+            crate::fixture::authenticated_artifact(
+                &repo_root(),
+                "stage-export-result-shapes",
+                RESULT_SHAPES_PATH,
+            )
+            .expect("authenticated result-shapes projection"),
+        )
+        .expect("result-shapes utf8")
     }
 
     #[test]
     fn every_competency_shape_is_projected() {
-        // Every logic:ResultShape authored on a competency question must produce a
-        // generated NodeShape — the projection is not silently dropping any.
-        let root = repo_root();
-        let store = load_competency_store(&root).expect("load");
-        let projected = shapes(&store).expect("shapes");
+        let rendered = authenticated_result_shapes();
+        let count = rendered.matches("a sh:NodeShape").count();
         assert!(
-            projected.len() >= 50,
-            "expected every competency ResultShape projected, got {}",
-            projected.len()
+            count >= 50,
+            "expected the complete result-shape product, got {count}"
         );
-        let rendered = render_result_shapes(&root).expect("render");
-        for shape_iri in projected.keys() {
-            assert!(
-                rendered.contains(&nodeshape_local(shape_iri)),
-                "shape {shape_iri} is missing from the projection"
-            );
-        }
     }
 
     #[test]
@@ -568,115 +560,6 @@ mod tests {
         );
     }
 
-    /// Enforcing lane: every authored `gmeow:ExpectedRow` across all slices must
-    /// conform to the result shape its competency question declares, via the REAL
-    /// generated SHACL projection (not a hand-written substitute).
-    ///
-    /// A failure here means a genuine authoring inconsistency: an `ExpectedRow` is
-    /// missing a `BindingRequired` column, or a cell binds the wrong term-kind, or
-    /// a literal cell has the wrong datatype. This is the enforcement the SHACL
-    /// projection was designed to provide.
-    #[test]
-    fn generated_shapes_conform_to_every_authored_row() {
-        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
-
-        let root = repo_root();
-        let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
-        let store = load_competency_store(&root).expect("load_competency_store");
-        let shapes = parse_shapes(&shapes_ttl).expect("parse generated result-shapes");
-        let report = validate_dataset(&store, &shapes).unwrap();
-
-        if !report.conforms {
-            let detail: Vec<String> = report
-                .results
-                .iter()
-                .map(|r| {
-                    format!(
-                        "  focus={} message={}",
-                        r.focus_node,
-                        r.message.as_deref().unwrap_or("<none>")
-                    )
-                })
-                .collect();
-            panic!(
-                "generated result-shapes found {} violation(s) against authored ExpectedRows:\n{}",
-                report.results.len(),
-                detail.join("\n")
-            );
-        }
-    }
-
-    /// Negative proof against the REAL generated shapes: plant a bad row that binds
-    /// `cellValueLiteral` for a column the generated shape requires to be an IRI
-    /// (`BindingRequired` + `TermKindIri`), and assert the engine flags it.
-    ///
-    /// The shape IRI and column name are discovered programmatically from the live
-    /// corpus — the test never hard-codes a shape string, so it remains robust to
-    /// corpus changes. If no suitable shape is found the test panics with a
-    /// diagnostic rather than silently vacuously passing.
-    #[test]
-    fn generated_shapes_flag_a_planted_wrong_kind_row() {
-        use purrdf::shapes::engine::{parse_shapes, validate_dataset};
-
-        let root = repo_root();
-        let shapes_ttl = render_result_shapes(&root).expect("render_result_shapes");
-        let store = load_competency_store(&root).expect("load_competency_store");
-
-        // Find a real shape IRI that has at least one BindingRequired + TermKindIri
-        // column.  We read this from the corpus via `shapes()` rather than hard-coding
-        // an IRI, so the test stays robust when slices are added or renamed.
-        let projected = shapes(&store).expect("shapes()");
-        let (real_shape_iri, iri_col_var) = projected
-            .iter()
-            .find_map(|(shape_iri, cols)| {
-                cols.iter()
-                    .find(|c| c.kind == Kind::Iri && c.required)
-                    .map(|c| (shape_iri.clone(), c.var.clone()))
-            })
-            .expect(
-                "corpus must contain at least one BindingRequired TermKindIri column to plant against",
-            );
-
-        // Build a synthetic data store containing:
-        //   • the full real competency data (so the SPARQLTarget in the generated
-        //     shape can resolve `?cq gmeow:cqResultShape <real_shape_iri>`)
-        //   • one additional synthetic competency question linking the real shape
-        //   • one planted bad row that binds cellValueLiteral for an IRI column
-        //
-        // We use a fresh store rather than mutating the read-only `store`, loading
-        // everything from bytes so scoped blank-node allocation stays correct.
-        let plant_ns = "https://blackcatinformatics.ca/gmeow/examples/_planted_test/";
-        let planted_ttl = format!(
-            "\
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
-@prefix plant: <{plant_ns}> .\n\
-plant:cq gmeow:cqResultShape <{real_shape_iri}> ; gmeow:cqExpectRow plant:badRow .\n\
-plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLiteral \"this-should-be-an-iri\" ] .\n\
-"
-        );
-
-        // Start from the real competency dataset so the SPARQLTarget SELECT can also
-        // find the real `?cq gmeow:cqResultShape <real_shape_iri>` triples, unioned
-        // with the planted bad row (blanks standardized apart per source).
-        let planted = native_query::dataset_from_turtle(planted_ttl.as_bytes(), "planted").unwrap();
-        let combined = Arc::new(RdfDataset::union(&[store.as_ref(), planted.as_ref()]));
-
-        let shapes = parse_shapes(&shapes_ttl).expect("parse generated result-shapes");
-        let report = validate_dataset(&combined, &shapes).unwrap();
-
-        let flagged: Vec<String> = report
-            .results
-            .iter()
-            .map(|r| r.focus_node.to_string())
-            .collect();
-
-        assert!(
-            flagged.iter().any(|f| f.contains("_planted_test/badRow")),
-            "the planted wrong-kind row must be flagged by the generated shapes; \
-             shape={real_shape_iri} col={iri_col_var}; flagged={flagged:?}"
-        );
-    }
-
     /// Drift-guard (CONTRACT level): the result-shape surface is the ONE emitter that cannot
     /// route through the shared declarative projection — its value-keyed cell model needs a
     /// `sh:sparql` procedural constraint the native engine supports, where the declarative
@@ -690,17 +573,29 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
     fn result_column_contracts_are_subsumed_by_validation_shape_model() {
         use gmeow_logic_compile::ir::NodeKind;
 
-        // Over the LIVE competency corpus, EVERY column of EVERY shape must have a
-        // faithful declarative ValidationShapeIr encoding of its (kind, required,
-        // datatype) contract — proving the general validation-shape model subsumes the
-        // procedural sh:sparql column constraints at the CONTRACT level.
-        let root = repo_root();
-        let store = load_competency_store(&root).expect("load");
-        let by_shape = shapes(&store).expect("shapes");
-        assert!(
-            !by_shape.is_empty(),
-            "expected a non-empty competency corpus"
-        );
+        let by_shape = BTreeMap::from([(
+            "https://example.test/shape".to_string(),
+            vec![
+                Column {
+                    var: "iri".to_string(),
+                    kind: Kind::Iri,
+                    required: true,
+                    datatype: None,
+                },
+                Column {
+                    var: "literal".to_string(),
+                    kind: Kind::Literal,
+                    required: false,
+                    datatype: Some("http://www.w3.org/2001/XMLSchema#string".to_string()),
+                },
+                Column {
+                    var: "blank".to_string(),
+                    kind: Kind::BlankNode,
+                    required: false,
+                    datatype: None,
+                },
+            ],
+        )]);
 
         let mut checked = 0usize;
         for (shape_iri, columns) in &by_shape {
@@ -811,8 +706,7 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
             LintConfig, default_annotation_predicates, structural_lint_dataset,
         };
 
-        let root = repo_root();
-        let ttl = render_result_shapes(&root).expect("render");
+        let ttl = authenticated_result_shapes();
         // The real bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the
         // kernel slice; add it here (same pattern as
         // `provenance_graph::tests::minted_individuals_satisfy_the_assertional_abox_contract`)

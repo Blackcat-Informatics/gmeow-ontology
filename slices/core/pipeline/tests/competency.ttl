@@ -32,3 +32,27 @@ ex:cqAuthorityEdgeRetainedShape a logic:ResultShape ;
 
 ex:cqAuthorityEdgeRow a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "edge" ; gmeow:cellValueIri exd:edge-gate-authority ] .
+
+# The cache policy is authored as a closed semantic contract, not inferred from
+# timings. This cell pins its class/property range and the production verifier's
+# persistent-contribution declaration in one exact row.
+ex:cqCacheDispositionContract a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/pipeline/queries/competency/cache-disposition-contract.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The scheduler may persist only an independently bounded stage contribution, while a cumulative carrier must be reconstructed from the live frontier. This question binds the closed gmeow:StageCacheDisposition value class to its gmeow:stageCacheDisposition property and to the production gmeow:stage-verify-attestation declaration. If any of those three links drifts, the executable and authored DAG can disagree about what is safe to hydrate, allowing an aggregate snapshot or an unverified output to masquerade as the exact bounded contribution."@x-gmeow-english ;
+    gmeow:cqResultShape ex:cqCacheDispositionContractShape ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow ex:cqCacheDispositionContractRow .
+
+ex:cqCacheDispositionContractShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "valueClass" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "property" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "stage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqCacheDispositionContractRow a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "valueClass" ; gmeow:cellValueIri gmeow:StageCacheDisposition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:stageCacheDisposition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "stage" ; gmeow:cellValueIri gmeow:stage-verify-attestation ] .

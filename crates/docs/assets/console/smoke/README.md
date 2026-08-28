@@ -21,7 +21,7 @@ that ships is the producer's output, and a worker importing a specifier that res
 in the source tree is exactly the defect these lanes exist to catch.
 
 ```sh
-cargo run -q -p gmeow-dev-cli -- console-assemble --out dist/console-smoke
+make console-assemble CONSOLE_OUT=dist/console-smoke
 python3 -m http.server -d dist/console-smoke 8080   # or any static file server
 ```
 

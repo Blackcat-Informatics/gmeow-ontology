@@ -929,8 +929,13 @@ impl Model {
             m.predicates.insert(predicate.to_owned());
             match predicate {
                 RDF_TYPE => {
+                    // Normalize the canonical `logic:` typing marker to its `owl:`
+                    // spelling before the datatype-property test, mirroring the
+                    // predicate lowering above (and `counting.rs`); otherwise a
+                    // `logic:DatatypeProperty`-typed subject reads as an unhandled
+                    // construct and the completeness gate refuses the case.
                     if let RdfTerm::Iri(o) = &quad.object
-                        && o == OWL_DATATYPE_PROPERTY
+                        && crate::reason::calculus_term(o) == OWL_DATATYPE_PROPERTY
                     {
                         m.datatype_props.insert(subject.clone());
                     }

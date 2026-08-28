@@ -5,8 +5,8 @@
 //! conformance surface — the real `Cli`/`Commands::Gmn` clap dispatch in
 //! `src/lib.rs`, driven through `assert_cmd` exactly like the other CLI tests.
 //!
-//! Before this test, the codec's digest / codec / witness / pack layer was
-//! reachable only from `crates/pipeline`'s own gates + the Task-7 discharge test;
+//! Before this surface landed, the codec's digest / codec / witness / pack layer was
+//! reachable only from `crates/pipeline`'s production gates;
 //! `gmeow gmn verify` returned `unrecognized subcommand`. This drives the built
 //! binary over the committed frozen vector corpus and asserts:
 //!

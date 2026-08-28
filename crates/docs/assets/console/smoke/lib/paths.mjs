@@ -41,8 +41,8 @@ export function consoleOut() {
   if (raw === undefined || raw.trim().length === 0) {
     throw new Error(
       "CONSOLE_OUT is unset or empty — the browser smoke lane drives the ASSEMBLED console " +
-        "tree and has no default to fall back on. Run `make console` (or " +
-        "`cargo run -q -p gmeow-dev-cli -- console-assemble --out <dir>`) and pass " +
+        "tree and has no default to fall back on. Run " +
+        "`make console-assemble CONSOLE_OUT=<dir>` and pass " +
         "CONSOLE_OUT=<dir>.",
     );
   }

@@ -15,7 +15,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice>
     a gmeow:Slice ;
     rdfs:label "fixture-external-slice"@x-gmeow-english ;
-    skos:definition "A well-formed fixture slice scored by the gmeow wheel's external-slice quality engine against the embedded bundle standards; it deliberately scores strictly between 0 and 1 on the GMN-1 coverage, documentation-maturity, and translation axes."@x-gmeow-english ;
+    skos:definition "A well-formed fixture slice scored by the gmeow wheel's external-slice quality engine against the embedded bundle standards; it proves complete GMN-1 coverage while documentation-maturity and translation remain deliberately partial."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice> ;
     dcterms:title "Fixture External Slice"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;

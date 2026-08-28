@@ -22,7 +22,7 @@ must carry a retention dossier (`docs/test-retention/`) plus a removal issue.
 | **Competency** | `slices/<g>/<slice>/tests/competency.ttl` | `crates/slicetest` (Rust) | query-answerability: SPARQL ASK/SELECT + expected outcome |
 | **Structural** | `slices/<g>/<slice>/tests/structural.ttl` | `crates/slicetest` | MUST / MUST-NOT graph invariants (SHACL-style ASK over the module) |
 | **Example conformance** | `slices/<g>/<slice>/tests/example-conformance.ttl` | `crates/slicetest` | "this example conforms / that counter-example violates code X" |
-| **Whole-ontology SHACL** | `crates/validate/tests/conformance_<slice>.rs` + `ontology_conformance.rs` | `crates/validate` (Rust) | SHACL over the **merged** shapes corpus (cross-slice `sh:class` fidelity) |
+| **Whole-ontology SHACL** | `crates/validate/tests/conformance_cases/conformance_<slice>.rs` + `crates/validate/tests/conformance_cases/ontology_conformance.rs` | `crates/validate` (Rust) | SHACL over the **merged** shapes corpus (cross-slice `sh:class` fidelity), linked into one corpus-sharing runner |
 | **Engine conformance** | `conformance/<engine>/cases/**` (repo root) | `crates/conformance` (Rust) | engine output goldens (logic reasoner: projections, answers, ledger) |
 | **Bespoke residue** | `tests/test_*.py` | `pytest` | only what the four layers above cannot express — being culled |
 
@@ -91,8 +91,9 @@ Discipline that keeps cells honest:
 
 ## How the harnesses discover and run cells
 
-`crates/slicetest` uses `datatest-stable` to discover, by **filename**, every
-slice-resident spec and emit one nextest case per file:
+The explicit fixture producer uses `crates/slicetest` to discover, by **filename**,
+every slice-resident spec, emit one authenticated receipt per exact task, and bind
+those identities into one repository verdict:
 
 ```text
 slices/**/tests/competency.ttl          → run_competency_file
@@ -103,12 +104,19 @@ slices/**/tests/example-conformance.ttl → run_conformance_file
 `counter-examples/*.ttl` never matches the three fixed names, so it is excluded
 structurally and only reached via `gmeow:exampleFile`.
 
+Each task action key covers only the spec and exact modules, examples, queries, or
+generated validation surfaces it can read, plus executable implementation identity.
+The aggregate key covers the full repository census. On a warm fixed point the
+verifier admits the aggregate receipt without executing any cell or rebuilding any
+graph; after a narrow edit, unaffected task receipts remain reusable.
+
 Gate map:
 
-- `make slicetest` — the slice-resident cells in isolation (`cargo nextest -p gmeow-slicetest`).
+- `make produce-test-fixtures` — explicit producer for the complete declarative verdict.
+- `make verify-test-fixtures` — read-only authentication of that verdict.
+- `make slicetest` — focused synthetic engine checks only; it cannot discover or run the repository sweep.
 - `make validate` — whole-ontology SHACL + structural lint over `src/` (incl. `examples/`).
-- `make rust-test` — all Rust crate tests, including `conformance_<slice>.rs` and `crates/conformance`.
-- `make test` — the bespoke pytest residue (shrinking).
+- `make rust-test` — all read-only/synthetic Rust crate tests, including the consolidated conformance runner and `crates/conformance`.
 
 ## The continuous uplift lane (slice-quality)
 
@@ -315,7 +323,7 @@ For each assertion currently in Python (or being newly authored), pick the home:
    `examples/` (positive, also seen by `make validate`) or
    `tests/conformance-fixtures/` + `tests/counter-examples/` (slice-scoped only).
 4. **Is it a SHACL shape over the merged ontology (cross-slice `sh:class`)?** →
-   a case in `crates/validate/tests/conformance_<slice>.rs`.
+   a case in `crates/validate/tests/conformance_cases/conformance_<slice>.rs`.
 5. **Is it engine output (reasoner projections/answers/ledger)?** → a case under
    `conformance/<engine>/cases/**`, golden-blessed and run by `crates/conformance`.
 6. **None of the above** → it is a candidate **keeper**; see below. Most "keepers"

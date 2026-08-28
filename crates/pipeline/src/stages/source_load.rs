@@ -402,10 +402,51 @@ pub fn example_files(root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
     Ok(out)
 }
 
+/// The canonical `rdf:type` and `logic:GroundingCorrespondence` IRIs used to recognize a
+/// grounding-surface demonstrator among the example corpus. A grounding-surface demonstrator
+/// (e.g. `slices/grounding/logic/examples/grounding-bridge-surface.ttl`) authors a
+/// `logic:GroundingCorrespondence` and, alongside it, representative `logic:`-native
+/// class-expression constructs (`logic:inverseFunctionalProperty`, `logic:oneOf`, …) purely
+/// to DEMONSTRATE the grounding surface. That is META/grounding material — the same doctrine
+/// (`docs/GROUNDING.md`, CONSTITUTION Principle 17) that keeps `graph/correspondence-laws`
+/// OUT of the reasoned object-level EDB applies to it: a worked grounding surface is a
+/// correspondence demonstration, not a production object-level ABox, so its out-of-fragment
+/// demonstration constructs must not enter object-level reasoning (where the native DL path
+/// would honestly-but-uselessly withhold on them). Its correspondence itself already rides
+/// the canonical `graph/correspondence-laws` ownership (the stage-mappings
+/// `discharge_correspondence_laws` producer folds every authored `logic:Correspondence`).
+const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const LOGIC_GROUNDING_CORRESPONDENCE_IRI: &str =
+    "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
+
+/// True iff `dataset` authors at least one `?s a logic:GroundingCorrespondence`, i.e. it is a
+/// grounding-surface demonstrator that is owned by `graph/correspondence-laws`, not by the
+/// object-level `graph/examples` positive-demonstrator corpus.
+pub fn is_grounding_surface_demonstrator(dataset: &RdfDataset) -> bool {
+    dataset.owned_quads().any(|q| {
+        q.predicate == RDF_TYPE_IRI
+            && matches!(&q.object, purrdf::RdfTerm::Iri(o) if o == LOGIC_GROUNDING_CORRESPONDENCE_IRI)
+    })
+}
+
+/// Whether an already-parsed example belongs in the object-level positive-demonstrator
+/// graph. Kept as a pure predicate so its policy can be tested without invoking the
+/// repository corpus producer.
+fn belongs_in_object_level_examples(dataset: &RdfDataset) -> bool {
+    !is_grounding_surface_demonstrator(dataset)
+}
+
 /// Parse and union every example file into one dataset rooted at
 /// [`gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES`]. Each file's blank nodes are
 /// standardized apart ([`RdfDatasetBuilder::push_dataset`]) so a structurally-distinct blank
 /// axiom in two slices' examples can never collide.
+///
+/// A grounding-surface demonstrator ([`is_grounding_surface_demonstrator`]) is EXCLUDED from
+/// this object-level corpus by canonical graph ownership: its correspondence is folded into
+/// `graph/correspondence-laws` by stage-mappings, and its representative out-of-fragment
+/// `logic:`-native constructs are demonstrations, not production object-level axioms, so they
+/// stay OUT of the reasoned object-level EDB exactly like every other correspondence-law
+/// datum.
 pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let mut builder = RdfDatasetBuilder::new();
     for path in files {
@@ -416,6 +457,10 @@ pub fn examples_graph(files: &[PathBuf]) -> Result<Arc<RdfDataset>, gmeow_errors
             })
         })?;
         let parsed = turtle_bytes_to_dataset(&bytes, &path.display().to_string())?;
+        if !belongs_in_object_level_examples(parsed.as_ref()) {
+            // Owned by graph/correspondence-laws, not the object-level graph/examples corpus.
+            continue;
+        }
         builder.push_dataset(parsed.as_ref());
     }
     let unioned = builder.freeze().map_err(|e| {
@@ -631,7 +676,7 @@ impl Stage for SourceLoadStage {
     }
     fn impl_version(&self) -> &str {
         // v2: attach the self-description named graphs (authored-default / imports /
-        // metadata / alignments / slice-analysis / verify / provenance) so the presenter
+        // metadata / alignments / slice-analysis / provenance) so the presenter
         // reads them instead of re-loading + re-canonicalizing the sources on the serial
         // snapshot node (PIPELINE_SPINE §3.2/§4). The BASE_GRAPH_PATH byte lane and the
         // default-graph fold `gts_compose` takes are unchanged.
@@ -655,20 +700,35 @@ impl Stage for SourceLoadStage {
         // the loader that reads the slices reads it too; it is admitted to the object-level
         // reasoning EDB, so every slice's worked examples reach the shipped bundle's
         // reasoned closure instead of only the docs/competency-question harvest.
-        "source_load.v7-examples"
+        // v8: graph/verify leaves this root stage; the dedicated downstream verify
+        // stage projects it from stage-reason's already-built ReasoningResult instead
+        // of launching a second native chase here.
+        // v9: the source-load key includes the exact authored source closure consumed
+        // by the slice-quality assessment. That assessment reads tests, queries,
+        // docs.md, and translation catalogs beyond the carrier's ontology inputs; a
+        // change to any of them must invalidate graph/quality-assessment rather than
+        // serving a stale cached grade.
+        // v10: exclude grounding-surface demonstrators from graph/examples. They are
+        // correspondence-law material, not object-level ABox input. The version bump is
+        // mandatory because the action-cache key cannot infer semantic Rust changes.
+        "source_load.v10-grounding-demo-exclusion"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
-        // files: imports, self-description metadata, SSSOM alignments, slice manifests +
-        // shapes (slice-analysis / verify), translation catalogs + docs guides (the
+        // files: imports, self-description metadata, SSSOM alignments, slice manifests,
+        // translation catalogs + docs guides (the
         // translated authored default). Declare them ALL so any of these busting the
         // cache re-runs the loader (cache soundness — a stale self-description graph would
         // ship a stale bundle). `build_self_description_dataset` is the single authority
         // for what is read; this mirrors its source closure. The `examples/*.ttl` corpus is
         // a genuine disk read of this stage's, so it joins that closure: editing any
-        // slice's demonstrator must re-run the loader.
+        // slice's demonstrator must re-run the loader. The quality assessment reads a
+        // wider authored surface (including slice tests, queries, docs.md, and i18n);
+        // use its own single discovery authority so the cache key cannot drift from
+        // the scorer's actual reads.
         let mut files = crate::stages::carrier::self_description_source_files(root)?;
         files.extend(example_files(root)?);
+        files.extend(gmeow_slice_quality::scored_source_files(root));
         files.sort();
         files.dedup();
         Ok(files)
@@ -818,22 +878,6 @@ mod tests {
     }
 
     #[test]
-    fn source_load_parses_the_whole_ontology() {
-        let root = repo_root();
-        let dataset = load_authored_dataset(&root).expect("load");
-        // The merged authored graph is substantial (50+ slices); sanity-floor it.
-        assert!(
-            dataset.quad_count() > 5_000,
-            "authored base graph unexpectedly small: {} quads",
-            dataset.quad_count()
-        );
-        // Round-trips through the in-memory N-Quads hand-off.
-        let nq = dataset_to_sorted_nquads(&dataset).expect("serialize");
-        let back = parse_base_graph(&nq).expect("reparse");
-        assert_eq!(dataset.quad_count(), back.quad_count());
-    }
-
-    #[test]
     fn authored_files_includes_root_and_modules() {
         let root = repo_root();
         let files = authored_files(&root).unwrap();
@@ -970,37 +1014,6 @@ mod tests {
         }
     }
 
-    /// The corpus lands in ONE named graph, carrying witnesses from slices that had no path to
-    /// the object-level bundle at all before: a `core/` and an `extensions/` demonstrator
-    /// alongside the `grounding/math` one.
-    #[test]
-    fn examples_graph_carries_every_group_in_one_named_world() {
-        let root = repo_root();
-        let files = example_files(&root).expect("list examples");
-        let graph = examples_graph(&files).expect("union the corpus");
-        let projected = graph.project_named_graph(gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES);
-        assert_eq!(
-            projected.quad_count(),
-            graph.quad_count(),
-            "every corpus quad belongs to graph/examples — nothing leaks to the default graph, \
-             where it would be mistaken for an authored slice TBox"
-        );
-        let nquads = purrdf::canonical_flat_nquads(&projected).expect("canon the corpus");
-        for witness in [
-            // grounding/math: the α-twins the identity gate decides over.
-            "alpha-twins/firstProduct",
-            // core/: a demonstrator whose slice ships no producer stage at all.
-            "modeDeduction",
-            // extensions/: likewise.
-            "/finance/",
-        ] {
-            assert!(
-                nquads.contains(witness),
-                "graph/examples must carry the {witness} witness"
-            );
-        }
-    }
-
     #[test]
     fn missing_directory_listings_are_empty_not_errors() {
         // `sorted_dirs` / `ttl_files_in` treat an absent directory as an empty listing
@@ -1012,5 +1025,41 @@ mod tests {
         assert!(ttl_files_in(&root.join("imports")).unwrap().is_empty());
         assert!(module_files(root).unwrap().is_empty());
         assert!(all_manifest_files(root).unwrap().is_empty());
+    }
+
+    /// A grounding-surface demonstrator (a slice example authoring a `logic:GroundingCorrespondence`)
+    /// is owned by `graph/correspondence-laws`, NOT the object-level `graph/examples` corpus. Its
+    /// representative out-of-fragment `logic:`-native constructs (`logic:inverseFunctionalProperty`,
+    /// `logic:oneOf`, …) are grounding DEMONSTRATIONS, not production object-level axioms, so they
+    /// must never enter the reasoned object-level EDB — where the native DL path would honestly but
+    /// uselessly WITHHOLD on them and red `reason-verify`. Regression for the `owl:`→`logic:`
+    /// authoring migration (the flip made these constructs visible to `scan_coverage`).
+    #[test]
+    fn grounding_surface_demonstrator_stays_out_of_object_level_examples() {
+        // Unit: the recognizer keys on the authored `logic:GroundingCorrespondence` type.
+        let demonstrator = turtle_bytes_to_dataset(
+            b"@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+              @prefix ex: <https://blackcatinformatics.ca/gmeow/examples/grounding-bridge/> .\n\
+              ex:bridge a logic:GroundingCorrespondence .\n\
+              ex:identifiedBy a logic:inverseFunctionalProperty .\n",
+            "test-grounding-surface-demonstrator",
+        )
+        .expect("parse demonstrator fixture");
+        assert!(is_grounding_surface_demonstrator(demonstrator.as_ref()));
+        assert!(
+            !belongs_in_object_level_examples(demonstrator.as_ref()),
+            "a grounding-surface demonstrator is correspondence-law material"
+        );
+        let ordinary = turtle_bytes_to_dataset(
+            b"@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/> .\n\
+              ex:a ex:knows ex:b .\n",
+            "test-ordinary-demonstrator",
+        )
+        .expect("parse ordinary fixture");
+        assert!(!is_grounding_surface_demonstrator(ordinary.as_ref()));
+        assert!(
+            belongs_in_object_level_examples(ordinary.as_ref()),
+            "an ordinary positive demonstrator belongs in the object-level graph"
+        );
     }
 }

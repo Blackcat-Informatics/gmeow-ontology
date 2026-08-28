@@ -319,12 +319,13 @@ fn world_string_of(graph: Option<&TermValue>) -> String {
 ///
 /// Two boundary transforms, both matching the retired native encoder:
 ///
-/// * **canonical → W3C spelling.** Every quad is emitted under each spelling
-///   [`super::edb_predicate_spellings`] yields, so a canonical `logic:subClassOf` /
-///   `logic:subPropertyOf` (or restriction slot) also appears under the `rdfs:`/`owl:`
-///   spelling the fixed RL rules match. The authored canonical edge is kept too, so
-///   the projection ADDS the W3C view rather than replacing the authored one, and both
-///   are asserted.
+/// * **canonical → W3C spelling.** Every quad is emitted under each predicate spelling
+///   [`super::edb_predicate_spellings`] yields, while an IRI object is normalized through
+///   [`super::calculus_term`]. A canonical `logic:subClassOf` / `logic:subPropertyOf`
+///   predicate is therefore also asserted under the `rdfs:` spelling, and canonical
+///   class/property markers in object position reach the `owl:`/`rdfs:` constants the
+///   fixed RL rules match. The authored predicate edge is kept too: predicate lowering
+///   adds its W3C view rather than replacing authored data.
 /// * **world ⇔ graph** (see the module docs): a named IRI graph is its own world; a
 ///   default or blank-node graph folds to the [`DEFAULT_WORLD`] named graph.
 ///
@@ -340,15 +341,20 @@ fn lower_edb_for_rl(edb: &RdfDataset) -> gmeow_errors::Result<Option<std::sync::
     let mut builder = RdfDatasetBuilder::new();
     let mut pushed = false;
     for quad in edb.owned_quads() {
-        if matches!(quad.subject, RdfTerm::Triple(_)) || matches!(quad.object, RdfTerm::Triple(_)) {
+        if matches!(&quad.subject, RdfTerm::Triple(_)) || matches!(&quad.object, RdfTerm::Triple(_))
+        {
             continue;
         }
+        let object = match &quad.object {
+            RdfTerm::Iri(iri) => RdfTerm::iri(super::calculus_term(iri)),
+            other => other.clone(),
+        };
         let world = match &quad.graph_name {
             Some(RdfTerm::Iri(iri)) => iri.clone(),
             _ => DEFAULT_WORLD.to_owned(),
         };
         for predicate in super::edb_predicate_spellings(&quad.predicate) {
-            let lowered = RdfQuad::new(quad.subject.clone(), predicate, quad.object.clone())
+            let lowered = RdfQuad::new(quad.subject.clone(), predicate, object.clone())
                 .in_graph(RdfTerm::iri(world.clone()));
             builder.push_owned_quad(&lowered);
             pushed = true;

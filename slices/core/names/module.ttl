@@ -5,14 +5,13 @@
 @prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix lime: <http://www.w3.org/ns/lemon/lime#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Appellation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Appellation"@x-gmeow-english ;
     rdfs:subClassOf ontolex:LexicalEntry ,
@@ -26,7 +25,7 @@ gmeow:Appellation
 
 gmeow:Filename
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Filename"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Appellation ;
@@ -39,7 +38,7 @@ gmeow:Filename
 
 gmeow:Honorific
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Honorific"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -52,7 +51,7 @@ gmeow:Honorific
 
 gmeow:HonorificClass
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Honorific Class"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -65,7 +64,7 @@ gmeow:HonorificClass
 
 gmeow:HonorificPosition
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Honorific Position"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -78,7 +77,7 @@ gmeow:HonorificPosition
 
 gmeow:NamePart
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Part"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -91,7 +90,7 @@ gmeow:NamePart
 
 gmeow:NamePartType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Part Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -104,7 +103,7 @@ gmeow:NamePartType
 
 gmeow:NamePurpose
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Purpose"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -117,7 +116,7 @@ gmeow:NamePurpose
 
 gmeow:NameRegister
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Register"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ,
@@ -131,7 +130,7 @@ gmeow:NameRegister
 
 gmeow:NameUsage
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Usage"@x-gmeow-english ;
     logic:mediates gmeow:usageNamed ,
@@ -139,14 +138,14 @@ gmeow:NameUsage
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:usageNamed ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:usageNamed ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:usageAppellation ;
-            owl:someValuesFrom gmeow:Appellation ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:usageAppellation ;
+            logic:someValuesFrom gmeow:Appellation ;
         ] ;
     skos:definition "A reified, context-dependent use of an appellation — an observation in the universal claim stack (observation-spine bridge): a named entity (observedFeature) is called by a given appellation (observationResult), by or among a particular audience (or within a relationship scope), in a particular register, over a period, on some evidence. Perspectival — a usage is whoever's, never a global fact — so it carries no notion of a preferred or canonical name. Mint one NameUsage per (appellation, audience, register) tuple; its period is carried by gmeow:usageInterval or by validFrom/validUntil on the statement."@x-gmeow-english ;
     skos:example "ex:usageFamily a gmeow:NameUsage ; gmeow:usageNamed ex:genny ; gmeow:usageAppellation ex:gennyAunt ; gmeow:usageAudience ex:family ."@x-gmeow-english ;
@@ -162,7 +161,7 @@ gmeow:NameUsage
 
 gmeow:OrganizationName
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Organization Name"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Appellation ;
@@ -175,7 +174,7 @@ gmeow:OrganizationName
 
 gmeow:PersonName
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Person Name"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Appellation ;
@@ -192,7 +191,7 @@ gmeow:PersonName
 
 gmeow:PlaceName
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Place Name"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Appellation ;
@@ -205,16 +204,16 @@ gmeow:PlaceName
 
 gmeow:PlaceNaming
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Place Naming"@x-gmeow-english ;
     rdfs:subClassOf gmeow:NameUsage ;
-    owl:equivalentClass [
-        a owl:Class ;
-        owl:intersectionOf ( gmeow:NameUsage [
-            a owl:Restriction ;
-            owl:onProperty gmeow:usageNamed ;
-            owl:someValuesFrom gmeow:Place ;
+    logic:equivalentClass [
+        a logic:Class ;
+        logic:intersectionOf ( gmeow:NameUsage [
+            a logic:Restriction ;
+            logic:onProperty gmeow:usageNamed ;
+            logic:someValuesFrom gmeow:Place ;
         ] ) ;
     ] ;
     skos:definition "A DEFINED specialization of gmeow:NameUsage whose named entity is a gmeow:Place — a time/audience/register-scoped use of a toponym. Defined, NOT asserted: any NameUsage that names a Place is inferred to be a PlaceNaming (≡ gmeow:NameUsage ⊓ ∃gmeow:usageNamed.gmeow:Place), so place-naming reuses the NameUsage relator instead of minting a parallel relator (Principle 6, greenfield/no-redundancy). The reified counterpart of CIDOC-CRM's time-spanned crm:E48 Place Name / crm:E41 Appellation. Competing and historical place names coexist as co-equal PlaceNamings with no primary; superseded ones set gmeow:displayable false (Principle 10). The toponymic authority is gmeow:usageAuthority; the name's language is gmeow:nameLanguage on the bound gmeow:PlaceName (reached via gmeow:usageAppellation)."@x-gmeow-english ;
@@ -226,7 +225,7 @@ gmeow:PlaceNaming
 
 gmeow:PronounSet
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Pronoun Set"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -239,7 +238,7 @@ gmeow:PronounSet
 
 gmeow:Register
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Register"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -251,7 +250,7 @@ gmeow:Register
     gmeow:useWhen "Use as the open umbrella value vocabulary for social/expressive register when a register spans naming AND persona expression — extend it (or its gmeow:NameRegister specialization) with a new individual when a formality or audience-posture is not yet seeded."@x-gmeow-english .
 
 gmeow:appellationDenotation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "appellation denotation"@x-gmeow-english ;
@@ -264,7 +263,7 @@ gmeow:appellationDenotation
     gmeow:useWhen "Use to record that an appellation's form denotes its bearer as a first-class, reified lang:Denotation — when reference must carry its own context, ambiguity, evidence, or standpoint, or when co-reference is established by a shared lang:denotationTarget rather than a bare same-name heuristic."@x-gmeow-english .
 
 gmeow:claimedMediaType
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Filename ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "claimed media type"@x-gmeow-english ;
@@ -278,7 +277,7 @@ gmeow:claimedMediaType
     gmeow:useWhen "Use to record the MIME media type a gmeow:Filename's extension CLAIMS — the type asserted by the name, to be compared against the type detected from the bytes."@x-gmeow-english .
 
 gmeow:conferredByEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "conferred by event"@x-gmeow-english ;
@@ -291,7 +290,7 @@ gmeow:conferredByEvent
     gmeow:useWhen "Use to link an appellation to the life event that conferred or changed it — a christening, name change, marriage (a married name), or adoption — joining the names module to the events spine."@x-gmeow-english .
 
 gmeow:detectedMediaType
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:InformationObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "detected media type"@x-gmeow-english ;
@@ -304,7 +303,7 @@ gmeow:detectedMediaType
     gmeow:useWhen "Use to record the MIME media type DETECTED from an information object's bytes/magic — the observed type, to be compared against the extension's claim."@x-gmeow-english .
 
 gmeow:displayable
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "displayable"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
@@ -318,7 +317,7 @@ gmeow:displayable
     gmeow:useWhen "Use to SUPPRESS a name or identity facet from interfaces and reports — a superseded name, a deadname, or a superseded gender/orientation label that must never be surfaced."@x-gmeow-english .
 
 gmeow:fullName
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "full name"@x-gmeow-english ;
@@ -331,7 +330,7 @@ gmeow:fullName
     gmeow:useWhen "Use to carry the complete surface form of an appellation as a single language-/script-tagged string in the natural order of its culture — the authoritative source for display."@x-gmeow-english .
 
 gmeow:hasAgreementName
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agreement ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "has agreement name"@x-gmeow-english ;
@@ -345,7 +344,7 @@ gmeow:hasAgreementName
     gmeow:useWhen "Use to bear a structured name on an agreement — a formal title, short name, or multilingual version; the agreement-scoped specialization of gmeow:hasAppellation."@x-gmeow-english .
 
 gmeow:hasAppellation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "has appellation"@x-gmeow-english ;
@@ -358,7 +357,7 @@ gmeow:hasAppellation
     gmeow:useWhen "Use for the universal direct bearing of a co-equal name on any entity when a person/place/organization-scoped specialization does not apply, and audience, register, or evidence need not be first-class."@x-gmeow-english .
 
 gmeow:hasName
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "has name"@x-gmeow-english ;
@@ -377,7 +376,7 @@ gmeow:hasName
     gmeow:useWhen "Use for a direct, co-equal person-to-PersonName bearing where audience, register, evidence, and context do not need their own node."@x-gmeow-english .
 
 gmeow:hasNamePart
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "has name part"@x-gmeow-english ;
@@ -391,7 +390,7 @@ gmeow:hasNamePart
     gmeow:useWhen "Use to attach the reified, typed components of an appellation when parts must be matched, expanded, or rendered separately — the names-scoped specialization of the universal gmeow:hasPart spine."@x-gmeow-english .
 
 gmeow:hasOrganizationName
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Organization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "has organization name"@x-gmeow-english ;
@@ -405,7 +404,7 @@ gmeow:hasOrganizationName
     gmeow:useWhen "Use to bear a structured name on an organization — a legal, trading, former, or multilingual name; the organization-scoped mirror of gmeow:hasName and gmeow:hasPlaceName."@x-gmeow-english .
 
 gmeow:hasPlaceName
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Place ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "has place name"@x-gmeow-english ;
@@ -419,7 +418,7 @@ gmeow:hasPlaceName
     gmeow:useWhen "Use to bear a structured toponym on a geographic place — an endonym, exonym, multilingual, or historical name; the place-scoped mirror of gmeow:hasName."@x-gmeow-english .
 
 gmeow:hasPronounSet
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "has pronoun set"@x-gmeow-english ;
@@ -433,7 +432,7 @@ gmeow:hasPronounSet
     gmeow:useWhen "Use to record the pronoun set a person goes by — a form of address, contextual and possibly multiple; scope a context-specific set with gmeow:validFrom/validUntil on the statement."@x-gmeow-english .
 
 gmeow:honorific
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "honorific"@x-gmeow-english ;
@@ -447,7 +446,7 @@ gmeow:honorific
     gmeow:useWhen "Use to record an honorific or title of address a person goes by — a form of address, contextual and possibly multiple (gmeow:honorificMx, gmeow:honorificDr, gmeow:honorificSayyid, …)."@x-gmeow-english .
 
 gmeow:honorificClass
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Honorific ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "honorific class"@x-gmeow-english ;
@@ -583,7 +582,7 @@ gmeow:honorificMx
     gmeow:honorificPosition gmeow:honorificPositionPrefix .
 
 gmeow:honorificPosition
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Honorific ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "honorific position"@x-gmeow-english ;
@@ -682,7 +681,7 @@ gmeow:honorificSri
     gmeow:honorificPosition gmeow:honorificPositionPrefix .
 
 gmeow:nameLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "name language"@x-gmeow-english ;
@@ -934,7 +933,7 @@ gmeow:namePartTeknonym
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:namePartType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NamePart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "name part type"@x-gmeow-english ;
@@ -947,7 +946,7 @@ gmeow:namePartType
     gmeow:useWhen "Use to type a gmeow:NamePart — name which kind of component it is (given, surname, patronymic, nisba, extension, …) by referencing a gmeow:NamePartType value."@x-gmeow-english .
 
 gmeow:namePurpose
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "name purpose"@x-gmeow-english ;
@@ -1065,7 +1064,7 @@ gmeow:namePurposeSuperseded
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:nameScript
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "name script"@x-gmeow-english ;
@@ -1078,7 +1077,7 @@ gmeow:nameScript
     gmeow:useWhen "Use to record the first-class lang:Script an appellation's surface form is written in — for indexing and script-aware display selection — grounded in the shared lang: script layer rather than a per-name ISO 15924 tag."@x-gmeow-english .
 
 gmeow:partExpansion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:NamePart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "part expansion"@x-gmeow-english ;
@@ -1091,7 +1090,7 @@ gmeow:partExpansion
     gmeow:useWhen "Use to carry the full word an abbreviated name part stands for — e.g. the expansion of a South-Indian (Tamil) initial — alongside the abbreviated gmeow:partText."@x-gmeow-english .
 
 gmeow:partOrder
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:NamePart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "part order"@x-gmeow-english ;
@@ -1104,7 +1103,7 @@ gmeow:partOrder
     gmeow:useWhen "Use to record the 0-based written position of a gmeow:NamePart within its appellation's surface order, as actually written in its culture."@x-gmeow-english .
 
 gmeow:partText
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:NamePart ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "part text"@x-gmeow-english ;
@@ -1259,7 +1258,7 @@ gmeow:pronounNeNem
     gmeow:pronounSubject "ne" .
 
 gmeow:pronounObject
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun object"@x-gmeow-english ;
@@ -1296,7 +1295,7 @@ gmeow:pronounPerPer
     gmeow:pronounSubject "per" .
 
 gmeow:pronounPossessive
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun possessive"@x-gmeow-english ;
@@ -1309,7 +1308,7 @@ gmeow:pronounPossessive
     gmeow:useWhen "Use to carry the possessive pronoun form of a gmeow:PronounSet — one of the five forms that define a custom set ('the book is theirs')."@x-gmeow-english .
 
 gmeow:pronounPossessiveDeterminer
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun possessive determiner"@x-gmeow-english ;
@@ -1322,7 +1321,7 @@ gmeow:pronounPossessiveDeterminer
     gmeow:useWhen "Use to carry the possessive determiner form of a gmeow:PronounSet — one of the five forms that define a custom set."@x-gmeow-english .
 
 gmeow:pronounReflexive
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun reflexive"@x-gmeow-english ;
@@ -1347,7 +1346,7 @@ gmeow:pronounSheHer
     gmeow:pronounSubject "she" .
 
 gmeow:pronounSubject
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:PronounSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronoun subject"@x-gmeow-english ;
@@ -1484,7 +1483,7 @@ gmeow:registerProfessional
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:romanization
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Appellation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "romanization"@x-gmeow-english ;
@@ -1498,7 +1497,7 @@ gmeow:romanization
     gmeow:useWhen "Use to carry a Latin-script transliteration of THE SAME appellation in another script — pinyin for a Chinese name, Hepburn for a Japanese one — for indexing and accessible rendering."@x-gmeow-english .
 
 gmeow:usageAppellation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage appellation"@x-gmeow-english ;
@@ -1511,7 +1510,7 @@ gmeow:usageAppellation
     gmeow:useWhen "Use to bind the appellation player of a gmeow:NameUsage — which gmeow:Appellation is used to call the named entity in this use."@x-gmeow-english .
 
 gmeow:usageAudience
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage audience"@x-gmeow-english ;
@@ -1524,7 +1523,7 @@ gmeow:usageAudience
     gmeow:useWhen "Use to record who a name is used TOWARD — the social scope of a gmeow:NameUsage, an agent, group/family, or locale community."@x-gmeow-english .
 
 gmeow:usageAuthority
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage authority"@x-gmeow-english ;
@@ -1537,7 +1536,7 @@ gmeow:usageAuthority
     gmeow:useWhen "Use to record the naming or toponymic authority that confers or sanctions an appellation in a usage — a mapping agency, standards body, indigenous community, or self-asserting individual that backs the claim."@x-gmeow-english .
 
 gmeow:usageInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage interval"@x-gmeow-english ;
@@ -1550,7 +1549,7 @@ gmeow:usageInterval
     gmeow:useWhen "Use to carry the period over which a gmeow:NameUsage held — a former, historical, or life-stage-scoped name use that needs an explicit interval."@x-gmeow-english .
 
 gmeow:usageNamed
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage named"@x-gmeow-english ;
@@ -1563,7 +1562,7 @@ gmeow:usageNamed
     gmeow:useWhen "Use to bind the named-entity player of a gmeow:NameUsage — the entity that is called by the appellation in this use (its gufo:Relator who-is-named role)."@x-gmeow-english .
 
 gmeow:usageNamer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage namer"@x-gmeow-english ;
@@ -1576,7 +1575,7 @@ gmeow:usageNamer
     gmeow:useWhen "Use to record who actually uses the appellation — the speaker or perspective-holder behind a gmeow:NameUsage."@x-gmeow-english .
 
 gmeow:usageRegister
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage register"@x-gmeow-english ;
@@ -1589,7 +1588,7 @@ gmeow:usageRegister
     gmeow:useWhen "Use to record the social register of a gmeow:NameUsage — whether the name is used formally, intimately, professionally, or casually."@x-gmeow-english .
 
 gmeow:usageRelationshipScope
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:NameUsage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usage relationship scope"@x-gmeow-english ;
@@ -1602,7 +1601,7 @@ gmeow:usageRelationshipScope
     gmeow:useWhen "Use when a name-usage's scope is exactly one standing interpersonal relationship — the aunt-niece tie within which 'Aunt Genny' is used — reusing the contacts relator rather than naming a broader audience."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/names>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """A universal, multi-culture, inclusive naming model (the schema.org / vCard N / GEDCOM X NameForm / W3C pronouns superset layer). A name is never a bare attribute: it is a reified gmeow:Appellation (an information object with structured, typed parts) borne by an entity, and gmeow:NameUsage is the gufo:Relator binding {who is named} × {which appellation} × {by/among whom} × {register} × {period} — so 'Aunt Genny' (intimate, family audience) is distinct from 'Mrs Smith' (formal) without privileging either. Name-part kinds, purposes, registers, pronoun sets and honorifics are open VALUE vocabularies, so patronymic, Arabic ism/kunya/nasab/laqab/nisba, Spanish double surname, East-Asian family-first and courtesy names, Tamil initial-expansion and mononym are all expressible without forcing a Western given+family order. GOVERNING TENET — co-equality (anti-colonial naming): a person's names in different languages/scripts (e.g. Patrick Colm Audley and 欧德理) are CO-EQUAL full names; none is the other's alternateName or romanization, none is 'primary'. There is deliberately NO preferredForDisplay / primaryName term — display SELECTION is locale-relative and symmetric; only display SUPPRESSION (gmeow:displayable false, e.g. a deadname) is modelled. Pronouns and honorifics are sex/gender INDEPENDENT — ADDRESS (what you want to be called) is not IDENTITY (what you are): they are never inferred from, nor do they imply, gmeow:hasGenderIdentity / gmeow:hasGenderExpression / gmeow:sexAssignedAtBirth / orientation (modelled in the gender + sexuality modules). Follows the W3C 'Personal names around the world' guidance.
 
@@ -1614,13 +1613,13 @@ STANDPOINT DOCTRINE. Contested facts in the naming slice — endonym vs exonym p
         gmeow:boxTBox .
 
 lime:language
-    a owl:DatatypeProperty .
+    a logic:DatatypeProperty .
 
 ontolex:LexicalEntry
-    a owl:Class .
+    a logic:Class .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of DeadnameSuppressionShape.     #
+# Suppression constraint — projection of DeadnameSuppressionShape.     #
 # A superseded name or deadname (namePurpose in {deadname, superseded}) that   #
 # is not suppressed (gmeow:displayable false) is a Warning — a source may lag. #
 # =========================================================================== #
@@ -1657,7 +1656,7 @@ logic:supNmNotSuppressed a logic:Formula ; logic:not logic:supNmDisp .
 logic:supNmDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
-# Migrated (#1194): projection of gmeow:PlaceNamingHasPlayersShape — a NameUsage
+# Projection of gmeow:PlaceNamingHasPlayersShape — a NameUsage
 # that names a gmeow:Place must bind a gmeow:PlaceName appellation (Principle 17).
 gmeow:PlaceNamingHasPlayersConstraint
     a logic:Constraint ;
@@ -1694,16 +1693,16 @@ logic:pnhpAppType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22
     logic:argument [ logic:termIndex 0 ; logic:termVariable "app" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PlaceName ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/NameUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/usageAppellation> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/NameUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/usageNamed> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NameUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/usageAppellation> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/NameUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/usageNamed> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/NameUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/usageAppellation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/NameUsage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/usageNamed" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # --- Wave B1 shape-drain: name-usage cardinality + name suppression / content grounding ---
 # gmeow:NameUsageShape — a NameUsage binds exactly one named entity and exactly one appellation.
 gmeow:NameUsage logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:usageNamed ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:usageAppellation ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:usageNamed ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:usageAppellation ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:AppellationHasContentShape — an Appellation must carry content (a full name or at least one
 # typed part); a surname is NEVER required (mononyms and non-Western naming systems are first-class).
@@ -1719,18 +1718,18 @@ gmeow:AppellationHasContentConstraint
     logic:message "An appellation must have a gmeow:fullName or at least one name part; a surname is never required (mononyms are valid)." .
 
 # gmeow:AppellationHasContentShape node-level sh:or → the OrProperties node-component projection
-# (an owl:unionOf of bare property existentials): an Appellation carries a gmeow:fullName or at
+# (an OWL unionOf of bare property existentials): an Appellation carries a gmeow:fullName or at
 # least one gmeow:hasNamePart. Reproduces the retired shape's covered disjunction declaratively
 # (the gmeow:AppellationHasContentConstraint above additionally carries the procedural image).
-gmeow:Appellation logic:subClassOf [ owl:unionOf (
-    [ a logic:Restriction ; logic:onProperty gmeow:fullName ; logic:someValuesFrom owl:Thing ]
-    [ a logic:Restriction ; logic:onProperty gmeow:hasNamePart ; logic:someValuesFrom owl:Thing ] ) ] .
+gmeow:Appellation logic:subClassOf [ logic:unionOf (
+    [ a logic:Restriction ; logic:onProperty gmeow:fullName ; logic:someValuesFrom logic:Thing ]
+    [ a logic:Restriction ; logic:onProperty gmeow:hasNamePart ; logic:someValuesFrom logic:Thing ] ) ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1738,7 +1737,7 @@ gmeow:Appellation logic:subClassOf [ owl:unionOf (
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:honorificPositionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "honorificPosition is functional"@x-gmeow-english ;
@@ -1753,7 +1752,7 @@ gmeow:honorificPositionFunctionality
     skos:example "gmeow:honorificPositionFunctionality logic:characterizes gmeow:honorificPosition ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:nameLanguageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "nameLanguage is functional"@x-gmeow-english ;
@@ -1768,7 +1767,7 @@ gmeow:nameLanguageFunctionality
     skos:example "gmeow:nameLanguageFunctionality logic:characterizes gmeow:nameLanguage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:namePartTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "namePartType is functional"@x-gmeow-english ;
@@ -1783,7 +1782,7 @@ gmeow:namePartTypeFunctionality
     skos:example "gmeow:namePartTypeFunctionality logic:characterizes gmeow:namePartType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:partOrderFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "partOrder is functional"@x-gmeow-english ;
@@ -1798,7 +1797,7 @@ gmeow:partOrderFunctionality
     skos:example "gmeow:partOrderFunctionality logic:characterizes gmeow:partOrder ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pronounObjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounObject is functional"@x-gmeow-english ;
@@ -1813,7 +1812,7 @@ gmeow:pronounObjectFunctionality
     skos:example "gmeow:pronounObjectFunctionality logic:characterizes gmeow:pronounObject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pronounPossessiveFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounPossessive is functional"@x-gmeow-english ;
@@ -1828,7 +1827,7 @@ gmeow:pronounPossessiveFunctionality
     skos:example "gmeow:pronounPossessiveFunctionality logic:characterizes gmeow:pronounPossessive ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pronounPossessiveDeterminerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounPossessiveDeterminer is functional"@x-gmeow-english ;
@@ -1843,7 +1842,7 @@ gmeow:pronounPossessiveDeterminerFunctionality
     skos:example "gmeow:pronounPossessiveDeterminerFunctionality logic:characterizes gmeow:pronounPossessiveDeterminer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pronounReflexiveFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounReflexive is functional"@x-gmeow-english ;
@@ -1858,7 +1857,7 @@ gmeow:pronounReflexiveFunctionality
     skos:example "gmeow:pronounReflexiveFunctionality logic:characterizes gmeow:pronounReflexive ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:pronounSubjectFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "pronounSubject is functional"@x-gmeow-english ;
@@ -1873,7 +1872,7 @@ gmeow:pronounSubjectFunctionality
     skos:example "gmeow:pronounSubjectFunctionality logic:characterizes gmeow:pronounSubject ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:usageAppellationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageAppellation is functional"@x-gmeow-english ;
@@ -1888,7 +1887,7 @@ gmeow:usageAppellationFunctionality
     skos:example "gmeow:usageAppellationFunctionality logic:characterizes gmeow:usageAppellation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:usageNamedFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageNamed is functional"@x-gmeow-english ;
@@ -1903,7 +1902,7 @@ gmeow:usageNamedFunctionality
     skos:example "gmeow:usageNamedFunctionality logic:characterizes gmeow:usageNamed ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:usageRegisterFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageRegister is functional"@x-gmeow-english ;
@@ -1918,7 +1917,7 @@ gmeow:usageRegisterFunctionality
     skos:example "gmeow:usageRegisterFunctionality logic:characterizes gmeow:usageRegister ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:usageRelationshipScopeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "usageRelationshipScope is functional"@x-gmeow-english ;

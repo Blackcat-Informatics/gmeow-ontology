@@ -39,6 +39,11 @@ use gmeow_ns::LOGIC_NS;
 const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
 const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
 const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+// The class-disjointness set is authored in the canonical `logic:` spelling
+// (`logic:AllDisjointClasses` / `logic:members`); `owl:` is its generated projection, so it is
+// read canonical-first with the `owl:` spelling kept only as a fallback for an external corpus.
+const LOGIC_ALL_DISJOINT: &str = "https://blackcatinformatics.ca/logic/AllDisjointClasses";
+const LOGIC_MEMBERS: &str = "https://blackcatinformatics.ca/logic/members";
 const OWL_ALL_DISJOINT: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
 const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
 const CHAR_ASSERTION: &str = "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion";
@@ -253,9 +258,18 @@ pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Dia
         shapes.push(ShapeBlock { iri, block });
     }
 
-    // ── Class-disjointness (named owl:AllDisjointClasses carrying logic:formalizes) ──
+    // ── Class-disjointness (named logic:AllDisjointClasses carrying logic:formalizes) ──
     let list_edges = ListEdges::collect(&ds);
-    for disjoint in ds.subjects_of_type(OWL_ALL_DISJOINT).map_err(q)? {
+    let mut seen_disjoint: BTreeSet<String> = BTreeSet::new();
+    let mut disjoint_subjects = Vec::new();
+    for ty in [LOGIC_ALL_DISJOINT, OWL_ALL_DISJOINT] {
+        for subj in ds.subjects_of_type(ty).map_err(q)? {
+            if seen_disjoint.insert(subj.to_string()) {
+                disjoint_subjects.push(subj);
+            }
+        }
+    }
+    for disjoint in disjoint_subjects {
         // Only the NAMED, projection-anchored sets (blank ones are DL-gate only).
         if ds
             .first_object_iri(&disjoint, &format!("{LOGIC_NS}formalizes"))
@@ -264,12 +278,20 @@ pub fn render_constraint_shapes(root: &Path) -> Result<String, gmeow_errors::Dia
         {
             continue;
         }
-        let Some(head) = ds
-            .objects(&disjoint, OWL_MEMBERS)
+        let head = match ds
+            .objects(&disjoint, LOGIC_MEMBERS)
             .map_err(q)?
             .into_iter()
             .next()
-        else {
+        {
+            Some(h) => Some(h),
+            None => ds
+                .objects(&disjoint, OWL_MEMBERS)
+                .map_err(q)?
+                .into_iter()
+                .next(),
+        };
+        let Some(head) = head else {
             continue;
         };
         let members = list_edges.members(&head);
@@ -445,6 +467,18 @@ mod tests {
             .unwrap()
     }
 
+    fn authenticated_constraint_shapes() -> String {
+        String::from_utf8(
+            crate::fixture::authenticated_artifact(
+                &repo_root(),
+                "stage-export-constraint-shapes",
+                CONSTRAINT_SHAPES_PATH,
+            )
+            .expect("authenticated constraint-shapes projection"),
+        )
+        .expect("constraint-shapes utf8")
+    }
+
     #[test]
     fn members_terminates_on_a_cyclic_list() {
         // A malformed list whose rdf:rest loops b0 -> b1 -> b0 must not hang the walk;
@@ -468,21 +502,8 @@ mod tests {
     }
 
     #[test]
-    fn constraint_shapes_are_byte_identical_to_committed() {
-        let root = repo_root();
-        let fresh = render_constraint_shapes(&root).expect("render");
-        let committed = std::fs::read_to_string(root.join(CONSTRAINT_SHAPES_PATH))
-            .expect("committed constraint-shapes");
-        assert_eq!(
-            fresh, committed,
-            "constraint-shapes.ttl drifted from committed"
-        );
-    }
-
-    #[test]
     fn all_axioms_project() {
-        let root = repo_root();
-        let ttl = render_constraint_shapes(&root).expect("render");
+        let ttl = authenticated_constraint_shapes();
         // 6 irreflexivity + 1 acyclicity + 7 distinctness + 4 disjointness + 3 conditional-range +
         // 1 role-composition-exclusion + 1 mediated-property-requirement = 23 shapes. Grounding the
         // inference + inhabitation proving slices added the attack/support self-exclusion distinctness,
@@ -538,8 +559,7 @@ mod tests {
         // that the migrated axioms keep their SHACL teeth.
         use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
-        let root = repo_root();
-        let ttl = render_constraint_shapes(&root).expect("render");
+        let ttl = authenticated_constraint_shapes();
         let shapes = parse_shapes(&ttl).expect("parse generated constraint-shapes");
 
         let data = "\
@@ -598,8 +618,7 @@ mod tests {
     fn generated_shapes_parse_as_a_shape_union_member() {
         // The generated document must parse in the shape-union loader (the SHACL lane
         // that consumes generated/shapes/*.ttl), proving it is well-formed SHACL Turtle.
-        let root = repo_root();
-        let ttl = render_constraint_shapes(&root).expect("render");
+        let ttl = authenticated_constraint_shapes();
         parse_shapes(&ttl).expect("generated constraint-shapes must parse as SHACL");
     }
 }

@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AdoptiveParentChild
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Adoptive Parent-Child"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
@@ -17,7 +16,7 @@ gmeow:AdoptiveParentChild
 
 gmeow:BiologicalParentChild
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Biological Parent-Child"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
@@ -26,7 +25,7 @@ gmeow:BiologicalParentChild
 
 gmeow:CoupleRelationship
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Couple Relationship"@x-gmeow-english ;
     rdfs:subClassOf gmeow:KinRelationship ;
@@ -35,7 +34,7 @@ gmeow:CoupleRelationship
 
 gmeow:Family
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Family"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Group ;
@@ -44,7 +43,7 @@ gmeow:Family
 
 gmeow:FosterParentChild
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Foster Parent-Child"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
@@ -53,7 +52,7 @@ gmeow:FosterParentChild
 
 gmeow:KinRelationship
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Kin Relationship"@x-gmeow-english ;
     logic:mediates gmeow:withinFamily ;
@@ -64,26 +63,26 @@ gmeow:KinRelationship
 
 gmeow:ParentChildRelationship
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Parent-Child Relationship"@x-gmeow-english ;
     rdfs:subClassOf gmeow:KinRelationship ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:relationshipParent ;
-            owl:someValuesFrom gmeow:Person ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:relationshipParent ;
+            logic:someValuesFrom gmeow:Person ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:relationshipChild ;
-            owl:someValuesFrom gmeow:Person ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:relationshipChild ;
+            logic:someValuesFrom gmeow:Person ;
         ] ;
     skos:definition "A reified parent-child relationship, typed by its nature (biological, adoptive, step, or foster)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:StepParentChild
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Step Parent-Child"@x-gmeow-english ;
     rdfs:subClassOf gmeow:ParentChildRelationship ;
@@ -91,8 +90,8 @@ gmeow:StepParentChild
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:hasAncestor
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has ancestor"@x-gmeow-english ;
@@ -101,19 +100,19 @@ gmeow:hasAncestor
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasChild
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has child"@x-gmeow-english ;
     rdfs:range gmeow:Person ;
     rdfs:subPropertyOf gmeow:connectsTo ,
         gmeow:hasDescendant ;
-    owl:inverseOf gmeow:hasParent ;
+    logic:inverseOf gmeow:hasParent ;
     skos:definition "Relates a person to a child; the inverse of hasParent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasCoupleEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CoupleRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has couple event"@x-gmeow-english ;
@@ -122,18 +121,18 @@ gmeow:hasCoupleEvent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasDescendant
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has descendant"@x-gmeow-english ;
     rdfs:range gmeow:Person ;
-    owl:inverseOf gmeow:hasAncestor ;
+    logic:inverseOf gmeow:hasAncestor ;
     skos:definition "Relates a person to a descendant — a child, a child's child, and so on; the transitive inverse of gmeow:hasAncestor. Derived by the reasoner (gmeow:hasChild is a sub-property), never asserted directly."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasFather
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has father"@x-gmeow-english ;
@@ -143,7 +142,7 @@ gmeow:hasFather
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasMother
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has mother"@x-gmeow-english ;
@@ -153,7 +152,7 @@ gmeow:hasMother
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasParent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has parent"@x-gmeow-english ;
@@ -164,7 +163,7 @@ gmeow:hasParent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasPartner
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CoupleRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has partner"@x-gmeow-english ;
@@ -174,8 +173,8 @@ gmeow:hasPartner
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasSibling
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has sibling"@x-gmeow-english ;
@@ -185,8 +184,8 @@ gmeow:hasSibling
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasSpouse
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:Person ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "has spouse"@x-gmeow-english ;
@@ -196,7 +195,7 @@ gmeow:hasSpouse
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relationshipChild
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "relationship child"@x-gmeow-english ;
@@ -206,7 +205,7 @@ gmeow:relationshipChild
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relationshipParent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ParentChildRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "relationship parent"@x-gmeow-english ;
@@ -216,7 +215,7 @@ gmeow:relationshipParent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:withinFamily
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:KinRelationship ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "within family"@x-gmeow-english ;
@@ -225,7 +224,7 @@ gmeow:withinFamily
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/genealogy>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """A comprehensive, evidence-centric genealogy model: reified, typed kinship relationships and kinship convenience properties. Life events themselves are modelled by the universal events module (gmeow:Event + gmeow:eventType value vocabulary + the gmeow:Participation relator); a person's life events are gmeow:LifeEvent occurrences carrying gmeow:eventTypeBirth / …Marriage / …NameChange etc. Structured naming terms (gmeow:PersonName et al.) live in the names module and link to the event that confers them via gmeow:conferredByEvent. Supersedes the unmaintained W3C SWAP gedcom vocabulary; aligned to BIO, GEDCOM X, schema.org, Wikidata, REL and GeoNames.
 
@@ -237,8 +236,8 @@ STANDPOINT DOCTRINE. Contested facts in genealogy — disputed parentage, confli
         gmeow:boxTBox .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/KinRelationship> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipChild> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/KinRelationship> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipParent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/KinRelationship> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipChild> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/KinRelationship> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/relationshipParent> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/KinRelationship> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/relationshipChild" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/KinRelationship> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/relationshipParent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
@@ -246,7 +245,7 @@ STANDPOINT DOCTRINE. Contested facts in genealogy — disputed parentage, confli
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -254,7 +253,7 @@ STANDPOINT DOCTRINE. Contested facts in genealogy — disputed parentage, confli
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:relationshipChildFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "relationshipChild is functional"@x-gmeow-english ;
@@ -269,7 +268,7 @@ gmeow:relationshipChildFunctionality
     skos:example "gmeow:relationshipChildFunctionality logic:characterizes gmeow:relationshipChild ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relationshipParentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "relationshipParent is functional"@x-gmeow-english ;

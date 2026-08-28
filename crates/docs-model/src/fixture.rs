@@ -1,8 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Once-per-run, content-addressed disk cache for the documentation MODEL — and
-//! the cache key, envelope digest and atomic writer every fixture artifact shares.
+//! Once-per-run action cache for the documentation model.
 //!
 //! Building a [`DocsModel`] via [`DocsModel::discover`] walks the whole slice
 //! catalog, parses every `module.ttl`, and folds the i18n catalogs (~12 s). That
@@ -13,10 +12,12 @@
 //! is paid dozens of times, and when many start at once the concurrent builds
 //! contend and each takes far longer than a single build would.
 //!
-//! [`load`] / [`try_load`] build the model ONCE and store it in a content-addressed
-//! disk cache; later callers load it cheaply. `gmeow-docs` layers the renderer-only
+//! [`load`] / [`try_load`] are strict test-facing consumers: they load an exact
+//! authenticated model or fail closed, and never build on a miss. The explicitly named
+//! [`load_or_build`] / [`try_load_or_build`] producer APIs build the model once and store
+//! it in a content-addressed disk cache before test processes start. `gmeow-docs` layers the renderer-only
 //! artifacts (the per-language site and the mdBook source tree) on top of the SAME
-//! key, digest and writer exported here — see `gmeow_docs::fixture`. The split is a
+//! action DAG and bounded store — see `gmeow_docs::fixture`. The split is a
 //! layering one: this crate is a leaf with respect to the renderer, so the model
 //! half is reachable from every model consumer (`gmeow-slice-quality` included)
 //! without dragging the renderer's 13.6 MB of vendored wasm — or a dependency cycle
@@ -28,80 +29,271 @@
 //! as the transitive local-dependency closure of `crates/docs`, so a crate that joins
 //! the build joins the key with nothing to remember. Data, renderer, schema, and
 //! local dependency changes therefore invalidate it without relying on a manual
-//! version bump. This is the same content-addressed, atomic-temp-then-rename
-//! pattern the validate and slice caches use.
+//! version bump. Publication, integrity, quota GC, and cross-process build election
+//! come from the workspace's single `gmeow-action-cache` authority.
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::io::Write as _;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
 
+use gmeow_action_cache::{
+    ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, FileKind,
+    ProducerIdentity, STORE_FORMAT_VERSION, StoreLimits,
+};
 use serde::{Deserialize, Serialize};
 use sha1::{Digest, Sha1};
 
 use crate::i18n::{Translations, UiCatalog};
 use crate::model::{COMPETENCY_QUERY_ROOTS, DocsError, DocsModel};
 
-/// Load the live documentation model rooted at `root`, from the once-per-run
-/// cache when present, otherwise built via [`DocsModel::discover`] and cached for
-/// the rest of the run. Byte-identical to a fresh `discover()` — the three
-/// `#[serde(skip)]` i18n fields are carried explicitly in the cache envelope, so
-/// localized (`fr` / `zh`) rendering is preserved (not an English fallback).
-///
-/// A cache file that is PRESENT but unreadable / undeserializable is an integrity
-/// violation (a corrupt or partial envelope, or a serde regression) — it panics
-/// loudly rather than silently rebuilding and masking it. So is a file that
-/// deserializes but does not fold to the payload digest it carries: an entry EDITED
-/// after it was written (see [`verify_payload`]). Only a genuine absence is a
-/// legitimate miss that falls through to `discover()`.
-///
-/// # Panics
-/// When the model cannot be built (use [`try_load`] to receive that as an `Err`), or
-/// on any of the integrity violations above.
-#[must_use]
-pub fn load(root: &Path) -> DocsModel {
-    try_load(root).unwrap_or_else(|e| panic!("build docs model from live slices: {e}"))
+const MODEL_CODEC: &str = "docs-model-json-2";
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+struct DocsActionPayload {
+    schema_version: u32,
+    artifact: String,
+    input_digest: String,
 }
 
-/// [`load`], but surfacing a model-BUILD failure as `Err` instead of panicking.
-///
-/// Same cache, same key, same integrity contract: a cache file that is present but
-/// undeserializable still panics (that is corruption, not an honest absence), and a
-/// genuine miss still builds and caches. The only difference is the disposition of a
-/// [`DocsModel::discover`] error, which some callers must report as a first-class
-/// finding rather than a crash — `gmeow-slice-quality`'s DocMaturity axis records it
-/// as `slice-quality.doc-maturity.model-unavailable`, and swapping that for a panic
-/// would turn a recorded, gradeable condition into a dead process.
-///
-/// # Errors
-/// The [`DocsError`] [`DocsModel::discover`] raised on a genuine cache miss.
-///
-/// # Panics
-/// On a cache entry that is present but undeserializable, or present but unreadable
-/// for a reason other than absence — both are corruption, never a silent rebuild.
+/// Receipt identity consumed by downstream render actions without hydrating the
+/// serialized model.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FixtureIdentity {
+    pub receipt_digest: String,
+    pub product_digest: String,
+}
+
+impl FixtureIdentity {
+    fn from_receipt(receipt: &ActionReceipt<DocsActionPayload>) -> Self {
+        Self {
+            receipt_digest: receipt.digest(),
+            product_digest: receipt.product_digest.clone(),
+        }
+    }
+}
+
+enum ModelCacheError {
+    Cache(ActionCacheError),
+    Build(DocsError),
+}
+
+impl From<ActionCacheError> for ModelCacheError {
+    fn from(error: ActionCacheError) -> Self {
+        Self::Cache(error)
+    }
+}
+
+fn action_store(root: &Path) -> ActionStore {
+    ActionStore::open(
+        ActionStore::default_root(root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+    .unwrap_or_else(|error| panic!("open bounded docs-fixture action cache: {error}"))
+}
+
+fn read_only_action_store(root: &Path) -> Result<ActionStore, ActionCacheError> {
+    ActionStore::open_existing_read_only(
+        ActionStore::default_root(root),
+        STORE_FORMAT_VERSION,
+        StoreLimits::default(),
+    )
+}
+
+fn model_context(root: &Path) -> ActionContext {
+    let input_digest = cache_key(root);
+    ActionContext::new(
+        "docs-fixture",
+        "model",
+        ProducerIdentity::new(input_digest.clone()),
+        MODEL_CODEC,
+        vec![ActionInput::Raw {
+            logical_path: "docs-model-input-closure".to_string(),
+            file_kind: FileKind::Aggregate,
+            executable: false,
+            digest: input_digest,
+        }],
+    )
+}
+
+fn model_payload(context: &ActionContext) -> DocsActionPayload {
+    DocsActionPayload {
+        schema_version: 1,
+        artifact: "model".to_string(),
+        input_digest: context
+            .inputs
+            .iter()
+            .find_map(|input| match input {
+                ActionInput::Raw { digest, .. } => Some(digest.clone()),
+                ActionInput::Upstream { .. } => None,
+            })
+            .expect("model action has its aggregate input"),
+    }
+}
+
+fn validate_model_receipt(
+    context: &ActionContext,
+    receipt: &ActionReceipt<DocsActionPayload>,
+) -> Result<(), ActionCacheError> {
+    let expected = model_payload(context);
+    if receipt.payload != expected {
+        return Err(ActionCacheError::message(format!(
+            "docs model receipt payload mismatch: expected {expected:?}, actual {:?}",
+            receipt.payload
+        )));
+    }
+    Ok(())
+}
+
+fn decode_model(cache_path: &Path, bytes: &[u8]) -> Result<DocsModel, ActionCacheError> {
+    let cached: CachedModel = serde_json::from_slice(bytes).map_err(|error| {
+        ActionCacheError::message(format!("docs model payload JSON is corrupt: {error}"))
+    })?;
+    Ok(cached.into_model(cache_path))
+}
+
+fn probe_model(
+    store: &ActionStore,
+    context: &ActionContext,
+    cache_path: &Path,
+) -> Result<Option<(DocsModel, FixtureIdentity)>, ActionCacheError> {
+    let Some(entry) = store.get::<DocsActionPayload>(context)? else {
+        return Ok(None);
+    };
+    validate_model_receipt(context, &entry.receipt)?;
+    let identity = FixtureIdentity::from_receipt(&entry.receipt);
+    let model = decode_model(cache_path, &entry.bytes)?;
+    Ok(Some((model, identity)))
+}
+
+/// Load the exact authenticated documentation model produced before this consumer.
+/// A miss is terminal and never falls through to [`DocsModel::discover`].
+#[must_use]
+pub fn load(root: &Path) -> DocsModel {
+    load_with_identity(root).0
+}
+
+/// Load the model together with the immutable receipt identity used by downstream
+/// documentation render actions.
+#[must_use]
+pub fn load_with_identity(root: &Path) -> (DocsModel, FixtureIdentity) {
+    try_load_with_identity(root)
+        .unwrap_or_else(|error| panic!("load authenticated docs model: {error}"))
+}
+
+/// [`load`], but reporting an absent authenticated fixture as an error.
 pub fn try_load(root: &Path) -> Result<DocsModel, DocsError> {
+    try_load_with_identity(root).map(|(model, _)| model)
+}
+
+fn try_load_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
+    let context = model_context(root);
     let cache_path = cache_path(root);
-    match fs::read(&cache_path) {
-        Ok(bytes) => {
-            let cached: CachedModel = serde_json::from_slice(&bytes).unwrap_or_else(|e| {
-                panic!(
-                    "corrupt docs-fixture cache at {}: {e}\n\
-                     delete the file (or run `rm -rf .cache/docs-fixture`) to rebuild",
-                    cache_path.display()
-                )
-            });
-            Ok(cached.into_model(&cache_path))
-        }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            let model = DocsModel::discover(root)?;
-            write_cache(&cache_path, &CachedModel::from_model(&model));
-            Ok(model)
-        }
-        Err(e) => panic!(
-            "cannot read docs-fixture cache at {}: {e}",
+    let store = read_only_action_store(root).map_err(|error| {
+        DocsError::FixtureUnavailable(format!(
+            "authenticated docs action store is unavailable without mutation: {error}"
+        ))
+    })?;
+    match probe_model(&store, &context, &cache_path) {
+        Ok(Some(hit)) => Ok(hit),
+        Ok(None) => Err(DocsError::FixtureUnavailable(format!(
+            "no receipt for action {}; run the explicit corpus producer before starting tests",
+            context.key()
+        ))),
+        Err(error) => panic!(
+            "corrupt docs-fixture action cache at {}: {error}",
             cache_path.display()
         ),
+    }
+}
+
+/// Load or produce the documentation model for an explicit producer operation.
+/// Test code must use [`load`] or [`try_load`] instead.
+#[must_use]
+pub fn load_or_build(root: &Path) -> DocsModel {
+    load_or_build_with_identity(root).0
+}
+
+/// Producer counterpart of [`load_with_identity`].
+#[must_use]
+pub fn load_or_build_with_identity(root: &Path) -> (DocsModel, FixtureIdentity) {
+    try_load_or_build_with_identity(root)
+        .unwrap_or_else(|error| panic!("build docs model from live slices: {error}"))
+}
+
+/// Producer counterpart of [`try_load`].
+pub fn try_load_or_build(root: &Path) -> Result<DocsModel, DocsError> {
+    try_load_or_build_with_identity(root).map(|(model, _)| model)
+}
+
+fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
+    let store = action_store(root);
+    let context = model_context(root);
+    let key = context.key();
+    let cache_path = cache_path(root);
+    let outcome = store.coordinate::<_, ModelCacheError, _, _>(
+        &key,
+        || probe_model(&store, &context, &cache_path).map_err(ModelCacheError::from),
+        || {
+            let model = DocsModel::discover(root).map_err(ModelCacheError::Build)?;
+            let cached = CachedModel::from_model(&model);
+            let bytes = serde_json::to_vec(&cached).map_err(ActionCacheError::from)?;
+            let receipt = store
+                .publish(
+                    &context,
+                    cached.digest.clone(),
+                    model_payload(&context),
+                    &bytes,
+                )
+                .map_err(ModelCacheError::from)?;
+            Ok((model, FixtureIdentity::from_receipt(&receipt)))
+        },
+    );
+    match outcome {
+        Ok(outcome) => Ok(outcome.value),
+        Err(ModelCacheError::Build(error)) => Err(error),
+        Err(ModelCacheError::Cache(error)) => {
+            panic!(
+                "corrupt docs-fixture action cache at {}: {error}",
+                cache_path.display()
+            )
+        }
+    }
+}
+
+/// Authenticate the model action and return its receipt identity without
+/// deserializing the model. A miss is terminal.
+#[must_use]
+pub fn model_identity(root: &Path) -> FixtureIdentity {
+    let store = read_only_action_store(root)
+        .unwrap_or_else(|error| panic!("open authenticated docs model store read-only: {error}"));
+    let context = model_context(root);
+    match store.inspect::<DocsActionPayload>(&context) {
+        Ok(Some(receipt)) => {
+            validate_model_receipt(&context, &receipt)
+                .unwrap_or_else(|error| panic!("corrupt docs-fixture model receipt: {error}"));
+            FixtureIdentity::from_receipt(&receipt)
+        }
+        Ok(None) => {
+            panic!("authenticated docs model fixture is absent; tests may not rebuild the corpus")
+        }
+        Err(error) => panic!("corrupt docs-fixture model action cache: {error}"),
+    }
+}
+
+/// Producer counterpart of [`model_identity`].
+#[must_use]
+pub fn model_identity_or_build(root: &Path) -> FixtureIdentity {
+    let store = action_store(root);
+    let context = model_context(root);
+    match store.inspect::<DocsActionPayload>(&context) {
+        Ok(Some(receipt)) => {
+            validate_model_receipt(&context, &receipt)
+                .unwrap_or_else(|error| panic!("corrupt docs-fixture model receipt: {error}"));
+            FixtureIdentity::from_receipt(&receipt)
+        }
+        Ok(None) => load_or_build_with_identity(root).1,
+        Err(error) => panic!("corrupt docs-fixture model action cache: {error}"),
     }
 }
 
@@ -112,10 +304,10 @@ pub fn try_load(root: &Path) -> Result<DocsModel, DocsError> {
 /// governs the whole fixture set.
 #[must_use]
 pub fn cache_path(root: &Path) -> PathBuf {
-    let key = cache_key(root);
-    root.join(".cache")
-        .join("docs-fixture")
-        .join(format!("{key}.json"))
+    ActionStore::default_root(root)
+        .join(format!("v{STORE_FORMAT_VERSION}"))
+        .join("receipts")
+        .join(format!("{}.json", model_context(root).key()))
 }
 
 /// The digest an envelope carries over its OWN payload, and the guard that refuses a
@@ -163,9 +355,9 @@ pub fn verify_payload<T: Serialize>(cache_path: &Path, label: &str, declared: &s
     assert!(
         live == declared,
         "tampered docs-fixture {label} cache at {}: it declares payload digest {declared} but \
-         its content folds to {live}. The entry was edited after it was written — delete the \
-         file (or run `rm -rf .cache/docs-fixture`) to rebuild; an edited cache entry is never \
-         served",
+         its content folds to {live}. The entry was edited after it was written — remove the \
+         named corrupt action through cache maintenance to rebuild it; an edited cache entry \
+         is never served",
         cache_path.display(),
     );
 }
@@ -319,6 +511,24 @@ pub fn cache_key(root: &Path) -> String {
 /// tests, never the library the fixture is produced by.
 const CRATE_INPUT_SUBPATHS: [&str; 5] = ["src", "assets", "templates", "Cargo.toml", "build.rs"];
 
+/// Derived/runtime directories nested below an otherwise-authored asset tree.
+///
+/// `console/pkg` is the hundreds-of-megabytes package staging tree emitted by the
+/// console producer, and `smoke/node_modules` is the Playwright installation. Neither
+/// is read by the docs library or compiled into the cached model/site/book, and both
+/// are explicitly gitignored at their owning boundary. Folding them into every warm
+/// test process would make an output mutate its own input key and repeatedly hash a
+/// large non-input tree.
+const CRATE_INPUT_EXCLUDED_SUBPATHS: [&str; 5] = [
+    // The docs/docs-model fixture modules decide cache admission and persistence;
+    // neither changes the model/site/book bytes whose identities they guard.
+    "src/fixture.rs",
+    "assets/console/pkg",
+    "assets/console/smoke",
+    "assets/console/tests",
+    "assets/tests",
+];
+
 /// The repo-root-relative crate directory the implementation closure is rooted at.
 ///
 /// `crates/docs`, not `crates/docs-model`, and deliberately so: the key computed here
@@ -439,67 +649,57 @@ fn collect_crate_inputs(crate_dir: &Path, out: &mut Vec<PathBuf>) {
     for sub in CRATE_INPUT_SUBPATHS {
         let path = crate_dir.join(sub);
         if path.is_dir() {
-            collect_files(&path, out);
+            collect_crate_files(crate_dir, &path, out);
         } else if path.is_file() {
             out.push(path);
         }
     }
 }
 
-/// Recursively collect every regular file under `dir` (absent dir → no files).
-fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = fs::read_dir(dir) else {
+fn collect_crate_files(crate_dir: &Path, dir: &Path, out: &mut Vec<PathBuf>) {
+    let relative = dir.strip_prefix(crate_dir).unwrap_or(dir);
+    if CRATE_INPUT_EXCLUDED_SUBPATHS
+        .iter()
+        .any(|excluded| relative == Path::new(excluded) || relative.starts_with(excluded))
+    {
         return;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        match entry.file_type() {
-            Ok(ft) if ft.is_dir() => collect_files(&path, out),
-            Ok(ft) if ft.is_file() => out.push(path),
-            _ => {}
-        }
     }
+    collect_files_with(crate_dir, dir, out, true);
 }
 
-/// Counter making concurrent temp-file names unique within a process.
-static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
+/// Recursively collect every regular file under `dir` (absent dir → no files).
+fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) {
+    collect_files_with(dir, dir, out, false);
+}
 
-/// Atomically write an envelope: serialize to a uniquely-named temp file in the
-/// destination directory, then rename it into place so a concurrent reader never
-/// observes a partial JSON object. Mirrors the `.cache/validate` write pattern.
-/// Atomic rename overwrites and every writer serializes byte-identical content,
-/// so concurrent writers race harmlessly (last rename wins) — there is no benign
-/// conflict to absorb. Any write error is therefore a genuine filesystem failure
-/// and hard-fails rather than silently degrading to uncached per-process rebuilds.
-///
-/// The single writer for every fixture envelope, model and renderer artifacts alike.
-///
-/// # Panics
-/// On any filesystem failure creating the cache directory or writing/renaming the
-/// entry, and when `cached` will not serialize.
-pub fn write_cache<T: Serialize>(path: &Path, cached: &T) {
-    let dir = path.parent().expect("cache path has a parent");
-    if let Err(e) = fs::create_dir_all(dir)
-        && e.kind() != std::io::ErrorKind::AlreadyExists
-    {
-        panic!("creating cache dir {}: {e}", dir.display());
-    }
-    let bytes = serde_json::to_vec(cached).expect("serialize docs-fixture cache");
-    let tmp = dir.join(format!(
-        ".{}.{}.{}.tmp",
-        path.file_name().unwrap_or_default().to_string_lossy(),
-        std::process::id(),
-        TMP_COUNTER.fetch_add(1, Ordering::Relaxed),
-    ));
-    let write_result = (|| -> std::io::Result<()> {
-        let mut f = fs::File::create(&tmp)?;
-        f.write_all(&bytes)?;
-        f.sync_all()?;
-        fs::rename(&tmp, path)
-    })();
-    if let Err(e) = write_result {
-        let _ = fs::remove_file(&tmp);
-        panic!("writing docs-fixture cache to {}: {e}", path.display());
+fn collect_files_with(root: &Path, dir: &Path, out: &mut Vec<PathBuf>, crate_inputs: bool) {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return,
+        Err(error) => panic!("walking fixture input directory {}: {error}", dir.display()),
+    };
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|error| {
+            panic!("walking fixture input directory {}: {error}", dir.display())
+        });
+        let path = entry.path();
+        let file_type = entry.file_type().unwrap_or_else(|error| {
+            panic!("reading fixture input type {}: {error}", path.display())
+        });
+        if file_type.is_dir() {
+            if crate_inputs {
+                collect_crate_files(root, &path, out);
+            } else {
+                collect_files_with(root, &path, out, false);
+            }
+        } else if file_type.is_file() {
+            out.push(path);
+        } else {
+            panic!(
+                "fixture input {} is neither a regular file nor directory; symlinks and special files require an explicit typed key policy",
+                path.display()
+            );
+        }
     }
 }
 
@@ -538,7 +738,7 @@ mod tests {
     }
 
     /// **The write→read proof, across the real serde boundary.** A model envelope
-    /// written by [`write_cache`] and read back by the loader that serves warm hits
+    /// published by [`ActionStore`] and read back by the loader that serves warm hits
     /// must VERIFY.
     ///
     /// An in-memory `from_model(..).into_model(..)` round trip cannot see this class:
@@ -554,12 +754,25 @@ mod tests {
     #[test]
     fn a_model_envelope_written_to_disk_verifies_when_read_back() {
         let (_tmp, root) = temp_root("disk-round-trip");
-        let model_path = root.join(".cache/docs-fixture/model.json");
+        let model_path = cache_path(&root);
         let model = DocsModel::default();
-        write_cache(&model_path, &CachedModel::from_model(&model));
-        let bytes = fs::read(&model_path).expect("read back the model envelope");
-        let cached: CachedModel = serde_json::from_slice(&bytes).expect("the envelope parses");
-        let recovered = cached.into_model(&model_path);
+        let cached = CachedModel::from_model(&model);
+        let bytes = serde_json::to_vec(&cached).unwrap();
+        let context = model_context(&root);
+        let store = action_store(&root);
+        store
+            .publish(
+                &context,
+                cached.digest.clone(),
+                model_payload(&context),
+                &bytes,
+            )
+            .unwrap();
+        let hit = store
+            .get::<DocsActionPayload>(&context)
+            .unwrap()
+            .expect("warm model action");
+        let recovered = decode_model(&model_path, &hit.bytes).unwrap();
         assert_eq!(
             recovered.available_languages, model.available_languages,
             "the reattached i18n fields survive the disk round trip"
@@ -606,6 +819,40 @@ mod tests {
             input_key,
             cache_key(&root),
             "key must change when fixture implementation bytes change"
+        );
+    }
+
+    #[test]
+    fn derived_console_trees_do_not_join_the_fixture_key() {
+        let (_tmp, root) = temp_root("derived-console");
+        let assets = root.join("crates/docs/assets");
+        fs::create_dir_all(assets.join("console/pkg")).unwrap();
+        fs::create_dir_all(assets.join("console/smoke/node_modules/tool")).unwrap();
+        fs::write(assets.join("console/pkg/gmeow.gts"), b"derived-v1").unwrap();
+        fs::write(
+            assets.join("console/smoke/node_modules/tool/index.js"),
+            b"installed-v1",
+        )
+        .unwrap();
+        let base = cache_key(&root);
+
+        fs::write(assets.join("console/pkg/gmeow.gts"), b"derived-v2").unwrap();
+        fs::write(
+            assets.join("console/smoke/node_modules/tool/index.js"),
+            b"installed-v2",
+        )
+        .unwrap();
+        assert_eq!(
+            base,
+            cache_key(&root),
+            "producer output and installed test dependencies are not fixture inputs"
+        );
+
+        fs::write(assets.join("gmeow.css"), b"authored asset").unwrap();
+        assert_ne!(
+            base,
+            cache_key(&root),
+            "an authored renderer asset must still invalidate the fixture"
         );
     }
 
@@ -803,17 +1050,18 @@ gmeow-e = { path = \"../e\" }\n";
     }
 
     #[test]
-    fn model_cache_path_is_the_bare_key() {
+    fn model_cache_path_is_the_shared_action_receipt() {
         let (_tmp, root) = temp_root("paths");
-        let key = cache_key(&root);
-        assert_eq!(
-            cache_path(&root).file_name().unwrap().to_string_lossy(),
-            format!("{key}.json")
-        );
+        let path = cache_path(&root);
+        assert_eq!(path.parent().unwrap().file_name().unwrap(), "receipts");
+        let name = path.file_name().unwrap().to_string_lossy();
+        assert_eq!(name.len(), 69, "64 hex digits plus .json");
+        assert!(name.ends_with(".json"));
+        assert!(name[..64].bytes().all(|byte| byte.is_ascii_hexdigit()));
     }
 
     #[test]
-    #[should_panic(expected = "corrupt docs-fixture cache")]
+    #[should_panic(expected = "load authenticated docs model")]
     fn present_but_corrupt_model_cache_panics() {
         let (_tmp, root) = temp_root("corrupt-model");
         let cp = cache_path(&root);

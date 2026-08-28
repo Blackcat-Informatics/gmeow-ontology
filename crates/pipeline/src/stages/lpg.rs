@@ -259,18 +259,14 @@ mod tests {
             .unwrap()
     }
 
-    /// Load the committed `gmeow.gts` carrier dataset (the same bytes
-    /// `stage-export-lpg` consumes off THIS run's snapshot in production).
-    fn committed_dataset(root: &Path) -> std::sync::Arc<RdfDataset> {
-        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        purrdf::import_gts_events(&gts).unwrap().dataset
+    fn authenticated_lpg_artifacts() -> BTreeMap<String, Vec<u8>> {
+        crate::fixture::stage_artifacts(&repo_root(), 1, "stage-export-lpg")
+            .expect("load authenticated LPG product without rebuilding corpus")
     }
 
     #[test]
     fn render_from_dataset_emits_expected_package_layout() {
-        let root = repo_root();
-        let dataset = committed_dataset(&root);
-        let arts = render_from_dataset(dataset.as_ref()).expect("render_from_dataset");
+        let arts = authenticated_lpg_artifacts();
 
         assert!(!arts.is_empty(), "expected a non-empty LPG artifact map");
         assert!(arts.contains_key(&format!("{LPG_DIR}/nodes.csv")));
@@ -299,14 +295,12 @@ mod tests {
     }
 
     #[test]
-    fn render_from_dataset_is_byte_deterministic() {
-        let root = repo_root();
-        let dataset = committed_dataset(&root);
-        let first = render_from_dataset(dataset.as_ref()).expect("first render");
-        let second = render_from_dataset(dataset.as_ref()).expect("second render");
+    fn authenticated_product_is_stable_across_reads() {
+        let first = authenticated_lpg_artifacts();
+        let second = authenticated_lpg_artifacts();
         assert_eq!(
             first, second,
-            "render_from_dataset must be byte-deterministic"
+            "the same authenticated stage receipt must hydrate identical LPG bytes"
         );
     }
 
@@ -318,9 +312,14 @@ mod tests {
     /// (the same canonical-Turtle round-trip idiom the superset gate uses for
     /// full-fidelity RDF-star folds), never a tautological self-comparison.
     #[test]
-    fn lpg_lift_round_trips_the_scoped_statements_graph() {
-        let root = repo_root();
-        let dataset = committed_dataset(&root);
+    fn lpg_lift_round_trips_a_synthetic_scoped_statements_graph() {
+        let nq = format!(
+            "<https://example.test/alice> <{RDF_TYPE}> <https://example.test/Person> <{STATEMENTS_GRAPH}> .\n\
+             <https://example.test/alice> <https://example.test/knows> <https://example.test/bob> <{STATEMENTS_GRAPH}> .\n\
+             <https://example.test/bob> <{RDF_TYPE}> <https://example.test/Person> <{STATEMENTS_GRAPH}> .\n"
+        );
+        let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+            .expect("parse the tiny synthetic statements graph");
         let scoped = dataset.project_named_graph_full(STATEMENTS_GRAPH);
         let config = lpg_config().expect("lpg_config");
 

@@ -326,8 +326,8 @@ fn check_expression_lowering_rejected(
 /// used ONLY to render the `math:<LocalName>: ` message token
 /// [`crate::physical::lower::MathLoweringError::failure_class`] decides — the same
 /// `<prefix>:<Class>:` convention `crates/validate/src/lint.rs`'s native structural lint
-/// messages use, which the `math:` conformance-completeness harness
-/// (`crates/pipeline/tests/math_conformance_discharge.rs`) scans for verbatim.
+/// messages use. The explicit cached slice-spec producer matches those stable tokens
+/// when it executes declarative math conformance cells.
 fn failure_class_local_name(iri: &str) -> &str {
     iri.rsplit('/').next().unwrap_or(iri)
 }

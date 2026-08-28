@@ -1,6 +1,6 @@
 # Malformed risk fixture (#354, EPIC #348). Five malformed constructs
 # (several produce more than one SHACL failure each; every expected
-# message is asserted in crates/validate/tests/conformance_risk.rs):
+# message is asserted in crates/validate/tests/conformance_cases/conformance_risk.rs):
 #   1. ex:freeFloatingHazard — a hazard with no bearer and no feared type
 #      (two violations from one node).
 #   2. ex:selfCausingLink — a link whose antecedent IS its consequent

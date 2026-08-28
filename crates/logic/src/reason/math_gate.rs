@@ -33,15 +33,10 @@
 //!
 //! # Module and [`dimension_gate_markers`] visibility
 //!
-//! Both are `pub`, not `pub(crate)`: [`crate::verify::verify_with_reasoning_result`]
-//! is the sole same-crate production caller, and
-//! `crates/pipeline/tests/math_conformance_discharge.rs` additionally pins
-//! `dimension_gate_markers` directly as one reasoned-graph gate producer of its
-//! whole-matrix conformance harness — the SAME "same-crate production function, ALSO
-//! pinned by a cross-crate discharge harness" shape as
-//! [`crate::correspondence_exec::leg_pair_verdict`] (see the `gmeow-logic`
-//! dev-dependency comment in `crates/pipeline/Cargo.toml`), not an unjustified
-//! visibility widening.
+//! Both are `pub`, not `pub(crate)`: the production verify path consumes them through
+//! [`crate::verify::verify_with_reasoning_result`], while `gmeow-slicetest` executes
+//! the declarative math cells through the same entry point during the explicit cached
+//! slice-spec producer. No test calls this function to construct a corpus.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, OnceLock};

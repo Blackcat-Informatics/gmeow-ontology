@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CarrierMedium
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Carrier Medium"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -21,7 +20,7 @@ gmeow:CarrierMedium
 
 gmeow:Contribution
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Contribution"@x-gmeow-english ;
     logic:mediates gmeow:contributor ,
@@ -29,19 +28,19 @@ gmeow:Contribution
         gmeow:contributionRole ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contributor ;
-            owl:someValuesFrom gmeow:Agent ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contributor ;
+            logic:someValuesFrom gmeow:Agent ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contributionTarget ;
-            owl:someValuesFrom gmeow:CreativeWork ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contributionTarget ;
+            logic:someValuesFrom gmeow:CreativeWork ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:contributionRole ;
-            owl:someValuesFrom gmeow:ContributionRole ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:contributionRole ;
+            logic:someValuesFrom gmeow:ContributionRole ;
         ] ;
     skos:definition "A reified relator binding a contributor (Agent), a contribution target (a Work, Expression, Manifestation, or Item), a contribution role, and an optional degree, carrying provenance, period, and confidence. THE universal credit construct; creative authorship, CRediT research roles, and mapping/software authorship are all Contributions. Flat shortcuts (gmeow:hasAuthor, gmeow:hasTranslator, …) cover the 80% query case."@x-gmeow-english ;
     skos:example "ex:c1 a gmeow:Contribution ; gmeow:contributor ex:bernhard ; gmeow:contributionTarget ex:hamletGermanTranslation ; gmeow:contributionRole gmeow:roleTranslator ."@x-gmeow-english ;
@@ -52,7 +51,7 @@ gmeow:Contribution
 
 gmeow:ContributionRole
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Contribution Role"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -65,7 +64,7 @@ gmeow:ContributionRole
 
 gmeow:CreativeDerivation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Creative Derivation"@x-gmeow-english ;
     logic:mediates gmeow:derivationSource ,
@@ -73,19 +72,19 @@ gmeow:CreativeDerivation
         gmeow:derivationType ;
     rdfs:subClassOf logic:Relator ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:derivationSource ;
-            owl:someValuesFrom gmeow:CreativeWork ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:derivationSource ;
+            logic:someValuesFrom gmeow:CreativeWork ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:derivationProduct ;
-            owl:someValuesFrom gmeow:CreativeWork ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:derivationProduct ;
+            logic:someValuesFrom gmeow:CreativeWork ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:derivationType ;
-            owl:someValuesFrom gmeow:DerivationType ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:derivationType ;
+            logic:someValuesFrom gmeow:DerivationType ;
         ] ;
     skos:definition "A reified relator binding a source creative work, a product creative work, one or more derivation types, and optional source/product segments. Tier-honest: a sample derives from a Recording region, a cover is a new Expression, and 'same Work?' is a separate standpoint-indexed gmeow:realizes claim (Principles 4, 9)."@x-gmeow-english ;
     skos:example "ex:d1 a gmeow:CreativeDerivation ; gmeow:derivationSource ex:original ; gmeow:derivationProduct ex:remix ; gmeow:derivationType gmeow:derivationTypeRemix ."@x-gmeow-english ;
@@ -96,7 +95,7 @@ gmeow:CreativeDerivation
 
 gmeow:CreativeWorkType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Creative Work Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -109,7 +108,7 @@ gmeow:CreativeWorkType
 
 gmeow:DerivationType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Derivation Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -122,7 +121,7 @@ gmeow:DerivationType
 
 gmeow:Expression
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Expression"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CreativeWork ;
@@ -136,7 +135,7 @@ gmeow:Expression
 
 gmeow:Genre
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Genre"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -149,7 +148,7 @@ gmeow:Genre
 
 gmeow:Item
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Item"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CreativeWork ;
@@ -162,7 +161,7 @@ gmeow:Item
 
 gmeow:Manifestation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Manifestation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CreativeWork ;
@@ -175,7 +174,7 @@ gmeow:Manifestation
 
 gmeow:ManifestationFormat
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Manifestation Format"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -188,7 +187,7 @@ gmeow:ManifestationFormat
 
 gmeow:MusicalWork
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Musical Work"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Work ;
@@ -201,7 +200,7 @@ gmeow:MusicalWork
 
 gmeow:RealizationMode
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Realization Mode"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -214,7 +213,7 @@ gmeow:RealizationMode
 
 gmeow:Recording
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Recording"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -227,7 +226,7 @@ gmeow:Recording
 
 gmeow:ScoreEdition
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Score Edition"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
@@ -240,7 +239,7 @@ gmeow:ScoreEdition
 
 gmeow:Work
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Work"@x-gmeow-english ;
     rdfs:subClassOf gmeow:CreativeWork ;
@@ -252,7 +251,7 @@ gmeow:Work
     gmeow:useWhen "Use for the abstract creation itself — the thing that survives translation, re-edition, and re-performance unchanged; the level a subject (gmeow:temporalCoverage) and a creative-work type attach to."@x-gmeow-english .
 
 gmeow:arrangementOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "arrangement of"@x-gmeow-english ;
@@ -266,7 +265,7 @@ gmeow:arrangementOf
     gmeow:useWhen "Use for the flat 80% case of asserting one work is an arrangement of another for different forces or format, when no further metadata is needed."@x-gmeow-english .
 
 gmeow:audience
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "audience"@x-gmeow-english ;
@@ -279,7 +278,7 @@ gmeow:audience
     gmeow:useWhen "Use to name the intended audience of a creative work (the dcterms:audience bridge — a class of readers, a target reader group modelled as an Agent)."@x-gmeow-english .
 
 gmeow:conformsTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "conforms to"@x-gmeow-english ;
@@ -292,7 +291,7 @@ gmeow:conformsTo
     gmeow:useWhen "Use to name an established standard, specification, or profile a creative work conforms to (the dcterms:conformsTo bridge — a record conforming to a metadata schema, a score to a notation standard)."@x-gmeow-english .
 
 gmeow:contributionDegree
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contribution degree"@x-gmeow-english ;
@@ -305,7 +304,7 @@ gmeow:contributionDegree
     gmeow:useWhen "Use inside a gmeow:Contribution to weight a credit as lead, equal, or supporting — for credit ordering and first-author/lead-maintainer distinctions."@x-gmeow-english .
 
 gmeow:contributionRole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contribution role"@x-gmeow-english ;
@@ -318,7 +317,7 @@ gmeow:contributionRole
     gmeow:useWhen "Use inside a gmeow:Contribution to name the single role the contributor played, drawn from the open gmeow:ContributionRole value vocabulary (author, translator, CRediT role, software role)."@x-gmeow-english .
 
 gmeow:contributionTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contribution target"@x-gmeow-english ;
@@ -331,7 +330,7 @@ gmeow:contributionTarget
     gmeow:useWhen "Use inside a gmeow:Contribution to name the single WEMI entity credited — choosing the tier that matches the credit (translation → an Expression, cover art → a Manifestation, authorship → a Work)."@x-gmeow-english .
 
 gmeow:contributor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Contribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contributor"@x-gmeow-english ;
@@ -344,7 +343,7 @@ gmeow:contributor
     gmeow:useWhen "Use inside a gmeow:Contribution relator to name the single agent who contributed; one of the three required relator roles."@x-gmeow-english .
 
 gmeow:coverOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "cover of"@x-gmeow-english ;
@@ -358,7 +357,7 @@ gmeow:coverOf
     gmeow:useWhen "Use for the flat 80% case of asserting one work is a cover of another, when no segment, period, or provenance of the derivation needs recording."@x-gmeow-english .
 
 gmeow:derivationProduct
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "derivation product"@x-gmeow-english ;
@@ -371,7 +370,7 @@ gmeow:derivationProduct
     gmeow:useWhen "Use inside a gmeow:CreativeDerivation to name the single product work that resulted from the derivation, at the honest tier (a new Expression for a cover, a new Recording for a remix)."@x-gmeow-english .
 
 gmeow:derivationSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "derivation source"@x-gmeow-english ;
@@ -385,7 +384,7 @@ gmeow:derivationSource
     gmeow:useWhen "Use inside a gmeow:CreativeDerivation to name the single source work the product was derived from — at the honest tier (a sampled Recording, a covered Work)."@x-gmeow-english .
 
 gmeow:derivationType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "derivation type"@x-gmeow-english ;
@@ -482,12 +481,12 @@ gmeow:derivationTypeVariation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:embodiedIn
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Expression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "embodied in"@x-gmeow-english ;
     rdfs:range gmeow:Manifestation ;
-    owl:inverseOf gmeow:embodies ;
+    logic:inverseOf gmeow:embodies ;
     skos:definition "Relates an Expression to a Manifestation that embodies it. Non-functional: an Expression may be embodied in many Manifestations (hardcover, paperback, EPUB). Inverse of gmeow:embodies."@x-gmeow-english ;
     skos:example "ex:hamletGermanTranslation gmeow:embodiedIn ex:penguin2003 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting this directly when modelling from the Manifestation up — prefer gmeow:embodies and read this inverse — and avoid it for the Work tier (that is gmeow:realizedThrough)."@x-gmeow-english ;
@@ -496,7 +495,7 @@ gmeow:embodiedIn
     gmeow:useWhen "Use for Expression-rooted traversal down to its editions — enumerating the hardcover, paperback, and EPUB Manifestations of one Expression."@x-gmeow-english .
 
 gmeow:embodies
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Manifestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "embodies"@x-gmeow-english ;
@@ -509,12 +508,12 @@ gmeow:embodies
     gmeow:useWhen "Use to climb from a concrete edition/format up to the Expression it embodies — the Manifestation→Expression R-relation of the WEMI spine."@x-gmeow-english .
 
 gmeow:exemplifiedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Manifestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "exemplified by"@x-gmeow-english ;
     rdfs:range gmeow:Item ;
-    owl:inverseOf gmeow:exemplifies ;
+    logic:inverseOf gmeow:exemplifies ;
     skos:definition "Relates a Manifestation to an Item that exemplifies it. Non-functional: a Manifestation may have many Items (copies). Inverse of gmeow:exemplifies."@x-gmeow-english ;
     skos:example "ex:penguin2003 gmeow:exemplifiedBy ex:myCopy ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting this directly when modelling from the copy up — prefer gmeow:exemplifies and read this inverse — and avoid it for the embodied Expression (that is gmeow:embodies)."@x-gmeow-english ;
@@ -523,7 +522,7 @@ gmeow:exemplifiedBy
     gmeow:useWhen "Use for Manifestation-rooted traversal down to its copies — enumerating the individual Items of one edition (a library's holdings of a title)."@x-gmeow-english .
 
 gmeow:exemplifies
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Item ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "exemplifies"@x-gmeow-english ;
@@ -536,7 +535,7 @@ gmeow:exemplifies
     gmeow:useWhen "Use to climb from a single copy up to the edition it exemplifies — the Item→Manifestation R-relation at the bottom of the WEMI spine."@x-gmeow-english .
 
 gmeow:instantiatesWork
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Item ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "instantiates work"@x-gmeow-english ;
@@ -675,7 +674,7 @@ gmeow:formatWebSerial
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hasArranger
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has arranger"@x-gmeow-english ;
@@ -689,7 +688,7 @@ gmeow:hasArranger
     gmeow:useWhen "Use for the flat 80% case of naming an arranger; typically attaches to the arranged Expression or derived work."@x-gmeow-english .
 
 gmeow:hasAuthor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has author"@x-gmeow-english ;
@@ -703,7 +702,7 @@ gmeow:hasAuthor
     gmeow:useWhen "Use for the flat 80% case of naming a work's author when no period, degree, confidence, or evidence needs recording."@x-gmeow-english .
 
 gmeow:hasCarrier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Item ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has carrier"@x-gmeow-english ;
@@ -716,7 +715,7 @@ gmeow:hasCarrier
     gmeow:useWhen "Use to attach an Item's material substrate — the physical book, disc, or canvas — keeping the informational copy distinct from the thing you can hold (Principle 11)."@x-gmeow-english .
 
 gmeow:hasComposer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has composer"@x-gmeow-english ;
@@ -730,7 +729,7 @@ gmeow:hasComposer
     gmeow:useWhen "Use for the flat 80% case of naming a composer; attaches at the gmeow:MusicalWork tier, the abstract composition independent of notation or performance."@x-gmeow-english .
 
 gmeow:hasConductor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has conductor"@x-gmeow-english ;
@@ -744,7 +743,7 @@ gmeow:hasConductor
     gmeow:useWhen "Use for the flat 80% case of naming a conductor; typically attaches at the performed Expression or its Recording."@x-gmeow-english .
 
 gmeow:hasContributor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has contributor"@x-gmeow-english ;
@@ -757,7 +756,7 @@ gmeow:hasContributor
     gmeow:useWhen "Use for the flat 80% case — naming a contributor when the role is generic or obvious and no period, degree, confidence, or evidence needs recording; the parent of the typed shortcuts (gmeow:hasAuthor, …)."@x-gmeow-english .
 
 gmeow:hasEditor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has editor"@x-gmeow-english ;
@@ -771,7 +770,7 @@ gmeow:hasEditor
     gmeow:useWhen "Use for the flat 80% case of naming an editor, compiler, or curator; often attaches at the Expression or Manifestation tier of an edited or anthologized edition."@x-gmeow-english .
 
 gmeow:hasGenre
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has genre"@x-gmeow-english ;
@@ -784,7 +783,7 @@ gmeow:hasGenre
     gmeow:useWhen "Use to characterise a creative work with one or more genres; non-functional and contestable, so multiple and competing genre claims may coexist."@x-gmeow-english .
 
 gmeow:hasIllustrator
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has illustrator"@x-gmeow-english ;
@@ -798,7 +797,7 @@ gmeow:hasIllustrator
     gmeow:useWhen "Use for the flat 80% case of naming an illustrator; often attaches at the Expression or Manifestation tier where the illustrations live (an illustrated edition)."@x-gmeow-english .
 
 gmeow:hasLyricist
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has lyricist"@x-gmeow-english ;
@@ -812,7 +811,7 @@ gmeow:hasLyricist
     gmeow:useWhen "Use for the flat 80% case of naming a lyricist — the agent who wrote a song's words."@x-gmeow-english .
 
 gmeow:hasManifestationFormat
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Manifestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has manifestation format"@x-gmeow-english ;
@@ -825,7 +824,7 @@ gmeow:hasManifestationFormat
     gmeow:useWhen "Use to record the format of a Manifestation — the publishable form (paperback, EPUB, audiobook, vinyl). Functional: one format per Manifestation."@x-gmeow-english .
 
 gmeow:hasNarrator
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has narrator"@x-gmeow-english ;
@@ -839,7 +838,7 @@ gmeow:hasNarrator
     gmeow:useWhen "Use for the flat 80% case of naming a narrator of an audiobook, podcast, or spoken-word rendition; typically attaches to the narrated Expression or its Manifestation."@x-gmeow-english .
 
 gmeow:hasPerformer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has performer"@x-gmeow-english ;
@@ -853,7 +852,7 @@ gmeow:hasPerformer
     gmeow:useWhen "Use for the flat 80% case of naming a performer; typically attaches at the performed Expression or its Recording, since performance realizes the Work."@x-gmeow-english .
 
 gmeow:hasProducer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has producer"@x-gmeow-english ;
@@ -867,7 +866,7 @@ gmeow:hasProducer
     gmeow:useWhen "Use for the flat 80% case of naming a producer of a recording or performance; typically attaches at the gmeow:Recording (Manifestation) tier."@x-gmeow-english .
 
 gmeow:hasTranslator
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has translator"@x-gmeow-english ;
@@ -881,12 +880,12 @@ gmeow:hasTranslator
     gmeow:useWhen "Use for the flat 80% case of naming a translator; typically attaches at the gmeow:Expression tier, since a translation is a distinct Expression of the Work."@x-gmeow-english .
 
 gmeow:hasVersion
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "has version"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    owl:inverseOf gmeow:versionOf ;
+    logic:inverseOf gmeow:versionOf ;
     skos:definition "A related resource that is a version, edition, or adaptation of the described resource. Inverse of gmeow:versionOf."@x-gmeow-english ;
     skos:example "ex:hamletFolio gmeow:hasVersion ex:hamletQuarto ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the relationship is properly a WEMI realization/embodiment (use gmeow:realizes/gmeow:embodies) or a tracked version lineage (use the generic VersionSet/VersionMembership machinery); avoid it for derivation (gmeow:wasDerivedFrom subproperties)."@x-gmeow-english ;
@@ -895,12 +894,12 @@ gmeow:hasVersion
     gmeow:useWhen "Use for the lightweight dcterms:hasVersion bridge between two resources where one is a version/edition/adaptation of the other and the WEMI tiers are not being modelled explicitly."@x-gmeow-english .
 
 gmeow:isRequiredBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "is required by"@x-gmeow-english ;
     rdfs:range gmeow:CreativeWork ;
-    owl:inverseOf gmeow:requires ;
+    logic:inverseOf gmeow:requires ;
     skos:definition "A related resource that requires the described resource to support its function, delivery, or coherence. Inverse of gmeow:requires."@x-gmeow-english ;
     skos:example "ex:runtimeLibrary gmeow:isRequiredBy ex:userGuide ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it directly when modelling from the dependent side — prefer gmeow:requires and read this inverse."@x-gmeow-english ;
@@ -909,7 +908,7 @@ gmeow:isRequiredBy
     gmeow:useWhen "Use for the reverse direction — naming what depends on this resource to function or be delivered."@x-gmeow-english .
 
 gmeow:medium
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "medium"@x-gmeow-english ;
@@ -950,7 +949,7 @@ gmeow:mediumServerObject
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:quotesWork
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "quotes work"@x-gmeow-english ;
@@ -964,7 +963,7 @@ gmeow:quotesWork
     gmeow:useWhen "Use for the flat 80% case of asserting one work quotes material from another, when the quoted segment and provenance need not be recorded."@x-gmeow-english .
 
 gmeow:realizationMode
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Expression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "realization mode"@x-gmeow-english ;
@@ -1012,12 +1011,12 @@ gmeow:realizationModePerformed
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:realizedThrough
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Work ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "realized through"@x-gmeow-english ;
     rdfs:range gmeow:Expression ;
-    owl:inverseOf gmeow:realizes ;
+    logic:inverseOf gmeow:realizes ;
     skos:definition "Relates a Work to an Expression that realizes it. Non-functional: a Work may have many Expressions (translations, arrangements, narrations). Inverse of gmeow:realizes."@x-gmeow-english ;
     skos:example "ex:hamlet gmeow:realizedThrough ex:hamletGermanTranslation ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting this directly when modelling from the Expression up — prefer gmeow:realizes and read this inverse — and avoid it for editions of an Expression (that is gmeow:embodiedIn)."@x-gmeow-english ;
@@ -1026,7 +1025,7 @@ gmeow:realizedThrough
     gmeow:useWhen "Use for Work-rooted traversal down to its realizations — enumerating the translations, arrangements, and narrations of one abstract Work."@x-gmeow-english .
 
 gmeow:realizes
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Expression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "realizes"@x-gmeow-english ;
@@ -1039,7 +1038,7 @@ gmeow:realizes
     gmeow:useWhen "Use to climb from an Expression up to the abstract Work it realizes — the Expression→Work R-relation of the WEMI spine."@x-gmeow-english .
 
 gmeow:remixOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "remix of"@x-gmeow-english ;
@@ -1053,7 +1052,7 @@ gmeow:remixOf
     gmeow:useWhen "Use for the flat 80% case of asserting one work is a remix of another, when no segment, period, or provenance needs recording."@x-gmeow-english .
 
 gmeow:requires
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "requires"@x-gmeow-english ;
@@ -1394,7 +1393,7 @@ gmeow:roleWritingReviewEditing
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:samples
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "samples"@x-gmeow-english ;
@@ -1408,7 +1407,7 @@ gmeow:samples
     gmeow:useWhen "Use for the flat 80% case of asserting one work samples another, when the exact source region and provenance need not be recorded."@x-gmeow-english .
 
 gmeow:transcriptionOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "transcription of"@x-gmeow-english ;
@@ -1506,7 +1505,7 @@ gmeow:workTypeWritten
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/creative-works>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The WEMI spine for creative and intellectual works — Work, Expression,
 Manifestation, Item — reconstructed from native GMEOW primitives (frame-relativity,
@@ -1557,9 +1556,9 @@ gmeow:ManifestationEmbodiesRequiredConstraint
     logic:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionRole> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributor> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionRole> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributionTarget> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Contribution> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/contributor> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Item> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/exemplifies> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Manifestation> ] .
 <https://blackcatinformatics.ca/gmeow/Manifestation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/embodies> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Expression> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Contribution> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/contributionRole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -1577,17 +1576,17 @@ gmeow:ManifestationEmbodiesRequiredConstraint
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Expression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/realizes" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # gmeow:contributionDegree is optional but single-valued per Contribution
-# (min 0 / max 1). The qualified idiom (logic:onClass owl:Thing) degrades to the
+# (min 0 / max 1). The qualified idiom (logic:onClass OWL Thing) degrades to the
 # unqualified sh:minCount 0 / sh:maxCount 1 the retired hand-authored shape
 # enforced, staying inside the fragment the native reasoner decides.
 gmeow:Contribution logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:contributionDegree ; logic:minQualifiedCardinality 0 ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:contributionDegree ; logic:minQualifiedCardinality 0 ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -1595,7 +1594,7 @@ gmeow:Contribution logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:contributionDegreeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contributionDegree is functional"@x-gmeow-english ;
@@ -1610,7 +1609,7 @@ gmeow:contributionDegreeFunctionality
     skos:example "gmeow:contributionDegreeFunctionality logic:characterizes gmeow:contributionDegree ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:contributionRoleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contributionRole is functional"@x-gmeow-english ;
@@ -1625,7 +1624,7 @@ gmeow:contributionRoleFunctionality
     skos:example "gmeow:contributionRoleFunctionality logic:characterizes gmeow:contributionRole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:contributionTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contributionTarget is functional"@x-gmeow-english ;
@@ -1640,7 +1639,7 @@ gmeow:contributionTargetFunctionality
     skos:example "gmeow:contributionTargetFunctionality logic:characterizes gmeow:contributionTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:contributorFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "contributor is functional"@x-gmeow-english ;
@@ -1655,7 +1654,7 @@ gmeow:contributorFunctionality
     skos:example "gmeow:contributorFunctionality logic:characterizes gmeow:contributor ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:derivationProductFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "derivationProduct is functional"@x-gmeow-english ;
@@ -1670,7 +1669,7 @@ gmeow:derivationProductFunctionality
     skos:example "gmeow:derivationProductFunctionality logic:characterizes gmeow:derivationProduct ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:derivationSourceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "derivationSource is functional"@x-gmeow-english ;
@@ -1685,7 +1684,7 @@ gmeow:derivationSourceFunctionality
     skos:example "gmeow:derivationSourceFunctionality logic:characterizes gmeow:derivationSource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:hasManifestationFormatFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "hasManifestationFormat is functional"@x-gmeow-english ;
@@ -1700,7 +1699,7 @@ gmeow:hasManifestationFormatFunctionality
     skos:example "gmeow:hasManifestationFormatFunctionality logic:characterizes gmeow:hasManifestationFormat ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:realizationModeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "realizationMode is functional"@x-gmeow-english ;

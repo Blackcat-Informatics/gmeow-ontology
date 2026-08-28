@@ -10,7 +10,7 @@
 //! (`crates/reason-wasm/tests/WITNESS.reason.nq`); the Node lane runs the WASM
 //! `reason` over the SAME input and asserts byte-identity with that attestation.
 //! Both matching the one attestation proves native ≡ wasm. Refreshed via
-//! `GMEOW_WITNESS_BLESS=1`.
+//! The attestation is refreshed only by an explicit maintainer producer.
 
 use std::path::PathBuf;
 
@@ -59,21 +59,14 @@ fn native_reason_closure_matches_the_witness_attestation() {
     );
 
     let path = attestation_path();
-    // Require the EXACT documented value: only `GMEOW_WITNESS_BLESS=1` may overwrite the
-    // committed witness (an empty or `=0` value must not silently replace it).
-    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
-        std::fs::write(&path, &out).expect("write reason attestation");
-        eprintln!("blessed reason witness at {}", path.display());
-        return;
-    }
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "reason witness attestation {} missing (bless with GMEOW_WITNESS_BLESS=1): {e}",
+            "reason witness attestation {} missing; refresh it through the explicit maintainer producer: {e}",
             path.display()
         )
     });
     assert_eq!(
         out, committed,
-        "native reasoned closure drifted from the committed witness attestation — re-bless"
+        "native reasoned closure drifted from the committed witness attestation"
     );
 }

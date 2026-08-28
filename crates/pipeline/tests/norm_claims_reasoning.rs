@@ -25,8 +25,10 @@
 use std::path::{Path, PathBuf};
 
 use gmeow_logic::reason::rl_closure;
-use purrdf::gts::model::Graph;
-use purrdf::{RdfDatasetBuilder, RdfQuad, parse_dataset};
+use purrdf::{RdfDatasetBuilder, RdfQuad, flat_rdf_quads_from_dataset, parse_dataset};
+
+#[path = "support/authenticated_bundle.rs"]
+mod authenticated_bundle;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -67,36 +69,12 @@ fn turtle_quads(rel_paths: &[&str]) -> Vec<RdfQuad> {
 /// is entirely absent from the bundle (no such graph-name term interned) — an absent graph
 /// and an empty graph are both honest "no norm-claims content" states.
 fn norm_claims_abox_quads() -> Vec<RdfQuad> {
-    let bytes =
-        std::fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("committed gmeow.gts");
-    let g = purrdf::gts::read_graph(&bytes, true).expect("read_graph");
-
-    let Some(graph_id) = g
-        .terms
-        .iter()
-        .position(|t| t.value.as_deref() == Some(GRAPH_NORM_CLAIMS))
-    else {
-        return Vec::new();
-    };
-
-    let quads: Vec<_> = g
-        .quads
-        .iter()
-        .filter(|&&(_, _, _, gname)| gname == Some(graph_id))
-        .map(|&(s, p, o, _)| (s, p, o, None))
-        .collect();
-    if quads.is_empty() {
-        return Vec::new();
+    let scoped = authenticated_bundle::dataset().project_named_graph_full(GRAPH_NORM_CLAIMS);
+    let mut quads = flat_rdf_quads_from_dataset(&scoped);
+    for quad in &mut quads {
+        quad.graph_name = None;
     }
-
-    let filtered = Graph {
-        terms: g.terms,
-        quads,
-        ..Graph::default()
-    };
-    let dataset = purrdf::gts::dataset_from_gts_graph(&filtered)
-        .expect("build an RdfDataset from the graph/norm-claims quads");
-    dataset.owned_quads().collect()
+    quads
 }
 
 fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<purrdf::RdfDataset> {

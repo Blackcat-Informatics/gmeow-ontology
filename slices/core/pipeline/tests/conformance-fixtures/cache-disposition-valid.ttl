@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# A pipeline stage with exactly one closed cache disposition.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/pipeline/tests/cache/> .
+
+ex:validVerify a gmeow:PipelineStage ;
+    rdfs:seeAlso
+        gmeow:StageCacheDisposition ,
+        gmeow:stageCacheDisposition ,
+        gmeow:stage-verify-attestation ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "verify_attestation" ;
+    gmeow:stageStability gmeow:stabilityStablePrefix ;
+    gmeow:stageCacheDisposition gmeow:cachePersistentContribution .

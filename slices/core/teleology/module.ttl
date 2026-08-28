@@ -1,13 +1,12 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Commitment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Commitment"@x-gmeow-english ;
     rdfs:subClassOf logic:Relator ,
@@ -24,7 +23,7 @@ gmeow:Commitment
 
 gmeow:Desire
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Desire"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IntentionalMode ;
@@ -37,7 +36,7 @@ gmeow:Desire
 
 gmeow:Goal
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Goal"@x-gmeow-english ;
     logic:instantiatesFramework logic:TeleologicalFramework ;
@@ -51,7 +50,7 @@ gmeow:Goal
 
 gmeow:Intention
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intention"@x-gmeow-english ;
     logic:instantiatesFramework logic:TeleologicalFramework ;
@@ -65,7 +64,7 @@ gmeow:Intention
 
 gmeow:IntentionTenure
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intention Tenure"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ;
@@ -81,7 +80,7 @@ gmeow:IntentionTenure
 
 gmeow:IntentionalMode
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intentional Mode"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IntentionalMoment ,
@@ -95,7 +94,7 @@ gmeow:IntentionalMode
 
 gmeow:IntentionalMoment
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intentional Moment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -107,7 +106,7 @@ gmeow:IntentionalMoment
     gmeow:useWhen "Use only as the generator-visible domain for properties shared across both branches (gmeow:intentionGoal, gmeow:motivates) and to query desires, intentions, and commitments uniformly."@x-gmeow-english .
 
 gmeow:commitmentBeneficiary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "commitment beneficiary"@x-gmeow-english ;
@@ -120,7 +119,7 @@ gmeow:commitmentBeneficiary
     gmeow:useWhen "Use to name an agent toward whom a Commitment is made — the recipient side of the social bond, repeated when several beneficiaries share one commitment."@x-gmeow-english .
 
 gmeow:committedAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Commitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "committed agent"@x-gmeow-english ;
@@ -133,8 +132,8 @@ gmeow:committedAgent
     gmeow:useWhen "Use to name the single agent bound by a Commitment — the committing side of the social bond."@x-gmeow-english .
 
 gmeow:counterGoal
-    a owl:ObjectProperty ,
-        owl:SymmetricProperty ;
+    a logic:ObjectProperty ,
+        logic:symmetricProperty ;
     rdfs:domain gmeow:Goal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "counter-goal"@x-gmeow-english ;
@@ -147,7 +146,7 @@ gmeow:counterGoal
     gmeow:useWhen "Use when the opposition between two goals is constitutive — part of what each goal means — so the named shadow belongs in the goal's own identity (an oath and its betrayal, a bond and its dissolution)."@x-gmeow-english .
 
 gmeow:hasGoal
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "has goal"@x-gmeow-english ;
@@ -161,7 +160,7 @@ gmeow:hasGoal
     gmeow:useWhen "Use for the 80% case (Principle 4): an agent holds a goal and neither the commitment grade nor its tenure over time needs to be first-class — the flat half of the gmeow:hasGoal ↔ gmeow:IntentionTenure pair."@x-gmeow-english .
 
 gmeow:intentBearer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IntentionalMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intent bearer"@x-gmeow-english ;
@@ -174,7 +173,7 @@ gmeow:intentBearer
     gmeow:useWhen "Use to name the single agent in whom a Desire or Intention inheres — the bearer side of the intrinsic branch."@x-gmeow-english .
 
 gmeow:intentionGoal
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IntentionalMoment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intention goal"@x-gmeow-english ;
@@ -187,7 +186,7 @@ gmeow:intentionGoal
     gmeow:useWhen "Use to bind any intentional moment — Desire, Intention, or Commitment — to the single Goal it aims at; the property whose named domain (gmeow:IntentionalMoment) spans both branches."@x-gmeow-english .
 
 gmeow:motivates
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IntentionalMoment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "motivates"@x-gmeow-english ;
@@ -205,7 +204,7 @@ gmeow:motivates
     gmeow:useWhen "Use to record the teleological reading of an action — the desire, intention, or commitment that (at least partly) explains why an agent undertook an event."@x-gmeow-english .
 
 gmeow:satisfiedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Goal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "satisfied by"@x-gmeow-english ;
@@ -218,7 +217,7 @@ gmeow:satisfiedBy
     gmeow:useWhen "Use to record that a particular situation counts as achieving a goal — the achievement link a renderer or planner reads to ask whether a goal has been met."@x-gmeow-english .
 
 gmeow:tenureAgent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IntentionTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenure agent"@x-gmeow-english ;
@@ -231,7 +230,7 @@ gmeow:tenureAgent
     gmeow:useWhen "Use to bind an gmeow:IntentionTenure to the single agent whose holding-over-time it records."@x-gmeow-english .
 
 gmeow:tenureIntention
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:IntentionTenure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenure intention"@x-gmeow-english ;
@@ -244,7 +243,7 @@ gmeow:tenureIntention
     gmeow:useWhen "Use to bind an gmeow:IntentionTenure to the single intrinsic mode (Desire or Intention) whose holding over the interval it records."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/teleology>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Goals, desires, intentions, and commitments — the UFO-C intentional-moment trichotomy surfaced as GMEOW core (Principle 16: an agent recording its OWN goals across sessions is a question every AI system will face about itself, alongside identity and deception epistemics).
 
@@ -263,34 +262,34 @@ DOCTRINE.
         gmeow:boxTBox .
 
 _:b0
-    a owl:AllDisjointClasses ;
-    owl:members ( gmeow:Desire gmeow:Intention ) .
+    a logic:AllDisjointClasses ;
+    logic:members ( gmeow:Desire gmeow:Intention ) .
 
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:Desire rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:intentBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:intentionGoal ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:intentBearer ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:intentionGoal ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # gmeow:Intention carries the SAME exact-one bearer/goal contract as gmeow:Desire
 # (raw-graph SHACL does no subclass inference, so each concrete intentional-mode
 # class carries its own axioms).
 gmeow:Intention logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:intentBearer ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:intentionGoal ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:intentBearer ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:intentionGoal ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:IntentionTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureIntention ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:tenureIntention ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Desire> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/intentBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Desire> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/intentionGoal> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Intention> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/intentBearer> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Intention> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/intentionGoal> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/IntentionTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tenureAgent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/IntentionTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tenureIntention> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Desire> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intentBearer> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Desire> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intentionGoal> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Intention> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/intentBearer> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Intention> <https://blackcatinformatics.ca/logic/subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Restriction> ; <https://blackcatinformatics.ca/logic/onProperty> <https://blackcatinformatics.ca/gmeow/intentionGoal> ; <https://blackcatinformatics.ca/logic/minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <https://blackcatinformatics.ca/logic/onClass> logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/IntentionTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureAgent> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/IntentionTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/tenureIntention> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 
 # =========================================================================== #
 # Migrated procedural constraints: the closed-world teleology                    #
@@ -333,9 +332,9 @@ gmeow:IntentionTenureAgentConstraint
     logic:message "An IntentionTenure must record exactly one gmeow:tenureAgent." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/commitmentBeneficiary> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/committedAgent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intentionGoal> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/commitmentBeneficiary> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/committedAgent> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Commitment> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intentionGoal> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/commitmentBeneficiary" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/committedAgent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Commitment> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/intentionGoal" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -344,7 +343,7 @@ gmeow:IntentionTenureAgentConstraint
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -353,7 +352,7 @@ gmeow:IntentionTenureAgentConstraint
 #   logic:RelatumDistinctnessAssertion — the two logic:distinctnessRole values must bind distinct relata on one focus node.
 
 gmeow:counterGoalSymmetry
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "counterGoal is symmetric"@x-gmeow-english ;
@@ -368,7 +367,7 @@ gmeow:counterGoalSymmetry
     skos:example "gmeow:counterGoalSymmetry logic:characterizes gmeow:counterGoal ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:counterGoalIrreflexivity
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "counterGoal is irreflexive"@x-gmeow-english ;
@@ -383,7 +382,7 @@ gmeow:counterGoalIrreflexivity
     skos:example "gmeow:counterGoalIrreflexivity logic:characterizes gmeow:counterGoal ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:committedAgentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "committedAgent is functional"@x-gmeow-english ;
@@ -398,7 +397,7 @@ gmeow:committedAgentFunctionality
     skos:example "gmeow:committedAgentFunctionality logic:characterizes gmeow:committedAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:intentBearerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intentBearer is functional"@x-gmeow-english ;
@@ -413,7 +412,7 @@ gmeow:intentBearerFunctionality
     skos:example "gmeow:intentBearerFunctionality logic:characterizes gmeow:intentBearer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:intentionGoalFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "intentionGoal is functional"@x-gmeow-english ;
@@ -428,7 +427,7 @@ gmeow:intentionGoalFunctionality
     skos:example "gmeow:intentionGoalFunctionality logic:characterizes gmeow:intentionGoal ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tenureAgentFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenureAgent is functional"@x-gmeow-english ;
@@ -443,7 +442,7 @@ gmeow:tenureAgentFunctionality
     skos:example "gmeow:tenureAgentFunctionality logic:characterizes gmeow:tenureAgent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tenureIntentionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "tenureIntention is functional"@x-gmeow-english ;
@@ -458,7 +457,7 @@ gmeow:tenureIntentionFunctionality
     skos:example "gmeow:tenureIntentionFunctionality logic:characterizes gmeow:tenureIntention ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:commitmentBeneficiaryDistinctness
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:RelatumDistinctnessAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "a commitment's beneficiary is distinct from its committed agent"@x-gmeow-english ;

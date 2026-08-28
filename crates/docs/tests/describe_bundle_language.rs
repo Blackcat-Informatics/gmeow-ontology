@@ -25,8 +25,8 @@ fn repo_root() -> PathBuf {
 }
 
 fn bundle_bytes() -> Vec<u8> {
-    let path = repo_root().join("generated/dist/gmeow.gts");
-    std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()))
+    gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("authenticated shipped bundle; tests never produce it")
 }
 
 #[test]

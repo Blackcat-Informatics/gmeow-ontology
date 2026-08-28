@@ -35,3 +35,6 @@ gmeow-logic = { path = "../logic" }
 gmeow-errors = { path = "../errors" }
 # JSON is the MCP wire format: the tool descriptors and every result envelope.
 serde_json.workspace = true
+
+[dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }

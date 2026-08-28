@@ -1,38 +1,37 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Employment
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "Employment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Membership ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:employmentType ;
-            owl:someValuesFrom gmeow:EmploymentType ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:employmentType ;
+            logic:someValuesFrom gmeow:EmploymentType ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:membershipMember ;
-            owl:allValuesFrom gmeow:Person ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:membershipMember ;
+            logic:allValuesFrom gmeow:Person ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:membershipOrganization ;
-            owl:someValuesFrom gmeow:Organization ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:membershipOrganization ;
+            logic:someValuesFrom gmeow:Organization ;
         ] ;
     skos:definition "A reified employment relationship between a natural person and an organization, optionally founded on an employment contract and bearing a role, compensation, and employment type over a period. A specialization of gmeow:Membership: the employment-specific facets (compensation, seniority, employment type) are added here; the structural spine (member, organization, role, period) is inherited. On an Employment every member is a gmeow:Person (a narrowing of the inherited gmeow:Agent member range) — organizations affiliate through other Membership subtypes such as partnership or consortium membership, not employment."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:EmploymentType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "Employment Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -41,7 +40,7 @@ gmeow:EmploymentType
 
 gmeow:SeniorityLevel
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "Seniority Level"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -49,7 +48,7 @@ gmeow:SeniorityLevel
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:employmentCompensation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment compensation"@x-gmeow-english ;
@@ -58,7 +57,7 @@ gmeow:employmentCompensation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment interval"@x-gmeow-english ;
@@ -67,7 +66,7 @@ gmeow:employmentInterval
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentOccupation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment occupation"@x-gmeow-english ;
@@ -76,7 +75,7 @@ gmeow:employmentOccupation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentRole
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment role"@x-gmeow-english ;
@@ -86,7 +85,7 @@ gmeow:employmentRole
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentSeniority
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment seniority"@x-gmeow-english ;
@@ -95,7 +94,7 @@ gmeow:employmentSeniority
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:employmentType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Employment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employment type"@x-gmeow-english ;
@@ -188,7 +187,7 @@ gmeow:senioritySenior
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/employment>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Employment relationships, compensation, and career events (the ResumeRDF / Europass / schema.org / ESCO / CTDL superset layer).
 
@@ -212,7 +211,7 @@ DOCTRINE.
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -220,7 +219,7 @@ DOCTRINE.
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:employmentOccupationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employmentOccupation is functional"@x-gmeow-english ;
@@ -235,7 +234,7 @@ gmeow:employmentOccupationFunctionality
     skos:example "gmeow:employmentOccupationFunctionality logic:characterizes gmeow:employmentOccupation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:employmentRoleFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employmentRole is functional"@x-gmeow-english ;
@@ -250,7 +249,7 @@ gmeow:employmentRoleFunctionality
     skos:example "gmeow:employmentRoleFunctionality logic:characterizes gmeow:employmentRole ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:employmentSeniorityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employmentSeniority is functional"@x-gmeow-english ;
@@ -265,7 +264,7 @@ gmeow:employmentSeniorityFunctionality
     skos:example "gmeow:employmentSeniorityFunctionality logic:characterizes gmeow:employmentSeniority ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:employmentTypeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "employmentType is functional"@x-gmeow-english ;

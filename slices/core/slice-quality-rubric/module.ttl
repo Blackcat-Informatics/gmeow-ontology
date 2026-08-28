@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -15,7 +15,7 @@
 
 gmeow:QualityTier
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Quality Tier"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -27,7 +27,7 @@ gmeow:QualityTier
     gmeow:useWhen "Use as the value vocabulary for the slice-quality ladder — the rungs (Registered, Grounded, Linked, Exemplified, Maximal) a slice climbs, ordered by gmeow:tierRank and combined across axes by the lattice meet."@x-gmeow-english .
 
 gmeow:tierRank
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:QualityTier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "tier rank"@x-gmeow-english ;
@@ -84,7 +84,7 @@ gmeow:tierMaximal
 #################################################################
 
 gmeow:sliceQualityTier
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:domain gmeow:Slice ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "slice quality tier"@x-gmeow-english ;
@@ -103,7 +103,7 @@ gmeow:sliceQualityTier
 
 gmeow:QualityAxis
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Quality Axis"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -115,7 +115,7 @@ gmeow:QualityAxis
     gmeow:useWhen "Use as the value vocabulary the rubric Profile ranges over — each individual is one measured axis of slice quality, bound to a Rust primitive and a set of tier thresholds."@x-gmeow-english .
 
 gmeow:axisProducer
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis producer"@x-gmeow-english ;
@@ -129,7 +129,7 @@ gmeow:axisProducer
     gmeow:useWhen "Use on an axis to bind it to the Rust measurement primitive that scores it."@x-gmeow-english .
 
 gmeow:axisDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis dimension"@x-gmeow-english ;
@@ -143,7 +143,7 @@ gmeow:axisDimension
     gmeow:useWhen "Use on an axis to name the quality dimension its score is published under in the assessment graph."@x-gmeow-english .
 
 gmeow:axisThreshold
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis threshold"@x-gmeow-english ;
@@ -157,7 +157,7 @@ gmeow:axisThreshold
     gmeow:useWhen "Use on an axis to pin, as data, the per-tier score floors that turn a measured decimal into a tier grade."@x-gmeow-english .
 
 gmeow:axisAdviceTemplate
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis advice template"@x-gmeow-english ;
@@ -171,7 +171,7 @@ gmeow:axisAdviceTemplate
     gmeow:useWhen "Use on an axis to author the opinionated, doctrine-cited uplift advice the advisor offers when the axis is weak."@x-gmeow-english .
 
 gmeow:axisWeight
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis weight"@x-gmeow-english ;
@@ -185,7 +185,7 @@ gmeow:axisWeight
     gmeow:useWhen "Use on an axis to set its priority in the ranked advice list — the headline maximums (grounding, reasoner, information) weigh highest."@x-gmeow-english .
 
 gmeow:axisContextScope
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis context scope"@x-gmeow-english ;
@@ -199,7 +199,7 @@ gmeow:axisContextScope
     gmeow:useWhen "Use on an axis to declare, as data, the read breadth its primitive is allowed — making the read-cross-slice-advise-single-slice rule checkable."@x-gmeow-english .
 
 gmeow:assessmentAxis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:QualityAssessment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "assessment axis"@x-gmeow-english ;
@@ -218,7 +218,7 @@ gmeow:assessmentAxis
 
 gmeow:AxisThreshold
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Axis Threshold"@x-gmeow-english ;
     skos:definition "A reified pairing of a tier with the score floor an axis must reach to earn it — the data that turns a measured decimal into a tier grade. It is NOT the axis and NOT the tier: it is the (tier, floor) cell of the rubric's threshold table."@x-gmeow-english ;
@@ -229,7 +229,7 @@ gmeow:AxisThreshold
     gmeow:useWhen "Use to declare, as data, the score floor an axis needs for a particular tier."@x-gmeow-english .
 
 gmeow:thresholdTier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AxisThreshold ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "threshold tier"@x-gmeow-english ;
@@ -242,7 +242,7 @@ gmeow:thresholdTier
     gmeow:useWhen "Use on a threshold pairing to name the tier its floor unlocks."@x-gmeow-english .
 
 gmeow:thresholdFloor
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AxisThreshold ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "threshold floor"@x-gmeow-english ;
@@ -260,7 +260,7 @@ gmeow:thresholdFloor
 
 gmeow:AxisContextScope
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Axis Context Scope"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -298,7 +298,7 @@ gmeow:scopeMergedClosure
 
 gmeow:AxisExemption
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Axis Exemption"@x-gmeow-english ;
     skos:definition "A dated record that an axis or sub-metric is not yet measurable because its owning producer is genuinely unlanded — a first-class, gate-checked, self-cleaning artifact, NOT a silent descope. Every exemption carries the reason, the date it was minted, and the Rust symbol whose appearance in the repo makes it STALE; the completeness gate requires an axis or an exemption for every projection target, and the staleness gate reds the moment the exempted producer resolves."@x-gmeow-english ;
@@ -309,7 +309,7 @@ gmeow:AxisExemption
     gmeow:useWhen "Use to record, transparently and datedly, that a specific axis or sub-metric awaits an unlanded producer — so the gap is checked, not hidden."@x-gmeow-english .
 
 gmeow:exemptsAxis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exempts axis"@x-gmeow-english ;
@@ -322,7 +322,7 @@ gmeow:exemptsAxis
     gmeow:useWhen "Use on an exemption to name the axis it covers."@x-gmeow-english .
 
 gmeow:exemptionReason
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemption reason"@x-gmeow-english ;
@@ -335,7 +335,7 @@ gmeow:exemptionReason
     gmeow:useWhen "Use on an exemption to record why the axis is not yet measurable."@x-gmeow-english .
 
 gmeow:exemptionDate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemption date"@x-gmeow-english ;
@@ -348,7 +348,7 @@ gmeow:exemptionDate
     gmeow:useWhen "Use on an exemption to stamp when the gap was declared."@x-gmeow-english .
 
 gmeow:exemptionProducer
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemption producer"@x-gmeow-english ;
@@ -366,7 +366,7 @@ gmeow:exemptionProducer
 
 gmeow:AxisFloorCommitment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Axis Floor Commitment"@x-gmeow-english ;
     skos:definition "A reified per-slice, per-axis committed score floor — the minimum measured decimal a named axis must hold for a named slice, enforced by the make-check gate as a raise-only monotonic ratchet (the value may rise but never fall). It pairs one gmeow:floorSlice, one gmeow:floorAxis, and one gmeow:floorValue into a single ratchet cell. It is NOT the per-tier gmeow:AxisThreshold (that gates the tier ladder for every slice), NOT the declared gmeow:sliceQualityTier (that is the slice's opted-in roll-up tier), and NOT a measured score (that is computed by the axis producer): it is the committed floor a slice's measured axis score may never regress below."@x-gmeow-english ;
@@ -378,7 +378,7 @@ gmeow:AxisFloorCommitment
 
 gmeow:SliceTierFloor
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Slice Tier Floor"@x-gmeow-english ;
     skos:definition "A reified per-slice committed roll-up tier floor — the minimum gmeow:QualityTier a named slice may declare, enforced by the make-check gate as a raise-only monotonic ratchet on the lattice order. It pairs one gmeow:floorSlice with one gmeow:floorTier. It is NOT the per-axis gmeow:AxisFloorCommitment (that floors a measured axis score, not a tier), NOT the slice's own gmeow:sliceQualityTier declaration (that is the tier the slice opts in to, which this floor bounds from below), and NOT gmeow:sliceTier (architectural placement): it is the committed rung below which the slice's declared roll-up tier may never fall."@x-gmeow-english ;
@@ -389,9 +389,9 @@ gmeow:SliceTierFloor
     gmeow:useWhen "Use to record, as data, the committed minimum roll-up tier a named slice may declare — the raise-only per-slice tier regression floor the gate enforces."@x-gmeow-english .
 
 gmeow:floorSlice
-    a owl:ObjectProperty ;
-    rdfs:domain [ a owl:Class ;
-        owl:unionOf ( gmeow:AxisFloorCommitment gmeow:SliceTierFloor ) ] ;
+    a logic:ObjectProperty ;
+    rdfs:domain [ a logic:Class ;
+        logic:unionOf ( gmeow:AxisFloorCommitment gmeow:SliceTierFloor ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floor slice"@x-gmeow-english ;
     rdfs:range gmeow:Slice ;
@@ -403,7 +403,7 @@ gmeow:floorSlice
     gmeow:useWhen "Use on a floor commitment or tier floor to name the slice its ratchet guards."@x-gmeow-english .
 
 gmeow:floorAxis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AxisFloorCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floor axis"@x-gmeow-english ;
@@ -416,7 +416,7 @@ gmeow:floorAxis
     gmeow:useWhen "Use on a per-axis floor commitment to name the axis whose measured score it floors."@x-gmeow-english .
 
 gmeow:floorValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AxisFloorCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floor value"@x-gmeow-english ;
@@ -429,7 +429,7 @@ gmeow:floorValue
     gmeow:useWhen "Use on a per-axis floor commitment to set the normalized minimum measured score its axis must hold for its slice."@x-gmeow-english .
 
 gmeow:floorTier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SliceTierFloor ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floor tier"@x-gmeow-english ;
@@ -448,19 +448,19 @@ gmeow:floorTier
 
 gmeow:ProjectionVocabulary
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Projection Vocabulary"@x-gmeow-english ;
     skos:definition "A guarded, logic:-subsumable lossy-projection surface the projection-vocabulary ratchet caps. Per Principle 17, OWL, SHACL, gUFO, BFO, DOLCE, and the alignment stack (SSSOM, EDOAL, FnO) are generated lossy projections of logic:; each such surface is named here once, ontology-resident and data-driven, rather than hardcoded in Rust. It carries the vocabulary's namespace(s), the logic: core it is subsumed by, how its hand-authored constructs are recognized (gmeow:vocabularyCountKind), the default ceiling a slice with no explicit commitment is held to, its loss-ledger preservation judgment, and the by-reference alignment predicates the ratchet exempts. It is NOT a gmeow:ProjectionCeilingCommitment (that is the per-(slice,vocabulary) ratchet cell) and NOT a gmeow:Slice: it is the guarded vocab itself, the dogfooded guard list the gate's shared counter iterates."@x-gmeow-english ;
     skos:example "gmeow:projVocab-sh a gmeow:ProjectionVocabulary ; gmeow:vocabularyPrefix \"sh\" ; gmeow:vocabularyNamespace \"http://www.w3.org/ns/shacl#\"^^xsd:anyURI ; gmeow:vocabularyCountKind \"countKindShape\" ; gmeow:vocabularyDefaultCeiling 0 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid hardcoding the guarded vocab set in Rust (mint an individual instead — the gate is dogfooded, not a hidden list), avoid a vocabulary with an empty gmeow:vocabularyNamespace, and avoid omitting a gmeow:vocabularyOwner — every guarded vocabulary is owned by exactly one grounding slice (logic:, math:, or lang:), the sole boundary at which its external terms may be authored. owl:/rdfs: are NOT exempt: they are now guarded as transitional debt (hand-authored declarative OWL/RDFS is a projection of logic: that should be re-authored as logic: and projected, per Principle 17), owned by logic: — a guarded surface, no longer a permanent deliberate absence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hardcoding the guarded vocab set in Rust (mint an individual instead — the gate is dogfooded, not a hidden list), avoid a vocabulary with an empty gmeow:vocabularyNamespace, and avoid omitting a gmeow:vocabularyOwner — every guarded vocabulary is owned by exactly one grounding slice (logic:, math:, or lang:), the sole boundary at which its external terms may be authored. OWL/rdfs: are NOT exempt: they are now guarded as transitional debt (hand-authored declarative OWL/RDFS is a projection of logic: that should be re-authored as logic: and projected, per Principle 17), owned by logic: — a guarded surface, no longer a permanent deliberate absence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one gmeow:ProjectionVocabulary per logic:-subsumable projection surface the ratchet guards, giving it a gmeow:vocabularyPrefix, one or more gmeow:vocabularyNamespace values, a gmeow:vocabularySubsumedBy back to the logic: core, a gmeow:vocabularyCountKind, a gmeow:vocabularyDefaultCeiling, a gmeow:vocabularyPreservation, and any gmeow:vocabularyAlignmentPredicate the by-reference carve-out exempts; the gate's shared counter reads it to decide what to count and what to exempt."@x-gmeow-english ;
     gmeow:useWhen "Use to register, as data, a hand-authored projection vocabulary whose ungrounded residue the ratchet gate measures — never to hardcode a vocab list in Rust."@x-gmeow-english .
 
 gmeow:ProjectionCeilingCommitment
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Projection Ceiling Commitment"@x-gmeow-english ;
     skos:definition "A reified per-slice, per-vocabulary committed residue ceiling — the maximum ungrounded-residue count a named gmeow:ProjectionVocabulary may measure for a named slice, enforced by the make-check gate as a LOWER-ONLY monotonic ratchet (the value may fall but never rise), the exact inverse polarity of gmeow:AxisFloorCommitment. It pairs one gmeow:ceilingSlice, one gmeow:ceilingVocabulary, and one gmeow:ceilingCount into a single ratchet cell. It is NOT a gmeow:AxisFloorCommitment (that is a raise-only score floor, not a count) and NOT a measured count (that is computed live by the shared residue counter): it is the committed maximum a slice's measured residue for a vocabulary may never exceed, lowered only after a genuine measured migration grounds constructs out of the residue."@x-gmeow-english ;
@@ -471,7 +471,7 @@ gmeow:ProjectionCeilingCommitment
     gmeow:useWhen "Use to record, as data, the committed maximum ungrounded-residue count a named projection vocabulary may hold for a named slice — the lower-only per-(slice,vocab) growth ceiling the gate enforces."@x-gmeow-english .
 
 gmeow:vocabularyPrefix
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary prefix"@x-gmeow-english ;
@@ -484,7 +484,7 @@ gmeow:vocabularyPrefix
     gmeow:useWhen "Use on a guarded projection vocabulary to give it the short prefix ceiling commitments join against."@x-gmeow-english .
 
 gmeow:vocabularyNamespace
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary namespace"@x-gmeow-english ;
@@ -497,7 +497,7 @@ gmeow:vocabularyNamespace
     gmeow:useWhen "Use on a guarded projection vocabulary to name each IRI namespace stem whose triples the counter should recognize as this vocabulary's constructs."@x-gmeow-english .
 
 gmeow:vocabularySubsumedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary subsumed by"@x-gmeow-english ;
@@ -510,7 +510,7 @@ gmeow:vocabularySubsumedBy
     gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the logic: core it is subsumed by."@x-gmeow-english .
 
 gmeow:vocabularyOwner
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary owner"@x-gmeow-english ;
@@ -523,7 +523,7 @@ gmeow:vocabularyOwner
     gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the one grounding slice that owns its external authoring boundary — the boundary-authority owner, distinct from the Principle-17 logic: subsumer."@x-gmeow-english .
 
 gmeow:vocabularyCountKind
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary count kind"@x-gmeow-english ;
@@ -536,7 +536,7 @@ gmeow:vocabularyCountKind
     gmeow:useWhen "Use on a guarded projection vocabulary to select, as data, which of the three closed construct-recognition strategies the counter runs for it."@x-gmeow-english .
 
 gmeow:vocabularyDefaultCeiling
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary default ceiling"@x-gmeow-english ;
@@ -549,7 +549,7 @@ gmeow:vocabularyDefaultCeiling
     gmeow:useWhen "Use on a guarded projection vocabulary to set the ceiling every unlisted slice is held to — the airtight default that blocks a first ungrounded use."@x-gmeow-english .
 
 gmeow:vocabularyPreservation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary preservation"@x-gmeow-english ;
@@ -562,12 +562,12 @@ gmeow:vocabularyPreservation
     gmeow:useWhen "Use on a guarded projection vocabulary to record, as data, the preservation polarity of its lowering from logic: — reusing the shared loss-ledger vocabulary rather than a bespoke judgment."@x-gmeow-english .
 
 gmeow:vocabularyAlignmentPredicate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary alignment predicate"@x-gmeow-english ;
     rdfs:range xsd:anyURI ;
-    skos:definition "One by-reference alignment/bridge predicate IRI this vocabulary exempts from its residue when a matching triple's object resolves to an EXTERNAL (non-gmeow:) namespace — NON-functional, since a vocabulary typically exempts several bridge predicates (rdf:type, rdfs:subClassOf, owl:equivalentClass, rdfs:seeAlso, and the SKOS mapping predicates). Per Principle 5, foundational alignment by reference is \"MORE is always BETTER\" and must never be punished as a second source of truth; an INTERNAL gmeow-to-gmeow triple under the same predicate is NOT exempted (it stays in the residue as a genuine second source of truth). It is NOT gmeow:vocabularyNamespace (which selects candidate triples) but a filter over which of those candidates the counter then subtracts."@x-gmeow-english ;
+    skos:definition "One by-reference alignment/bridge predicate IRI this vocabulary exempts from its residue when a matching triple's object resolves to an EXTERNAL (non-gmeow:) namespace — NON-functional, since a vocabulary typically exempts several bridge predicates (rdf:type, rdfs:subClassOf, OWL equivalentClass, rdfs:seeAlso, and the SKOS mapping predicates). Per Principle 5, foundational alignment by reference is \"MORE is always BETTER\" and must never be punished as a second source of truth; an INTERNAL gmeow-to-gmeow triple under the same predicate is NOT exempted (it stays in the residue as a genuine second source of truth). It is NOT gmeow:vocabularyNamespace (which selects candidate triples) but a filter over which of those candidates the counter then subtracts."@x-gmeow-english ;
     skos:example "gmeow:projVocab-gufo gmeow:vocabularyAlignmentPredicate \"http://www.w3.org/2002/07/owl#equivalentClass\"^^xsd:anyURI ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid listing a predicate here for a documentary-only (non-RDF-surface) vocabulary (it can never match a real triple) and avoid expecting the exemption to apply to an internal gmeow: object — the external-object condition is unconditional."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -575,7 +575,7 @@ gmeow:vocabularyAlignmentPredicate
     gmeow:useWhen "Use on an RDF-surface guarded vocabulary to declare, as data, which alignment/bridge predicates carry legitimate by-reference foundational linkage rather than ungrounded second-source authoring."@x-gmeow-english .
 
 gmeow:vocabularyCountPredicate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary count predicate"@x-gmeow-english ;
@@ -588,7 +588,7 @@ gmeow:vocabularyCountPredicate
     gmeow:useWhen "Use on a countKindStructuralAxiom guarded vocabulary (RDFS) to declare, as data, the minimum useful structural predicate set the ratchet counts, excluding annotations."@x-gmeow-english .
 
 gmeow:ceilingSlice
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ProjectionCeilingCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceiling slice"@x-gmeow-english ;
@@ -601,7 +601,7 @@ gmeow:ceilingSlice
     gmeow:useWhen "Use on a projection-ceiling commitment to name the slice its ratchet guards."@x-gmeow-english .
 
 gmeow:ceilingVocabulary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ProjectionCeilingCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceiling vocabulary"@x-gmeow-english ;
@@ -614,7 +614,7 @@ gmeow:ceilingVocabulary
     gmeow:useWhen "Use on a projection-ceiling commitment to name the guarded vocabulary whose residue it ceilings."@x-gmeow-english .
 
 gmeow:ceilingCount
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ProjectionCeilingCommitment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceiling count"@x-gmeow-english ;
@@ -633,7 +633,7 @@ gmeow:ceilingCount
 
 gmeow:CeilingRelocation
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Ceiling Relocation"@x-gmeow-english ;
     skos:definition "A dated declaration that a named set of terms MOVED from one slice to another, so the ratchet re-projects the affected cells' merge-base residue ceiling through that move before its lower-only comparison runs. A projection ceiling budgets net-new ungrounded authoring, which is location-independent: carrying a term across a slice boundary shifts residue between two cells without authoring any of it, so the accounting must follow the term rather than punish the destination twice. The declaration authorizes NOTHING by itself — each unit of adjustment must additionally be corroborated by a derived witness (a construct that genuinely departed the source and arrived at the destination) and funded by a matching lowering at the source, and a demand beyond that adjustment still reds. It is NOT a gmeow:ProjectionCeilingCommitment (that pins one cell's committed maximum) and NOT a gmeow:AxisExemption (that stands in for an unlanded producer): it is the movement record the ceiling accounting joins against the measurement."@x-gmeow-english ;
@@ -656,9 +656,9 @@ gmeow:CeilingRelocation
 # single authored signal that the path is closed-world REQUIRED, and the pair
 # together derives the sh:minCount 1 the loader mirrors.
 gmeow:CeilingRelocation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:relocationTerm ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:relocationFromSlice ; logic:allValuesFrom owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:relocationToSlice ; logic:allValuesFrom owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:relocationTerm ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:relocationFromSlice ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:relocationToSlice ; logic:allValuesFrom logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:relocationDate ; logic:allValuesFrom xsd:date ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:CeilingRelocation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relocationTerm" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -667,11 +667,11 @@ gmeow:CeilingRelocation logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:CeilingRelocation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relocationDate" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:relocationTerm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CeilingRelocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocation term"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "One term IRI a relocation declaration claims moved — NON-FUNCTIONAL, because a migration normally carries a family of terms across together, and at least one is required (a declaration naming none can be corroborated by nothing, so the loader rejects it outright). Each value is matched against the relocation-invariant subject anchor the residue counter records for every construct, so a construct nested under an anonymous block still resolves to the named term that owns it. It is NOT the source or destination slice (those are gmeow:relocationFromSlice and gmeow:relocationToSlice) and NOT a vocabulary reference: it names WHAT moved."@x-gmeow-english ;
     skos:example "gmeow:reloc-affect-to-cognition gmeow:relocationTerm gmeow:moodEpisode ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid naming a term that stayed put (the derived witness reds the whole declaration rather than quietly ignoring the surplus name) and avoid leaving the declaration with no term at all — a term-free declaration would be an unbounded permit."@x-gmeow-english ;
@@ -680,7 +680,7 @@ gmeow:relocationTerm
     gmeow:useWhen "Use on a relocation declaration to enumerate exactly the terms whose residue crossed the slice boundary."@x-gmeow-english .
 
 gmeow:relocationFromSlice
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CeilingRelocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocation from slice"@x-gmeow-english ;
@@ -693,7 +693,7 @@ gmeow:relocationFromSlice
     gmeow:useWhen "Use on a relocation declaration to name the slice whose residue and committed ceiling both shrink because of the move."@x-gmeow-english .
 
 gmeow:relocationToSlice
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CeilingRelocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocation to slice"@x-gmeow-english ;
@@ -706,7 +706,7 @@ gmeow:relocationToSlice
     gmeow:useWhen "Use on a relocation declaration to name the slice that inherits the moved residue and whose ceiling the accounting re-projects."@x-gmeow-english .
 
 gmeow:relocationVocabulary
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:CeilingRelocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocation vocabulary"@x-gmeow-english ;
@@ -719,7 +719,7 @@ gmeow:relocationVocabulary
     gmeow:useWhen "Use on a relocation declaration when the move is genuinely confined to one guarded projection surface and the record should not be read as covering the others."@x-gmeow-english .
 
 gmeow:relocationDate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CeilingRelocation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocation date"@x-gmeow-english ;
@@ -754,7 +754,7 @@ gmeow:relocationDate
 # logic: core for every vocabulary. Ownership is boundary authority;
 # subsumption is the projection direction.
 #
-# The permanent owl:/rdfs: derive-source carve-out is REMOVED, but
+# The permanent OWL/rdfs: derive-source carve-out is REMOVED, but
 # only the MINIMUM USEFUL STRUCTURAL SET is guarded, and only for
 # RDFS: projVocab-rdfs is countKindStructuralAxiom over exactly
 # rdfs:subClassOf/subPropertyOf (its gmeow:vocabularyCountPredicate
@@ -763,7 +763,7 @@ gmeow:relocationDate
 # structural taxonomy axioms that are genuine reasoning content and
 # should be authored as logic: and projected forward. Pure RDFS
 # annotations (rdfs:label/comment/isDefinedBy/seeAlso) are NOT
-# counted, and OWL is NOT guarded at all (owl: procedural cardinality
+# counted, and OWL is NOT guarded at all (OWL procedural cardinality
 # is already gated at reason-verify per LOGIC-VALIDATION.md; the
 # remaining declarative OWL is left untouched by this ratchet). This
 # reds the gate until the structural debt is re-seeded; that
@@ -2014,7 +2014,7 @@ gmeow:pcc-tags-oa a gmeow:ProjectionCeilingCommitment ; rdfs:label "projection-c
 
 gmeow:SliceQualityDimension
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Slice Quality Dimension"@x-gmeow-english ;
     rdfs:subClassOf gmeow:QualityDimension ;
@@ -2116,12 +2116,12 @@ gmeow:axisMaximalGrounding
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Grounding"@x-gmeow-english ;
-    skos:definition "The headline axis: the fraction of a slice's owl:Class terms carrying a logic: foundation stereotype rather than standing as a bare domain term. It is NOT mere annotation presence (that is the information axis), and it does NOT yet score mediates relations, framed math quantities, lang forms, or domain-twin detection — it measures foundation-stereotype grounding of classes (Principle 19; SLICE_GUIDE §4)."@x-gmeow-english ;
+    skos:definition "The headline axis: the fraction of a slice's OWL Class terms carrying a logic: foundation stereotype rather than standing as a bare domain term. It is NOT mere annotation presence (that is the information axis), and it does NOT yet score mediates relations, framed math quantities, lang forms, or domain-twin detection — it measures foundation-stereotype grounding of classes (Principle 19; SLICE_GUIDE §4)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalGrounding gmeow:axisProducer \"grounding_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with the annotation-coat information axis or the reasoner-derived axis — this axis measures foundation-stereotype grounding of classes, not annotation presence, entailment output, or prose completeness."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor scores each owl:Class for a logic: foundation stereotype and ranks each bare class missing one as uplift advice."@x-gmeow-english ;
+    gmeow:howToUse "The advisor scores each OWL Class for a logic: foundation stereotype and ranks each bare class missing one as uplift advice."@x-gmeow-english ;
     gmeow:useWhen "Use to measure what fraction of a slice's classes carry a logic: foundation stereotype rather than standing as bare domain terms."@x-gmeow-english ;
     gmeow:axisProducer "grounding_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionGrounding ;
@@ -2152,7 +2152,7 @@ gmeow:axisReasonerDerived
         gmeow:thrReasonerLinked ,
         gmeow:thrReasonerExemplified ,
         gmeow:thrReasonerMaximal ;
-    gmeow:axisAdviceTemplate "Remove each closure-redundant authored triple (dead weight or an asserted derived fact), and back every SHACL-declared class-disjointness with the canonical owl:disjointWith so its counter-examples clash under the reasoner (Principle 12; Principles 8/17/18)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Remove each closure-redundant authored triple (dead weight or an asserted derived fact), and back every SHACL-declared class-disjointness with the canonical OWL disjointWith so its counter-examples clash under the reasoner (Principle 12; Principles 8/17/18)."@x-gmeow-english .
 
 gmeow:axisMaximalInformation
     a gmeow:QualityAxis ;
@@ -2200,7 +2200,7 @@ gmeow:axisMaximalProjection
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Projection"@x-gmeow-english ;
-    skos:definition "The axis for whether a slice ships the projection SOURCE surfaces its content requires: a shapes.ttl when it declares structural constraints (owl:Restriction / owl:disjointWith), and a mappings/equivalences.ttl when its own terms link to external vocabularies. It is NOT linkage (the source alignments), and it does NOT yet verify content survival across SSSOM/EDOAL/FnO or loss-ledger entries — it checks the presence of the required projection-source files (Principles 4/7/17)."@x-gmeow-english ;
+    skos:definition "The axis for whether a slice ships the projection SOURCE surfaces its content requires: a shapes.ttl when it declares structural constraints (OWL Restriction / OWL disjointWith), and a mappings/equivalences.ttl when its own terms link to external vocabularies. It is NOT linkage (the source alignments), and it does NOT yet verify content survival across SSSOM/EDOAL/FnO or loss-ledger entries — it checks the presence of the required projection-source files (Principles 4/7/17)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalProjection gmeow:axisProducer \"projection_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as content-survival verification (it checks source-file presence, not that every triple survives a projection) and avoid conflating a projection source with its source mappings."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
@@ -2215,7 +2215,7 @@ gmeow:axisMaximalProjection
         gmeow:thrProjectionLinked ,
         gmeow:thrProjectionExemplified ,
         gmeow:thrProjectionMaximal ;
-    gmeow:axisAdviceTemplate "Ship a shapes.ttl when the slice declares structural constraints (owl:Restriction / owl:disjointWith) and a mappings/equivalences.ttl when its terms link to external vocabularies, so its content has a projection source (Principles 4/7/17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Ship a shapes.ttl when the slice declares structural constraints (OWL Restriction / OWL disjointWith) and a mappings/equivalences.ttl when its terms link to external vocabularies, so its content has a projection source (Principles 4/7/17)."@x-gmeow-english .
 
 gmeow:axisShapeMigration
     a gmeow:QualityAxis ;
@@ -2226,7 +2226,7 @@ gmeow:axisShapeMigration
     gmeow:avoidWhen "Avoid reading it as shapes.ttl presence (a slice with NO shapes.ttl scores a vacuous 1.0 — it has nothing to migrate) and avoid conflating a logic:formalizes-backed residue shape with an un-backed hand-authored second source."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor parses the slice's shapes.ttl, counts the sh:NodeShape / sh:PropertyShape blocks, and names every one lacking logic:formalizes as a migration target — migrate its obligation into module.ttl so the projector reproduces it (owl:FunctionalProperty for at-most-one, owl:someValuesFrom for existence, never owl:cardinality), then delete the block; or back a genuine ValidationOnly residue with logic:formalizes."@x-gmeow-english ;
+    gmeow:howToUse "The advisor parses the slice's shapes.ttl, counts the sh:NodeShape / sh:PropertyShape blocks, and names every one lacking logic:formalizes as a migration target — migrate its obligation into module.ttl so the projector reproduces it (OWL FunctionalProperty for at-most-one, OWL someValuesFrom for existence, never OWL cardinality), then delete the block; or back a genuine ValidationOnly residue with logic:formalizes."@x-gmeow-english ;
     gmeow:useWhen "Use to measure how much of a slice's hand-authored validation-shape surface still needs migrating into the logic: canon."@x-gmeow-english ;
     gmeow:axisProducer "shape_migration_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionProjection ;
@@ -2236,7 +2236,7 @@ gmeow:axisShapeMigration
         gmeow:thrShapeMigrationLinked ,
         gmeow:thrShapeMigrationExemplified ,
         gmeow:thrShapeMigrationMaximal ;
-    gmeow:axisAdviceTemplate "Migrate each hand-authored sh:NodeShape lacking logic:formalizes: author its cardinality / class / datatype obligation in module.ttl (owl:FunctionalProperty for at-most-one, owl:someValuesFrom for existence, never the out-of-fragment owl:cardinality) so the projector reproduces it and the block is deleted, or back a genuine ValidationOnly residue (exactly-N cardinality, node-level sh:or, cross-node sh:sparql) with logic:formalizes naming its canonical logic: source (Principle 17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Migrate each hand-authored sh:NodeShape lacking logic:formalizes: author its cardinality / class / datatype obligation in module.ttl (OWL FunctionalProperty for at-most-one, OWL someValuesFrom for existence, never the out-of-fragment OWL cardinality) so the projector reproduces it and the block is deleted, or back a genuine ValidationOnly residue (exactly-N cardinality, node-level sh:or, cross-node sh:sparql) with logic:formalizes naming its canonical logic: source (Principle 17)."@x-gmeow-english .
 
 gmeow:axisOptimalTesting
     a gmeow:QualityAxis ;
@@ -3210,7 +3210,7 @@ gmeow:stf-tags a gmeow:SliceTierFloor ; rdfs:label "tier-floor commitment — ta
 #################################################################
 
 <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The slice-quality rubric module — the ontology-resident, data-driven rubric the gmeow-dev slice-quality advisor binds to. Quality axes, the lattice tier ladder, per-tier score thresholds, advice text, read-scope coeffects, and dated exemptions are all individuals here; Rust ships only a closed set of measurement primitives the axis descriptors name (the Profile rubric-as-data pattern). Grades form a bounded lattice grounded in logic:QualityValue: the roll-up tier is the UNWEIGHTED meet of the per-axis grades, the ratchet is the lattice order, and the scalar tier is a lossy projection of the full per-axis grade vector.
 
@@ -3225,7 +3225,7 @@ This slice is its own self-application capstone: it must itself score Maximal on
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -3233,7 +3233,7 @@ This slice is its own self-application capstone: it must itself score Maximal on
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:axisContextScopeFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axisContextScope is functional"@x-gmeow-english ;
@@ -3248,7 +3248,7 @@ gmeow:axisContextScopeFunctionality
     skos:example "gmeow:axisContextScopeFunctionality logic:characterizes gmeow:axisContextScope ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:axisWeightFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axisWeight is functional"@x-gmeow-english ;
@@ -3263,7 +3263,7 @@ gmeow:axisWeightFunctionality
     skos:example "gmeow:axisWeightFunctionality logic:characterizes gmeow:axisWeight ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:ceilingCountFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceilingCount is functional"@x-gmeow-english ;
@@ -3278,7 +3278,7 @@ gmeow:ceilingCountFunctionality
     skos:example "gmeow:ceilingCountFunctionality logic:characterizes gmeow:ceilingCount ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:ceilingSliceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceilingSlice is functional"@x-gmeow-english ;
@@ -3293,7 +3293,7 @@ gmeow:ceilingSliceFunctionality
     skos:example "gmeow:ceilingSliceFunctionality logic:characterizes gmeow:ceilingSlice ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:ceilingVocabularyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "ceilingVocabulary is functional"@x-gmeow-english ;
@@ -3308,7 +3308,7 @@ gmeow:ceilingVocabularyFunctionality
     skos:example "gmeow:ceilingVocabularyFunctionality logic:characterizes gmeow:ceilingVocabulary ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:exemptionDateFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemptionDate is functional"@x-gmeow-english ;
@@ -3323,7 +3323,7 @@ gmeow:exemptionDateFunctionality
     skos:example "gmeow:exemptionDateFunctionality logic:characterizes gmeow:exemptionDate ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:floorAxisFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorAxis is functional"@x-gmeow-english ;
@@ -3338,7 +3338,7 @@ gmeow:floorAxisFunctionality
     skos:example "gmeow:floorAxisFunctionality logic:characterizes gmeow:floorAxis ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:floorSliceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorSlice is functional"@x-gmeow-english ;
@@ -3353,7 +3353,7 @@ gmeow:floorSliceFunctionality
     skos:example "gmeow:floorSliceFunctionality logic:characterizes gmeow:floorSlice ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:floorTierFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorTier is functional"@x-gmeow-english ;
@@ -3368,7 +3368,7 @@ gmeow:floorTierFunctionality
     skos:example "gmeow:floorTierFunctionality logic:characterizes gmeow:floorTier ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:floorValueFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "floorValue is functional"@x-gmeow-english ;
@@ -3383,7 +3383,7 @@ gmeow:floorValueFunctionality
     skos:example "gmeow:floorValueFunctionality logic:characterizes gmeow:floorValue ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relocationDateFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocationDate is functional"@x-gmeow-english ;
@@ -3398,7 +3398,7 @@ gmeow:relocationDateFunctionality
     skos:example "gmeow:relocationDateFunctionality logic:characterizes gmeow:relocationDate ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relocationFromSliceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocationFromSlice is functional"@x-gmeow-english ;
@@ -3413,7 +3413,7 @@ gmeow:relocationFromSliceFunctionality
     skos:example "gmeow:relocationFromSliceFunctionality logic:characterizes gmeow:relocationFromSlice ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relocationToSliceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocationToSlice is functional"@x-gmeow-english ;
@@ -3428,7 +3428,7 @@ gmeow:relocationToSliceFunctionality
     skos:example "gmeow:relocationToSliceFunctionality logic:characterizes gmeow:relocationToSlice ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:relocationVocabularyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "relocationVocabulary is functional"@x-gmeow-english ;
@@ -3443,7 +3443,7 @@ gmeow:relocationVocabularyFunctionality
     skos:example "gmeow:relocationVocabularyFunctionality logic:characterizes gmeow:relocationVocabulary ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:thresholdFloorFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "thresholdFloor is functional"@x-gmeow-english ;
@@ -3458,7 +3458,7 @@ gmeow:thresholdFloorFunctionality
     skos:example "gmeow:thresholdFloorFunctionality logic:characterizes gmeow:thresholdFloor ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:thresholdTierFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "thresholdTier is functional"@x-gmeow-english ;
@@ -3473,7 +3473,7 @@ gmeow:thresholdTierFunctionality
     skos:example "gmeow:thresholdTierFunctionality logic:characterizes gmeow:thresholdTier ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:tierRankFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "tierRank is functional"@x-gmeow-english ;
@@ -3488,7 +3488,7 @@ gmeow:tierRankFunctionality
     skos:example "gmeow:tierRankFunctionality logic:characterizes gmeow:tierRank ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vocabularyCountKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyCountKind is functional"@x-gmeow-english ;
@@ -3503,7 +3503,7 @@ gmeow:vocabularyCountKindFunctionality
     skos:example "gmeow:vocabularyCountKindFunctionality logic:characterizes gmeow:vocabularyCountKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vocabularyDefaultCeilingFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyDefaultCeiling is functional"@x-gmeow-english ;
@@ -3518,7 +3518,7 @@ gmeow:vocabularyDefaultCeilingFunctionality
     skos:example "gmeow:vocabularyDefaultCeilingFunctionality logic:characterizes gmeow:vocabularyDefaultCeiling ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vocabularyOwnerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyOwner is functional"@x-gmeow-english ;
@@ -3533,7 +3533,7 @@ gmeow:vocabularyOwnerFunctionality
     skos:example "gmeow:vocabularyOwnerFunctionality logic:characterizes gmeow:vocabularyOwner ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vocabularyPrefixFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyPrefix is functional"@x-gmeow-english ;
@@ -3548,7 +3548,7 @@ gmeow:vocabularyPrefixFunctionality
     skos:example "gmeow:vocabularyPrefixFunctionality logic:characterizes gmeow:vocabularyPrefix ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vocabularyPreservationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularyPreservation is functional"@x-gmeow-english ;
@@ -3563,7 +3563,7 @@ gmeow:vocabularyPreservationFunctionality
     skos:example "gmeow:vocabularyPreservationFunctionality logic:characterizes gmeow:vocabularyPreservation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vocabularySubsumedByFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabularySubsumedBy is functional"@x-gmeow-english ;
@@ -3591,7 +3591,7 @@ gmeow:vocabularySubsumedByFunctionality
 
 gmeow:QualityAssessmentCorpus
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Quality Assessment Corpus"@x-gmeow-english ;
     skos:definition "The recorded slice-quality assessment corpus: one node standing for a whole sweep — every discovered slice scored against this rubric — carrying the two witnesses that let a consumer read a grade instead of recomputing it. It carries a gmeow:versionFingerprint over the canonicalized authored source set the sweep read (WHICH sources were scored) and a gmeow:contentDigest over its own recorded grades (WHAT was recorded). The two are NOT interchangeable and neither substitutes for the other: a record whose fingerprint still matches the working tree but whose scores were edited by hand satisfies the first and violates the second. It is the CORPUS, never one slice's assessment (that is a gmeow:QualityAssessment carrying a gmeow:assessmentAxis) and never the rubric itself (that is the gmeow:QualityAxis / gmeow:QualityTier vocabulary this slice declares)."@x-gmeow-english ;
@@ -3604,7 +3604,7 @@ gmeow:QualityAssessmentCorpus
 
 gmeow:SliceQualityConformanceFailure
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Slice Quality Conformance Failure"@x-gmeow-english ;
     skos:definition "The parent of the slice-quality well-formedness failure vocabulary: a violation is itself a typed, queryable object, and each gate points at its failure class through gmeow:enforcesFailureClass. Conformance here enforces that a RECORD of the rubric's verdicts is readable and self-witnessing, never that any particular slice's score is the right score — a grade is a measurement, and this vocabulary says nothing about whether the measurement flatters or damns the slice."@x-gmeow-english ;
@@ -3617,7 +3617,7 @@ gmeow:SliceQualityConformanceFailure
 
 gmeow:UnreadableQualityRecord
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     logic:subClassOf gmeow:SliceQualityConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Unreadable Quality Record"@x-gmeow-english ;

@@ -3,7 +3,7 @@
 
 //! The tool/resource extension seam and the TOTAL dispatch surface it assembles.
 //!
-//! [`McpServer`](crate::McpServer) serves the consumer surface out of the bundled
+//! [`McpServer`] serves the consumer surface out of the bundled
 //! `gmeow.gts` snapshot alone. A host crate that has more than the bundle — today
 //! `gmeow-mcp-dev`, which has a checkout — adds its tools from OUTSIDE by handing an
 //! [`Extension`] to [`McpServer::from_snapshot_with`](crate::McpServer::from_snapshot_with).
@@ -30,14 +30,14 @@
 //!
 //! [`Surface`] is the assembled result: an ordered registration list plus a
 //! name → index map. Dispatch is a map lookup with exactly one failure mode —
-//! [`UnknownTool`](crate::error::UnknownTool) /
-//! [`UnknownResource`](crate::error::UnknownResource), naming the key. There is no
+//! [`UnknownTool`] /
+//! [`UnknownResource`], naming the key. There is no
 //! fallthrough arm, no `if mode.is_dev()` guard, and no silent no-op: a name the
 //! surface does not carry is refused, and a name it carries always runs its handler.
 //!
 //! Assembly is likewise total: a key claimed twice (by two extension entries, or by
 //! an extension entry shadowing a builtin) is
-//! [`DuplicateRegistration`](crate::error::DuplicateRegistration) and the server
+//! [`DuplicateRegistration`] and the server
 //! refuses to construct, because last-writer-wins would let the advertised
 //! descriptor and the dispatched handler silently disagree.
 

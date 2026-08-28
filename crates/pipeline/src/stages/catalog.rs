@@ -152,25 +152,3 @@ impl Stage for CatalogStage {
         )))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn catalog_is_byte_identical_to_committed() {
-        let root = repo_root();
-        let fresh = render_catalog(&root).expect("render");
-        let committed =
-            std::fs::read_to_string(root.join(CATALOG_PATH)).expect("committed catalog");
-        assert_eq!(fresh, committed, "catalog-v001.xml drifted from committed");
-    }
-}

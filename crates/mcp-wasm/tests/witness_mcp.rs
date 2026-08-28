@@ -10,7 +10,7 @@
 //! lane (`crates/mcp-wasm/js/tests/witness.test.mjs`) drives the WASM `init`/`mcp` over
 //! the SAME snapshot and the SAME frame and asserts byte-identity with the same
 //! attestation; both matching the one attestation proves native ≡ wasm. Refreshed via
-//! `GMEOW_WITNESS_BLESS=1`.
+//! The attestation is refreshed only by an explicit maintainer producer.
 //!
 //! ## Why `conjecture_test`, and why the attestation is bundle-stable
 //!
@@ -84,13 +84,8 @@ fn attestation_path() -> PathBuf {
 /// checkout that has not run `make regen`) the parity witness cannot run. That is
 /// unfinished work for the sync gate, not a pass — surface it loudly.
 fn snapshot() -> Vec<u8> {
-    let path = repo_root().join("generated/dist/gmeow.gts");
-    std::fs::read(&path).unwrap_or_else(|e| {
-        panic!(
-            "the MCP parity witness needs the generated bundle {} (run `make regen`): {e}",
-            path.display()
-        )
-    })
+    gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("authenticated bundle; tests never produce it")
 }
 
 #[test]
@@ -99,9 +94,9 @@ fn no_snapshot_is_loaded_before_init() {
     // one process per test — so this observes the genuine pre-`init` state.
     //
     // Only the STATE is asserted here, not the refusal itself: `mcp` before `init`
-    // returns a `JsError`, and CONSTRUCTING a `JsError` calls a wasm-bindgen imported
-    // function, which panics by design on a non-wasm target. The refusal is therefore
-    // asserted where it is real — the Node lane's
+    // throws a `JsError` in wasm and deliberately panics with the same diagnostic in a
+    // native parity process, where constructing `JsError` would invoke a missing wasm
+    // import. The refusal is therefore asserted where it is real — the Node lane's
     // `mcp() refuses frames before a snapshot is loaded` — rather than faked here.
     assert!(!ready(), "no snapshot is loaded before init");
 }
@@ -172,23 +167,27 @@ fn native_mcp_frame_matches_the_witness_attestation() {
         payload["verdict"]["evaluation"], "completed",
         "the evaluation must COMPLETE, not exhaust its budget: {out}"
     );
+    let judgment = payload["judgment_nquads"]
+        .as_str()
+        .unwrap_or_else(|| panic!("the answered payload carries judgment_nquads: {out}"));
+    assert!(
+        !judgment
+            .chars()
+            .any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t')),
+        "the judgment transport must not contain raw control scalars: {out}"
+    );
+    purrdf::parse_dataset(judgment.as_bytes(), "application/n-quads", None)
+        .unwrap_or_else(|error| panic!("judgment_nquads must be valid RDF: {error}\n{out}"));
 
     let path = attestation_path();
-    // Require the EXACT documented value: only `GMEOW_WITNESS_BLESS=1` may overwrite the
-    // committed witness (an empty or `=0` value must not silently replace it).
-    if std::env::var("GMEOW_WITNESS_BLESS").as_deref() == Ok("1") {
-        std::fs::write(&path, &out).expect("write mcp attestation");
-        eprintln!("blessed mcp witness at {}", path.display());
-        return;
-    }
     let committed = std::fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
-            "mcp witness attestation {} missing (bless with GMEOW_WITNESS_BLESS=1): {e}",
+            "mcp witness attestation {} missing; refresh it through the explicit maintainer producer: {e}",
             path.display()
         )
     });
     assert_eq!(
         out, committed,
-        "the native MCP response frame drifted from the committed witness attestation — re-bless"
+        "the native MCP response frame drifted from the committed witness attestation"
     );
 }

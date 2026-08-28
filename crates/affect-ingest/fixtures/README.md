@@ -8,7 +8,7 @@ SPDX-License-Identifier: CC-BY-4.0
 Each `*-sample.json` is a **genuine captured run** of a real Hugging Face
 classifier — the input to the `gmeow-affect-ingest` producer's put leg
 (`produce`) and the anchor of the whole-ontology SHACL conformance gate
-(`crates/validate/tests/conformance_affect_producer.rs`). Every fixture is a
+(`crates/validate/tests/conformance_cases/conformance_affect_producer.rs`). Every fixture is a
 `ClassifierRunCapture` envelope over three shared target texts (a grateful, a
 joyful, and a fearful sentence), so each exercises the mapped-emotion claim path,
 the sentiment/social no-claim path, and the below-threshold "concluded" path.

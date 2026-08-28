@@ -2,14 +2,13 @@
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ArchaeologicalFindContext
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Archaeological Find Context"@x-gmeow-english ;
     logic:mediates gmeow:findContextTarget ,
@@ -17,14 +16,14 @@ gmeow:ArchaeologicalFindContext
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:findContextTarget ;
-            owl:someValuesFrom gmeow:PhysicalObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:findContextTarget ;
+            logic:someValuesFrom gmeow:PhysicalObject ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A reified find context binding a physical carrier to its stratigraphic unit, find-spot, excavation or documentation event, and dating evidence. A single carrier may have multiple coexisting context claims from different excavation campaigns or analytical standpoints (Principle 9). Follows the universal Observation + Relator pattern."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
@@ -32,7 +31,7 @@ gmeow:ArchaeologicalFindContext
 
 gmeow:Inscription
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -41,7 +40,7 @@ gmeow:Inscription
 
 gmeow:InscriptionReading
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Reading"@x-gmeow-english ;
     logic:mediates gmeow:readingOf ,
@@ -49,21 +48,21 @@ gmeow:InscriptionReading
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:readingOf ;
-            owl:someValuesFrom gmeow:Inscription ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:readingOf ;
+            logic:someValuesFrom gmeow:Inscription ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A scholarly reading of an inscription — the Observation that produces a LexicalForm from a sign-bearing feature. The reading is a standpoint-scoped claim, not ground truth: two scholars may read the same marks differently, and both readings coexist (Principle 9). Follows the universal Observation + Relator pattern."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InscriptionTranslation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Translation"@x-gmeow-english ;
     logic:mediates gmeow:translationOf ,
@@ -71,21 +70,21 @@ gmeow:InscriptionTranslation
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:translationOf ;
-            owl:someValuesFrom gmeow:Inscription ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:translationOf ;
+            logic:someValuesFrom gmeow:Inscription ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A translation of an inscription into another language — an Observation that produces a LexicalForm representing the meaning of the source inscription in a target language. Standpoint-scoped: competing translations coexist without privilege (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InscriptionTransliteration
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Inscription Transliteration"@x-gmeow-english ;
     logic:mediates gmeow:transliterationOf ,
@@ -93,21 +92,21 @@ gmeow:InscriptionTransliteration
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:transliterationOf ;
-            owl:someValuesFrom gmeow:Inscription ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:transliterationOf ;
+            logic:someValuesFrom gmeow:Inscription ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A transliteration of an inscription into another script — an Observation that maps sign sequences from one writing system to another, producing a LexicalForm. Standpoint-scoped: competing transliteration schemes (e.g. Hepburn vs Kunrei-shiki) coexist without a single winner (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PhysicalCarrierType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Physical Carrier Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -116,7 +115,7 @@ gmeow:PhysicalCarrierType
 
 gmeow:ScriptLanguageAttribution
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "Script Language Attribution"@x-gmeow-english ;
     logic:mediates gmeow:attributionTarget ,
@@ -124,20 +123,20 @@ gmeow:ScriptLanguageAttribution
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attributionTarget ;
-            owl:someValuesFrom gmeow:Inscription ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attributionTarget ;
+            logic:someValuesFrom gmeow:Inscription ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "A standpoint-scoped claim assigning a language, writing system, or notation system to an inscription. Handles disputed, uncertain, and undeciphered cases: an undeciphered inscription may carry an attribution to a NotationSystem with low confidence and determinacy = disputed, while competing palaeographic classifications coexist as separate attributions (Principle 9). Follows the universal Observation + Relator pattern."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:attributedLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attributed language"@x-gmeow-english ;
@@ -147,7 +146,7 @@ gmeow:attributedLanguage
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributedNotation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attributed notation"@x-gmeow-english ;
@@ -157,7 +156,7 @@ gmeow:attributedNotation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributedScript
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attributed script"@x-gmeow-english ;
@@ -167,7 +166,7 @@ gmeow:attributedScript
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:attributionTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScriptLanguageAttribution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attribution target"@x-gmeow-english ;
@@ -191,12 +190,12 @@ gmeow:carrierCoin
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:carrierInscription
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PhysicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "carrier inscription"@x-gmeow-english ;
     rdfs:range gmeow:Inscription ;
-    owl:inverseOf gmeow:inscriptionCarrier ;
+    logic:inverseOf gmeow:inscriptionCarrier ;
     skos:definition "The inscription(s) borne by a physical carrier. Non-functional: a carrier may bear multiple inscriptions (e.g. a tablet with text on both sides, or a wall with successive layers of graffiti)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -257,7 +256,7 @@ gmeow:carrierTablet
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:carrierType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:PhysicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "carrier type"@x-gmeow-english ;
@@ -280,7 +279,7 @@ gmeow:carrierWood
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:findContextDating
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "find context dating"@x-gmeow-english ;
@@ -291,7 +290,7 @@ gmeow:findContextDating
         gmeow:boxRBox .
 
 gmeow:findContextEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "find context event"@x-gmeow-english ;
@@ -301,7 +300,7 @@ gmeow:findContextEvent
         gmeow:boxRBox .
 
 gmeow:findContextPlace
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "find context place"@x-gmeow-english ;
@@ -312,7 +311,7 @@ gmeow:findContextPlace
         gmeow:boxRBox .
 
 gmeow:findContextStratigraphy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "find context stratigraphy"@x-gmeow-english ;
@@ -323,7 +322,7 @@ gmeow:findContextStratigraphy
         gmeow:boxRBox .
 
 gmeow:findContextTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ArchaeologicalFindContext ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "find context target"@x-gmeow-english ;
@@ -334,7 +333,7 @@ gmeow:findContextTarget
         gmeow:boxRBox .
 
 gmeow:inscriptionCarrier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Inscription ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "inscription carrier"@x-gmeow-english ;
@@ -343,7 +342,7 @@ gmeow:inscriptionCarrier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:readingOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InscriptionReading ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "reading of"@x-gmeow-english ;
@@ -353,7 +352,7 @@ gmeow:readingOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:readingResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InscriptionReading ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "reading result"@x-gmeow-english ;
@@ -363,7 +362,7 @@ gmeow:readingResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:translationOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTranslation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "translation of"@x-gmeow-english ;
@@ -373,7 +372,7 @@ gmeow:translationOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:translationResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTranslation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "translation result"@x-gmeow-english ;
@@ -383,7 +382,7 @@ gmeow:translationResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:transliterationOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTransliteration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "transliteration of"@x-gmeow-english ;
@@ -393,7 +392,7 @@ gmeow:transliterationOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:transliterationResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:InscriptionTransliteration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "transliteration result"@x-gmeow-english ;
@@ -403,7 +402,7 @@ gmeow:transliterationResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Language-facing hooks for archaeological and cultural-heritage evidence: inscriptions, physical carriers, readings, transliterations, translations, script/language attributions, and find context. Keeps the physical carrier, the sign-bearing inscription, the documentation event, the reading, the transliteration, the translation, the dating evidence, the stratigraphic/find context, and the linguistic interpretation as separable, standpoint-scoped claims (Principle 9). Reuses the universal Observation stack, TemporalMeasurement, Place, Event, and the lexicon/attestation layer. Defers general archaeological domain modeling to archaeological-domain model."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
@@ -417,7 +416,7 @@ gmeow:transliterationResult
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -425,7 +424,7 @@ gmeow:transliterationResult
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:attributionTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "attributionTarget is functional"@x-gmeow-english ;
@@ -440,7 +439,7 @@ gmeow:attributionTargetFunctionality
     skos:example "gmeow:attributionTargetFunctionality logic:characterizes gmeow:attributionTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:findContextTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "findContextTarget is functional"@x-gmeow-english ;
@@ -455,7 +454,7 @@ gmeow:findContextTargetFunctionality
     skos:example "gmeow:findContextTargetFunctionality logic:characterizes gmeow:findContextTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:inscriptionCarrierFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "inscriptionCarrier is functional"@x-gmeow-english ;
@@ -470,7 +469,7 @@ gmeow:inscriptionCarrierFunctionality
     skos:example "gmeow:inscriptionCarrierFunctionality logic:characterizes gmeow:inscriptionCarrier ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:readingOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "readingOf is functional"@x-gmeow-english ;
@@ -485,7 +484,7 @@ gmeow:readingOfFunctionality
     skos:example "gmeow:readingOfFunctionality logic:characterizes gmeow:readingOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:translationOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "translationOf is functional"@x-gmeow-english ;
@@ -500,7 +499,7 @@ gmeow:translationOfFunctionality
     skos:example "gmeow:translationOfFunctionality logic:characterizes gmeow:translationOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:transliterationOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ;
     rdfs:label "transliterationOf is functional"@x-gmeow-english ;

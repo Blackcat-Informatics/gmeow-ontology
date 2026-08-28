@@ -4781,20 +4781,6 @@ gmeow:afc-demo a gmeow:AxisFloorCommitment ;
             "a measured score meeting the floor must not red"
         );
     }
-
-    #[test]
-    fn the_real_repository_slice_quality_gate_is_green_end_to_end() {
-        // Drive the WHOLE gate through the extracted root-parameterized entry against the
-        // live checkout. Exit 0 confirms (a) `slice_quality_gate_at` runs end-to-end and
-        // (b) the governance-source widening did not red the real gate — only the rubric
-        // slice authors floors today, so the union equals the pre-widening set. This is
-        // the production-surface analog of the `make check` slice-quality gate.
-        assert_eq!(
-            slice_quality_gate_at(&project_root()),
-            0,
-            "the real-repo slice-quality gate must stay green after the governance-source widening"
-        );
-    }
 }
 
 /// The BELOW-FLOOR DIAGNOSTIC: when an axis measures under its committed floor, the

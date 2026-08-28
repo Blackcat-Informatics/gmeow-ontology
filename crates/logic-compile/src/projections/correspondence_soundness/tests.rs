@@ -87,6 +87,23 @@ fn alignment_target_prefixes_are_expandable() {
     }
 }
 
+#[test]
+fn canonical_logic_property_typing_participates_in_alignment_checks() {
+    let onto_ds = ds("@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gmeow:object a logic:ObjectProperty .\n\
+         gmeow:data a logic:DatatypeProperty .\n");
+    let onto = DslView::new(&onto_ds);
+    assert!(is_property(
+        &onto,
+        "https://blackcatinformatics.ca/gmeow/object"
+    ));
+    assert!(is_property(
+        &onto,
+        "https://blackcatinformatics.ca/gmeow/data"
+    ));
+}
+
 /// A property mapped to both a term and its inverse is flagged as an ERROR.
 #[test]
 fn detects_self_contradicting_inverse_mapping() {

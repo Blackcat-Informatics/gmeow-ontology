@@ -1,21 +1,20 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:EntityExistence
     a logic:Situation ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "Entity Existence"@x-gmeow-english ;
     rdfs:subClassOf gmeow:TimeScopedRelation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:existenceEntity ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:existenceEntity ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ;
     skos:definition "The reified, time-scoped fact that an entity existed over an interval — a gufo:Situation that carries its period via gmeow:duringInterval (inherited from TimeScopedRelation). Use when the existence claim is contested (two sources disagree on when a place ceased to exist), when evidence must be attached, or when standpoint indexing is needed. Flat-first: the common case uses gmeow:hasCreationEvent / gmeow:hasDestructionEvent / gmeow:existenceInterval directly on the entity."@x-gmeow-english ;
     skos:example "ex:troyExistence a gmeow:EntityExistence ; gmeow:existenceEntity ex:troy ; gmeow:existenceDestructionEvent ex:sack ; gmeow:accordingTo ex:homer ."@x-gmeow-english ;
@@ -25,7 +24,7 @@ gmeow:EntityExistence
     gmeow:useWhen "Use the reified form when the existence claim itself must carry standpoint, confidence, evidence, or contestation — two sources disagreeing on when a place ceased to exist, or a dated founding needing a citation."@x-gmeow-english .
 
 gmeow:existenceCreationEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EntityExistence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "existence creation event"@x-gmeow-english ;
@@ -38,7 +37,7 @@ gmeow:existenceCreationEvent
     gmeow:useWhen "Use on an EntityExistence to name its creation event when the existence claim is reified and the bringing-into-being is known."@x-gmeow-english .
 
 gmeow:existenceDestructionEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EntityExistence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "existence destruction event"@x-gmeow-english ;
@@ -51,7 +50,7 @@ gmeow:existenceDestructionEvent
     gmeow:useWhen "Use on an EntityExistence to name its destruction event when the existence claim is reified and the entity has ceased to exist."@x-gmeow-english .
 
 gmeow:existenceEntity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EntityExistence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "existence entity"@x-gmeow-english ;
@@ -64,7 +63,7 @@ gmeow:existenceEntity
     gmeow:useWhen "Use on an EntityExistence to name the single entity whose existence-over-time the situation records."@x-gmeow-english .
 
 gmeow:existenceInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "existence interval"@x-gmeow-english ;
@@ -77,7 +76,7 @@ gmeow:existenceInterval
     gmeow:useWhen "Use to record the span over which an entity exists — open-ended while it is still extant — as the flat companion to its creation and destruction events."@x-gmeow-english .
 
 gmeow:hasCreationEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "has creation event"@x-gmeow-english ;
@@ -90,7 +89,7 @@ gmeow:hasCreationEvent
     gmeow:useWhen "Use for the flat 80% case — linking any entity to the event that brought it into existence (birth, founding, minting, realization) without reifying the existence claim."@x-gmeow-english .
 
 gmeow:hasDestructionEvent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "has destruction event"@x-gmeow-english ;
@@ -103,12 +102,12 @@ gmeow:hasDestructionEvent
     gmeow:useWhen "Use for the flat case — linking an entity to the event that ended its existence (death, dissolution, destruction, retirement) as an ontic fact, the entity being retained, never deleted (Principle 10)."@x-gmeow-english .
 
 gmeow:supersededBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "superseded by"@x-gmeow-english ;
     rdfs:range gmeow:Entity ;
-    owl:inverseOf gmeow:supersedes ;
+    logic:inverseOf gmeow:supersedes ;
     skos:definition "Links an entity to the entity that replaced it — Constantinople supersededBy Istanbul, the Soviet Union supersededBy the Russian Federation, a deprecated software release supersededBy its successor. Directional, NOT symmetric. The superseded entity is retained (never deleted) and may carry gmeow:displayable false."@x-gmeow-english ;
     skos:example "ex:constantinople gmeow:supersededBy ex:istanbul ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as symmetric (it is directional; the inverse is gmeow:supersedes) and avoid deleting the superseded entity — retain it, link it forward, and mark gmeow:displayable false if it should drop out of projections."@x-gmeow-english ;
@@ -117,7 +116,7 @@ gmeow:supersededBy
     gmeow:useWhen "Use to link a retired entity forward to the entity that replaced it — a renamed place, a successor state, a deprecated release — preserving the predecessor rather than deleting it (Principle 10)."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/lifecycle>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Universal time-bounded existence facility: ontic existence-over-time for any gmeow:Entity, distinct from suppression (a display contract). Every entity may carry creation and destruction events, an existence interval, and supersession links. Revised forward, never deleted (Principle 10). Reuses the events module (gmeow:Event + EventType value vocabulary), the temporal module (TimeInterval / TimeScopedRelation / validFrom / validUntil), and the standpoint module (accordingTo / contested claims). Flat-first, reify on demand."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
@@ -129,16 +128,16 @@ gmeow:supersededBy
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:EntityExistence rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:existenceEntity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:existenceEntity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:duringInterval ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/existenceEntity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/existenceEntity> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/duringInterval> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 
 # =========================================================================== #
-# Migrated procedural constraints (#1194): the closed-world EntityExistence      #
+# Closed-world EntityExistence constraints                               #
 # well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).            #
 # =========================================================================== #
 
@@ -165,7 +164,7 @@ gmeow:EntityExistenceIntervalConstraint
     logic:message "An EntityExistence must record exactly one interval (gmeow:duringInterval)." .
 
 # =========================================================================== #
-# Suppression constraint (#1194) — projection of SupersededEntitySuppressionShape.
+# Suppression constraint — projection of SupersededEntitySuppressionShape.
 # A superseded entity (one carrying gmeow:supersededBy) that is not suppressed   #
 # (gmeow:displayable false) is a Warning — a source may lag the flag.            #
 # =========================================================================== #
@@ -201,7 +200,7 @@ logic:supEnDisp a logic:Formula ; logic:relation gmeow:displayable ;
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -209,7 +208,7 @@ logic:supEnDisp a logic:Formula ; logic:relation gmeow:displayable ;
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:existenceEntityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
     rdfs:label "existenceEntity is functional"@x-gmeow-english ;

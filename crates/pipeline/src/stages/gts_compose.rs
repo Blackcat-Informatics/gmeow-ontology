@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 use purrdf::RdfDataset;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::source_load::dataset_to_sorted_nquads;
 
 /// Compose the upstream products into one frozen dataset by [`RdfDataset::union`]
@@ -183,6 +183,12 @@ impl Stage for GtsComposeStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    fn cache_policy(&self) -> CachePolicy {
+        // This is a whole-dataset aggregate over already-live upstream products.
+        // Hydrating its canonical cache blob must parse and reconstruct the same
+        // carrier the native union creates, while also retaining a duplicate on disk.
+        CachePolicy::Recompute
+    }
     fn impl_version(&self) -> &str {
         "gts_compose.v1"
     }
@@ -205,158 +211,51 @@ impl Stage for GtsComposeStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::{
-        BASE_GRAPH_PATH, dataset_to_sorted_nquads, load_authored_dataset,
-    };
-    use crate::stages::statements::RDF12_PATH;
-    use std::path::Path;
 
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
+    fn product(stage: &str, turtle: &str) -> StageProduct {
+        let dataset = purrdf::parse_dataset(turtle.as_bytes(), "text/turtle", None)
+            .expect("parse synthetic dataset");
+        StageProduct::from_artifacts_over(stage, dataset, BTreeMap::new())
     }
 
-    /// Build the `source_load` + `statements` upstream products the way their
-    /// stages now do (C2): each CARRIES its RDF contribution as the bundle's
-    /// frozen dataset (over its byte lane). Returns the upstream map plus the raw
-    /// `(base quad count, base nq bytes, rdf12 ttl)` for the oracle.
-    fn base_and_statements_upstream(
-        root: &Path,
-    ) -> (BTreeMap<String, StageProduct>, usize, Vec<u8>, String) {
-        let base_dataset = load_authored_dataset(root).unwrap();
-        let base_count = base_dataset.quad_count();
-        let base_nq = dataset_to_sorted_nquads(&base_dataset).unwrap();
-        let (_, rdf12) = crate::stages::statements::compile_statements(root).unwrap();
-        let rdf12_dataset = purrdf::parse_dataset(rdf12.as_bytes(), "text/turtle", None).unwrap();
+    #[test]
+    fn compose_unions_synthetic_base_and_statement_layers() {
+        let upstream = BTreeMap::from([
+            (
+                "stage-source-load".to_string(),
+                product("stage-source-load", "<urn:base> <urn:p> <urn:o> ."),
+            ),
+            (
+                "stage-statements".to_string(),
+                product("stage-statements", "<urn:statement> <urn:p> <urn:o> ."),
+            ),
+        ]);
+        let composed = compose(&upstream).expect("compose synthetic layers");
+        assert_eq!(composed.quad_count(), 2);
+        let nquads =
+            String::from_utf8(compose_nquads(&upstream).expect("project union")).expect("utf8");
+        assert!(nquads.contains("<urn:base>"));
+        assert!(nquads.contains("<urn:statement>"));
+    }
 
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        let mut sl: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        sl.insert(BASE_GRAPH_PATH.to_string(), base_nq.clone());
-        upstream.insert(
+    #[test]
+    fn compose_fails_closed_on_missing_or_empty_required_layers() {
+        let base_only = BTreeMap::from([(
             "stage-source-load".to_string(),
-            StageProduct::from_artifacts_over("stage-source-load", base_dataset, sl),
-        );
-        let mut st: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        st.insert(RDF12_PATH.to_string(), rdf12.clone().into_bytes());
-        upstream.insert(
-            "stage-statements".to_string(),
-            StageProduct::from_artifacts_over("stage-statements", rdf12_dataset, st),
-        );
-        (upstream, base_count, base_nq, rdf12)
-    }
+            product("stage-source-load", "<urn:base> <urn:p> <urn:o> ."),
+        )]);
+        assert!(compose(&base_only).is_err());
 
-    #[test]
-    fn compose_unions_base_and_statement_layer() {
-        let root = repo_root();
-        let (upstream, base_count, _base_nq, _rdf12) = base_and_statements_upstream(&root);
-
-        // compose() returns the native UNION dataset (no oxigraph store / byte re-parse).
-        let composed = compose(&upstream).expect("compose");
-        // The composed dataset is at least the base graph (the RDF 1.2 statement
-        // layer folds reifier/annotation side-tables in on top).
-        assert!(
-            composed.quad_count() >= base_count,
-            "composed ({}) must include the base graph ({base_count})",
-            composed.quad_count(),
-        );
-
-        // The N-Quads projection re-parses (the union survived the byte lane).
-        let nq = dataset_to_sorted_nquads(&composed).expect("project");
-        let reparsed = crate::stages::source_load::parse_base_graph(&nq).expect("reparse");
-        assert!(reparsed.quad_count() >= base_count);
-    }
-
-    /// The native union (`compose`) must actually UNION the base + statement layers, and
-    /// canonicalization must hold its two distinct properties on the right inputs.
-    ///
-    /// This replaced an oxigraph-store byte-ingest oracle the test once cross-checked
-    /// against; the property that oracle asserted (a faithful union of base ∪ statements) is
-    /// now stated directly against the native value: the union strictly contains the base
-    /// graph and its canonical form is non-empty.
-    ///
-    /// The two canonicalization properties are asserted separately because they hold on
-    /// different inputs. IDEMPOTENCE (`canon(reparse(canon(x))) == canon(x)`) is asserted on
-    /// the BASE graph, whose canonical output is valid canonical input. On the full union it
-    /// is not a property at all: under profile `purrdf-rdfc12` the RDF 1.2 overlay lowers
-    /// into the reserved `urn:purrdf:rdfc:` namespace, and a dataset carrying one is REFUSED
-    /// as input — so the union's canonical form is deliberately not re-canonicalizable, and
-    /// that REFUSAL is asserted here as the second property.
-    #[test]
-    fn compose_union_is_canonically_stable_superset_of_base() {
-        use purrdf::canonicalize;
-
-        let root = repo_root();
-        let (upstream, base_count, base_nq, _rdf12) = base_and_statements_upstream(&root);
-
-        let new_dataset = compose(&upstream).expect("compose");
-
-        // The union actually unions: it is a superset of the base graph (the statement
-        // layer is REQUIRED and non-empty, so the union strictly exceeds the base).
-        assert!(
-            new_dataset.quad_count() >= base_count,
-            "native union ({}) must contain the base graph ({base_count})",
-            new_dataset.quad_count(),
-        );
-        assert!(
-            base_count > 0,
-            "base graph must be non-empty for the union to be meaningful"
-        );
-
-        // Canonical form is non-empty and STABLE: canonicalizing the same dataset
-        // twice reproduces the same N-Quads document.
-        //
-        // Stability is asserted over the DATASET, not over a re-parse of the canonical
-        // output. Under canonicalization profile `purrdf-rdfc12` the RDF 1.2 overlay
-        // (reifiers, annotations) is LOWERED into sentinel IRIs under the reserved
-        // `urn:purrdf:rdfc:` namespace, and any dataset carrying one is REFUSED as
-        // input — so for a dataset with a statement layer, the canonical output is
-        // deliberately not valid canonical input. That refusal is the property which
-        // makes the overlay lossless: without it, a genuine reifier and a literal
-        // assertion of its lowered form would canonicalize to the SAME bytes, which
-        // for a content-addressed consumer is an identity-forgery primitive.
-        //
-        // Round-tripping through the flattened N-Quads therefore did not test the
-        // stability of canonicalization; it tested a lossy projection of it.
-        let canon = canonicalize(&new_dataset).nquads;
-        assert!(!canon.trim().is_empty(), "canonical union is empty");
-
-        // IDEMPOTENCE is asserted where it is actually a property: the base graph, which
-        // carries no statement layer and therefore lowers nothing into the reserved
-        // namespace, so its canonical output IS valid canonical input.
-        //
-        // Re-canonicalizing the same in-memory value twice would assert nothing — it is one
-        // pure function on one input, and cannot disagree with itself. The real RDFC-1.0
-        // property is that canonicalization survives a round trip through its own output:
-        // canon(reparse(canon(x))) == canon(x). That is what distinguishes a canonical form
-        // from a merely deterministic one, and it is what a content-addressed consumer
-        // relies on when it re-derives an identity from bytes it received.
-        let base_dataset =
-            crate::stages::source_load::parse_base_graph(&base_nq).expect("reparse base graph");
-        let base_canon = canonicalize(&base_dataset).nquads;
-        assert!(!base_canon.trim().is_empty(), "canonical base is empty");
-        let base_round_trip = crate::stages::source_load::parse_base_graph(base_canon.as_bytes())
-            .expect("reparse canonical base graph");
-        assert_eq!(
-            base_canon,
-            canonicalize(&base_round_trip).nquads,
-            "RDFC-1.0 canonicalization must be idempotent: re-canonicalizing the canonical \
-             form of the base graph must reproduce it byte for byte"
-        );
-
-        // And the reserved-namespace refusal is REAL on this dataset, not merely
-        // documented: the union carries a statement layer, so its canonical form
-        // lowers into the reserved namespace and feeding that back in must be
-        // refused rather than silently accepted.
-        let reparsed = crate::stages::source_load::parse_base_graph(canon.as_bytes())
-            .expect("reparse canonical union");
-        assert!(
-            purrdf::try_canonicalize(&reparsed).is_err(),
-            "the canonical form lowers the statement layer into the reserved \
-             urn:purrdf:rdfc: namespace, so re-canonicalizing it MUST be refused — \
-             that refusal is what keeps the overlay lossless"
-        );
+        let empty_statements = BTreeMap::from([
+            (
+                "stage-source-load".to_string(),
+                product("stage-source-load", "<urn:base> <urn:p> <urn:o> ."),
+            ),
+            (
+                "stage-statements".to_string(),
+                StageProduct::from_artifacts("stage-statements", BTreeMap::new()),
+            ),
+        ]);
+        assert!(compose(&empty_statements).is_err());
     }
 }

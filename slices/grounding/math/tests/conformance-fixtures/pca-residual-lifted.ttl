@@ -3,7 +3,7 @@
 #
 # The aiSelfStructure flagship's worked example: the exact output of the native producer
 # math::producers::exact_pca_residual (dogfooded — the worked example IS what the producer
-# emits; the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# emits; the explicit `stage-math-producers` boundary asserts this fixture is graph-isomorphic to the
 # producer's Turtle, so neither can silently drift). An AI's residual PCA: a math:PCAAnalysis
 # declaring its input, centering/scaling policy, the math:CovarianceOperator it decomposes
 # (framed with domain/codomain as a math:Set), its exact-LDLᵀ eigensolver, and its full

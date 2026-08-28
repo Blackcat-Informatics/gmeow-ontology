@@ -763,8 +763,8 @@ mod tests {
             .parent()
             .and_then(std::path::Path::parent)
             .expect("workspace root");
-        let bytes = std::fs::read(root.join("generated/dist/gmeow.gts"))
-            .expect("read the materialized GMEOW bundle");
+        let bytes = gmeow_bundle_import::load_authenticated_source_bytes(root)
+            .expect("authenticated GMEOW bundle; tests never produce it");
         gmeow_gts_profile::validate_mandated_frames(&bytes)
             .expect("the materialized bundle uses the mandated frame profile");
     }
@@ -806,6 +806,7 @@ mod tests {
         .expect("fixture parses");
         let mut builder = purrdf::gts_compose::SnapshotBuilder::new();
         builder.add_dataset(&dataset).expect("add fixture");
+        // gmeow-test-input: synthetic-only
         gmeow_gts_profile::emit_gmeow_gts(
             &builder,
             vec![purrdf::gts_compose::BlobRow {
@@ -933,6 +934,7 @@ mod tests {
         // The counter-example the branch exists for: a store authored through the
         // deliberately unprimed writer, then claimed to be header-dict.
         let registry = registry(HEADER_DICT_MEDIUM);
+        // gmeow-test-input: synthetic-only
         let mut writer = gmeow_gts_profile::GmeowGtsWriter::new("ai-package");
         writer
             .add_terms(&[purrdf::gts::model::Term {

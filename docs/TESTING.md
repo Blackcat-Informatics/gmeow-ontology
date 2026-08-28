@@ -6,9 +6,12 @@
 GMEOW's doctrine is "one canonical source, everything else a generated or
 checked projection". Tests follow the same rule: a slice's behavioural tests
 live in its `tests/` directory **as ontology data** in the test-DSL vocabulary
-(`dsl/tests/vocabulary.ttl`), and a native Rust harness executes them. This is
-faster than per-test Python (oxigraph SPARQL, no interpreter per assertion) and
-keeps tests inspectable and projectable like every other GMEOW term.
+(`dsl/tests/vocabulary.ttl`). The explicit pre-test producer executes the complete
+repository sweep as independently cached spec nodes and publishes an exact-input
+aggregate receipt over their identities. Warm producers and test runners authenticate
+that verdict without reconstructing the merged graph.
+This keeps the checks inspectable and projectable like every other GMEOW term while
+removing 143 repository-discovering cases and three flagship manifest cases from the nextest inventory.
 
 Generic RDF 1.2 / RDF\* and SPARQL engine compliance is owned by PurRDF's own
 test suite. GMEOW tests the ontology and its products: every repository query
@@ -27,19 +30,32 @@ a deliberate cost/fidelity trade-off.
 
 | Layer | Lives in | Runs under | Covers |
 |---|---|---|---|
-| Declarative slice tests | `slices/**/tests/*.ttl` | `crates/slicetest` (cargo-nextest) | structural invariants, competency questions, example conformance |
-| Bespoke Python tests | `tests/`, `slices/**/tests/test_*.py` | pytest | assertions the declarative form can't express (numeric/temporal logic, generated-artifact checks, dynamic-set sweeps) |
+| Declarative slice validation | `slices/**/tests/*.ttl` | cache-keyed `gmeow-dev test-fixtures produce` action | structural invariants, competency questions, example conformance |
+| Focused Rust tests | `crates/**/tests/*.rs`, inline unit modules | one authenticated nextest archive | synthetic engine laws and read-only product contracts that do not discover or produce the repository corpus |
 
 The repetitive rdflib structural/competency tests now live entirely in the
-declarative layer, executed by the native Rust harness. Nothing is silently
-dropped: every structural invariant and competency question is expressed as a
-declarative cell that executes on every gate.
+declarative layer, executed by the native Rust engine at the explicit producer
+boundary. Nothing is silently dropped: every structural invariant and competency
+question contributes to an authenticated task receipt on every exact-input miss,
+while unchanged specs are admitted individually by receipt alone. A change to one
+slice therefore does not replay unrelated structural or conformance specs.
+
+Corpus-backed Rust contracts also share process-local immutable state. The native MCP
+module registers its named assertions behind one required runner and one maintained
+exhaustive runner, so nextest restores the authenticated view once per lane instead of
+once per assertion. Each contract still runs under its own name and panic boundary. The
+required lane keeps focused synthetic verifier laws; the exhaustive whole-bundle overlay
+proof remains in the maintained inventory because its runtime is determined by corpus
+breadth, not by the changed code.
 
 ## The declarative test-DSL
 
-A `tests/*.ttl` spec file holds instances of three cell types. The harness
-discovers files by fixed name (`datatest-stable` glob, one nextest case per
-file) and runs every cell in the file, aggregating per-cell failures.
+A `tests/*.ttl` spec file holds instances of three cell types. The producer
+discovers the three fixed names, runs every cell for each missing task node, and
+binds their receipts into one cacheable all-specs verdict. Competency misses share
+one isolated merged-store worker; structural and conformance misses execute in
+memory-reclaiming children. No test executable has a discovery or producer entry
+point.
 
 ### `gmeow:CompetencyQuestion` — `tests/competency.ttl`
 
@@ -111,8 +127,8 @@ omitting it means `gmeow:reasoningNone`.
   hierarchy (`rdfs9`), and subclass/subproperty/property propagation
   (`rdfs5`/`rdfs7`/`rdfs11`). The closure is computed **natively in oxigraph** as
   SPARQL `CONSTRUCT` rules iterated to a fixpoint (`crates/slicetest/src/stores.rs`)
-  — seconds, not minutes. The harness builds it once per spec file, and only if
-  some question in that file requests it.
+  — seconds, not minutes. The producer builds it at most once per process, shared
+  by every spec file, and only if some question requests it.
 
 ### Why not full OWL 2 RL
 
@@ -152,15 +168,14 @@ the `gmeow:ReasoningProfile` axis, not an ad-hoc value.
 ## Running the tests
 
 ```sh
-make slicetest      # the native slice-test harness in isolation
-make rust-test      # the whole Rust workspace (includes the harness)
-make test           # the pytest suite
-make check          # the full local gate (lint, clippy, rust-test, validate,
-                    # one-closure reasoning gate, compliance report) — Docker/Java-free
+make check                 # one entry: materialize, produce/cache fixtures, then gate
+make verify-test-fixtures  # read-only authentication; never executes a producer
+make slicetest             # focused synthetic engine tests after read-only verification
+make rust-test             # the authenticated Rust workspace suite
 ```
 
-The harness automatically discovers the three fixed spec filenames —
+The explicit producer automatically discovers the three fixed spec filenames —
 `tests/competency.ttl`, `tests/structural.ttl`, and `tests/example-conformance.ttl`
-— under any slice, so a new slice's declarative specs light up with no harness
-changes. Other filenames under `tests/` (e.g. `tests/counter-examples/*.ttl`,
+— under any slice, so a new slice's declarative specs change the action key with no
+registry edit. Other filenames under `tests/` (e.g. `tests/counter-examples/*.ttl`,
 referenced only via `gmeow:exampleFile`) are deliberately not auto-executed.

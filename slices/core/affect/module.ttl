@@ -2,7 +2,6 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix math: <https://blackcatinformatics.ca/math/> .
@@ -13,7 +12,7 @@
 
 gmeow:AestheticQuality
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Aesthetic Quality"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -22,14 +21,14 @@ gmeow:AestheticQuality
 
 gmeow:AffectiveExperience
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affective Experience"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Experience ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:mentalProcessType ;
-            owl:hasValue gmeow:processAffectiveExperience ] ;
-    skos:definition "The phenomenally-conscious felt affective episode — the OCCURRENT (perdurant) of undergoing an affective state, an episode there is something it is like to feel. A subset of mentation's gmeow:Experience whose kind is pinned to gmeow:processAffectiveExperience by an owl:hasValue restriction (the gmeow:DreamReport idiom: a restriction-pinned queryable handle, NOT overtyping — the kind still lives in the gmeow:mentalProcessType value, Principle 9). Distinct from the ENDURANT gmeow:Emotion mode it realizes via gmeow:feltAffect: an agent can bear an emotion mode without currently feeling it, and one felt episode can realize it. Inherits gmeow:experiencer and gmeow:mentalProcessType from gmeow:MentalProcess — the occurrent side of the mode/experience cut."@x-gmeow-english ;
+        [ a logic:Restriction ;
+            logic:onProperty gmeow:mentalProcessType ;
+            logic:hasValue gmeow:processAffectiveExperience ] ;
+    skos:definition "The phenomenally-conscious felt affective episode — the OCCURRENT (perdurant) of undergoing an affective state, an episode there is something it is like to feel. A subset of mentation's gmeow:Experience whose kind is pinned to gmeow:processAffectiveExperience by an OWL hasValue restriction (the gmeow:DreamReport idiom: a restriction-pinned queryable handle, NOT overtyping — the kind still lives in the gmeow:mentalProcessType value, Principle 9). Distinct from the ENDURANT gmeow:Emotion mode it realizes via gmeow:feltAffect: an agent can bear an emotion mode without currently feeling it, and one felt episode can realize it. Inherits gmeow:experiencer and gmeow:mentalProcessType from gmeow:MentalProcess — the occurrent side of the mode/experience cut."@x-gmeow-english ;
     skos:example "ex:feltAnger a gmeow:AffectiveExperience ; gmeow:experiencer ex:agent ; gmeow:feltAffect ex:angerMode ."@x-gmeow-english ;
     skos:scopeNote "The OCCURRENT face of affect (a perdurant gmeow:Experience), never the endurant gmeow:Emotion mode (a gmeow:AffectiveMoment ⊑ gmeow:MentalMoment) it realizes via gmeow:feltAffect. Modes are logic:Mode, experiences are logic:Event — the foundation's logic:Endurant/logic:Perdurant disjointness keeps them apart, so a MentalMoment can never be an occurrent."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the ENDURING affective mode itself (that is gmeow:Emotion, a gmeow:AffectiveMoment ⊑ gmeow:MentalMoment — an endurant, never an occurrent) and for sub-personal affective processing carrying no first-person character (type plain gmeow:MentalProcess with the process type)."@x-gmeow-english ;
@@ -39,7 +38,7 @@ gmeow:AffectiveExperience
 
 gmeow:AffectiveMoment
     a logic:Category ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affective Moment"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ,
@@ -54,7 +53,7 @@ gmeow:AffectiveMoment
 
 gmeow:Appraisal
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Appraisal"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -63,7 +62,7 @@ gmeow:Appraisal
 
 gmeow:AppraisalDimension
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Appraisal Dimension"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -72,7 +71,7 @@ gmeow:AppraisalDimension
 
 gmeow:AffectScaleProfile
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Scale Profile"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -85,7 +84,7 @@ gmeow:AffectScaleProfile
 
 gmeow:CoreAffectDimension
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Core-Affect Dimension"@x-gmeow-english ;
     rdfs:subClassOf gmeow:AppraisalDimension ;
@@ -95,7 +94,7 @@ gmeow:CoreAffectDimension
 
 gmeow:DimensionFamily
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Dimension Family"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -104,7 +103,7 @@ gmeow:DimensionFamily
 
 gmeow:ScalePolarity
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Scale Polarity"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -113,7 +112,7 @@ gmeow:ScalePolarity
 
 gmeow:AffectComposite
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Composite"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Emotion ;
@@ -127,7 +126,7 @@ gmeow:AffectComposite
 
 gmeow:AffectEvaluationConcluded
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Evaluation Concluded"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -140,27 +139,27 @@ gmeow:AffectEvaluationConcluded
 
 gmeow:AffectDecision
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Decision"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:decidedLabel ;
-            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass owl:Thing ] ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:decisionCrossedThreshold ;
-            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass owl:Thing ] ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:observedFeature ;
-            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass owl:Thing ] ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:vantage ;
-            owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-            owl:onClass owl:Thing ] ,
-        [ a owl:Restriction ;
-            owl:onProperty gmeow:derivedByFunction ;
-            owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-            owl:onClass owl:Thing ] ;
+        [ a logic:Restriction ;
+            logic:onProperty gmeow:decidedLabel ;
+            logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty gmeow:decisionCrossedThreshold ;
+            logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty gmeow:observedFeature ;
+            logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty gmeow:vantage ;
+            logic:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+            logic:onClass logic:Thing ] ,
+        [ a logic:Restriction ;
+            logic:onProperty gmeow:derivedByFunction ;
+            logic:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+            logic:onClass logic:Thing ] ;
     skos:definition "A single-label classifier's categorical decision over one target — the argmax (gmeow:decidedLabel) recorded as model-vantage EVIDENCE (gmeow:vantage = the run, gmeow:observedFeature = the target), derived by gmeow:fnArgmax over a gmeow:decisionArgmax label set. A fact about the CLASSIFIER'S OUTPUT over external gmeow:AffectClassifierLabel identities, NEVER a gmeow:AffectiveClaim about inner affect and never a gmeow:EmotionType — so it needs no reviewed closeMatch and is recorded even when the argmax falls BELOW the claim threshold (gmeow:decisionCrossedThreshold false). This preserves the model's decision faithfully (maximal information flow) without forcing a claim (the evidence/claim boundary, Principle 9). Only a gmeow:decisionArgmax set carries one: a multi-label set has no single categorical winner. Supersedes gmeow:AffectEvaluationConcluded for single-label sets — a decided winner, even a low-margin one, is the positive 'checked' fact, never silence."@x-gmeow-english ;
     skos:example "ex:decision a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:chunk ; gmeow:decidedLabel gmeow-hf:ekmanJoy ; gmeow:decisionCrossedThreshold false ; gmeow:decisionMargin 0.07 ; gmeow:derivedByFunction gmeow:fnArgmax ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting it for a multi-label (gmeow:decisionIndependentThreshold) set (there is no single argmax winner), avoid treating it as a gmeow:AffectiveClaim about inner affect (it is classifier-output evidence over an external label), and avoid asserting a gmeow:decisionMargin when the run emitted a single top-1 score (no runner-up exists)."@x-gmeow-english ;
@@ -170,7 +169,7 @@ gmeow:AffectDecision
 
 gmeow:AffectFunction
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Function"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -179,7 +178,7 @@ gmeow:AffectFunction
 
 gmeow:WeightingPolicy
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Weighting Policy"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -188,7 +187,7 @@ gmeow:WeightingPolicy
 
 gmeow:LabelSetDecisionRule
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Label Set Decision Rule"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -197,7 +196,7 @@ gmeow:LabelSetDecisionRule
 
 gmeow:AffectVectorObservation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Vector Observation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -211,7 +210,7 @@ gmeow:AffectVectorObservation
 
 gmeow:AffectPrototype
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Prototype"@x-gmeow-english ;
     logic:subClassOf gmeow:AffectVectorObservation ;
@@ -225,7 +224,7 @@ gmeow:AffectPrototype
 
 gmeow:DerivedAffectIntensityObservation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Derived Affect Intensity Observation"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -238,7 +237,7 @@ gmeow:DerivedAffectIntensityObservation
 
 gmeow:AffectClassifierLabel
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Classifier Label"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -251,7 +250,7 @@ gmeow:AffectClassifierLabel
 
 gmeow:AffectClassifierOutput
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Classifier Output"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -264,7 +263,7 @@ gmeow:AffectClassifierOutput
 
 gmeow:AffectLabelSet
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Label Set"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -277,7 +276,7 @@ gmeow:AffectLabelSet
 
 gmeow:AffectTelemetryStream
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Telemetry Stream"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Stream ;
@@ -290,7 +289,7 @@ gmeow:AffectTelemetryStream
 
 gmeow:AffectiveClaim
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affective Claim"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -303,7 +302,7 @@ gmeow:AffectiveClaim
 
 gmeow:AffectiveExpression
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affective Expression"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Observation ;
@@ -316,7 +315,7 @@ gmeow:AffectiveExpression
 
 gmeow:ModelInferenceRun
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Model Inference Run"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -329,7 +328,7 @@ gmeow:ModelInferenceRun
 
 gmeow:ScoreSemantics
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Score Semantics"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -338,7 +337,7 @@ gmeow:ScoreSemantics
 
 gmeow:Emotion
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Emotion"@x-gmeow-english ;
     rdfs:subClassOf gmeow:AffectiveMoment ;
@@ -347,7 +346,7 @@ gmeow:Emotion
 
 gmeow:EmotionType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Emotion Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -356,7 +355,7 @@ gmeow:EmotionType
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:affectiveElicitor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Emotion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "affective elicitor"@x-gmeow-english ;
@@ -368,8 +367,8 @@ gmeow:affectiveElicitor
     gmeow:useWhen "Use to record the trigger/cause of an affective state, kept separate from its aboutness."@x-gmeow-english .
 
 gmeow:elicits
-    a owl:ObjectProperty ;
-    owl:inverseOf gmeow:affectiveElicitor ;
+    a logic:ObjectProperty ;
+    logic:inverseOf gmeow:affectiveElicitor ;
     rdfs:range gmeow:Emotion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "elicits"@x-gmeow-english ;
@@ -381,7 +380,7 @@ gmeow:elicits
     gmeow:useWhen "Use when traversing or projecting from a trigger to the emotions it elicited."@x-gmeow-english .
 
 gmeow:affectiveTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Emotion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "affective target"@x-gmeow-english ;
@@ -393,7 +392,7 @@ gmeow:affectiveTarget
     gmeow:useWhen "Use to record what an emotion is directed at / about, kept separate from its trigger."@x-gmeow-english .
 
 gmeow:appraisalDimension
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal dimension"@x-gmeow-english ;
@@ -402,7 +401,7 @@ gmeow:appraisalDimension
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appraisalOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal of"@x-gmeow-english ;
@@ -411,7 +410,7 @@ gmeow:appraisalOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appraisalQuality
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal quality"@x-gmeow-english ;
@@ -420,7 +419,7 @@ gmeow:appraisalQuality
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:appraisalScaleProfile
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal scale profile"@x-gmeow-english ;
@@ -433,7 +432,7 @@ gmeow:appraisalScaleProfile
     gmeow:useWhen "Use to bind a dimensional appraisal reading to the declared scale/frame that makes its number interpretable."@x-gmeow-english .
 
 gmeow:appraisalValue
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:Appraisal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisal value"@x-gmeow-english ;
@@ -442,7 +441,7 @@ gmeow:appraisalValue
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:dimensionFamily
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AppraisalDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "dimension family"@x-gmeow-english ;
@@ -451,7 +450,7 @@ gmeow:dimensionFamily
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileMidpoint
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile midpoint"@x-gmeow-english ;
@@ -460,7 +459,7 @@ gmeow:profileMidpoint
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profilePolarity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile polarity"@x-gmeow-english ;
@@ -469,7 +468,7 @@ gmeow:profilePolarity
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileRangeMax
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile range max"@x-gmeow-english ;
@@ -478,7 +477,7 @@ gmeow:profileRangeMax
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileRangeMin
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile range min"@x-gmeow-english ;
@@ -487,7 +486,7 @@ gmeow:profileRangeMin
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:profileTransform
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profile transform"@x-gmeow-english ;
@@ -496,7 +495,7 @@ gmeow:profileTransform
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:affectiveConstituent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectComposite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "affective constituent"@x-gmeow-english ;
@@ -508,7 +507,7 @@ gmeow:affectiveConstituent
     gmeow:useWhen "Use to declare what a named compound emotion decomposes into, so schadenfreude/saudade are modeled up from axes and relations, not minted as primitives."@x-gmeow-english .
 
 gmeow:derivedByFunction
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "derived by function"@x-gmeow-english ;
@@ -517,7 +516,7 @@ gmeow:derivedByFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:intensityBasis
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "intensity basis"@x-gmeow-english ;
@@ -526,7 +525,7 @@ gmeow:intensityBasis
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:metricProfile
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metric profile"@x-gmeow-english ;
@@ -535,7 +534,7 @@ gmeow:metricProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:normFunction
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "norm function"@x-gmeow-english ;
@@ -544,7 +543,7 @@ gmeow:normFunction
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:labelSetDecision
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectLabelSet ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "label set decision"@x-gmeow-english ;
@@ -553,7 +552,7 @@ gmeow:labelSetDecision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:impliesLabelSetDecision
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ScoreSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "implies label set decision"@x-gmeow-english ;
@@ -562,25 +561,25 @@ gmeow:impliesLabelSetDecision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decidedLabel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decided label"@x-gmeow-english ;
     rdfs:range gmeow:AffectClassifierLabel ;
-    skos:definition "The single gmeow:AffectClassifierLabel a gmeow:AffectDecision decides — the argmax (categorical mode) over a gmeow:decisionArgmax label set. Functional: a decision has exactly one decided label — the categorical winner-take-all exclusivity bound, authored in the reasoning layer as gmeow:AffectDecision owl:maxQualifiedCardinality 1 (owl:onClass owl:Thing) on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17): a decision with no decided label is meaningless, and two labels is not a single-label decision."@x-gmeow-english ;
+    skos:definition "The single gmeow:AffectClassifierLabel a gmeow:AffectDecision decides — the argmax (categorical mode) over a gmeow:decisionArgmax label set. Functional: a decision has exactly one decided label — the categorical winner-take-all exclusivity bound, authored in the reasoning layer as gmeow:AffectDecision OWL maxQualifiedCardinality 1 (OWL onClass OWL Thing) on this property (with OWL FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17): a decision with no decided label is meaningless, and two labels is not a single-label decision."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionCrossedThreshold
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision crossed threshold"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
-    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Mandatory and single-valued: authored in the reasoning layer as gmeow:AffectDecision owl:maxQualifiedCardinality 1 (owl:onClass owl:Thing) on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17). The qualified idiom owl:maxQualifiedCardinality 1 with owl:onClass owl:Thing is the in-fragment form the native reasoner DECIDES — degrading the qualified count to the same class-unrestricted single-valued bound the unqualified form intended — so this single-valued datatype bound is a reasoning-layer fact, not a hand-authored SHACL constraint: a decision must record exactly one crossed-threshold verdict, its presence is never optional and two verdicts are incoherent."@x-gmeow-english ;
+    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Mandatory and single-valued: authored in the reasoning layer as gmeow:AffectDecision OWL maxQualifiedCardinality 1 (OWL onClass OWL Thing) on this property (with OWL FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17). The qualified idiom OWL maxQualifiedCardinality 1 with OWL onClass OWL Thing is the in-fragment form the native reasoner DECIDES — degrading the qualified count to the same class-unrestricted single-valued bound the unqualified form intended — so this single-valued datatype bound is a reasoning-layer fact, not a hand-authored SHACL constraint: a decision must record exactly one crossed-threshold verdict, its presence is never optional and two verdicts are incoherent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionMargin
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectDecision ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision margin"@x-gmeow-english ;
@@ -589,7 +588,7 @@ gmeow:decisionMargin
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:prototypeFor
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "prototype for"@x-gmeow-english ;
     rdfs:range gmeow:EmotionType ;
@@ -601,7 +600,7 @@ gmeow:prototypeFor
     gmeow:useWhen "Use to name which emotion a prototype/region labels, so nearest-prototype classification can report the winning emotion type."@x-gmeow-english .
 
 gmeow:vectorComponent
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectVectorObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "vector component"@x-gmeow-english ;
@@ -614,7 +613,7 @@ gmeow:vectorComponent
     gmeow:useWhen "Use to group the per-axis appraisal cells that make up a vector reading under one queryable identity."@x-gmeow-english .
 
 gmeow:vectorProfile
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectVectorObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "vector profile"@x-gmeow-english ;
@@ -623,7 +622,7 @@ gmeow:vectorProfile
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:weightingPolicy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:DerivedAffectIntensityObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "weighting policy"@x-gmeow-english ;
@@ -632,7 +631,7 @@ gmeow:weightingPolicy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:metricGram
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metric Gram matrix"@x-gmeow-english ;
@@ -641,7 +640,7 @@ gmeow:metricGram
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:coreAxisIndex
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CoreAffectDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "core axis index"@x-gmeow-english ;
@@ -650,7 +649,7 @@ gmeow:coreAxisIndex
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sparseAxisCompletion
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectScaleProfile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "sparse-axis completion"@x-gmeow-english ;
@@ -659,7 +658,7 @@ gmeow:sparseAxisCompletion
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:canonicalizesAs
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "canonicalizes as"@x-gmeow-english ;
@@ -667,7 +666,7 @@ gmeow:canonicalizesAs
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:classifiedTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:subPropertyOf gmeow:observedFeature ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -676,7 +675,7 @@ gmeow:classifiedTarget
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:classifierScore
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "classifier score"@x-gmeow-english ;
@@ -685,7 +684,7 @@ gmeow:classifierScore
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:emittedLabel
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "emitted label"@x-gmeow-english ;
@@ -694,7 +693,7 @@ gmeow:emittedLabel
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:labelSetRevision
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "label-set revision"@x-gmeow-english ;
@@ -702,7 +701,7 @@ gmeow:labelSetRevision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hypothesisTemplate
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "hypothesis template"@x-gmeow-english ;
@@ -710,7 +709,7 @@ gmeow:hypothesisTemplate
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:memberOfLabelSet
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierLabel ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "member of label set"@x-gmeow-english ;
@@ -719,7 +718,7 @@ gmeow:memberOfLabelSet
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelFramework
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model framework"@x-gmeow-english ;
@@ -727,7 +726,7 @@ gmeow:modelFramework
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelIdentifier
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model identifier"@x-gmeow-english ;
@@ -736,7 +735,7 @@ gmeow:modelIdentifier
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelRevision
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model revision"@x-gmeow-english ;
@@ -745,7 +744,7 @@ gmeow:modelRevision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:modelTask
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "model task"@x-gmeow-english ;
@@ -753,7 +752,7 @@ gmeow:modelTask
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:producedBy
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "produced by"@x-gmeow-english ;
@@ -762,7 +761,7 @@ gmeow:producedBy
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:scoreCalibration
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "score calibration"@x-gmeow-english ;
@@ -770,7 +769,7 @@ gmeow:scoreCalibration
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:scoreSemantics
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "score semantics"@x-gmeow-english ;
@@ -779,7 +778,7 @@ gmeow:scoreSemantics
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:supportsAffectiveClaim
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "supports affective claim"@x-gmeow-english ;
     rdfs:range gmeow:AffectiveClaim ;
@@ -787,7 +786,7 @@ gmeow:supportsAffectiveClaim
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:telemetryBlob
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectTelemetryStream ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "telemetry blob"@x-gmeow-english ;
@@ -795,7 +794,7 @@ gmeow:telemetryBlob
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:thresholdApplied
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AffectClassifierOutput ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "threshold applied"@x-gmeow-english ;
@@ -804,7 +803,7 @@ gmeow:thresholdApplied
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:tokenizerRevision
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "tokenizer revision"@x-gmeow-english ;
@@ -812,7 +811,7 @@ gmeow:tokenizerRevision
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:usedInput
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:ModelInferenceRun ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "used input"@x-gmeow-english ;
@@ -1184,7 +1183,7 @@ gmeow:emotionAnticipation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:emotionBearer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Emotion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "emotion bearer"@x-gmeow-english ;
@@ -1249,7 +1248,7 @@ gmeow:emotionTrust
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:emotionType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Emotion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "emotion type"@x-gmeow-english ;
@@ -1258,7 +1257,7 @@ gmeow:emotionType
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:feltAffect
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:subPropertyOf gmeow:realizesMentalMoment ;
     rdfs:domain gmeow:AffectiveExperience ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
@@ -1276,7 +1275,7 @@ gmeow:processAffectiveExperience
     a gmeow:MentalProcessType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "affective experience"@x-gmeow-english ;
-    skos:definition "The mental-process kind of a felt affective episode — the occurrent of undergoing an affective state (the felt face of an emotion or mood mode). Minted from the affect slice as a value extending mentation's gmeow:MentalProcessType vocabulary (the gmeow:EventType idiom, Principle 9: a new kind is an individual, never a subclass); pinned onto gmeow:AffectiveExperience by an owl:hasValue restriction so every affective experience carries it."@x-gmeow-english ;
+    skos:definition "The mental-process kind of a felt affective episode — the occurrent of undergoing an affective state (the felt face of an emotion or mood mode). Minted from the affect slice as a value extending mentation's gmeow:MentalProcessType vocabulary (the gmeow:EventType idiom, Principle 9: a new kind is an individual, never a subclass); pinned onto gmeow:AffectiveExperience by an OWL hasValue restriction so every affective experience carries it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityElegance
@@ -2357,7 +2356,7 @@ gmeow-hf:sst2Positive a gmeow:AffectClassifierLabel ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/affect>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Emotions and appraisals — a CORE slice: an agent's felt mental life is part of the Principle 14 grounded-agent-memory flagship.
 
@@ -2377,23 +2376,23 @@ DOCTRINE.
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:Emotion rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:emotionBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:emotionType ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:emotionBearer ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:emotionType ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
 
 gmeow:Appraisal rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalScaleProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AffectScaleProfile ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalOf ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalScaleProfile ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:AffectScaleProfile ] .
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/emotionBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/Appraisal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/appraisalOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/decidedLabel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observedFeature> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Emotion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emotionBearer> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalOf> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decidedLabel> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; logic:onClass logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; logic:onClass logic:Thing ] .
 
 # =========================================================================== #
 # Procedural constraints authored as raw logic:Formula integrity trees —        #
@@ -2459,9 +2458,9 @@ logic:arsVal a logic:Formula ; logic:relation gmeow:appraisalValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] .
 
 # Every gmeow:AffectPrototype names the gmeow:EmotionType it is the typical signature of:
-# gmeow:prototypeFor is mandatory (min-1). With owl:FunctionalProperty + rdfs:range
+# gmeow:prototypeFor is mandatory (min-1). With OWL FunctionalProperty + rdfs:range
 # gmeow:EmotionType this is exactly-one-of-the-right-type. Authored as a GROUNDED
-# logic:Constraint (not a hand-authored owl:Restriction) so the min-1 obligation projects
+# logic:Constraint (not a hand-authored OWL Restriction) so the min-1 obligation projects
 # through the Principle-17 SHACL-derive path, OFF the ungrounded-rdfs residue ledger.
 gmeow:AffectPrototypePrototypeForPresentConstraint
     a logic:Constraint ;
@@ -2470,7 +2469,7 @@ gmeow:AffectPrototypePrototypeForPresentConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a gmeow:AffectPrototype declares the gmeow:EmotionType it is the typical signature of via gmeow:prototypeFor."@x-gmeow-english ;
     logic:formalizes gmeow:AffectPrototype , gmeow:AffectPrototypeShape ;
-    logic:message "A gmeow:AffectPrototype must declare at least one gmeow:prototypeFor — a prototype OF no named gmeow:EmotionType is meaningless. With owl:FunctionalProperty + rdfs:range gmeow:EmotionType this is exactly-one EmotionType." ;
+    logic:message "A gmeow:AffectPrototype must declare at least one gmeow:prototypeFor — a prototype OF no named gmeow:EmotionType is meaningless. With OWL FunctionalProperty + rdfs:range gmeow:EmotionType this is exactly-one EmotionType." ;
     logic:integrity logic:pfpForall .
 logic:pfpForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
@@ -3124,28 +3123,28 @@ gmeow:EmotionBearerConstraint
     logic:message "An Emotion must inhere in exactly one gmeow:emotionBearer (an intrinsic mode has exactly one bearer)." .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifiedTarget> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/classifierScore> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectComposite> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/affectiveConstituent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/emittedLabel> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/producedBy> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/scoreSemantics> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectComposite> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/affectiveConstituent> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMax> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
 <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileRangeMin> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorComponent> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorProfile> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/experiencer> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/feltAffect> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorComponent> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectVectorObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vectorProfile> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/experiencer> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/feltAffect> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/AffectiveExperience> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/mentalProcessType> ; logic:hasValue <https://blackcatinformatics.ca/gmeow/processAffectiveExperience> ] .
-<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalOf> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalOf> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ] .
 <https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/appraisalValue> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#decimal> ] .
-<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intensityBasis> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/metricProfile> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/normFunction> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/weightingPolicy> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Appraisal> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/intensityBasis> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/metricProfile> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/normFunction> ; logic:allValuesFrom logic:Thing ] .
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/weightingPolicy> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/memberOfLabelSet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifiedTarget" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/classifierScore" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -3167,18 +3166,18 @@ gmeow:EmotionBearerConstraint
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/weightingPolicy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # gmeow:AppraisalShape at-most-one restorations: gmeow:appraisalDimension and gmeow:appraisalValue
-# are Appraisal-scoped at-most-one facets whose paths are NOT globally owl:FunctionalProperty (a PAD
+# are Appraisal-scoped at-most-one facets whose paths are NOT globally OWL FunctionalProperty (a PAD
 # triple is three Appraisals sharing a vantage; the magnitude is per-cell), so the sh:maxCount 1
-# rides a class-scoped max-qualified antecedent (logic:onClass owl:Thing degrades to the plain
+# rides a class-scoped max-qualified antecedent (logic:onClass OWL Thing degrades to the plain
 # sh:maxCount 1 the oracle compares; the decimal magnitude rides logic:onDataRange).
 gmeow:Appraisal logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:appraisalDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
 
 # gmeow:ModelInferenceRunShape — a ModelInferenceRun declares exactly one gmeow:modelIdentifier and
 # one pinned gmeow:modelRevision. Both are literal-valued (a repo id, a revision string), so the
-# existence axiom ranges over rdfs:Literal (logic:allValuesFrom owl:Thing would reject the literal);
-# the closure entries project sh:minCount 1 and the owl:FunctionalProperty contract the sh:maxCount 1.
+# existence axiom ranges over rdfs:Literal (logic:allValuesFrom OWL Thing would reject the literal);
+# the closure entries project sh:minCount 1 and the OWL FunctionalProperty contract the sh:maxCount 1.
 gmeow:ModelInferenceRun logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:modelIdentifier ; logic:allValuesFrom rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:modelRevision ; logic:allValuesFrom rdfs:Literal ] .
@@ -3190,13 +3189,13 @@ gmeow:ModelInferenceRun logic:subClassOf
 # forbidden-property obligation (sh:maxCount 0) is the reasoner-safe logic:maxQualifiedCardinality 0.
 # The gmeow:DerivedAffectIntensityNoStoredMagnitudeConstraint carries the same law in the logic: canon.
 gmeow:DerivedAffectIntensityObservation logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 0 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 0 ; logic:onClass logic:Thing ] .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -3204,7 +3203,7 @@ gmeow:DerivedAffectIntensityObservation logic:subClassOf
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:appraisalOfFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisalOf is functional"@x-gmeow-english ;
@@ -3219,7 +3218,7 @@ gmeow:appraisalOfFunctionality
     skos:example "gmeow:appraisalOfFunctionality logic:characterizes gmeow:appraisalOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:appraisalScaleProfileFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "appraisalScaleProfile is functional"@x-gmeow-english ;
@@ -3234,7 +3233,7 @@ gmeow:appraisalScaleProfileFunctionality
     skos:example "gmeow:appraisalScaleProfileFunctionality logic:characterizes gmeow:appraisalScaleProfile ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:coreAxisIndexFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "coreAxisIndex is functional"@x-gmeow-english ;
@@ -3249,7 +3248,7 @@ gmeow:coreAxisIndexFunctionality
     skos:example "gmeow:coreAxisIndexFunctionality logic:characterizes gmeow:coreAxisIndex ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:decidedLabelFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decidedLabel is functional"@x-gmeow-english ;
@@ -3264,7 +3263,7 @@ gmeow:decidedLabelFunctionality
     skos:example "gmeow:decidedLabelFunctionality logic:characterizes gmeow:decidedLabel ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:decisionCrossedThresholdFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decisionCrossedThreshold is functional"@x-gmeow-english ;
@@ -3279,7 +3278,7 @@ gmeow:decisionCrossedThresholdFunctionality
     skos:example "gmeow:decisionCrossedThresholdFunctionality logic:characterizes gmeow:decisionCrossedThreshold ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:decisionMarginFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decisionMargin is functional"@x-gmeow-english ;
@@ -3294,7 +3293,7 @@ gmeow:decisionMarginFunctionality
     skos:example "gmeow:decisionMarginFunctionality logic:characterizes gmeow:decisionMargin ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:emotionBearerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "emotionBearer is functional"@x-gmeow-english ;
@@ -3309,7 +3308,7 @@ gmeow:emotionBearerFunctionality
     skos:example "gmeow:emotionBearerFunctionality logic:characterizes gmeow:emotionBearer ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:intensityBasisFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "intensityBasis is functional"@x-gmeow-english ;
@@ -3324,7 +3323,7 @@ gmeow:intensityBasisFunctionality
     skos:example "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:labelSetDecisionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "labelSetDecision is functional"@x-gmeow-english ;
@@ -3339,7 +3338,7 @@ gmeow:labelSetDecisionFunctionality
     skos:example "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:metricGramFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metricGram is functional"@x-gmeow-english ;
@@ -3354,7 +3353,7 @@ gmeow:metricGramFunctionality
     skos:example "gmeow:metricGramFunctionality logic:characterizes gmeow:metricGram ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:metricProfileFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "metricProfile is functional"@x-gmeow-english ;
@@ -3369,7 +3368,7 @@ gmeow:metricProfileFunctionality
     skos:example "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:modelIdentifierFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "modelIdentifier is functional"@x-gmeow-english ;
@@ -3384,7 +3383,7 @@ gmeow:modelIdentifierFunctionality
     skos:example "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:modelRevisionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "modelRevision is functional"@x-gmeow-english ;
@@ -3399,7 +3398,7 @@ gmeow:modelRevisionFunctionality
     skos:example "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:normFunctionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "normFunction is functional"@x-gmeow-english ;
@@ -3414,7 +3413,7 @@ gmeow:normFunctionFunctionality
     skos:example "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:producedByFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "producedBy is functional"@x-gmeow-english ;
@@ -3429,7 +3428,7 @@ gmeow:producedByFunctionality
     skos:example "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:profileMidpointFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profileMidpoint is functional"@x-gmeow-english ;
@@ -3444,7 +3443,7 @@ gmeow:profileMidpointFunctionality
     skos:example "gmeow:profileMidpointFunctionality logic:characterizes gmeow:profileMidpoint ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:profilePolarityFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profilePolarity is functional"@x-gmeow-english ;
@@ -3459,7 +3458,7 @@ gmeow:profilePolarityFunctionality
     skos:example "gmeow:profilePolarityFunctionality logic:characterizes gmeow:profilePolarity ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:profileRangeMaxFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profileRangeMax is functional"@x-gmeow-english ;
@@ -3474,7 +3473,7 @@ gmeow:profileRangeMaxFunctionality
     skos:example "gmeow:profileRangeMaxFunctionality logic:characterizes gmeow:profileRangeMax ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:profileRangeMinFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profileRangeMin is functional"@x-gmeow-english ;
@@ -3489,7 +3488,7 @@ gmeow:profileRangeMinFunctionality
     skos:example "gmeow:profileRangeMinFunctionality logic:characterizes gmeow:profileRangeMin ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:profileTransformFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "profileTransform is functional"@x-gmeow-english ;
@@ -3504,7 +3503,7 @@ gmeow:profileTransformFunctionality
     skos:example "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:scoreSemanticsFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "scoreSemantics is functional"@x-gmeow-english ;
@@ -3519,7 +3518,7 @@ gmeow:scoreSemanticsFunctionality
     skos:example "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:sparseAxisCompletionFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "sparseAxisCompletion is functional"@x-gmeow-english ;
@@ -3534,7 +3533,7 @@ gmeow:sparseAxisCompletionFunctionality
     skos:example "gmeow:sparseAxisCompletionFunctionality logic:characterizes gmeow:sparseAxisCompletion ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:vectorProfileFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "vectorProfile is functional"@x-gmeow-english ;
@@ -3549,7 +3548,7 @@ gmeow:vectorProfileFunctionality
     skos:example "gmeow:vectorProfileFunctionality logic:characterizes gmeow:vectorProfile ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:weightingPolicyFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "weightingPolicy is functional"@x-gmeow-english ;
@@ -3564,7 +3563,7 @@ gmeow:weightingPolicyFunctionality
     skos:example "gmeow:weightingPolicyFunctionality logic:characterizes gmeow:weightingPolicy ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:prototypeForFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "prototypeFor is functional"@x-gmeow-english ;

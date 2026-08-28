@@ -3,7 +3,7 @@
 #
 # Declarative competency questions for the deception slice, executed by the native
 # Rust slice-test harness (crates/slicetest). Migrated from the deception
-# competency tests in crates/validate/tests/conformance_competency.rs.
+# competency tests in crates/validate/tests/conformance_cases/conformance_competency.rs.
 #
 # Two shapes:
 #   * TBox vocabulary questions (deception-types, deception-roles) run over the

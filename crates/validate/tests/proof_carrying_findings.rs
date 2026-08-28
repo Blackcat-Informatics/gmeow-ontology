@@ -119,6 +119,7 @@ fn build_test_bundle() -> Vec<u8> {
         rep: "shapes-archive".to_owned(),
     };
 
+    // gmeow-test-input: synthetic-only
     emit_gts(
         &builder,
         "dist",

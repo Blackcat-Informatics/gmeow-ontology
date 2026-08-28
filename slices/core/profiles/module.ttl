@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Profile
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "Profile"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
@@ -22,7 +21,7 @@ gmeow:Profile
     gmeow:useWhen "Use to declare the closed descriptor schema for an open-but-structured facet — the set of descriptor properties and the open value vocabularies a frame, value, or named slice profile is built from."@x-gmeow-english .
 
 gmeow:hasProfile
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "has profile"@x-gmeow-english ;
     rdfs:range gmeow:Profile ;
@@ -35,7 +34,7 @@ gmeow:hasProfile
     gmeow:useWhen "Use to point an entity, value, or frame at the Profile whose closed descriptor schema governs its structure."@x-gmeow-english .
 
 gmeow:profileAppliesTo
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Profile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "profile applies to"@x-gmeow-english ;
@@ -48,7 +47,7 @@ gmeow:profileAppliesTo
     gmeow:useWhen "Use on a Profile to name the class whose instances its descriptor schema governs."@x-gmeow-english .
 
 gmeow:profileDescriptor
-    a owl:AnnotationProperty ;
+    a logic:AnnotationProperty ;
     rdfs:domain gmeow:Profile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "profile descriptor"@x-gmeow-english ;
@@ -57,7 +56,7 @@ gmeow:profileDescriptor
         gmeow:boxRBox .
 
 gmeow:profileOpenValue
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Profile ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "profile open value"@x-gmeow-english ;
@@ -133,7 +132,7 @@ gmeow:profileTemporalProvenance
         gmeow:validUntil .
 
 <https://blackcatinformatics.ca/gmeow/slices/profiles>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Reusable Profile construct: closed descriptor schema + open values + self-description. Reference-frame, temporal-frame and four-clocks provenance profiles are seeded as worked examples."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
@@ -184,14 +183,14 @@ logic:povuDescLink a logic:Formula ; logic:relation logic:linkVia ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "subj" ] , [ logic:termIndex 1 ; logic:termVariable "descriptor" ] , [ logic:termIndex 2 ; logic:termVariable "this" ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
-<https://blackcatinformatics.ca/gmeow/Profile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileAppliesTo> ; logic:allValuesFrom <http://www.w3.org/2002/07/owl#Class> ] .
+<https://blackcatinformatics.ca/gmeow/Profile> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/profileAppliesTo> ; logic:allValuesFrom logic:Class ] .
 
 # Required descriptive spine of a Profile (self-description is the point of the
 # meta-pattern): at least one label, a definition, and one descriptor property.
-# The min-qualified idiom (logic:onClass owl:Thing) is the in-fragment form the
+# The min-qualified idiom (logic:onClass OWL Thing) is the in-fragment form the
 # native reasoner decides — it degrades to the unqualified sh:minCount 1 the
 # retired hand-authored shape enforced, without minting existential witnesses.
 gmeow:Profile logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty skos:definition ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:profileDescriptor ; logic:minQualifiedCardinality 1 ; logic:onClass owl:Thing ] .
+    [ a logic:Restriction ; logic:onProperty rdfs:label ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty skos:definition ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:profileDescriptor ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] .

@@ -42,8 +42,8 @@ fn read(rel: &str) -> String {
 }
 
 fn server() -> McpServer {
-    let snapshot =
-        std::fs::read(repo_root().join("generated/dist/gmeow.gts")).expect("read snapshot");
+    let snapshot = gmeow_bundle_import::load_authenticated_source_bytes(&repo_root())
+        .expect("authenticated snapshot; tests never produce it");
     McpServer::from_snapshot(&snapshot).expect("consumer server constructs")
 }
 

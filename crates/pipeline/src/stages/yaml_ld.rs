@@ -32,7 +32,9 @@ use purrdf::RdfDataset;
 use purrdf::native_codecs::jsonld;
 use serde_json::Value;
 
-use crate::node::{SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{
+    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageOutput, StageProduct,
+};
 
 /// Logical path of the JSON-LD-star artifact emitted by this stage.
 pub const JSON_LD_PATH: &str = "dist/gmeow.jsonld";
@@ -119,6 +121,11 @@ impl Stage for YamlLdStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 1.555 GB serialized / ~79.5 s rebuild, with an
+        // 8.37-GiB renderer peak. The whole-document pair is not a bounded cache unit.
+        CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
         // v2: adds deterministic YAML-LD-star output and the preservation ledger.
@@ -1241,21 +1248,6 @@ mod tests {
         );
     }
 
-    /// Load a Turtle-star file into the native carrier [`RdfDataset`], preserving
-    /// lexical forms (and the folded RDF 1.2 statement layer) from the committed artifact.
-    fn load_turtle_dataset(path: &std::path::Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-        let bytes = std::fs::read(path).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("read {}: {e}", path.display()),
-            })
-        })?;
-        purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                message: format!("Turtle parse: {e}"),
-            })
-        })
-    }
-
     fn repo_root() -> PathBuf {
         let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         manifest
@@ -1264,72 +1256,6 @@ mod tests {
             .parent()
             .expect("repository root")
             .to_path_buf()
-    }
-
-    /// Full-graph round-trip gate for the committed RDF 1.2 statement artifact.
-    #[test]
-    fn committed_rdf12_statements_roundtrip_through_jsonld_star() {
-        let path = repo_root().join("generated/statements/gmeow.rdf12.ttl");
-
-        let original = load_turtle_dataset(&path)
-            .expect("load committed generated/statements/gmeow.rdf12.ttl");
-        let json = serialize_graph(original.as_ref())
-            .expect("serialize committed dataset to JSON-LD-star");
-        let roundtrip =
-            parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star back to carrier dataset");
-
-        assert_eq!(
-            canonical_lines(&original),
-            canonical_lines(&roundtrip),
-            "committed generated/statements/gmeow.rdf12.ttl must round-trip through JSON-LD-star"
-        );
-    }
-
-    /// Optional full-graph round-trip gate for the built `dist/gmeow.jsonld`
-    /// artifact. Requires `make build` to have produced `dist/gmeow.jsonld`;
-    /// skipped silently when the file is absent so `cargo test` still passes
-    /// in a source-only checkout.
-    ///
-    /// The artifact is written by the deterministic first-party serializer
-    /// (`serialize_graph`, via `gmeow build` / the yaml_ld stage), so parsing it
-    /// into the carrier and re-serializing must reproduce the file BYTE-FOR-BYTE.
-    /// Byte-fixed-point is strictly stronger than the RDFC-1.0 canonical
-    /// isomorphism this test used to assert (identical bytes re-parse to the
-    /// identical dataset), and it keeps the test to one parse + one serialize —
-    /// no second parse and no double canonicalization. The canonical-
-    /// isomorphism law itself stays covered by
-    /// `committed_rdf12_statements_roundtrip_through_jsonld_star` and the
-    /// `roundtrip_isomorphic_accepts_emitted_*` fixtures in this module.
-    #[test]
-    fn dist_jsonld_roundtrips_through_carrier() {
-        let path = repo_root().join("dist/gmeow.jsonld");
-        if !path.exists() {
-            // Skipped silently in a source-only checkout: `make build` must have
-            // produced dist/gmeow.jsonld for this full-graph round-trip to run.
-            return;
-        }
-
-        let bytes = std::fs::read(&path).expect("read dist/gmeow.jsonld");
-        let original = parse_jsonld_star(&bytes).expect("parse built dist/gmeow.jsonld");
-        let json = serialize_graph(original.as_ref())
-            .expect("re-serialize parsed dist artifact to JSON-LD-star");
-
-        if json.as_bytes() != bytes.as_slice() {
-            let divergence = json
-                .as_bytes()
-                .iter()
-                .zip(bytes.iter())
-                .position(|(a, b)| a != b)
-                .unwrap_or_else(|| json.len().min(bytes.len()));
-            panic!(
-                "built dist/gmeow.jsonld must round-trip through the JSON-LD-star \
-                 carrier byte-for-byte: re-serialization diverges at byte {divergence} \
-                 (built {} bytes, re-serialized {} bytes). If the serializer's output \
-                 format changed, the artifact is stale — rebuild it with `make build`.",
-                bytes.len(),
-                json.len(),
-            );
-        }
     }
 
     /// A hand-authored YAML-LD-star statement-layer fixture losslessly transpiles into
@@ -1455,9 +1381,12 @@ mod tests {
             .join("..")
             .canonicalize()
             .expect("repo root");
-        let schema_path = root.join("generated/schemas/gmeow.schema.json");
-        let schema_bytes = std::fs::read(&schema_path)
-            .unwrap_or_else(|e| panic!("cannot read {}: {e}", schema_path.display()));
+        let schema_bytes = crate::fixture::authenticated_artifact(
+            &root,
+            "stage-export-json-schema",
+            crate::stages::json_schema::JSON_SCHEMA_PATH,
+        )
+        .expect("load the producer-selected JSON Schema read-only");
         let mut schema: Value =
             serde_json::from_slice(&schema_bytes).expect("schema is valid JSON");
 

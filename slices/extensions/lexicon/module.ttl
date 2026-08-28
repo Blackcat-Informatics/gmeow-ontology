@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DerivationKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Derivation Kind"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -21,7 +20,7 @@ gmeow:DerivationKind
 
 gmeow:EtymologicalDerivation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Etymological Derivation"@x-gmeow-english ;
     logic:mediates gmeow:etymonSource ,
@@ -29,19 +28,19 @@ gmeow:EtymologicalDerivation
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:etymonSource ;
-            owl:someValuesFrom gmeow:InformationObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:etymonSource ;
+            logic:someValuesFrom gmeow:InformationObject ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:derivationTarget ;
-            owl:someValuesFrom gmeow:InformationObject ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:derivationTarget ;
+            logic:someValuesFrom gmeow:InformationObject ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:derivationKind ;
-            owl:someValuesFrom gmeow:DerivationKind ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:derivationKind ;
+            logic:someValuesFrom gmeow:DerivationKind ;
         ] ;
     skos:definition "A provenance-rich claim about historical derivation between lexical items or forms. Not a flat property — a full relator carrying standpoint (accordingTo), confidence, determinacy, and temporal scope (Principle 9). Multiple derivations for the same target coexist without privilege; a superseded derivation is suppressed with displayable false, never erased (Principle 10). Follows the LanguageState / KinRelationship pattern as an Observation + Relator."@x-gmeow-english ;
     skos:example "ex:etym1 a gmeow:EtymologicalDerivation ; gmeow:etymonSource ex:oldEnglishWaeter ; gmeow:derivationTarget ex:wordWater ; gmeow:derivationKind gmeow:derivationInheritance ."@x-gmeow-english ;
@@ -52,7 +51,7 @@ gmeow:EtymologicalDerivation
 
 gmeow:LexicalForm
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Lexical Form"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -65,7 +64,7 @@ gmeow:LexicalForm
 
 gmeow:LexicalFormType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Lexical Form Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -78,7 +77,7 @@ gmeow:LexicalFormType
 
 gmeow:LexicalItem
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Lexical Item"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
@@ -91,7 +90,7 @@ gmeow:LexicalItem
 
 gmeow:UsageAttestation
     a logic:SubKind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "Usage Attestation"@x-gmeow-english ;
     logic:mediates gmeow:attestedForm ,
@@ -99,14 +98,14 @@ gmeow:UsageAttestation
     rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attestedForm ;
-            owl:someValuesFrom gmeow:LexicalForm ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attestedForm ;
+            logic:someValuesFrom gmeow:LexicalForm ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:attestedInSource ;
-            owl:someValuesFrom gmeow:CreativeWork ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:attestedInSource ;
+            logic:someValuesFrom gmeow:CreativeWork ;
         ] ;
     skos:definition "An evidence node recording that a lexical form, reading, inscription, symbol, construction, or usage was observed in a source or context. Evidence, not truth: an attestation records that something was seen, not that a proposed interpretation is correct (Principle 12). Follows the LanguageState / KinRelationship pattern as an Observation + Relator. Mediates between an attested form, a source, a context, and optionally a time interval."@x-gmeow-english ;
     skos:example "ex:att1 a gmeow:UsageAttestation ; gmeow:attestedForm ex:waterWritten ; gmeow:attestedInSource ex:oed ."@x-gmeow-english ;
@@ -117,7 +116,7 @@ gmeow:UsageAttestation
     gmeow:useWhen "Use to record that a form was OBSERVED in a source or context — an evidence node, not a truth claim about whether an interpretation is correct."@x-gmeow-english .
 
 gmeow:attestationInterval
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attestation interval"@x-gmeow-english ;
@@ -131,7 +130,7 @@ gmeow:attestationInterval
     gmeow:useWhen "Use on a UsageAttestation to carry the time span over which the usage was observed — a corpus span, inscription period, or usage era — as a first-class interval on the relator."@x-gmeow-english .
 
 gmeow:attestedForm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attested form"@x-gmeow-english ;
@@ -145,7 +144,7 @@ gmeow:attestedForm
     gmeow:useWhen "Use on a UsageAttestation to name the single lexical form it records as observed — the observation's feature of interest."@x-gmeow-english .
 
 gmeow:attestedInContext
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attested in context"@x-gmeow-english ;
@@ -159,7 +158,7 @@ gmeow:attestedInContext
     gmeow:useWhen "Use on a UsageAttestation to name the corpus, platform, community, dataset, or inscription context in which the form was observed."@x-gmeow-english .
 
 gmeow:attestedInLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attested in language"@x-gmeow-english ;
@@ -172,7 +171,7 @@ gmeow:attestedInLanguage
     gmeow:useWhen "Use on a UsageAttestation to record the language, variety, or state in which the form was observed."@x-gmeow-english .
 
 gmeow:attestedInSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attested in source"@x-gmeow-english ;
@@ -186,7 +185,7 @@ gmeow:attestedInSource
     gmeow:useWhen "Use on a UsageAttestation to name the bibliographic or documentary source — a CreativeWork — in which the form was observed."@x-gmeow-english .
 
 gmeow:attestedOnCarrier
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:UsageAttestation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attested on carrier"@x-gmeow-english ;
@@ -241,7 +240,7 @@ gmeow:derivationCompounding
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:derivationEvidence
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "derivation evidence"@x-gmeow-english ;
@@ -269,7 +268,7 @@ gmeow:derivationInheritance
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:derivationKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "derivation kind"@x-gmeow-english ;
@@ -310,7 +309,7 @@ gmeow:derivationSoundChange
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:etymonSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "etymon source"@x-gmeow-english ;
@@ -331,7 +330,7 @@ gmeow:derivationSpellingChange
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:derivationTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "derivation target"@x-gmeow-english ;
@@ -359,12 +358,12 @@ gmeow:formNormalized
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:formOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "form of"@x-gmeow-english ;
     rdfs:range gmeow:LexicalItem ;
-    owl:inverseOf gmeow:hasLexicalForm ;
+    logic:inverseOf gmeow:hasLexicalForm ;
     skos:definition "The lexical item that a form is a form of — the inverse of gmeow:hasLexicalForm."@x-gmeow-english ;
     skos:example "ex:waterWritten gmeow:formOf ex:wordWater ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting both directions redundantly; prefer gmeow:hasLexicalForm from the item and read gmeow:formOf as its inverse."@x-gmeow-english ;
@@ -387,7 +386,7 @@ gmeow:formRendered
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:formRepresentation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "form representation"@x-gmeow-english ;
@@ -428,7 +427,7 @@ gmeow:formTransliterated
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:formTransliterationScheme
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "form transliteration scheme"@x-gmeow-english ;
@@ -441,7 +440,7 @@ gmeow:formTransliterationScheme
     gmeow:useWhen "Use on a transliterated form to name the transliteration scheme that produced it."@x-gmeow-english .
 
 gmeow:formType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LexicalForm ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "form type"@x-gmeow-english ;
@@ -461,7 +460,7 @@ gmeow:formWritten
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:hasLexicalForm
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LexicalItem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "has lexical form"@x-gmeow-english ;
@@ -474,7 +473,7 @@ gmeow:hasLexicalForm
     gmeow:useWhen "Use to link a lexical item to its concrete surface forms — written, spoken, signed, reconstructed, and so on."@x-gmeow-english .
 
 gmeow:lexicalItemLanguage
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:LexicalItem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "lexical item language"@x-gmeow-english ;
@@ -487,7 +486,7 @@ gmeow:lexicalItemLanguage
     gmeow:useWhen "Use to fix the single primary language, variety, or state of a lexical item."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/lexicon>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Lexical items, forms, usage attestations, and etymological
     derivations — the lexical and constructional layer of GMEOW. Models words,
@@ -508,7 +507,7 @@ gmeow:lexicalItemLanguage
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -516,7 +515,7 @@ gmeow:lexicalItemLanguage
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:attestationIntervalFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attestationInterval is functional"@x-gmeow-english ;
@@ -531,7 +530,7 @@ gmeow:attestationIntervalFunctionality
     skos:example "gmeow:attestationIntervalFunctionality logic:characterizes gmeow:attestationInterval ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:attestedFormFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "attestedForm is functional"@x-gmeow-english ;
@@ -546,7 +545,7 @@ gmeow:attestedFormFunctionality
     skos:example "gmeow:attestedFormFunctionality logic:characterizes gmeow:attestedForm ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:derivationTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "derivationTarget is functional"@x-gmeow-english ;
@@ -561,7 +560,7 @@ gmeow:derivationTargetFunctionality
     skos:example "gmeow:derivationTargetFunctionality logic:characterizes gmeow:derivationTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:etymonSourceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "etymonSource is functional"@x-gmeow-english ;
@@ -576,7 +575,7 @@ gmeow:etymonSourceFunctionality
     skos:example "gmeow:etymonSourceFunctionality logic:characterizes gmeow:etymonSource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:formRepresentationFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "formRepresentation is functional"@x-gmeow-english ;
@@ -591,7 +590,7 @@ gmeow:formRepresentationFunctionality
     skos:example "gmeow:formRepresentationFunctionality logic:characterizes gmeow:formRepresentation ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:lexicalItemLanguageFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
     rdfs:label "lexicalItemLanguage is functional"@x-gmeow-english ;

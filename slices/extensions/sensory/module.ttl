@@ -2,14 +2,13 @@
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ObservableProperty
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Observable Property"@x-gmeow-english ;
     logic:subClassOf logic:QualityValue ;
@@ -18,7 +17,7 @@ gmeow:ObservableProperty
 
 gmeow:Sensor
     a logic:RoleMixin ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensor"@x-gmeow-english ;
     logic:subClassOf logic:FunctionalComplex ;
@@ -29,7 +28,7 @@ gmeow:Sensor
 
 gmeow:SensorPlatform
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensor Platform"@x-gmeow-english ;
     logic:subClassOf logic:Object ;
@@ -40,29 +39,29 @@ gmeow:SensorPlatform
 
 gmeow:SensoryObservation
     rdfs:subClassOf [
-        a owl:Restriction ;
-        owl:onProperty gmeow:vantage ;
-        owl:someValuesFrom gmeow:Agent ;
+        a logic:Restriction ;
+        logic:onProperty gmeow:vantage ;
+        logic:someValuesFrom gmeow:Agent ;
     ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:sensoryObservationOf ;
-            owl:someValuesFrom gmeow:Entity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:sensoryObservationOf ;
+            logic:someValuesFrom gmeow:Entity ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:sensoryProperty ;
-            owl:someValuesFrom gmeow:ObservableProperty ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:sensoryProperty ;
+            logic:someValuesFrom gmeow:ObservableProperty ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:onProperty gmeow:sensoryResult ;
-            owl:someValuesFrom gmeow:SensoryQuantity ;
+            a logic:Restriction ;
+            logic:onProperty gmeow:sensoryResult ;
+            logic:someValuesFrom gmeow:SensoryQuantity ;
         ] .
 
 gmeow:SensoryQuantity
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensory Quantity"@x-gmeow-english ;
     logic:subClassOf math:Quantity ;
@@ -70,22 +69,22 @@ gmeow:SensoryQuantity
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:hasSensoryObservation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "has sensory observation"@x-gmeow-english ;
     rdfs:range gmeow:SensoryObservation ;
-    owl:inverseOf gmeow:sensoryObservationOf ;
+    logic:inverseOf gmeow:sensoryObservationOf ;
     skos:definition "Links an entity to a sensory observation that measured one of its properties. Non-functional: multiple sensors may observe the same property of the same entity, and those readings coexist without collapse (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasSensoryQuantity
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "has sensory quantity"@x-gmeow-english ;
     rdfs:range gmeow:SensoryQuantity ;
-    owl:propertyChainAxiom ( gmeow:hasSensoryObservation gmeow:sensoryResult ) ;
+    logic:propertyChainAxiom ( gmeow:hasSensoryObservation gmeow:sensoryResult ) ;
     skos:definition "Flat shortcut linking an entity to the scalar quantity result of a sensory observation of its property. Derived via property chain from the reified observation path (hasSensoryObservation ∘ sensoryResult). Non-simple: kept out of cardinality axioms."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -167,7 +166,7 @@ gmeow:observablePropertyTimingDeviation
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:platformLocation
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SensorPlatform ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "platform location"@x-gmeow-english ;
@@ -176,7 +175,7 @@ gmeow:platformLocation
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sensoryObservationOf
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SensoryObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory observation of"@x-gmeow-english ;
@@ -186,7 +185,7 @@ gmeow:sensoryObservationOf
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sensoryProperty
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SensoryObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory property"@x-gmeow-english ;
@@ -195,7 +194,7 @@ gmeow:sensoryProperty
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sensoryResult
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:SensoryObservation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "sensory result"@x-gmeow-english ;
@@ -205,7 +204,7 @@ gmeow:sensoryResult
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/sensory>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Sensor, sensor platform, observable property, and sensory observation stack. Deepens the SensoryObservation stub from observations.ttl with sensor-specific properties and bridges to SOSA/SSN by reference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;

@@ -7,11 +7,10 @@
 //! the repo root (via the crate manifest dir) and exposes the loaders under the
 //! `common::cached_model()` / `common::cached_site()` / `common::cached_book()`
 //! names the binaries call.
-//! The cache is primed once before the test processes spawn by the
-//! `prime-docs-fixture` example, which the Makefile test lanes and the CI test
-//! job run immediately before `cargo nextest`, so no test pays the ~12 s model
-//! build or the site render; on a plain `cargo test` (no prime step) the first
-//! caller builds and caches it.
+//! The cache is produced once by the explicit pre-test DAG stage. Test runners invoke
+//! only the separate read-only verifier before spawning processes. A plain `cargo test`
+//! without the producer fails closed on the first missing receipt; no test may build the
+//! model, site, book, or any other corpus artifact.
 
 #![allow(dead_code)] // not every binary uses every helper
 
@@ -29,7 +28,7 @@ pub fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
-/// The live documentation model, loaded from the shared once-per-run cache.
+/// The authenticated documentation model, loaded without a producer fallback.
 pub fn cached_model() -> DocsModel {
     gmeow_docs::fixture::load(&repo_root())
 }
@@ -52,9 +51,8 @@ pub fn cached_site_lang(lang: &str) -> Site {
 
 /// The default mdBook render (`render_book(&model, &ExecutableDocsData::default())`),
 /// loaded from the shared once-per-run cache. `mdbook_render` tests that render the
-/// default book read it from here so the suite pays the full book render once, not
-/// once per process. Tests that mutate the model or pass custom executable data
-/// still call `render_book` directly.
+/// default book read it from here so the suite pays the full book render once, in the
+/// explicit producer stage rather than any test process.
 pub fn cached_book() -> Site {
     gmeow_docs::fixture::load_book(&repo_root())
 }

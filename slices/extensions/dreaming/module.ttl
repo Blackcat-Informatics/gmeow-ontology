@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DreamReport
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:comment """A dream report is a recollection episode: an instance of gmeow:Experience with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin gmeow:originImagined. It is a claim about a prior dream episode, but modelled as the recollection process itself rather than as a propositional claim class, so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType, etc.) from gmeow:Experience.
 
 Dream reports are co-equal vantage-indexed claims with low metacognitive reliability (Principle 9): the dreamer, an analyst, and a later interview may produce competing reports of the same dream episode, and all may coexist. A superseded report (for example, a corrected or withdrawn dream-journal entry) is suppressed with gmeow:displayable false rather than deleted (Principle 10)."""@x-gmeow-english ;
@@ -16,20 +15,20 @@ Dream reports are co-equal vantage-indexed claims with low metacognitive reliabi
     rdfs:label "Dream Report"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Experience ,
         [
-            a owl:Restriction ;
-            owl:hasValue gmeow:processRecollection ;
-            owl:onProperty gmeow:mentalProcessType ;
+            a logic:Restriction ;
+            logic:hasValue gmeow:processRecollection ;
+            logic:onProperty gmeow:mentalProcessType ;
         ] ,
         [
-            a owl:Restriction ;
-            owl:hasValue gmeow:originImagined ;
-            owl:onProperty gmeow:contentOrigin ;
+            a logic:Restriction ;
+            logic:hasValue gmeow:originImagined ;
+            logic:onProperty gmeow:contentOrigin ;
         ] ;
     skos:definition "A recollection experience in which an agent reports or recalls a dream — a gmeow:Experience whose mental-process kind is gmeow:processRecollection and whose content originates in imagination (gmeow:contentOrigin gmeow:originImagined). A standpoint-indexed, low-metacognitive-reliability claim: competing reports coexist and superseded reports are suppressed, not deleted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:dreamElement
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:comment "Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9)."@x-gmeow-english ;
     rdfs:domain gmeow:Experience ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
@@ -38,7 +37,7 @@ gmeow:dreamElement
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/dreaming>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The dreaming slice is a pure composition over core GMEOW occurrent and awareness machinery. No new primitives are minted.
 

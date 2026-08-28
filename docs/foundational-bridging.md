@@ -177,7 +177,8 @@ The retired `gmeow-foundational.sssom.tsv` is an orphan and must not return.
 ```bash
 make validate
 make check
-cargo nextest run -p gmeow-validate --test conformance_foundational_bridging
+GMEOW_CONFORMANCE_FILTER=conformance_foundational_bridging \
+  cargo nextest run -p gmeow-validate --test conformance_suite
 cargo nextest run -p gmeow-pipeline --test correspondence_laws_bundle
 ```
 

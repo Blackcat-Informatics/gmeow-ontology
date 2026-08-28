@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The `gmeow gmn` conformance surface — the shipped, checkout-free twin of the
-//! GMN-1 gates and the frozen-corpus discharge test.
+//! GMN-1 production gates and authenticated frozen-corpus consumers.
 //!
 //! The digest / codec / witness / pack layer built in the codec crate is otherwise
 //! reachable only from `crates/pipeline`'s own gates and tests. This module exposes

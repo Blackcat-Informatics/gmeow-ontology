@@ -2,12 +2,11 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:contentDigest
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "content digest"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
@@ -20,7 +19,7 @@ gmeow:contentDigest
     gmeow:useWhen "Use to record a content hash of an artifact's bytes — the reliable by-content identity, since two objects with the same bytes are the same object regardless of path, name, or mtime."@x-gmeow-english .
 
 gmeow:sourceLocation
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "source location"@x-gmeow-english ;
@@ -36,7 +35,7 @@ gmeow:sourceLocation
     gmeow:useWhen "Use to record where a source artifact came from — its file path, original filename, or URL — for provenance and audit."@x-gmeow-english .
 
 gmeow:sourceModifiedAt
-    a owl:DatatypeProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "source modified at"@x-gmeow-english ;
@@ -177,7 +176,7 @@ gmeow:ingestionEdgeUnresolvedLeadsToPrivacyPosture
     logic:flowTo gmeow:stepIngestionPrivacyPosture .
 
 <https://blackcatinformatics.ca/gmeow/slices/sources>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Sources, citations, and the evidence layer — a cross-cutting facility
 (reused by genealogy and every other slice) for evidence-based, source-cited claims.

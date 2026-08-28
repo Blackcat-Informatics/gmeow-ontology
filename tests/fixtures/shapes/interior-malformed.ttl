@@ -1,6 +1,6 @@
 # Malformed narrative-interior + affect fixture (#356/#361/#362/#363).
 # Six malformed constructs (several produce more than one SHACL failure;
-# every expected message is asserted in crates/validate/tests/conformance_interior.rs):
+# every expected message is asserted in crates/validate/tests/conformance_cases/conformance_interior.rs):
 #   1. ex:floatingSample — an arc sample with no position and no state.
 #   2. ex:scopelessRole — a role claim with bearer and value but no scope.
 #   3. ex:namelessMotif — a motif without a label (an unnameable unit is a

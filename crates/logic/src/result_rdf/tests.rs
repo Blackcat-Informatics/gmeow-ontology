@@ -569,6 +569,32 @@ fn conjecture_verdict_round_trips() {
 }
 
 #[test]
+fn conjecture_verdict_escapes_control_bearing_formula_identity() {
+    let answer = corroborated_answer("http://ex/standpointA");
+    let content_key = "ATOM\0I\0http://ex/relation\u{001f}\u{007f}\u{0085}";
+    let body = project_conjecture_verdict(&ConjectureVerdictInput {
+        content_key,
+        standpoint: "http://ex/standpointA",
+        kb_world: "http://ex/kb-world-42",
+        answer: &answer,
+        math_conjecture: None,
+        forbidden_predicate: None,
+    });
+
+    assert!(body.contains("ATOM\\u0000I\\u0000http://ex/relation\\u001F\\u007F\\u0085"));
+    assert!(
+        !body
+            .chars()
+            .any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t')),
+        "the N-Triples transport must not contain raw control scalars"
+    );
+
+    let record = parse_conjecture_verdict(&body)
+        .expect("the escaped control-bearing conjecture verdict must remain valid N-Triples");
+    assert_eq!(record.content_key, content_key);
+}
+
+#[test]
 fn promotion_leg_emitted_exactly_on_corroboration() {
     // Corroborated → the POSITIVE promotion leg to a well-typed FormalizationCandidate that
     // carries all eight universal candidate carriers; and NO anti-conjecture obligation leg.

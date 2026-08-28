@@ -39,6 +39,13 @@ CONSOLE_OUT ?= dist/console-smoke
 # repository as `crates/query-wasm` from the workspace `purrdf` pin, so there is no
 # published tarball to bound and no lower bound to keep. See crates/docs/assets/query/.
 PERF_DIR ?= dist/perf
+# Exact arguments for the report-only paired resource sampler. The measured command
+# follows `--`; see docs/rust-test-performance.md for the mandatory 3-5 sample protocol.
+PERF_SAMPLE_ARGS ?=
+# Exact arguments and sample paths for the report-only paired acceptance grader.
+PERF_ACCEPT_ARGS ?=
+# Named protocol/identity/cache arguments for scripts/ci-run-receipt.sh.
+CI_RUN_RECEIPT_ARGS ?=
 # Injected release timestamp for the signed evidence fold (§18 determinism): the
 # HEAD commit's strict-ISO committer date — deterministic per release commit, and
 # overridable (e.g. RELEASE_ISSUED_AT=2026-06-25T00:00:00Z) for reproducible rebuilds.
@@ -114,15 +121,15 @@ wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt $(2) \
 endef
 
 # Re-vendor one built engine into its docs asset dir and re-pin DIGESTS.blake3 from the
-# exact copied bytes, via that asset's bless path. $(1) = engine short name;
-# $(2) = the same name upper-cased, naming the bless environment variable.
+# exact copied bytes via an explicit producer binary. $(1) = engine short name.
 define REVENDOR_WASM_ASSET
 mkdir -p crates/docs/assets/$(1)
 cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm.js             crates/docs/assets/$(1)/gmeow_$(1)_wasm.js
 cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm        crates/docs/assets/$(1)/gmeow_$(1)_wasm_bg.wasm
 cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm.d.ts           crates/docs/assets/$(1)/gmeow_$(1)_wasm.d.ts
 cp crates/$(1)-wasm/js/pkg/gmeow_$(1)_wasm_bg.wasm.d.ts   crates/docs/assets/$(1)/gmeow_$(1)_wasm_bg.wasm.d.ts
-GMEOW_$(2)_BLESS=1 cargo test -p gmeow-docs --test $(1)_asset
+cargo run -p gmeow-docs --example refresh-vendored-asset -- $(1)
+cargo test -p gmeow-docs --test $(1)_asset
 @echo "OK: re-vendored gmeow-$(1)-wasm into crates/docs/assets/$(1)/ (DIGESTS.blake3 re-pinned)"
 endef
 
@@ -139,41 +146,70 @@ FUZZ_TARGETS = nquads gts shacl sssom statements logic query clif cgif xcl
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
 CHECK_ARGS ?=
+NEXTEST_VERSION := 0.9.137
+NEXTEST_ARCHIVE ?= dist/nextest/ci.tar.zst
+NEXTEST_ARCHIVE_RECEIPT ?= dist/nextest/receipt.json
+NEXTEST_ARCHIVE_INPUT ?=
+NEXTEST_ARCHIVE_REPLAY_ARGS = $(if $(NEXTEST_ARCHIVE_INPUT),--archive-file "$(NEXTEST_ARCHIVE_INPUT)" --workspace-remap "$(abspath .)",)
+NEXTEST_SHARDS ?= 3
+NEXTEST_FILTER ?=
+NEXTEST_FILTER_ARG := $(if $(NEXTEST_FILTER),-E '$(NEXTEST_FILTER)',)
+NEXTEST_JUNIT_INVENTORY ?= dist/nextest/junit_inventory
+NEXTEST_PERF_SAMPLE ?= dist/nextest/perf_sample
+NEXTEST_PERF_ACCEPT ?= dist/nextest/perf_accept
+RUST_PREBUILD_WORKSPACE_ARGS := --workspace --exclude gmeow-cli --exclude gmeow-lsp
+FIXTURE_TIMINGS_JSON ?=
+FIXTURE_TIMINGS_ARG := $(if $(FIXTURE_TIMINGS_JSON),--timings-json $(FIXTURE_TIMINGS_JSON),)
+REASON_VERIFY_TIMINGS_JSON ?=
+REASON_VERIFY_TIMINGS_ARG := $(if $(REASON_VERIFY_TIMINGS_JSON),--timings-json $(REASON_VERIFY_TIMINGS_JSON),)
+BUNDLE_IMPORT_CACHE_ROOT ?= $(abspath .cache/gmeow-bundle-import)
+# The root and exact source identity form one explicit PRODUCER-BOUND fixture selection.
+# The explicit producer publishes it before tests; every exact-bundle consumer then loads
+# the authenticated pack read-only. Synthetic and tamper cases deliberately miss the exact
+# digest selector and continue through their small direct importer path.
+BUNDLE_IMPORT_CACHE_ENV = GMEOW_BUNDLE_IMPORT_CACHE="$(BUNDLE_IMPORT_CACHE_ROOT)" GMEOW_BUNDLE_IMPORT_SOURCE_SHA256="$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
+BUNDLE_IMPORT_CACHE_ARGS = --bundle-import-cache-root "$(BUNDLE_IMPORT_CACHE_ROOT)" --expected-source-digest "$$(sha256sum generated/dist/gmeow.gts | cut -d ' ' -f1)"
+TEST_FIXTURE_MANIFEST ?= $(abspath .cache/gmeow-sync/test-fixture-manifest-v2.json)
+# The selector is written only by the explicit producer. Each consumer receives its
+# exact digest before process start, so a missing, stale, or test-mutated selector fails
+# rather than causing a dependency walk or producer fallback.
+TEST_FIXTURE_ENV = GMEOW_TEST_FIXTURE_MANIFEST="$(TEST_FIXTURE_MANIFEST)" GMEOW_TEST_FIXTURE_MANIFEST_SHA256="$$(sha256sum "$(TEST_FIXTURE_MANIFEST)" | cut -d ' ' -f1)"
 
 # The CI-only breadth lane (`make heavy`). Every task here was lifted OFF `make check`
 # because its runtime is dominated by breadth or by a repeat-for-confidence loop rather
 # than by the change under test; each remains individually runnable by name.
-HEAVY_TASKS := wasm-parity acceptance bench-soak medium-consumer-surface
+HEAVY_TASKS := wasm-parity console-smoke acceptance bench-soak medium-consumer-surface
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
-RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
+RUST_INPUTS := Makefile Cargo.toml Cargo.lock .cargo/config.toml .config/nextest.toml rust-toolchain.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
+TEST_FIXTURE_TOOL := $(CARGO_TARGET_DIR)/debug/gmeow-dev
 
 print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
 	@echo "$(BINARYEN_VER)"
 
 .PHONY: help print-binaryen-ver \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
-	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-build rust-test rust-docs check heavy check-sync \
+	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-prebuild rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
-	constitution-check crate-check lint-alignment doc-lint rust-gate nextest doctests coherence-gate-teeth clippy carrier-purity wasm \
+	constitution-check crate-check lint-alignment doc-lint rust-gate test-corpus-purity produce-test-fixtures produce-producer-independent-test-fixtures produce-producer-bound-test-fixtures produce-bundle-import-test-fixture verify-test-fixtures verify-producer-independent-test-fixtures verify-producer-bound-test-fixtures verify-bundle-import-test-fixture nextest nextest-evidence-tools nextest-archive nextest-archive-verify doctests coherence-gate-teeth clippy carrier-purity wasm \
 	wasm-parity validate-wasm-pkg validate-wasm-pkg-test reason-wasm-pkg reason-wasm-pkg-test gmn-wasm-pkg gmn-wasm-pkg-test query-wasm-pkg query-wasm-pkg-test \
 	mcp-wasm-pkg mcp-wasm-pkg-test mcp-core-wasm-pkg mcp-core-wasm-pkg-test \
 	console-test console console-smoke console-assemble npm-publish-dry npm-consumable \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
-	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
-	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
-	maint-extract maint-refresh-target-axioms maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
+	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate perf-sample perf-accept perf-ci-receipt \
+	maint-bump-purrdf maint-extract maint-refresh-target-axioms maint-refresh-validate-asset maint-refresh-reason-asset maint-refresh-conjecture-witness maint-refresh-describe-witness maint-refresh-reviewed-coverage-golden maint-refresh-gmn-asset maint-refresh-query-asset maint-wikidata-live \
+	maint-extract maint-refresh-target-axioms maint-refresh-mcp-witness maint-refresh-mcp-asset maint-refresh-mcp-core-asset \
 	maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
 	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep \
 	maint-medium-model-facing-diff maint-rust-heavy \
-	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
+	maint-external-corpora maint-tptp-corpus \
 	maint-chasebench-corpus maint-gmn-cost-matrix
 
 ##@ Core Workflows
@@ -196,19 +232,21 @@ fmt: ## Rewrite Rust formatting with cargo fmt.
 lint-issue-refs: ## Reject issue/PR number references in Rust comments, Markdown docs, and TOML config.
 	./scripts/lint-issue-refs.sh
 
-lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).
+test-corpus-purity: ## Reject every direct or indirect corpus producer reachable from tests.
+	./scripts/lint-test-corpus-producers.sh
+
+lint: ## Run fast pre-commit hygiene (Rust fmt, spelling, YAML/actions, secrets, and source-policy seals).
 	pre-commit run --all-files --show-diff-on-failure
 
-# The `clippy` DAG node owns the aggregate gate's one full clippy invocation. Keep the
-# standalone `lint` target complete, but skip only that duplicate hook when `check`
-# composes the same pre-commit suite alongside `clippy`. `lint-issue-refs` remains an
-# always-run hook and therefore still executes exactly once in both entry points.
+# Clippy is deliberately not a commit hook: it is a compiled whole-workspace gate owned
+# exactly once by the dedicated `clippy` node. Both lint targets therefore run the same
+# fast source hygiene with no skip environment or hidden second Rust build.
 # `check-lint` reads only the git-tracked tree (`/generated/` is gitignored in full),
 # which is why the DAG starts it immediately rather than after `sync`.
 check-lint:
-	SKIP=cargo-clippy pre-commit run --all-files --show-diff-on-failure
+	pre-commit run --all-files --show-diff-on-failure
 
-validate: ## Validate syntax, term annotations, merged SHACL, and mapping/statement/test DSL SHACL (per-example and slice-test SHACL run in the Rust test gate).
+validate: ## Validate syntax, term annotations, merged SHACL, and central mapping/statement/test DSL SHACL.
 	$(GMEOW_DEV) validate
 
 reason: ## Run the native Docker-free EL/DL reasoning authority.
@@ -218,11 +256,15 @@ verify: ## Run native reasoned-graph negative tests.
 	$(GMEOW_DEV) verify --mode native
 
 reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
-	$(GMEOW_DEV) reason-verify
+	$(GMEOW_DEV) reason-verify $(REASON_VERIFY_TIMINGS_ARG)
 
-rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
+rust-build: test-corpus-purity $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
-rust-test: nextest doctests ## Run the Rust workspace tests and doctests.
+rust-prebuild: test-corpus-purity ## Compile every producer-independent CI test unit; the resulting gmeow-dev binary owns fixture produce/verify (CI handoff; generated/ not required).
+	cargo nextest run --no-run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS)
+	test -x $(TEST_FIXTURE_TOOL)
+
+rust-test: nextest doctests ## Run the Rust workspace tests (including carrier/coherence proofs) and doctests.
 
 gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized GTS payload frame, and the declared medium each frame is primed with.
 	$(GMEOW_DEV) gts-frame-profile generated/dist/gmeow.gts
@@ -230,21 +272,21 @@ gts-frame-profile-gate: ## Enforce zstd-rsyncable level 12 on every materialized
 medium-gate: ## Audit the whole medium axis of the materialized bundle: every frame decoded, every envelope re-derived, every dictionary paid for, and the declared reader contract matched.
 	$(GMEOW_DEV) medium-gate generated/dist/gmeow.gts
 
-medium-consumer-surface: rust-build ## HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites: the `gmeow medium` verbs and `gmeow-dev medium-gate`, each over a bundle a whole in-memory DAG run emitted.
+medium-consumer-surface: test-corpus-purity ## HEAVY (CI-only lane, `make heavy`) the two CONSUMER-SURFACE medium suites over the authenticated producer-materialized bundle.
 	@# Lifted off `make check` under P6 criterion 2 (docs/GATE-AND-PIPELINE.md): each of
-	@# these two suites runs the WHOLE production DAG in memory and then drives a shipped
-	@# CLI over its output plus a real runtime store and five tampered breach fixtures, so
-	@# its runtime is set by the breadth of the pipeline rather than by the edit under
-	@# test. Both reserve the host (`threads-required = "num-cpus"`), so on the local gate
-	@# they also serialize everything else behind them.
+	@# these suites drives a shipped CLI over the whole authenticated producer bundle in
+	@# place. They never write a runtime store, copy the bundle, or create tampered corpus
+	@# derivatives; launching the production DAG again inside a test adds no contract.
 	@#
 	@# What they prove is a CONSUMER-verb contract over shipped bytes; the axis's own
-	@# razor — the emission is the same claim under a second declared medium, and the
-	@# shipped bundle's medium is whole — stays ON `make check` as `medium_identity_gate`
-	@# and `medium_bundle`, which are change-dominated. The default nextest filter
+	@# shipped bundle's medium is whole — stays on `make check` in the read-only
+	@# `medium_bundle` audit. The default nextest filter
 	@# excludes exactly these two binaries, so `maint-heavy` is the profile that can see
 	@# them.
-	cargo nextest run --profile maint-heavy \
+	@# There is deliberately no local regeneration fallback. The exact generated bundle,
+	@# bundle-import cache, and stage receipts must already exist; every loader fails closed
+	@# on a miss or identity mismatch before any consumer assertion runs.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run $(NEXTEST_ARCHIVE_REPLAY_ARGS) --profile maint-heavy \
 	  -E '(package(gmeow-cli) & binary(medium_cli)) | (package(gmeow-dev-cli) & binary(medium_gate))'
 
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
@@ -252,7 +294,7 @@ rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc
 
 lsp-build: lsp-release ## Build the gmeow-lsp binary.
 
-lsp-release: $(RUST_READY_STAMP) ## Build the gmeow-lsp release binary and stage it into dist/bin/.
+lsp-release: ## Build the gmeow-lsp release binary and stage it into dist/bin/ without compiling unrelated test binaries.
 	cargo build -p gmeow-lsp --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
@@ -536,25 +578,61 @@ lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
 doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 	$(GMEOW_DEV) doc-lint
 
-# The four Rust lanes are INDEPENDENT once `rust-build` has warmed the workspace: none
-# reads another's output, so the `check` DAG schedules them as concurrent siblings
-# (crates/xtask/src/main.rs, AFTER_RUST_BUILD) instead of one serial node. `rust-gate`
-# below stays as the aggregate alias for a human who wants the whole Rust surface in
-# one command; the gate never runs it, so nothing is executed twice.
-rust-gate: rust-build carrier-purity clippy nextest doctests ## Aggregate alias: the whole Rust surface (carrier purity, clippy, nextest, doctests). `make check` schedules the four parts concurrently instead.
-	@echo "rust-gate: carrier-purity, clippy, nextest, and doctests all passed"
+# The three Rust lanes are INDEPENDENT once `rust-build` has warmed the workspace: none
+# reads another's output, so the `check` DAG schedules them as concurrent siblings.
+# Carrier purity and coherence teeth live in the single nextest inventory/archive rather
+# than spawning duplicate workspace builds. `rust-gate` remains the aggregate alias.
+rust-gate: rust-build clippy nextest doctests ## Aggregate alias: the whole Rust surface; nextest owns carrier/coherence proofs from the shared inventory.
+	@echo "rust-gate: clippy, nextest (including carrier/coherence), and doctests all passed"
 
-nextest: rust-build ## Run the Rust workspace test suite on the gate profile.
-	@# The docs-model fixture is primed once, in-process, before the suite: without it
-	@# every docs test rebuilds the same DocsModel in its own process.
-	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+produce-test-fixtures: rust-build ## Explicitly produce exact content-addressed corpus fixtures before any test runner starts.
+	@# This is a producer DAG stage, not test setup. No test target invokes it.
+	$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope all $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+
+produce-producer-independent-test-fixtures: ## Explicitly produce test-profile DAG-stage fixtures before generated/ is available.
+	$(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-independent $(FIXTURE_TIMINGS_ARG)
+
+produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
+	$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+
+produce-bundle-import-test-fixture: rust-build ## Explicitly produce only exact bundle-bound fixtures for focused consumer diagnosis.
+	$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope bundle $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+
+verify-test-fixtures: ## Authenticate all required test fixtures read-only; fail on every miss or identity mismatch.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope all $(BUNDLE_IMPORT_CACHE_ARGS)
+
+verify-producer-independent-test-fixtures: ## Authenticate test-profile DAG-stage fixtures read-only.
+	$(TEST_FIXTURE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope producer-independent
+
+verify-producer-bound-test-fixtures: ## Authenticate docs and exact generated-bundle import fixtures read-only.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS)
+
+verify-bundle-import-test-fixture: ## Authenticate only the exact generated-bundle import fixture read-only.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope bundle $(BUNDLE_IMPORT_CACHE_ARGS)
+
+nextest: rust-build verify-test-fixtures ## Run the Rust workspace test suite on the gate profile without any corpus producer path.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG) $(NEXTEST_FILTER_ARG)
+
+nextest-evidence-tools: ## Build the exact report-only resource/JUnit tools shipped beside the test archive.
+	mkdir -p $(dir $(NEXTEST_ARCHIVE))
+	cargo build --profile test -p gmeow-perf-evidence --bins
+	cp $(CARGO_TARGET_DIR)/debug/junit_inventory $(NEXTEST_JUNIT_INVENTORY)
+	cp $(CARGO_TARGET_DIR)/debug/perf_sample $(NEXTEST_PERF_SAMPLE)
+	cp $(CARGO_TARGET_DIR)/debug/perf_accept $(NEXTEST_PERF_ACCEPT)
+
+nextest-archive: rust-build nextest-evidence-tools verify-test-fixtures ## Build one authenticated CI-profile nextest archive after read-only fixture verification.
+	mkdir -p $(dir $(NEXTEST_ARCHIVE))
+	cargo nextest archive --profile ci --workspace --archive-file $(NEXTEST_ARCHIVE)
+	./scripts/nextest-archive-receipt.sh write $(NEXTEST_ARCHIVE) $(NEXTEST_ARCHIVE_RECEIPT) $(NEXTEST_SHARDS) $(NEXTEST_VERSION)
+
+nextest-archive-verify: ## Verify an existing nextest archive receipt and exact slice partition coverage.
+	./scripts/nextest-archive-receipt.sh verify $(NEXTEST_ARCHIVE) $(NEXTEST_ARCHIVE_RECEIPT) $(NEXTEST_SHARDS) $(NEXTEST_VERSION)
 
 doctests: rust-build ## Run the Rust workspace doctests.
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
-coherence-gate-teeth: rust-build ## Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
-	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_.*gate/)'
+coherence-gate-teeth: rust-build verify-bundle-import-test-fixture ## Run the whole-ontology poisoned-witness and relator-mediation gate-teeth proofs.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_.*gate/)'
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
@@ -571,7 +649,7 @@ carrier-purity: rust-build ## Prove the pipeline inter-stage carrier/transport p
 	@# `Store` is gone. Excludes source-file parsing / the DAG loader (ingestion, not
 	@# transport). The bundled negative-arm unit test proves the detector flags a
 	@# reintroduced accumulation.
-	cargo nextest run -p gmeow-pipeline --test carrier_purity
+	cargo nextest run -p gmeow-pipeline --test carrier_purity --ignore-default-filter
 	@echo "OK: pipeline carrier/transport path is oxigraph-Store-free (native gmeow_xsd literal canon, no sanctioned residual)"
 
 
@@ -594,7 +672,8 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 			fi; \
 		done; \
 		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm (Tier-1 SHACL + the GMN-1 codec validator) build for wasm32 =="; \
-		$(WASM_CARGO) build -p gmeow-validate --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate does not build for wasm32-unknown-unknown"; exit 1; }; \
+		: "Build the Tier-1 library surface, not the package's native-only junit_inventory CI evidence binary."; \
+		$(WASM_CARGO) build -p gmeow-validate --lib --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate library does not build for wasm32-unknown-unknown"; exit 1; }; \
 		: "gmeow-validate-wasm now also carries the GMN-1 validator (gmn_validate: gmn1_read against the embedded codebook). Its build pulls gmeow-lang-bridge's codec + dictionary; the codec path is reasoner-free and its tiktoken-rs glyph-cost analytics are cfg(not(wasm32))-gated off, so this same build proves the GMN path compiles wasm-clean."; \
 		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
 		echo "== purity gate: no reasoner / native-only crate may appear in the validator wasm dep tree (incl. the GMN-1 codec path) =="; \
@@ -683,7 +762,14 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 reason-wasm-pkg: ## Build the gmeow-reason-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).
 	$(call BUILD_WASM_PKG,reason,)
 
-maint-refresh-reason-asset: reason-wasm-pkg-test ## Re-vendor the gmeow-reason-wasm engine into crates/docs/assets/reason/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
+maint-refresh-conjecture-witness: ## Refresh the verified native conjecture attestation consumed read-only by native/wasm parity tests.
+	cargo run -p gmeow-reason-wasm --example refresh-witness-conjecture
+
+maint-refresh-reason-asset: ## Refresh the conjecture witness, prove Node parity, then re-vendor the reasoner and its BLAKE3 manifest.
+	$(MAKE) maint-refresh-conjecture-witness
+	$(MAKE) reason-wasm-pkg
+	cd crates/reason-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-reason-wasm Node native↔wasm parity witness lane passed"
 	$(call REVENDOR_WASM_ASSET,reason,REASON)
 
 reason-wasm-pkg-test: reason-wasm-pkg ## Build the reasoner npm package and run its Node native↔wasm parity witness lane.
@@ -767,7 +853,14 @@ mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-b
 	wasm-opt -Oz --enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int -o crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm crates/mcp-wasm/js/pkg/gmeow_mcp_wasm_bg.wasm
 	@echo "OK: wasm-opt -Oz applied"
 	@echo "OK: gmeow-mcp-wasm npm package built (crates/mcp-wasm/js/, pkg/ generated)"
-maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reasoning segment into crates/docs/assets/mcp/ and re-pin its BLAKE3 manifest (only after the Node native<->wasm parity lane passes).
+maint-refresh-mcp-witness: ## Refresh the deterministic native MCP response attestation consumed read-only by native/wasm parity tests.
+	cargo run -p gmeow-mcp-wasm --example refresh-witness-mcp
+
+maint-refresh-mcp-asset: mcp-wasm-pkg maint-refresh-mcp-witness ## Refresh the native witness, prove parity, then re-vendor the reasoning segment and digest manifest.
+	@# The explicit maintainer producer above runs BEFORE either parity consumer. Tests are
+	@# read-only and never bless, repair, regenerate, or otherwise mutate their attestation.
+	cd crates/mcp-wasm/js && node --test tests/*.test.mjs
+	@echo "OK: gmeow-mcp-wasm Node native↔wasm parity witness lane passed"
 	@# The re-pin drives the SHARED vendored-wasm-asset harness through the `MCP_ASSET`
 	@# descriptor (`gmeow_docs::vendored_asset`). The vendored set is a TREE, not a flat
 	@# list: `index.mjs` imports `./pkg/<mod>.js`, so the wasm-bindgen output keeps its
@@ -786,7 +879,7 @@ maint-refresh-mcp-asset: mcp-wasm-pkg-test ## Re-vendor the gmeow-mcp-wasm reaso
 	@# reads DIGESTS.blake3 while `vendored_mcp_reasoning_segment_passes_the_anti_rot_gate`
 	@# is rewriting it, so a refresh that genuinely moved bytes failed on a stale read and
 	@# then passed on a re-run — a gate that has to be run twice is not a gate.
-	GMEOW_MCP_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_reasoning_segment_passes_the_anti_rot_gate
+	cargo run -p gmeow-docs --example refresh-vendored-asset -- mcp
 	cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-wasm into crates/docs/assets/mcp/ (DIGESTS.blake3 re-pinned)"
 maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-core-wasm first-load segment into crates/docs/assets/mcp-core/ and re-pin its BLAKE3 manifest (only after the Node parity + demand-load lane passes).
@@ -802,7 +895,7 @@ maint-refresh-mcp-core-asset: mcp-core-wasm-pkg-test ## Re-vendor the gmeow-mcp-
 	cp crates/mcp-core-wasm/js/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts  crates/docs/assets/mcp-core/pkg/gmeow_mcp_core_wasm_bg.wasm.d.ts
 	cp crates/mcp-core-wasm/tests/WITNESS.core-deferral.json         crates/docs/assets/mcp-core/WITNESS.core-deferral.json
 	@# Blessed alone then verified in full, for the reason spelled out on maint-refresh-mcp-asset.
-	GMEOW_MCP_CORE_BLESS=1 cargo test -p gmeow-docs --test mcp_asset -- --exact vendored_mcp_core_segment_passes_the_anti_rot_gate
+	cargo run -p gmeow-docs --example refresh-vendored-asset -- mcp-core
 	cargo test -p gmeow-docs --test mcp_asset
 	@echo "OK: re-vendored gmeow-mcp-core-wasm into crates/docs/assets/mcp-core/ (DIGESTS.blake3 re-pinned)"
 mcp-wasm-pkg-test: mcp-wasm-pkg ## Build the MCP engine npm package and run its Node native↔wasm parity witness lane.
@@ -872,7 +965,7 @@ console: ## Assemble the standalone <gmeow-console> tree into $(CONSOLE_OUT) —
 	@# SYNC_OUTPUTS=docs`), which is why
 	@# CONSOLE_OUT defaults to a scratch base.
 	$(GMEOW_DEV) console-assemble --out $(CONSOLE_OUT)
-console-smoke: console ## Drive the ASSEMBLED console in a real browser: the deployed leg, the published tarball, and the byte ceiling.
+console-smoke: console ## HEAVY (CI-only lane, `make heavy`) drive the assembled console's whole browser/package breadth sweep.
 	@# The browser surface IS the deliverable, and this is the only lane that executes it.
 	@# It serves $(CONSOLE_OUT) over plain static HTTP with NO COOP/COEP — exactly what
 	@# GitHub Pages provides — and drives /console/ in headless Chromium: the derived pane
@@ -880,10 +973,11 @@ console-smoke: console ## Drive the ASSEMBLED console in a real browser: the dep
 	@# single-threaded contract, the measured page load and pre-cache ceiling, and the REAL `npm pack`
 	@# tarball installed into a scratch project and booted the way the shipped README says.
 	@#
-	@# It HARD-FAILS EVERYWHERE. There is deliberately no local skip and no CI-only branch:
-	@# a locally-green gate that quietly skipped the browser is precisely how a published
-	@# console that could not boot at all went undetected. A missing dependency is a missing
-	@# dependency — the two commands that install it are named below, verbatim.
+	@# Its runtime is set by breadth — 41 browser cases spanning the whole read surface,
+	@# offline installation, package installation, and perturbed deployment trees — so it
+	@# lives in `make heavy` and runs on every PR as its own CI matrix branch. It remains
+	@# directly runnable by name and HARD-FAILS when invoked without its dependencies; the
+	@# two commands that install them are named below, verbatim.
 	@command -v node >/dev/null 2>&1 || { \
 		echo "FAIL: node is not installed — the console browser smoke lane cannot run and is not skippable."; \
 		echo "      Install Node (>=18), then:"; \
@@ -954,23 +1048,17 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 	@# never silently unverified on the gating path.
 	@if rustc --print target-list | grep -qx wasm32-unknown-unknown && rustup target list --installed 2>/dev/null | grep -qx wasm32-unknown-unknown && command -v node >/dev/null 2>&1; then \
 		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test query-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
-		$(MAKE) wasm validate-wasm-pkg-test reason-wasm-pkg-test gmn-wasm-pkg-test mcp-wasm-pkg-test mcp-core-wasm-pkg-test; \
 	elif [ -n "$${CI:-}" ]; then \
 		echo "FAIL: wasm32-unknown-unknown target or node absent in CI — the native≡wasm parity witnesses cannot run; CI must install both"; exit 1; \
 	else \
 		echo "SKIP: wasm32-unknown-unknown target or node not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' + install node to run the native≡wasm parity lanes"; \
 	fi
 
-maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
-	cargo run -q --package gmeow-docs --example prime-docs-fixture
-	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
-	$(MAKE) maint-dev-cli-heavy
+maint-rust-heavy: rust-build verify-test-fixtures ## Run the Rust suite INCLUDING the off-gate heavy tests, with corpus fixtures strictly read-only.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
 
-maint-dev-cli-heavy: rust-build ## Run the off-gate gmeow-dev CLI heavy parity lane (whole-pipeline/gate commands: feedback, validate, logic compile --check, up-projection-audit).
-	GMEOW_DEV_CLI_HEAVY=1 cargo nextest run -p gmeow-dev-cli --run-ignored ignored-only $(NEXTEST_PARTITION_ARG)
-
-slicetest: ## Run the slice-resident test-DSL harness in isolation.
-	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
+slicetest: rust-build verify-producer-bound-test-fixtures ## Run focused synthetic checks for the slice engine; declarative repository specs are already covered by the authenticated producer verdict.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
 	cargo test --doc -p gmeow-slicetest
 
 conformance: ## Run the native logic conformance harness in isolation.
@@ -979,9 +1067,9 @@ conformance: ## Run the native logic conformance harness in isolation.
 conformance-report: ## Materialize the logic conformance suite verdicts as a foldable release artifact (§18).
 	cargo run -p gmeow-conformance --bin conformance-report -- --out generated/conformance/verdicts.json
 
-insta-review: ## Regenerate intentional insta snapshot goldens, then verify determinism.
-	INSTA_UPDATE=always cargo nextest run $(NEXTEST_PARTITION_ARG)
-	INSTA_UPDATE=no cargo nextest run $(NEXTEST_PARTITION_ARG)
+insta-review: rust-build verify-test-fixtures ## Regenerate intentional insta snapshot goldens, then verify determinism.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) INSTA_UPDATE=always cargo nextest run $(NEXTEST_PARTITION_ARG)
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) INSTA_UPDATE=no cargo nextest run $(NEXTEST_PARTITION_ARG)
 
 ##@ CI And Report-Only Work
 
@@ -1012,8 +1100,17 @@ perf-gate: ## Report-only timings for validate, generated drift, reason, and ver
 	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
 
-rust-coverage: ## Generate report-only Rust region coverage.
-	cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info
+perf-sample: ## Record one exact paired wall/CPU/RSS/I/O sample (PERF_SAMPLE_ARGS required).
+	cargo run -q -p gmeow-perf-evidence --bin perf_sample -- $(PERF_SAMPLE_ARGS)
+
+perf-accept: ## Grade 3-5 paired cold/warm/partial samples against the predeclared 2x contract.
+	cargo run -q -p gmeow-perf-evidence --bin perf_accept -- $(PERF_ACCEPT_ARGS)
+
+perf-ci-receipt: ## Capture one successful Actions run's actual job graph and critical path.
+	./scripts/ci-run-receipt.sh $(CI_RUN_RECEIPT_ARGS)
+
+rust-coverage: rust-build verify-test-fixtures ## Generate report-only Rust region coverage.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info
 	cargo llvm-cov report --html
 
 mutants: ## Run report-only cargo-mutants over the configured scope.
@@ -1029,6 +1126,12 @@ maint-extract: ## Run import/extract policy for TARGET.
 
 maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
+
+maint-refresh-reviewed-coverage-golden: ## Refresh the deterministic reviewed-translation coverage golden from all live slice catalogs.
+	cargo run -p gmeow-docs --example refresh-reviewed-coverage-golden
+
+maint-refresh-describe-witness: ## Refresh the verified object-level explorer description attestation.
+	cargo run -p gmeow-mcp --example refresh-witness-describe
 
 maint-refresh-validate-asset: validate-wasm-pkg-test ## Re-vendor the gmeow-validate-wasm engine into crates/docs/assets/validate/ and re-pin its BLAKE3 manifest (only after the Node native↔wasm parity lane passes).
 	$(call REVENDOR_WASM_ASSET,validate,VALIDATE)
@@ -1335,13 +1438,6 @@ maint-tptp-corpus: ## Grade the native FOL path against a live/local TPTP subset
 	'
 	@echo "TPTP Lane-B grading complete; divergences in generated/conformance/divergence-tptp.nq"
 
-maint-lang-selfhost: ## Gate-3 self-hosting differential: parse the repo's own slices/**/*.ttl with the native purrdf codec and check the lifted turtle.ebnf grammar structurally covers every construct the corpus exercises.
-	# Off-gate corpus sweep (marked #[ignore]); runs with ZERO config against the
-	# repo's own slices/ Turtle tree. Set GMEOW_TTL_CORPUS to point at a larger
-	# external Turtle corpus. The lane hard-fails if the corpus is missing/empty or
-	# if any repo document is not valid Turtle the sanctioned parser accepts.
-	cargo test -p gmeow-lang-bridge --test grammar -- --ignored maint_grammar_selfhost_differential
-
 # The scratch dir the Lane-B OntoUML grade reads catalog models from (ontology.ttl /
 # model.ttl). Populate it from a local `ontouml-models` checkout, or set
 # ONTOUML_SUBSET_URL to a tarball of a catalog subset. Defaults to a gitignored
@@ -1461,5 +1557,10 @@ maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix ov
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)
-	cargo nextest run --no-run $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+	@# Match the exact nextest profile consumed by the required suite and CI archive. A
+	@# default-profile prebuild is a different inventory and makes both consumers rebuild.
+	cargo nextest run --no-run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
+	@# The already-built repository-maintenance binary owns both sides of the fixture
+	@# boundary. A second example/binary build here would create a duplicate feature lineage.
+	test -x $(TEST_FIXTURE_TOOL)
 	@touch $@

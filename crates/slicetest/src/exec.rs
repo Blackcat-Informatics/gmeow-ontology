@@ -3,10 +3,10 @@
 
 //! The three cell executors and their per-file aggregators.
 //!
-//! `datatest-stable` invokes one aggregator per discovered `tests/*.ttl` spec
-//! file; the aggregator runs every cell in the file and collects each failure,
-//! so one nextest case reports ALL failing cells in that file (each anchored to
-//! its cell IRI) rather than only the first.
+//! The explicit repository producer invokes one aggregator per discovered
+//! `tests/*.ttl` spec file. Each aggregator runs every cell in the file and
+//! collects every failure (anchored to its cell IRI) rather than stopping at the
+//! first. The cached repository verdict, not a nextest case, owns the result.
 //!
 //! * Competency questions run over the merged ontology ([`crate::stores`]):
 //!   the asserted graph by default, or its RDFS closure when the question sets
@@ -48,7 +48,7 @@ use crate::stores::{merged_store, native_closed_store, rdfs_closed_store};
 /// sorted so row identity is independent of projection/iteration order.
 type CanonRow = Vec<(String, String)>;
 
-// ── Per-file aggregators (the datatest-stable entry points) ─────────────────────
+// ── Per-file aggregators (the explicit producer entry points) ──────────────────
 
 /// Run every competency question in a `competency.ttl` spec file.
 ///
@@ -220,18 +220,24 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
     // therefore see all three canonical modules, which lets a lang: denotation of a
     // math:-owned class observe its authoritative owl:Class type without duplicating
     // that declaration in lang: (Principle 4).
-    let owned_module =
-        native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
+    // `scope_shapes_to_slice` recovers the slice's ontology authority by scanning the
+    // module for `?s a owl:Ontology`, and the generated shape set is written against
+    // the OWL/RDFS surface — so this owning module, like the conformance data below,
+    // must carry the `owl:`/`rdfs:` projection of its canonical `logic:` vocabulary
+    // (the authored surface spells the header `logic:Ontology`).
+    let owned_module = native_query::with_owl_rdfs_projection(
+        &native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
             Diag::of_kind(DatasetRead {
                 detail: format!("building module dataset: {e}"),
             })
-        })?;
+        })?,
+    );
     // The shape set is the GENERATED SHACL projection, written against the OWL/RDFS
     // surface; the module is the CANONICAL authored surface. Lower the module's
-    // canonical subsumption edges into their `rdfs:` projection (once, shared by
-    // every cell) so both sides of the validation speak the same surface — see
-    // `native_query::with_rdfs_subsumption_projection`.
-    let module = native_query::with_rdfs_subsumption_projection(
+    // canonical `logic:` vocabulary into its complete `owl:`/`rdfs:` projection
+    // (once, shared by every cell) so both sides of the validation speak the same
+    // surface — see `native_query::with_owl_rdfs_projection`.
+    let module = native_query::with_owl_rdfs_projection(
         &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir)).map_err(
             |e| {
                 Diag::of_kind(DatasetRead {
@@ -641,11 +647,16 @@ fn run_structural_cell(
             if sa.scope == Scope::ModuleAndExamples {
                 sources.extend(example_ttls(&paths::examples_dir(slice_dir))?);
             }
-            let built = native_query::dataset_from_files(&sources).map_err(|e| {
+            let raw = native_query::dataset_from_files(&sources).map_err(|e| {
                 Diag::of_kind(DatasetRead {
                     detail: format!("building scoped dataset for structural assertion: {e}"),
                 })
             })?;
+            // Structural ASK patterns are authored against the OWL/RDFS surface
+            // (`gmeow:Agreement a owl:Class ; rdfs:subClassOf …`), so lower the
+            // canonical `logic:` module onto its complete `owl:`/`rdfs:` projection —
+            // the same view the conformance cells validate against.
+            let built = native_query::with_owl_rdfs_projection(&raw);
             *cache = Some(Arc::clone(&built));
             built
         }
@@ -677,7 +688,7 @@ fn run_structural_cell(
     // unioned with the module only (never examples), isolating the injected violation.
     if let Some(witness_rel) = &sa.fail_witness {
         let witness_path = slice_dir.join(witness_rel);
-        let witnessed = native_query::dataset_from_files(&[
+        let witnessed_raw = native_query::dataset_from_files(&[
             paths::module_file(slice_dir),
             witness_path.clone(),
         ])
@@ -689,6 +700,10 @@ fn run_structural_cell(
                 ),
             })
         })?;
+        // Same OWL/RDFS projection the module cell uses, so the witnessed run and the
+        // primary run evaluate the ASK over the SAME surface (an owl:/rdfs:-spelled
+        // ban must trip on the projected witness, not read a bare `logic:` graph).
+        let witnessed = native_query::with_owl_rdfs_projection(&witnessed_raw);
         let witness_holds = run_ask(&witnessed, pattern)?;
         let tripped = match sa.polarity {
             Polarity::Must => !witness_holds,
@@ -771,10 +786,10 @@ fn run_conformance_cell(
 ) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
     // Lowered onto the shape set's own OWL/RDFS surface for the same reason the
-    // module is (`native_query::with_rdfs_subsumption_projection`): an example that
-    // authors a canonical subsumption edge must be visible to a shape written
-    // against the projection.
-    let example = native_query::with_rdfs_subsumption_projection(
+    // module is (`native_query::with_owl_rdfs_projection`): an example that authors
+    // a canonical `logic:` edge (subsumption, restriction, axiom) must be visible to
+    // a shape written against the projection.
+    let example = native_query::with_owl_rdfs_projection(
         &native_query::dataset_from_file(&example_path).map_err(|e| {
             Diag::of_kind(DatasetRead {
                 detail: format!("parsing example {}: {e}", example_path.display()),
@@ -812,10 +827,8 @@ fn run_conformance_cell(
             // `Warning` results (e.g. the advisory-tier `logic:severity "Info"`
             // constraints) are non-gating per spec, so an advisory finding must
             // NOT turn an "expected conformance" cell into a failure. Filter to
-            // Violation-severity results before deciding (mirrors
-            // `gmeow_validate::advisory::split_advisory_results`'s recomputed
-            // `conforms`, and `crates/validate/tests/example_sweep.rs`'s
-            // `conforms_to_shacl`).
+            // Violation-severity results before deciding (mirrors the shipped
+            // `gmeow_validate::advisory::split_advisory_results` recomputation).
             let violations = || {
                 report
                     .results
@@ -1146,8 +1159,8 @@ impl NativeChannelBaseline {
 /// The checks this channel exists to reach — the `math:` probability, distribution,
 /// dependency-model, projection and ingest invariants — are decided from the data's own
 /// asserted types and values, so they are namespace-grading-independent and a bare config
-/// exercises them fully. It is the same shape `gmeow_validate`'s own integration tests
-/// and the pipeline execution-discharge harnesses build.
+/// exercises them fully. The explicit slice-spec producer owns this configuration;
+/// test binaries cannot invoke the repository sweep.
 fn conformance_lint_config() -> LintConfig {
     LintConfig {
         namespace: gmeow_ns::GMEOW_NS.to_owned(),
@@ -1560,6 +1573,20 @@ mod tests {
         store_from_turtle("@prefix ex: <https://example.org/> .\nex:a a ex:Thing .\n")
     }
 
+    fn authenticated_shape_union() -> &'static str {
+        static SHAPES: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+        SHAPES.get_or_init(|| {
+            String::from_utf8(
+                gmeow_bundle_import::load_authenticated_corpus_artifact(
+                    &paths::repo_root(),
+                    "validate-conformance-shapes.ttl",
+                )
+                .expect("load producer-selected conformance shapes read-only"),
+            )
+            .expect("authenticated conformance shapes are UTF-8")
+        })
+    }
+
     #[test]
     fn generated_shape_union_is_scoped_back_to_the_slice_authority() {
         let module = store_from_turtle(
@@ -1832,24 +1859,22 @@ mod tests {
     /// "and NO other finding" unfalsifiable everywhere it is written, so the green half
     /// is the SAME cell with the flag unbound, and the difference between them is the
     /// whole of what the new field buys.
-    #[test]
     fn the_sole_finding_flag_rejects_a_fixture_that_trips_a_second_law() {
         let slice_dir = paths::repo_root().join("slices/grounding/logic");
-        let shape_paths = paths::shapes_files(&slice_dir);
-        let shapes_ttl = shape_paths
-            .iter()
-            .map(|path| std::fs::read_to_string(path).expect("generated shape surface is readable"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        let shapes = parse_shapes(&shapes_ttl).expect("generated shape surface parses");
-        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
-            .expect("the logic module parses");
-        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-            .expect("the grounding kernel modules parse");
+        let shapes_ttl = authenticated_shape_union();
+        let shapes = parse_shapes(shapes_ttl).expect("authenticated shape surface parses");
+        let owned_module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_file(&paths::module_file(&slice_dir))
+                .expect("the logic module parses"),
+        );
+        let module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+                .expect("the grounding kernel modules parse"),
+        );
         let local_shapes = slice_dir.join("shapes.ttl");
         let shapes = scope_shapes_to_slice(
             shapes,
-            &shapes_ttl,
+            shapes_ttl,
             &owned_module,
             local_shapes.is_file().then_some(local_shapes.as_path()),
         )
@@ -1923,24 +1948,22 @@ mod tests {
     /// The two halves are the same cell differing only in the pin: unpinned is rejected as
     /// a cell-configuration failure that names the missing property, and pinned is rejected
     /// for the real reason, naming the SECOND law by shape.
-    #[test]
     fn an_unpinned_sole_finding_claim_is_a_hard_failure() {
         let slice_dir = paths::repo_root().join("slices/grounding/lang");
-        let shape_paths = paths::shapes_files(&slice_dir);
-        let shapes_ttl = shape_paths
-            .iter()
-            .map(|path| std::fs::read_to_string(path).expect("generated shape surface is readable"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        let shapes = parse_shapes(&shapes_ttl).expect("generated shape surface parses");
-        let owned_module = native_query::dataset_from_file(&paths::module_file(&slice_dir))
-            .expect("the lang module parses");
-        let module = native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
-            .expect("the grounding kernel modules parse");
+        let shapes_ttl = authenticated_shape_union();
+        let shapes = parse_shapes(shapes_ttl).expect("authenticated shape surface parses");
+        let owned_module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_file(&paths::module_file(&slice_dir))
+                .expect("the lang module parses"),
+        );
+        let module = native_query::with_owl_rdfs_projection(
+            &native_query::dataset_from_files(&paths::conformance_module_files(&slice_dir))
+                .expect("the grounding kernel modules parse"),
+        );
         let local_shapes = slice_dir.join("shapes.ttl");
         let shapes = scope_shapes_to_slice(
             shapes,
-            &shapes_ttl,
+            shapes_ttl,
             &owned_module,
             local_shapes.is_file().then_some(local_shapes.as_path()),
         )
@@ -1998,6 +2021,15 @@ mod tests {
             "the intruder list must name the second law by shape, not merely by component code \
              (both laws raise shacl.SPARQLConstraintComponent); got: {message}"
         );
+    }
+
+    #[test]
+    fn sole_finding_contract_has_both_pinned_and_unpinned_teeth() {
+        // One authenticated whole-shape parse serves both halves of this single
+        // contract. Under nextest, separate #[test] cases are separate processes and
+        // would each restore and parse the same corpus product.
+        the_sole_finding_flag_rejects_a_fixture_that_trips_a_second_law();
+        an_unpinned_sole_finding_claim_is_a_hard_failure();
     }
 
     /// The DECLARATIVE half of the same requirement has teeth.

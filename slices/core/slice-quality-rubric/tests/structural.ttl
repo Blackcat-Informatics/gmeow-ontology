@@ -69,27 +69,28 @@ ASK {
 
 # --- 5. Every axis binds a producer, a dimension, a scope, and a threshold -----
 ex:saAxesFullyBound a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
+    gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK {
-    gmeow:axisMaximalGrounding    gmeow:axisProducer ?p1 ; gmeow:axisDimension ?d1 ; gmeow:axisContextScope ?s1 ; gmeow:axisThreshold ?t1 .
-    gmeow:axisReasonerDerived     gmeow:axisProducer ?p2 ; gmeow:axisDimension ?d2 ; gmeow:axisContextScope ?s2 ; gmeow:axisThreshold ?t2 .
-    gmeow:axisMaximalInformation  gmeow:axisProducer ?p3 ; gmeow:axisDimension ?d3 ; gmeow:axisContextScope ?s3 ; gmeow:axisThreshold ?t3 .
-    gmeow:axisMaximalLinkage      gmeow:axisProducer ?p4 ; gmeow:axisDimension ?d4 ; gmeow:axisContextScope ?s4 ; gmeow:axisThreshold ?t4 .
-    gmeow:axisMaximalProjection   gmeow:axisProducer ?p5 ; gmeow:axisDimension ?d5 ; gmeow:axisContextScope ?s5 ; gmeow:axisThreshold ?t5 .
-    gmeow:axisOptimalTesting      gmeow:axisProducer ?p6 ; gmeow:axisDimension ?d6 ; gmeow:axisContextScope ?s6 ; gmeow:axisThreshold ?t6 .
-    gmeow:axisDocumentation       gmeow:axisProducer ?p7 ; gmeow:axisDimension ?d7 ; gmeow:axisContextScope ?s7 ; gmeow:axisThreshold ?t7 .
-    gmeow:axisProseQuality        gmeow:axisProducer ?p8 ; gmeow:axisDimension ?d8 ; gmeow:axisContextScope ?s8 ; gmeow:axisThreshold ?t8 .
-    gmeow:axisProvenanceHonesty   gmeow:axisProducer ?p9 ; gmeow:axisDimension ?d9 ; gmeow:axisContextScope ?s9 ; gmeow:axisThreshold ?t9 .
-    gmeow:axisTranslationCoverage gmeow:axisProducer ?p10 ; gmeow:axisDimension ?d10 ; gmeow:axisContextScope ?s10 ; gmeow:axisThreshold ?t10 .
-    gmeow:axisShapeMigration      gmeow:axisProducer ?p11 ; gmeow:axisDimension ?d11 ; gmeow:axisContextScope ?s11 ; gmeow:axisThreshold ?t11 .
-    gmeow:axisFlagshipCounterExampleDepth gmeow:axisProducer ?p12 ; gmeow:axisDimension ?d12 ; gmeow:axisContextScope ?s12 ; gmeow:axisThreshold ?t12 .
-    gmeow:axisGmn1Coverage        gmeow:axisProducer ?p13 ; gmeow:axisDimension ?d13 ; gmeow:axisContextScope ?s13 ; gmeow:axisThreshold ?t13 .
-    gmeow:axisGmnGlyphOptimality  gmeow:axisProducer ?p14 ; gmeow:axisDimension ?d14 ; gmeow:axisContextScope ?s14 ; gmeow:axisThreshold ?t14 .
-    gmeow:axisDocMaturity         gmeow:axisProducer ?p15 ; gmeow:axisDimension ?d15 ; gmeow:axisContextScope ?s15 ; gmeow:axisThreshold ?t15 .
+    VALUES ?axis {
+        gmeow:axisMaximalGrounding gmeow:axisReasonerDerived
+        gmeow:axisMaximalInformation gmeow:axisMaximalLinkage
+        gmeow:axisMaximalProjection gmeow:axisOptimalTesting
+        gmeow:axisDocumentation gmeow:axisProseQuality
+        gmeow:axisProvenanceHonesty gmeow:axisTranslationCoverage
+        gmeow:axisShapeMigration gmeow:axisFlagshipCounterExampleDepth
+        gmeow:axisGmn1Coverage gmeow:axisGmnGlyphOptimality
+        gmeow:axisDocMaturity
+    }
+    FILTER NOT EXISTS {
+        ?axis gmeow:axisProducer ?producer ;
+            gmeow:axisDimension ?dimension ;
+            gmeow:axisContextScope ?scope ;
+            gmeow:axisThreshold ?threshold .
+    }
 }""" ;
-    gmeow:saRationale "Every axis must bind a measurement primitive, an emitted quality dimension, a read-scope coeffect, and at least one tier threshold, because an axis with no producer cannot be scored and an unknown producer is a hard fail rather than a silent skip." .
+    gmeow:saRationale "No declared axis may lack its measurement primitive, emitted quality dimension, read-scope coeffect, or tier threshold, because an axis with no producer cannot be scored and an unknown producer is a hard fail rather than a silent skip; the violation query ranges over axes independently so their multi-valued thresholds never form a meaningless Cartesian product." .
 
 # --- 6. Every exemption is dated and names its producer and axis (MUST) --------
 ex:saExemptionsWellFormed a gmeow:StructuralAssertion ;

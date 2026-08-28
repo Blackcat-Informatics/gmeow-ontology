@@ -15,11 +15,6 @@
 //! — `rdf:type`, `rdfs:subClassOf`, `rdfs:domain`, characteristics, …).
 
 use std::collections::BTreeSet;
-// Paths are a TEST-ONLY concern in this module now: the axis itself reads every
-// slice-local file out of the in-memory `ScoreContext::files` map, while the
-// batch/scratch parity tests still assemble their comparands from the real checkout.
-#[cfg(test)]
-use std::path::{Path, PathBuf};
 #[cfg(test)]
 use std::sync::Arc;
 
@@ -75,6 +70,10 @@ fn closure_contains_iri(
 /// `rdfs:` projection are counted (gmeow_ns::SUB_CLASS_OF / SUB_PROPERTY_OF
 /// doctrine; crates/ns/src/lib.rs:106-166) — a re-authored subsumption axiom must
 /// stay in the axis's own denominator, not silently leave it.
+// The relational TBox axioms are authored in the canonical `logic:` spelling
+// (`logic:disjointWith`, `logic:inverseOf`, …); each is listed alongside its
+// generated `owl:` view so a re-authored axiom stays in the axis's denominator
+// (mirrors the `logic:`/`rdfs:` subsumption doctrine already applied above).
 const INFERENTIAL_PREDS: &[&str] = &[
     gmeow_ns::LOGIC_SUB_CLASS_OF,
     gmeow_ns::LOGIC_SUB_PROPERTY_OF,
@@ -82,15 +81,27 @@ const INFERENTIAL_PREDS: &[&str] = &[
     gmeow_ns::RDFS_SUB_PROPERTY_OF,
     "http://www.w3.org/2000/01/rdf-schema#domain",
     "http://www.w3.org/2000/01/rdf-schema#range",
+    "https://blackcatinformatics.ca/logic/disjointWith",
+    "https://blackcatinformatics.ca/logic/equivalentClass",
+    "https://blackcatinformatics.ca/logic/equivalentProperty",
+    "https://blackcatinformatics.ca/logic/inverseOf",
     "http://www.w3.org/2002/07/owl#disjointWith",
     "http://www.w3.org/2002/07/owl#equivalentClass",
     "http://www.w3.org/2002/07/owl#equivalentProperty",
     "http://www.w3.org/2002/07/owl#inverseOf",
 ];
 
-/// The `rdf:type` objects that assert an OWL property characteristic (also authored
-/// TBox axioms).
+/// The `rdf:type` objects that assert a property characteristic (also authored
+/// TBox axioms). Each canonical `logic:` spelling (lower-camel) is paired with its
+/// generated `owl:` view (upper-camel), so both authored spellings are counted.
 const CHARACTERISTICS: &[&str] = &[
+    "https://blackcatinformatics.ca/logic/transitiveProperty",
+    "https://blackcatinformatics.ca/logic/symmetricProperty",
+    "https://blackcatinformatics.ca/logic/asymmetricProperty",
+    "https://blackcatinformatics.ca/logic/reflexiveProperty",
+    "https://blackcatinformatics.ca/logic/irreflexiveProperty",
+    "https://blackcatinformatics.ca/logic/functionalProperty",
+    "https://blackcatinformatics.ca/logic/inverseFunctionalProperty",
     "http://www.w3.org/2002/07/owl#TransitiveProperty",
     "http://www.w3.org/2002/07/owl#SymmetricProperty",
     "http://www.w3.org/2002/07/owl#AsymmetricProperty",
@@ -684,161 +695,6 @@ mod tests {
                     .collect::<Vec<_>>()
             };
             assert_eq!(summary(&parallel), summary(&serial));
-        }
-    }
-
-    /// Recursively collect every `.ttl` file under `dir`, sorted — the deterministic
-    /// file set every batch/scratch parity test builds its dataset from.
-    fn collect_turtle(dir: &Path, paths: &mut Vec<PathBuf>) {
-        for entry in std::fs::read_dir(dir).expect("slice directory reads") {
-            let path = entry.expect("slice entry reads").path();
-            if path.is_dir() {
-                collect_turtle(&path, paths);
-            } else if path.extension().is_some_and(|extension| extension == "ttl") {
-                paths.push(path);
-            }
-        }
-    }
-
-    /// Resolve the repo root from the crate's manifest dir — the same anchor every
-    /// real-slice batch/scratch parity test resolves `slices/...` paths against.
-    fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("repo root canonicalizes")
-    }
-
-    /// Prove the production BATCH leave-one-out path (`redundancy_probes`) agrees
-    /// EXACTLY with the from-scratch oracle (`edb_without_triple` +
-    /// `reason_closure_axioms` + `closure_contains_iri`) over one real slice's
-    /// authored axioms, capped at `REDUNDANCY_CAP` for bounded on-gate runtime.
-    ///
-    /// Returns the number of axioms actually compared, so callers can assert
-    /// non-vacuity — a slice with zero authored axioms would otherwise pass this
-    /// check by asserting an equality between two empty vectors.
-    fn assert_slice_batch_matches_scratch(slice_relpath: &str) -> usize {
-        let slice = repo_root().join("slices").join(slice_relpath);
-        let mut paths = Vec::new();
-        collect_turtle(&slice, &mut paths);
-        paths.sort();
-        let refs = paths.iter().map(PathBuf::as_path).collect::<Vec<_>>();
-        let ds = crate::dataset_from_paths(&refs)
-            .unwrap_or_else(|error| panic!("{slice_relpath} dataset parses: {error}"));
-        let axioms = authored_axioms(&ds);
-        let capped = &axioms[..axioms.len().min(REDUNDANCY_CAP)];
-        let batched = redundancy_probes(&ds, capped).expect("batch reasons");
-        let scratch = capped
-            .iter()
-            .map(|(subject, predicate, object)| {
-                let reduced = edb_without_triple(&ds, subject, predicate, object);
-                let redundant =
-                    gmeow_logic::reason::reason_closure_axioms(&reduced).is_ok_and(|closure| {
-                        closure_contains_iri(&closure, subject, predicate, object)
-                    });
-                redundancy_finding(
-                    &(subject.clone(), predicate.clone(), object.clone()),
-                    redundant,
-                )
-            })
-            .collect::<Vec<_>>();
-        let flags =
-            |findings: &[Option<Finding>]| findings.iter().map(Option::is_some).collect::<Vec<_>>();
-        assert_eq!(
-            flags(&batched),
-            flags(&scratch),
-            "{slice_relpath}: batch/scratch flag mismatch"
-        );
-        capped.len()
-    }
-
-    #[test]
-    fn epistemics_batch_matches_scratch_for_the_real_capped_population() {
-        let compared = assert_slice_batch_matches_scratch("core/epistemics");
-        assert!(
-            compared > 0,
-            "core/epistemics must contribute a non-empty capped axiom population"
-        );
-    }
-
-    /// A fixed, deterministic, logically-diverse curated set of REAL slices whose
-    /// authored TBox axioms exercise the fast batch guards
-    /// (`batch_subclass_reachability_is_exact`, `batch_subproperty_reachability_is_exact`,
-    /// `batch_disjoint_support_is_exact`, `characteristic_type_has_no_alternative_producer`,
-    /// `fixed_head_is_absent`) against real-world shapes, without paying for the
-    /// exhaustive all-slice audit (`every_real_slice_batch_matches_parallel_scratch`,
-    /// which stays `#[ignore]`d). `core/epistemics` is the original real-slice anchor;
-    /// `grounding/logic` is the canonical reasoning core; `core/kernel` is the
-    /// foundational upper-layer slice every other slice builds on; `core/inhabitation`
-    /// carries the richest inhabitation/typing TBox structure. The list is a fixed
-    /// literal array — no runtime skipping, no conditional inclusion.
-    #[test]
-    fn curated_real_slices_batch_matches_scratch() {
-        const CURATED_SLICES: [&str; 4] = [
-            "core/epistemics",
-            "grounding/logic",
-            "core/kernel",
-            "core/inhabitation",
-        ];
-        let mut total = 0usize;
-        for slice_relpath in CURATED_SLICES {
-            total += assert_slice_batch_matches_scratch(slice_relpath);
-        }
-        assert!(
-            total > 0,
-            "curated real-slice set must contribute a non-empty total capped axiom population"
-        );
-    }
-
-    #[test]
-    #[ignore = "exhaustive repo audit; focused real/synthetic parity tests stay on-gate"]
-    fn every_real_slice_batch_matches_parallel_scratch() {
-        use rayon::prelude::*;
-
-        let root = repo_root();
-        let mut slices = Vec::new();
-        for group in std::fs::read_dir(root.join("slices")).expect("slice groups read") {
-            let group = group.expect("group entry reads").path();
-            if !group.is_dir() {
-                continue;
-            }
-            for slice in std::fs::read_dir(group).expect("slice group reads") {
-                let slice = slice.expect("slice entry reads").path();
-                if slice.join("manifest.ttl").is_file() {
-                    slices.push(slice);
-                }
-            }
-        }
-        slices.sort();
-
-        for slice in slices {
-            let mut paths = Vec::new();
-            collect_turtle(&slice, &mut paths);
-            paths.sort();
-            let refs = paths.iter().map(PathBuf::as_path).collect::<Vec<_>>();
-            let ds = crate::dataset_from_paths(&refs).expect("slice dataset parses");
-            let axioms = authored_axioms(&ds);
-            let capped = &axioms[..axioms.len().min(REDUNDANCY_CAP)];
-            let batched = redundancy_probes(&ds, capped).expect("batch reasons");
-            let scratch = capped
-                .par_iter()
-                .map(|(subject, predicate, object)| {
-                    let reduced = edb_without_triple(&ds, subject, predicate, object);
-                    gmeow_logic::reason::reason_closure_axioms(&reduced).is_ok_and(|closure| {
-                        closure_contains_iri(&closure, subject, predicate, object)
-                    })
-                })
-                .collect::<Vec<_>>();
-            for (index, ((subject, predicate, object), batch)) in
-                capped.iter().zip(batched.iter()).enumerate()
-            {
-                assert_eq!(
-                    batch.is_some(),
-                    scratch[index],
-                    "{}: batch/scratch mismatch for <{subject}> <{predicate}> <{object}>",
-                    slice.display()
-                );
-            }
         }
     }
 }

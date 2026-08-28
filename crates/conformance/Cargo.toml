@@ -67,6 +67,7 @@ serde_json.workspace = true
 # are deterministic and blank-node-free.
 blake3.workspace = true
 [dev-dependencies]
+gmeow-bundle-import = { path = "../bundle-import" }
 # RAII temp directories/files for tests. Every scratch path a test creates is
 # removed on drop — including on panic and early return — so a gate run never
 # leaves `gmeow-*` litter behind in the system temp dir. Hand-rolling a path

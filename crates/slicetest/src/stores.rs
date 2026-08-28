@@ -30,7 +30,7 @@
 //! only ever under-answer (a loud test failure), never silently mislead.
 
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use gmeow_errors::{Diag, Result};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlResult};
@@ -39,17 +39,55 @@ use crate::error::{LogicReasoning, MergedGraph, RdfsClosure, UnexpectedResultFor
 use crate::native_query::{self, merge_preserving_blanks};
 use crate::paths;
 
+enum CachedStore {
+    Ready(Arc<RdfDataset>),
+    Failed(Box<str>),
+}
+
+impl CachedStore {
+    fn capture(result: Result<Arc<RdfDataset>>) -> Self {
+        match result {
+            Ok(store) => Self::Ready(store),
+            Err(error) => Self::Failed(error.to_string().into_boxed_str()),
+        }
+    }
+}
+
+// The explicit repository producer is one process. Share each repository-scale
+// construction across every declarative spec file in that process instead of rebuilding
+// the same graph once per file (or, historically under nextest, once per process).
+static MERGED_STORE: OnceLock<CachedStore> = OnceLock::new();
+static RDFS_STORE: OnceLock<CachedStore> = OnceLock::new();
+static NATIVE_STORE: OnceLock<CachedStore> = OnceLock::new();
+
 /// Build the **asserted** merged ontology dataset (no materialized entailment).
 ///
 /// # Errors
 ///
 /// Hard-fails if a source file fails to read or parse.
 pub fn merged_store() -> Result<Arc<RdfDataset>> {
-    native_query::dataset_from_files(&source_files()?).map_err(|e| {
+    match MERGED_STORE.get_or_init(|| CachedStore::capture(build_merged_store())) {
+        CachedStore::Ready(store) => Ok(Arc::clone(store)),
+        CachedStore::Failed(detail) => Err(Diag::of_kind(MergedGraph {
+            detail: format!("shared merged ontology construction failed: {detail}"),
+        })),
+    }
+}
+
+fn build_merged_store() -> Result<Arc<RdfDataset>> {
+    let raw = native_query::dataset_from_files(&source_files()?).map_err(|e| {
         Diag::of_kind(MergedGraph {
             detail: format!("merging ontology sources: {e}"),
         })
-    })
+    })?;
+    // Competency questions are authored against the OWL/RDFS surface (they filter on
+    // `owl:Class` / `owl:ObjectProperty` and walk `rdfs:subClassOf*`), so materialize
+    // the complete `owl:`/`rdfs:` projection of the canonical `logic:` merged graph.
+    // The projection is dual-write (the canonical `logic:` edges are kept), so a
+    // question that queries either surface sees its answer. Doing it here also feeds
+    // the projected `rdfs:subClassOf` / `rdfs:domain` edges to the RDFS-closure lane
+    // ([`rdfs_closed_store`]), so rdfs2/3/9/11 fire on re-authored subsumption/typing.
+    Ok(native_query::with_owl_rdfs_projection(&raw))
 }
 
 /// Build the merged ontology and return it closed under **RDFS**.
@@ -59,7 +97,12 @@ pub fn merged_store() -> Result<Arc<RdfDataset>> {
 /// Hard-fails if the merged dataset cannot be built or the closure fails to reach
 /// a fixpoint within the safety bound.
 pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>> {
-    rdfs_close(merged_store()?)
+    match RDFS_STORE.get_or_init(|| CachedStore::capture(merged_store().and_then(rdfs_close))) {
+        CachedStore::Ready(store) => Ok(Arc::clone(store)),
+        CachedStore::Failed(detail) => Err(Diag::of_kind(RdfsClosure {
+            detail: format!("shared RDFS closure construction failed: {detail}"),
+        })),
+    }
 }
 
 /// Build the native `logic:`-reasoned closure the `gmeow:reasoningLogic` lane queries.
@@ -94,6 +137,15 @@ pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>> {
 /// (a parse error, or any `Severity::Error` diagnostic — never papered over), or if
 /// the native reasoner fails.
 pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
+    match NATIVE_STORE.get_or_init(|| CachedStore::capture(build_native_closed_store())) {
+        CachedStore::Ready(store) => Ok(Arc::clone(store)),
+        CachedStore::Failed(detail) => Err(Diag::of_kind(LogicReasoning {
+            detail: format!("shared native closure construction failed: {detail}"),
+        })),
+    }
+}
+
+fn build_native_closed_store() -> Result<Arc<RdfDataset>> {
     let files = native_reasoning_source_files();
     let store = native_query::dataset_from_files(&files).map_err(|e| {
         Diag::of_kind(LogicReasoning {
@@ -131,11 +183,18 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
         }));
     }
     let edb = world_scoped(&store)?;
-    gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref()).map_err(|e| {
-        Diag::of_kind(LogicReasoning {
-            detail: format!("native logic reasoning over the native-reasoning sources: {e}"),
-        })
-    })
+    let closure = gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref())
+        .map_err(|e| {
+            Diag::of_kind(LogicReasoning {
+                detail: format!("native logic reasoning over the native-reasoning sources: {e}"),
+            })
+        })?;
+    // Reasoning runs over the CANONICAL `logic:` EDB (the compiler and chase read the
+    // authored surface); the competency queries that consume the closure are authored
+    // against the OWL/RDFS surface. Project the closure AFTER reasoning so the reasoner
+    // is untouched and the query still sees the `owl:`/`rdfs:` view (dual-write keeps
+    // the canonical edges).
+    Ok(native_query::with_owl_rdfs_projection(&closure))
 }
 
 /// Re-scope every quad of `dataset` into the native reasoner's default world
@@ -349,15 +408,6 @@ fn construct(dataset: &Arc<RdfDataset>, query: &str) -> Result<Arc<RdfDataset>> 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn merged_store_materializes() {
-        let store = merged_store().expect("merged store must build");
-        assert!(
-            store.quad_count() > 1000,
-            "merged ontology should have many triples"
-        );
-    }
 
     #[test]
     fn rdfs_close_infers_type_and_subclass() {

@@ -1,14 +1,13 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Experience
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "Experience"@x-gmeow-english ;
     rdfs:subClassOf gmeow:MentalProcess ;
@@ -26,7 +25,7 @@ gmeow:Experience
 
 gmeow:MentalProcess
     a logic:Event ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "Mental Process"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Event ;
@@ -44,7 +43,7 @@ gmeow:MentalProcess
 
 gmeow:MentalProcessType
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "Mental Process Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -56,7 +55,7 @@ gmeow:MentalProcessType
     gmeow:useWhen "Use as the value vocabulary for the kind of a mental process — referenced from gmeow:mentalProcessType to tag an episode as perception, reasoning, imagining, dreaming, and so on (the gmeow:EventType idiom)."@x-gmeow-english .
 
 gmeow:experiencer
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MentalProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "experiencer"@x-gmeow-english ;
@@ -69,7 +68,7 @@ gmeow:experiencer
     gmeow:useWhen "Use to bind the single agent who undergoes a gmeow:MentalProcess — the bearer of the perceiving, reasoning, or dreaming episode."@x-gmeow-english .
 
 gmeow:mentalProcessType
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MentalProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "mental process type"@x-gmeow-english ;
@@ -166,7 +165,7 @@ gmeow:processTraining
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:producesMentalMoment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MentalProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "produces mental moment"@x-gmeow-english ;
@@ -179,7 +178,7 @@ gmeow:producesMentalMoment
     gmeow:useWhen "Use when the mental process is the causal origin of a NEW mental moment — a reasoning that settles a fresh belief, an abductive inference that produces a hypothesis, a perception that generates a new claim. The moment did not exist before the process ran."@x-gmeow-english .
 
 gmeow:realizesMentalMoment
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MentalProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "realizes mental moment"@x-gmeow-english ;
@@ -192,7 +191,7 @@ gmeow:realizesMentalMoment
     gmeow:useWhen "Use when the mental process MANIFESTS (makes present, actualises) an existing capacity or state — a perceiving that brings a latent perceptual faculty into actuation, a dreaming that expresses a creative capacity. The process is the occurrent face of something already in the agent's dispositional repertoire."@x-gmeow-english .
 
 gmeow:updatesMentalTenure
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:MentalProcess ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "updates mental tenure"@x-gmeow-english ;
@@ -205,7 +204,7 @@ gmeow:updatesMentalTenure
     gmeow:useWhen "Use when the mental process revises, extends, or closes an existing time-scoped holding — a deliberation that updates a belief tenure, a learning episode that revises a knowledge tenure, a recollection that reopens a suppressed tenure. The tenure already existed; the process changes its bounds or content."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/mentation>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The occurrent (perdurant) half of mind — the companion to the endurant mental-moment stack (belief, knowledge, desire, emotion). gUFO splits endurant *modes* from occurrent *processes/experiences that unfold in time*; GMEOW has richly modelled the modes and barely the processes. This slice mints the occurrent umbrella.
 
@@ -224,7 +223,7 @@ DOCTRINE.
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -232,7 +231,7 @@ DOCTRINE.
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:experiencerFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "experiencer is functional"@x-gmeow-english ;

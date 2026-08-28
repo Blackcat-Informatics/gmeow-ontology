@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 290
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Changelog Entry
@@ -13,7 +14,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Class |
 | Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
 
-![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Class](../../badges/stereotype/class.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
@@ -82,7 +83,7 @@ gmeow:ChangelogEntry ⊑ gmeow:InformationObject
 
 ## Logic stereotypes
 
-`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:Class` · `logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
@@ -100,12 +101,13 @@ gmeow:ChangelogEntry ⊑ gmeow:InformationObject
 ## Changelog
 
 - **Added in:** 0\.1\.0
+- **0\.1\.0** — Definition changed
 - **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
 
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
+- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:29041504d1c71f1ee9da799cd2f34c665c7f35b7b5254eb8618b54abc7ce1d7a`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

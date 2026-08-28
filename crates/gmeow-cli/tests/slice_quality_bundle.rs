@@ -6,23 +6,24 @@
 //! no network — via `gmeow_slice_quality::score_external_slice`.
 //!
 //! The fixture under `tests/fixtures/external-slice/` is a well-formed slice that
-//! scores STRICTLY between 0 and 1 on the three environment-anchored axes:
-//!   * `gmn1_coverage` — one module quad references an IRI under an unregistered
-//!     namespace (uncovered), the rest are codec-covered;
+//! exercises the environment-anchored axes without a checkout:
+//!   * `gmn1_coverage` — the now-total default-graph RDF 1.2 codec covers the complete
+//!     valid Turtle fixture;
 //!   * `DocMaturity` — the slice ships no realized-state design-set table, so a
 //!     FULL-anchor dimension is a gated miss;
 //!   * `translation` — only the widget term's carriers are translated into fr, and
 //!     cmn ships no catalog at all.
 //!
-//! Each test copies the fixture into a FRESH temp dir so the scored path has no
+//! Each contract copies the fixture into a FRESH temp dir so the scored path has no
 //! `slices/` ancestor and no relationship to this repo — exactly the consumer's
-//! situation.
+//! situation. The contracts execute in one libtest process and share one decoding of
+//! the embedded bundle; the detailed scoring semantics remain independently asserted.
 
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::report::SliceReport;
-use gmeow_slice_quality::{BundleStandards, MeasurementStandard, ScoringEnv, score_external_slice};
+use gmeow_slice_quality::{BundleStandards, ScoringEnv, score_external_slice};
 
 /// The four environment-anchored axis IRIs, keyed by the rubric individual names.
 const AXIS_GMN1: &str = "https://blackcatinformatics.ca/gmeow/axisGmn1Coverage";
@@ -119,11 +120,9 @@ fn missing_doc_maturity_dimensions(report: &SliceReport) -> std::collections::BT
 
 // ── AC1: the wheel's zero-config external-slice scoring path ────────────────────
 
-#[test]
-fn ac1_scores_external_slice_against_embedded_bundle() {
+fn ac1_scores_external_slice_against_embedded_bundle(std: &BundleStandards) {
     let (_tmp, slice_dir) = staged_fixture();
-    let std = BundleStandards::from_gts(gmeow_cli::BUNDLE_GTS).expect("load bundle standards");
-    let report = score_external_slice(&std, &slice_dir).expect("score external slice");
+    let report = score_external_slice(std, &slice_dir).expect("score external slice");
 
     // (a) A grade for EVERY axis the bundle-loaded rubric defines.
     assert!(
@@ -150,7 +149,11 @@ fn ac1_scores_external_slice_against_embedded_bundle() {
     let codes = advisory_codes(&report);
 
     // (b) gmn1-coverage: no tolerant no-repo-root / no-dictionary advisory (Bundle
-    // mode always has a valid embedded dictionary), and the score is measured < 1.0.
+    // mode always has a valid embedded dictionary), and the valid default-graph RDF 1.2
+    // fixture is now completely covered. The former unsafe-blank-label witness was not a
+    // real authored-term witness: Turtle parsing canonicalizes blank-node labels before
+    // this measurement sees them, so it could never exercise the codec's raw-model
+    // uncovered branch.
     assert!(
         !codes
             .iter()
@@ -164,16 +167,15 @@ fn ac1_scores_external_slice_against_embedded_bundle() {
         "Bundle mode must not emit the no-dictionary advisory: {codes:?}"
     );
     let gmn1 = grade_for(&report, AXIS_GMN1);
-    assert!(
-        gmn1.score < 1.0 && gmn1.score > 0.0,
-        "gmn1-coverage is measured strictly in (0,1): {}",
-        gmn1.score
+    assert_eq!(
+        gmn1.score, 1.0,
+        "the codec covers every valid default-graph RDF 1.2 construct in the fixture"
     );
     assert!(
-        codes
+        !codes
             .iter()
             .any(|c| c == "slice-quality.gmn1-coverage.uncovered"),
-        "the uncovered GMN-0 quad surfaces an uplift advisory: {codes:?}"
+        "a fully covered fixture must not fabricate an uncovered advisory: {codes:?}"
     );
 
     // (c) DocMaturity: no model-unavailable advisory, measured < 1.0, and at least
@@ -298,27 +300,20 @@ fn ac1_scores_external_slice_against_embedded_bundle() {
 
 // ── AC5: non-interference oracle — the 12 env-agnostic axes are byte-identical ──
 
-#[test]
-fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
+fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStandards) {
     let (_tmp, slice_dir) = staged_fixture();
 
     // Bundle run (the wheel path).
-    let std = BundleStandards::from_gts(gmeow_cli::BUNDLE_GTS).expect("load bundle standards");
-    let bundle = score_external_slice(&std, &slice_dir).expect("bundle score");
+    let bundle = score_external_slice(std, &slice_dir).expect("bundle score");
 
     // Repo run against the SAME standard (loaded via the public rubric API), scored
     // in Repo mode. Off-repo, gmn1 + advice-coverage legitimately go vacuous (1.0),
     // while GMN glyph optimality and DocMaturity fail CLOSED (0.0) because neither's
     // authority — the canonical lang audit graph, the repo documentation model — can be
     // assembled. Every other axis must be identical to the Bundle run.
-    let ds = purrdf::gts::flattened_dataset_from_bytes(gmeow_cli::BUNDLE_GTS)
-        .expect("flatten bundle dataset");
-    let std_meas: MeasurementStandard = gmeow_slice_quality::rubric::load_rubric(&ds)
-        .expect("load rubric standard")
-        .standard;
     let repo = gmeow_slice_quality::report::score_slice_with_standard(
         &slice_dir,
-        &std_meas,
+        &bundle.standard,
         ScoringEnv::Repo {
             slice_dir: slice_dir.clone(),
         },
@@ -402,8 +397,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle() {
 
 // ── AC6: hard-fail on junk — never a vacuous passing grade ──────────────────────
 
-#[test]
-fn ac6_corrupt_bundle_and_malformed_manifest_hard_fail() {
+fn ac6_corrupt_bundle_and_malformed_manifest_hard_fail(std: &BundleStandards) {
     // A corrupt wheel cannot be flattened → hard fail (never a degraded standard).
     let corrupt: &[u8] = b"this is not a gmeow.gts bundle at all \x00\x01\x02";
     assert!(
@@ -412,7 +406,6 @@ fn ac6_corrupt_bundle_and_malformed_manifest_hard_fail() {
     );
 
     // A slice dir whose manifest.ttl is malformed → hard fail (never a passing grade).
-    let std = BundleStandards::from_gts(gmeow_cli::BUNDLE_GTS).expect("load bundle standards");
     let tmp = tempfile::TempDir::new().expect("temp dir");
     let junk_slice = tmp.path().join("junk-slice");
     fs::create_dir_all(&junk_slice).expect("create junk slice dir");
@@ -422,7 +415,50 @@ fn ac6_corrupt_bundle_and_malformed_manifest_hard_fail() {
     )
     .expect("write malformed manifest");
     assert!(
-        score_external_slice(&std, &junk_slice).is_err(),
+        score_external_slice(std, &junk_slice).is_err(),
         "a malformed manifest must hard-fail, never return a vacuous passing grade"
+    );
+}
+
+#[test]
+fn external_slice_bundle_contracts_share_one_bundle_decode() {
+    type BundleContract = (&'static str, fn(&BundleStandards));
+
+    let std = BundleStandards::from_gts(gmeow_cli::BUNDLE_GTS).expect("load bundle standards");
+    let cases: [BundleContract; 3] = [
+        (
+            "ac1_scores_external_slice_against_embedded_bundle",
+            ac1_scores_external_slice_against_embedded_bundle,
+        ),
+        (
+            "ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle",
+            ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle,
+        ),
+        (
+            "ac6_corrupt_bundle_and_malformed_manifest_hard_fail",
+            ac6_corrupt_bundle_and_malformed_manifest_hard_fail,
+        ),
+    ];
+    let mut failures = Vec::new();
+    for (name, case) in cases {
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| case(&std)));
+        if let Err(payload) = result {
+            let detail = payload
+                .downcast_ref::<String>()
+                .cloned()
+                .or_else(|| {
+                    payload
+                        .downcast_ref::<&str>()
+                        .map(|text| (*text).to_string())
+                })
+                .unwrap_or_else(|| "non-string panic".to_string());
+            failures.push(format!("{name}: {detail}"));
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} external-slice bundle contract(s) failed:\n{}",
+        failures.len(),
+        failures.join("\n")
     );
 }

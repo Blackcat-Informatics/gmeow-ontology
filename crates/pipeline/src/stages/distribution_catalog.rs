@@ -132,7 +132,7 @@ pub struct DistRow {
     /// `gmeow-dev sync`'s docs fanout reconciles to and the `gmeow:sourceLocation` the
     /// release manifest records.
     pub rel_path: &'static str,
-    /// Whether this distribution ships the shared interactive-engine [`SubAsset`]s.
+    /// Whether this distribution ships the shared interactive-engine `SubAsset`s.
     ///
     /// The sub-assets are ONE set of shared subjects; every owner links to them with
     /// `gmeow:hasSubAsset` and prices them out of its OWN rendered tree, so the

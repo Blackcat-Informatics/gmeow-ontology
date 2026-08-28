@@ -71,6 +71,13 @@ static GMEOW_BARE_TERM: LazyLock<Regex> =
 /// Fenced ```turtle ... ``` code block.
 static TURTLE_FENCE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?s)```turtle\n(.*?)\n```").expect("valid static regex"));
+/// A retired `owl:` authoring prefix token — a prefixed name (`owl:Foo`) or an
+/// `@prefix owl:` declaration — at a name/prefix boundary. The leading
+/// `(?:^|[^0-9A-Za-z_-])` excludes a longer prefix (`powl:` / `owlish`), and a
+/// full IRI's `owl#` form never matches because `owl` is not followed by a colon
+/// there. Matched per source LINE, so `^` anchors each line's start.
+static RETIRED_OWL_PREFIX_TOKEN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?:^|[^0-9A-Za-z_-])owl:").expect("valid static regex"));
 
 // ── shared helpers ───────────────────────────────────────────────────────────
 
@@ -153,14 +160,11 @@ fn all_manifests(slices_dir: &Path) -> Result<Vec<PathBuf>> {
 /// it). Any read/parse failure is a HARD FAIL (propagated), never a silently
 /// skipped gate.
 ///
-/// Before folding any detector, the corpus is checked against the SAME
-/// non-vacuity floors the whole-corpus integration tests assert independently
-/// (`crates/validate/tests/authoring_integrity.rs`): a genuinely populated merged
-/// shape-file set, declared-term set, and catalog `<uri>` set. Those tests only
-/// guard the test binary; without this floor here, an environmental fault that
-/// silently shrank the live corpus to empty (e.g. a subtree that failed to read
-/// down to zero files, or a symlink loop that skipped every file) would still
-/// report zero findings — a VACUOUS PASS on the real `make validate` path.
+/// Before folding any detector, the production path checks non-vacuity floors for
+/// the merged shape-file set, declared-term set, and catalog `<uri>` set. Keeping
+/// the floor here makes the explicit validator producer fail closed if an
+/// environmental fault silently shrinks its input corpus; tests exercise the
+/// detectors with synthetic inputs and never rebuild the repository corpus.
 fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
     let shape_files = purrdf::shapes::shape_union::shape_files(project_root)
         .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;
@@ -231,6 +235,7 @@ pub fn authoring_integrity_findings(
     findings.extend(slice_source_untagged_findings(project_root)?);
     findings.extend(nonslice_authored_untagged_findings(project_root)?);
     findings.extend(seam_registry_drift_findings(project_root, slices_dir)?);
+    findings.extend(retired_authoring_prefix_findings(project_root, slices_dir)?);
     Ok(findings)
 }
 
@@ -528,6 +533,7 @@ fn detect_peerage_discipline(
 // ── R2: imports / profile / catalog closure + module-IRI ─────────────────────
 
 const OWL_ONTOLOGY: &str = "http://www.w3.org/2002/07/owl#Ontology";
+const LOGIC_ONTOLOGY: &str = "https://blackcatinformatics.ca/logic/Ontology";
 const OWL_IMPORTS: &str = "http://www.w3.org/2002/07/owl#imports";
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
 use gmeow_ns::GMEOW_NS;
@@ -620,10 +626,17 @@ fn slice_module_files(slices_dir: &Path) -> Result<Vec<PathBuf>> {
 /// The `owl:Ontology` subject IRI of a module (the first, matching the retired
 /// Python which took `[0]`); `None` when the module declares no ontology.
 fn module_ontology_iri(ds: &Dataset, path: &Path) -> Result<Option<String>> {
+    // A slice `module.ttl` authors its header as `<> a logic:Ontology` after the
+    // flip; accept the `owl:` spelling too so the check bites for both authorings.
     let mut subjects = ds
-        .subjects_of_type(OWL_ONTOLOGY)
+        .subjects_of_type(LOGIC_ONTOLOGY)
         .map_err(|e| parse_err(path, &e.to_string()))?;
+    subjects.extend(
+        ds.subjects_of_type(OWL_ONTOLOGY)
+            .map_err(|e| parse_err(path, &e.to_string()))?,
+    );
     subjects.sort();
+    subjects.dedup();
     Ok(subjects.into_iter().next())
 }
 
@@ -1444,6 +1457,66 @@ fn detect_unregistered_minting(files: &[(PathBuf, Dataset)], root: &Path) -> Vec
     findings
 }
 
+// ── R10: retired owl: authoring prefix (source-text lint) ────────────────────
+
+/// R10: every slice `module.ttl` is scanned as SOURCE TEXT for a reintroduced
+/// retired `owl:` authoring prefix. `logic:` is the canonical authoring
+/// vocabulary; the OWL/RDFS surface is a GENERATED projection the pipeline
+/// derives, so a hand-authored `owl:` token in a slice module is a forbidden
+/// second source of truth. Discovered by MANIFEST (a `module.ttl` is scanned only
+/// when present), mirroring the R3c/R9 slice-source lints.
+pub fn retired_authoring_prefix_findings(
+    project_root: &Path,
+    slices_dir: &Path,
+) -> Result<Vec<Finding>> {
+    let mut findings = Vec::new();
+    for manifest in all_manifests(slices_dir)? {
+        let Some(dir) = manifest.parent() else {
+            continue;
+        };
+        let module = dir.join("module.ttl");
+        if module.is_file() {
+            let text = std::fs::read_to_string(&module).map_err(|e| io_err(&module, &e))?;
+            // Label repo-root-relative (e.g. `slices/core/x/module.ttl`), matching every
+            // other gate here and the fixtures — never slices_dir-relative or absolute.
+            findings.extend(detect_retired_authoring_prefixes(
+                &text,
+                &rel(&module, project_root),
+            ));
+        }
+    }
+    findings.sort_by(|a, b| a.message.cmp(&b.message));
+    Ok(findings)
+}
+
+/// The pure retired-`owl:`-prefix logic over a module's SOURCE TEXT. Flags a
+/// prefixed name (`owl:Foo`) or an `@prefix owl:` declaration at a name/prefix
+/// boundary, reporting the file and 1-based line. Deliberately does NOT flag a
+/// full IRI (`<…/2002/07/owl#…>` carries no `owl:` token — it is the legitimate
+/// correspondence-law target form), a longer prefix (`powl:` / `owlish`), or
+/// reworded prose (`OWL X`, no colon).
+fn detect_retired_authoring_prefixes(text: &str, source_label: &str) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    for (idx, line) in text.lines().enumerate() {
+        if RETIRED_OWL_PREFIX_TOKEN.is_match(line) {
+            let line_no = idx + 1;
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_RETIRED_OWL_PREFIX,
+                format!(
+                    "{source_label}:{line_no} reintroduces a retired owl: authoring prefix — \
+                     logic: is the canonical authoring vocabulary and the owl:/RDFS surface is a \
+                     GENERATED projection. Author the term in logic: and let the pipeline \
+                     derive/project the owl: form (a hand-authored owl: token is a forbidden \
+                     second source of truth)"
+                ),
+                None,
+            ));
+        }
+    }
+    findings
+}
+
 // ── R7: grounding seam-registry drift ────────────────────────────────────────
 //
 // The generated seam-registry page (`gmeow_docs::render::Page::SeamRegistry`,
@@ -2172,6 +2245,71 @@ mod tests {
             )
             .unwrap()
             .is_empty()
+        );
+    }
+
+    // ── R10: retired owl: authoring prefix (source-text lint) ────────────────
+
+    #[test]
+    fn retired_authoring_prefix_fires_on_reintroduced_owl_prefix() {
+        // A slice module.ttl source with BOTH an `@prefix owl:` declaration and a
+        // prefixed-name `owl:Class` use — each must fire the source lint.
+        let text = "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+                    ex:Thing a owl:Class .\n";
+        let findings = detect_retired_authoring_prefixes(text, "slices/core/x/module.ttl");
+        assert!(
+            !findings.is_empty(),
+            "a reintroduced owl: prefix must fire: {findings:?}"
+        );
+        assert!(
+            findings
+                .iter()
+                .all(|f| f.code == codes::AUTHORING_RETIRED_OWL_PREFIX),
+            "every finding uses the retired-owl-prefix code: {findings:?}"
+        );
+        assert!(
+            findings.iter().all(|f| f.severity == Severity::Error),
+            "the source lint is an Error: {findings:?}"
+        );
+        assert!(
+            findings.iter().any(|f| f.message.contains("logic:")),
+            "the message names logic: as the canonical authoring vocabulary"
+        );
+    }
+
+    #[test]
+    fn retired_authoring_prefix_clean_on_logic_authoring_and_full_iri_target() {
+        // Canonical logic: authoring plus a full-IRI owl# correspondence target —
+        // no owl: prefix token, so NO finding. `powl:` (longer prefix) and `OWL`
+        // (reworded prose, no colon) must not be false positives either.
+        let text = "@prefix logic: <https://blackcatinformatics.ca/gmeow/logic/> .\n\
+                    ex:Thing a logic:Class .\n\
+                    ex:law logic:correspondsTo <http://www.w3.org/2002/07/owl#Class> .\n\
+                    ex:x a powl:Widget .  # OWL is a generated projection, not authored\n";
+        assert!(
+            detect_retired_authoring_prefixes(text, "slices/core/x/module.ttl").is_empty(),
+            "clean logic: authoring with a full-IRI owl# target must not fire"
+        );
+    }
+
+    #[test]
+    fn retired_authoring_prefix_findings_label_repo_relative() {
+        // Thread r3818278198: the production scan must label findings repo-root-relative
+        // (`slices/core/x/module.ttl`), not slices_dir-relative (`core/x/…`) or absolute.
+        let tmp = tempfile::tempdir().expect("temp project root");
+        let root = tmp.path();
+        let slice_dir = root.join("slices").join("core").join("x");
+        std::fs::create_dir_all(&slice_dir).unwrap();
+        // manifest.ttl is the discovery surface all_manifests walks; module.ttl carries the owl:.
+        std::fs::write(slice_dir.join("manifest.ttl"), "").unwrap();
+        std::fs::write(slice_dir.join("module.ttl"), "ex:Thing a owl:Class .\n").unwrap();
+        let findings =
+            retired_authoring_prefix_findings(root, &root.join("slices")).expect("scan succeeds");
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.starts_with("slices/core/x/module.ttl:")),
+            "finding must be labelled repo-relative, got: {findings:?}"
         );
     }
 

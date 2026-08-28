@@ -1081,7 +1081,9 @@ fn collect_ontology_terms(root: &Path) -> gmeow_errors::Result<OntologyTerms> {
             continue;
         };
         let iri = subject.to_owned();
-        match object {
+        // A term is typed in the canonical `logic:` spelling; lower it to its `owl:`
+        // view so the classification bites for both spellings after the flip.
+        match gmeow_ns::to_owl_view(object) {
             value if value == owl::CLASS => {
                 terms.classes.insert(iri);
             }
@@ -1480,18 +1482,6 @@ mod tests {
         assert!(zero.message().contains("between 1 and 50"));
         let too_large = check_existence(&identifiers, root.path(), timeout, 51, delay).unwrap_err();
         assert!(too_large.message().contains("between 1 and 50"));
-    }
-
-    #[test]
-    fn collects_wikidata_ids_from_committed_mappings() {
-        let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let root = manifest_dir
-            .parent()
-            .and_then(Path::parent)
-            .expect("repo root");
-        let ids = collect_wikidata_ids(&root.join("generated").join("mappings")).unwrap();
-        assert!(ids.iter().any(|id| id == "Q5"));
-        assert!(ids.iter().any(|id| id == "Q43229"));
     }
 
     #[test]

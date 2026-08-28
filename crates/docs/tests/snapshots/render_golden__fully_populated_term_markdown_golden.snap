@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 323
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # assessed entity
@@ -13,7 +14,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Property |
 | Slice | [GMEOW Data Quality Module](../../slices/quality/index.md) |
 
-![completeness: Docs 12/17](../../badges/completeness/12.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Property](../../badges/category/property.svg) ![box: RBox](../../badges/box/boxrbox.svg)
+![completeness: Docs 12/17](../../badges/completeness/12.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Property](../../badges/category/property.svg) ![box: RBox](../../badges/box/boxrbox.svg) ![stereotype: ObjectProperty](../../badges/stereotype/objectproperty.svg)
 
 ## Definition
 
@@ -111,6 +112,10 @@ gmeow:assessedEntity ⊑ gmeow:observedFeature
 - *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 - *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
 
+## Logic stereotypes
+
+`logic:ObjectProperty` — see the [Logic & Reasoning](../../logic/index.md) index.
+
 ## Box role
 
 [RBox (`gmeow:boxRBox`)](../../four-boxes/index.md)
@@ -127,11 +132,12 @@ gmeow:assessedEntity ⊑ gmeow:observedFeature
 ## Changelog
 
 - **Added in:** 0\.1\.0
+- **0\.1\.0** — Definition changed
 
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/assessedEntity>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/assessedEntity@blake3:cf3747eacfbae8d1d0b044115254b28e1df5077bebaf69bca4fa60839848428f`
+- **Content address:** `https://blackcatinformatics.ca/gmeow/assessedEntity@blake3:b1bedc359ec9ef4cf8debe5e04c04fada046e1d834c112adbe5afad2b8f3fa9b`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

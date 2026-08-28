@@ -19,7 +19,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::export::{Term, collect_term_surface, read_fold_upstream};
 
 /// The bundle directory name under `dist/`.
@@ -616,6 +616,11 @@ impl Stage for OkfStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    fn cache_policy(&self) -> CachePolicy {
+        // Measured contribution: 19.8 MB serialized for a ~3.6 s deterministic fold.
+        // Rebuilding is cheaper than cache publication plus hydration.
+        CachePolicy::Recompute
+    }
     fn impl_version(&self) -> &str {
         "okf.v1"
     }
@@ -633,88 +638,6 @@ impl Stage for OkfStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
-
-    fn repo_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .canonicalize()
-            .unwrap()
-    }
-
-    #[test]
-    fn okf_bundle_round_trips_structurally() {
-        let root = repo_root();
-        let graph = crate::stages::export::read_fold(&root).expect("read fold");
-        let (title, version, terms) = collect_term_surface(&graph).expect("terms");
-        assert!(!terms.is_empty(), "no terms collected");
-        let arts = render_okf(&title, &version, &terms).expect("render okf");
-
-        // Root index + at least the class index must exist and carry the lossy note.
-        let root_index = arts
-            .get(&format!("dist/{OKF_DIR_NAME}/index.md"))
-            .expect("root index present");
-        let root_text = String::from_utf8(root_index.clone()).unwrap();
-        assert!(root_text.starts_with("---\n"), "root index has frontmatter");
-        assert!(
-            root_text.contains("LOSSY projection"),
-            "root index carries lossy note"
-        );
-
-        // Every per-term doc has a valid frontmatter block (--- … ---) and a type.
-        let mut term_docs = 0;
-        for (path, bytes) in &arts {
-            if path.ends_with("/index.md") {
-                continue;
-            }
-            let text = String::from_utf8(bytes.clone()).unwrap();
-            assert!(text.starts_with("---\n"), "{path} missing opening fence");
-            let rest = &text[4..];
-            let close = rest
-                .find("\n---\n")
-                .unwrap_or_else(|| panic!("{path} missing closing fence"));
-            let fm = &rest[..close];
-            assert!(fm.contains("type:"), "{path} frontmatter has no type");
-            // The `resource` is the term's IRI (an https resource), and every doc
-            // carries the `curie:` extension key.
-            assert!(
-                fm.contains("resource: https://"),
-                "{path} resource is not an https IRI"
-            );
-            assert!(fm.contains("curie:"), "{path} frontmatter has no curie");
-            term_docs += 1;
-        }
-        assert!(term_docs > 100, "expected many term docs, got {term_docs}");
-
-        // Determinism: a second render is byte-identical.
-        let arts2 = render_okf(&title, &version, &terms).expect("render okf");
-        assert_eq!(arts, arts2, "okf render is not deterministic");
-
-        // Every manifest-envelope document path resolves to a rendered artifact.
-        let envelope: serde_json::Value =
-            serde_json::from_str(&crate::stages::export::okf_index_envelope(&terms)).unwrap();
-        let docs = envelope["documents"].as_array().expect("documents array");
-        assert_eq!(docs.len(), terms.len(), "one manifest record per term");
-        for doc in docs {
-            let rel = doc["path"].as_str().expect("manifest path string");
-            assert!(
-                arts.contains_key(&format!("dist/{rel}")),
-                "manifest path {rel} has no rendered bundle artifact"
-            );
-        }
-
-        // A class doc links its parents under ## Relations with a relative path.
-        let has_relation = arts.iter().any(|(p, b)| {
-            p.contains("/classes/")
-                && !p.ends_with("index.md")
-                && String::from_utf8_lossy(b).contains("## Relations")
-        });
-        assert!(
-            has_relation,
-            "expected at least one class doc with relations"
-        );
-    }
 
     #[test]
     fn yaml_scalar_plain_when_safe() {

@@ -19,7 +19,7 @@
 # logic: shape, not a normalized form.
 #
 # TWO invariants are unreachable by this module-scoped ASK harness and live as
-# native Rust conformance twins in crates/validate/tests/conformance_awareness.rs:
+# native Rust conformance twins in crates/validate/tests/conformance_cases/conformance_awareness.rs:
 #   * level_ranks_are_exactly_zero_through_five — closed numeric SET-EQUALITY over
 #     the six gmeow:levelRank values ({0,1,2,3,4,5}); a SPARQL ASK can assert each
 #     rank EXISTS but not that the set is EXACTLY those six and no others.

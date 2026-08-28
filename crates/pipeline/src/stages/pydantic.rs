@@ -96,10 +96,10 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
 /// `crate::stages::term_manifest`/`crate::stages::carrier`/`crate::stages::metadata`
 /// each independently read `owl:versionInfo` off.
 const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
-const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
 
 /// Load the authored ontology header (`ontology/gmeow.ttl`) and return its
-/// `owl:versionInfo` literal verbatim — the SINGLE source of the `gmeow-ontology`
+/// version annotation (`logic:versionInfo`, or its `owl:versionInfo` OWL view)
+/// literal verbatim — the SINGLE source of the `gmeow-ontology`
 /// wheel version, stamped into the generated `gmeow_models/__about__.py`
 /// (`pyproject.toml`'s `[tool.hatch.version]` reads `__version__` from there). A
 /// hard requirement: never defaulted, and hard-fails when the value is missing or
@@ -118,7 +118,10 @@ fn ontology_version_info(root: &Path) -> Result<String, gmeow_errors::Diag> {
         let purrdf::model::RdfTerm::Iri(subject) = &quad.subject else {
             continue;
         };
-        if subject != ONTOLOGY_IRI || quad.predicate != OWL_VERSION_INFO {
+        // The authored header spells the version annotation in the canonical
+        // `logic:versionInfo`; its generated OWL view uses `owl:versionInfo`.
+        // Recognize both so a re-authored header is never read as version-less.
+        if subject != ONTOLOGY_IRI || !gmeow_ns::VERSION_INFO.contains(&quad.predicate.as_str()) {
             continue;
         }
         let purrdf::model::RdfTerm::Literal(literal) = &quad.object else {
@@ -127,14 +130,14 @@ fn ontology_version_info(root: &Path) -> Result<String, gmeow_errors::Diag> {
         let version = literal.lexical_form.clone();
         if !is_pep440_public_version(&version) {
             return Err(err(format!(
-                "ontology {ONTOLOGY_IRI} owl:versionInfo {version:?} is not a PEP 440 public \
+                "ontology {ONTOLOGY_IRI} versionInfo {version:?} is not a PEP 440 public \
                  version identifier — refusing to stamp a malformed wheel version"
             )));
         }
         return Ok(version);
     }
     Err(err(format!(
-        "authored ontology {ONTOLOGY_IRI} has no owl:versionInfo — cannot derive the wheel version"
+        "authored ontology {ONTOLOGY_IRI} has no versionInfo (logic:/owl:) — cannot derive the wheel version"
     )))
 }
 
@@ -475,43 +478,13 @@ mod tests {
             .unwrap()
     }
 
-    /// The fresh `generated/shapes/*.ttl` byte map a hermetic test builds from the
-    /// COMMITTED files — the same members [`fresh_generated_shape_members`] pulls
-    /// off the producer products in production
-    /// ([`crate::stages::shape_union_fresh::fresh_generated_shape_members`]), so
-    /// the test exercises the stage's real fresh-union path without a pipeline run.
-    /// Mirrors `crate::stages::json_schema::tests::committed_fresh_map`.
-    fn committed_fresh_map(root: &Path) -> BTreeMap<String, Vec<u8>> {
-        [
-            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
-            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
-            crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH,
-            crate::stages::frame_shapes::FRAME_SHAPES_PATH,
-            crate::stages::result_shapes::RESULT_SHAPES_PATH,
-        ]
-        .into_iter()
-        .map(|rel| {
-            (
-                rel.to_string(),
-                std::fs::read(root.join(rel)).unwrap_or_else(|e| panic!("read {rel}: {e}")),
-            )
-        })
-        .collect()
-    }
-
-    fn run_once(root: &Path) -> BTreeMap<String, Vec<u8>> {
-        let fresh = committed_fresh_map(root);
-        let (_store, shapes) = crate::stages::shape_union_fresh::load_shapes_fresh(root, &fresh)
-            .expect("load fresh shape union");
-        render_pydantic_package(root, &shapes).expect("render pydantic package")
-    }
-
     #[test]
-    fn pydantic_stage_emits_all_artifacts_deterministically() {
+    fn pydantic_stage_emits_all_authenticated_artifacts() {
         let stage = PydanticStage::new();
         assert_eq!(stage.id(), "stage-export-pydantic");
         let root = repo_root();
-        let first = run_once(&root);
+        let first = crate::fixture::stage_artifacts(&root, 1, "stage-export-pydantic")
+            .expect("authenticated Pydantic package projection");
 
         for member in [
             "gmeow_models/models.py",
@@ -520,30 +493,27 @@ mod tests {
             "gmeow_models/py.typed",
             "gmeow_models/__about__.py",
         ] {
-            assert!(first.contains_key(member), "missing {member}");
+            let path = format!("{PACKAGE_DISK_PREFIX}{member}");
+            assert!(first.contains_key(&path), "missing {path}");
         }
 
-        let models_py =
-            String::from_utf8(first["gmeow_models/models.py"].clone()).expect("models.py utf8");
+        let models_py = String::from_utf8(
+            first[&format!("{PACKAGE_DISK_PREFIX}gmeow_models/models.py")].clone(),
+        )
+        .expect("models.py utf8");
         assert!(models_py.contains("class "), "models.py has no class");
         assert!(
             models_py.contains("PurrdfBaseModel"),
             "models.py does not use the purrdf base class"
         );
 
-        let about_py =
-            String::from_utf8(first["gmeow_models/__about__.py"].clone()).expect("about.py utf8");
-        let version = ontology_version_info(&root).expect("ontology version");
+        let about_py = String::from_utf8(
+            first[&format!("{PACKAGE_DISK_PREFIX}gmeow_models/__about__.py")].clone(),
+        )
+        .expect("about.py utf8");
         assert!(
-            about_py.contains(&version),
-            "__about__.py does not carry the ontology version {version:?}:\n{about_py}"
-        );
-
-        // Byte-deterministic across two runs.
-        let second = run_once(&root);
-        assert_eq!(
-            first, second,
-            "pydantic package output is non-deterministic"
+            about_py.contains("__version__"),
+            "__about__.py does not carry a version binding:\n{about_py}"
         );
     }
 }

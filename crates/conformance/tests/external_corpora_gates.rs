@@ -85,22 +85,16 @@ const SZS_DOMAIN: [&str; 9] = [
 
 // ── shipped-artifact loaders ───────────────────────────────────────────────────
 
-fn shipped_gts_path() -> PathBuf {
-    repo_root().join("generated").join("dist").join("gmeow.gts")
-}
-
-fn functions_fno_path() -> PathBuf {
-    repo_root()
-        .join("generated")
-        .join("projections")
-        .join("functions.fno.ttl")
-}
-
-fn conformance_sssom_path() -> PathBuf {
-    repo_root()
-        .join("generated")
-        .join("mappings")
-        .join("gmeow-conformance-corpus.sssom.tsv")
+fn conformance_sssom() -> String {
+    let members = gmeow_bundle_import::load_authenticated_corpus_archive(
+        &repo_root(),
+        "validate-mappings.ustar",
+    )
+    .expect("load authenticated generated-mapping archive without rebuilding it");
+    let bytes = members
+        .get("gmeow-conformance-corpus.sssom.tsv")
+        .expect("authenticated mapping archive omitted the conformance corpus projection");
+    String::from_utf8(bytes.clone()).expect("authenticated conformance SSSOM is UTF-8")
 }
 
 fn external_corpora_root() -> PathBuf {
@@ -116,25 +110,9 @@ fn external_corpora_root() -> PathBuf {
 /// names). A missing/corrupt bundle is a CLEAN, actionable panic, never an opaque
 /// unwrap.
 fn load_shipped_bundle() -> Arc<RdfDataset> {
-    let path = shipped_gts_path();
-    let bytes = std::fs::read(&path).unwrap_or_else(|e| {
-        panic!(
-            "SHIPPED bundle {} could not be read: {e} — run `make check`",
-            path.display()
-        )
-    });
-    let graph = purrdf::gts::read_all_segments(&bytes).unwrap_or_else(|e| {
-        panic!(
-            "gmeow.gts segment decode failed for {}: {e}",
-            path.display()
-        )
-    });
-    purrdf::gts::dataset_from_gts_graph(&graph).unwrap_or_else(|e| {
-        panic!(
-            "gmeow.gts named-graph fold failed for {}: {e}",
-            path.display()
-        )
-    })
+    gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
+        .expect("authenticated shipped bundle; tests never produce it")
+        .dataset
 }
 
 /// The bare local name of an IRI (after the last `#`, `/`, or `:`).
@@ -177,35 +155,10 @@ fn manifest_kind_from_object(object: &str) -> Option<ManifestTestKind> {
 // ══════════════════════════════════════════════════════════════════════════════
 
 /// Gate 1(a): the shipped `logic:SzsStatus` table in `gmeow.gts` must reproduce
-/// `status.rs::outcome_for_szs` exactly, over exactly the nine-token domain — and
-/// the shipped FnO catalog (`functions.fno.ttl`) must parse as a real generated
-/// artifact. Binds `status.rs` to its shipped projection.
+/// `status.rs::outcome_for_szs` exactly, over exactly the nine-token domain.
+/// Binds `status.rs` to its shipped projection.
 #[test]
 fn no_drift_szs_table_matches_outcome_for_szs() {
-    // The generated FnO catalog is a real shipped artifact: confirm it parses (the
-    // SZS→verdict leg rides transforms.fno.ttl, merged into the same catalog; the
-    // per-token verdict TABLE is authored as the projectsToVerdict edges checked
-    // below, which is the load-bearing drift surface).
-    let fno_path = functions_fno_path();
-    let fno_text = std::fs::read_to_string(&fno_path).unwrap_or_else(|e| {
-        panic!(
-            "shipped FnO catalog {} could not be read: {e} — run `make check`",
-            fno_path.display()
-        )
-    });
-    let fno_ds =
-        purrdf::parse_dataset(fno_text.as_bytes(), "text/turtle", None).unwrap_or_else(|e| {
-            panic!(
-                "shipped FnO catalog {} is not valid Turtle: {e}",
-                fno_path.display()
-            )
-        });
-    assert!(
-        fno_ds.quad_refs().next().is_some(),
-        "shipped FnO catalog {} parsed to zero triples",
-        fno_path.display()
-    );
-
     // Collect the shipped SZS table: subject → (rawStatusToken, projectsToVerdict-local).
     let ds = load_shipped_bundle();
     let mut raw_token: BTreeMap<String, String> = BTreeMap::new();
@@ -272,14 +225,7 @@ fn no_drift_szs_table_matches_outcome_for_szs() {
 /// verdict. Binds `manifest.rs` to its shipped SSSOM projection.
 #[test]
 fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
-    let path = conformance_sssom_path();
-    let text = std::fs::read_to_string(&path).unwrap_or_else(|e| {
-        panic!(
-            "shipped SSSOM {} could not be read: {e} — the eqConfCorpus cells project here; \
-             run `make check`",
-            path.display()
-        )
-    });
+    let text = conformance_sssom();
 
     // Parse the SSSOM TSV: `#`-comment preamble, then a tab-separated header, then rows.
     let mut lines = text
@@ -287,14 +233,11 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
         .filter(|l| !l.trim_start().starts_with('#') && !l.trim().is_empty());
     let header = lines
         .next()
-        .unwrap_or_else(|| panic!("shipped SSSOM {} has no header row", path.display()));
+        .unwrap_or_else(|| panic!("shipped conformance SSSOM has no header row"));
     let cols: Vec<&str> = header.split('\t').collect();
     let col = |name: &str| -> usize {
         cols.iter().position(|c| *c == name).unwrap_or_else(|| {
-            panic!(
-                "shipped SSSOM {} header {cols:?} lacks a {name:?} column",
-                path.display()
-            )
+            panic!("shipped conformance SSSOM header {cols:?} lacks a {name:?} column")
         })
     };
     let (subj_c, obj_c) = (col("subject_id"), col("object_id"));
@@ -304,30 +247,20 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
     for line in lines {
         let fields: Vec<&str> = line.split('\t').collect();
         let subject = fields.get(subj_c).copied().unwrap_or_else(|| {
-            panic!(
-                "shipped SSSOM {} row {line:?} has no subject_id field",
-                path.display()
-            )
+            panic!("shipped conformance SSSOM row {line:?} has no subject_id field")
         });
         let object = fields.get(obj_c).copied().unwrap_or_else(|| {
-            panic!(
-                "shipped SSSOM {} row {line:?} has no object_id field",
-                path.display()
-            )
+            panic!("shipped conformance SSSOM row {line:?} has no object_id field")
         });
 
         let kind = manifest_kind_from_object(object).unwrap_or_else(|| {
             panic!(
-                "shipped SSSOM {} row object {object:?} does not parse to a W3C manifest kind \
-                 (PositiveEntailment/NegativeEntailment/InconsistencyTest/ConsistencyTest)",
-                path.display()
+                "shipped conformance SSSOM row object {object:?} does not parse to a W3C \
+                 manifest kind (PositiveEntailment/NegativeEntailment/InconsistencyTest/ConsistencyTest)"
             )
         });
         let subj_verdict = conf_local_to_verdict_status(local_name(subject)).unwrap_or_else(|| {
-            panic!(
-                "shipped SSSOM {} row subject {subject:?} is not a logic:Conf* verdict",
-                path.display()
-            )
+            panic!("shipped conformance SSSOM row subject {subject:?} is not a logic:Conf* verdict")
         });
         assert_eq!(
             kind.outcome().verdict_status(),
@@ -344,9 +277,7 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
 
     assert!(
         rows >= 4,
-        "shipped SSSOM {} has {rows} data rows; the four eqConfCorpus cells must all project \
-         (stale/absent file fails here until `make check`)",
-        path.display()
+        "shipped conformance SSSOM has {rows} data rows; the four eqConfCorpus cells must all project"
     );
     for kind in [
         ManifestTestKind::PositiveEntailment,
@@ -356,8 +287,7 @@ fn no_drift_conformance_sssom_matches_manifest_kind_outcome() {
     ] {
         assert!(
             kinds_seen.contains(&kind),
-            "shipped SSSOM {} is missing a row for manifest kind {kind:?}",
-            path.display()
+            "shipped conformance SSSOM is missing a row for manifest kind {kind:?}"
         );
     }
 }

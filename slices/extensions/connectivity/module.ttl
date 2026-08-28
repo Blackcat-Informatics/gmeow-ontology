@@ -2,14 +2,13 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Connection
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Connection"@x-gmeow-english ;
     logic:mediates gmeow:connectionSource ,
@@ -20,7 +19,7 @@ gmeow:Connection
 
 gmeow:Route
     a logic:Kind ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Route"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Entity ;
@@ -29,7 +28,7 @@ gmeow:Route
 
 gmeow:RouteKind
     a logic:AbstractIndividualType ,
-        owl:Class ;
+        logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Route Kind"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
@@ -37,27 +36,27 @@ gmeow:RouteKind
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:connectionSource
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Connection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "connection source"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "The source of a reified Connection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
 
 gmeow:connectionTarget
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Connection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "connection target"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "The target of a reified Connection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasRoute
-    a owl:ObjectProperty ;
-    rdfs:domain owl:Thing ;
+    a logic:ObjectProperty ;
+    rdfs:domain logic:Thing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "has route"@x-gmeow-english ;
     rdfs:range gmeow:Route ;
@@ -65,8 +64,8 @@ gmeow:hasRoute
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasRouteSegment
-    a owl:ObjectProperty ,
-        owl:TransitiveProperty ;
+    a logic:ObjectProperty ,
+        logic:transitiveProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "has route segment"@x-gmeow-english ;
@@ -90,16 +89,16 @@ gmeow:referenceFrameNetworkGraph
     gmeow:requiresHost false .
 
 gmeow:routeEnd
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "route end"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "The end of a route."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:routeKind
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "route kind"@x-gmeow-english ;
@@ -164,25 +163,25 @@ gmeow:routeKindWalking
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:routeStart
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "route start"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "The start of a route."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:routeVia
-    a owl:ObjectProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain gmeow:Route ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "route via"@x-gmeow-english ;
-    rdfs:range owl:Thing ;
+    rdfs:range logic:Thing ;
     skos:definition "An intermediate point that a route passes through. The order of via points is computed by the solver layer (Principle 12), not asserted in the OWL core."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/connectivity>
-    a owl:Ontology ;
+    a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment "Universal connectivity, network, and routing constructs — traversable links, reified connections, and route paths. Distinct from mereology (partOf) and RCC-8 adjacency. Part of the Location-as-reference-frame design."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
@@ -195,7 +194,7 @@ gmeow:routeVia
 # The canonical logic: carriers for the characteristics and integrity conditions of the
 # terms THIS slice owns. Each record names one of this slice's own properties or classes
 # through a logic: RBox predicate; the native coherence gate joins the record to enforce
-# the condition, and the OWL grounding view projects owl:FunctionalProperty (and friends)
+# the condition, and the OWL grounding view projects OWL FunctionalProperty (and friends)
 # from it. Authored here rather than in the logic slice because the fact asserted is a
 # fact about this slice's own term, and a grounding slice never depends on a non-grounding
 # slice (docs/GROUNDING.md, the tier rule): the logic: assertion vocabulary is CONSUMED
@@ -203,7 +202,7 @@ gmeow:routeVia
 #   logic:PropertyCharacteristicAssertion — logic:characterizes names the property, logic:characteristicSort its characteristic.
 
 gmeow:connectionSourceFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "connectionSource is functional"@x-gmeow-english ;
@@ -218,7 +217,7 @@ gmeow:connectionSourceFunctionality
     skos:example "gmeow:connectionSourceFunctionality logic:characterizes gmeow:connectionSource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:connectionTargetFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "connectionTarget is functional"@x-gmeow-english ;
@@ -233,7 +232,7 @@ gmeow:connectionTargetFunctionality
     skos:example "gmeow:connectionTargetFunctionality logic:characterizes gmeow:connectionTarget ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:routeEndFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "routeEnd is functional"@x-gmeow-english ;
@@ -248,7 +247,7 @@ gmeow:routeEndFunctionality
     skos:example "gmeow:routeEndFunctionality logic:characterizes gmeow:routeEnd ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:routeKindFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "routeKind is functional"@x-gmeow-english ;
@@ -263,7 +262,7 @@ gmeow:routeKindFunctionality
     skos:example "gmeow:routeKindFunctionality logic:characterizes gmeow:routeKind ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 gmeow:routeStartFunctionality
-    a owl:NamedIndividual ,
+    a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "routeStart is functional"@x-gmeow-english ;

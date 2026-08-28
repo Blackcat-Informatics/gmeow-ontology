@@ -24,7 +24,7 @@ use std::sync::Arc;
 use gmeow_errors::Diag;
 use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
-use crate::model::owl;
+use crate::model::{logic, owl};
 
 /// Validate a native [`RdfDataset`] against parsed SHACL
 /// [`purrdf::shapes::shapes::Shapes`] over the native
@@ -370,25 +370,38 @@ pub fn sameas_violations(
 ) -> Vec<(String, String)> {
     use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
-    let Some(sameas_id) = dataset.term_id_by_value(&TermValue::iri(owl::SAME_AS)) else {
-        return Vec::new();
-    };
+    // The Principle-5 ban scans identity in the canonical `logic:sameAs` spelling and
+    // its generated `owl:sameAs` view — a slice authors `logic:sameAs` after the flip,
+    // and an external-pointing identity in EITHER spelling is a violation. A dataset that
+    // carries BOTH spellings of one identity (the authored `logic:sameAs` plus its
+    // projected `owl:sameAs`) describes ONE violation, not two, so dedup the
+    // `(subject, object)` pair across the two scans — first (canonical `logic:`) occurrence
+    // wins, preserving document order. A consumer that counts findings must see one.
     let mut out: Vec<(String, String)> = Vec::new();
-    for quad in dataset.quads_for_pattern(None, Some(sameas_id), None, GraphMatch::Any) {
-        let TermRef::Iri(obj) = dataset.resolve(quad.o) else {
-            continue;
-        };
-        if obj.starts_with(namespace) {
-            continue;
+    let mut seen: std::collections::HashSet<(String, String)> = std::collections::HashSet::new();
+    for sameas_id in [logic::SAME_AS, owl::SAME_AS]
+        .into_iter()
+        .filter_map(|p| dataset.term_id_by_value(&TermValue::iri(p)))
+    {
+        for quad in dataset.quads_for_pattern(None, Some(sameas_id), None, GraphMatch::Any) {
+            let TermRef::Iri(obj) = dataset.resolve(quad.o) else {
+                continue;
+            };
+            if obj.starts_with(namespace) {
+                continue;
+            }
+            let subject_text = subject_display(dataset.resolve(quad.s));
+            if allowlist
+                .iter()
+                .any(|(s, o)| s == &subject_text && o == obj)
+            {
+                continue;
+            }
+            let pair = (subject_text, obj.to_owned());
+            if seen.insert(pair.clone()) {
+                out.push(pair);
+            }
         }
-        let subject_text = subject_display(dataset.resolve(quad.s));
-        if allowlist
-            .iter()
-            .any(|(s, o)| s == &subject_text && o == obj)
-        {
-            continue;
-        }
-        out.push((subject_text, obj.to_owned()));
     }
     out
 }
@@ -587,6 +600,31 @@ mod tests {
     }
 
     #[test]
+    fn sameas_dedups_dual_spelling_identity() {
+        // Thread r3832952678: one external identity carried in BOTH the authored
+        // logic:sameAs and its projected owl:sameAs spelling is ONE violation, not two.
+        let ds = parse_dataset(
+            "@prefix ex: <https://example.org/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             ex:a logic:sameAs ex:b .\n\
+             ex:a owl:sameAs ex:b .\n"
+                .as_bytes(),
+            "text/turtle",
+            None,
+        )
+        .unwrap();
+        assert_eq!(
+            sameas_violations(&ds, NS, &[]),
+            vec![(
+                "https://example.org/a".to_owned(),
+                "https://example.org/b".to_owned()
+            )],
+            "a dual-spelling identity must dedup to one violation"
+        );
+    }
+
+    #[test]
     fn sameas_skips_internal_and_allowlisted() {
         let ds = parse_dataset(
             format!(
@@ -758,7 +796,7 @@ mod tests {
 
         let writer = Writer::deterministic(&graph, "gmeow-validate-test")
             .expect("deterministic GTS writer must succeed");
-        let nq = core_browser_bundle_nquads(&writer.to_bytes(), &[])
+        let nq = core_browser_bundle_nquads(&writer.to_bytes(), &[]) // gmeow-test-input: synthetic-only
             .expect("core browser bundle must serialize");
         assert!(
             nq.contains("https://blackcatinformatics.ca/gmeow/Cat"),

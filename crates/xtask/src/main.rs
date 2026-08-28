@@ -91,20 +91,19 @@ const AFTER_SYNC: &[&str] = &["sync"];
 /// edge transitively carries the generated-tree dependency as well.
 const AFTER_RUST_BUILD: &[&str] = &["rust-build"];
 
-/// The browser lane needs the ASSEMBLED console tree, which only `console` produces —
-/// `AFTER_SYNC` materializes the bundle but assembles nothing.
-const AFTER_CONSOLE: &[&str] = &["sync", "console"];
+/// Corpus fixtures are produced by an explicit DAG node after the test binaries exist.
+/// Test runners depend on this node but never invoke it themselves.
+const AFTER_TEST_FIXTURES: &[&str] = &["test-fixtures"];
 
 const FINAL_DEPS: &[&str] = &[
     "check-lint",
     "crate-check",
     "i18n-lint",
     "rust-build",
-    "carrier-purity",
+    "test-fixtures",
     "clippy",
     "nextest",
     "doctests",
-    "coherence-gate-teeth",
     "validate",
     "medium-gate",
     "constitution-check",
@@ -114,7 +113,6 @@ const FINAL_DEPS: &[&str] = &[
     "reason-verify",
     "console-test",
     "console",
-    "console-smoke",
     "lint-alignment",
     "doc-lint",
     "slice-quality-gate",
@@ -124,7 +122,8 @@ const FINAL_DEPS: &[&str] = &[
 ///
 /// Every `AFTER_SYNC` edge below names the exact `generated/` read that forces it;
 /// every `ROOT` task was verified to read authored sources only. The breadth-dominated
-/// lanes (`acceptance`, `wasm-parity`, `bench-soak`) live in `make heavy`, not here.
+/// lanes (`acceptance`, `wasm-parity`, `console-smoke`, `bench-soak`) live in `make heavy`,
+/// not here.
 const CHECK_DAG: &[Task] = &[
     // The producer. Materializes `generated/` (bundle + fanout) from authored sources.
     Task {
@@ -161,9 +160,12 @@ const CHECK_DAG: &[Task] = &[
         target: "rust-build",
         dependencies: AFTER_SYNC,
     },
+    // The sole pre-test fixture producer. Its separately compiled executables publish
+    // exact test-profile action receipts and the generated-bundle import product. Every
+    // test-facing loader is read-only and fails if this node did not complete.
     Task {
-        name: "carrier-purity",
-        target: "carrier-purity",
+        name: "test-fixtures",
+        target: "produce-test-fixtures",
         dependencies: AFTER_RUST_BUILD,
     },
     Task {
@@ -174,19 +176,11 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "nextest",
         target: "nextest",
-        dependencies: AFTER_RUST_BUILD,
+        dependencies: AFTER_TEST_FIXTURES,
     },
     Task {
         name: "doctests",
         target: "doctests",
-        dependencies: AFTER_RUST_BUILD,
-    },
-    // `crates/logic/tests/coherence_gate.rs` reads `generated/dist/gmeow.gts` and needs
-    // the compiled test binaries; it does NOT need `reason-verify` (it runs its own
-    // whole-bundle proofs), so that former serial edge is gone.
-    Task {
-        name: "coherence-gate-teeth",
-        target: "coherence-gate-teeth",
         dependencies: AFTER_RUST_BUILD,
     },
     // Two post-sync reads. (1) The shape union
@@ -256,23 +250,16 @@ const CHECK_DAG: &[Task] = &[
         target: "console-test",
         dependencies: AFTER_SYNC,
     },
-    // The standalone console's assembled tree, and the browser lane that drives it. Two
-    // tasks, not one: `console-smoke` needs the ASSEMBLED tree, and `AFTER_SYNC` never
-    // assembles anything — so the edge `console-smoke <- console` is what makes the browser
-    // lane run against the artifact rather than against nothing. The browser surface IS the
-    // console's deliverable, so this lane is a gate blocker: it serves the assembled tree
-    // over plain static HTTP with no COOP/COEP (exactly what Pages provides), drives the
-    // whole read surface through the assembled worker, and boots the REAL `npm pack`
-    // tarball the way the shipped README prescribes.
+    // Assemble the standalone console deterministically on the local gate. The focused
+    // DOM-free `console-test` above exercises the shipped wasm bytes against the synchronized
+    // bundle. The 41-case browser/package sweep (`console-smoke`) is breadth-dominated — it
+    // drives the whole read surface, offline and perturbed trees, and a real installed npm
+    // tarball — so it runs on every PR as its own `make heavy` matrix branch instead of
+    // extending every local edit's critical path.
     Task {
         name: "console",
         target: "console",
         dependencies: AFTER_SYNC,
-    },
-    Task {
-        name: "console-smoke",
-        target: "console-smoke",
-        dependencies: AFTER_CONSOLE,
     },
     // `correspondence_soundness` audits `generated/mappings/*.sssom.tsv`,
     // `generated/projections/*.edoal.ttl`, and the generated FnO catalog.
@@ -282,7 +269,7 @@ const CHECK_DAG: &[Task] = &[
         dependencies: AFTER_SYNC,
     },
     // The documentation model and the rendered English site come from the
-    // content-addressed `.cache/docs-fixture` store (the model half in
+    // bounded content-addressed `.cache/gmeow-sync/actions/` store (the model half in
     // `gmeow_docs_model::fixture`, the rendered half in `gmeow_docs::fixture`), whose key
     // folds `generated/catalog/constraint-catalog.nq` and
     // `generated/catalog/term-content-manifest.nq` — the same two files
@@ -896,17 +883,25 @@ mod tests {
         }
     }
 
-    /// The monolithic `rust-gate` node is split: the four Rust lanes are siblings
-    /// under `rust-build`, never chained to each other.
+    /// The monolithic `rust-gate` node is split. Non-corpus lanes remain siblings
+    /// under `rust-build`; the corpus-consuming runner waits on the explicit producer.
     #[test]
     fn the_rust_lanes_are_independent_siblings() {
-        for name in ["carrier-purity", "clippy", "nextest", "doctests"] {
+        for name in ["clippy", "doctests"] {
             assert_eq!(
                 task(name).dependencies,
                 AFTER_RUST_BUILD,
                 "{name} must depend on rust-build and nothing else"
             );
         }
+        assert_eq!(task("test-fixtures").dependencies, AFTER_RUST_BUILD);
+        assert_eq!(task("nextest").dependencies, AFTER_TEST_FIXTURES);
+        assert!(
+            !CHECK_DAG
+                .iter()
+                .any(|task| matches!(task.name, "carrier-purity" | "coherence-gate-teeth")),
+            "carrier/coherence proofs must run inside the one nextest inventory"
+        );
         assert!(
             !CHECK_DAG.iter().any(|task| task.name == "rust-gate"),
             "the monolithic rust-gate node must not be scheduled alongside its parts"
@@ -916,7 +911,7 @@ mod tests {
     /// The breadth-dominated lanes belong to `make heavy`, not the per-commit gate.
     #[test]
     fn the_heavy_lanes_are_not_scheduled_by_check() {
-        for name in ["acceptance", "wasm-parity", "bench-soak"] {
+        for name in ["acceptance", "wasm-parity", "console-smoke", "bench-soak"] {
             assert!(
                 !CHECK_DAG.iter().any(|task| task.name == name),
                 "{name} moved to `make heavy` and must not reappear in CHECK_DAG"

@@ -12,7 +12,7 @@
 #
 # The cross-slice gUFO/EventType invariants, the whole-merged-graph negative
 # sweeps, and the SHACL fixture-conformance + ABox checks now live natively in
-# crates/validate/tests/conformance_lifecycle.rs
+# crates/validate/tests/conformance_cases/conformance_lifecycle.rs
 # (supersession_properties_are_object_properties,
 # lifecycle_event_types_are_individuals_not_classes,
 # no_lifecycle_event_subclasses_exist, no_preferred_or_primary_lifecycle_term via

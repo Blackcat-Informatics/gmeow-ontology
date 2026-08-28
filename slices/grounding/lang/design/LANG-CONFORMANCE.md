@@ -100,8 +100,8 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 ### GMN dialect rules
 
 The hard rules of the GMN dialect charter ([`LANG-GMN.md`](LANG-GMN.md)). Every row below is
-**execution-verified on-gate**, not asserted by fixture existence: the conformance-discharge harness
-drives each row through the production surface that owns its class and asserts it raises **exactly**
+**execution-verified by the cached producer**, not asserted by fixture existence: the explicit
+slice-spec action drives each row through the production surface that owns its class and asserts it raises **exactly**
 that class, while every worked example raises nothing. SHACL-tier rows discharge through the
 structural-lint ∪ SHACL union — the `lang:Gmn*Shape` gates in `shapes.ttl`, each naming its class
 through `gmeow:enforcesFailureClass`, merged with the `module.ttl` baseline — whose triggered set

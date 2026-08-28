@@ -105,7 +105,7 @@ meta:tests-alignment a meta:TestSuite ;
     rdfs:label "alignment direction / bridging tests"@x-gmeow-english ;
     meta:artifact "crates/logic-compile/src/projections/correspondence_soundness.rs",
         "crates/pipeline/tests/correspondence_soundness_parity.rs",
-        "crates/validate/tests/conformance_coreference.rs" .
+        "crates/validate/tests/conformance_cases/conformance_coreference.rs" .
 
 meta:gate-reasoning a meta:Gate ;
     rdfs:label "OWL 2 DL profile + native OWL-Direct consistency (Docker-free), the single native reasoning authority"@x-gmeow-english ;
@@ -123,8 +123,8 @@ meta:lint-no-preferred-rank a meta:Lint ;
 
 meta:tests-identity-orthogonality a meta:TestSuite ;
     rdfs:label "identity-axis orthogonality matrix (7 co-equal axes)"@x-gmeow-english ;
-    meta:artifact "crates/validate/tests/conformance_identity_orthogonality.rs", "crates/validate/tests/conformance_gender.rs",
-        "crates/validate/tests/conformance_standpoint.rs" .
+    meta:artifact "crates/validate/tests/conformance_cases/conformance_identity_orthogonality.rs", "crates/validate/tests/conformance_cases/conformance_gender.rs",
+        "crates/validate/tests/conformance_cases/conformance_standpoint.rs" .
 
 meta:shapes-core a meta:Shape ;
     rdfs:label "core SHACL shapes (identity facets, claim spine, frames)"@x-gmeow-english ;
@@ -138,14 +138,13 @@ meta:gate-suppression a meta:Gate ;
 
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
-    meta:artifact "crates/pipeline/tests/edoal_sparql_correspondence_parity.rs",
-        "crates/validate/tests/conformance_disclosure.rs", "crates/validate/tests/conformance_privacy.rs",
-        "crates/validate/tests/conformance_suppression.rs" .
+    meta:artifact "crates/validate/tests/conformance_cases/conformance_disclosure.rs", "crates/validate/tests/conformance_cases/conformance_privacy.rs",
+        "crates/validate/tests/conformance_cases/conformance_suppression.rs" .
 
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
-    meta:artifact "crates/validate/tests/conformance_reference_frames.rs",
-        "crates/validate/tests/conformance_calendar.rs",
+    meta:artifact "crates/validate/tests/conformance_cases/conformance_reference_frames.rs",
+        "crates/validate/tests/conformance_cases/conformance_calendar.rs",
         "slices/core/temporal/tests/structural.ttl" .
 
 meta:lint-reasoning-invariants a meta:Lint ;
@@ -171,10 +170,10 @@ meta:tests-products a meta:TestSuite ;
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;
-    meta:artifact "crates/validate/tests/conformance_provenance.rs",
+    meta:artifact "crates/validate/tests/conformance_cases/conformance_provenance.rs",
         "slices/core/attestation/tests/structural.ttl",
-        "crates/validate/tests/ontology_conformance.rs",
-        "crates/validate/tests/conformance_trust.rs", "crates/validate/tests/conformance_evidence.rs" .
+        "crates/validate/tests/conformance_cases/ontology_conformance.rs",
+        "crates/validate/tests/conformance_cases/conformance_trust.rs", "crates/validate/tests/conformance_cases/conformance_evidence.rs" .
 
 meta:practice-consumer-question a meta:Practice ;
     rdfs:label "issue templates ask who the consumer is"@x-gmeow-english ;
@@ -184,12 +183,12 @@ meta:practice-consumer-question a meta:Practice ;
 
 meta:gate-core-profile a meta:Gate ;
     rdfs:label "root ontology = CORE profile exactly; manifests are tier truth"@x-gmeow-english ;
-    meta:artifact "crates/validate/tests/conformance_vocabulary_surface.rs", "slices/vocabulary.ttl" ;
+    meta:artifact "crates/validate/tests/conformance_cases/conformance_vocabulary_surface.rs", "slices/vocabulary.ttl" ;
     meta:symbol "root_imports_are_exactly_the_core_profile" .
 
 meta:tests-slices a meta:TestSuite ;
     rdfs:label "slice anatomy and profile tests"@x-gmeow-english ;
-    meta:artifact "crates/validate/tests/conformance_profiles.rs" .
+    meta:artifact "crates/validate/tests/conformance_cases/conformance_profiles.rs" .
 
 meta:gate-crate-layering a meta:Gate ;
     rdfs:label "Rust crate layering: acyclic first-party crate DAG"@x-gmeow-english ;
@@ -220,7 +219,7 @@ meta:gate-suppression-injection a meta:Gate ;
 
 meta:tests-leak-conformance a meta:TestSuite ;
     rdfs:label "generated per-profile leak-conformance suite"@x-gmeow-english ;
-    meta:artifact "crates/validate/tests/conformance_suppression.rs" .
+    meta:artifact "crates/validate/tests/conformance_cases/conformance_suppression.rs" .
 
 meta:shapes-frame-generated a meta:Shape ;
     rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame"@x-gmeow-english ;
@@ -585,12 +584,12 @@ meta:gate-math-conformance a meta:Gate ;
     rdfs:label "the math: conformance surface — the reasoned-graph dimensional gate + native ingest invariant + flagship-manifest capstone over the slice competency corpus"@x-gmeow-english ;
     meta:artifact "crates/validate/src/lint.rs",
         "crates/logic/src/math_dimension.rs",
-        "crates/slicetest/tests/flagship_manifest.rs",
+        "crates/slicetest/src/repository.rs",
         "slices/grounding/math/tests/competency.ttl",
         "slices/grounding/math/design/MATHEMATICS-CONFORMANCE.md" ;
     meta:symbol "check_math_dimension_findings", "check_math_ingest_invariants",
-        "every_flagship_scenario_is_wired_to_a_green_competency_and_real_artifacts" ;
-    meta:makeTarget "validate", "reason-verify", "rust-test" .
+        "validate_flagship_manifests" ;
+    meta:makeTarget "validate", "reason-verify", "produce-test-fixtures" .
 
 meta:Principle19 a meta:Principle ;
     meta:number 19 ;

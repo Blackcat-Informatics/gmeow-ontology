@@ -20,6 +20,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, OnceLock};
 
 use gmeow_docs::gmn1_primer::{Gmn1Primer, build_primer};
 use gmeow_lang_bridge::{Gmn1Document, GmnDictionary, gmn1_read};
@@ -35,11 +36,13 @@ fn repo_root() -> PathBuf {
 
 /// The folded carrier dataset over the shipped `gmeow.gts` bundle — the same import-once path
 /// the MCP consumer and the export leaf use, so the primer under test is the shipped one.
-fn bundle_dataset() -> std::sync::Arc<RdfDataset> {
-    let path = repo_root().join("generated/dist/gmeow.gts");
-    let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-    let graph = purrdf::gts::read_all_segments(&bytes).expect("read GTS segments");
-    purrdf::gts::dataset_from_gts_graph(&graph).expect("fold GTS bundle")
+fn bundle_dataset() -> Arc<RdfDataset> {
+    static DATASET: OnceLock<Arc<RdfDataset>> = OnceLock::new();
+    Arc::clone(DATASET.get_or_init(|| {
+        gmeow_bundle_import::load_authenticated_repository_bundle(&repo_root())
+            .expect("authenticated repository corpus; tests never produce it")
+            .dataset
+    }))
 }
 
 fn shipped_primer(ds: &RdfDataset) -> Gmn1Primer {

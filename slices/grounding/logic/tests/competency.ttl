@@ -634,8 +634,8 @@ ex:rowConjectureRefinementSurvivesWitness a gmeow:ExpectedRow ;
 # that queries its worked acceptance-witness fixture (gmeow:cqDataFile) and pins the
 # single carrier value the native producer's structure certifies. These are the
 # green competency gates the flagship manifest's gmeow:demonstratedByCompetency
-# resolves to; the execution-discharge harness runs each producer and pins the same
-# datum from the native side.
+# resolves to. The authenticated slice-spec producer executes the question once, while
+# the production logic gates own the named entrypoints and their native evidence.
 # =========================================================================== #
 
 # --- CQ 1 — the closure entails an atom beyond its EDB --------------------- #

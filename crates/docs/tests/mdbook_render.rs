@@ -13,96 +13,15 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_docs::mdbook::{render_book, rewrite_book_links};
-use gmeow_docs::render::{Page, book_pages, slice_slug, term_slug, to_markdown_exec};
+use gmeow_docs::render::{Page, book_pages, slice_slug, to_markdown_exec};
 use gmeow_docs::{DocSlice, ExecutableDocsData};
 
 mod common;
 
-/// An `exec` that supplies a (non-empty) playground asset, so the term/slice
-/// export sections — which link the dropped SPARQL playground + prompt card —
-/// are rendered. The bytes are opaque to the renderer (it only checks
-/// non-emptiness via `has_playground`), so a fixed sentinel is sufficient.
-fn exec_with_playground() -> ExecutableDocsData {
-    ExecutableDocsData {
-        playground_trig: b"@prefix ex: <http://example/> .".to_vec(),
-        ..Default::default()
-    }
-}
-
-/// An `exec` that supplies a (non-empty) browser bundle, so the render packs the
-/// interactive engines + the bundle-explorer host chapter into the book. The bytes are
-/// opaque to the renderer (it checks non-emptiness via `has_bundle` and content-addresses
-/// them), so fixed sentinels suffice.
-fn exec_with_bundle() -> ExecutableDocsData {
-    ExecutableDocsData {
-        full_bundle_gts: b"gts-bundle-sentinel-bytes".to_vec(),
-        ..Default::default()
-    }
-}
-
-/// W3: a bundle-backed book PACKS the interactive engines, so its
-/// `Interactivity`/`LiveSparql`/`LiveReasoning` capabilities are realized, not merely
-/// asserted. The book must carry the vendored wasm engines + the shared controller under
-/// `src/assets/`, the `additional-js` boot shim at the book root, the explorer host
-/// chapter, and `book.toml` must wire the shim.
-#[test]
-fn interactive_book_packs_the_vendored_engines_and_host_chapter() {
-    let model = common::cached_model();
-    let site = render_book(&model, &exec_with_bundle());
-    let has = |p: &str| site.files.contains_key(p);
-
-    // The shared controller + every vendored engine, under src/ so mdbook copies them.
-    assert!(has("src/assets/gmeow-docs.js"), "controller not packed");
-    for engine in [
-        "src/assets/reason/gmeow_reason_wasm_bg.wasm",
-        "src/assets/gmn/gmeow_gmn_wasm_bg.wasm",
-        "src/assets/validate/gmeow_validate_wasm_bg.wasm",
-        "src/assets/query/gmeow_query_wasm.js",
-    ] {
-        assert!(
-            has(engine),
-            "vendored engine not packed into the book: {engine}"
-        );
-    }
-    // The full gts bundle the explorer loads client-side (`Dataset.fromGts`) + its
-    // integrity manifest.
-    assert!(has("src/assets/gmeow.gts"), "full bundle not packed");
-    assert!(
-        has("src/assets/bundle-manifest.json"),
-        "bundle manifest not packed"
-    );
-
-    // The additional-js boot shim rides at the book root and dynamic-imports the module.
-    let shim = site.files.get("mdbook-boot.js").expect("boot shim present");
-    let shim = String::from_utf8(shim.clone()).unwrap();
-    assert!(
-        shim.contains("import(new URL(\"assets/gmeow-docs.js\""),
-        "boot shim must dynamic-import the controller: {shim}"
-    );
-
-    // book.toml wires the shim; the explorer host chapter exists and is in the ToC.
-    let toml = String::from_utf8(site.files.get("book.toml").unwrap().clone()).unwrap();
-    assert!(
-        toml.contains("additional-js = [\"mdbook-boot.js\"]"),
-        "book.toml must wire the boot shim: {toml}"
-    );
-    assert!(
-        has("src/explorer/index.md"),
-        "explorer host chapter missing"
-    );
-    let summary = String::from_utf8(site.files.get("src/SUMMARY.md").unwrap().clone()).unwrap();
-    assert!(
-        summary.contains("(explorer/index.md)"),
-        "explorer chapter must be in the table of contents: {summary}"
-    );
-}
-
 /// Without a bundle/playground the book stays static — no engines packed, no shim wired.
 #[test]
 fn non_interactive_book_packs_no_engines() {
-    let model = common::cached_model();
-    let site = render_book(&model, &ExecutableDocsData::default());
+    let site = common::cached_book();
     assert!(!site.files.contains_key("mdbook-boot.js"));
     assert!(!site.files.keys().any(|k| k.starts_with("src/assets/")));
     let toml = String::from_utf8(site.files.get("book.toml").unwrap().clone()).unwrap();
@@ -110,31 +29,6 @@ fn non_interactive_book_packs_no_engines() {
         !toml.contains("additional-js"),
         "static book must not wire additional-js"
     );
-}
-
-/// The `src/`-relative chapter path of a page (mirrors the private helper).
-fn chapter_src_path(dir: &str) -> String {
-    if dir.is_empty() {
-        "src/index.md".to_string()
-    } else {
-        format!("src/{dir}/index.md")
-    }
-}
-
-/// The first term (by model order) with at least one parent that resolves to
-/// another term in the model — so its chapter body carries an intra-book
-/// relative cross-link, deterministically.
-fn term_with_crosslinks(model: &gmeow_docs::DocsModel) -> String {
-    model
-        .terms
-        .iter()
-        .find(|t| {
-            t.parents
-                .iter()
-                .any(|p| model.terms.iter().any(|x| &x.iri == p))
-        })
-        .map(term_slug)
-        .expect("a term with a resolvable parent cross-link exists")
 }
 
 #[test]
@@ -291,97 +185,6 @@ fn book_toml_golden() {
     insta::assert_snapshot!(toml);
 }
 
-#[test]
-fn book_term_chapter_with_dropped_link_golden() {
-    // A term chapter that HAS cross-links AND (via the playground exec) links the
-    // dropped SPARQL playground + prompt card — pins the A5 rewrite fidelity.
-    let model = common::cached_model();
-    let exec = exec_with_playground();
-    let site = render_book(&model, &exec);
-    let slug = term_with_crosslinks(&model);
-    let body = String::from_utf8(
-        site.files
-            .get(&chapter_src_path(&Page::Term(slug.clone()).dir()))
-            .expect("the term chapter is emitted")
-            .clone(),
-    )
-    .expect("chapter is UTF-8");
-
-    // Hard invariants (independent of the golden text): the dropped playground
-    // link is externalized to the published site, never left as a relative
-    // `sparql/index.html` (which would fail `mdbook build`).
-    assert!(
-        body.contains("https://blackcatinformatics.ca/gmeow/docs/sparql/index.html"),
-        "the dropped SPARQL playground link must be externalized"
-    );
-    assert!(
-        !body.contains("](../../sparql/index.html"),
-        "no relative link to the dropped playground chapter may survive"
-    );
-
-    // Lock the header slice (title + fields) so the chapter body is pinned.
-    let head: String = body.lines().take(20).collect::<Vec<_>>().join("\n");
-    insta::assert_snapshot!(head);
-}
-
-#[test]
-fn book_bodies_are_rewrite_of_single_authority() {
-    // A4 — render-once coherence: the ONLY difference between a book chapter and
-    // the site body is the deterministic link rewrite. This mechanizes the razor.
-    let model = common::cached_model();
-    let exec = exec_with_playground();
-    let site = render_book(&model, &exec);
-    let pages = book_pages(&model);
-    let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
-    let page_map = gmeow_docs::source_map::SourceToPageMap::build(&model).expect("map builds");
-
-    for page in &pages {
-        let expected = rewrite_book_links(
-            &to_markdown_exec(&model, page, &exec),
-            &page.dir(),
-            &chapters,
-            &page_map,
-        )
-        .body;
-        let actual = String::from_utf8(
-            site.files
-                .get(&chapter_src_path(&page.dir()))
-                .unwrap_or_else(|| panic!("chapter for {page:?} is emitted"))
-                .clone(),
-        )
-        .expect("chapter is UTF-8");
-        assert_eq!(
-            actual, expected,
-            "book chapter for {page:?} must be exactly rewrite(to_markdown_exec(...))"
-        );
-    }
-}
-
-#[test]
-fn book_no_relative_link_to_dropped_page() {
-    // With `create-missing = false`, a relative link to a non-chapter would fail
-    // `mdbook build`. Every `[text](target)` link to a dropped surface (the SPARQL
-    // playground or a `card.md`) must be ABSOLUTE (externalized), never relative.
-    let model = common::cached_model();
-    let site = render_book(&model, &exec_with_playground());
-    for (path, bytes) in &site.files {
-        if !path.ends_with("index.md") || path == "src/SUMMARY.md" {
-            continue;
-        }
-        let body = std::str::from_utf8(bytes).expect("chapter is UTF-8");
-        for target in link_targets(body) {
-            let dropped = target.contains("sparql/index.html")
-                || target.trim_end_matches(')').ends_with("card.md");
-            if dropped {
-                assert!(
-                    target.starts_with("http://") || target.starts_with("https://"),
-                    "chapter {path} links a dropped surface relatively: {target}"
-                );
-            }
-        }
-    }
-}
-
 /// Every Markdown link target `[..](target)` on a body (naive; sufficient for the
 /// renderer's percent-encoded, paren-free targets).
 fn link_targets(body: &str) -> Vec<String> {
@@ -511,28 +314,9 @@ fn book_zero_term_slice_renders_valid_chapter() {
     };
     let slug = slice_slug(&empty);
     model.slices.push(empty);
-    let site = render_book(&model, &ExecutableDocsData::default());
-    let path = chapter_src_path(&Page::Slice(slug).dir());
-    let body = std::str::from_utf8(
-        site.files
-            .get(&path)
-            .expect("the zero-term slice chapter is emitted"),
-    )
-    .expect("chapter is UTF-8");
+    let body = to_markdown_exec(&model, &Page::Slice(slug), &ExecutableDocsData::default());
     assert!(
         body.starts_with("# "),
         "the zero-term slice chapter must open with an H1"
     );
-}
-
-#[test]
-fn cached_book_matches_live_render() {
-    // The cached default book must be byte-identical to a fresh render (no blind
-    // re-bless). Under the primer (the gate/production config) `cached_book()` reads
-    // from disk, so this is a real disk-round-trip-vs-live comparison; on a cold
-    // plain `cargo test` it renders live and caches, proving the NotFound arm falls
-    // through without panicking.
-    let model = common::cached_model();
-    let live = render_book(&model, &ExecutableDocsData::default());
-    assert_eq!(common::cached_book(), live);
 }

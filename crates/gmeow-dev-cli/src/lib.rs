@@ -27,6 +27,7 @@ mod dev_shapes;
 mod dev_slice_quality;
 mod dev_sync;
 mod dev_targets;
+mod dev_test_fixtures;
 mod dev_transpile;
 mod dev_validate;
 mod error;
@@ -61,6 +62,24 @@ pub enum SyncOutput {
     Generated,
     /// External site/book/print/snippet/model docs plus required fresh inputs.
     Docs,
+}
+
+/// Which side of the strict pre-test fixture boundary to execute.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum TestFixtureMode {
+    /// Run the explicit producer DAG before any test process starts.
+    Produce,
+    /// Authenticate existing receipts and products without a producer fallback.
+    Verify,
+}
+
+/// Fixture subset used by the split CI producer/archive lanes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum TestFixtureScope {
+    All,
+    ProducerIndependent,
+    ProducerBound,
+    Bundle,
 }
 
 impl SyncOutput {
@@ -98,6 +117,30 @@ pub enum Commands {
     Version,
     /// Show a summary of the bundled GMEOW ontology snapshot.
     Info,
+    /// Produce or authenticate the exact pre-test fixture DAG.
+    #[command(name = "test-fixtures", hide = true)]
+    TestFixtures {
+        #[arg(value_enum)]
+        mode: TestFixtureMode,
+        #[arg(long = "scope", value_enum, default_value_t = TestFixtureScope::All)]
+        scope: TestFixtureScope,
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+        #[arg(long = "bundle-import-cache-root")]
+        bundle_import_cache_root: Option<PathBuf>,
+        #[arg(long = "expected-source-digest")]
+        expected_source_digest: Option<String>,
+    },
+    /// Private child-process executor for one producer-owned declarative-spec wave.
+    #[command(name = "slice-spec-worker", hide = true)]
+    SliceSpecWorker {
+        #[arg(long)]
+        kind: String,
+        #[arg(long = "spec", required = true)]
+        specs: Vec<PathBuf>,
+        #[arg(long, default_value_t = 1)]
+        workers: usize,
+    },
     /// Run the canonical one-pass pipeline, strict gates, and output projections.
     Sync {
         /// Update locally or verify read-only. Defaults to check in CI, update elsewhere.
@@ -791,6 +834,24 @@ pub fn run() -> i32 {
     match cli.command {
         Commands::Version => version(),
         Commands::Info => info(),
+        Commands::TestFixtures {
+            mode,
+            scope,
+            timings_json,
+            bundle_import_cache_root,
+            expected_source_digest,
+        } => dev_test_fixtures::run(
+            mode,
+            scope,
+            timings_json.as_deref(),
+            bundle_import_cache_root.as_deref(),
+            expected_source_digest.as_deref(),
+        ),
+        Commands::SliceSpecWorker {
+            kind,
+            specs,
+            workers,
+        } => dev_test_fixtures::run_slice_spec_worker(&kind, &specs, workers),
         Commands::Sync {
             mode,
             outputs,

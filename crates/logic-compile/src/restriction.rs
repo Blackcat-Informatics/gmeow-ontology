@@ -1,22 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Shared OWL/`logic:` restriction skolemizer — the single lift routine behind the
+//! The `logic:` restriction skolemizer — the single lift routine behind the
 //! `isSupersetOf` round-trip.
 //!
-//! An OWL class-expression restriction (`C rdfs:subClassOf [ owl:onProperty P ;
-//! owl:someValuesFrom D ]`) and the equivalent `logic:`-authored form must normalize
-//! to the SAME flat [`crate::ir::LogicAxiom`] set, so the IR-isomorphism gate
-//! (`adapter::assert_ir_isomorphic`) passes.  The anonymous restriction node is the
-//! only obstacle: a raw blank-node label is per-parse and would never collide across
-//! the two authoring surfaces.
+//! A `logic:`-authored class-expression restriction (`C logic:subClassOf
+//! [ logic:onProperty P ; logic:someValuesFrom D ]`) must normalize to a flat
+//! [`crate::ir::LogicAxiom`] set that survives the OWL projection and reparse
+//! round-trip (the IR-isomorphism gate `adapter::assert_ir_isomorphic`).  The anonymous
+//! restriction node is the only obstacle: a raw blank-node label is per-parse and would
+//! never collide across a project → reparse cycle.
 //!
 //! The fix mirrors the covering projection: mint a **deterministic, content-addressed
 //! IRI** `logic:restriction/<sha256_12(content_key)>` for the restriction node, where
 //! `content_key` is a canonical function of the restriction's *meaning only*
-//! (`onProperty` + its constraints).  Both the `owl:` adapter and the `logic:`
-//! front-end run THIS one routine (parameterized only by the source vocabulary), so
-//! identical meaning ⇒ identical skolem IRI ⇒ identical axiom set.
+//! (`onProperty` + its constraints), so identical meaning ⇒ identical skolem IRI ⇒
+//! identical axiom set (structure sharing + a stable round-trip).
 //!
 //! Every lifted restriction becomes flat `(subject, predicate, obj)` triples in the
 //! program's `axioms` — never a new collection — so a restriction-free program's
@@ -37,8 +36,6 @@ use crate::ir::LOGIC_NAMESPACE;
 /// IR `sort_key` separator so the byte form is consistent across the compiler).
 const SEP: char = '\u{0}';
 
-const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
-const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The XSD namespace the constraining facets ([`FACET_LOCALS`]) live under.  Facets are
 /// `xsd:`-namespaced on BOTH the `owl:` and the `logic:` authoring surfaces (unlike the
@@ -124,29 +121,21 @@ pub(crate) const CARDINALITY_LOCALS: &[&str] = &[
     "maxQualifiedCardinality",
 ];
 
-/// The source vocabulary a [`skolemize_restrictions`] pass reads.  The constraint /
-/// property-slot / type local names are shared between `owl:` and `logic:`; only the
-/// namespace and the two anchoring predicates (`subClassOf` / `equivalentClass`)
-/// differ between the legacy-OWL surface and the canonical `logic:` surface.
+/// The source vocabulary a [`skolemize_restrictions`] pass reads — the canonical
+/// `logic:` surface.  The constraint / property-slot / type local names are shared
+/// verbatim with the OWL projection vocabulary; the namespace and the two anchoring
+/// predicates (`subClassOf` / `equivalentClass`) are carried here so the skolemizer
+/// stays parameterized over them.
 pub(crate) struct RestrictionVocab {
-    /// Namespace of the restriction predicates + class (`owl:` or `logic:`).
+    /// Namespace of the restriction predicates + class (`logic:`).
     ns: String,
-    /// The class→restriction anchor (`rdfs:subClassOf` for OWL, `logic:subClassOf` for logic).
+    /// The class→restriction anchor (`logic:subClassOf`).
     sub_class_of: String,
-    /// The equivalence anchor (`owl:equivalentClass` for OWL, `logic:equivalentClass` for logic).
+    /// The equivalence anchor (`logic:equivalentClass`).
     equivalent_class: String,
 }
 
 impl RestrictionVocab {
-    /// The legacy-OWL source vocabulary (the adapter path).
-    pub(crate) fn owl() -> Self {
-        Self {
-            ns: OWL_NS.to_owned(),
-            sub_class_of: format!("{RDFS_NS}subClassOf"),
-            equivalent_class: format!("{OWL_NS}equivalentClass"),
-        }
-    }
-
     /// The canonical `logic:` source vocabulary (the front-end path).
     pub(crate) fn logic() -> Self {
         Self {

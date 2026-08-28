@@ -391,14 +391,13 @@ process / result / claim separation, realized across the `math:` and `gmeow:` la
 > `math:` pipeline stage COMPUTES `math:ProjectionRecord` individuals today — the three lowerings
 > above (the OWL-annotation flattening, the SciPy/Stan role mapping, and the confidence
 > calibration) are hand-authored, positive demonstrators in `examples/projection-loss-ledger.ttl`
-> (shipped in `gmeow.gts`) and, separately, computed by the test-support producers in
-> `crates/pipeline/tests/support/math_projection_producer.rs` (exercised as a real-producer
-> acceptance query in `crates/pipeline/tests/math_conformance_discharge.rs`, over genuinely
-> computed output rather than hand-typed testimony). Neither is a DAG stage that derives a
+> (shipped in `gmeow.gts`) and checked by the production native validator during the explicit
+> cached slice-spec producer. There is deliberately no test-only projection producer: a test
+> may not manufacture alternate corpus evidence. No DAG stage currently derives a
 > `math:ProjectionRecord` from a live source object during `make check`. A charter row must name
 > the mechanism that actually decides the rule on shipped content; naming a test-support module
 > would make the gate an artifact of the test that asserts it. When a real pipeline-stage producer
-> lands, these rows move to it and the acceptance query runs over its output.
+> lands, these rows move to it and the cached validation action runs over its output.
 
 | A declared-exact `math:JointProbabilityTable`/`math:MarkovKernel`/`math:BayesianNetwork`/`math:FactorGraph` actually has the outcome mass / completeness its declared `logic:ExactPreservation` claims | Rust validator (`check_math_probability_invariants`; arithmetic outcome-mass summation and dependency-graph completeness over the probability-model families, not a `math:ProjectionRecord` join) | `math:ExactPreservationViolated` |
 
@@ -464,8 +463,9 @@ that does not wire all five to a real conformance failure is `math:UnwiredFlagsh
 |---|---|---|
 | A `gmeow:FlagshipScenario` binds its example, competency, producer, counter-example, and a failure class that IS a `math:MathConformanceFailure` subclass | shared `gmeow:FlagshipScenarioShape` (SHACL Core) + thin `math:FlagshipScenarioShape` (SHACL-SPARQL) | `math:UnwiredFlagshipScenario` |
 | The five canonical flagship scenarios are all present and fully wired | structural (`ex:saFlagshipCoverage`) | (structural assertion) |
-| Each flagship's competency reference resolves to a registered green (`cqExpectRow`) competency question with an existing query file, and its example/counter-example files exist | Rust cross-check (`crates/slicetest` `flagship_manifest`) | (native test) |
-| Each counter-example raises exactly its failure class, each worked example is clean, and each named producer runs to its pinned output | execution-discharge harness (`crates/pipeline/tests/math_flagship_discharge.rs`) | (native test) |
+| Each flagship's competency reference resolves to a registered green (`cqExpectRow`) competency question with an existing query file, and its example/counter-example files exist | explicit cached slice-spec producer verdict | (authenticated action) |
+| Each counter-example raises exactly its failure class and each worked example is clean | explicit cached slice-spec producer verdict | (authenticated action) |
+| Each native producer emits its authenticated graph and every pinned fixture agrees | `stage-math-producers` plus read-only `conformance_math_producers` | (producer receipt + authenticated consumer) |
 
 The competency cross-check is a **native** gate for the same dataset-split reason the unliftable-ingest
 rule is: the `gmeow:CompetencyQuestion` individuals live in `tests/competency.ttl`, which the
@@ -504,15 +504,14 @@ counter-example convention the logic slice already uses (`tests/counter-examples
 negative fixture is not considered enforced, however green the positive path looks — the negative
 fixture is what proves the gate actually bites.
 
-The matrix above is discharged by execution, not by reading: `crates/pipeline/tests/
-math_conformance_discharge.rs` registers **every** class-bearing row of **every** section of this
-document, resolves each row's declared tier to the channel that actually fires it (native lint,
-generated SHACL, reasoned closure, projection, or OWL axiom), and executes that channel against the
-counter-example corpus. It fails on a class this document names but the ontology does not author, on
-an authored class no row claims, and on a class a channel emits but `module.ttl` never declares. Its
-section registry is compared against this document's own headings in both directions, so adding a
-row here without a class, a gate, and a fixture reds that test — which is what keeps this charter
-from drifting away from the ontology it charters.
+The matrix above is discharged by execution, not by reading: the explicit cached slice-spec
+producer registers the declarative conformance cells, resolves each cell's tier to the channel that
+actually fires it (native lint, generated SHACL, reasoned closure, projection, or OWL axiom), and
+executes that channel against the counter-example corpus. It publishes one authenticated verdict
+covering the exact source identities; tests verify that verdict read-only and cannot invoke the sweep.
+The producer fails on a phantom failure class, an unregistered negative fixture, or a channel whose
+observed finding does not match its declared isolation contract. This keeps the charter coupled to
+the ontology without a second corpus execution inside the test suite.
 
 "Raises **exactly** the named failure class" is a claim about isolation, and isolation is asserted
 by a different authority: `tests/example-conformance.ttl` binds each counter-example to a
@@ -520,7 +519,7 @@ by a different authority: `tests/example-conformance.ttl` binds each counter-exa
 channel raises over that fixture. The two authorities read one corpus, so they are joined:
 `example-conformance.ttl` is the fixture **registry**, and a file under `tests/counter-examples/`
 that no cell binds — or a cell binding a file that is not there, or binding one as *conforming* — is
-a hard gap in the discharge harness. Without that join a fixture could be credited for completeness
+a hard gap in the authenticated slice-spec producer. Without that join a fixture could be credited for completeness
 by one authority while the other never executed it, and the sentence above would be unfalsifiable
 for exactly the fixtures nobody had registered.
 
