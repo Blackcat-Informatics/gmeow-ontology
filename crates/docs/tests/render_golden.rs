@@ -246,19 +246,12 @@ const CHANGELOG_GOLDEN_AUTHORED_VERSION: &str = "1.0.2";
 /// golden.
 ///
 /// The subject is PINNED BY NAME rather than picked as "the first by (curie, iri) sort
-/// with a non-empty `changelog`", because that sort was not a function of the repo's
-/// sources. [`gmeow_docs::DocTerm::changelog`] is the UNION of the AUTHORED
-/// `gmeow:hasChangelogEntry` records and the entries `stage-term-manifest` COMPUTES
-/// from a definition-digest divergence against the PRIOR
-/// `generated/catalog/term-content-manifest.nq`. `generated/` is git-ignored, so that
-/// computed set tracks the tree's build HISTORY: a bootstrap tree (fresh clone, CI, a
-/// just-materialized worktree) has no prior manifest and computes nothing, leaving only
-/// the authored entries, while a tree that has synced before computes a
-/// "Definition changed" entry for every term whose definition moved since. Sorting over
-/// the union therefore let a term with no authored changelog at all win the selection on
-/// one machine and not another, and the golden alternated between subjects on identical
-/// sources. Naming the subject removes that dependency outright — the strongest
-/// determinism available here, and it costs no extra model build.
+/// with a non-empty `changelog`". [`gmeow_docs::DocTerm::changelog`] is the UNION of
+/// AUTHORED `gmeow:hasChangelogEntry` records and entries `stage-term-manifest`
+/// computes from the tracked previous-release authority. Pinning the authored subject
+/// keeps this golden's acceptance independent of which real terms changed in a release:
+/// it proves authored history survives the union, while the term-manifest regressions
+/// separately prove computed history is clean/first/warm deterministic.
 fn term_with_changelog_slug(model: &DocsModel) -> String {
     let term = model
         .terms

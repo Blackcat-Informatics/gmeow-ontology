@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 290
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Changelog Entry
@@ -101,8 +100,7 @@ gmeow:ChangelogEntry ⊑ gmeow:InformationObject
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **0\.1\.0** — Definition changed
-- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
+- **1\.0\.2** (authored) — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
 
 ## Citation
 

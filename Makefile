@@ -207,7 +207,7 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
-	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep \
+	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep maint-refresh-term-release-authority \
 	maint-medium-model-facing-diff maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus \
 	maint-chasebench-corpus maint-gmn-cost-matrix
@@ -592,7 +592,7 @@ produce-test-fixtures: rust-build ## Explicitly produce exact content-addressed 
 produce-producer-independent-test-fixtures: ## Explicitly produce test-profile DAG-stage fixtures before generated/ is available.
 	$(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-independent $(FIXTURE_TIMINGS_ARG)
 
-produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
+produce-producer-bound-test-fixtures: rust-build ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
 	$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
 produce-bundle-import-test-fixture: rust-build ## Explicitly produce only exact bundle-bound fixtures for focused consumer diagnosis.
@@ -1267,6 +1267,13 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
 	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
 	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
+
+maint-refresh-term-release-authority: ## (maintainer) Advance the computed term-changelog authority at an accepted release boundary.
+	@# This is the ONLY ordinary producer of the tracked previous-release authority.
+	@# It first renders the current manifest against the old authority, then proves
+	@# that promoting that result is a fixed point. Ordinary sync only consumes the
+	@# tracked evidence and can never advance semantic history from ignored generated/.
+	cargo run -q -p gmeow-pipeline --bin term-release-authority -- .
 
 maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
 	@# WHAT IT COMPARES, exactly: the set of paths the declared GMN-dialect predicate

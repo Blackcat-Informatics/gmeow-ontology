@@ -18,7 +18,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
 use purrdf::RdfDatasetBuilder;
 #[cfg(test)]
 use purrdf::gts_compose::emit_gts;
@@ -72,6 +72,8 @@ struct PassOneReceipt {
 pub(crate) struct SerializedCarrierSnapshot {
     pub bytes: Vec<u8>,
     pub pass_one_receipt: Vec<u8>,
+    /// Report-only phase, structural-count, and Linux RSS observations.
+    pub timings: Vec<StageRunTiming>,
 }
 
 /// The named-graph IRIs (mirror `config.GTS_GRAPH_*`).
@@ -310,19 +312,13 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
 
-/// The narrowed authored corpus `stage-compile-logic` reads: the WHOLE merged authored
+/// The complete authored RDF 1.2 corpus `stage-compile-logic` reads: the WHOLE merged
 /// dataset (`load_authored_dataset` — root ontology + every slice `module.ttl` + every
-/// `imports/*.ttl`) with the pure-documentation predicates in
-/// [`crate::stages::source_load::LOGIC_COMPILE_INPUT_DENYLIST`] removed. It is the SOUND
-/// (denylist) narrowing of the compile-logic input: the five augmentation readers
-/// (`derive_validation_shapes`, `extract_all_constraints`, `extract_correspondences`,
-/// `extract_leg_programs`, `MetaProgram::from_source_dataset`) read the OWL/RDFS/XSD
-/// restriction + `logic:`/`gmeow:` vocabulary + `rdfs:comment` caveats, never the stripped
-/// SKOS/Dublin-Core/PROV/VANN documentation triples, so the graph is reader-identical to
-/// the full corpus (the `logic_compile_input_subgraph_preserves_reader_output` soundness
-/// guard proves it). Attaching it as its own named graph on the `stage-source-load` product
-/// lets compile-logic declare a typed `consumed_entities` edge and drop the whole-corpus
-/// file list from its cache key — a documentation-only edit no longer re-runs the compiler.
+/// `imports/*.ttl`), including ownership, annotation, correspondence, and projection
+/// metadata. Attaching it as its own named graph on the `stage-source-load` product lets
+/// compile-logic declare a typed `consumed_entities` edge without re-parsing the corpus.
+/// The graph is lossless by design: predicate-level filtering is not a stable contract for
+/// an evolving reader set.
 pub const GRAPH_LOGIC_COMPILE_INPUTS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/logic-compile-inputs";
 
@@ -476,7 +472,24 @@ pub(crate) fn serialize_carrier_snapshot_with_receipt(
     carrier: &purrdf::RdfDataset,
     selection: &crate::medium::registry::MediumSelection,
 ) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
+    let started = std::time::Instant::now();
     let frames = snapshot_frames(root, upstream, carrier)?;
+    let frame_count = frames.blobs.len() + frames.report_blobs.len();
+    let frame_bytes = frames
+        .blobs
+        .iter()
+        .chain(frames.report_blobs.iter())
+        .map(|row| row.data.len())
+        .sum();
+    let mut timings = vec![sink_phase_timing(
+        "assemble-frames",
+        started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        None,
+        None,
+    )];
     serialize_snapshot(
         carrier,
         &frames.extra_graphs,
@@ -484,7 +497,63 @@ pub(crate) fn serialize_carrier_snapshot_with_receipt(
         frames.report_blobs,
         upstream,
         selection,
+        &mut timings,
     )
+}
+
+/// Build one report-only sink phase record. `live_scratch` names a representation
+/// resident at the observation boundary; `released_scratch` names one processed and
+/// dropped before the record. These observations never contribute to product identity.
+fn sink_phase_timing(
+    phase: &str,
+    elapsed: std::time::Duration,
+    carrier: &purrdf::RdfDataset,
+    frame_count: usize,
+    frame_bytes: usize,
+    live_scratch: Option<(&str, usize)>,
+    released_scratch: Option<(&str, usize)>,
+) -> StageRunTiming {
+    let (rss_kib, peak_rss_kib) = linux_process_rss_kib();
+    let render = |scratch: Option<(&str, usize)>| {
+        scratch
+            .map(|(name, bytes)| format!("{name}:{bytes}"))
+            .unwrap_or_else(|| "none:0".to_string())
+    };
+    StageRunTiming {
+        phase: phase.to_string(),
+        elapsed_ms: elapsed.as_millis(),
+        metadata: Some(format!(
+            "carrier_terms={};carrier_quads={};payload_frames={frame_count};\
+             payload_frame_bytes={frame_bytes};live_scratch={};released_scratch={};\
+             rss_kib={};peak_rss_kib={}",
+            carrier.term_count(),
+            carrier.quad_count(),
+            render(live_scratch),
+            render(released_scratch),
+            rss_kib
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "unavailable".to_string()),
+            peak_rss_kib
+                .map(|value| value.to_string())
+                .unwrap_or_else(|| "unavailable".to_string()),
+        )),
+    }
+}
+
+fn linux_process_rss_kib() -> (Option<u64>, Option<u64>) {
+    let Ok(status) = std::fs::read_to_string("/proc/self/status") else {
+        return (None, None);
+    };
+    let value = |key: &str| {
+        status.lines().find_map(|line| {
+            line.strip_prefix(key)?
+                .split_whitespace()
+                .next()?
+                .parse::<u64>()
+                .ok()
+        })
+    };
+    (value("VmRSS:"), value("VmHWM:"))
 }
 
 /// Every payload-bearing BLOB frame this emission authors, plus the carrier-time
@@ -707,13 +776,13 @@ pub(crate) fn self_description_source_files(
 /// `authored_base` is the WHOLE merged authored dataset
 /// ([`crate::stages::source_load::load_authored_dataset`] — root ontology + slice modules +
 /// imports). It is the EXACT corpus `stage-compile-logic` used to re-parse for its five
-/// augmentation readers; the denylisted narrowing of it is published as
+/// augmentation readers; the complete carrier is published as
 /// [`GRAPH_LOGIC_COMPILE_INPUTS`] so compile-logic reads a typed entity instead. It is NOT
 /// the same dataset as the local `base` below (the authored DEFAULT graph — imports
 /// excluded, `.po` translations merged), so the two must not be conflated.
 pub(crate) fn build_self_description_dataset_with_quality(
     root: &Path,
-    authored_base: &purrdf::RdfDataset,
+    authored_base: &std::sync::Arc<purrdf::RdfDataset>,
     quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
@@ -778,13 +847,11 @@ pub(crate) fn build_self_description_dataset_with_quality(
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
         )?,
-        // graph/logic-compile-inputs — the SOUND (denylist) narrowing of the WHOLE merged
-        // authored corpus `stage-compile-logic` reads (root ontology + slices + imports,
-        // documentation predicates stripped). Published here so compile-logic declares a
-        // typed `consumed_entities` edge on THIS graph and drops the whole-corpus file list
-        // from its cache key. Built from `authored_base` (the same `load_authored_dataset`
-        // compile-logic used), NOT the `base` authored-default above (which excludes imports
-        // and merges translations), so the five readers see a reader-identical corpus.
+        // graph/logic-compile-inputs — the complete RDF 1.2 authored corpus compile-logic
+        // reads (root ontology + slices + imports). Published here so compile-logic declares
+        // a typed consumed-entity edge on THIS graph without re-parsing. Built from
+        // `authored_base` (the same `load_authored_dataset` compile-logic used), NOT the
+        // `base` authored-default above (which excludes imports and merges translations).
         rooted_in_graph(
             crate::stages::source_load::logic_compile_input_subgraph(authored_base)?.as_ref(),
             GRAPH_LOGIC_COMPILE_INPUTS,
@@ -843,6 +910,128 @@ fn source_load_graph(
     )
 }
 
+/// Add the generated OWL/RDFS reader view of canonical `logic:` quads while retaining
+/// every canonical quad. This is the carrier-side projection boundary used by consumers
+/// and OWL-oriented audit readers; it never becomes another authored source.
+pub fn with_owl_rdfs_projection(
+    dataset: &purrdf::RdfDataset,
+) -> std::sync::Arc<purrdf::RdfDataset> {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    let mut remap = vec![None; dataset.term_count()];
+    for quad in dataset.quads() {
+        let source_predicate = match dataset.resolve(quad.p) {
+            purrdf::TermRef::Iri(iri) => iri,
+            other => unreachable!("RDF predicate must be an IRI, got {other:?}"),
+        };
+        let predicate = gmeow_ns::owl_view_of_predicate(source_predicate);
+        let object = match dataset.resolve(quad.o) {
+            purrdf::TermRef::Iri(iri) if source_predicate == RDF_TYPE => {
+                gmeow_ns::owl_view_of_type_marker(iri)
+            }
+            purrdf::TermRef::Iri(iri)
+                if gmeow_ns::is_class_position_predicate(source_predicate) =>
+            {
+                match iri {
+                    gmeow_ns::LOGIC_THING => Some(gmeow_ns::OWL_THING),
+                    gmeow_ns::LOGIC_NOTHING => Some(gmeow_ns::OWL_NOTHING),
+                    _ => None,
+                }
+            }
+            _ => None,
+        };
+
+        let s = intern_preserving_term(&mut builder, dataset, &mut remap, quad.s);
+        let p = intern_preserving_term(&mut builder, dataset, &mut remap, quad.p);
+        let o = intern_preserving_term(&mut builder, dataset, &mut remap, quad.o);
+        let g = quad
+            .g
+            .map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term));
+        let projected_p = predicate.map(|iri| builder.intern_iri(iri));
+        let projected_o = object.map(|iri| builder.intern_iri(iri));
+        match (projected_p, projected_o) {
+            (Some(projected_p), Some(projected_o)) => {
+                builder.push_quad(s, projected_p, projected_o, g);
+                builder.push_quad(s, projected_p, o, g);
+                builder.push_quad(s, p, projected_o, g);
+            }
+            (Some(projected_p), None) => builder.push_quad(s, projected_p, o, g),
+            (None, Some(projected_o)) => builder.push_quad(s, p, projected_o, g),
+            (None, None) => {}
+        }
+        builder.push_quad(s, p, o, g);
+    }
+    for (reifier, triple, graph) in dataset.reifiers_with_graph() {
+        let reifier = intern_preserving_term(&mut builder, dataset, &mut remap, reifier);
+        let triple = intern_preserving_term(&mut builder, dataset, &mut remap, triple);
+        let graph =
+            graph.map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term));
+        builder.push_reifier_in_graph(reifier, triple, graph);
+    }
+    for (reifier, predicate, object, graph) in dataset.annotations_with_graph() {
+        let reifier = intern_preserving_term(&mut builder, dataset, &mut remap, reifier);
+        let predicate = intern_preserving_term(&mut builder, dataset, &mut remap, predicate);
+        let object = intern_preserving_term(&mut builder, dataset, &mut remap, object);
+        let graph =
+            graph.map(|term| intern_preserving_term(&mut builder, dataset, &mut remap, term));
+        builder.push_annotation_in_graph(reifier, predicate, object, graph);
+    }
+    for graph in dataset.named_graphs() {
+        let graph = intern_preserving_term(&mut builder, dataset, &mut remap, graph);
+        builder.declare_named_graph(graph);
+    }
+    // The source-to-builder id map is build-only scratch. Release it before freeze
+    // materializes the immutable dataset so the two full-width tables do not overlap
+    // at the projection boundary's peak-live allocation point.
+    drop(remap);
+    builder
+        .freeze()
+        .expect("OWL/RDFS projection of a valid dataset must freeze")
+}
+
+/// Re-intern one source term without allocating an owned quad around it. Blank scopes
+/// are preserved because this is a one-source projection, not a standardize-apart union.
+fn intern_preserving_term(
+    builder: &mut purrdf::RdfDatasetBuilder,
+    source: &purrdf::RdfDataset,
+    remap: &mut [Option<purrdf::TermId>],
+    source_id: purrdf::TermId,
+) -> purrdf::TermId {
+    if let Some(mapped) = remap[source_id.index()] {
+        return mapped;
+    }
+
+    let mapped = match source.resolve(source_id) {
+        purrdf::TermRef::Iri(iri) => builder.intern_iri(iri),
+        purrdf::TermRef::Blank { label, scope } => builder.intern_blank(label, scope),
+        purrdf::TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            let datatype = match source.resolve(datatype) {
+                purrdf::TermRef::Iri(iri) => iri.to_owned(),
+                other => unreachable!("literal datatype must be an IRI, got {other:?}"),
+            };
+            builder.intern_literal(RdfLiteral {
+                lexical_form: lexical.to_owned(),
+                datatype: Some(datatype),
+                language: language.map(str::to_owned),
+                direction,
+            })
+        }
+        purrdf::TermRef::Triple { s, p, o } => {
+            let s = intern_preserving_term(builder, source, remap, s);
+            let p = intern_preserving_term(builder, source, remap, p);
+            let o = intern_preserving_term(builder, source, remap, o);
+            builder.intern_triple(s, p, o)
+        }
+    };
+    remap[source_id.index()] = Some(mapped);
+    mapped
+}
+
 /// Read a first-class carrier named graph off its PRODUCER's attached dataset, re-rooted
 /// into `graph_iri` (PIPELINE_SPINE §4 — the presenter is a pure keyed fold: it projects
 /// the producer's already-parsed named graph, never re-parses the producer's byte
@@ -878,8 +1067,8 @@ fn assemble_carrier(
     // are read here as pure projections. The authored default rides its own named graph;
     // re-rooting it with `project_named_graph` lands it back in the carrier's DEFAULT
     // graph (label dropped).
-    let base = std::sync::Arc::new(
-        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    let base = with_owl_rdfs_projection(
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
     );
     // ── the first-class carrier graphs ride in from their producers' datasets ───
     // Each is read off the PRODUCER's attached named graph (a pure keyed fold), NOT
@@ -1386,8 +1575,8 @@ pub(crate) fn assemble_object_level_edb(
     // worlds match the bundle's by construction, with ONE load. Mapping and
     // correspondence graphs are shipped by the presenter but stay meta-level, so no
     // external endpoint IRI can be mistaken for an authored object-level construct.
-    let base = std::sync::Arc::new(
-        source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
+    let base = with_owl_rdfs_projection(
+        &source_load_dataset(upstream)?.project_named_graph(GRAPH_AUTHORED_DEFAULT),
     );
     let rdf12 = upstream
         .get("stage-statements")
@@ -1745,6 +1934,7 @@ fn serialize_snapshot(
     report_blobs: Vec<BlobRow>,
     upstream: &BTreeMap<String, StageProduct>,
     selection: &crate::medium::registry::MediumSelection,
+    timings: &mut Vec<StageRunTiming>,
 ) -> Result<SerializedCarrierSnapshot, gmeow_errors::Diag> {
     use crate::stages::medium_dictionaries as medium;
 
@@ -1775,6 +1965,9 @@ fn serialize_snapshot(
     // unassigned one is a HARD FAIL at this point rather than an unprimed frame on a
     // shipped artifact.
     let frames: Vec<&BlobRow> = blobs.iter().chain(report_blobs.iter()).collect();
+    let frame_count = frames.len();
+    let frame_bytes = frames.iter().map(|row| row.data.len()).sum();
+    let phase_started = std::time::Instant::now();
     let (measured_codec, measured_level) =
         crate::medium::measure::mandated_chain(&registry, &frames)?;
     let sample_counts = crate::medium::rdf::corpus_sample_counts(&registry, realizations.as_ref())?;
@@ -1820,18 +2013,16 @@ fn serialize_snapshot(
     };
     strata.push(measurement);
     strata.push(measurement_fanout);
+    timings.push(sink_phase_timing(
+        "measure-medium",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        None,
+        None,
+    ));
 
-    let mut builder = SnapshotBuilder::new();
-    builder
-        .add_dataset(carrier)
-        .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
-    // Carrier-time named graphs (e.g. the docs-format grounding, which content-addresses
-    // the packed docs blobs built in this stage) fold in alongside the assembled carrier.
-    for graph in &strata {
-        builder
-            .add_dataset(graph)
-            .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
-    }
     // Bound the terminal's live set. Both identities are over whole-carrier
     // representations, but the envelope needs only their digests. Materialize each
     // preimage in its own scope so the canonical buffers are released before envelope
@@ -1840,18 +2031,80 @@ fn serialize_snapshot(
     // therefore reuse the terminal's exact keyed receipt instead of allocating either
     // whole-carrier canonical preimage twice.
     let pass_one_input_digest = pass_one_receipt_input_digest(upstream, carrier, &strata)?;
-    let (snapshot_content_digest, snapshot_strata_digest) =
+    let receipt_started = std::time::Instant::now();
+    let (cached_content_digest, snapshot_strata_digest) =
         match reusable_pass_one_receipt(upstream, &pass_one_input_digest)? {
-            Some(receipt) => (receipt.snapshot_content_digest, receipt.stratum_digest),
-            None => {
-                let content_digest = builder.snapshot_content_id();
-                let stratum = stratum_nquads(carrier, &strata)?;
+            Some(receipt) => {
+                timings.push(sink_phase_timing(
+                    "reuse-pass-one-receipt",
+                    receipt_started.elapsed(),
+                    carrier,
+                    frame_count,
+                    frame_bytes,
+                    None,
+                    None,
+                ));
                 (
-                    content_digest,
-                    crate::medium::blake3_digest(stratum.as_bytes()),
+                    Some(receipt.snapshot_content_digest),
+                    receipt.stratum_digest,
                 )
             }
+            None => {
+                let phase_started = std::time::Instant::now();
+                let (stratum_digest, stratum_len) = snapshot_stratum_digest(carrier, &strata)?;
+                timings.push(sink_phase_timing(
+                    "canonicalize-stratum",
+                    phase_started.elapsed(),
+                    carrier,
+                    frame_count,
+                    frame_bytes,
+                    None,
+                    Some(("stratum-nquads", stratum_len)),
+                ));
+                (None, stratum_digest)
+            }
         };
+
+    // Build the snapshot only after the miss-path stratum union and canonical document
+    // have both been released. This ordering is the peak-residency contract: the builder's
+    // carrier-sized interning tables never overlap the stratum's carrier-sized scratch.
+    let phase_started = std::time::Instant::now();
+    let mut builder = SnapshotBuilder::new();
+    builder
+        .add_dataset(carrier)
+        .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
+    for graph in &strata {
+        builder
+            .add_dataset(graph)
+            .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
+    }
+    timings.push(sink_phase_timing(
+        "build-snapshot",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        None,
+        None,
+    ));
+
+    let snapshot_content_digest = match cached_content_digest {
+        Some(content_digest) => content_digest,
+        None => {
+            let phase_started = std::time::Instant::now();
+            let content_digest = builder.snapshot_content_id();
+            timings.push(sink_phase_timing(
+                "fingerprint-snapshot",
+                phase_started.elapsed(),
+                carrier,
+                frame_count,
+                frame_bytes,
+                None,
+                None,
+            ));
+            content_digest
+        }
+    };
 
     let reps: std::collections::BTreeSet<String> =
         frames.iter().map(|row| row.rep.clone()).collect();
@@ -1878,9 +2131,19 @@ fn serialize_snapshot(
     // these full interning tables before the writer canonicalizes/compresses the
     // snapshot; it also skips purrdf's redundant length-probe serialization because
     // this profile selects zstd-rsyncable explicitly, independent of payload size.
+    let phase_started = std::time::Instant::now();
     let bytes =
         gmeow_gts_profile::emit_owned_gmeow_gts_with_medium(builder, blobs, report_blobs, &plan)
             .map_err(|e| stage_err(&format!("emit_gts: {e}")))?;
+    timings.push(sink_phase_timing(
+        "emit-final-gts",
+        phase_started.elapsed(),
+        carrier,
+        frame_count,
+        frame_bytes,
+        Some(("gts", bytes.len())),
+        None,
+    ));
     let pass_one_receipt = serde_json::to_vec(&PassOneReceipt {
         schema_version: PASS_ONE_RECEIPT_SCHEMA_VERSION,
         algorithm: PASS_ONE_RECEIPT_ALGORITHM.to_string(),
@@ -1892,6 +2155,7 @@ fn serialize_snapshot(
     Ok(SerializedCarrierSnapshot {
         bytes,
         pass_one_receipt,
+        timings: std::mem::take(timings),
     })
 }
 
@@ -2003,57 +2267,125 @@ fn reusable_pass_one_receipt(
 ///
 /// # Errors
 /// The union fails dataset validation or canonicalization.
+#[cfg(test)]
 fn stratum_nquads(
     carrier: &purrdf::RdfDataset,
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<String, gmeow_errors::Diag> {
-    let mut flat = RdfDatasetBuilder::new();
-    push_flat_source(&mut flat, carrier, purrdf::BlankScope::DEFAULT);
-    for (index, graph) in extra_graphs.iter().enumerate() {
-        push_flat_source(
-            &mut flat,
-            graph,
-            purrdf::BlankScope(u32::try_from(index + 1).map_err(|_| {
-                stage_err("too many medium digest strata to assign blank-node scopes")
-            })?),
-        );
-    }
-    let flat = flat
-        .freeze()
-        .map_err(|e| stage_err(&format!("union the medium digest stratum: {e}")))?;
-    Ok(purrdf::canonicalize(&flat).nquads)
+    let union = flat_stratum_union(carrier, extra_graphs)?;
+    Ok(purrdf::canonicalize(&union).nquads)
 }
 
-/// Stream one frozen source into an UNFOLDED flat dataset builder.
+/// The digest and byte length of the canonical pass-one stratum.
 ///
-/// This is the allocation-bounded equivalent of
-/// `flat_rdf_quads_from_dataset` followed by `flat_dataset_from_quad_sources`: base
-/// quads flow directly into the destination interner, while RDF 1.2 reifier and
-/// annotation rows are materialized one at a time. A distinct [`purrdf::BlankScope`]
-/// per source preserves the prior standardize-apart contract without retaining an
-/// owned `Vec<RdfQuad>` for every source beside the union.
-fn push_flat_source(
+/// The id-native union and canonical byte buffer are released before returning, so callers
+/// retain only the compact identities needed by the envelope and report the processed size.
+pub fn snapshot_stratum_digest(
+    carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+) -> Result<(String, usize), gmeow_errors::Diag> {
+    let union = flat_stratum_union(carrier, extra_graphs)?;
+    let canonical = purrdf::canonicalize(&union).nquads;
+    drop(union);
+    let len = canonical.len();
+    let digest = crate::medium::blake3_digest(canonical.as_bytes());
+    drop(canonical);
+    Ok((digest, len))
+}
+
+/// Build the flattened multi-source stratum directly over PurRDF's interned ids.
+///
+/// The former route expanded every source into owned quads before re-interning the union.
+/// This keeps one destination term table and one quad table while preserving the exact
+/// source-scoped blank-label and RDF 1.2 side-table flattening contract.
+fn flat_stratum_union(
+    carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    let mut builder = RdfDatasetBuilder::new();
+    for (source_index, source) in std::iter::once(carrier)
+        .chain(extra_graphs.iter().map(std::convert::AsRef::as_ref))
+        .enumerate()
+    {
+        let mut remap = vec![None; source.term_count()];
+        let outer_scope =
+            purrdf::BlankScope(u32::try_from(source_index).map_err(|_| {
+                stage_err("too many medium digest strata to assign blank-node scopes")
+            })?);
+        for quad in source.quads() {
+            let s = intern_flat_term(&mut builder, source, &mut remap, quad.s, outer_scope);
+            let p = intern_flat_term(&mut builder, source, &mut remap, quad.p, outer_scope);
+            let o = intern_flat_term(&mut builder, source, &mut remap, quad.o, outer_scope);
+            let g = quad
+                .g
+                .map(|term| intern_flat_term(&mut builder, source, &mut remap, term, outer_scope));
+            builder.push_quad(s, p, o, g);
+        }
+
+        let reifies = builder.intern_iri(purrdf::gts_compose::RDF_REIFIES);
+        for (reifier, triple) in source.reifiers() {
+            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope);
+            let triple = intern_flat_term(&mut builder, source, &mut remap, triple, outer_scope);
+            builder.push_quad(reifier, reifies, triple, None);
+        }
+        for (reifier, predicate, object) in source.annotations() {
+            let reifier = intern_flat_term(&mut builder, source, &mut remap, reifier, outer_scope);
+            let predicate =
+                intern_flat_term(&mut builder, source, &mut remap, predicate, outer_scope);
+            let object = intern_flat_term(&mut builder, source, &mut remap, object, outer_scope);
+            builder.push_quad(reifier, predicate, object, None);
+        }
+    }
+
+    builder
+        .freeze()
+        .map_err(|e| stage_err(&format!("union the medium digest stratum: {e}")))
+}
+
+fn intern_flat_term(
     builder: &mut RdfDatasetBuilder,
     source: &purrdf::RdfDataset,
-    scope: purrdf::BlankScope,
-) {
-    const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+    remap: &mut [Option<purrdf::TermId>],
+    source_id: purrdf::TermId,
+    outer_scope: purrdf::BlankScope,
+) -> purrdf::TermId {
+    if let Some(mapped) = remap[source_id.index()] {
+        return mapped;
+    }
 
-    for quad in source.owned_quads() {
-        builder.push_owned_quad_scoped(&quad, scope);
-    }
-    for reifier in source.owned_reifiers() {
-        let quad = RdfQuad::new(
-            reifier.reifier,
-            RDF_REIFIES,
-            RdfTerm::triple(reifier.statement),
-        );
-        builder.push_owned_quad_scoped(&quad, scope);
-    }
-    for annotation in source.owned_annotations() {
-        let quad = RdfQuad::new(annotation.reifier, annotation.predicate, annotation.object);
-        builder.push_owned_quad_scoped(&quad, scope);
-    }
+    let mapped = match source.resolve(source_id) {
+        purrdf::TermRef::Iri(iri) => builder.intern_iri(iri),
+        purrdf::TermRef::Blank { label, scope } => {
+            let source_qualified = scope.qualify_label(label);
+            let union_qualified = outer_scope.qualify_label(source_qualified.as_ref());
+            builder.intern_blank(union_qualified.as_ref(), purrdf::BlankScope::DEFAULT)
+        }
+        purrdf::TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            let datatype = match source.resolve(datatype) {
+                purrdf::TermRef::Iri(iri) => iri.to_owned(),
+                other => unreachable!("literal datatype must be an IRI, got {other:?}"),
+            };
+            builder.intern_literal(RdfLiteral {
+                lexical_form: lexical.to_owned(),
+                datatype: Some(datatype),
+                language: language.map(str::to_owned),
+                direction,
+            })
+        }
+        purrdf::TermRef::Triple { s, p, o } => {
+            let s = intern_flat_term(builder, source, remap, s, outer_scope);
+            let p = intern_flat_term(builder, source, remap, p, outer_scope);
+            let o = intern_flat_term(builder, source, remap, o, outer_scope);
+            builder.intern_triple(s, p, o)
+        }
+    };
+    remap[source_id.index()] = Some(mapped);
+    mapped
 }
 
 #[cfg(test)]

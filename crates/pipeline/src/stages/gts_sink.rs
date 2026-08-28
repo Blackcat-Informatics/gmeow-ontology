@@ -188,7 +188,10 @@ impl Stage for GtsSinkStage {
         // v13: extend that receipt to the pass-1 snapshot content identity too. Both
         // canonical preimages are selection-independent; malformed or mismatched
         // receipts hard-fail and emitted GTS bytes are unchanged.
-        "gts_sink.v13-pass-one-receipt-reuse"
+        // v14: report the production sink's allocation phases, structural counts, and
+        // RSS observations while retaining the keyed pass-one receipt. Telemetry is
+        // report-only and does not enter artifact identity.
+        "gts_sink.v14-observed-pass-one-receipt"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // The terminal gts ARCHIVE writer: serialize THIS run's carrier
@@ -211,10 +214,9 @@ impl Stage for GtsSinkStage {
             PASS_ONE_RECEIPT_PATH.to_string(),
             serialized.pass_one_receipt,
         );
-        Ok(StageOutput::new(StageProduct::from_artifacts(
-            self.id(),
-            artifacts,
-        )))
+        let mut output = StageOutput::new(StageProduct::from_artifacts(self.id(), artifacts));
+        output.timings = serialized.timings;
+        Ok(output)
     }
 }
 

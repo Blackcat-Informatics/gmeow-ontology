@@ -193,19 +193,28 @@ pub const FROZEN_LLMS_SHAPE: &[FrozenItem] = &[
 /// is now a leaf, and a resource whose handler needs a reader the leaf declines to link rides
 /// an `Extension` registered by a host that owns it — so the advertised surface is assembled
 /// from several sites and the freeze has to read all of them or it grades a fragment.
-pub const MCP_RESOURCE_CONTRIBUTORS: &[(&str, ItemRef)] = &[
-    (
-        "crates/mcp/src/lib.rs",
-        ItemRef::Function("builtin_resource_descriptors"),
-    ),
-    (
-        "crates/mcp/src/lib.rs",
-        ItemRef::Function("medium_resource_descriptor"),
-    ),
-    (
-        "crates/mcp-dev/src/lib.rs",
-        ItemRef::Function("dev_extension"),
-    ),
+pub const MCP_RESOURCE_CONTRIBUTORS: &[FrozenItem] = &[
+    FrozenItem {
+        path: "crates/mcp/src/lib.rs",
+        base_path: None,
+        base_item: None,
+        item: ItemRef::Function("builtin_resource_descriptors"),
+        why: "the built-in MCP consumer resources",
+    },
+    FrozenItem {
+        path: "crates/mcp/src/lib.rs",
+        base_path: None,
+        base_item: None,
+        item: ItemRef::Function("medium_resource_descriptor"),
+        why: "the host-bound medium-registry resource",
+    },
+    FrozenItem {
+        path: "crates/mcp-dev/src/lib.rs",
+        base_path: None,
+        base_item: None,
+        item: ItemRef::Function("dev_extension"),
+        why: "the developer-only Constitution resource",
+    },
 ];
 
 // ── Source-item extraction ───────────────────────────────────────────────────

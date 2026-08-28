@@ -104,6 +104,23 @@ pub struct FrameDigestFacts<'a> {
     pub dictionary_id: Option<&'a str>,
 }
 
+/// Owned digest facts used when the caller has already allocated the frame identity
+/// and canonical digests and can transfer them directly into the envelope.
+pub(crate) struct OwnedFrameDigestFacts<'a> {
+    /// The content-addressed frame IRI.
+    pub frame: String,
+    /// The frame's registered representation tag.
+    pub rep: &'a str,
+    /// Canonical decoded-payload identity.
+    pub content_digest: String,
+    /// Canonical selected-stratum identity.
+    pub strata_digest: String,
+    /// The stratum named by `strata_digest`.
+    pub stratum: DigestStratum,
+    /// The in-band dictionary id, when primed.
+    pub dictionary_id: Option<&'a str>,
+}
+
 /// The seven-field medium-envelope contract, as a typed record.
 ///
 /// Every field is exactly-one because a projection missing a coordinate is a
@@ -182,9 +199,33 @@ pub fn seal_digests(
     selection: &MediumSelection,
     facts: &FrameDigestFacts<'_>,
 ) -> Result<MediumEnvelope, gmeow_errors::Diag> {
+    seal_owned_digests(
+        registry,
+        selection,
+        OwnedFrameDigestFacts {
+            frame: facts.frame.to_string(),
+            rep: facts.rep,
+            content_digest: facts.content_digest.to_string(),
+            strata_digest: facts.strata_digest.to_string(),
+            stratum: facts.stratum,
+            dictionary_id: facts.dictionary_id,
+        },
+    )
+}
+
+/// Seal canonical identities while transferring their owned strings into the result.
+///
+/// Blob authors use this after computing the in-band digest once. It preserves the
+/// validation and registry checks of [`seal_digests`] while avoiding another frame-IRI
+/// copy and one of the two equal whole-payload digest copies.
+pub(crate) fn seal_owned_digests(
+    registry: &MediumRegistry,
+    selection: &MediumSelection,
+    facts: OwnedFrameDigestFacts<'_>,
+) -> Result<MediumEnvelope, gmeow_errors::Diag> {
     for (label, digest) in [
-        ("content digest", facts.content_digest),
-        ("strata digest", facts.strata_digest),
+        ("content digest", facts.content_digest.as_str()),
+        ("strata digest", facts.strata_digest.as_str()),
     ] {
         if !is_canonical_digest(digest) {
             return Err(digest_mismatch(format!(
@@ -231,13 +272,13 @@ pub fn seal_digests(
     };
 
     Ok(MediumEnvelope {
-        frame: facts.frame.to_string(),
+        frame: facts.frame,
         schema: row.schema.clone(),
         medium: row.medium.clone(),
         dictionary,
         stratum: facts.stratum,
-        strata_digest: facts.strata_digest.to_string(),
-        content_digest: facts.content_digest.to_string(),
+        strata_digest: facts.strata_digest,
+        content_digest: facts.content_digest,
     })
 }
 
@@ -444,21 +485,40 @@ mod tests {
     }
 
     #[test]
-    fn prehashed_sealing_refuses_a_noncanonical_digest() {
-        let content_digest = blake3_digest(PAYLOAD);
+    fn prehashed_sealing_refuses_noncanonical_digests() {
+        let canonical = blake3_digest(PAYLOAD);
         let diag = seal_digests(
             &registry(),
             &MediumSelection::Authored,
             &FrameDigestFacts {
                 frame: "https://e/frame7",
                 rep: crate::medium::SNAPSHOT_WIRE_REP,
-                content_digest: &content_digest,
+                content_digest: "not-a-digest",
+                strata_digest: &canonical,
+                stratum: DigestStratum::PayloadExcludingMediumEnvelope,
+                dictionary_id: None,
+            },
+        )
+        .expect_err("precomputed content identity stays fail-closed");
+        assert_eq!(
+            diag.code(),
+            crate::error::MediumDigestMismatch::register(),
+            "{diag}"
+        );
+
+        let diag = seal_digests(
+            &registry(),
+            &MediumSelection::Authored,
+            &FrameDigestFacts {
+                frame: "https://e/frame7",
+                rep: crate::medium::SNAPSHOT_WIRE_REP,
+                content_digest: &canonical,
                 strata_digest: "not-a-digest",
                 stratum: DigestStratum::PayloadExcludingMediumEnvelope,
                 dictionary_id: None,
             },
         )
-        .expect_err("precomputed identities stay fail-closed");
+        .expect_err("precomputed stratum identity stays fail-closed");
         assert_eq!(
             diag.code(),
             crate::error::MediumDigestMismatch::register(),

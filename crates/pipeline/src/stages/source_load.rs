@@ -27,8 +27,6 @@ use purrdf::{
     flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 
-use gmeow_logic_compile::ir::ANNOTATION_LIFT_PREDS;
-
 use crate::node::{SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct};
 
 /// The `OriginKind` an authored file contributes, by its repo-relative role:
@@ -219,152 +217,16 @@ pub fn load_authored_dataset(root: &Path) -> Result<Arc<RdfDataset>, gmeow_error
     Ok(Arc::new(RdfDataset::union(&refs)))
 }
 
-/// Predicates carrying NO input the `stage-compile-logic` augmentation readers key on —
-/// documentation (labels/definitions/notes), alignment/mapping assertions, foreign-domain
-/// example vocabulary, or bibliographic/provenance/catalogue metadata. Removing every triple
-/// on one of these predicates from the corpus compile-logic consumes is therefore SOUND: the
-/// five readers (`derive_validation_shapes`, `extract_all_constraints`,
-/// `extract_correspondences`, `extract_leg_programs`, `MetaProgram::from_source_dataset`) read
-/// ONLY the OWL/RDFS/XSD restriction + facet vocabulary, the `logic:` Constraint/Formula/sugar/
-/// closure/Correspondence/leg vocabulary, the `gmeow:enforcesFailureClass`/`DiagnosticMetaRule`/
-/// `categoryPolarity` diagnostic-meta wiring, the `gm:` leg paths, and `rdfs:comment`
-/// (caveats) — never a predicate denylisted here. The
-/// `logic_compile_input_subgraph_preserves_reader_output` guard proves reader-output identity
-/// over the REAL corpus, so this denylist can only ever be a strict subset of the never-read
-/// predicates: a mistaken addition of a genuinely-read predicate makes that guard RED.
+/// The complete RDF 1.2 carrier consumed by `stage-compile-logic`.
 ///
-/// `rdfs:comment` is DELIBERATELY absent — it IS read (`read_caveats`), so stripping it
-/// would silently drop authored caveats. The read namespaces (`rdf:`, `rdfs:` subClassOf/
-/// domain/range/comment, `owl:`, `xsd:`, `logic:`, `gmeow:`/`gm:`) are NEVER denylisted.
-///
-/// These are the EXACT-IRI members; whole namespace-prefix families (SKOS, SSSOM, gUFO,
-/// schema.org, Wikidata, FOAF, and the bibliographic-metadata families) are matched by prefix
-/// in [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`].
-pub const LOGIC_COMPILE_INPUT_DENYLIST: &[&str] = &[
-    // RDFS presentational/navigational documentation predicates. NOT rdfs:label — that is now
-    // LIFTED into a NodeKind::Annotation axiom (`ANNOTATION_LIFT_PREDS`), so it is READ and must
-    // survive (the annotation-exception early-return in `predicate_is_logic_compile_denylisted`
-    // keeps it out of the strip). NOT rdfs:comment either — read by `read_caveats` AND lifted.
-    // Only these genuinely-inert navigational RDFS predicates are stripped. (SKOS annotations are
-    // un-denied by the same exception; the SKOS *mapping* surface stays denied by the prefix
-    // family below.)
-    "http://www.w3.org/2000/01/rdf-schema#seeAlso",
-    "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
-];
-
-/// Predicate-IRI namespace PREFIXES whose EVERY predicate is inert to the compile-logic
-/// augmentation readers — matched by predicate-IRI `starts_with`, so the whole family is
-/// denylisted without enumerating each term. Four groups, all provably never read (the
-/// `logic_compile_input_subgraph_preserves_reader_output` guard REDs on any family that is):
-///   * Documentation / annotation: SKOS (`skos:`). The prefix denies the SKOS mapping surface
-///     (closeMatch/exactMatch/relatedMatch/broadMatch/…) — pure alignment surface the
-///     compile-logic augmentation readers never consult. EXCEPTION: the four SKOS *annotation*
-///     predicates (skos:definition/prefLabel/altLabel/scopeNote) are un-denied by the
-///     `ANNOTATION_LIFT_PREDS` early-return in `predicate_is_logic_compile_denylisted` — they
-///     are LIFTED into NodeKind::Annotation axioms and so ARE read (the annotation reader in the
-///     `logic_compile_input_subgraph_preserves_reader_output` guard REDs if they are re-denied).
-///   * Alignment/mapping provenance: SSSOM `semapv:` mapping-justification vocabulary.
-///   * Foreign-domain example / correspondence-target vocabularies: gUFO (`gufo:`),
-///     schema.org, FOAF (`foaf:`), and Wikidata (`wd:`/`wdt:`/`wikibase:`) — used only as
-///     example/target data, never as a predicate any reader walks.
-///   * Bibliographic / provenance / catalogue metadata: Dublin Core Terms (`dcterms:`), legacy
-///     Dublin Core Elements (`dc:`), DCMI Type (`dcmitype:`), PROV-O (`prov:`), PAV (`pav:`),
-///     VANN (`vann:`), VoID (`void:`), DCAT (`dcat:`), DQV (`dqv:`), CiTO (`cito:`), BIBO
-///     (`bibo:`), PREMIS, CIDOC-CRM (`crm:`), ORG (`org:`), vCard (`vcard:`), Time (`time:`),
-///     and Web Annotation (`oa:`).
-///
-/// None overlaps a read namespace (`rdf:`/`rdfs:`/`owl:`/`xsd:`/`logic:`/`gmeow:`/`gm:`).
-pub const LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES: &[&str] = &[
-    // Documentation / annotation + the SKOS mapping surface.
-    "http://www.w3.org/2004/02/skos/core#",
-    // SSSOM mapping-justification provenance.
-    "https://w3id.org/semapv/vocab/",
-    // Foreign-domain example / correspondence-target vocabularies.
-    "http://purl.org/nemo/gufo#",
-    "https://schema.org/",
-    "http://xmlns.com/foaf/0.1/",
-    "http://www.wikidata.org/entity/",
-    "http://www.wikidata.org/prop/direct/",
-    "http://wikiba.se/ontology#",
-    // Bibliographic / provenance / catalogue metadata families.
-    "http://purl.org/dc/terms/",
-    "http://purl.org/dc/elements/1.1/",
-    "http://purl.org/dc/dcmitype/",
-    "http://www.w3.org/ns/prov#",
-    "http://purl.org/pav/",
-    "http://purl.org/vocab/vann/",
-    "http://rdfs.org/ns/void#",
-    "http://www.w3.org/ns/dcat#",
-    "http://www.w3.org/ns/dqv#",
-    "http://purl.org/spar/cito/",
-    "http://purl.org/ontology/bibo/",
-    "http://www.loc.gov/premis/rdf/v3/",
-    "http://www.cidoc-crm.org/cidoc-crm/",
-    "http://www.w3.org/ns/org#",
-    "http://www.w3.org/2006/vcard/ns#",
-    "http://www.w3.org/2006/time#",
-    "http://www.w3.org/ns/oa#",
-];
-
-/// Whether a quad's PREDICATE IRI is a pure-documentation predicate the compile-logic
-/// readers never consult — an exact [`LOGIC_COMPILE_INPUT_DENYLIST`] member or a
-/// [`LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES`] namespace member.
-fn predicate_is_logic_compile_denylisted(predicate: &str) -> bool {
-    // The six RDFS/SKOS annotation predicates are LIFTED into NodeKind::Annotation axioms
-    // (`isSupersetOf` SKOS/RDFS), so they are READ and must reach the compiler — surgically
-    // un-denied BEFORE the prefix scan. This exception un-denies exactly
-    // skos:definition/prefLabel/altLabel/scopeNote (leaving the rest of the `skos:` prefix —
-    // notably the skos:*Match mapping surface — denied) and rdfs:label (rdfs:comment is already
-    // off the exact denylist). The `logic_compile_input_subgraph_preserves_reader_output`
-    // annotation reader REDs if any of these is silently re-denied.
-    if ANNOTATION_LIFT_PREDS.contains(&predicate) {
-        return false;
-    }
-    LOGIC_COMPILE_INPUT_DENYLIST.contains(&predicate)
-        || LOGIC_COMPILE_INPUT_DENYLIST_PREFIXES
-            .iter()
-            .any(|ns| predicate.starts_with(ns))
-}
-
-/// The SOUND (denylist) narrowing of the corpus `stage-compile-logic` reads: `base` with
-/// every quad whose predicate is a pure-documentation predicate
-/// ([`predicate_is_logic_compile_denylisted`]) REMOVED, and every other quad — including
-/// the bnode-connected OWL restriction / `logic:` formula / correspondence structures —
-/// preserved verbatim. The denylist predicates only ever appear on named-subject
-/// documentation triples (a label/definition/note on a class or property), NEVER inside a
-/// restriction/formula/leg bnode tree, so filtering by predicate leaves every structure the
-/// readers walk intact. The RDF-1.2 statement layer (reifiers/annotations) is carried across
-/// verbatim (mirroring [`crate::stages::carrier::rooted_in_graph`]).
-///
-/// `stage-source-load` publishes this as its `graph/logic-compile-inputs` named graph so
-/// compile-logic reads a NARROWED, typed entity instead of re-parsing the whole corpus, and
-/// a documentation-only edit no longer busts the compiler's cache. Reader-output identity
-/// against the full corpus is proved by the
-/// `logic_compile_input_subgraph_preserves_reader_output` guard.
+/// Ownership, annotation, correspondence, and projection metadata are all reader inputs.
+/// Predicate-level narrowing is therefore unsound: a newly admitted reader can make any
+/// previously stripped predicate semantic without changing this boundary. Preserve the
+/// frozen carrier exactly and let the readers select what they understand.
 pub fn logic_compile_input_subgraph(
-    base: &RdfDataset,
+    base: &Arc<RdfDataset>,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    let mut builder = RdfDatasetBuilder::new();
-    for quad in base.owned_quads() {
-        if predicate_is_logic_compile_denylisted(&quad.predicate) {
-            continue;
-        }
-        builder.push_owned_quad(&quad);
-    }
-    // Carry the RDF-1.2 statement layer across verbatim — the denylist is a triple-level
-    // predicate filter, so the reifier/annotation side tables ride untouched.
-    for reifier in base.owned_reifiers() {
-        builder.push_owned_reifier(&reifier);
-    }
-    for annotation in base.owned_annotations() {
-        builder.push_owned_annotation(&annotation);
-    }
-    builder.freeze().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-source-load".to_string(),
-            message: format!("freeze logic-compile-inputs subgraph: {e}"),
-        })
-    })
+    Ok(Arc::clone(base))
 }
 
 /// The sorted authored Turtle files that form the base graph (the hidden-input
@@ -711,7 +573,10 @@ impl Stage for SourceLoadStage {
         // v10: exclude grounding-surface demonstrators from graph/examples. They are
         // correspondence-law material, not object-level ABox input. The version bump is
         // mandatory because the action-cache key cannot infer semantic Rust changes.
-        "source_load.v10-grounding-demo-exclusion"
+        // v11: publish the complete RDF 1.2 authored carrier for compile-logic. Predicate
+        // denylisting was not a stable reader boundary and could discard newly semantic
+        // ownership/projection metadata.
+        "source_load.v11-lossless-compile-input"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -792,7 +657,7 @@ impl Stage for SourceLoadStage {
         let started = Instant::now();
         let self_desc = crate::stages::carrier::build_self_description_dataset_with_quality(
             input.root,
-            base.as_ref(),
+            &base,
             &quality.nquads,
         )?;
         timings.push(crate::node::StageRunTiming::new(

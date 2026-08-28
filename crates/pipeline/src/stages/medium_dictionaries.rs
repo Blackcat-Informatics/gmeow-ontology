@@ -55,7 +55,8 @@ use purrdf::provenance::DatasetProvenance;
 use crate::bundle::bundle_from_artifacts_over;
 use crate::medium::corpus::{self, CorpusSources};
 use crate::medium::envelope::{
-    DigestStratum, FrameDigestFacts, FrameFacts, MediumEnvelope, seal, seal_digests,
+    DigestStratum, FrameDigestFacts, MediumEnvelope, OwnedFrameDigestFacts, seal_digests,
+    seal_owned_digests,
 };
 use crate::medium::rdf::{DictionaryRealization, check_dictionary_retention, realize};
 use crate::medium::registry::{DictionaryDef, DictionaryStrategy, MediumRegistry, MediumSelection};
@@ -360,7 +361,8 @@ pub fn frame_iri(rep: &str, content_digest: &str) -> String {
 /// A blob whose rep is unregistered or unassigned, a plan that primes a frame with a
 /// dictionary its rep is not assigned, or two frames sharing one `(rep, digest)`
 /// identity (which would collapse two envelopes onto one subject).
-pub(crate) fn seal_bundle_envelopes(
+#[doc(hidden)]
+pub fn seal_bundle_envelopes(
     registry: &MediumRegistry,
     selection: &MediumSelection,
     plan: &MediumPlan,
@@ -378,14 +380,14 @@ pub(crate) fn seal_bundle_envelopes(
     };
 
     let mut envelopes: Vec<MediumEnvelope> = Vec::with_capacity(blobs.len() + 1);
-    let mut seen: BTreeMap<String, String> = BTreeMap::new();
+    let mut seen: BTreeMap<String, &str> = BTreeMap::new();
     for blob in blobs {
         // The frame's OWN in-band digest: `emit_gts` writes exactly this string into
         // `pub.digest`, so the envelope projects it rather than recomputing a second
         // identity for the same bytes.
         let digest = blake3_digest(&blob.data);
         let frame = frame_iri(&blob.rep, &digest);
-        if let Some(previous) = seen.insert(frame.clone(), blob.rep.clone()) {
+        if let Some(previous) = seen.insert(frame.clone(), blob.rep.as_str()) {
             return Err(stage_err(format!(
                 "two payload frames share the identity (rep {:?} / {previous:?}, digest {digest}) \
                  — their envelopes would collapse onto one subject, so the bundle would describe \
@@ -393,14 +395,17 @@ pub(crate) fn seal_bundle_envelopes(
                 blob.rep
             )));
         }
-        envelopes.push(seal(
+        // The digest above is the exact in-band content identity. Reuse it for both
+        // declared whole-payload identities instead of asking `seal` to hash the same
+        // blob twice more.
+        envelopes.push(seal_owned_digests(
             registry,
             selection,
-            &FrameFacts {
-                frame: &frame,
+            OwnedFrameDigestFacts {
+                frame,
                 rep: &blob.rep,
-                payload: &blob.data,
-                stratum_bytes: &blob.data,
+                content_digest: digest.clone(),
+                strata_digest: digest,
                 stratum: DigestStratum::WholePayload,
                 dictionary_id: dictionary_of(&FrameSlot::Blob(blob.rep.clone())),
             },

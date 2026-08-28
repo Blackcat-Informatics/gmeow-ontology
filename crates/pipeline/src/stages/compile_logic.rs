@@ -321,19 +321,19 @@ pub(crate) fn affine_worked_example_program() -> CorrespondenceProgram {
 /// The `stage-compile-logic` pipeline stage.
 pub struct CompileLogicStage {
     /// The upstream products this stage consumes — `stage-source-load`, off which it reads
-    /// the narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
-    /// merged authored corpus its five augmentation readers walk).
+    /// the complete [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] graph (the
+    /// lossless merged authored RDF 1.2 corpus its augmentation readers walk).
     consumes: Vec<String>,
     /// The typed dataflow entities: it reads ONLY the `graph/logic-compile-inputs` named
-    /// graph of the `stage-source-load` product (a SOUND denylist narrowing of the whole
-    /// corpus), so a documentation-only edit that touches no read predicate leaves that
-    /// graph's digest unchanged and this (compiler) stage's cache key stable.
+    /// graph of the `stage-source-load` product. The graph retains the whole RDF 1.2
+    /// carrier so new ownership/projection readers cannot be starved by an older predicate
+    /// filter.
     entities: Vec<(String, Vec<String>)>,
 }
 
 impl CompileLogicStage {
     /// Construct the stage. It consumes `stage-source-load`, reading ONLY that product's
-    /// narrowed [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] named graph for the
+    /// complete [`crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS`] named graph for the
     /// five augmentation readers (validation shapes, constraints, correspondences, leg
     /// programs, the diagnostic meta-fold); the canonical `logic:` source and the vendored
     /// OPTs / worked examples it still reads directly from disk (declared via
@@ -385,11 +385,9 @@ impl Stage for CompileLogicStage {
         &self.consumes
     }
     /// Typed dataflow (artifact-level): from `stage-source-load` it reads ONLY the
-    /// `graph/logic-compile-inputs` named graph (the SOUND denylist narrowing of the whole
-    /// authored corpus). Declaring that single entity folds only that graph's digest into
-    /// the compiler's cache key, so a documentation-only edit — one touching only the
-    /// stripped SKOS/Dublin-Core/PROV/VANN predicates — leaves the graph unchanged and this
-    /// (compiler) stage skips re-running.
+    /// `graph/logic-compile-inputs` named graph (the complete authored RDF 1.2 corpus).
+    /// Declaring that entity folds its digest into the compiler's cache key while retaining
+    /// every semantic input an evolving reader may consume.
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
     }
@@ -434,17 +432,17 @@ impl Stage for CompileLogicStage {
         // is never admitted.
         // v11: the structural cache carries the complete serde LogicProgram payload,
         // authenticates its canonical key, and can therefore persist this exact product.
-        "compile-logic.v11-complete-typed-ir"
+        // v12: consume the lossless RDF 1.2 source-load carrier. Predicate narrowing was
+        // not a stable boundary for the evolving ownership and projection readers.
+        "compile-logic.v12-lossless-input"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the canonical `logic:` source, the two vendored OPTs, and the
         // two worked-example cells directly from disk, so those are declared as raw input
         // files for byte-level cache soundness. The WHOLE authored corpus is NO LONGER
-        // declared here: the five augmentation readers now read the narrowed
+        // declared here: the augmentation readers now read the complete
         // `graph/logic-compile-inputs` entity off the `stage-source-load` product
-        // (`consumed_entities`), so corpus freshness rides that typed dataflow edge — a
-        // documentation-only edit that leaves the narrowed graph's digest unchanged no
-        // longer busts the (expensive) compiler's cache.
+        // (`consumed_entities`), so corpus freshness rides that typed dataflow edge.
         Ok(vec![
             root.join(SOURCE_PATH),
             root.join(OPT_SOURCE_PATH),
@@ -491,11 +489,10 @@ impl Stage for CompileLogicStage {
         // logic: source above carries only the logic: vocabulary). Both the OPT axis and the
         // derived ontology shapes ride into gmeow.gts through the shape surfaces.
         //
-        // Read the merged authored corpus as the NARROWED `graph/logic-compile-inputs`
-        // entity off the `stage-source-load` product — a SOUND (denylist) narrowing of
-        // `load_authored_dataset` with only pure-documentation predicates stripped, proved
-        // reader-identical by the `logic_compile_input_subgraph_preserves_reader_output`
-        // guard. `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
+        // Read the merged authored corpus as the complete `graph/logic-compile-inputs`
+        // entity off the `stage-source-load` product. The producer carries every authored
+        // RDF 1.2 quad and statement side table; no predicate-level guess may discard a
+        // future ownership or projection input. `project_named_graph` FILTERS to that graph and FLATTENS its quads into the
         // default graph, so the five augmentation readers (all graph-position-agnostic over
         // the default graph) consume it directly. A missing product or an empty projection
         // is a corrupt build — HARD-fail (no-optionality), never a silently-empty corpus.
@@ -510,7 +507,7 @@ impl Stage for CompileLogicStage {
         );
         if ontology.quad_count() == 0 {
             return Err(stage_err(format!(
-                "stage-source-load product carries an empty <{}> graph — the narrowed \
+                "stage-source-load product carries an empty <{}> graph — the complete \
                  compile-logic input corpus is missing (corrupt upstream product)",
                 crate::stages::carrier::GRAPH_LOGIC_COMPILE_INPUTS
             )));

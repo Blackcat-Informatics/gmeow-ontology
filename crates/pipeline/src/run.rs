@@ -353,9 +353,9 @@ pub fn full_spec() -> PipelineSpec {
                 // THIS run's fresh term-content-manifest product: the docs model's
                 // per-term content-address provenance (definition digest + first-seen
                 // version + computed changelog) reads it in-memory, never the previous
-                // run's committed generated/catalog/term-content-manifest.nq, which
-                // lags one regenerate behind on a definition-digest change (the same
-                // stale-disk-fold class).
+                // run's materialized generated/catalog/term-content-manifest.nq. The
+                // manifest stage itself compares only with the tracked release authority,
+                // so neither side depends on local synchronization history.
                 "stage-term-manifest",
                 "stage-validate",
             ],

@@ -49,8 +49,9 @@ const GMEOW_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/Change
 ///   "terms/{slug}/index.html"`, and `gmeow:docOwnerSlice <slice-iri>`.
 /// - each term's REAL IRI → its content-address provenance (from the term content
 ///   manifest): `gmeow:definitionDigest "blake3:…"`, `gmeow:addedInVersion "…"`,
-///   and one `gmeow:hasChangelogEntry <changelog-iri>` per release — each entry a
-///   deterministically-minted `gmeow:documentation/changelog/{term}/{version}` `a
+///   and one `gmeow:hasChangelogEntry <changelog-iri>` per source record — each entry
+///   a deterministically-minted
+///   `gmeow:documentation/changelog/{term}/{version}/{source}/{identity}` `a
 ///   gmeow:ChangelogEntry` with `gmeow:entryVersion` and optional `gmeow:entryNote`.
 /// - each slice → `gmeow:documentation/slice/{slug}` `a gmeow:DocumentedSlice`,
 ///   `gmeow:documents <slice-iri>`, `gmeow:docUrl "slices/{slug}/index.html"`.
@@ -310,10 +311,19 @@ pub fn to_gmeow_rdf(
             triple(&real, GMEOW_ADDED_IN_VERSION, &literal(version), &mut lines);
         }
         for entry in &term.changelog {
+            let identity = format!(
+                "{}\0{}\0{}",
+                entry.source.wire(),
+                entry.version,
+                entry.note.as_deref().unwrap_or_default()
+            );
+            let identity_digest = blake3::hash(identity.as_bytes()).to_hex();
             let entry_iri = format!(
-                "<{GMEOW}documentation/changelog/{}/{}>",
+                "<{GMEOW}documentation/changelog/{}/{}/{}/{}>",
                 term_slug(term),
-                set_slug(&entry.version)
+                set_slug(&entry.version),
+                entry.source.wire(),
+                identity_digest
             );
             triple(&real, GMEOW_HAS_CHANGELOG_ENTRY, &entry_iri, &mut lines);
             triple(
@@ -329,7 +339,12 @@ pub fn to_gmeow_rdf(
             // lints. The note (when present) IS the entry's definition-equivalent.
             annotate(
                 &entry_iri,
-                &format!("Changelog entry: {} {}", term.curie, entry.version),
+                &format!(
+                    "Changelog entry: {} {} ({})",
+                    term.curie,
+                    entry.version,
+                    entry.source.wire()
+                ),
                 &entry.note.clone().unwrap_or_else(|| {
                     format!(
                         "Changelog entry recording the {} release of {}.",
@@ -1503,7 +1518,7 @@ fn nq_escape(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{DocTerm, DocTermCategory};
+    use crate::model::{DocChangelogEntry, DocChangelogSource, DocTerm, DocTermCategory};
 
     fn tiny_model() -> DocsModel {
         DocsModel {
@@ -1604,6 +1619,38 @@ mod tests {
         assert!(a.contains(&format!("\"true\"^^<{XSD_BOOLEAN}>")));
         assert!(a.contains(&format!("\"false\"^^<{XSD_BOOLEAN}>")));
         assert!(a.ends_with('\n'));
+    }
+
+    #[test]
+    fn authored_and_computed_same_release_entries_have_distinct_rdf_identities() {
+        let mut model = tiny_model();
+        model.terms[0].changelog = vec![
+            DocChangelogEntry {
+                version: "1.0.0".to_string(),
+                note: Some("Authored release note.".to_string()),
+                source: DocChangelogSource::Authored,
+            },
+            DocChangelogEntry {
+                version: "1.0.0".to_string(),
+                note: Some("Definition changed".to_string()),
+                source: DocChangelogSource::Computed,
+            },
+        ];
+
+        let nq = to_gmeow_rdf(&model, &BTreeMap::new());
+        let links: Vec<&str> = nq
+            .lines()
+            .filter(|line| {
+                line.starts_with(&format!("<{GMEOW}Cat>"))
+                    && line.contains(GMEOW_HAS_CHANGELOG_ENTRY)
+            })
+            .collect();
+
+        assert_eq!(links.len(), 2, "both independent records must be linked");
+        assert!(links.iter().any(|line| line.contains("/1-0-0/authored/")));
+        assert!(links.iter().any(|line| line.contains("/1-0-0/computed/")));
+        assert_ne!(links[0], links[1], "record identities must not collide");
+        assert_eq!(nq, to_gmeow_rdf(&model, &BTreeMap::new()));
     }
 
     #[test]

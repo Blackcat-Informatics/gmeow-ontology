@@ -529,38 +529,20 @@ fn mcp_bodies(root: &Path, base: &str) -> (String, String) {
     (mcp_base_body(root, base), mcp_work_body(root))
 }
 
-/// The complete consumer-index body at the merge base.
+/// Assemble every contributing item's source into the one advertised resource-list body.
 ///
-/// The index is assembled from the same contributor census on both sides of the comparison.
-/// Reading only the working contributors while treating one base function as the whole index
-/// would compare different surfaces after a contributor split landed.
-fn mcp_base_body(root: &Path, base: &str) -> String {
+/// The same assembly is used on both sides of the merge-base comparison. Reading only one
+/// current contributor would grade a fragment as if it were the whole surface; retaining a
+/// pre-relocation file on the base side would stop grading altogether after that move lands.
+fn assemble_mcp_body(parts: impl IntoIterator<Item = (String, ItemRef)>) -> String {
     let mut uri_consts: BTreeMap<String, String> = BTreeMap::new();
     let mut bodies: Vec<String> = Vec::new();
-    for (path, item) in MCP_RESOURCE_CONTRIBUTORS {
-        let text = base_text(root, base, path)
-            .unwrap_or_else(|| panic!("{path}: absent at the merge base"));
+    for (text, item) in parts {
         uri_consts.extend(str_consts(&text));
         bodies.push(
-            extract_item(&text, *item)
-                .unwrap_or_else(|| panic!("{path}: {} is absent at the merge base", item.label())),
-        );
-    }
-    resolve_mcp_consts(&uri_consts, &bodies)
-}
-
-/// Every contributing site's text, concatenated: the advertised surface is assembled from
-/// several of them now, and reading one would grade a fragment as if it were the whole.
-fn mcp_work_body(root: &Path) -> String {
-    let mut uri_consts: BTreeMap<String, String> = BTreeMap::new();
-    let mut bodies: Vec<String> = Vec::new();
-    for (path, item) in MCP_RESOURCE_CONTRIBUTORS {
-        let text = std::fs::read_to_string(root.join(path))
-            .unwrap_or_else(|e| panic!("{path}: unreadable on this branch: {e}"));
-        uri_consts.extend(str_consts(&text));
-        bodies.push(
-            extract_item(&text, *item)
-                .unwrap_or_else(|| panic!("{path}: {} is absent on this branch", item.label())),
+            extract_item(&text, item).unwrap_or_else(|| {
+                panic!("{} is absent from its declared contributor", item.label())
+            }),
         );
     }
     resolve_mcp_consts(&uri_consts, &bodies)
@@ -577,6 +559,29 @@ fn resolve_mcp_consts(uri_consts: &BTreeMap<String, String>, bodies: &[String]) 
         body = body.replace(name, &format!("\"{value}\""));
     }
     body
+}
+
+/// The complete MCP resource-list surface at the merge base, assembled from the same
+/// current contributors and items as the working side.
+fn mcp_base_body(root: &Path, base: &str) -> String {
+    assemble_mcp_body(MCP_RESOURCE_CONTRIBUTORS.iter().map(|contributor| {
+        let text = base_text(root, base, contributor.base_lookup_path()).unwrap_or_else(|| {
+            panic!(
+                "{}: absent at the merge base — the resource-list freeze has no comparand",
+                contributor.path
+            )
+        });
+        (text, contributor.base_lookup_item())
+    }))
+}
+
+/// The complete MCP resource-list surface on this branch.
+fn mcp_work_body(root: &Path) -> String {
+    assemble_mcp_body(MCP_RESOURCE_CONTRIBUTORS.iter().map(|contributor| {
+        let text = std::fs::read_to_string(root.join(contributor.path))
+            .unwrap_or_else(|err| panic!("{}: unreadable on this branch: {err}", contributor.path));
+        (text, contributor.item)
+    }))
 }
 
 /// Every `const NAME: &str = "value";` in `text`, longest name first so a substitution never

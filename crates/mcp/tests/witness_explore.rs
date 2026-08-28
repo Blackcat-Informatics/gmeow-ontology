@@ -29,7 +29,7 @@
 //! SPARQL leaves `DESCRIBE`'s result implementation-defined, and this engine's gathers
 //! across every named graph: `DESCRIBE <AboutnessMode>` returns 38 quads, picking up the
 //! documentation graph's `addedInVersion` / `definitionDigest` / `inScheme` rows. A
-//! bound-subject pattern reads the active (default) graph alone and returns the 11 the
+//! bound-subject pattern reads the active (default) graph alone and returns the 12 triples the
 //! object-level ontology asserts. The explorer means the second, so the query says the
 //! second rather than depending on a DESCRIBE dialect.
 //!

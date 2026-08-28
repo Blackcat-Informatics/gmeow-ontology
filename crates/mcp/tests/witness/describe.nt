@@ -1,4 +1,5 @@
 # describe <https://blackcatinformatics.ca/gmeow/AboutnessMode>
+<https://blackcatinformatics.ca/gmeow/AboutnessMode> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .
 <https://blackcatinformatics.ca/gmeow/AboutnessMode> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/AbstractIndividualType> .
 <https://blackcatinformatics.ca/gmeow/AboutnessMode> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Class> .
 <https://blackcatinformatics.ca/gmeow/AboutnessMode> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/slices/kernel> .

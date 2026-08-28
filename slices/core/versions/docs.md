@@ -221,3 +221,10 @@ excluded, so recording provenance never perturbs the digest. It drives the
 release records an automatic change entry, realizing the release-as-evidence
 content-address diffs (CONSTITUTION §18) that the editorially-seeded entries above
 anticipate; it also serves as a stable citation permalink for the term's meaning.
+The comparison authority is the tracked
+`metadata/releases/term-content-authority.json`, never the ignored
+`generated/catalog/term-content-manifest.nq` from a local build. Ordinary sync
+only reads that authority, so fresh and warm worktrees render the same history.
+At an accepted release boundary a maintainer advances it explicitly with
+`make maint-refresh-term-release-authority`; that producer proves the promoted
+manifest remains a fixed point before it writes the new authority.

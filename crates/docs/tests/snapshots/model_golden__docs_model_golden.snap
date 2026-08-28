@@ -1,11 +1,10 @@
 ---
 source: crates/docs/tests/model_golden.rs
-assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "17",
+  "version": "18",
   "slice_count": 85,
   "term_count": 7206,
   "dependency_edge_count": 1401,
@@ -236,12 +235,7 @@ expression: summary
       "formalized_by": [],
       "stability": "stable",
       "added_in_version": "0.1.0",
-      "changelog": [
-        {
-          "version": "0.1.0",
-          "note": "Definition changed"
-        }
-      ],
+      "changelog": [],
       "content_digest": "blake3:aab7069791a85592d0c9daa8aaa50a2612d4953ae17c483fa379fef35052e7b7",
       "profiles": [
         "claims",
@@ -296,12 +290,7 @@ expression: summary
       "formalized_by": [],
       "stability": "stable",
       "added_in_version": "0.1.0",
-      "changelog": [
-        {
-          "version": "0.1.0",
-          "note": "Definition changed"
-        }
-      ],
+      "changelog": [],
       "content_digest": "blake3:a60fd8db3a9bd76059ac53bbf2358247043f24d5f2a7d766278f0a8416af7fe2",
       "profiles": [
         "claims",
@@ -344,12 +333,7 @@ expression: summary
       "formalized_by": [],
       "stability": "stable",
       "added_in_version": "0.1.0",
-      "changelog": [
-        {
-          "version": "0.1.0",
-          "note": "Definition changed"
-        }
-      ],
+      "changelog": [],
       "content_digest": "blake3:67d2393ed8b1193e0e5ebda39bbea598ac2ed39f9452eff350f2e103f2cc26d0",
       "profiles": [
         "claims",

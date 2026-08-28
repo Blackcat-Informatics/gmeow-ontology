@@ -19,8 +19,9 @@ members = [
     # CLI transitively depends on gmeow-conformance (cli→pipeline→conformance).
     "crates/bench-engines",
     # Harness-scoped deterministic allocation-measurement allocator + measure()
-    # helper. Depended on ONLY by bench targets / the future maint harness bin —
-    # NEVER by gmeow-cli, since its #[global_allocator] is process-global.
+    # helper. Depended on ONLY by bench targets / dedicated regression-test targets /
+    # the future maint harness bin — NEVER by gmeow-cli, since its
+    # #[global_allocator] is process-global.
     "crates/cost-measure",
     "crates/errors",
     # Dependency-leaf action cache: canonical keys, immutable receipts/blobs,
@@ -214,6 +215,10 @@ resolver = "2"
 # fix (SliceVocab::with_term_namespaces / owns_term).
 purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "3aa4ba51" }
 
+# Harness-scoped allocation accounting. Keeping the path here makes the workspace
+# the single dependency authority while individual crates retain dev-only scope.
+gmeow-cost-measure = { path = "crates/cost-measure" }
+
 # `wasm-bindgen` and `blake3` are declared ONCE each in the third-party block below,
 # where this branch's normalization sweep put them — not here. A second declaration in
 # the same table is a TOML duplicate key, and both sides independently reached for one.
@@ -263,6 +268,9 @@ serde = { version = "1", features = ["derive"] }
 # JSON is a first-class egress format across the workspace: tool envelopes, JSON-RPC
 # frames, the JSON card/schema projections and the JSONL export tiers.
 serde_json = "1"
+# Semantic release identities: the term changelog's tracked previous-release
+# authority must be ordered against the ontology release, never compared as text.
+semver = "1"
 # SHA-1 — legacy-interop digests only (git object names and the like), never a
 # content-integrity or security digest; blake3/sha2 above cover those.
 sha1 = "0.10"
