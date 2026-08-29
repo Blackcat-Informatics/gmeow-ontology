@@ -1837,16 +1837,18 @@ fn opt_axis_key(v: Option<f64>) -> String {
 /// One declared query-class case for executed correspondence recovery.
 ///
 /// The case is neutral evidence: its transform may discharge a genuine recovery or refute a
-/// lossy one.  It therefore never substitutes for the correspondence's `mnemomorphic` claim;
-/// the native executor decides the claim from the case's behavior.
+/// lossy one.  It therefore never substitutes for the correspondence's executable leg bodies
+/// or `mnemomorphic` claim; the native executor decides the claim by cross-checking the formula
+/// and the resolved legs on the same complete seed.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct RecoveryCaseIr {
     /// IRI of the first-class `logic:RecoveryCase` node.
     pub iri: String,
     /// The ordered, universally quantified source-to-view transform
     /// (`logic:recoveryTransform`).  The native correspondence executor accepts the
-    /// positive-conjunctive binary fragment and derives the candidate put direction from it;
-    /// a case may therefore either discharge recovery or produce a countermodel.
+    /// positive-conjunctive binary fragment and derives the formula's candidate put direction
+    /// from it, then cross-checks both actual resolved leg bodies; a case may therefore either
+    /// discharge recovery or produce a countermodel.
     pub transform: Formula,
 }
 

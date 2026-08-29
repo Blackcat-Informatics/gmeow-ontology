@@ -217,6 +217,16 @@ pattern, constructs the view, runs the candidate inverse, and compares the recov
 the source.  Every attached case is conjunctive evidence: all must recover; the first missing or
 fabricated atom yields `ObligationViolated` with a deterministic countermodel.
 
+That formula does not replace the correspondence legs.  For every attached case the executor first
+resolves the actual `logic:getLeg` and `logic:putLeg` transaction bodies, executes their normalized
+`logic:LegPath` relations on the same complete source seed, requires the relations to agree under
+inversion, and requires every variable-bound endpoint selected by the executable get to survive in
+the formula-constructed view.  Constants and predicates may change under the declared transform;
+variable bindings may not silently disappear.  A missing, malformed, empty, or unrelated leg body
+therefore violates the obligation even when the unchanged recovery formula can invert itself.  The
+formula and the resolved bodies are one cross-checked proof object; neither is an independent semantic
+source.
+
 A recovery case is deliberately **neutral**.  Strong correspondences carry cases that discharge;
 lossy correspondences may carry a refuting case, so changing only the rung or the
 `logic:mnemomorphic` boolean cannot manufacture a proof.  The `gmeow:WritingSystem → lang:Script`

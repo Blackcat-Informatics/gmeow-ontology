@@ -54,7 +54,7 @@ sup:langLanguageSignSystem a logic:Correspondence ;
     logic:getLeg sup:langLanguageSignSystemGet ;
     logic:recoveryCase sup:langLanguageSignSystemRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:langLanguageSignSystemGet gmeow:path sup:langLanguageSignSystemStep .
+sup:langLanguageSignSystemGet gmeow:path rdf:type .
 sup:langLanguageSignSystemRecovery a logic:RecoveryCase ;
     rdfs:label "Language to Sign System recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether the Language-to-Sign-System correspondence recovers its complete source graph."@x-gmeow-english ;
@@ -93,7 +93,7 @@ sup:langFormalKind a logic:Correspondence ;
     logic:getLeg sup:langFormalKindGet ;
     logic:recoveryCase sup:langFormalKindRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:langFormalKindGet gmeow:path sup:langFormalKindStep .
+sup:langFormalKindGet gmeow:path rdf:type .
 sup:langFormalKindRecovery a logic:RecoveryCase ;
     rdfs:label "Formal Language kind recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether the Formal Language kind collapse recovers its complete source graph."@x-gmeow-english ;
@@ -132,7 +132,7 @@ sup:langProgrammingKind a logic:Correspondence ;
     logic:getLeg sup:langProgrammingKindGet ;
     logic:recoveryCase sup:langProgrammingKindRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:langProgrammingKindGet gmeow:path sup:langProgrammingKindStep .
+sup:langProgrammingKindGet gmeow:path rdf:type .
 sup:langProgrammingKindRecovery a logic:RecoveryCase ;
     rdfs:label "Programming Language kind recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether the Programming Language kind collapse recovers its complete source graph."@x-gmeow-english ;
@@ -216,7 +216,7 @@ sup:langEnglishUnify a logic:Correspondence ;
     logic:getLeg sup:langEnglishUnifyGet ;
     logic:recoveryCase sup:langEnglishUnifyRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:langEnglishUnifyGet gmeow:path sup:langEnglishUnifyStep .
+sup:langEnglishUnifyGet gmeow:path rdf:value .
 sup:langEnglishUnifyRecovery a logic:RecoveryCase ;
     rdfs:label "English identity unification recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether English identity unification recovers its complete source graph."@x-gmeow-english ;
@@ -251,7 +251,7 @@ sup:langFrenchUnify a logic:Correspondence ;
     logic:getLeg sup:langFrenchUnifyGet ;
     logic:recoveryCase sup:langFrenchUnifyRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:langFrenchUnifyGet gmeow:path sup:langFrenchUnifyStep .
+sup:langFrenchUnifyGet gmeow:path rdf:value .
 sup:langFrenchUnifyRecovery a logic:RecoveryCase ;
     rdfs:label "French identity unification recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether French identity unification recovers its complete source graph."@x-gmeow-english ;
@@ -286,7 +286,7 @@ sup:langMandarinUnify a logic:Correspondence ;
     logic:getLeg sup:langMandarinUnifyGet ;
     logic:recoveryCase sup:langMandarinUnifyRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:langMandarinUnifyGet gmeow:path sup:langMandarinUnifyStep .
+sup:langMandarinUnifyGet gmeow:path rdf:value .
 sup:langMandarinUnifyRecovery a logic:RecoveryCase ;
     rdfs:label "Mandarin identity unification recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether Mandarin identity unification recovers its complete source graph."@x-gmeow-english ;
@@ -365,7 +365,7 @@ sup:notationSymbolicSignSystem a logic:Correspondence ;
     logic:getLeg sup:notationSymbolicSignSystemGet ;
     logic:recoveryCase sup:notationSymbolicSignSystemRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:notationSymbolicSignSystemGet gmeow:path sup:notationSymbolicSignSystemStep .
+sup:notationSymbolicSignSystemGet gmeow:path rdf:type .
 sup:notationSymbolicSignSystemRecovery a logic:RecoveryCase ;
     rdfs:label "Symbolic System to Sign System recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether the Symbolic-System-to-Sign-System correspondence recovers its complete source graph."@x-gmeow-english ;
@@ -400,7 +400,7 @@ sup:notationNotationSignSystem a logic:Correspondence ;
     logic:getLeg sup:notationNotationSignSystemGet ;
     logic:recoveryCase sup:notationNotationSignSystemRecovery ;
     gmeow:graphBoxRole gmeow:boxABox .
-sup:notationNotationSignSystemGet gmeow:path sup:notationNotationSignSystemStep .
+sup:notationNotationSignSystemGet gmeow:path rdf:type .
 sup:notationNotationSignSystemRecovery a logic:RecoveryCase ;
     rdfs:label "Notation System to Sign System recovery case"@x-gmeow-english ;
     skos:definition "An executable recovery case that checks whether the Notation-System-to-Sign-System correspondence recovers its complete source graph."@x-gmeow-english ;

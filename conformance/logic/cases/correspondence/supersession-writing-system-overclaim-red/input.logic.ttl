@@ -21,7 +21,9 @@ ex:writingSystemOverclaim a logic:Correspondence ;
     logic:getLeg ex:writingSystemGet ;
     logic:recoveryCase ex:writingSystemRefutation .
 
-ex:writingSystemGet gmeow:path ex:writingSystemStep .
+# The executable leg consumes the same source type relation as the refuting case;
+# the case remains red because its additional source distinctions are absent from the view.
+ex:writingSystemGet gmeow:path rdf:type .
 
 ex:writingSystemRefutation a logic:RecoveryCase ;
     logic:recoveryTransform ex:writingSystemRefutationFormula .

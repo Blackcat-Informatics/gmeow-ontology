@@ -1503,6 +1503,107 @@ mod tests {
             .expect_err("a bridge-view equivalence overclaim must HARD-fail the build");
     }
 
+    /// Production-path negative control for recovery/leg semantic coupling. The source is
+    /// parsed through the real Turtle frontend, receives the production derived put, executes
+    /// through `logic_program_verdicts`, compiles through `compile_program`, and reaches the
+    /// exact `assert_gates` boundary used by this stage. Changing only the authored get-leg
+    /// body while holding the RecoveryCase fixed must therefore red both recovery gates.
+    #[test]
+    fn stage_recovery_gates_consume_the_resolved_get_leg_body() {
+        use gmeow_logic_compile::frontend::Severity;
+        use gmeow_logic_compile::projections::correspondence_gates::GateVerdict;
+
+        const SOURCE: &str = r#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <https://example.org/> .
+
+ex:correspondence a logic:Correspondence ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:mnemomorphic true ;
+    logic:getLeg ex:get ;
+    logic:recoveryCase ex:case .
+
+ex:get a logic:TransactionProgram ;
+    gmeow:path ex:sourceRel .
+
+ex:case a logic:RecoveryCase ;
+    logic:recoveryTransform ex:transform .
+
+ex:transform a logic:Formula ;
+    logic:quantifiedVariable
+        [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "subject" ] ,
+        [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "object" ] ;
+    logic:forall [
+        a logic:Formula ;
+        logic:antecedent [
+            a logic:Formula ;
+            logic:relation ex:sourceRel ;
+            logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "subject" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "object" ]
+        ] ;
+        logic:consequent [
+            a logic:Formula ;
+            logic:relation ex:viewRel ;
+            logic:argument
+                [ a logic:TermCarrier ; logic:termIndex 0 ; logic:termVariable "subject" ] ,
+                [ a logic:TermCarrier ; logic:termIndex 1 ; logic:termVariable "object" ]
+        ]
+    ] .
+"#;
+
+        let parse = |source: &str| {
+            let (program, diagnostics) = parse_logic_str(
+                source,
+                Some("https://example.org/recovery-leg-regression".to_owned()),
+            )
+            .expect("parse recovery correspondence");
+            assert!(
+                diagnostics
+                    .iter()
+                    .all(|diagnostic| diagnostic.severity != Severity::Error),
+                "unexpected frontend diagnostics: {diagnostics:#?}"
+            );
+            program
+        };
+
+        let baseline = parse(SOURCE);
+        let baseline_verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&baseline)
+            .expect("execute baseline recovery correspondence");
+        let baseline_artifacts = compile_program(&baseline, &baseline_verdicts)
+            .expect("compile baseline recovery correspondence");
+        let baseline_gates = baseline_artifacts
+            .correspondence_gates
+            .as_ref()
+            .expect("baseline correspondence gates");
+        assert_gates(baseline_gates).expect("the body-aligned recovery case must pass");
+
+        let mutated_source =
+            SOURCE.replacen("gmeow:path ex:sourceRel", "gmeow:path ex:mutatedRel", 1);
+        let mutated = parse(&mutated_source);
+        assert_eq!(
+            baseline.correspondences[0].recovery_cases, mutated.correspondences[0].recovery_cases,
+            "the mutation must hold the canonical RecoveryCase fixed"
+        );
+        let mutated_verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&mutated)
+            .expect("execute mutated recovery correspondence");
+        let mutated_artifacts = compile_program(&mutated, &mutated_verdicts)
+            .expect("compile mutated recovery correspondence");
+        let mutated_gates = mutated_artifacts
+            .correspondence_gates
+            .as_ref()
+            .expect("mutated correspondence gates");
+        let report = &mutated_gates.per_correspondence[0];
+        assert!(matches!(report.round_trip, GateVerdict::Red { .. }));
+        assert!(matches!(report.mnemomorphism, GateVerdict::Red { .. }));
+        assert_gates(mutated_gates).expect_err(
+            "changing only the formerly inert LegPath body must hard-fail the production gates",
+        );
+    }
+
     /// `pin_handle` HARD-fails when the Correspondence handle's pinned digest disagrees
     /// with its backing graph (no-optionality, fail-closed).
     #[test]

@@ -187,6 +187,15 @@ fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
         }));
     }
 
+    let docs_terms = docs_gmeow_terms(project_root)?;
+    if docs_terms.is_empty() {
+        return Err(Diag::of_kind(crate::error::Io {
+            detail: "authoring-integrity: docs gmeow: term-reference floor 1 not met (got 0) \
+                      — the per-document authority comparison would be vacuous, refusing to pass"
+                .to_string(),
+        }));
+    }
+
     let catalog_names = catalog_uri_names(project_root)?;
     if catalog_names.len() <= 1 {
         return Err(Diag::of_kind(crate::error::Io {
@@ -231,6 +240,7 @@ pub fn authoring_integrity_findings(
     findings.extend(profile_closure_findings(project_root)?);
     findings.extend(catalog_closure_findings(project_root)?);
     findings.extend(module_iri_findings(project_root)?);
+    findings.extend(docs_undeclared_findings(project_root)?);
     findings.extend(example_undeclared_term_findings(project_root, &declared)?);
     findings.extend(slice_source_untagged_findings(project_root)?);
     findings.extend(nonslice_authored_untagged_findings(project_root)?);
@@ -1135,20 +1145,8 @@ pub fn nonslice_authored_untagged_findings(repo_root: &Path) -> Result<Vec<Findi
     Ok(detect_untagged_localizable(&files, repo_root))
 }
 
-/// Retired terms permitted to appear in historical/migration docs prose.
-const RETIRED_DOCS_TERMS: &[&str] = &["alternateName", "gender", "sex"];
-
-/// Documentation-only GMEOW names permitted in docs prose/examples — intentionally
-/// NOT declared terms, allowlisted exactly (the analogue of the retired
-/// `_RETIRED_DOCS_TERMS`): a retired documentation-only shape recorded for
-/// historical context, and a migration-guide illustrative `logic:Constraint` name.
-const DOCS_DOCUMENTATION_ONLY_TERMS: &[&str] = &[
-    // The standpoint module records this retired documentation-only shape in prose.
-    "StandpointCoexistenceShape",
-    // MIGRATING-SHAPES-TO-LOGIC.md's illustrative constraint, paired with the real
-    // gmeow:ClaimNeedsEvidenceShape it would replace.
-    "ClaimNeedsEvidenceConstraint",
-];
+/// The canonical per-document declaration/import authority for `docs/*.md` examples.
+const DOCS_TERM_AUTHORITY_PATH: &str = "docs/term-authority.toml";
 
 /// Extract every `gmeow:LocalName` referenced in a markdown document — inside
 /// fenced ```turtle blocks (backticked and bare) and inline `` `gmeow:Name` `` —
@@ -1175,20 +1173,6 @@ fn extract_gmeow_terms_from_markdown(text: &str) -> BTreeSet<String> {
     out
 }
 
-/// Every GMEOW-namespace term appearing in ANY triple position across a set of TTL
-/// files — the set of real term IRIs a doc example may legitimately name (a shape
-/// named only as a `logic:formalizes` object is still a real term). A docs `gmeow:`
-/// reference is a typo only when it appears NOWHERE in the authored/generated
-/// ontology. Instance IRIs (`…/example(s)/`, `…/modules/`) are excluded.
-fn gmeow_terms_any_position(files: &[PathBuf]) -> Result<BTreeSet<String>> {
-    let mut out = BTreeSet::new();
-    for path in files {
-        let ds = parse_ttl(path)?;
-        out.extend(gmeow_vocab_terms(&ds));
-    }
-    Ok(out)
-}
-
 /// The `docs/*.md` files (top-level, non-recursive), sorted.
 fn docs_md_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
     let dir = repo_root.join("docs");
@@ -1210,6 +1194,240 @@ fn docs_md_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
     Ok(out)
 }
 
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DocsAuthorityFile {
+    version: u32,
+    document: Vec<DocsAuthorityEntry>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DocsAuthorityEntry {
+    path: String,
+    imports: Vec<String>,
+    declares: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+struct DocsDocumentAuthority {
+    imports: BTreeSet<String>,
+    declares: BTreeSet<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+struct DocsTermOwnership {
+    by_term: BTreeMap<String, BTreeSet<String>>,
+    owners: BTreeSet<String>,
+}
+
+/// Canonical authored sources that may own a documentation-visible GMEOW term.
+/// Generated projections are deliberately absent: authority comes from a typed
+/// authored subject and its explicit `rdfs:isDefinedBy`, never from a generated
+/// occurrence or the source filename.
+fn docs_authority_source_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
+    let mut files = vocabulary_source_files(repo_root)?;
+    for module in slice_module_files(&repo_root.join("slices"))? {
+        if let Some(dir) = module.parent() {
+            let shapes = dir.join("shapes.ttl");
+            if shapes.is_file() {
+                files.push(shapes);
+            }
+        }
+    }
+    files.sort();
+    files.dedup();
+    Ok(files)
+}
+
+/// Build `term -> exact owning IRIs` from typed GMEOW subjects and their authored
+/// `rdfs:isDefinedBy` assertions. A small number of terms are deliberately declared by
+/// more than one authored vocabulary; retaining the exact set lets a document import
+/// the authority whose declaration it uses without inventing a repository-global winner.
+fn docs_term_ownership(repo_root: &Path) -> Result<DocsTermOwnership> {
+    use purrdf::slice::rdf_query::DatasetAccumulator;
+
+    let mut acc = DatasetAccumulator::new();
+    for source in docs_authority_source_files(repo_root)? {
+        let bytes = std::fs::read(&source).map_err(|e| io_err(&source, &e))?;
+        acc.add_turtle(&bytes, &source.display().to_string())
+            .map_err(|e| parse_err(&source, &e.to_string()))?;
+    }
+    let dataset = acc
+        .freeze()
+        .map_err(|e| parse_err(repo_root, &e.to_string()))?;
+    let mut typed_terms = BTreeSet::new();
+    dataset.for_each_quad(|subject, predicate, object, _graph| {
+        if predicate == RDF_TYPE
+            && let Subject::Named(term) = &subject
+            && term.starts_with(GMEOW_NS)
+            && matches!(object, Object::Named(_))
+        {
+            typed_terms.insert(term.clone());
+        }
+    });
+
+    let mut candidates: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut malformed = BTreeSet::new();
+    dataset.for_each_quad(|subject, predicate, object, _graph| {
+        if predicate != RDFS_IS_DEFINED_BY {
+            return;
+        }
+        let Subject::Named(term) = &subject else {
+            return;
+        };
+        if !typed_terms.contains(term) {
+            return;
+        }
+        match object {
+            Object::Named(owner) => {
+                candidates
+                    .entry(term.clone())
+                    .or_default()
+                    .insert(owner.clone());
+            }
+            _ => {
+                malformed.insert(term.clone());
+            }
+        }
+    });
+    if let Some(term) = malformed.into_iter().next() {
+        return Err(parse_err(
+            &repo_root.join(DOCS_TERM_AUTHORITY_PATH),
+            &format!("typed GMEOW term <{term}> has a non-IRI rdfs:isDefinedBy authority"),
+        ));
+    }
+
+    let mut ownership = DocsTermOwnership::default();
+    for (term, owners) in candidates {
+        ownership.owners.extend(owners.iter().cloned());
+        ownership.by_term.insert(term, owners);
+    }
+    Ok(ownership)
+}
+
+fn duplicate_value(values: &[String]) -> Option<&str> {
+    let mut seen = BTreeSet::new();
+    values
+        .iter()
+        .find(|value| !seen.insert(value.as_str()))
+        .map(String::as_str)
+}
+
+/// Parse and validate the authority manifest against the discovered document paths and
+/// term-owner index. This is deliberately strict: stale paths, duplicate entries,
+/// unknown imports, and attempts to redeclare ontology-owned terms all hard-fail.
+fn parse_docs_authority_text(
+    manifest_path: &Path,
+    text: &str,
+    docs: &[PathBuf],
+    repo_root: &Path,
+    ownership: &DocsTermOwnership,
+) -> Result<BTreeMap<String, DocsDocumentAuthority>> {
+    let parsed: DocsAuthorityFile =
+        toml::from_str(text).map_err(|e| parse_err(manifest_path, &e.to_string()))?;
+    if parsed.version != 1 {
+        return Err(parse_err(
+            manifest_path,
+            &format!(
+                "unsupported docs term-authority version {}; expected 1",
+                parsed.version
+            ),
+        ));
+    }
+    let known_docs: BTreeSet<String> = docs.iter().map(|path| rel(path, repo_root)).collect();
+    let mut authorities = BTreeMap::new();
+    for entry in parsed.document {
+        if !known_docs.contains(&entry.path) {
+            return Err(parse_err(
+                manifest_path,
+                &format!(
+                    "term-authority entry path `{}` is not an existing top-level docs/*.md file",
+                    entry.path
+                ),
+            ));
+        }
+        if authorities.contains_key(&entry.path) {
+            return Err(parse_err(
+                manifest_path,
+                &format!("duplicate term-authority entry for `{}`", entry.path),
+            ));
+        }
+        if let Some(value) = duplicate_value(&entry.imports) {
+            return Err(parse_err(
+                manifest_path,
+                &format!(
+                    "`{}` imports authority <{value}> more than once",
+                    entry.path
+                ),
+            ));
+        }
+        if let Some(value) = duplicate_value(&entry.declares) {
+            return Err(parse_err(
+                manifest_path,
+                &format!("`{}` declares term <{value}> more than once", entry.path),
+            ));
+        }
+        for owner in &entry.imports {
+            if !ownership.owners.contains(owner) {
+                return Err(parse_err(
+                    manifest_path,
+                    &format!(
+                        "`{}` imports unknown term authority <{owner}>; imports must name an \
+                         exact authored rdfs:isDefinedBy owner",
+                        entry.path
+                    ),
+                ));
+            }
+        }
+        for term in &entry.declares {
+            if !term.starts_with(GMEOW_NS) {
+                return Err(parse_err(
+                    manifest_path,
+                    &format!(
+                        "`{}` declares non-GMEOW term <{term}>; document-local declarations \
+                         must be full `{GMEOW_NS}` IRIs",
+                        entry.path
+                    ),
+                ));
+            }
+            if let Some(owners) = ownership.by_term.get(term) {
+                return Err(parse_err(
+                    manifest_path,
+                    &format!(
+                        "`{}` declares ontology-owned term <{term}>; import one of its exact \
+                         owners ({}) instead",
+                        entry.path,
+                        owners
+                            .iter()
+                            .map(|owner| format!("<{owner}>"))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ),
+                ));
+            }
+        }
+        authorities.insert(
+            entry.path,
+            DocsDocumentAuthority {
+                imports: entry.imports.into_iter().collect(),
+                declares: entry.declares.into_iter().collect(),
+            },
+        );
+    }
+    Ok(authorities)
+}
+
+fn docs_authorities(
+    repo_root: &Path,
+    docs: &[PathBuf],
+    ownership: &DocsTermOwnership,
+) -> Result<BTreeMap<String, DocsDocumentAuthority>> {
+    let path = repo_root.join(DOCS_TERM_AUTHORITY_PATH);
+    let text = std::fs::read_to_string(&path).map_err(|e| io_err(&path, &e))?;
+    parse_docs_authority_text(&path, &text, docs, repo_root, ownership)
+}
+
 /// Every `gmeow:` term referenced across the docs corpus — exposed so the gate's
 /// non-vacuity guard can prove the fence/inline extractor is not silently
 /// yielding an empty set (a broken regex would otherwise pass vacuously).
@@ -1222,73 +1440,83 @@ pub fn docs_gmeow_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
     Ok(out)
 }
 
-/// The allowlist of `gmeow:` terms a doc example may legitimately name: every
-/// GMEOW-namespace SUBJECT declared across the root ontology + slice modules
-/// (which mint the classes, properties, and shape individuals), the authored
-/// `gmeow-shapes.ttl`, the slice-manifest vocabulary, the test-DSL vocabulary, the
-/// mapping/statement DSL sources, plus the retired-terms prose allowance. This
-/// mirrors the retired `_docs_allowlist` exactly.
-fn docs_allowlist(repo_root: &Path) -> Result<BTreeSet<String>> {
-    let mut files = vec![repo_root.join("ontology/gmeow.ttl")];
-    files.extend(slice_module_files(&repo_root.join("slices"))?);
-    for optional in [
-        "shapes/gmeow-shapes.ttl",
-        "slices/vocabulary.ttl",
-        "dsl/tests/vocabulary.ttl",
-    ] {
-        let p = repo_root.join(optional);
-        if p.is_file() {
-            files.push(p);
-        }
-    }
-    files.extend(ttl_recursive(&repo_root.join("dsl/mappings"))?);
-    files.extend(ttl_recursive(&repo_root.join("dsl/statements"))?);
-    // Slice shape files declare shape IRIs a doc may name; the derived SHACL shapes
-    // and the shape-grounding ledger carry the logic:formalizes shape names.
-    for module in slice_module_files(&repo_root.join("slices"))? {
-        if let Some(dir) = module.parent() {
-            let shapes = dir.join("shapes.ttl");
-            if shapes.is_file() {
-                files.push(shapes);
-            }
-        }
-    }
-    files.extend(ttl_in_dir(&repo_root.join("generated/shapes"))?);
-    files.extend(ttl_in_dir(&repo_root.join("generated/logic"))?);
-    files.sort();
-    files.dedup();
-    let mut allow = gmeow_terms_any_position(&files)?;
-    for name in RETIRED_DOCS_TERMS
-        .iter()
-        .chain(DOCS_DOCUMENTATION_ONLY_TERMS)
-    {
-        allow.insert(format!("{GMEOW_NS}{name}"));
-    }
-    Ok(allow)
-}
-
-/// R3e: user-copyable docs examples reference only allowlisted `gmeow:` terms.
-pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
-    let allow = docs_allowlist(repo_root)?;
+fn detect_docs_undeclared_terms(
+    docs: &[(PathBuf, String)],
+    authorities: &BTreeMap<String, DocsDocumentAuthority>,
+    ownership: &DocsTermOwnership,
+    repo_root: &Path,
+) -> Vec<Finding> {
     let mut findings = Vec::new();
-    for md in docs_md_files(repo_root)? {
-        let text = std::fs::read_to_string(&md).map_err(|e| io_err(&md, &e))?;
-        for term in extract_gmeow_terms_from_markdown(&text) {
-            if !allow.contains(&term) {
-                findings.push(finding(
-                    Severity::Error,
-                    codes::AUTHORING_UNDECLARED_TERM,
-                    format!(
-                        "docs example {file} references unallowlisted GMEOW term {term}",
-                        file = rel(&md, repo_root),
-                    ),
-                    Some(term),
-                ));
+    for (path, text) in docs {
+        let terms = extract_gmeow_terms_from_markdown(text);
+        if terms.is_empty() {
+            continue;
+        }
+        let file = rel(path, repo_root);
+        let Some(authority) = authorities.get(&file) else {
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_UNDECLARED_TERM,
+                format!(
+                    "docs example {file} references GMEOW terms but has no per-document entry \
+                     in {DOCS_TERM_AUTHORITY_PATH}"
+                ),
+                None,
+            ));
+            continue;
+        };
+        for term in terms {
+            if authority.declares.contains(&term) {
+                continue;
             }
+            let message = match ownership.by_term.get(&term) {
+                Some(owners) if owners.iter().any(|owner| authority.imports.contains(owner)) => {
+                    continue;
+                }
+                Some(owners) => format!(
+                    "docs example {file} references GMEOW term {term} owned by {}, but none of \
+                     those exact authorities is imported in {DOCS_TERM_AUTHORITY_PATH}",
+                    owners
+                        .iter()
+                        .map(|owner| format!("<{owner}>"))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+                None => format!(
+                    "docs example {file} references GMEOW term {term} with no authored \
+                     rdfs:isDefinedBy owner and no document-local declaration in \
+                     {DOCS_TERM_AUTHORITY_PATH}"
+                ),
+            };
+            findings.push(finding(
+                Severity::Error,
+                codes::AUTHORING_UNDECLARED_TERM,
+                message,
+                Some(term),
+            ));
         }
     }
     findings.sort_by(|a, b| a.message.cmp(&b.message));
-    Ok(findings)
+    findings
+}
+
+/// R3e: every user-copyable `gmeow:` reference is authorized by its own document's
+/// explicit import or declaration. There is no repository-global or transitive fallback.
+pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
+    let paths = docs_md_files(repo_root)?;
+    let ownership = docs_term_ownership(repo_root)?;
+    let authorities = docs_authorities(repo_root, &paths, &ownership)?;
+    let mut docs = Vec::with_capacity(paths.len());
+    for path in paths {
+        let text = std::fs::read_to_string(&path).map_err(|e| io_err(&path, &e))?;
+        docs.push((path, text));
+    }
+    Ok(detect_docs_undeclared_terms(
+        &docs,
+        &authorities,
+        &ownership,
+        repo_root,
+    ))
 }
 
 // ── R9: registered minting namespaces ────────────────────────────────────────
@@ -2910,18 +3138,186 @@ mod tests {
         }
     }
 
+    const DOCS_ENTITIES_OWNER: &str = "https://blackcatinformatics.ca/gmeow/slices/entities";
+    const DOCS_LOGIC_OWNER: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
+
+    fn docs_test_ownership(terms: &[(&str, &str)]) -> DocsTermOwnership {
+        let mut by_term: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        for (term, owner) in terms {
+            by_term
+                .entry(format!("{GMEOW_NS}{term}"))
+                .or_default()
+                .insert((*owner).to_owned());
+        }
+        let owners = by_term.values().flatten().cloned().collect();
+        DocsTermOwnership { by_term, owners }
+    }
+
+    fn docs_test_authority(
+        imports: &[&str],
+        declares: &[&str],
+    ) -> BTreeMap<String, DocsDocumentAuthority> {
+        BTreeMap::from([(
+            "docs/example.md".to_owned(),
+            DocsDocumentAuthority {
+                imports: imports.iter().map(|value| (*value).to_owned()).collect(),
+                declares: declares.iter().map(|value| (*value).to_owned()).collect(),
+            },
+        )])
+    }
+
+    fn docs_test_findings(
+        markdown: &str,
+        authorities: &BTreeMap<String, DocsDocumentAuthority>,
+        ownership: &DocsTermOwnership,
+    ) -> Vec<Finding> {
+        detect_docs_undeclared_terms(
+            &[(PathBuf::from("docs/example.md"), markdown.to_owned())],
+            authorities,
+            ownership,
+            Path::new(""),
+        )
+    }
+
     #[test]
-    fn docs_term_absent_from_every_allowlist_source_is_flagged() {
-        // The firing negative for R3e: a fenced turtle term in no allowlist source.
-        let md = "```turtle\nex:a `gmeow:TotallyUndeclaredXyz` ex:b .\n```";
-        let terms = extract_gmeow_terms_from_markdown(md);
-        let allow: BTreeSet<String> = BTreeSet::new();
-        let unallowed: Vec<&String> = terms.iter().filter(|t| !allow.contains(*t)).collect();
+    fn docs_term_authority_accepts_an_explicit_owner_import() {
+        let ownership = docs_test_ownership(&[("Person", DOCS_ENTITIES_OWNER)]);
+        let findings = docs_test_findings(
+            "Use `gmeow:Person`.",
+            &docs_test_authority(&[DOCS_ENTITIES_OWNER], &[]),
+            &ownership,
+        );
+        assert!(findings.is_empty(), "{findings:#?}");
+    }
+
+    #[test]
+    fn docs_term_authority_accepts_an_exact_document_local_declaration() {
+        let term = format!("{GMEOW_NS}IllustrativeOnly");
+        let findings = docs_test_findings(
+            "Use `gmeow:IllustrativeOnly`.",
+            &docs_test_authority(&[], &[&term]),
+            &DocsTermOwnership::default(),
+        );
+        assert!(findings.is_empty(), "{findings:#?}");
+    }
+
+    #[test]
+    fn docs_term_authority_rejects_a_typo() {
+        let findings = docs_test_findings(
+            "```turtle\nex:a gmeow:TotallyUndeclaredXyz ex:b .\n```",
+            &docs_test_authority(&[], &[]),
+            &DocsTermOwnership::default(),
+        );
+        assert_eq!(findings.len(), 1, "{findings:#?}");
+        assert!(findings[0].message.contains("no authored rdfs:isDefinedBy"));
+    }
+
+    #[test]
+    fn docs_term_authority_rejects_a_real_term_from_an_unimported_slice() {
+        let ownership = docs_test_ownership(&[
+            ("Person", DOCS_ENTITIES_OWNER),
+            ("BareEntitySortalAdviceConstraint", DOCS_LOGIC_OWNER),
+        ]);
+        let findings = docs_test_findings(
+            "Use `gmeow:Person`.",
+            &docs_test_authority(&[DOCS_LOGIC_OWNER], &[]),
+            &ownership,
+        );
+        assert_eq!(findings.len(), 1, "{findings:#?}");
+        assert!(findings[0].message.contains("Person"));
+        assert!(findings[0].message.contains(DOCS_ENTITIES_OWNER));
+    }
+
+    #[test]
+    fn docs_term_authority_discovers_and_rejects_a_wrong_real_corpus_term() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("crates/validate lives two levels under the repository root");
+        let ownership = docs_term_ownership(root).expect("discover authored term owners");
+        let person = format!("{GMEOW_NS}Person");
+        assert_eq!(
+            ownership.by_term.get(&person),
+            Some(&BTreeSet::from([DOCS_ENTITIES_OWNER.to_owned()])),
+            "the negative control must use the real uniquely owned gmeow:Person declaration"
+        );
         assert!(
-            unallowed
+            ownership.owners.contains(DOCS_LOGIC_OWNER),
+            "the unrelated import must itself be a real authored authority"
+        );
+
+        let findings = docs_test_findings(
+            "Use `gmeow:Person`.",
+            &docs_test_authority(&[DOCS_LOGIC_OWNER], &[]),
+            &ownership,
+        );
+        assert_eq!(findings.len(), 1, "{findings:#?}");
+        assert!(findings[0].message.contains(DOCS_ENTITIES_OWNER));
+    }
+
+    #[test]
+    fn docs_term_authority_requires_an_entry_for_each_referencing_document() {
+        let ownership = docs_test_ownership(&[("Person", DOCS_ENTITIES_OWNER)]);
+        let findings = docs_test_findings("Use `gmeow:Person`.", &BTreeMap::new(), &ownership);
+        assert_eq!(findings.len(), 1, "{findings:#?}");
+        assert!(findings[0].message.contains("no per-document entry"));
+    }
+
+    #[test]
+    fn docs_term_authority_manifest_rejects_unknown_imports_and_owned_redeclarations() {
+        let root = Path::new("/repo");
+        let docs = vec![PathBuf::from("/repo/docs/example.md")];
+        let ownership = docs_test_ownership(&[("Person", DOCS_ENTITIES_OWNER)]);
+        let unknown = ("version = 1\n\n[[document]]\npath = \"docs/example.md\"\n\
+             imports = [\"https://example.org/not-an-authored-owner\"]\ndeclares = []\n")
+            .to_string();
+        let error = parse_docs_authority_text(
+            Path::new("/repo/docs/term-authority.toml"),
+            &unknown,
+            &docs,
+            root,
+            &ownership,
+        )
+        .expect_err("an unknown owner import must hard-fail");
+        assert!(
+            error.message().contains("unknown term authority"),
+            "{error}"
+        );
+
+        let owned_term = format!("{GMEOW_NS}Person");
+        let redeclared = format!(
+            "version = 1\n\n[[document]]\npath = \"docs/example.md\"\nimports = []\n\
+             declares = [\"{owned_term}\"]\n"
+        );
+        let error = parse_docs_authority_text(
+            Path::new("/repo/docs/term-authority.toml"),
+            &redeclared,
+            &docs,
+            root,
+            &ownership,
+        )
+        .expect_err("an ontology-owned term cannot be laundered through a local declaration");
+        assert!(
+            error.message().contains("import one of its exact owners"),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn docs_term_authority_covers_the_committed_document_corpus() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("crates/validate lives two levels under the repository root");
+        let findings = docs_undeclared_findings(root).expect("evaluate docs term authority");
+        assert!(
+            findings.is_empty(),
+            "committed docs term-authority findings:\n{}",
+            findings
                 .iter()
-                .any(|t| t.ends_with("/TotallyUndeclaredXyz")),
-            "an unallowlisted docs term must be flagged: {unallowed:?}"
+                .map(|finding| finding.message.as_str())
+                .collect::<Vec<_>>()
+                .join("\n")
         );
     }
 
