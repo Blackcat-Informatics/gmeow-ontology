@@ -1024,11 +1024,12 @@ mod tests {
 
     #[test]
     fn shipped_modal_example_is_a_complete_reason_product_frame() {
-        // The production source loader unions positive demonstrators into this exact named
-        // world. Parse only the authored example under test, root it exactly as source-load
-        // does, and hand its in-memory N-Quads to the actual stage-reason product. This is
-        // read-only fixture consumption: no corpus producer, cache fallback, or foundation
-        // evaluator is involved.
+        // Parse only the authored example under test, root it exactly as source-load does,
+        // and hand its in-memory N-Quads to the actual stage-reason product. The example's
+        // frame is self-accessible while its ground atom remains in graph/examples, so both
+        // modal formulas must fail at the distinct example world. This is read-only fixture
+        // consumption: no corpus producer, cache fallback, or foundation evaluator is
+        // involved.
         let example = purrdf::parse_dataset(
             include_bytes!("../../../../slices/grounding/logic/examples/gmn-logic-roundtrip.ttl"),
             "text/turtle",
@@ -1058,11 +1059,11 @@ mod tests {
         for (formula, predicate) in [
             (
                 "https://blackcatinformatics.ca/gmeow/examples/logic/necessarilyReliable",
-                "https://blackcatinformatics.ca/logic/modalNecessityHolds",
+                "https://blackcatinformatics.ca/logic/modalNecessityFails",
             ),
             (
                 "https://blackcatinformatics.ca/gmeow/examples/logic/possiblyReliable",
-                "https://blackcatinformatics.ca/logic/modalPossibilityHolds",
+                "https://blackcatinformatics.ca/logic/modalPossibilityFails",
             ),
         ] {
             let verdict = result
@@ -1070,12 +1071,37 @@ mod tests {
                 .iter()
                 .find(|axiom| axiom.subject == formula && axiom.predicate == predicate)
                 .unwrap_or_else(|| panic!("missing production modal verdict for {formula}"));
-            assert_eq!(verdict.world, gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES);
+            assert_eq!(
+                verdict.world,
+                "https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld"
+            );
             assert_eq!(
                 verdict.rule_name.as_deref(),
                 Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
             );
         }
+        let counterexample = result
+            .inferred()
+            .iter()
+            .find(|axiom| {
+                axiom.subject
+                    == "https://blackcatinformatics.ca/gmeow/examples/logic/necessarilyReliable"
+                    && axiom.predicate
+                        == "https://blackcatinformatics.ca/logic/modalCounterexampleWorld"
+            })
+            .expect("shipped necessity verdict carries its exact counterexample world");
+        assert_eq!(
+            counterexample.object,
+            "<https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld>"
+        );
+        assert_eq!(
+            counterexample.world,
+            "https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld"
+        );
+        assert_eq!(
+            counterexample.rule_name.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
+        );
     }
 
     #[test]

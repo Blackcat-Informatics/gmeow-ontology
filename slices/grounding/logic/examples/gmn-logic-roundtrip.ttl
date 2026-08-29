@@ -114,11 +114,11 @@ ex:reliabilitySequent
 # typed accessibility relation, pinned through logic:overAccessibility — here the typed
 # alethic relation logic:epistemicallyPossible. A well-formed modal node never floats over
 # the bare logic:accessibleFrom union, which would manufacture cross-type entailment. The
-# production loader roots every positive demonstrator in the graph/examples named world;
-# the explicit self-edge and ground atom below make this scene an executable finite frame.
+# explicit example-world self-edge makes this scene an executable finite frame. Because the
+# production loader roots the ground atom in graph/examples instead, both modal formulas
+# fail at ex:modalWorld and thereby demonstrate that truth remains world-indexed.
 
-<https://blackcatinformatics.ca/gmeow/graph/examples>
-    logic:epistemicallyPossible <https://blackcatinformatics.ca/gmeow/graph/examples> .
+ex:modalWorld logic:epistemicallyPossible ex:modalWorld .
 
 ex:alice a ex:Reliable .
 
@@ -127,14 +127,14 @@ ex:necessarilyReliable
     rdfs:label "□ Reliable(alice)  (over epistemicallyPossible)"@x-gmeow-english ;
     logic:necessarily ex:aliceReliable ;
     logic:overAccessibility logic:epistemicallyPossible ;
-    logic:modalEvalWorld <https://blackcatinformatics.ca/gmeow/graph/examples> .
+    logic:modalEvalWorld ex:modalWorld .
 
 ex:possiblyReliable
     a logic:Formula ;
     rdfs:label "◇ Reliable(alice)  (over epistemicallyPossible)"@x-gmeow-english ;
     logic:possibly ex:aliceReliable ;
     logic:overAccessibility logic:epistemicallyPossible ;
-    logic:modalEvalWorld <https://blackcatinformatics.ca/gmeow/graph/examples> .
+    logic:modalEvalWorld ex:modalWorld .
 
 #### §5  Belnap-graded verdict witness — BelnapTrue realized as InfoSupported ####
 # Restating the canonical algebra→verdict binding (never re-minting it) lets the scene
