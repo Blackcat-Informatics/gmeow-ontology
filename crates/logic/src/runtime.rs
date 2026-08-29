@@ -515,6 +515,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "the math: expression-identity reasoned-graph gate over an already-reasoned graph — post-hoc verify-time enforcement (structuralKey drift/leak/rejection), not backward-dispatch decision logic",
     ),
     (
+        "modal.rs",
+        "the shared bounded typed-modal evaluator consumed by the forward reason post-pass and foundation evaluator and pinned through forward_contract_hash — no backward dispatch caller",
+    ),
+    (
         "nary.rs",
         "n-ary predication to reified-binary lowering + forward-chase ingestion — facts are lowered before backward dispatch runs; not itself part of the decision",
     ),
