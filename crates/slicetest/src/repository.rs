@@ -17,6 +17,7 @@ use std::ffi::OsStr;
 use std::io::Read as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use gmeow_action_cache::{
     ActionContext, ActionInput, ActionStore, FileKind, ProducerIdentity, STORE_FORMAT_VERSION,
@@ -34,6 +35,7 @@ const CODEC: &str = "gmeow-slice-spec-verdict-json-v3";
 const TASK_CODEC: &str = "gmeow-slice-spec-task-verdict-json-v1";
 const VERDICT_SCHEMA_VERSION: u32 = 3;
 const TASK_VERDICT_SCHEMA_VERSION: u32 = 1;
+static WORKER_SNAPSHOT_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 /// Deterministic census carried by the authenticated all-specs verdict.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -743,11 +745,7 @@ fn pin_worker_executable(repo_root: &Path) -> Result<PathBuf> {
             directory.display()
         ))
     })?;
-    let temporary = directory.join(format!(
-        ".gmeow-dev-{}-{}.tmp",
-        std::process::id(),
-        std::thread::current().name().unwrap_or("producer")
-    ));
+    let temporary = worker_snapshot_temporary_path(&directory);
     snapshot_worker_executable(&executable, &temporary).map_err(|error| {
         fail(format!(
             "pin running slice-spec worker {} as {}: {error}",
@@ -798,6 +796,11 @@ fn snapshot_worker_executable(executable: &Path, temporary: &Path) -> std::io::R
     })
 }
 
+fn worker_snapshot_temporary_path(directory: &Path) -> PathBuf {
+    let sequence = WORKER_SNAPSHOT_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    directory.join(format!(".gmeow-dev-{}-{sequence}.tmp", std::process::id()))
+}
+
 fn snapshot_worker_executable_with(
     executable: &Path,
     temporary: &Path,
@@ -813,13 +816,13 @@ fn snapshot_worker_executable_with(
 }
 
 fn copy_worker_executable(executable: &Path, temporary: &Path) -> std::io::Result<()> {
+    let mut source = std::fs::File::open(executable)?;
+    let permissions = source.metadata()?.permissions();
+    let mut target = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(temporary)?;
     let result = (|| {
-        let mut source = std::fs::File::open(executable)?;
-        let permissions = source.metadata()?.permissions();
-        let mut target = std::fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(temporary)?;
         std::io::copy(&mut source, &mut target)?;
         target.set_permissions(permissions)
     })();
@@ -1355,11 +1358,13 @@ fn run_task(task: &SpecTask) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
     use std::io::ErrorKind;
+    use std::sync::{Arc, Barrier};
 
     use tempfile::tempdir;
 
-    use super::snapshot_worker_executable_with;
+    use super::{snapshot_worker_executable_with, worker_snapshot_temporary_path};
 
     #[test]
     fn worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices() {
@@ -1403,5 +1408,73 @@ mod tests {
 
         assert_eq!(error.kind(), ErrorKind::PermissionDenied);
         assert!(!snapshot.exists(), "failed snapshot must leave no bytes");
+    }
+
+    #[test]
+    fn worker_snapshot_does_not_remove_an_existing_cross_device_destination() {
+        let directory = tempdir().expect("tempdir");
+        let source = directory.path().join("gmeow-dev");
+        let snapshot = directory.path().join(".gmeow-dev.tmp");
+        std::fs::write(&source, b"current worker").expect("write worker fixture");
+        std::fs::write(&snapshot, b"another invocation").expect("write owned snapshot");
+
+        let error = snapshot_worker_executable_with(&source, &snapshot, |_, _| {
+            Err(std::io::Error::from(ErrorKind::CrossesDevices))
+        })
+        .expect_err("an existing destination must fail closed");
+
+        assert_eq!(error.kind(), ErrorKind::AlreadyExists);
+        assert_eq!(
+            std::fs::read(&snapshot).expect("read existing snapshot"),
+            b"another invocation",
+            "a losing invocation must not remove or replace another call's snapshot"
+        );
+    }
+
+    #[test]
+    fn concurrent_cross_device_snapshots_use_unique_owned_paths() {
+        const WORKERS: usize = 16;
+
+        let directory = tempdir().expect("tempdir");
+        let source = directory.path().join("gmeow-dev");
+        let bytes = b"concurrent worker bytes\0\xff";
+        std::fs::write(&source, bytes).expect("write worker fixture");
+        let barrier = Arc::new(Barrier::new(WORKERS));
+
+        let handles = (0..WORKERS)
+            .map(|_| {
+                let barrier = Arc::clone(&barrier);
+                let directory = directory.path().to_path_buf();
+                let source = source.clone();
+                std::thread::Builder::new()
+                    .name("same-worker-name".to_owned())
+                    .spawn(move || {
+                        barrier.wait();
+                        let snapshot = worker_snapshot_temporary_path(&directory);
+                        snapshot_worker_executable_with(&source, &snapshot, |_, _| {
+                            Err(std::io::Error::from(ErrorKind::CrossesDevices))
+                        })
+                        .expect("concurrent cross-device snapshot");
+                        snapshot
+                    })
+                    .expect("spawn snapshot worker")
+            })
+            .collect::<Vec<_>>();
+        let snapshots = handles
+            .into_iter()
+            .map(|handle| handle.join().expect("snapshot worker joins"))
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            snapshots.iter().collect::<BTreeSet<_>>().len(),
+            WORKERS,
+            "every concurrent invocation must own a unique temporary path"
+        );
+        for snapshot in snapshots {
+            assert_eq!(
+                std::fs::read(snapshot).expect("read concurrent snapshot"),
+                bytes
+            );
+        }
     }
 }
