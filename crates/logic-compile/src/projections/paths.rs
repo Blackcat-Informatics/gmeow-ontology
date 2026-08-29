@@ -34,8 +34,9 @@ use super::super::ir::{LegPath, LogicProgram, PathBase, PathShapeIr};
 use super::{LedgerEntry, target_meta};
 
 /// Lower a correspondence [`LegPath`] body to the SPARQL property-path algebra (the lossy
-/// projection of the canonical `logic:` composite-path form). Used only to derive the
-/// content-addressed key the round-trip gate compares — never to execute the leg.
+/// projection of the canonical `logic:` composite-path form). The correspondence executor
+/// runs this exact normalized algebra against complete recovery seeds; the round-trip gate also
+/// uses its serialized form as the content-addressed leg-body key.
 pub fn lower_leg_path(path: &LegPath) -> PropertyPathExpression {
     match path {
         LegPath::Step(p) => {
