@@ -3632,8 +3632,10 @@ struct RawDerivation {
     /// defensive check so a stray resource in the explanations graph (there should
     /// be none) can never masquerade as a derivation.
     is_derivation: bool,
-    /// The `gmeow:concludes` quoted-triple object, if seen.
-    concludes: Option<RdfTriple>,
+    /// Every distinct `gmeow:concludes` quoted-triple object seen. A derivation
+    /// identifies one rule firing from one exact source set, so a multi-head firing
+    /// legitimately carries more than one conclusion under the same identity.
+    conclusions: Vec<RdfTriple>,
     /// Every `gmeow:hasPremise` quoted-triple object seen (zero or more).
     premises: Vec<RdfTriple>,
     /// The `gmeow:viaRule` object IRI, if seen.
@@ -3692,8 +3694,8 @@ pub(crate) fn term_entailments_from_upstream(
 /// entailment digest.
 ///
 /// For every `gmeow:Derivation`, any IRI in `term_iris` that appears in the subject,
-/// predicate, or object position of EITHER the `gmeow:concludes` conclusion OR any
-/// `gmeow:hasPremise` premise gets that derivation's rule + a display of its
+/// predicate, or object position of EITHER a `gmeow:concludes` conclusion OR any
+/// `gmeow:hasPremise` premise gets that derivation's rule + a display of each
 /// conclusion + displays of its premises appended to its panel. Pure function of the
 /// bytes + the term-IRI set — independently testable without a pipeline product map
 /// (mirrors [`executable_docs_from_sources`]'s fixture-only core).
@@ -3763,12 +3765,8 @@ fn term_entailments_from_explanations(
                     "reasoning explanation derivation {subject} has a non-triple conclusion"
                 )));
             };
-            if let Some(previous) = entry.concludes.replace(triple.clone())
-                && previous != triple
-            {
-                return Err(stage_err(&format!(
-                    "reasoning explanation derivation {subject} has conflicting conclusions"
-                )));
+            if !entry.conclusions.contains(&triple) {
+                entry.conclusions.push(triple);
             }
         } else if q.predicate == has_premise_p {
             let Some(triple) = resolve_triple(&q.object) else {
@@ -3811,11 +3809,11 @@ fn term_entailments_from_explanations(
         if !derivation.is_derivation {
             continue;
         }
-        let Some(concludes) = &derivation.concludes else {
+        if derivation.conclusions.is_empty() {
             return Err(stage_err(&format!(
                 "reasoning explanation derivation {derivation_iri} has no conclusion"
             )));
-        };
+        }
         let Some(rule) = derivation.via_rule.as_deref() else {
             return Err(stage_err(&format!(
                 "reasoning explanation derivation {derivation_iri} has no firing rule"
@@ -3831,17 +3829,7 @@ fn term_entailments_from_explanations(
                 "reasoning explanation derivation identifier {identifier} does not match its resource IRI {derivation_iri}"
             )));
         }
-        let mut matched: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-        collect_term_matches(concludes, term_iris, &mut matched);
-        for premise in &derivation.premises {
-            collect_term_matches(premise, term_iris, &mut matched);
-        }
-        if matched.is_empty() {
-            continue;
-        }
         let rule = compact_iri(rule);
-        let conclusion =
-            triple_display(&concludes.subject, &concludes.predicate, &concludes.object);
         let mut premises: Vec<String> = derivation
             .premises
             .iter()
@@ -3849,16 +3837,30 @@ fn term_entailments_from_explanations(
             .collect();
         premises.sort();
         premises.dedup();
-        let entailment = gmeow_docs::Entailment {
-            rule,
-            conclusion,
-            premises,
-        };
-        for term_iri in matched {
-            term_entailments
-                .entry(term_iri)
-                .or_default()
-                .push(entailment.clone());
+        for conclusion in &derivation.conclusions {
+            let mut matched: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+            collect_term_matches(conclusion, term_iris, &mut matched);
+            for premise in &derivation.premises {
+                collect_term_matches(premise, term_iris, &mut matched);
+            }
+            if matched.is_empty() {
+                continue;
+            }
+            let entailment = gmeow_docs::Entailment {
+                rule: rule.clone(),
+                conclusion: triple_display(
+                    &conclusion.subject,
+                    &conclusion.predicate,
+                    &conclusion.object,
+                ),
+                premises: premises.clone(),
+            };
+            for term_iri in matched {
+                term_entailments
+                    .entry(term_iri)
+                    .or_default()
+                    .push(entailment.clone());
+            }
         }
     }
     for entries in term_entailments.values_mut() {
@@ -7913,6 +7915,52 @@ mod term_entailments_tests {
         assert_eq!(
             digest, digest_reifying,
             "parenthesized triple terms and bare reifiers must join identically"
+        );
+    }
+
+    #[test]
+    fn term_entailments_preserves_every_conclusion_of_one_rule_firing() {
+        let multi_conclusion = EXPLANATIONS_TTL.replacen(
+            "   gmeow:concludes <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> )>> ;",
+            "   gmeow:concludes <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> )>>,\
+             <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://example.org/CompanionAnimal> )>> ;",
+            1,
+        );
+        assert_ne!(multi_conclusion, EXPLANATIONS_TTL);
+        let term_iris = [
+            "https://blackcatinformatics.ca/gmeow/Cat".to_owned(),
+            "https://blackcatinformatics.ca/gmeow/Animal".to_owned(),
+            "https://example.org/CompanionAnimal".to_owned(),
+            "https://blackcatinformatics.ca/gmeow/Mammal".to_owned(),
+        ]
+        .into_iter()
+        .collect();
+
+        let digest = term_entailments_from_explanations(multi_conclusion.as_bytes(), &term_iris)
+            .expect("one content-addressed firing may carry every head conclusion");
+
+        let cat = &digest["https://blackcatinformatics.ca/gmeow/Cat"];
+        assert_eq!(
+            cat.len(),
+            2,
+            "both conclusions must survive the identity join"
+        );
+        assert!(cat.iter().any(|entry| entry.conclusion.contains("Animal")));
+        assert!(
+            cat.iter()
+                .any(|entry| entry.conclusion.contains("CompanionAnimal"))
+        );
+        assert!(cat.iter().all(|entry| entry.premises.len() == 1));
+
+        assert_eq!(
+            digest["https://blackcatinformatics.ca/gmeow/Animal"].len(),
+            1
+        );
+        assert_eq!(digest["https://example.org/CompanionAnimal"].len(), 1);
+        assert_eq!(
+            digest["https://blackcatinformatics.ca/gmeow/Mammal"].len(),
+            2,
+            "the exact shared premise participates in each head's entailment"
         );
     }
 
