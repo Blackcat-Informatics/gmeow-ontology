@@ -118,6 +118,37 @@ const HEAVY_TASKS: &[&str] = &[
 ];
 
 #[test]
+fn producer_receipt_tracks_the_exact_sync_manifest_schema_version() {
+    let sync_source =
+        std::fs::read_to_string(repo_root().join("crates/gmeow-dev-cli/src/dev_sync.rs"))
+            .expect("read sync manifest authority");
+    let receipt_source = std::fs::read_to_string(repo_root().join("scripts/producer-receipt.sh"))
+        .expect("read producer receipt contract");
+
+    let sync_version = sync_source
+        .lines()
+        .find_map(|line| {
+            line.trim()
+                .strip_prefix("const MANIFEST_VERSION: u32 = ")
+                .and_then(|value| value.strip_suffix(';'))
+        })
+        .expect("sync authority declares its manifest schema version");
+    let receipt_version = receipt_source
+        .lines()
+        .find_map(|line| {
+            line.trim()
+                .strip_prefix(".version == ")
+                .and_then(|value| value.strip_suffix(" and"))
+        })
+        .expect("producer receipt validates one exact manifest schema version");
+
+    assert_eq!(
+        receipt_version, sync_version,
+        "producer receipts must accept the exact schema emitted by the sync authority"
+    );
+}
+
+#[test]
 fn evidence_binaries_have_one_dependency_light_owner() {
     let pipeline = manifest("crates/pipeline/Cargo.toml");
     let validate = manifest("crates/validate/Cargo.toml");
