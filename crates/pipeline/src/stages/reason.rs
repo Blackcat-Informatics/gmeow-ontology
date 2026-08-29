@@ -1023,6 +1023,62 @@ mod tests {
     }
 
     #[test]
+    fn shipped_modal_example_is_a_complete_reason_product_frame() {
+        // The production source loader unions positive demonstrators into this exact named
+        // world. Parse only the authored example under test, root it exactly as source-load
+        // does, and hand its in-memory N-Quads to the actual stage-reason product. This is
+        // read-only fixture consumption: no corpus producer, cache fallback, or foundation
+        // evaluator is involved.
+        let example = purrdf::parse_dataset(
+            include_bytes!("../../../../slices/grounding/logic/examples/gmn-logic-roundtrip.ttl"),
+            "text/turtle",
+            None,
+        )
+        .expect("parse the shipped modal example");
+        let rooted = crate::stages::carrier::rooted_in_graph(
+            example.as_ref(),
+            gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
+        )
+        .expect("root the example in its production named world");
+        let nq = purrdf::serialize_dataset(
+            rooted.as_ref(),
+            "application/n-quads",
+            purrdf::SerializeGraph::Dataset,
+        )
+        .expect("serialize the rooted example as in-memory N-Quads");
+
+        let product = reason_product(&nq).expect("the shipped modal frame must reason");
+        let handle = product
+            .bundle()
+            .handle(GRAPH_REASONING)
+            .expect("stage-reason pins its typed result");
+        let PipelineHandle::Reasoning(result) = &handle.payload else {
+            panic!("graph/reasoning must carry a Reasoning handle");
+        };
+        for (formula, predicate) in [
+            (
+                "https://blackcatinformatics.ca/gmeow/examples/logic/necessarilyReliable",
+                "https://blackcatinformatics.ca/logic/modalNecessityHolds",
+            ),
+            (
+                "https://blackcatinformatics.ca/gmeow/examples/logic/possiblyReliable",
+                "https://blackcatinformatics.ca/logic/modalPossibilityHolds",
+            ),
+        ] {
+            let verdict = result
+                .inferred()
+                .iter()
+                .find(|axiom| axiom.subject == formula && axiom.predicate == predicate)
+                .unwrap_or_else(|| panic!("missing production modal verdict for {formula}"));
+            assert_eq!(verdict.world, gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES);
+            assert_eq!(
+                verdict.rule_name.as_deref(),
+                Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
+            );
+        }
+    }
+
+    #[test]
     fn reason_product_hard_fails_on_malformed_modal_frames() {
         let nq = br#"
 <https://example.org/valid/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/valid/B> <https://example.org/valid/w> .
