@@ -33,6 +33,7 @@ pub use ledger::{
 pub use rl::{RlClosure, RlTriple, rl_closure};
 
 use crate::facts::TypedFactSet;
+use crate::modal::{self, ModalFact};
 use crate::oracle::TypedRow;
 use crate::query_ir::Budget;
 use crate::result::{
@@ -108,7 +109,7 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
 }
 
-/// The content-addressed identity of the native EL/DL reasoning contract —
+/// The content-addressed identity of the native logic reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
 ///
 /// The RL lane's SOURCE TEXT no longer participates: it is purrdf's OWL 2 RL chase
@@ -140,6 +141,8 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   non-monotone evaluators exposed as the forward runtime materialization surface;
 /// * the source of this file (`mod.rs`), which owns the production reasoning
 ///   orchestration and typed-result fold;
+/// * the shared bounded typed-modal kernel (`modal.rs`), whose post-closure verdicts
+///   are part of every complete native reasoning result;
 /// * the source of `reasoner_services.rs`, the public OWL 2 Direct-Semantics DL
 ///   service façade (consistency, classification, realization, instance retrieval,
 ///   axiom entailment, profile certification, module extraction) — a change to how
@@ -156,6 +159,7 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/dl.rs", include_str!("dl.rs")),
     ("reason/refute.rs", include_str!("refute.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
+    ("modal.rs", include_str!("../modal.rs")),
     ("oracle.rs", include_str!("../oracle.rs")),
     ("certify.rs", include_str!("../certify.rs")),
     ("lower.rs", include_str!("../lower.rs")),
@@ -1024,6 +1028,7 @@ pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedR
     let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
     let (chase_certificates, witness_derivations) =
         dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
+    augment_inferred_with_modal(&mut inferred)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok(CertifiedReasoning {
@@ -1072,6 +1077,7 @@ pub fn reason_all_budgeted(
         // so the closure and folded verdict match the certified path exactly).
         let mut inferred = closure.inferred;
         dl::augment_inferred_with_dl(&mut inferred, edb)?;
+        augment_inferred_with_modal(&mut inferred)?;
         inferred.sort();
         let verdict = dl::verdict_from_inferred(&inferred, edb)?;
         Ok(typed_result(inferred, &verdict))
@@ -1122,6 +1128,88 @@ fn budget_exhausted_result(
         provenance,
         ResultPayload::Inferred(inferred),
     )
+}
+
+impl ModalFact for InferredAxiom {
+    fn graph(&self) -> &str {
+        &self.world
+    }
+
+    fn subject(&self) -> &str {
+        &self.subject
+    }
+
+    fn predicate(&self) -> &str {
+        &self.predicate
+    }
+
+    fn object(&self) -> &str {
+        &self.object
+    }
+}
+
+fn augment_inferred_with_modal(inferred: &mut Vec<InferredAxiom>) -> gmeow_errors::Result<()> {
+    let mut known: std::collections::BTreeSet<(String, String, String, String)> = inferred
+        .iter()
+        .map(|axiom| {
+            (
+                axiom.world.clone(),
+                axiom.subject.clone(),
+                axiom.predicate.clone(),
+                axiom.object.clone(),
+            )
+        })
+        .collect();
+    let mut additions = Vec::new();
+    for verdict in modal::evaluate(inferred)? {
+        let object = format!("<{}>", verdict.object);
+        let key = (
+            verdict.graph.clone(),
+            verdict.subject.clone(),
+            verdict.predicate.clone(),
+            object.clone(),
+        );
+        if !known.insert(key) {
+            continue;
+        }
+        let source_quad_ids: Vec<String> = verdict
+            .premises
+            .iter()
+            .map(|(subject, predicate, object)| {
+                crate::provenance::reifier_from_strings(subject, predicate, object)
+            })
+            .collect();
+        if source_quad_ids != verdict.source_quad_ids {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "modal verdict {} did not preserve its ordered premise reifiers",
+                    verdict.derivation_id
+                ),
+            }));
+        }
+        let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
+        if crate::provenance::mint_derivation_id(&verdict.rule_iri, &source_refs)
+            != verdict.derivation_id
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "modal verdict {} did not preserve its content-addressed derivation identity",
+                    verdict.derivation_id
+                ),
+            }));
+        }
+        additions.push(InferredAxiom {
+            subject: verdict.subject,
+            predicate: verdict.predicate,
+            object,
+            world: verdict.graph,
+            is_edb: false,
+            rule_name: Some(verdict.rule_iri),
+            premises: verdict.premises,
+        });
+    }
+    inferred.extend(additions);
+    Ok(())
 }
 
 /// Result of applying one ground conjecture candidate to a cached fixed-rule
@@ -2515,6 +2603,7 @@ mod tests {
                 "reason/dl.rs",
                 "reason/refute.rs",
                 "reason/mod.rs",
+                "modal.rs",
                 "oracle.rs",
                 "certify.rs",
                 "lower.rs",
@@ -3575,5 +3664,107 @@ mod tests {
             "the same input + the same small max_steps must yield the SAME partial closure"
         );
         assert_eq!(a.provenance.consumed_budget.consumed, 7);
+    }
+
+    fn modal_fixture_quads(base: &str, include_atom_predicate: bool) -> Vec<RdfQuad> {
+        const RELATION: &str = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
+        let frame = format!("{base}/frame");
+        let formula = format!("{base}/F");
+        let body = format!("{base}/B");
+        let w0 = format!("{base}/w0");
+        let w1 = format!("{base}/w1");
+        let w2 = format!("{base}/w2");
+        let subject = format!("{base}/a");
+        let predicate = format!("{base}/knows");
+        let object = format!("{base}/b");
+
+        let mut quads = vec![
+            quad_in(&frame, &formula, crate::modal::NECESSARILY, &body),
+            quad_in(&frame, &formula, crate::modal::OVER_ACCESSIBILITY, RELATION),
+            quad_in(&frame, &formula, crate::modal::MODAL_EVAL_WORLD, &w0),
+            quad_in(&frame, &body, crate::modal::ATOM_SUBJECT, &subject),
+            quad_in(&frame, &body, crate::modal::ATOM_OBJECT, &object),
+            quad_in(&frame, &w0, RELATION, &w1),
+            quad_in(&frame, &w0, RELATION, &w2),
+            quad_in(&w1, &subject, &predicate, &object),
+        ];
+        if include_atom_predicate {
+            quads.push(quad_in(
+                &frame,
+                &body,
+                crate::modal::ATOM_PREDICATE,
+                &predicate,
+            ));
+        }
+        quads
+    }
+
+    #[test]
+    fn reason_all_certified_routes_modal_evaluation_through_the_native_closure() {
+        let store = dataset(modal_fixture_quads("https://example.org/modal", true));
+        let result = reason_all_certified(store.as_ref())
+            .expect("production certified reasoner evaluates modal frame")
+            .result;
+        let failure = result
+            .inferred()
+            .iter()
+            .find(|axiom| axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS)
+            .expect("necessity failure is in the production closure");
+        assert_eq!(failure.world, "https://example.org/modal/w0");
+        assert_eq!(failure.subject, "https://example.org/modal/F");
+        assert_eq!(failure.object, "<https://example.org/modal/B>");
+        assert_eq!(
+            failure.rule_name.as_deref(),
+            Some(crate::modal::MODAL_RULE_IRI)
+        );
+        assert_eq!(
+            failure.premises,
+            vec![(
+                "https://example.org/modal/a".to_owned(),
+                "https://example.org/modal/knows".to_owned(),
+                "<https://example.org/modal/b>".to_owned(),
+            )]
+        );
+
+        let counterexample = result
+            .inferred()
+            .iter()
+            .find(|axiom| axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD)
+            .expect("counterexample world is in the production closure");
+        assert_eq!(counterexample.world, "https://example.org/modal/w0");
+        assert_eq!(counterexample.object, "<https://example.org/modal/w2>");
+        assert_eq!(
+            counterexample.rule_name.as_deref(),
+            Some(crate::modal::MODAL_RULE_IRI)
+        );
+        assert_eq!(counterexample.premises.len(), 2);
+    }
+
+    #[test]
+    fn modal_augmentation_is_atomic_when_any_frame_is_malformed() {
+        let valid = dataset(modal_fixture_quads("https://example.org/valid-modal", true));
+        let mut inferred = run_reasoning_rules(valid.as_ref(), dl::structured_dl_rules())
+            .expect("valid fixture reaches the modal boundary");
+
+        let malformed = dataset(modal_fixture_quads(
+            "https://example.org/malformed-modal",
+            false,
+        ));
+        let malformed_rows = run_reasoning_rules(malformed.as_ref(), dl::structured_dl_rules())
+            .expect("malformed frame is still an RDF-valid closure");
+        inferred.extend(malformed_rows);
+        inferred.sort();
+        inferred.dedup();
+        let before = inferred.clone();
+
+        let err = augment_inferred_with_modal(&mut inferred).unwrap_err();
+        assert!(
+            err.message().contains(crate::modal::ATOM_PREDICATE),
+            "got: {err}"
+        );
+        assert_eq!(
+            inferred, before,
+            "a malformed frame must publish no partial modal verdicts"
+        );
     }
 }

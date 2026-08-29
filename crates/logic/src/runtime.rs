@@ -275,7 +275,7 @@ const RUNTIME_PROFILES: [SemanticProfileId; 6] = [
 /// The backward goal-resolution DECISION surface is confined to these top-level
 /// `src/*.rs` files, plus `src/physical/*.rs`, plus the relocated shared term arena
 /// ([`EXTERNAL_BACKWARD_SOURCE`]). The `src/` subdirectory modules — notably
-/// `reason/` (the forward EL/DL/RL chase, pinned separately via
+/// `reason/` (the forward EL/DL/RL chase plus typed-modal post-pass, pinned separately via
 /// `forward_contract_hash`) — and the remaining subdirectories are forward reasoning or
 /// post-hoc bookkeeping; none sit on the `dispatch_query` decision path. This was
 /// verified by tracing production (non-`#[cfg(test)]`) imports. The retired external
@@ -654,7 +654,8 @@ pub struct ProfileCapability {
 ///
 /// It mirrors the repo's own [`crate::certificate::CoherenceOutcome`] idiom (a
 /// content-addressed, `to_nquads`-projectable evidence object): one descriptor covers
-/// the WHOLE engine — the forward EL/DL/RL chase ([`forward_contract_hash`]) and the
+/// the WHOLE engine — the forward EL/DL/RL chase plus typed-modal post-pass
+/// ([`forward_contract_hash`]) and the
 /// backward goal-resolution surface ([`backward_source_hash`]) — plus the engine
 /// identity and the per-profile capability manifest. A consumer fetches
 /// [`EngineContract::current`] at load, records [`descriptor_hash`] (or the

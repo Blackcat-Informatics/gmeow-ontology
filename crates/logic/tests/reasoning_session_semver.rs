@@ -472,8 +472,12 @@ use session_common::*;
 /// also includes the correction of `goal_directed.rs`'s public module documentation from the
 /// retired native resolver to the actual PurRDF resolver/proof-checker path; that file is a raw
 /// source-content identity component even though the correction does not change a verdict.
+/// Re-blessed for the shared bounded typed-modal kernel: `modal.rs` is now a load-bearing
+/// `NATIVE_CONTRACT_COMPONENT`, and `reason/mod.rs` invokes it after rule closure and DL
+/// augmentation. The fixed edge-only input carries no modal frame, so its reasoning verdict
+/// is unchanged while the engine identity deliberately moves with the new production capability.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "496c51b86e8e17a1d484bcc43be8359215faea883872391d8581163fa97ff79d";
+    "781ea66ca81a249abc8394c35bf8ebcfa52ade243f3396fd5ae9060dc4a0e6fc";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -708,8 +712,11 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed from the merged engine for the same combined PurRDF-cutover/current-main source
 /// identity described above. The fixed edge-only input's verdict is unchanged; its session
 /// identity deliberately follows the newly measured engine descriptor.
+/// Re-blessed for the shared bounded typed-modal kernel for the same reason as the engine
+/// descriptor above: the forward contract hash is one of the seven folded session-identity
+/// axes, while this fixed edge-only input carries no modal frame and retains its verdict.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "bf1bd2c84470b585564de80cf8e7aa257fd523557af53c02b1f68b4d20295585";
+    "06bc987c14d03f16a45de616fe1bd17f86f62649a1b940cbd78ce07c89e075b7";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
