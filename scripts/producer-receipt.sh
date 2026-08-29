@@ -4,8 +4,14 @@
 
 set -euo pipefail
 
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# The lint target checks common.sh independently and does not enable
+# external-source traversal for this runtime-resolved path.
+# shellcheck disable=SC1091
+source "$script_dir/../build-support/common.sh"
+
 usage() {
-  cat >&2 <<'EOF'
+  cat >&2 << 'EOF'
 usage:
   producer-receipt.sh write <generated-a> <manifest-a> <generated-b> <manifest-b> <receipt> <source-sha>
   producer-receipt.sh verify <generated> <receipt>
@@ -16,11 +22,11 @@ EOF
 [[ $# -ge 1 ]] || usage
 mode=$1
 shift
-command -v jq >/dev/null || {
+command -v jq > /dev/null || {
   echo "jq is required to verify producer receipts" >&2
   exit 1
 }
-repo_root=$(git rev-parse --show-toplevel)
+repo_root=$(repository_root)
 cd "$repo_root"
 tmp_dir=$(mktemp -d)
 trap 'rm -rf -- "$tmp_dir"' EXIT
@@ -138,8 +144,9 @@ verify_manifest_tree() {
 
 validate_manifest_contract() {
   local manifest=$1
+  # Kept in lockstep with dev_sync::MANIFEST_VERSION by make_gate_contract.
   jq -e '
-    .version == 4 and
+    .version == 5 and
     .output == "generated" and
     .language == "default" and
     .strict_checked == true and
@@ -149,7 +156,7 @@ validate_manifest_contract() {
     (.stage_receipt_root | test("^[0-9a-f]{64}$")) and
     (.build_identity.fingerprint == .build_fingerprint) and
     (.files | length > 0)
-  ' "$manifest" >/dev/null || {
+  ' "$manifest" > /dev/null || {
     echo "sync manifest does not satisfy the producer receipt contract: $manifest" >&2
     return 1
   }
@@ -171,7 +178,7 @@ validate_receipt_contract() {
   }
   if ! jq -e '
     .receipt_digest | type == "string" and test("^[0-9a-f]{64}$")
-  ' "$receipt" >/dev/null; then
+  ' "$receipt" > /dev/null; then
     echo "producer receipt has an unknown, missing, or malformed field: $receipt" >&2
     return 1
   fi
@@ -191,7 +198,7 @@ validate_receipt_contract() {
     (.payload.generated.bytes | type == "number" and . > 0) and
     (.payload.generated.bundle_sha256 | type == "string" and test("^[0-9a-f]{64}$")) and
     (.payload.generated.bundle_bytes | type == "number" and . > 0)
-  ' "$receipt" >/dev/null; then
+  ' "$receipt" > /dev/null; then
     echo "producer receipt has an unknown, missing, or malformed field: $receipt" >&2
     return 1
   fi

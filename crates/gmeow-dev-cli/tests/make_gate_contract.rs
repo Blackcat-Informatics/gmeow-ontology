@@ -652,6 +652,38 @@ fn the_heavy_lane_still_runs_on_every_pr() {
     );
 }
 
+#[test]
+fn producer_receipt_tracks_current_sync_manifest_schema() {
+    let sync_source =
+        std::fs::read_to_string(repo_root().join("crates/gmeow-dev-cli/src/dev_sync.rs"))
+            .expect("read sync manifest producer");
+    let manifest_version = sync_source
+        .lines()
+        .find_map(|line| {
+            line.trim()
+                .strip_prefix("const MANIFEST_VERSION: u32 = ")
+                .and_then(|value| value.strip_suffix(';'))
+        })
+        .and_then(|value| value.parse::<u32>().ok())
+        .expect("sync manifest producer declares MANIFEST_VERSION");
+    let receipt_source = std::fs::read_to_string(repo_root().join("scripts/producer-receipt.sh"))
+        .expect("read producer receipt verifier");
+    let accepted_version = receipt_source
+        .lines()
+        .find_map(|line| {
+            line.trim()
+                .strip_prefix(".version == ")
+                .and_then(|value| value.strip_suffix(" and"))
+        })
+        .and_then(|value| value.parse::<u32>().ok())
+        .expect("producer receipt validator declares an accepted manifest version");
+
+    assert_eq!(
+        accepted_version, manifest_version,
+        "producer receipt must accept the current sync manifest schema version {manifest_version}"
+    );
+}
+
 /// CI compiles the test inventory once, authenticates it, and runs a disjoint/exact
 /// slice partition from that archive. Static Rust surfaces remain parallel siblings.
 #[test]
