@@ -36,9 +36,10 @@ REVIEW_TOOL_SETTINGS="${tool_state_a}${tool_settings_b}"
 POLICY_PATTERN="(?i:(?:\\b(?:issue|pull[ -]?request|pr)[[:space:]]*(?:#[[:space:]]*)?[0-9]{2,}\\b|\\b[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]{2,}\\b|(?<![[:alnum:]_])#[0-9]{2,}\\b|\\b(?:tasks?|gap|finding|review(?:er)?)[[:space:]#:-]*[A-Z]?[0-9]+(?:\\.[0-9]+|[a-z])?\\b|\\b${REVIEW_TOOL_PATTERN}\\b))"
 export POLICY_PATTERN REVIEW_TOOL_PATTERN REVIEW_TOOL_SETTINGS REVIEW_TOOL_STATE
 
-# Hidden authored files are in scope. These globs name reproducible products,
-# foreign trees, tool state, and build outputs explicitly rather than relying on
-# ambient ignore configuration.
+# Hidden authored files are in scope. These globs are an early performance and
+# traversal bound only; every scan leg then passes through `filter_contexts`, the
+# canonical exclusion and contextual-control policy. The parity fixtures require
+# every early exclusion to be accepted by that final policy at any matching depth.
 rg_authored() {
   rg --hidden --no-ignore --pcre2 \
     --glob '!.git/**' --glob '!**/.git/**' \
@@ -100,10 +101,11 @@ filter_contexts() {
         next if $path eq q{crates/xtask/tests/issue_refs_lint.rs};
         next if $path =~ m{(?:^|/)(?:\.git|\.worktrees|\.venv|__pycache__|\.pytest_cache|\.ruff_cache|\.mypy_cache|\.tox|\.cache|generated|vendor|target|build|out|dist|ontology-docs|htmlcov|[^/]+\.egg-info|node_modules|mutants\.out[^/]*)(?:/|$)};
         next if $path =~ m{^(?:pipeline|coding-ethos)(?:/|$)};
-        next if $path =~ m{^(?:docs/_generated|\.stamps|\.tmp|\.gmeow-tmp-[^/]+|\.coding-ethos|\.codex|\.claude)(?:/|$)};
-        next if $path =~ m{^(?:packages/python/gmeow_models|\.antigravitycli)(?:/|$)};
+        next if $path =~ m{(?:^|/)(?:docs/_generated|\.stamps|\.tmp|\.gmeow-tmp-[^/]+|\.coding-ethos|\.codex|\.claude)(?:/|$)};
+        next if $path =~ m{^packages/python/gmeow_models(?:/|$)};
+        next if $path =~ m{(?:^|/)\.antigravitycli(?:/|$)};
         next if $path =~ m{^\.agents/skills/(?:agent-operating-discipline|coding-ethos-agent-workflow|conditional-imports|lint-remediation|managed-lint-workflow|managed-toolchain|modern-web-guidance|safe-git-workflow)(?:/|$)};
-        next if $path =~ m{^(?:\.coverage|lcov\.info|llms\.txt|\.DS_Store|\.worktree|\.mcp\.json|catalog-v001\.xml)$};
+        next if $path =~ m{(?:^|/)(?:\.coverage|lcov\.info|llms\.txt|\.DS_Store|\.worktree|\.mcp\.json|catalog-v001\.xml)$};
         next if $path =~ m{(?:^|/)(?:[^/]+\.py[cod]|[^/]+\.snap\.new|[^/]+\.swp|rustc-ice-[^/]+\.txt)$};
         next if $path =~ m{^keys/[^/]+\.(?:secret|secret\.asc|tmp)$};
         next if $path eq $ENV{REVIEW_TOOL_SETTINGS};
@@ -199,7 +201,7 @@ if git rev-parse --verify --quiet origin/main > /dev/null 2>&1; then
         while IFS= read -r path; do
           [ -f "$path" ] || continue
           printf '+++ b/%s\n@@ -0,0 +1 @@\n' "$path"
-          sed 's/^/+/' -- "$path"
+          awk '{ print "+" $0 }' < "$path"
         done
     } | awk '
             /^[+][+][+] / { file = substr($0, 7); line = 0; next }

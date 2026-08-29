@@ -26,12 +26,16 @@ struct FixtureRepo {
 impl FixtureRepo {
     fn new() -> Self {
         let dir = tempfile::tempdir().expect("temp dir is creatable");
+        std::fs::create_dir(dir.path().join(".git-template"))
+            .expect("the isolated Git template directory is creatable");
         git(dir.path(), &["init", "-q", "-b", "main"]);
         git(dir.path(), &["config", "user.name", "Lint Fixture"]);
         git(
             dir.path(),
             &["config", "user.email", "lint-fixture@example.invalid"],
         );
+        git(dir.path(), &["config", "commit.gpgsign", "false"]);
+        git(dir.path(), &["config", "tag.gpgsign", "false"]);
         std::fs::write(dir.path().join("README"), "clean baseline\n")
             .expect("baseline is writable");
         git(dir.path(), &["add", "README"]);
@@ -73,6 +77,12 @@ fn git(root: &Path, args: &[&str]) {
     let output = Command::new("git")
         .args(args)
         .current_dir(root)
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_TEMPLATE_DIR", root.join(".git-template"))
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_INDEX_FILE")
+        .env_remove("GIT_WORK_TREE")
         .output()
         .expect("git is available to the hermetic fixture");
     assert!(
@@ -195,6 +205,7 @@ fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
         "out/note.md",
         "dist/note.md",
         "ontology-docs/note.md",
+        "nested/ontology-docs/note.md",
         "docs/_generated/note.md",
         "htmlcov/note.md",
         "package.egg-info/note.md",
@@ -205,10 +216,14 @@ fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
         "llms.txt",
         "rustc-ice-fixture.txt",
         ".DS_Store",
+        "nested/.DS_Store",
         "scratch.swp",
         ".stamps/note.md",
+        "nested/.stamps/note.md",
         ".tmp/note.md",
+        "nested/.tmp/note.md",
         ".gmeow-tmp-fixture/note.md",
+        "nested/.gmeow-tmp-fixture/note.md",
         "node_modules/pkg/note.md",
         "mutants.out/note.md",
         "pipeline/note.md",
@@ -220,7 +235,14 @@ fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
         ".gemini/settings.json",
         ".mcp.json",
         ".antigravitycli/note.md",
+        "nested/.antigravitycli/note.md",
         ".worktree",
+        "nested/.worktree",
+        "nested/.coverage",
+        "nested/lcov.info",
+        "nested/llms.txt",
+        "nested/.mcp.json",
+        "nested/catalog-v001.xml",
         "keys/signing.secret",
         "keys/signing.secret.asc",
         "keys/signing.tmp",
@@ -236,11 +258,38 @@ fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
         ".agents/skills/safe-git-workflow/note.md",
     ];
 
+    let repo = FixtureRepo::new();
     for path in paths {
-        let repo = FixtureRepo::new();
         repo.write(path, "issue 42\n");
-        assert_lint(repo.path(), 0);
     }
+    assert_lint(repo.path(), 0);
+}
+
+#[test]
+fn untracked_file_without_final_newline_preserves_the_next_file_identity() {
+    let repo = FixtureRepo::new();
+    repo.write("first.txt", "clean without a final newline");
+    repo.write(
+        "second.ttl",
+        "<urn:s> <urn:p> \"Finding F12 belongs in the tracker\" .\n",
+    );
+
+    let output = lint(repo.path());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert_eq!(
+        output.status.code(),
+        Some(1),
+        "unexpected lint result\nstdout:\n{}\nstderr:\n{stderr}",
+        String::from_utf8_lossy(&output.stdout),
+    );
+    assert!(
+        stderr.contains("second.ttl:1:"),
+        "diagnostic lost the second file identity:\n{stderr}"
+    );
+    assert!(
+        !stderr.contains("first.txt:1:"),
+        "diagnostic was attributed to the preceding file:\n{stderr}"
+    );
 }
 
 #[test]

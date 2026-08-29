@@ -718,8 +718,8 @@ fn certify_dl_safe(views: &[RuleView]) -> Vec<String> {
 /// "existential" head variable). For compiler-lowered rules every head
 /// variable is a frontier variable (bound positively, carrying the world var),
 /// so the graph has no special edges and this is vacuously satisfied — but a
-/// pathological input (e.g. a head var bound only under negation) still emits a
-/// deterministic special-edge diagnostic.
+/// pathological input (e.g. a head var bound only under negation) creates a special
+/// edge; the certifier emits a diagnostic only when that edge participates in a cycle.
 ///
 /// Positions are `(predicate_key, slot)` with slot ∈ {`"S"`,`"O"`} — the logical
 /// subject/object slots (the world slot and the constant predicate are excluded,

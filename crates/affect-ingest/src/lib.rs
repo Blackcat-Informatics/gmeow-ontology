@@ -2142,7 +2142,7 @@ mod tests {
         let ttl = produce(&cap, &argmax_config()).unwrap();
         let (decision, idx) = sole_decision(&ttl);
         // decision minted from a single top-1 score, with no runner-up → no margin,
-        // and NEVER a hard fail on a lossless partial capture.
+        // and NEVER a hard fail on a declared partial capture.
         assert!(first_iri(&idx, &decision, &g("decidedLabel")).is_some());
         assert_eq!(
             first_literal(&idx, &decision, &g("decisionCrossedThreshold")).as_deref(),

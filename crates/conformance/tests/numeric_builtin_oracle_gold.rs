@@ -4,8 +4,9 @@
 //! Per-operation numeric-builtin oracle-gold conformance.
 //!
 //! Every operation is separately anchored to an independent oracle. The native
-//! evaluator's exact-ℚ arithmetic
-//! (`crates/logic/src/physical/builtin_eval.rs`) previously carried ONLY
+//! evaluator's exact-ℚ arithmetic is checked here against that oracle. Its
+//! implementation (`crates/logic/src/physical/builtin_eval.rs`) previously
+//! carried ONLY
 //! in-crate `#[test]`s that call its own `eval()` and assert on `eval()`'s own
 //! output — a tautology. This test is the independent counterpart: it reads
 //! the frozen, hand-derived gold under
