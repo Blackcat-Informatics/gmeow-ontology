@@ -725,10 +725,11 @@ fn execute_repository_specs(
 /// Pin this producer's already-running executable before concurrent Cargo siblings can
 /// relink their shared output path.
 ///
-/// The temporary hard link captures one inode; its SHA-256 then names the durable link.
-/// Reusing an existing final path is permitted only after re-hashing it to the same exact
-/// identity. Both links live on the repository filesystem, so the normal path copies no
-/// executable bytes.
+/// A temporary hard link captures one inode when the runner and repository cache share a
+/// filesystem. Managed build directories may live on another filesystem; only `EXDEV`
+/// falls back to an exclusive byte copy into the repository-local temporary path. Its
+/// SHA-256 then names the durable link. Reusing an existing final path is permitted only
+/// after re-hashing it to the same exact identity.
 fn pin_worker_executable(repo_root: &Path) -> Result<PathBuf> {
     let executable = std::env::current_exe()
         .map_err(|error| fail(format!("resolve slice-spec worker executable: {error}")))?;
@@ -747,7 +748,7 @@ fn pin_worker_executable(repo_root: &Path) -> Result<PathBuf> {
         std::process::id(),
         std::thread::current().name().unwrap_or("producer")
     ));
-    std::fs::hard_link(&executable, &temporary).map_err(|error| {
+    snapshot_worker_executable(&executable, &temporary).map_err(|error| {
         fail(format!(
             "pin running slice-spec worker {} as {}: {error}",
             executable.display(),
@@ -755,7 +756,9 @@ fn pin_worker_executable(repo_root: &Path) -> Result<PathBuf> {
         ))
     })?;
 
-    let digest = executable_sha256(&temporary)?;
+    let digest = executable_sha256(&temporary).inspect_err(|_| {
+        let _ = std::fs::remove_file(&temporary);
+    })?;
     let pinned = directory.join(format!(
         "gmeow-dev-{digest}{}",
         std::env::consts::EXE_SUFFIX
@@ -787,6 +790,43 @@ fn pin_worker_executable(repo_root: &Path) -> Result<PathBuf> {
         ))
     })?;
     Ok(pinned)
+}
+
+fn snapshot_worker_executable(executable: &Path, temporary: &Path) -> std::io::Result<()> {
+    snapshot_worker_executable_with(executable, temporary, |source, destination| {
+        std::fs::hard_link(source, destination)
+    })
+}
+
+fn snapshot_worker_executable_with(
+    executable: &Path,
+    temporary: &Path,
+    hard_link: impl FnOnce(&Path, &Path) -> std::io::Result<()>,
+) -> std::io::Result<()> {
+    match hard_link(executable, temporary) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::CrossesDevices => {
+            copy_worker_executable(executable, temporary)
+        }
+        Err(error) => Err(error),
+    }
+}
+
+fn copy_worker_executable(executable: &Path, temporary: &Path) -> std::io::Result<()> {
+    let result = (|| {
+        let mut source = std::fs::File::open(executable)?;
+        let permissions = source.metadata()?.permissions();
+        let mut target = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(temporary)?;
+        std::io::copy(&mut source, &mut target)?;
+        target.set_permissions(permissions)
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(temporary);
+    }
+    result
 }
 
 fn executable_sha256(path: &Path) -> Result<String> {
@@ -1310,5 +1350,58 @@ fn run_task(task: &SpecTask) -> Result<()> {
         SliceSpecKind::Competency => exec::run_competency_file(&task.path),
         SliceSpecKind::Structural => exec::run_structural_file(&task.path),
         SliceSpecKind::Conformance => exec::run_conformance_file(&task.path),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::ErrorKind;
+
+    use tempfile::tempdir;
+
+    use super::snapshot_worker_executable_with;
+
+    #[test]
+    fn worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices() {
+        let source_dir = tempdir().expect("source tempdir");
+        let cache_dir = tempdir().expect("cache tempdir");
+        let source = source_dir.path().join("gmeow-dev");
+        let snapshot = cache_dir.path().join(".gmeow-dev.tmp");
+        let bytes = b"exact worker executable bytes\0\xff";
+        std::fs::write(&source, bytes).expect("write worker fixture");
+
+        snapshot_worker_executable_with(&source, &snapshot, |_, _| {
+            Err(std::io::Error::from(ErrorKind::CrossesDevices))
+        })
+        .expect("cross-device worker snapshot falls back to an exact copy");
+
+        assert_eq!(
+            std::fs::read(&snapshot).expect("read worker snapshot"),
+            bytes
+        );
+        assert_eq!(
+            std::fs::metadata(&snapshot)
+                .expect("snapshot metadata")
+                .permissions(),
+            std::fs::metadata(&source)
+                .expect("source metadata")
+                .permissions()
+        );
+    }
+
+    #[test]
+    fn worker_snapshot_fails_closed_for_other_link_errors() {
+        let directory = tempdir().expect("tempdir");
+        let source = directory.path().join("gmeow-dev");
+        let snapshot = directory.path().join(".gmeow-dev.tmp");
+        std::fs::write(&source, b"worker").expect("write worker fixture");
+
+        let error = snapshot_worker_executable_with(&source, &snapshot, |_, _| {
+            Err(std::io::Error::from(ErrorKind::PermissionDenied))
+        })
+        .expect_err("non-EXDEV link failure must not copy");
+
+        assert_eq!(error.kind(), ErrorKind::PermissionDenied);
+        assert!(!snapshot.exists(), "failed snapshot must leave no bytes");
     }
 }
