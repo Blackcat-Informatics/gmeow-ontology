@@ -66,6 +66,44 @@ fn ci_make_targets(ci_source: &str) -> BTreeSet<String> {
         .collect()
 }
 
+/// Extract a job's `needs` dependencies from either YAML's compact flow form or
+/// its line-wrapped block form. The workflow contract is the dependency set, not
+/// the presentation chosen to keep the authored YAML lint-clean.
+fn job_needs(job: &str) -> Vec<&str> {
+    let lines = job.lines().collect::<Vec<_>>();
+    let Some((index, needs)) = lines.iter().enumerate().find_map(|(index, line)| {
+        let trimmed = line.trim();
+        (trimmed == "needs:" || trimmed.starts_with("needs: [")).then_some((index, trimmed))
+    }) else {
+        return Vec::new();
+    };
+
+    if let Some(inline) = needs
+        .strip_prefix("needs: [")
+        .and_then(|value| value.strip_suffix(']'))
+    {
+        return inline.split(',').map(str::trim).collect();
+    }
+
+    lines[index + 1..]
+        .iter()
+        .map(|line| line.trim())
+        .take_while(|line| line.starts_with("- "))
+        .map(|line| line.trim_start_matches("- "))
+        .collect()
+}
+
+fn without_horizontal_whitespace(source: &str) -> String {
+    source
+        .chars()
+        .filter(|character| !matches!(character, ' ' | '\t'))
+        .collect()
+}
+
+fn normalized_whitespace(source: &str) -> String {
+    source.split_whitespace().collect::<Vec<_>>().join(" ")
+}
+
 /// CHECK_DAG targets that are legitimately NOT invoked as a `make <target>`
 /// step in ci.yml because they are exercised by a dedicated CI job through a
 /// different surface instead of the ontology-lane `make` steps:
@@ -660,7 +698,7 @@ fn the_heavy_lane_still_runs_on_every_pr() {
         .expect("rust-static follows the standalone medium consumer job")
         .0;
     assert!(
-        medium_job.contains("needs: [producer, rust-archive]")
+        job_needs(medium_job) == ["producer", "rust-archive"]
             && medium_job.contains(
                 "./scripts/producer-receipt.sh verify generated dist/producer-receipt.json"
             )
@@ -677,9 +715,71 @@ fn the_heavy_lane_still_runs_on_every_pr() {
             && !medium_recipe.contains("check-sync"),
         "the medium tests must consume exact producer identities without invoking a corpus producer"
     );
-    assert!(
-        ci.contains("needs: [producer, lint, rust-archive, rust, rust-static, heavy, medium-consumer-surface, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"),
+    let quality_job = ci
+        .split_once("\n  quality:\n")
+        .expect("ci.yml carries the aggregate quality gate")
+        .1;
+    assert_eq!(
+        job_needs(quality_job),
+        [
+            "producer",
+            "lint",
+            "rust-archive",
+            "rust",
+            "rust-static",
+            "heavy",
+            "medium-consumer-surface",
+            "ontology-validate",
+            "ontology-generated",
+            "ontology-reason",
+            "ontology-misc",
+        ],
         "the aggregate quality gate must require both heavy scheduling branches"
+    );
+}
+
+/// The browser target intentionally consumes an already-installed, lockfile-pinned
+/// Playwright runtime. CI must establish that dependency before it invokes the target;
+/// steps placed after the matrix invocation can never satisfy its fail-closed preflight.
+#[test]
+fn console_smoke_provisions_its_pinned_browser_before_make() {
+    let ci = ci_workflow();
+    let heavy_job = ci
+        .split_once("\n  heavy:\n")
+        .expect("ci.yml carries the producer-bound heavy matrix")
+        .1
+        .split_once("\n  quality:\n")
+        .expect("the quality aggregator follows the heavy matrix")
+        .0;
+    let runner_install = heavy_job
+        .find("- name: Install the pinned Playwright runner")
+        .expect("the console-smoke branch installs its pinned Playwright package");
+    let browser_install = heavy_job
+        .find("- name: Install the Chromium build Playwright drives")
+        .expect("the console-smoke branch installs the browser Playwright drives");
+    let task_run = heavy_job
+        .find("- name: Heavy DAG branch — ${{ matrix.task }}")
+        .expect("the heavy matrix invokes its selected Make target");
+
+    assert!(
+        runner_install < browser_install && browser_install < task_run,
+        "the Playwright package and browser must be provisioned before `make console-smoke`"
+    );
+    assert!(
+        heavy_job[runner_install..browser_install]
+            .contains("run: npm ci --prefix crates/docs/assets/console/smoke")
+            && heavy_job[runner_install..browser_install]
+                .contains("if: ${{ matrix.task == 'console-smoke' }}"),
+        "the pinned runner install must remain scoped to the console-smoke branch"
+    );
+    let browser_step = &heavy_job[browser_install..task_run];
+    assert!(
+        browser_step.contains("run: >-")
+            && browser_step
+                .contains("npx --prefix crates/docs/assets/console/smoke playwright install")
+            && browser_step.contains("--with-deps chromium")
+            && browser_step.contains("if: ${{ matrix.task == 'console-smoke' }}"),
+        "the Chromium install must remain scoped to the console-smoke branch"
     );
 }
 
@@ -724,12 +824,11 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         .map(|(job, _)| job)
         .expect("Rust archive job is bounded by the shard comment");
     assert!(
-        archive_job.contains("needs: [producer, rust-prebuild]")
+        job_needs(archive_job) == ["producer", "rust-prebuild"]
             && archive_job.contains("Restore same-run producer-independent Rust build products")
-            && archive_job.contains("Verify every transferred test-profile pipeline fixture read-only")
-            && archive_job.contains(
-                "Produce generated-bound docs and bundle-import fixtures before archive construction"
-            )
+            && archive_job
+                .contains("Verify every transferred test-profile pipeline fixture read-only")
+            && archive_job.contains("Produce generated-bound fixtures before archive construction")
             && archive_job.contains("Build dependency-light archive evidence tools")
             && archive_job.contains("target/debug/perf_sample")
             && archive_job.contains("archive-build-sample.json")
@@ -747,9 +846,11 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         3,
         "prebuild producer, archive consumer, and static Rust consumer must name the same exact cache lineage"
     );
+    let compact_ci = without_horizontal_whitespace(&ci);
     assert!(
-        ci.contains("rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-")
-            && !ci.contains("steps.rust-prebuild-identity.outputs.runner"),
+        compact_ci.contains(
+            "rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-"
+        ) && !compact_ci.contains("steps.rust-prebuild-identity.outputs.runner"),
         "same-OS/architecture jobs must share the prebuild lineage across rolling image patch revisions while retaining exact rustc identity"
     );
     let nextest_install = archive_job
@@ -763,7 +864,8 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         "the archive cache-miss fallback must provision nextest before invoking make rust-prebuild"
     );
     assert!(
-        ci.matches("${{ github.run_id }}-${{ github.run_attempt }}")
+        compact_ci
+            .matches("${{github.run_id}}-${{github.run_attempt}}")
             .count()
             >= 2
             && ci.contains("cache-targets: false"),
@@ -923,7 +1025,8 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         "each archive shard must bind the producer identity and emit authenticated inventory/duration and resource evidence"
     );
     assert_eq!(
-        ci.matches(
+        normalized_whitespace(&ci)
+            .matches(
             "chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample dist/nextest/perf_accept"
         )
         .count(),
@@ -947,7 +1050,9 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             && rust_job.contains("--cache-root bundle-import=.cache/gmeow-bundle-import")
             && rust_job.contains("GMEOW_BUNDLE_IMPORT_CACHE:")
             && rust_job.contains("GMEOW_BUNDLE_IMPORT_SOURCE_SHA256:")
-            && rust_job.contains("GMEOW_TEST_FIXTURE_MANIFEST_SHA256=$(jq -er"),
+            && rust_job.contains("GMEOW_TEST_FIXTURE_MANIFEST_SHA256=$(\n")
+            && rust_job
+                .contains("jq -er '.test_fixture_manifest.sha256' dist/nextest/receipt.json"),
         "archive shards must select the authenticated whole-bundle product read-only instead of rebuilding it per process"
     );
     assert!(
@@ -1271,8 +1376,8 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         "the producer must compare, receipt, digest, and republish only the isolated authority tree"
     );
     assert!(
-        source.contains("SYNC_TIMINGS_JSON=dist/sync/update-timings.json")
-            && source.contains("SYNC_TIMINGS_JSON=dist/sync/check-timings.json"),
+        source.contains("SYNC_TIMINGS_JSON: dist/sync/update-timings.json")
+            && source.contains("SYNC_TIMINGS_JSON: dist/sync/check-timings.json"),
         "both cold execution and fixed-point reuse must emit versioned work telemetry"
     );
     assert!(
@@ -1288,7 +1393,7 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         .map(|(job, _)| job)
         .expect("ontology-reason is bounded by ontology-misc");
     assert!(
-        ontology_reason.contains("REASON_VERIFY_TIMINGS_JSON=dist/reason/reason-verify.json")
+        ontology_reason.contains("REASON_VERIFY_TIMINGS_JSON: dist/reason/reason-verify.json")
             && ontology_reason.contains("reason-evidence-${{ github.sha }}"),
         "the native reasoning lane must publish its deterministic work separately from job time"
     );
@@ -1314,10 +1419,25 @@ fn ci_parallelizes_cold_generation_without_weakening_the_authority_gate() {
         1,
         "ontology-validate must not repeat checkout"
     );
-    assert!(
-        source.contains(
-            "needs: [producer, lint, rust-archive, rust, rust-static, heavy, medium-consumer-surface, ontology-validate, ontology-generated, ontology-reason, ontology-misc]"
-        ),
+    let quality_job = source
+        .split_once("\n  quality:\n")
+        .expect("ci.yml carries the aggregate quality gate")
+        .1;
+    assert_eq!(
+        job_needs(quality_job),
+        [
+            "producer",
+            "lint",
+            "rust-archive",
+            "rust",
+            "rust-static",
+            "heavy",
+            "medium-consumer-surface",
+            "ontology-validate",
+            "ontology-generated",
+            "ontology-reason",
+            "ontology-misc",
+        ],
         "the aggregate quality gate must require the retained quality jobs"
     );
 }
