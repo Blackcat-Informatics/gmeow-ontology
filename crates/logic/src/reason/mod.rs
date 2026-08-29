@@ -301,16 +301,17 @@ pub(crate) fn reason_closure(
     Ok((inferred, verdict))
 }
 
-/// The native reasoning closure ONLY — the sorted asserted+derived axiom set — with
-/// the DL consistency *verdict* left uncomputed.
+/// The native structured-DL closure ONLY — the sorted asserted+derived axiom set — with
+/// the typed modal post-pass and DL consistency *verdict* left uncomputed.
 ///
 /// This is the shared `run_reasoning → augment_inferred_with_dl → sort` half of
-/// [`reason_closure`], so the returned closure is byte-identical to
-/// `reason_all(edb)?.inferred()`. It exists for callers that need only the closure
-/// and would otherwise pay for — and discard — [`dl::verdict_from_inferred`]'s
-/// O(EDB) consistency/coverage scan. The reasoner-derived slice-quality axis is the
-/// motivating caller: its leave-one-out redundancy probe re-reasons the EDB dozens of
-/// times but reads only the closure's IRI-object triples, never the verdict.
+/// [`reason_closure`] and the pre-modal prefix of [`reason_all_certified`]. It exists for
+/// callers that need only the structured-DL closure and would otherwise pay for — and
+/// discard — both typed modal evaluation and [`dl::verdict_from_inferred`]'s O(EDB)
+/// consistency/coverage scan. The reasoner-derived slice-quality axis is the motivating
+/// caller: its leave-one-out redundancy probe re-reasons the EDB dozens of times but reads
+/// only the structured-DL closure's IRI-object triples, never modal verdicts or the DL
+/// consistency verdict.
 ///
 /// # Errors
 ///
@@ -995,9 +996,9 @@ pub fn leave_one_out_rederived(
     Ok(results)
 }
 
-/// Run native predicate-as-DATA entailment + DL consistency, returning the typed
-/// [`ReasoningResult`] (ME2) — the single shared result model every
-/// consumer reads.
+/// Run native predicate-as-DATA entailment, DL augmentation/consistency, and bounded
+/// typed-modal evaluation, returning the typed [`ReasoningResult`] (ME2) — the single
+/// shared result model every consumer reads.
 ///
 /// The DL verdict is folded into the result via
 /// [`ReasoningResult::from_dl_verdict`]: an inconsistent verdict becomes
@@ -1018,7 +1019,9 @@ pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
 }
 
 /// Run the same production reasoning path as [`reason_all`] while retaining the
-/// existential-chase admission certificates emitted during that single pass.
+/// existential-chase admission certificates emitted during that single pass. Typed modal
+/// evaluation runs after rule closure and DL augmentation, then its verdicts join the same
+/// closure before final sorting, consistency scanning, and result construction.
 ///
 /// # Errors
 ///

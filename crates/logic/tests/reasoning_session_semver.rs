@@ -476,8 +476,13 @@ use session_common::*;
 /// `NATIVE_CONTRACT_COMPONENT`, and `reason/mod.rs` invokes it after rule closure and DL
 /// augmentation. The fixed edge-only input carries no modal frame, so its reasoning verdict
 /// is unchanged while the engine identity deliberately moves with the new production capability.
+/// Re-blessed after grouping the modal frame's seven slot indexes and typed-relation set behind
+/// `ModalFrameIndexes`, and correcting `reason_closure_axioms`'s documentation to name its actual
+/// pre-modal structured-DL boundary. `native_contract_hash()` folds both `modal.rs` and
+/// `reason/mod.rs`, so these policy/documentation edits move the source-content identity while
+/// leaving every modal evaluation and reasoning verdict unchanged.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "781ea66ca81a249abc8394c35bf8ebcfa52ade243f3396fd5ae9060dc4a0e6fc";
+    "c9e5efff3b8e77cc3a12652d7934b561960d5ec5be4418c130d2db674c54f3ef";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -715,8 +720,12 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// Re-blessed for the shared bounded typed-modal kernel for the same reason as the engine
 /// descriptor above: the forward contract hash is one of the seven folded session-identity
 /// axes, while this fixed edge-only input carries no modal frame and retains its verdict.
+/// Re-blessed for the modal index grouping and accurate structured-DL closure documentation
+/// described by the engine golden above. The forward contract hash is one of the seven folded
+/// session-identity axes; this fixed edge-only input still carries no modal frame and its verdict
+/// remains unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "06bc987c14d03f16a45de616fe1bd17f86f62649a1b940cbd78ce07c89e075b7";
+    "6fb7f43a55104c3c367417b9850f23eb48e25a47e866ff2663f89a84bb39f3af";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

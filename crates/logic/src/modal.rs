@@ -87,62 +87,77 @@ pub(crate) struct ModalVerdict {
     pub(crate) derivation_id: String,
 }
 
-pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<ModalVerdict>> {
-    let mut nec_body: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut pos_body: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut over: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut eval_world: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut atom_s: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut atom_p: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut atom_o: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+#[derive(Debug, Default)]
+struct ModalFrameIndexes {
+    nec_body: BTreeMap<String, BTreeSet<String>>,
+    pos_body: BTreeMap<String, BTreeSet<String>>,
+    over: BTreeMap<String, BTreeSet<String>>,
+    eval_world: BTreeMap<String, BTreeSet<String>>,
+    atom_s: BTreeMap<String, BTreeSet<String>>,
+    atom_p: BTreeMap<String, BTreeSet<String>>,
+    atom_o: BTreeMap<String, BTreeSet<String>>,
+    typed_relations: BTreeSet<&'static str>,
+}
 
-    let typed_relations: BTreeSet<&str> = TYPED_ACCESSIBILITY.iter().copied().collect();
+pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<ModalVerdict>> {
+    let mut frame_indexes = ModalFrameIndexes {
+        typed_relations: TYPED_ACCESSIBILITY.iter().copied().collect(),
+        ..ModalFrameIndexes::default()
+    };
     let mut access: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
 
     for fact in facts {
         match fact.predicate() {
             NECESSARILY => {
-                nec_body
+                frame_indexes
+                    .nec_body
                     .entry(fact.subject().to_owned())
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
             POSSIBLY => {
-                pos_body
+                frame_indexes
+                    .pos_body
                     .entry(fact.subject().to_owned())
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
             OVER_ACCESSIBILITY => {
-                over.entry(fact.subject().to_owned())
+                frame_indexes
+                    .over
+                    .entry(fact.subject().to_owned())
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
             MODAL_EVAL_WORLD => {
-                eval_world
+                frame_indexes
+                    .eval_world
                     .entry(fact.subject().to_owned())
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
             ATOM_SUBJECT => {
-                atom_s
+                frame_indexes
+                    .atom_s
                     .entry(fact.subject().to_owned())
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
             ATOM_PREDICATE => {
-                atom_p
+                frame_indexes
+                    .atom_p
                     .entry(fact.subject().to_owned())
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
             ATOM_OBJECT => {
-                atom_o
+                frame_indexes
+                    .atom_o
                     .entry(fact.subject().to_owned())
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
-            predicate if typed_relations.contains(predicate) => {
+            predicate if frame_indexes.typed_relations.contains(predicate) => {
                 let source = iri_binding(fact.subject(), "typed accessibility edge source world")?;
                 let target = iri_binding(fact.object(), "typed accessibility edge target world")?;
                 access
@@ -154,16 +169,7 @@ pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<Mo
         }
     }
 
-    let frames = resolve_frames(
-        &nec_body,
-        &pos_body,
-        &over,
-        &eval_world,
-        &atom_s,
-        &atom_p,
-        &atom_o,
-        &typed_relations,
-    )?;
+    let frames = resolve_frames(&frame_indexes)?;
     if frames.is_empty() {
         return Ok(Vec::new());
     }
@@ -279,16 +285,17 @@ pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<Mo
     Ok(verdicts)
 }
 
-fn resolve_frames(
-    nec_body: &BTreeMap<String, BTreeSet<String>>,
-    pos_body: &BTreeMap<String, BTreeSet<String>>,
-    over: &BTreeMap<String, BTreeSet<String>>,
-    eval_world: &BTreeMap<String, BTreeSet<String>>,
-    atom_s: &BTreeMap<String, BTreeSet<String>>,
-    atom_p: &BTreeMap<String, BTreeSet<String>>,
-    atom_o: &BTreeMap<String, BTreeSet<String>>,
-    typed_relations: &BTreeSet<&str>,
-) -> gmeow_errors::Result<Vec<ModalFrame>> {
+fn resolve_frames(indexes: &ModalFrameIndexes) -> gmeow_errors::Result<Vec<ModalFrame>> {
+    let ModalFrameIndexes {
+        nec_body,
+        pos_body,
+        over,
+        eval_world,
+        atom_s,
+        atom_p,
+        atom_o,
+        typed_relations,
+    } = indexes;
     let mut formula_nodes: BTreeSet<String> = BTreeSet::new();
     formula_nodes.extend(nec_body.keys().cloned());
     formula_nodes.extend(pos_body.keys().cloned());
