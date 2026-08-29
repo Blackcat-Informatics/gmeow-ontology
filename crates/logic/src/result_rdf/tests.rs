@@ -198,6 +198,91 @@ fn round_trip_recovers_axes_and_provenance() {
 }
 
 #[test]
+fn modal_derived_row_round_trips_its_complete_receipt() {
+    let mut result = rich_result();
+    let ResultPayload::Inferred(axioms) = &mut result.payload else {
+        panic!("fixture payload must be inferred");
+    };
+    let modal = &mut axioms[0];
+    modal.subject = "https://example.org/modal/F".to_owned();
+    modal.predicate = crate::modal::MODAL_NECESSITY_FAILS.to_owned();
+    modal.object = "<https://example.org/modal/B>".to_owned();
+    modal.world = "https://example.org/modal/w0".to_owned();
+    modal.rule_name = Some(crate::modal::MODAL_RULE_IRI.to_owned());
+    modal.premises = vec![(
+        "https://example.org/modal/a".to_owned(),
+        "https://example.org/modal/knows".to_owned(),
+        "<https://example.org/modal/b>".to_owned(),
+    )];
+    let expected = modal.clone();
+    let receipt = row_for_axiom(&expected);
+
+    let body = project_reasoning_result(&result);
+    assert!(body.contains(crate::modal::MODAL_RULE_IRI));
+    assert!(body.contains(&receipt.derivation_id));
+    for source in &receipt.source_quad_ids {
+        assert!(body.contains(source));
+    }
+    assert!(body.contains(&format!("<{PROV_VALUE}>")));
+
+    let parsed = parse_reasoning_graph(&body).expect("receipt-bearing graph parses");
+    let ResultPayload::Inferred(rows) = parsed.payload else {
+        panic!("payload must remain inferred");
+    };
+    let actual = rows
+        .iter()
+        .find(|row| row.predicate == crate::modal::MODAL_NECESSITY_FAILS)
+        .expect("modal row round-trips");
+    assert_eq!(actual, &expected);
+}
+
+#[test]
+fn derived_row_parser_rejects_a_tampered_source_receipt() {
+    let mut result = rich_result();
+    let ResultPayload::Inferred(axioms) = &mut result.payload else {
+        panic!("fixture payload must be inferred");
+    };
+    axioms[0].premises = vec![(
+        "https://example.org/a".to_owned(),
+        "https://example.org/p".to_owned(),
+        "<https://example.org/o>".to_owned(),
+    )];
+    let body = project_reasoning_result(&result);
+    let tampered: String = body
+        .lines()
+        .filter(|line| !line.contains(PROV_VALUE))
+        .map(|line| format!("{line}\n"))
+        .collect();
+    let err = parse_reasoning_graph(&tampered).unwrap_err();
+    assert!(err.message().contains("source reifier"), "got: {err}");
+}
+
+#[test]
+fn derived_row_round_trip_preserves_duplicate_source_multiplicity() {
+    let mut result = rich_result();
+    let ResultPayload::Inferred(axioms) = &mut result.payload else {
+        panic!("fixture payload must be inferred");
+    };
+    let premise = (
+        "https://example.org/a".to_owned(),
+        "https://example.org/p".to_owned(),
+        "<https://example.org/o>".to_owned(),
+    );
+    axioms[0].premises = vec![premise.clone(), premise];
+    axioms[0].object = "<http://ex/Animal>".to_owned();
+    let expected = axioms[0].clone();
+    let receipt = row_for_axiom(&expected);
+
+    let body = project_reasoning_result(&result);
+    assert!(body.contains(&receipt.derivation_id));
+    let parsed = parse_reasoning_graph(&body).expect("duplicate-source receipt parses");
+    let ResultPayload::Inferred(rows) = parsed.payload else {
+        panic!("payload must remain inferred");
+    };
+    assert_eq!(rows[0], expected);
+}
+
+#[test]
 fn round_trip_for_an_invalid_request() {
     let original = ReasoningResult::invalid(
         "ill-formed request",

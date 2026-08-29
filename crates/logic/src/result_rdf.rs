@@ -26,9 +26,9 @@
 //!   and the contradiction witnesses (sorted, with their premises).
 //! * a faithful **payload summary** — the payload discriminant plus a count, and for
 //!   the `Inferred` surface the derived (non-EDB) axiom triples as
-//!   `logic:resultDerivedAxiom` reified statements (the closure itself is the reason
-//!   stage's `dataset`, so the graph/reasoning projection records the *shape* of the
-//!   answer, not a second copy of every closure quad).
+//!   `logic:resultDerivedAxiom` reified statements carrying their exact rule,
+//!   immediate premises, source reifiers, and derivation identity (the closure itself
+//!   remains the reason stage's `dataset`, so asserted rows are not duplicated here).
 //!
 //! # Determinism
 //!
@@ -46,23 +46,24 @@
 //! the five scalar axes, the preservation polarity set + unsupported constructs, the
 //! whole provenance bundle (contract hash, query, conclusion, proof/counterproof refs,
 //! engine, budget, context, certified fragment, assumptions, contradiction witnesses),
-//! and the payload **discriminant**. What does NOT round-trip: the payload *contents*
-//! of the `Bindings` / `Marginals` surfaces and the per-axiom premise lists of an
-//! `Inferred` closure — those rows live in the reason stage's closure dataset (the
-//! bundle's default graph), not re-copied here. So the re-derived result carries an
+//! and the payload **discriminant**. What does NOT round-trip is the payload *contents*
+//! of the `Bindings` / `Marginals` surfaces. Derived `Inferred` rows do round-trip
+//! their full rule, immediate premises, source reifiers, and content-addressed identity.
+//! So the re-derived result carries an
 //! `Empty`/`Inferred(derived-only)` payload faithful for the *handle's* purpose (a
 //! consumer reads the verdict + provenance, and reads the closure from the dataset),
 //! and the parser is documented as reconstructing the verdict-and-provenance result,
 //! not the original bindings. This mirrors the C6 precedent: exact where it holds
 //! (axes/provenance), faithful-subset where the payload rows are carried elsewhere.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
 use sha2::{Digest, Sha256};
 
 use crate::conjecture::{ConjectureAnswer, ConjectureDischarge, ConjectureLifecycleState};
+use crate::explain::row_for_axiom;
 use crate::reason::el::InferredAxiom;
 use crate::result::{
     Assumption, BudgetLimit, CompletenessStatus, ContradictionWitness, DerivationRef, EngineId,
@@ -105,6 +106,8 @@ const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const CONJECTURE_ACTIVITY: &str = "https://blackcatinformatics.ca/gmeow/activity/conjecture-test";
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const PROV_WAS_DERIVED_FROM: &str = "http://www.w3.org/ns/prov#wasDerivedFrom";
+const PROV_VALUE: &str = "http://www.w3.org/ns/prov#value";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 const XSD_ANY_URI: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
@@ -508,33 +511,61 @@ fn project_payload(sink: &mut Sink, subject: &Node, payload: &ResultPayload) {
 }
 
 /// Emit the derived (non-EDB) closure axioms as `logic:resultDerivedAxiom`
-/// blank-node rows (subject/predicate/object + world). The full closure (incl. EDB)
-/// is the reason stage's dataset; here we record only the *derived* shape so the
-/// graph/reasoning projection summarizes the answer without duplicating every quad.
+/// blank-node rows with their complete derivation receipts.
 fn project_derived_axioms(sink: &mut Sink, subject: &Node, axioms: &[InferredAxiom]) {
-    // Build a sorted, deduplicated set of derived rows so emission is deterministic
-    // regardless of the closure's internal ordering.
-    let mut rows: BTreeSet<(String, String, String, String)> = BTreeSet::new();
-    for ax in axioms {
-        if ax.is_edb {
-            continue;
-        }
-        rows.insert((
-            ax.subject.clone(),
-            ax.predicate.clone(),
-            ax.object.clone(),
-            ax.world.clone(),
-        ));
-    }
-    for (s, p, o, w) in rows {
+    let mut rows: Vec<&InferredAxiom> = axioms.iter().filter(|axiom| !axiom.is_edb).collect();
+    rows.sort();
+    for axiom in rows {
         let node = Node::blank(sink.fresh_blank("axiom"));
         sink.push(subject.clone(), logic("resultDerivedAxiom"), node.clone());
         sink.push(node.clone(), RDF_TYPE, Node::iri(logic("DerivedAxiom")));
-        sink.push(node.clone(), logic("axiomSubject"), axiom_term(&s));
-        sink.push(node.clone(), logic("axiomPredicate"), axiom_term(&p));
-        sink.push(node.clone(), logic("axiomObject"), axiom_term(&o));
-        sink.push(node.clone(), logic("axiomWorld"), axiom_term(&w));
+        sink.push(
+            node.clone(),
+            logic("axiomSubject"),
+            axiom_term(&axiom.subject),
+        );
+        sink.push(
+            node.clone(),
+            logic("axiomPredicate"),
+            axiom_term(&axiom.predicate),
+        );
+        sink.push(
+            node.clone(),
+            logic("axiomObject"),
+            axiom_term(&axiom.object),
+        );
+        sink.push(node.clone(), logic("axiomWorld"), axiom_term(&axiom.world));
+
+        let receipt = row_for_axiom(axiom);
+        sink.push(node.clone(), gmeow("viaRule"), Node::iri(receipt.rule_iri));
+        sink.push(
+            node.clone(),
+            logic("derivationIdentifier"),
+            Node::string(receipt.derivation_id),
+        );
+        for (index, (source, (premise_subject, premise_predicate, premise_object))) in receipt
+            .source_quad_ids
+            .into_iter()
+            .zip(&axiom.premises)
+            .enumerate()
+        {
+            sink.push(node.clone(), PROV_WAS_DERIVED_FROM, Node::iri(source));
+            sink.push(
+                node.clone(),
+                PROV_VALUE,
+                Node::string(encode_premise(
+                    index,
+                    premise_subject,
+                    premise_predicate,
+                    premise_object,
+                )),
+            );
+        }
     }
+}
+
+fn encode_premise(index: usize, subject: &str, predicate: &str, object: &str) -> String {
+    format!("{index}\0{subject}\0{predicate}\0{object}")
 }
 
 /// Normalize a native-engine term string (`<iri>` / `_:b` / `"lit"…` / bare-iri) into
@@ -682,10 +713,10 @@ fn budget_limit_from_wire(wire: &str) -> Option<BudgetLimit> {
 /// N-Triples body (the cache / handle re-derivation path).
 ///
 /// **Faithful subset** (Principle 17): this reconstructs the five axes, the
-/// preservation claim, and the entire provenance bundle exactly; the payload is
-/// reconstructed to its DISCRIMINANT with an empty/derived-only body (the binding /
-/// marginal rows and the per-axiom premise lists are NOT carried in this graph — they
-/// live in the reason stage's closure dataset). The re-derived result is the handle a
+/// preservation claim, and the entire provenance bundle exactly. The inferred payload
+/// reconstructs every derived row with its verified rule, immediate premises, source
+/// reifiers, and derivation identity; binding and marginal rows remain in their owning
+/// stage dataset. The re-derived result is the handle a
 /// consumer needs: it reads the verdict + provenance from here and the closure quads
 /// from the dataset. See the module docs for the exact round-trip contract.
 ///
@@ -800,9 +831,9 @@ pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningRes
     prov.contradiction_witnesses = parse_witnesses(&triples, &subject);
     prov.contradiction_witnesses.sort();
 
-    // payload discriminant — reconstructed to its kind (rows not carried here).
+    // Payload discriminant — derived rows retain their complete receipts.
     let payload = match one_str("resultPayloadKind").as_deref() {
-        Some("inferred") => ResultPayload::Inferred(parse_derived_axioms(&triples, &subject)),
+        Some("inferred") => ResultPayload::Inferred(parse_derived_axioms(&triples, &subject)?),
         Some("bindings") => ResultPayload::Bindings(Vec::new()),
         Some("marginals") => ResultPayload::Marginals(Vec::new()),
         _ => ResultPayload::Empty,
@@ -860,9 +891,11 @@ fn parse_witnesses(triples: &[ParsedTriple], subject: &str) -> Vec<Contradiction
     out
 }
 
-/// Parse the derived-axiom rows back into [`InferredAxiom`]s (derived, non-EDB; the
-/// premise lists are not carried here, so each is empty).
-fn parse_derived_axioms(triples: &[ParsedTriple], subject: &str) -> Vec<InferredAxiom> {
+/// Parse derived-axiom rows and verify each complete derivation receipt.
+fn parse_derived_axioms(
+    triples: &[ParsedTriple],
+    subject: &str,
+) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     let mut out = Vec::new();
     for link in triples
         .iter()
@@ -902,17 +935,119 @@ fn parse_derived_axioms(triples: &[ParsedTriple], subject: &str) -> Vec<Inferred
                 None => String::new(),
             }
         };
-        out.push(InferredAxiom {
+        let object = triples
+            .iter()
+            .find(|triple| triple.subject == node && triple.predicate == logic("axiomObject"))
+            .map(|triple| match &triple.object {
+                ParsedObject::Iri(iri) => format!("<{iri}>"),
+                ParsedObject::Blank(blank) => format!("_:{blank}"),
+                ParsedObject::Lit(literal) => literal.clone(),
+            })
+            .unwrap_or_default();
+        let rule_name = triples
+            .iter()
+            .find(|triple| triple.subject == node && triple.predicate == gmeow("viaRule"))
+            .and_then(ParsedTriple::object_iri)
+            .ok_or_else(|| {
+                result_err(format!(
+                    "graph/reasoning: derived axiom {node} is missing its full gmeow:viaRule IRI"
+                ))
+            })?;
+        let derivation_id = triples
+            .iter()
+            .find(|triple| {
+                triple.subject == node && triple.predicate == logic("derivationIdentifier")
+            })
+            .and_then(ParsedTriple::object_string)
+            .ok_or_else(|| {
+                result_err(format!(
+                    "graph/reasoning: derived axiom {node} is missing logic:derivationIdentifier"
+                ))
+            })?;
+        let emitted_sources: BTreeSet<String> = triples
+            .iter()
+            .filter(|triple| triple.subject == node && triple.predicate == PROV_WAS_DERIVED_FROM)
+            .map(|triple| {
+                triple.object_iri().ok_or_else(|| {
+                    result_err(format!(
+                        "graph/reasoning: derived axiom {node} has a non-IRI source reifier"
+                    ))
+                })
+            })
+            .collect::<gmeow_errors::Result<_>>()?;
+        let mut premises_by_index = BTreeMap::new();
+        for wire in triples
+            .iter()
+            .filter(|triple| triple.subject == node && triple.predicate == PROV_VALUE)
+        {
+            let wire = wire.object_string().ok_or_else(|| {
+                result_err(format!(
+                    "graph/reasoning: derived axiom {node} has a non-literal indexed premise"
+                ))
+            })?;
+            let (index, premise) = decode_premise(&wire)?;
+            if premises_by_index.insert(index, premise).is_some() {
+                return Err(result_err(format!(
+                    "graph/reasoning: derived axiom {node} repeats premise index {index}"
+                )));
+            }
+        }
+        if premises_by_index
+            .keys()
+            .copied()
+            .ne(0..premises_by_index.len())
+        {
+            return Err(result_err(format!(
+                "graph/reasoning: derived axiom {node} premise indexes are not contiguous from zero"
+            )));
+        }
+        let premises: Vec<(String, String, String)> = premises_by_index.into_values().collect();
+        let axiom = InferredAxiom {
             subject: field("axiomSubject"),
             predicate: field("axiomPredicate"),
-            object: field("axiomObject"),
+            object,
             world: field("axiomWorld"),
             is_edb: false,
-            rule_name: None,
-            premises: Vec::new(),
-        });
+            rule_name: Some(rule_name),
+            premises,
+        };
+        let receipt = row_for_axiom(&axiom);
+        let expected_sources: BTreeSet<String> = receipt.source_quad_ids.into_iter().collect();
+        if emitted_sources != expected_sources {
+            return Err(result_err(format!(
+                "graph/reasoning: derived axiom {node} source reifiers do not match its source premises"
+            )));
+        }
+        if receipt.derivation_id != derivation_id {
+            return Err(result_err(format!(
+                "graph/reasoning: derived axiom {node} derivation identity does not match its rule and source premises"
+            )));
+        }
+        out.push(axiom);
     }
-    out
+    Ok(out)
+}
+
+fn decode_premise(wire: &str) -> gmeow_errors::Result<(usize, (String, String, String))> {
+    let mut parts = wire.splitn(4, '\0');
+    let index = parts
+        .next()
+        .ok_or_else(|| result_err("graph/reasoning: malformed premise index".to_owned()))?
+        .parse::<usize>()
+        .map_err(|_| result_err("graph/reasoning: malformed premise index".to_owned()))?;
+    let subject = parts
+        .next()
+        .ok_or_else(|| result_err("graph/reasoning: malformed premise subject".to_owned()))?;
+    let predicate = parts
+        .next()
+        .ok_or_else(|| result_err("graph/reasoning: malformed premise predicate".to_owned()))?;
+    let object = parts
+        .next()
+        .ok_or_else(|| result_err("graph/reasoning: malformed premise object".to_owned()))?;
+    Ok((
+        index,
+        (subject.to_owned(), predicate.to_owned(), object.to_owned()),
+    ))
 }
 
 /// The `logic:` IRI for a [`PreservationKind`] back to the kind.

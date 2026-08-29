@@ -42,8 +42,21 @@ use std::hash::{BuildHasher, Hash, Hasher};
 use foldhash::fast::FixedState;
 use gmeow_errors::dag::{DagError, DagNode, walk};
 use hashbrown::HashTable;
+use purrdf::turtle::rule_iri;
 
 use crate::provenance::{ASSERT_RULE_IRI, mint_derivation_id, reifier_from_strings};
+
+const RULE_IRI_BASE: &str = "https://blackcatinformatics.ca/gmeow/rule/";
+const ANONYMOUS_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/anonymous";
+
+/// Resolve an engine rule label to the full IRI used by provenance receipts.
+pub(crate) fn canonical_rule_iri(rule: &str) -> String {
+    if rule.starts_with("https://") || rule.starts_with("http://") || rule.starts_with("urn:") {
+        rule.to_owned()
+    } else {
+        rule_iri(RULE_IRI_BASE, rule)
+    }
+}
 
 // ── Input row ────────────────────────────────────────────────────────────────
 
@@ -492,6 +505,45 @@ fn explain_with_index(
 
 // ── Reasoning-result bridge ────────────────────────────────────────────────────
 
+/// Build the canonical receipt row for one inferred axiom.
+///
+/// This is the single rule/source/derivation recipe used by explanation and RDF
+/// artifact projections. It intentionally does not close the row set under missing
+/// premises; [`rows_for_result`] owns that explanation-tree concern.
+pub(crate) fn row_for_axiom(axiom: &crate::reason::InferredAxiom) -> Row {
+    let self_reifier = reifier_from_strings(&axiom.subject, &axiom.predicate, &axiom.object);
+    let rule_iri = match (axiom.is_edb, axiom.rule_name.as_deref()) {
+        (true, _) => ASSERT_RULE_IRI.to_owned(),
+        // The native chase hashes the rule identity exactly as carried by the
+        // firing (`el:...`, `dl:...`, or a full IRI).  Preserve those bytes here;
+        // RDF artifact builders canonicalize short identities only when rendering
+        // their `gmeow:viaRule` resource.
+        (false, Some(rule)) => rule.to_owned(),
+        (false, None) => ANONYMOUS_RULE_IRI.to_owned(),
+    };
+    let source_quad_ids: Vec<String> = if axiom.is_edb {
+        vec![self_reifier]
+    } else {
+        axiom
+            .premises
+            .iter()
+            .map(|(subject, predicate, object)| {
+                reifier_from_strings(subject, predicate, &premise_object_n3(object))
+            })
+            .collect()
+    };
+    let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
+    Row {
+        graph: axiom.world.clone(),
+        subject: axiom.subject.clone(),
+        predicate: axiom.predicate.clone(),
+        obj: axiom.object.clone(),
+        derivation_id: mint_derivation_id(&rule_iri, &source_refs),
+        rule_iri,
+        source_quad_ids,
+    }
+}
+
 /// Build the premise-closed [`Row`] set for a reasoning result — the SINGLE
 /// row-building implementation shared by [`explanations_for_result`] (which then
 /// explains every row) and the bounded single-target `explain(witness)` consumers
@@ -543,35 +595,10 @@ pub fn rows_for_result(result: &crate::result::ReasoningResult) -> Result<Vec<Ro
 
     // 1. One row per inferred axiom (derived or asserted-EDB echo).
     for axiom in result.inferred() {
-        let self_reifier = reifier_from_strings(&axiom.subject, &axiom.predicate, &axiom.object);
-        let rule_iri = axiom
-            .rule_name
-            .clone()
-            .unwrap_or_else(|| assert_rule.clone());
-        // Asserted facts are leaves: they carry their own reifier as the sole source
-        // (filtered out during reconstruction). A derived quad cites the reifiers of
-        // its immediate premises (object normalized to the row N3 surface).
-        let source_quad_ids: Vec<String> = if axiom.is_edb {
-            vec![self_reifier.clone()]
-        } else {
-            axiom
-                .premises
-                .iter()
-                .map(|(s, p, o)| reifier_from_strings(s, p, &premise_object_n3(o)))
-                .collect()
-        };
-        let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
-        let derivation_id = mint_derivation_id(&rule_iri, &source_refs);
-        present.insert((axiom.world.clone(), self_reifier));
-        rows.push(Row {
-            graph: axiom.world.clone(),
-            subject: axiom.subject.clone(),
-            predicate: axiom.predicate.clone(),
-            obj: axiom.object.clone(),
-            derivation_id,
-            rule_iri,
-            source_quad_ids,
-        });
+        let row = row_for_axiom(axiom);
+        let self_reifier = reifier_from_strings(&row.subject, &row.predicate, &row.obj);
+        present.insert((row.graph.clone(), self_reifier));
+        rows.push(row);
     }
 
     // 2. Close the row set under premises: any premise NOT already present as a row
