@@ -490,7 +490,7 @@ fn contract_round_trip_custom_iri_facet_value() {
 
 #[test]
 fn contract_round_trip_passes_ir_isomorphism_gate_on_contracts() {
-    // Reviewer B1: exercise the IR-isomorphism gate's CONTRACT branch with a
+    // Exercise the IR-isomorphism gate's CONTRACT branch with a
     // NON-empty contract set (the adapter fixtures only ever carry empty
     // contracts). The gate keys contracts on `sort_key()` (the `contract_key`
     // helper), so a program built from only the original contracts and one built

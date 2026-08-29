@@ -38,7 +38,7 @@ fn logic(local: &str) -> String {
 }
 
 /// Resolve a facet *value* to its emitted IRI. The open facet-value vocabulary
-/// (Gap 3) admits values that are already full custom IRIs (not under the
+/// admits values that are already full custom IRIs (not under the
 /// `logic:` namespace); these must be emitted verbatim, not re-prefixed (which
 /// would yield a corrupt `…/logic/https://…`). A bare local name is prefixed under
 /// the `logic:` namespace. This is symmetric with the front-end storage convention

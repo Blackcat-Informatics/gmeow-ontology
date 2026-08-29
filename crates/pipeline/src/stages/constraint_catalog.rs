@@ -649,7 +649,6 @@ mod tests {
         assert!(text.contains(&format!("<{rule}> <{GMEOW}appliesToTerm>")));
     }
 
-    /// Task 7 Part B (adversary F2/N1): the projection producer
     /// The authenticated producer output emits a `gmeow:ruleRemediation` triple
     /// for EVERY enforced rule whose code is NOT on
     /// [`gmeow_validate::rule_catalog::REMEDIATION_ABSENT`], and NO such triple

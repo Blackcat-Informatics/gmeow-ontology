@@ -56,7 +56,7 @@ const GMN_GRAMMAR: &str = "https://blackcatinformatics.ca/gmeow/gmnGrammar";
 const GMN_GRAMMAR_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnGrammarDigest";
 const ENFORCES_FAILURE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
 // The four ecosystem-view Merkle-leaf `<subject, predicate>` pairs the pack pins into the bundle,
-// so `gmn verify` recomputes the whole-ecosystem pack root from the bundle alone (Task 15).
+// so `gmn verify` recomputes the whole-ecosystem pack root from the bundle alone.
 const GMN_GBNF: &str = "https://blackcatinformatics.ca/gmeow/gmnGbnf";
 const GMN_GBNF_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/gmnGbnfDigest";
 const GMN_LARK: &str = "https://blackcatinformatics.ca/gmeow/gmnLark";
@@ -642,7 +642,7 @@ pub fn verify(
     // token-metrics / verbalizations), exactly as the grammar leaf does — so the recomputed pack
     // root certifies the WHOLE GMN ecosystem from the bundle alone. A missing pinned leaf is a
     // CONFORMANCE failure (accumulated, non-zero exit — never a silent pass), and a perturbed leaf
-    // makes the recomputed root disagree with the pinned root, so verify reds (Task 15).
+    // makes the recomputed root disagree with the pinned root, so verify reds.
     let ecosystem = EcosystemLeaves {
         gbnf: match bundle_view_leaf(reporter, &bundle, GMN_GBNF, GMN_GBNF_DIGEST, &mut failures) {
             Ok(leaf) => leaf,

@@ -230,8 +230,9 @@ pub fn full_spec() -> PipelineSpec {
         // stage-snapshot). It reads nothing off disk: every slice's examples/*.ttl
         // positive-demonstrator ABox is loaded by stage-source-load into graph/examples.
         st("stage-math-producers", "math_producers", &[]),
-        // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter (req
-        // #21/#20). A productive functor over the glyph signature: it consumes
+        // Compute: the rejection-sampled, proof-carrying GMN training-corpus emitter,
+        // enforcing its training-corpus and provenance contracts. A productive functor
+        // over the glyph signature, it consumes
         // stage-compile-logic (the typechecker/prover lane) and stage-mappings (the projected
         // GMN forms / glyph registry lane), enumerates well-typed GMN terms, rejection-samples
         // each through five verifiers, and attaches the certified corpus (+ typed rejections)

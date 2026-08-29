@@ -435,7 +435,7 @@ fn mnemomorphic_class_cell(cell: &str, source_gmeow: &str, target: &str) -> Stri
 
 #[test]
 fn two_discharged_cells_claiming_the_same_ext_hard_fail_not_last_wins() {
-    // GUARD (CodeRabbit, Gap-5): the discharged-rename promotion streams into `rules.insert(ext, …)`
+    // Discharged-rename invariant: promotion streams into `rules.insert(ext, …)`
     // in input order, so TWO discharged mnemomorphic `=` cells resolving to the SAME external `ext`
     // but DIFFERENT gmeow targets would silently last-wins overwrite one lawful rename with the
     // other — a nondeterministic soundness hole. It must be a HARD FAIL naming the colliding ext.

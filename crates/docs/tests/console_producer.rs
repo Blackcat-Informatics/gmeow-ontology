@@ -31,7 +31,7 @@ fn interactive_exec() -> ExecutableDocsData {
     }
 }
 
-// ── Task 8: the producer ────────────────────────────────────────────────────
+// ── Console producer ────────────────────────────────────────────────────────
 
 /// Given the same `exec`, `console_files` twice yields byte-identical maps.
 #[test]

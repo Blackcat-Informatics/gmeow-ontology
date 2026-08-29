@@ -510,7 +510,7 @@ pub struct MigratedRecordSet {
     pub operators: Vec<MigratedOperator>,
 }
 
-// ── Version-provenance tagging (req #20 infra; Tasks 7/8/10 consume it) ──────────────
+// ── Version-provenance tagging shared by every migration consumer ────────────────────
 
 /// The graph-resolved schema major to stamp on emitted records — the codebook's latest major
 /// via [`GmnDictionary::schema_major`] / `resolve_dialect_acceptance`, never a Rust constant.

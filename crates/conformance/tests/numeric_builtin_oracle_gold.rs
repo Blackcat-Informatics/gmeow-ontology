@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The per-op numeric-builtin oracle-gold conformance lane (issue 1428).
+//! Per-operation numeric-builtin oracle-gold conformance.
 //!
-//! Issue 1428's acceptance criterion requires "each op separately anchored to
-//! an INDEPENDENT oracle." The native evaluator's exact-ℚ arithmetic
+//! Every operation is separately anchored to an independent oracle. The native
+//! evaluator's exact-ℚ arithmetic
 //! (`crates/logic/src/physical/builtin_eval.rs`) previously carried ONLY
 //! in-crate `#[test]`s that call its own `eval()` and assert on `eval()`'s own
 //! output — a tautology. This test is the independent counterpart: it reads

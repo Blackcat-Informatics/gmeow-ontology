@@ -415,7 +415,7 @@ ex:script a lang:Script ; lang:hasGrapheme ex:{grapheme_local} .
         );
     }
 
-    /// Task 15: the conformance-pack Merkle root is a PURE FUNCTION of every ecosystem surface —
+    /// The conformance-pack Merkle root is a PURE FUNCTION of every ecosystem surface —
     /// the gbnf + lark grammar artifacts, the token-metrics measurement, and the verbalizations —
     /// beside the existing codebook / grammar / sigil coverage. Falsifiable PER SURFACE: perturbing
     /// exactly one view's bytes changes the root, so a view that was NOT folded would leave the root

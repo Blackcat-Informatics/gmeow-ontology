@@ -293,7 +293,7 @@ fn mixed_temporal_frame_is_a_hard_fail() {
     );
 }
 
-// ── Task 2 helpers: concurrency, goals, hypothetical replay ──────────────────────
+// ── Helpers: concurrency, goals, hypothetical replay ─────────────────────────────
 
 /// A start state `state` bearing the given obtaining situation locals.
 fn start_with(state: &str, sits: &[&str]) -> String {

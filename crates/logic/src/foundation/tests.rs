@@ -5,9 +5,9 @@
 //!
 //! These tests build N-Quads inputs mirroring the `conformance/logic/cases/foundation/`
 //! cases, run [`evaluate`], and assert (a) the materialized quad SET against the
-//! goldens, and (b) the content-addressed provenance on representative quads.  Full
-//! end-to-end explanation-golden parity is validated after the runner is rewired
-//! (Task 2); here we pin the quad set + provenance recipe.
+//! goldens, and (b) the content-addressed provenance on representative quads. Full
+//! end-to-end explanation-golden parity is validated by the runner; here we pin
+//! the quad set and provenance recipe.
 
 use super::*;
 

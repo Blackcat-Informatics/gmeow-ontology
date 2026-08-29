@@ -3137,7 +3137,7 @@ mod procedural_tests {
     fn coexisting_aggregate_satellites_hard_fail_at_projection() {
         // A constraint carrying BOTH a join_aggregate and an aggregate satellite would otherwise
         // have the projection dispatch's priority order silently drop the lower-priority
-        // `aggregate` satellite (Gap 12a). It must instead hard-fail — carried as flagged residue,
+        // `aggregate` satellite. It must instead hard-fail — carried as flagged residue,
         // never silently projected with one satellite dropped.
         use crate::ir::{AggregateComparator, JoinLeg};
 

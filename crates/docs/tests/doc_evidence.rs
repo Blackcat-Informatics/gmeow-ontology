@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The fail-fast GROUNDING INVARIANT for the uniform `gmeow:DocEvidence` RDF
-//! projection (issue 1404, transformational #3).
+//! projection from the shared documentation evidence graph.
 //!
 //! Proof-carrying documentation demands that EVERY projected evidence node be a
 //! claim WITH its grounds: an ungrounded `gmeow:DocEvidence` node is the
@@ -58,7 +58,7 @@ fn evidence_rich_model() -> DocsModel {
         ..Default::default()
     };
 
-    // A fixture that references the term (the fixture Do/Don't join, Task 1).
+    // A fixture that references the term (the fixture Do/Don't join).
     let fixture = DocFixture {
         slice: format!("{GMEOW}slice/zoo"),
         logical_path: "tests/conformance-fixtures/cat-ok.ttl".to_string(),
@@ -72,7 +72,7 @@ fn evidence_rich_model() -> DocsModel {
         catalog_slug: None,
     };
 
-    // A competency question that exercises the term (Task 2), with a query body
+    // A competency question that exercises the term, with a query body
     // so the evidence node carries a `blake3:` query digest.
     let competency = DocCompetency {
         iri: format!("{GMEOW}cq/cats-are-animals"),
@@ -86,7 +86,7 @@ fn evidence_rich_model() -> DocsModel {
         owner_slice: format!("{GMEOW}slice/zoo"),
     };
 
-    // A diagnostics-to-term join row (Task 7). On the real repo `by_term` is
+    // A diagnostics-to-term join row. On the real repo `by_term` is
     // empty today; here a synthetic finding exercises the code path.
     let mut diag_by_term = std::collections::BTreeMap::new();
     diag_by_term.insert(
@@ -106,7 +106,7 @@ fn evidence_rich_model() -> DocsModel {
         total: 1,
     };
 
-    // A dynamic per-term projection-loss row (Task 8).
+    // A dynamic per-term projection-loss row.
     let mut loss_by_term = std::collections::BTreeMap::new();
     loss_by_term.insert(
         cat.clone(),

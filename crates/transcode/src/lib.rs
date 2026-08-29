@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Universal RDF-1.2 transcode hub (Task 3).
+//! Universal RDF-1.2 transcode hub.
 //!
 //! Hub-and-spoke through the frozen [`RdfDataset`] IR: parse any supported
 //! source codec into the IR, serialize the IR to any supported target codec,

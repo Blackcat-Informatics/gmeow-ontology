@@ -144,11 +144,11 @@ fn read_subsort_edges(
     Ok(edges)
 }
 
-/// The bundle-internal named graph the checked goal-directed answers + proof derivations are
-/// folded into (dual carriage with no committed byte artifact in this task — the
-/// `generated/goal-directed/` fanout goldens are produced by Task 9's regenerate). A sibling
-/// of `graph/reasoning`: a queryable projection of a native engine's result that ships inside
-/// `gmeow.gts`, excluded from the object-level EDB (it asserts derived answers, not axioms).
+/// The bundle-internal named graph into which checked goal-directed answers and proof
+/// derivations are folded. Registered fanout emits the `generated/goal-directed/`
+/// goldens from the same carrier. As a sibling of `graph/reasoning`, it is a queryable
+/// native-engine result inside `gmeow.gts` and is excluded from the object-level EDB
+/// because it asserts derived answers rather than axioms.
 pub const GRAPH_GOAL_DIRECTED: &str = "https://blackcatinformatics.ca/gmeow/graph/goal-directed";
 
 /// The `goal-directed` pipeline stage.

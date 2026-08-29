@@ -4,9 +4,9 @@
 //! Production-surface proof that the SHIPPED `gmeow` binary can RE-EMIT a stored GMN-1
 //! document at a target dialect major across an authored inter-version correspondence —
 //! the `Commands::Gmn { Migrate }` clap dispatch in `src/lib.rs`, driven through
-//! `assert_cmd`. Before this leg the version-migration executor
-//! (`gmeow_lang_bridge::GmnMigration::migrate`) was reachable only from test code (issue
-//! req #19); this drives it end-to-end over the built binary and asserts:
+//! `assert_cmd`. It drives the version-migration executor
+//! (`gmeow_lang_bridge::GmnMigration::migrate`) end-to-end over the built binary
+//! and asserts:
 //!
 //! * a stored v1 document migrates to v2 — a ¬→! rename, a ⊑ native survivor, and a
 //!   bridged ⊻→^ drop — with the header re-stamped and the preservation JUDGMENT reported;

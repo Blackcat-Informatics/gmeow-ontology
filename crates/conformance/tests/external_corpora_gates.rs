@@ -26,13 +26,13 @@
 //!    `VerdictWeaker`⟺DlGap, `VerdictIncomparable`⟺CorpusOnly.
 //! 6. **FATAL-REGRESSION** — `CorpusOnly` / `DlGap` still grade to a
 //!    BLOCKING category (`gate()` == Fatal) while `Agree` does not, so
-//!    Task 4's every-comparison fold did not weaken the soundness gate.
+//!    the every-comparison fold did not weaken the soundness gate.
 //!
 //! Gates 4/5/6 drive the real Rust emitter (`divergence_findings` /
 //! `emit_divergence_nq`) and the real gate morphism (`gmeow_errors::grade::gate`),
 //! so they PASS with no regeneration. Gates 1/2/3 read the SHIPPED generated
 //! artifacts (`gmeow.gts`, `functions.fno.ttl`, `gmeow-conformance-corpus.sssom.tsv`);
-//! until `make check` re-mints those artifacts with the Task 1–4 individuals,
+//! until `make check` re-mints those artifacts with the required individuals,
 //! they FAIL with a CLEAN drift / empty report (never a panic or parse crash) and
 //! pass post-regenerate.
 
@@ -681,7 +681,7 @@ fn lattice_relation_is_the_rdf_image_of_the_divergence_kind() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// Gate 6 — FATAL-REGRESSION (Task 4 did not weaken the soundness gate).
+// Gate 6 — FATAL-REGRESSION (the soundness gate remains strict).
 // ══════════════════════════════════════════════════════════════════════════════
 
 #[test]
@@ -719,7 +719,7 @@ fn fatal_regression_blocking_kinds_still_gate_and_agree_does_not() {
         );
     }
 
-    // The two soundness-failing kinds STILL gate Fatal (the Task-4 change is additive).
+    // The two soundness-failing kinds remain Fatal.
     for code in ["reason.divergence.dl-gap", "reason.divergence.corpus-only"] {
         assert_eq!(
             by_code[code],

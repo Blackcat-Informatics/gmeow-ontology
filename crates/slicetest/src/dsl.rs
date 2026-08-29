@@ -960,7 +960,7 @@ mod tests {
         );
     }
 
-    // ── ResultShape hard-fail discipline (Gap C5) ─────────────────────────────
+    // ── ResultShape hard-fail discipline ─────────────────────────────
     //
     // A `logic:declaresColumn` node MISSING any of the three required fields
     // (`columnVariable`, `columnTermKind`, `columnBinding`) must HARD-FAIL with

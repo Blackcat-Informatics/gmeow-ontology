@@ -14,7 +14,7 @@
 //! MEASURES the round-trip (the target re-parses / byte-round-trips; the driver
 //! cross-checks the structural [`exact_round_trip_holds`] over the carried leg pair). Five
 //! structural invariants turn a dishonest emission into a red build, each message naming
-//! the Task-1 failure class it enforces:
+//! the named failure class it enforces:
 //!
 //! 1. **Round-trip measured for every target** — an `Exact`-deriving emission whose measured
 //!    round-trip is false is a hard fail citing `lang:ExactPreservationViolated`.
@@ -236,7 +236,7 @@ fn enforce_invariants(
 }
 
 /// Serialize one honest `lang:ProjectionEmission` record — the queryable loss judgment the
-/// Task-1 native gates run over. Carries the target name, the projected source, the DERIVED
+/// declared native gates run over. Carries the target name, the projected source, the DERIVED
 /// `logic:preservationKind`, each enumerated unsupported construct, the reading count (for a
 /// per-reading target), and the MEASURED round-trip verdict.
 fn emit_projection_record(

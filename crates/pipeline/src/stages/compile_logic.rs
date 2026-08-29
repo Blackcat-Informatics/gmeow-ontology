@@ -160,8 +160,8 @@ pub const VALIDATION_SHAPES_TTL_PATH: &str = "generated/shapes/validation-shapes
 pub const VALIDATION_SHAPES_SHEX_PATH: &str = "generated/shapes/validation-shapes.shex";
 /// The procedural-constraint SHACL projection: every closed-world `logic:Constraint`
 /// integrity condition projected to a `sh:SPARQLConstraint` NodeShape carrying
-/// `logic:formalizes` (the validation twin of the SHACL-AF rule surface). Lives under
-/// generated/shapes/; header-only until constraints are authored (Task 6).
+/// `logic:formalizes` (the validation twin of the SHACL-AF rule surface). It lives under
+/// `generated/shapes/` and is populated from the canonical constraint IR.
 pub const PROCEDURAL_CONSTRAINTS_PATH: &str = "generated/shapes/procedural-constraints.ttl";
 /// The vendored openEHR OPT the constraint axis lifts (GECCO blood pressure).
 pub const OPT_SOURCE_PATH: &str = "validations/openehr-bloodpressure/Blutdruck.opt";
@@ -190,7 +190,7 @@ pub const PATH_SHAPES_EXAMPLE_PATH: &str = "slices/grounding/logic/examples/pred
 /// affine cell is authored `logic:` TTL, not a `CorrespondenceProgram` literal in code.
 pub const CORRESPONDENCE_EXAMPLE_PATH: &str =
     "slices/grounding/logic/examples/affine-correspondence.ttl";
-/// The authored goal-directed demonstrator corpus (Task 5): six `logic:ReasoningProgram`
+/// The authored goal-directed demonstrator corpus: six `logic:ReasoningProgram`
 /// individuals (Peano addition, cons-list membership, three-valued SLG-WFS negation, the
 /// positive/negative order-sorted math-subsort pair, and the function-free reachability
 /// oracle fixture) that `stage-goal-directed` compiles and evaluates through the native

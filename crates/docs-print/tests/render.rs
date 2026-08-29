@@ -198,7 +198,7 @@ fn fixture_bib() -> Vec<u8> {
 
 /// A two-stage build pipeline (`stage-source-load` → `stage-docs-render`), the
 /// minimal fixture that exercises the methodology section's provenance-chain
-/// walk (issue 1404, gap G5). Without a `model.pipeline`, `section_methodology`
+/// walk. Without a `model.pipeline`, `section_methodology`
 /// emits no provenance paragraph at all (honest absence) — this is the fixture
 /// that turns that paragraph ON so the PDF gate has something real to grep.
 fn demo_pipeline() -> DocPipeline {
@@ -332,7 +332,7 @@ fn empty_bib_still_produces_a_valid_pdf() {
     assert!(pdf.starts_with(b"%PDF"));
 }
 
-/// GAP G5 (issue 1404): the PDF must carry the same provenance chain the
+/// The PDF must carry the same provenance chain the
 /// HTML/mdbook site footer does — not just in the Typst SOURCE (which trivially
 /// contains anything the source author wrote), but in the compiled PDF's TEXT
 /// LAYER, i.e. what a PDF text-extraction tool or copy-paste actually recovers.
@@ -392,7 +392,7 @@ fn pdf_text_layer_omits_provenance_chain_without_a_pipeline() {
     );
 }
 
-/// Task 4: the print projection inlines each slice's GUIDE and CHILD documents
+/// The print projection inlines each slice's GUIDE and CHILD documents
 /// before its term material, and the compiled PDF's extractable text layer must
 /// carry their prose, headings, table content, and code — not merely the Typst
 /// source. This is the falsifiable production-surface gate: it greps
@@ -454,7 +454,7 @@ fn pdf_text_layer_carries_guide_and_child_document_content() {
     }
 }
 
-/// Task 4: an intra-corpus cross-document link (guide → child, with an anchor)
+/// An intra-corpus cross-document link (guide → child, with an anchor)
 /// must lower to a resolvable Typst INTERNAL reference (`#link(<label>)`) whose
 /// target label is actually emitted in the PDF, so the reference resolves inside
 /// the document rather than dangling or pointing off-site. A missing label would
@@ -561,7 +561,7 @@ fn synthetic_rich_model() -> DocsModel {
     }
 }
 
-/// Task 5 / item 7: the print projection over the synthetic rich slice yields a PDF
+/// The print projection over the synthetic rich slice yields a PDF
 /// whose extractable TEXT LAYER carries the guide + design-doc prose, headings,
 /// table cells, and code — not merely the Typst source. Greps [`pdf_text_layer`]
 /// (the SAME frame tree `compile_pdf` serializes), so a rendering regression that

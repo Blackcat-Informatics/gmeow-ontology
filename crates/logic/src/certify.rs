@@ -1,32 +1,23 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Static profile / decidability certifier — the Rust mirror of the Python
-//! oracle in `src/gmeow_tools/logic_certify.py`.
+//! Native static profile and decidability certifier for typed evaluation rules.
 //!
-//! # Why a mirror exists
+//! # Authority and deterministic output
 //!
-//! Python remains the *conformance oracle* (slow, simple, correct); this crate
-//! is the *engine* (fast path).  The `oracle ≡ engine` gate (Task 6)
-//! diffs the Python `CertificationVerdict.to_json()` against the Rust
-//! [`CertificationVerdict::to_json_pairs`] for the SAME input.  For that diff to hold,
-//! every field name, every violation string, and the SCC-cycle rendering must be
-//! **byte-identical** to Python.  This module copies the Python check logic and
-//! the diagnostic-string format verbatim (the strings cite
-//! `LOGIC-SEMANTICS.md`, so a failure self-documents on both sides).
+//! This module is the production authority. It consumes the typed canonical rule
+//! IR and emits [`CertificationVerdict`] directly. Field order, violation order,
+//! predicate-cycle rendering, and diagnostic text are deterministic; diagnostics
+//! cite `LOGIC-SEMANTICS.md` so the failed contract is self-documenting.
 //!
-//! The verdict's `evolution_class` is a **Rust-native facet characterization that
-//! goes BEYOND the (retiring) Python `_DECIDABILITY_CLASS` oracle**: it derives the
-//! decidability of the contract's `logic:EvolutionMode` (static / state-transition /
-//! transaction-path), an orthogonal facet the Python oracle never modelled.  It is
-//! always present on the verdict (collapsing a missing facet to `StaticEvolution`),
-//! so the Rust JSON carries five keys to the oracle's four.
+//! The verdict's `evolution_class` derives the decidability of the contract's
+//! `logic:EvolutionMode` (static, state-transition, or transaction-path). It is
+//! always present: a missing facet collapses to `StaticEvolution` at this boundary.
 //!
 //! # The predicate-naming parity normalization (the crux)
 //!
-//! The legacy typed-IR certifier ran over a `LogicProgram` value (the `logic_ir`
-//! typed IR was retired), where each atom carries a *full IRI* predicate
-//! string and an `rdf:type`-folding rule (`_predicate_key`):
+//! Each atom carries a full-IRI predicate string. Dependency analysis uses this
+//! predicate-key normalization:
 //!
 //! * a non-`rdf:type` atom's key is its bare predicate IRI;
 //! * an `rdf:type` atom whose **object** is a non-variable (a named class) folds
@@ -40,23 +31,18 @@
 //!   — so the predicate value is **exactly** the bare IRI the canonical
 //!   IR stores. No prefix expansion, no re-bracketing.
 //! * uses the **arity-3 ternary encoding** `pred(subject, object, world)`, so an
-//!   atom's *object* is `terms()[1]`. This is the slot the `rdf:type` fold keys
-//!   on — identical to the Python IR, where the class sits in `atom.obj`.
+//!   atom's *object* is `terms()[1]`. This is the slot the `rdf:type` fold keys on.
 //! * does **not** special-case `rdf:type`: it emits the predicate IRI raw with
-//!   the class in the object slot, exactly as the IR holds it. So replicating the
-//!   Python `_predicate_key` fold over `terms()[1]` reproduces the Python key
-//!   byte-for-byte.
+//!   the class in the object slot, exactly as the IR holds it.
 //!
-//! Therefore `eval_predicate_key` re-implements Python's `_predicate_key`:
-//! `predicate IRI` from `Atom::predicate()`, and — when the predicate is
+//! Therefore `eval_predicate_key` uses the predicate IRI from
+//! `Atom::predicate()` and — when the predicate is
 //! `rdf:type` and the object term is **not** a variable — the bare object IRI
-//! in the canonical IR. The rendered cycle string `[P -> Q -> P]` is thus
-//! identical on both sides.
+//! in the canonical IR. The rendered cycle string is `[P -> Q -> P]`.
 //!
 //! Negation parity: typed rules retain positive and negation-as-failure body atoms. We
-//! label every `body_negative()` edge `"negative"`, matching the IR's
-//! `LogicAxiom.negated` flag, so the StratifiedNAF SCC analysis sees the same
-//! negative edges as Python.
+//! label every `body_negative()` edge `"negative"`, matching the canonical
+//! negation flag, so the StratifiedNAF SCC analysis sees every negative edge.
 //!
 //! # Soundness and incompleteness
 //!
@@ -64,8 +50,8 @@
 //! because termination is undecidable, a clean certification *proves* membership
 //! in the declared decidable/terminating fragment, but a violation only proves
 //! that the cheap structural sufficient condition does not hold — the program may
-//! still terminate. This is the same accepted tradeoff the Python oracle and
-//! `LOGIC-SEMANTICS.md §Decidability` state.
+//! still terminate. This is the contract stated by
+//! `LOGIC-SEMANTICS.md §Decidability`.
 //!
 //! # Division of labour with the budget governor (honesty invariant)
 //!
@@ -84,27 +70,26 @@ fn certify_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Certify { detail })
 }
 
-// ── Constants (verbatim from logic_certify.py) ───────────────────────────────
+// ── Certification vocabulary and diagnostics ────────────────────────────────
 
 /// The governing design document, cited in messages so failures self-document.
 const DOC: &str = "LOGIC-SEMANTICS.md";
-/// `§Semantic profiles` section heading (quoted verbatim, like Python).
+/// `§Semantic profiles` section heading used by diagnostics.
 const SEC_PROFILES: &str = "§Semantic profiles";
-/// `§Decidability` section heading (quoted verbatim, like Python).
+/// `§Decidability` section heading used by diagnostics.
 const SEC_DECIDABILITY: &str = "§Decidability";
 
 /// The `rdf:type` predicate IRI string used by the canonical IR.
 ///
-/// Mirrors Python `_RDF_TYPE = str(RDF.type)`.
+/// Kept as a bare IRI because canonical evaluation predicates are bare IRIs.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 // ── Verdict ──────────────────────────────────────────────────────────────────
 
 /// The static-certification verdict for a program against a declared profile.
 ///
-/// Mirrors Python `CertificationVerdict`. [`to_json_pairs`](Self::to_json_pairs)
-/// yields fields for a key-for-key, value-for-value match of the Python
-/// `to_json()` dict.
+/// [`to_json_pairs`](Self::to_json_pairs) yields the deterministic public field
+/// order used by serialization and conformance checks.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CertificationVerdict {
     /// The declared profile-id string, e.g. `"PositiveHornProfile"`.
@@ -139,9 +124,7 @@ impl CertificationVerdict {
     ///
     /// Keys are sorted. `evolution_class` sorts AFTER `decidability_class` and
     /// BEFORE `profile_id` (the tuple order below reflects that). `violations` is
-    /// sorted. `evolution_class` is a Rust-native facet characterization beyond
-    /// the (retiring) Python oracle's four keys; the PyO3 surface in `py.rs` and
-    /// the conformance serializer materialise this into the same five keys.
+    /// sorted. The conformance serializer materializes these same five fields.
     pub fn to_json_pairs(&self) -> (bool, &str, &str, &str, Vec<String>) {
         let mut sorted = self.violations.clone();
         sorted.sort();
@@ -173,15 +156,15 @@ struct PosTerm {
 /// body predicate keys, and negative (negation-as-failure) body predicate keys,
 /// plus the S/O position lists the weak-acyclicity analysis consumes.
 ///
-/// The keys are computed by [`eval_predicate_key`] so they match the Python IR's
-/// `_predicate_key` byte-for-byte (see the module docs).
+/// The keys are computed by [`eval_predicate_key`] according to the canonical
+/// normalization described in the module documentation.
 struct RuleView {
     head_keys: Vec<String>,
     positive_body_keys: Vec<String>,
     negative_body_keys: Vec<String>,
     /// Per-rule DL-safety witness: variables used anywhere, and the subset bound
     /// by a positive body atom. `head_key` is the head's predicate key (for the
-    /// diagnostic). Mirrors Python `certify_dl_safe`.
+    /// diagnostic).
     head_key_for_safety: String,
     used_vars: BTreeSet<String>,
     bound_vars: BTreeSet<String>,
@@ -190,8 +173,7 @@ struct RuleView {
     /// S/O positions of the positive body atoms (frontier-edge sources).
     positive_positions: Vec<PosTerm>,
     /// S/O positions of ALL body atoms (positive ∪ negative) — the source set for
-    /// special (existential) edges, mirroring Python `_positions(src_atom)` over
-    /// `rule.body`.
+    /// special (existential) edges over the complete rule body.
     all_body_positions: Vec<PosTerm>,
 }
 
@@ -289,12 +271,10 @@ fn eval_rule_views(rules: &[crate::rule_ir::EvalRule]) -> Vec<RuleView> {
         .collect()
 }
 
-// ── Predicate dependency graph// ── Predicate dependency graph + Tarjan SCC ──────────────────────────────────
+// ── Predicate dependency graph and Tarjan SCC ────────────────────────────────
 
 /// The predicate dependency graph: nodes are predicate keys, edges are
 /// `head ← body` with a `negative` flag for negation-as-failure body literals.
-///
-/// Mirrors Python `PredicateDepGraph`.
 struct DepGraph {
     nodes: BTreeSet<String>,
     /// `(head, body, negative)` triples; `negative == true` ⇔ NAF body literal.
@@ -303,7 +283,7 @@ struct DepGraph {
 
 impl DepGraph {
     /// Build the graph from parsed rule views (one `head ← body` edge per
-    /// (rule, body-atom) pair). Mirrors `PredicateDepGraph.from_program`.
+    /// (rule, body-atom) pair).
     fn from_views(views: &[RuleView]) -> DepGraph {
         let mut nodes: BTreeSet<String> = BTreeSet::new();
         let mut edges: BTreeSet<(String, String, bool)> = BTreeSet::new();
@@ -324,7 +304,7 @@ impl DepGraph {
     }
 
     /// Sorted adjacency `head -> [body, …]` (edge direction head ← body), so the
-    /// Tarjan numbering is deterministic. Mirrors `PredicateDepGraph.successors`.
+    /// Tarjan numbering is deterministic.
     fn successors(&self) -> BTreeMap<String, Vec<String>> {
         let mut adj: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for n in &self.nodes {
@@ -358,7 +338,7 @@ impl DepGraph {
 
 /// Tarjan's strongly-connected-components algorithm (hand-rolled, no deps — no
 /// petgraph). Iterative DFS for deep graphs; node iteration is sorted so the
-/// result is fully deterministic. Mirrors Python `tarjan_scc`.
+/// result is fully deterministic.
 pub fn tarjan_scc(graph: &BTreeMap<String, Vec<String>>) -> Vec<BTreeSet<String>> {
     use crate::dense::DenseInterner;
 
@@ -467,7 +447,7 @@ pub fn tarjan_scc(graph: &BTreeMap<String, Vec<String>>) -> Vec<BTreeSet<String>
 /// `(dst, src, …, dst)` — i.e. `head → body → … → head`. A self-loop renders as
 /// `(dst, dst)` (e.g. `[p -> p]`). The result is always non-empty and always
 /// starts and ends with `dst`, so `render_cycle` can never produce a blank cycle.
-/// BFS over sorted successors. Mirrors Python `_shortest_cycle`.
+/// The shortest return path is selected by BFS over sorted successors.
 fn shortest_cycle(
     adj: &BTreeMap<String, Vec<String>>,
     src: &str,
@@ -496,7 +476,6 @@ fn shortest_cycle(
                         path.reverse(); // now src → … → dst
                         // Close the cycle through the negated head
                         // edge dst ← src: head(dst) → body(src) → … → dst.
-                        // Python: (dst, *path).
                         let mut cycle: Vec<String> = Vec::with_capacity(path.len() + 1);
                         cycle.push(dst.to_owned());
                         cycle.extend(path.iter().cloned());
@@ -510,13 +489,13 @@ fn shortest_cycle(
     None
 }
 
-/// Render a predicate cycle as `[P -> Q -> P]`. Mirrors Python `_render_cycle`.
+/// Render a predicate cycle as `[P -> Q -> P]`.
 fn render_cycle(cycle: &[String]) -> String {
     format!("[{}]", cycle.join(" -> "))
 }
 
 /// Whether the dependency graph is stratifiable, plus the offending cycle if it
-/// is not. Mirrors Python `stratify` (only the parts the checks consume).
+/// is not.
 fn offending_cycle(graph: &DepGraph) -> Option<Vec<String>> {
     let sccs = graph.sccs();
     let mut node_to_scc: HashMap<String, usize> = HashMap::new();
@@ -526,8 +505,8 @@ fn offending_cycle(graph: &DepGraph) -> Option<Vec<String>> {
         }
     }
     let adj = graph.successors();
-    // Iterate negative edges in sorted order (Python sorts `neg`), so the first
-    // offending cycle found is deterministic and matches Python.
+    // Iterate negative edges in sorted order, so the first offending cycle is
+    // deterministic.
     for (head, body) in graph.negative_edges() {
         if node_to_scc.get(&head) == node_to_scc.get(&body)
             && let Some(cycle) = shortest_cycle(&adj, &body, &head)
@@ -733,19 +712,19 @@ fn certify_dl_safe(views: &[RuleView]) -> Vec<String> {
 
 /// Weak acyclicity: no position-graph cycle crosses an existential edge.
 ///
-/// Faithful mirror of Python `certify_weak_acyclicity` (NOT a stub): it builds
-/// the full position dependency graph and fires the special-edge branch whenever
+/// Builds the full position dependency graph and fires the special-edge branch
+/// whenever
 /// a head variable is *not* bound by a positive body atom (a value-inventing
 /// "existential" head variable). For compiler-lowered rules every head
 /// variable is a frontier variable (bound positively, carrying the world var),
 /// so the graph has no special edges and this is vacuously satisfied — but a
-/// pathological input (e.g. a head var bound only under negation) reproduces
-/// Python's special-edge diagnostics byte-for-byte.
+/// pathological input (e.g. a head var bound only under negation) still emits a
+/// deterministic special-edge diagnostic.
 ///
 /// Positions are `(predicate_key, slot)` with slot ∈ {`"S"`,`"O"`} — the logical
 /// subject/object slots (the world slot and the constant predicate are excluded,
-/// see `logical terms`); this matches Python, where the predicate term is never
-/// a variable so no `"P"` position is ever emitted.
+/// see `logical terms`); the predicate term is never a variable, so no `"P"`
+/// position is emitted.
 fn certify_weak_acyclicity(views: &[RuleView]) -> Vec<String> {
     type Pos = (String, &'static str);
     let mut normal_edges: BTreeSet<(Pos, Pos)> = BTreeSet::new();
@@ -765,8 +744,7 @@ fn certify_weak_acyclicity(views: &[RuleView]) -> Vec<String> {
             }
         }
         // Every body position (positive AND negative) — the special-edge source
-        // set when a head variable is value-inventing (mirrors Python `_positions`
-        // over `rule.body`).
+        // set when a head variable is value-inventing, over the complete rule body.
         let all_body_positions: Vec<Pos> = v
             .all_body_positions
             .iter()
@@ -855,7 +833,6 @@ fn certify_guarded(_views: &[RuleView]) -> Vec<String> {
 }
 
 /// Stickiness: vacuous for the existential-free fragment.
-/// Mirrors `certify_sticky`.
 fn certify_sticky(_views: &[RuleView]) -> Vec<String> {
     vec![]
 }
@@ -863,13 +840,10 @@ fn certify_sticky(_views: &[RuleView]) -> Vec<String> {
 // ── Dispatch ─────────────────────────────────────────────────────────────────
 
 /// The decidability-class string emitted per declared profile.
-/// Mirrors Python `_DECIDABILITY_CLASS`.
 ///
-/// NOTE — knowingly-untouched asymmetry: this profile dispatch still has a soft
-/// `_ => "unknown"` fallback arm, whereas [`evolution_decidability_class`] (the
-/// orthogonal Evolution-facet characterization) hard-fails on an unrecognized
-/// value. That asymmetry is out of the Evolution-facet work's scope and is left
-/// deliberately untouched here so it can be flagged rather than silently changed.
+/// Non-preset input maps to `"unknown"`; authored profile references are rejected
+/// by the compiler before certification, and [`certify_views`] records a violation
+/// for any non-preset value supplied by an internal caller.
 pub(crate) fn decidability_class(profile: &str) -> &'static str {
     match profile {
         "PositiveHornProfile" => "terminating/PTIME-data",
@@ -929,12 +903,11 @@ pub fn evolution_decidability_class(evolution: &str) -> gmeow_errors::Result<&'s
 /// undecidable (Church/Turing), a clean verdict proves membership in the declared
 /// decidable/terminating fragment, but a violation only proves that the cheap
 /// structural sufficient condition does not hold — the program may still
-/// terminate (`LOGIC-SEMANTICS.md §Decidability`). This is the Rust mirror of
-/// Python `certify_program`; the verdict, the violation strings, and the SCC
-/// cycle rendering are byte-identical (see module docs for the predicate-naming
-/// normalization that makes this hold).
+/// terminate (`LOGIC-SEMANTICS.md §Decidability`). The verdict, violation strings,
+/// and SCC cycle rendering are deterministic under the predicate normalization
+/// described in the module documentation.
 ///
-/// `profile` matches the Python profile-id strings: `"PositiveHornProfile"`,
+/// `profile` accepts the canonical profile identifiers: `"PositiveHornProfile"`,
 /// `"StratifiedNAFProfile"`, `"WellFoundedProfile"`, `"StableModelProfile"`,
 /// `"ProceduralPrologProfile"`, `"ProbabilisticProfile"`.
 ///
@@ -994,7 +967,7 @@ fn certify_views(
         }
     }
 
-    // Deterministic: sort (Python `tuple(sorted(violations))`).
+    // Deterministic public ordering.
     violations.sort();
     let certified = violations.is_empty();
     Ok(CertificationVerdict {

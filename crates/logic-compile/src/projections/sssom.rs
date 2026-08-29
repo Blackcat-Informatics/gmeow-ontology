@@ -209,7 +209,7 @@ pub(crate) fn sssom_band(predicate: &str) -> (CorrespondenceRelation, MorphismCl
 /// Build one preservation row per native alignment cell correspondence, running the
 /// overclaim gate over each emitted predicate. The typed `(relation, morphism class,
 /// morphism kind)` is CONSUMED from the materialized correspondence set (`lookup`) — the
-/// single source of truth — not re-derived inline here (F5 Task 2).
+/// single source of truth — not re-derived inline here.
 fn build_rows_and_ledger(
     sources: &SssomSources,
     lookup: &CorrespondenceLookup,

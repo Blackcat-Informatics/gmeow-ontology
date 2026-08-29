@@ -398,7 +398,7 @@ fn prose_annotation_rides_by_reference() {
 
 #[test]
 fn external_iri_reference_rides_by_reference() {
-    // G11 (issue 1579): an IRI under NO registered namespace — a realistic external URL
+    // G11: an IRI under NO registered namespace — a realistic external URL
     // like an account's `gmeow:accountServiceHomepage <https://mastodon.social>` — no
     // longer hard-fails as `lang:GmnUncoveredTerm`. It rides LOSSLESSLY by reference as an
     // `x_<hash>` token, its full IRI carried out-of-band in the reference table, mirroring
@@ -500,7 +500,7 @@ fn distinct_external_iris_produce_distinct_tokens_and_models() {
     );
 }
 
-// ── 10. Each new Task-5 qualifier slot at least once (m, ek, bd, it) ───────────────
+// ── 10. Each qualifier slot at least once (m, ek, bd, it) ─────────────────────────
 
 #[test]
 fn every_task5_qualifier_slot_round_trips() {

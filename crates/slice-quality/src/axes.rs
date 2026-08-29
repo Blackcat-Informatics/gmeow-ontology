@@ -977,7 +977,7 @@ fn strip_non_executing_test_mentions(corpus: &str) -> String {
 }
 
 /// The meta-level reasoning-carrier class excluded from the testing-axis denominator
-/// (issue 1579). A `logic:PropertyCharacteristicAssertion` is not a competency-test
+/// A `logic:PropertyCharacteristicAssertion` is not a competency-test
 /// target — it is a carrier record asserting a characteristic (e.g. functionality) of
 /// a property for the reasoner to consume. Competency/structural/example cells target
 /// domain terms, not characteristic carriers, so counting carriers as "untested" only
@@ -990,7 +990,7 @@ const TESTING_EXCLUDED_CARRIER_TYPE: &str =
 /// Carrier records (`logic:PropertyCharacteristicAssertion`) are reasoning assertions,
 /// not domain terms competency tests are written against; they are dropped from the
 /// testing-axis denominator so a slice is not penalised for "untested" carriers
-/// (issue 1579). The exclusion is deliberately **local to this axis** — `slice_terms`
+/// The exclusion is deliberately **local to this axis** — `slice_terms`
 /// and every other axis still count these records (grounding, documentation, etc.
 /// legitimately assess them).
 fn is_testing_excluded_carrier(ctx: &ScoreContext, iri: &str) -> bool {
@@ -1009,7 +1009,7 @@ fn is_testing_excluded_carrier(ctx: &ScoreContext, iri: &str) -> bool {
 /// Meta-level reasoning-carrier records (`logic:PropertyCharacteristicAssertion`) are
 /// excluded from both the denominator and the untested-term findings: competency tests
 /// target domain terms, not characteristic carriers, so counting carriers would only
-/// dilute this ratchet-gated coverage score (issue 1579). The exclusion is scoped to
+/// dilute this ratchet-gated coverage score. The exclusion is scoped to
 /// this axis; `slice_terms` and other axes still see the carriers.
 fn testing_axis(ctx: &ScoreContext) -> AxisScore {
     let scoreable: Vec<&String> = ctx
@@ -1519,7 +1519,7 @@ fn flagship_counterexample_depth_axis(ctx: &ScoreContext) -> AxisScore {
     AxisScore { score, findings }
 }
 
-// ── Axis: GMN-1 coverage (Task 7 — the F1 mnemomorphic-domain convergence contract) ─
+// ── Axis: GMN-1 mnemomorphic-domain convergence coverage ────────────────────────
 
 /// Walk `slice_dir`'s components to the repo root — the directory whose child is the
 /// FIRST `slices` component. The same path-prefix discipline the plan's own grounding
@@ -1539,7 +1539,7 @@ pub(crate) fn repo_root_of(slice_dir: &Path) -> Option<std::path::PathBuf> {
 }
 
 /// Load the shared `gmeow:gmnDictV3` dictionary from the canonical
-/// `slices/grounding/lang/module.ttl` — the SAME dictionary the Task-6 round-trip
+/// `slices/grounding/lang/module.ttl` — the SAME dictionary the GMN-1 round-trip
 /// gate (`crates/pipeline/src/stages/gmn1_gate.rs`) loads, so this axis's coverage
 /// measurement never diverges against a second, locally-improvised dictionary.
 fn gmn1_dictionary(root: &std::path::Path) -> Option<GmnDictionary> {
@@ -1551,7 +1551,7 @@ fn gmn1_dictionary(root: &std::path::Path) -> Option<GmnDictionary> {
 
 /// The slice's own GMN-0 source surface: `module.ttl` plus every (non-recursive)
 /// `examples/*.ttl` — module + examples ONLY, never `tests/`, mirroring both this
-/// axis's own `skos:definition` and the Task-6 grounding gate's identical scope.
+/// axis's own `skos:definition` and the grounding gate's identical scope.
 ///
 /// Key order reproduces the sorted-path order the on-disk predecessor produced
 /// (`examples/…` before `module.ttl`), and the `examples/` sweep stays SINGLE-LEVEL,
@@ -1567,7 +1567,7 @@ fn gmn1_coverage_source_documents<'a>(ctx: &'a ScoreContext<'a>) -> Vec<(&'a str
 }
 
 /// GMN-1 coverage: the fraction of a slice's own GMN-0 normal-form vocabulary
-/// (module + examples) the Task-6 codec can losslessly round-trip.
+/// (module + examples) the GMN-1 codec can losslessly round-trip.
 ///
 /// Reuses the codec's OWN term encoder via [`measure_coverage`] — never a duplicated,
 /// possibly-divergent notion of "coverable" — so this axis and the grounding
@@ -2501,7 +2501,7 @@ ASK {
     fn testing_axis_excludes_property_characteristic_assertion_carriers() {
         // A slice with two domain terms (one exercised by a test cell, one not) plus
         // two meta-level `logic:PropertyCharacteristicAssertion` carrier records. The
-        // carriers must NOT count in the testing-axis denominator (issue 1579): with
+        // carriers must NOT count in the testing-axis denominator: with
         // them the score would be 1/4, without them it is 1/2.
         let ttl = "\
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
