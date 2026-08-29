@@ -965,9 +965,9 @@ mod tests {
     // A `logic:declaresColumn` node MISSING any of the three required fields
     // (`columnVariable`, `columnTermKind`, `columnBinding`) must HARD-FAIL with
     // a precise per-field error that names the missing predicate and the column
-    // node.  Before the C5 fix the required fields were basic-graph-pattern
-    // triples in the SPARQL query, so a missing field silently dropped that
-    // column's solution row — the contract shrank without any diagnostic.
+    // node. The SPARQL query reads each required field independently, so a
+    // missing field reaches the explicit validation below instead of silently
+    // dropping the column's solution row and shrinking the contract.
 
     #[test]
     fn rejects_result_shape_column_missing_term_kind() {
@@ -1038,8 +1038,8 @@ mod tests {
     #[test]
     fn well_formed_multi_column_shape_still_parses() {
         // A complete multi-column shape (all three required fields present on
-        // every column) must still parse to the expected canonical columns after
-        // the C5 OPTIONAL rewrite.  Regression guard for the positive path.
+        // every column) must parse to the expected canonical columns. Independent
+        // field reads preserve both complete rows; this guards the positive path.
         let ttl = "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\

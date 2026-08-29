@@ -1595,8 +1595,8 @@ mod tests {
     /// Two STRUCTURALLY-IDENTICAL clauses `p(X)`, one declaring `X:Nat` and one `X:Real`. They
     /// share a `Formula::content_key` (a `logic:variableSort` is harvested separately, not part
     /// of the clause AST), so ONLY the per-clause occurrence-index disambiguation keeps their
-    /// scopes distinct. Proves consequence #2 of the residual bug is closed: each clause lowers
-    /// under its OWN sort, never one scope's declarations bleeding into the other's `X`.
+    /// scopes distinct. Each clause lowers under its OWN sort; one scope's declarations never
+    /// bleed into the other clause's `X`.
     const DUP_CLAUSES_DISTINCT_SORTS_TTL: &str = "\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
         @prefix ex: <https://example.org/goal-directed-test/> .\n\
@@ -1625,8 +1625,8 @@ mod tests {
         let (prog, diags) =
             gmeow_logic_compile::frontend::parse_logic_str(DUP_CLAUSES_DISTINCT_SORTS_TTL, None)
                 .expect("parse succeeds");
-        // Consequence #1 closed: the two identical clauses are ACCEPTED, not falsely rejected
-        // by `ReasoningProgramIr::new`'s intra-scope conflict guard.
+        // The two identical clauses are accepted rather than falsely rejected by
+        // `ReasoningProgramIr::new`'s intra-scope conflict guard.
         assert!(
             diags
                 .iter()
@@ -2076,10 +2076,10 @@ mod tests {
         assert_eq!(verdict_of(&atom_of("c")), "true", "move to lost d ⇒ won");
         assert_eq!(verdict_of(&atom_of("d")), "false", "no move ⇒ lost");
 
-        // #5: the rule clause `win(X) :- move(X,Y), not win(Y)` lowers to a DETERMINISTIC
-        // conjunct order — the positive `move` literal (content_key `ATOM…`) always precedes the
+        // The rule clause `win(X) :- move(X,Y), not win(Y)` lowers to a deterministic conjunct
+        // order: the positive `move` literal (content_key `ATOM…`) always precedes the
         // negation-as-failure `not win` literal (content_key `NOT…`), regardless of the authored
-        // RDF `logic:and` object order (which carries no index). Assert the ORDER structurally
+        // RDF `logic:and` object order (which carries no index). Assert the order structurally
         // (robust to the exact `?n` metavariable numbering).
         let rule = win
             .clauses
@@ -2322,7 +2322,7 @@ mod tests {
         );
     }
 
-    // ── #6: distinct authored IRIs sharing a local name mint COLLISION-FREE resource nodes ──
+    // ── Distinct authored IRIs sharing a local name mint collision-free resource nodes ──
 
     #[test]
     fn distinct_authored_iris_with_same_local_name_project_to_distinct_nodes() {
@@ -2374,7 +2374,7 @@ mod tests {
         );
     }
 
-    // ── #8: an order-sorted binary program is EXCLUDED from the unsorted forward oracle ──
+    // ── An order-sorted binary program is excluded from the unsorted forward oracle ──
 
     const SORTED_BINARY_REASONING_PROGRAM_TTL: &str = "\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
@@ -2438,7 +2438,7 @@ mod tests {
         );
     }
 
-    // ── #7: a constant carrying MULTIPLE asserted sorts binds when ANY of them satisfies ──
+    // ── A constant carrying multiple asserted sorts binds when any of them satisfies ──
 
     const MULTI_TYPE_CONSTANT_REASONING_PROGRAM_TTL: &str = "\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
