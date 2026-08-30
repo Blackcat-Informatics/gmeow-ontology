@@ -12,6 +12,6 @@ GhpRsq-Base-OID: d56923da89375e36f249abc3c0dd02455f6a036e
 GhpRsq-Head-Ref: agent/issue-1670-stage-1
 GhpRsq-Head-OID: 860fd4c396c8d592134e43c77b27012e145b0f66
 GhpRsq-Result-Tree: 0f0f66ce5ecd60435c634921609932a1b5bf6a43
-GhpRsq-Result-Commit: 37d4182dc23d3396c8a3f19fdec462b3486c2d49
+GhpRsq-Result-Commit: a4ce50be0c7a3aa33863a2bd6283cf8743e713de
 GhpRsq-Parent-Hashes: 860fd4c396c8d592134e43c77b27012e145b0f66
 GhpRsq-Squash-Notes-SHA256: 3a0d6fa8f2c0a176b7c1aa75ca7e614ff272e596e3d610bf8bba122ce3d81688
