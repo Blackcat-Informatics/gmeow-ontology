@@ -304,7 +304,15 @@ fn accepts_narrow_technical_and_governance_controls() {
             "The RDF IRI is <https://example.test/ns#42>.\n",
         ),
     );
-    repo.write("assets/theme.css", ":root { color: #123456; }\n");
+    repo.write(
+        "assets/theme.css",
+        concat!(
+            ":root { color: #123; }\n",
+            ".a { background: #1234; }\n",
+            ".b { border-color: #123456; }\n",
+            ".c { outline-color: #12345678; }\n",
+        ),
+    );
     repo.write(
         "AGENTS.md",
         "Read both automated CodeRabbit and human reviews before finalization.\n",
@@ -312,8 +320,11 @@ fn accepts_narrow_technical_and_governance_controls() {
     repo.write(
         "metadata/references.ttl",
         concat!(
-            "<urn:citation> rdfs:label ",
+            "<urn:c1> rdfs:label ",
             "\"GitHub PR review comment discussion_r123 by CodeRabbit\" .\n",
+            "<urn:c2> rdfs:label ",
+            "\"GitHub comment issuecomment-456 by CodeRabbit\" .\n",
+            "<urn:c3> gmeow:authority \"CodeRabbit\" .\n",
         ),
     );
     repo.write(
@@ -359,6 +370,17 @@ fn contextual_controls_do_not_create_general_exemptions() {
         repo.write(path, body);
         assert_lint(repo.path(), 1);
     }
+}
+
+#[test]
+fn cargo_lock_is_excluded_from_the_toml_scan() {
+    // Cargo.lock is a resolver product: the TOML leg excludes it by name. Commit
+    // it as origin so only the surface scanners (not the branch-added leg) apply,
+    // proving the exclusion rather than the missing-remote skip.
+    let repo = FixtureRepo::new();
+    repo.write("Cargo.lock", "# pin retained for issue 42 compatibility\n");
+    repo.commit_as_origin("Cargo.lock");
+    assert_lint(repo.path(), 0);
 }
 
 #[test]

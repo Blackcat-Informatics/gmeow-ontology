@@ -14,7 +14,7 @@ gmeow:mapsetNarrative a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/narrative" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Narrative reference frame and creative-work alignments to schema.org and Wikidata. OntoMedia/GOLEM/TEI/LTO projections deferred to follow-up issues." .
+    gmeow:setComment "Narrative reference frame and creative-work alignments to schema.org and Wikidata." .
 
 schema:Book skos:closeMatch gmeow:BookRelease {|
     gmeow:sssomFile "gmeow-narrative.sssom.tsv" ;
