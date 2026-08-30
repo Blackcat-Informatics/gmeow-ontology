@@ -21,9 +21,10 @@ use session_common::*;
 /// change to that public runtime contract moves this pin so existing checkpoints cannot
 /// claim compatibility without an explicit version decision.
 /// The current value deliberately includes the source bytes after process-history comments
-/// were replaced by the executable invariants those comments described.
+/// were replaced by the executable invariants those comments described and after the
+/// gmeow-logic public rustdoc intra-doc links were corrected in place.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "7ace162c860f40bb7164ad506ea41b4a755fb4e1f29cbce7294d0edf6ea4e1d1";
+    "4e50404342bcee7729ce99f3b13e32244776545b495e9755b6b3785cbcf6c457";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below.
 ///
@@ -33,7 +34,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// so those seven axes contribute eight fields. Any change must move this pin and
 /// refuse restoration of a stale checkpoint.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "c2fae4b82d7ce276ddf8afda26b2312be044df229b3a6dbb87eeada758afbe9f";
+    "4287e07f56d4cdd3e2123c9b70d963ee1693e1832142af177dbacaf186a7fd64";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
