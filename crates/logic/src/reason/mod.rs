@@ -1518,13 +1518,13 @@ pub fn reason_program(
 /// agent-influenced input is genuinely chase-bounded, not relabeled after a full run.
 ///
 /// * `max_steps == None` (or a ceiling at/above the true closure) is byte-identical to the
-///   ungoverned evaluation: the forward chase, the n-ary head chase, and the DL post-pass
-///   all run, and the folded verdict is unchanged (`BudgetStatus::Ok`).
+///   ungoverned evaluation: the forward chase, the n-ary head chase, the DL post-pass, and
+///   typed modal evaluation all run, and the folded verdict is unchanged (`BudgetStatus::Ok`).
 /// * A ceiling BELOW the true closure size cuts the forward chase mid-flight and returns the
 ///   sound PARTIAL closure on a non-conclusive [`EvaluationStatus::BudgetExhausted`] verdict.
-///   The n-ary head chase and the DL post-pass are SKIPPED on a cut — running either over a
-///   truncated closure would smuggle uncharged derivations past the governor — and any
-///   formula-lowering residue is still disclosed in the preservation claim.
+///   The n-ary head chase, the DL post-pass, and modal evaluation are SKIPPED on a cut —
+///   running any over a truncated closure would smuggle uncharged derivations past the
+///   governor — and any formula-lowering residue is still disclosed in the preservation claim.
 ///
 /// # Errors
 ///
@@ -1567,6 +1567,7 @@ pub(crate) fn reason_program_budgeted(
     }
 
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
+    augment_inferred_with_modal(&mut inferred)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
 
@@ -3768,6 +3769,41 @@ mod tests {
         assert_eq!(
             inferred, before,
             "a malformed frame must publish no partial modal verdicts"
+        );
+    }
+
+    #[test]
+    fn reason_program_routes_modal_evaluation_through_the_native_closure() {
+        // `reason_program` (the program-carrying path the slicetest competency-question
+        // projection and the conjecture lane run over) must evaluate typed modal frames on its
+        // completed closure, exactly like `reason_all_certified`/`reason_all_budgeted` —
+        // otherwise a completed program result could silently omit modal verdicts. An empty
+        // program carries the modal frame purely as EDB, so this exercises the same shared
+        // kernel through the program entry point.
+        let program = LogicProgram::new(vec![], vec![], vec![], None);
+        let store = dataset(modal_fixture_quads("https://example.org/modal", true));
+        let result =
+            reason_program(&program, store.as_ref()).expect("program reasoner evaluates the frame");
+
+        let failure = result
+            .inferred()
+            .iter()
+            .find(|axiom| axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS)
+            .expect("necessity failure is in the program closure");
+        assert_eq!(failure.world, "https://example.org/modal/w0");
+        assert_eq!(failure.subject, "https://example.org/modal/F");
+        assert_eq!(failure.object, "<https://example.org/modal/B>");
+        assert_eq!(
+            failure.rule_name.as_deref(),
+            Some(crate::modal::MODAL_RULE_IRI)
+        );
+
+        assert!(
+            result
+                .inferred()
+                .iter()
+                .any(|axiom| axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD),
+            "the counterexample world must reach the program closure too"
         );
     }
 }
