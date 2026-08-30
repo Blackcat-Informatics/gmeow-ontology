@@ -96,3 +96,5 @@ rustc-ice-*.txt
 .agents/skills/managed-toolchain/
 .agents/skills/modern-web-guidance/
 .agents/skills/safe-git-workflow/
+
+.coding-ethos/code-intel-v2/

@@ -165,7 +165,11 @@ fn all_manifests(slices_dir: &Path) -> Result<Vec<PathBuf>> {
 /// the floor here makes the explicit validator producer fail closed if an
 /// environmental fault silently shrinks its input corpus; tests exercise the
 /// detectors with synthetic inputs and never rebuild the repository corpus.
-fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
+fn require_non_vacuous_corpus(
+    project_root: &Path,
+    declared: &BTreeSet<String>,
+    docs_terms: &BTreeSet<String>,
+) -> Result<()> {
     let shape_files = purrdf::shapes::shape_union::shape_files(project_root)
         .map_err(|e| Diag::of_kind(crate::error::Io { detail: e }))?;
     if shape_files.is_empty() {
@@ -176,7 +180,6 @@ fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
         }));
     }
 
-    let declared = declared_ontology_terms(project_root)?;
     if declared.len() <= 50 {
         return Err(Diag::of_kind(crate::error::Io {
             detail: format!(
@@ -187,7 +190,6 @@ fn require_non_vacuous_corpus(project_root: &Path) -> Result<()> {
         }));
     }
 
-    let docs_terms = docs_gmeow_terms(project_root)?;
     if docs_terms.is_empty() {
         return Err(Diag::of_kind(crate::error::Io {
             detail: "authoring-integrity: docs gmeow: term-reference floor 1 not met (got 0) \
@@ -230,8 +232,10 @@ pub fn authoring_integrity_findings(
     project_root: &Path,
     slices_dir: &Path,
 ) -> Result<Vec<Finding>> {
-    require_non_vacuous_corpus(project_root)?;
-    let declared = declared_ontology_terms(project_root)?;
+    let term_corpus = docs_term_corpus(project_root)?;
+    let docs = read_docs_documents(project_root)?;
+    let docs_terms = docs_gmeow_terms_from_documents(&docs);
+    require_non_vacuous_corpus(project_root, &term_corpus.declared, &docs_terms)?;
     let mut findings = shape_iri_collision_findings(project_root)?;
     findings.extend(graft_isolation_findings(project_root)?);
     findings.extend(slice_discipline_findings(slices_dir)?);
@@ -240,8 +244,15 @@ pub fn authoring_integrity_findings(
     findings.extend(profile_closure_findings(project_root)?);
     findings.extend(catalog_closure_findings(project_root)?);
     findings.extend(module_iri_findings(project_root)?);
-    findings.extend(docs_undeclared_findings(project_root)?);
-    findings.extend(example_undeclared_term_findings(project_root, &declared)?);
+    findings.extend(docs_undeclared_findings_from_documents(
+        project_root,
+        &docs,
+        &term_corpus.ownership,
+    )?);
+    findings.extend(example_undeclared_term_findings(
+        project_root,
+        &term_corpus.declared,
+    )?);
     findings.extend(slice_source_untagged_findings(project_root)?);
     findings.extend(nonslice_authored_untagged_findings(project_root)?);
     findings.extend(seam_registry_drift_findings(project_root, slices_dir)?);
@@ -901,21 +912,7 @@ fn vocabulary_source_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
 /// undeclared predicate a fixture/example uses is the silent typo SHACL leaves
 /// inert.
 pub fn declared_ontology_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
-    use purrdf::slice::rdf_query::DatasetAccumulator;
-    let mut acc = DatasetAccumulator::new();
-    for source in vocabulary_source_files(repo_root)? {
-        let bytes = std::fs::read(&source).map_err(|e| io_err(&source, &e))?;
-        acc.add_turtle(&bytes, &source.display().to_string())
-            .map_err(|e| parse_err(&source, &e.to_string()))?;
-    }
-    let ds = acc
-        .freeze()
-        .map_err(|e| parse_err(repo_root, &e.to_string()))?;
-    Ok(
-        crate::lint::declared_terms_dataset(ds.inner(), &minimal_lint_cfg())
-            .into_iter()
-            .collect(),
-    )
+    Ok(docs_term_corpus(repo_root)?.declared)
 }
 
 /// Every GMEOW-namespace vocabulary term used in a dataset (any triple position),
@@ -1194,6 +1191,24 @@ fn docs_md_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
     Ok(out)
 }
 
+/// Read the sorted top-level documentation corpus once for all docs authority checks.
+fn read_docs_documents(repo_root: &Path) -> Result<Vec<(PathBuf, String)>> {
+    docs_md_files(repo_root)?
+        .into_iter()
+        .map(|path| {
+            let text = std::fs::read_to_string(&path).map_err(|e| io_err(&path, &e))?;
+            Ok((path, text))
+        })
+        .collect()
+}
+
+/// Collect every referenced GMEOW term from an already-loaded documentation corpus.
+fn docs_gmeow_terms_from_documents(docs: &[(PathBuf, String)]) -> BTreeSet<String> {
+    docs.iter()
+        .flat_map(|(_, text)| extract_gmeow_terms_from_markdown(text))
+        .collect()
+}
+
 #[derive(Debug, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 struct DocsAuthorityFile {
@@ -1221,6 +1236,12 @@ struct DocsTermOwnership {
     owners: BTreeSet<String>,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+struct DocsTermCorpus {
+    declared: BTreeSet<String>,
+    ownership: DocsTermOwnership,
+}
+
 /// Canonical authored sources that may own a documentation-visible GMEOW term.
 /// Generated projections are deliberately absent: authority comes from a typed
 /// authored subject and its explicit `rdfs:isDefinedBy`, never from a generated
@@ -1240,60 +1261,65 @@ fn docs_authority_source_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-/// Build `term -> exact owning IRIs` from typed GMEOW subjects and their authored
-/// `rdfs:isDefinedBy` assertions. A small number of terms are deliberately declared by
+/// Parse the authored term corpus once, deriving both the declared-term set and
+/// `term -> exact owning IRIs`. A small number of terms are deliberately declared by
 /// more than one authored vocabulary; retaining the exact set lets a document import
 /// the authority whose declaration it uses without inventing a repository-global winner.
-fn docs_term_ownership(repo_root: &Path) -> Result<DocsTermOwnership> {
-    use purrdf::slice::rdf_query::DatasetAccumulator;
-
-    let mut acc = DatasetAccumulator::new();
-    for source in docs_authority_source_files(repo_root)? {
-        let bytes = std::fs::read(&source).map_err(|e| io_err(&source, &e))?;
-        acc.add_turtle(&bytes, &source.display().to_string())
-            .map_err(|e| parse_err(&source, &e.to_string()))?;
-    }
-    let dataset = acc
-        .freeze()
-        .map_err(|e| parse_err(repo_root, &e.to_string()))?;
+fn docs_term_corpus(repo_root: &Path) -> Result<DocsTermCorpus> {
+    let vocabulary_sources: BTreeSet<PathBuf> =
+        vocabulary_source_files(repo_root)?.into_iter().collect();
+    let lint_config = minimal_lint_cfg();
+    let mut declared = BTreeSet::new();
     let mut typed_terms = BTreeSet::new();
-    dataset.for_each_quad(|subject, predicate, object, _graph| {
-        if predicate == RDF_TYPE
-            && let Subject::Named(term) = &subject
-            && term.starts_with(GMEOW_NS)
-            && matches!(object, Object::Named(_))
-        {
-            typed_terms.insert(term.clone());
+    let mut assertions = Vec::new();
+    for source in docs_authority_source_files(repo_root)? {
+        let dataset = parse_ttl(&source)?;
+        if vocabulary_sources.contains(&source) {
+            declared.extend(crate::lint::declared_terms_dataset(
+                dataset.inner(),
+                &lint_config,
+            ));
         }
-    });
-
+        dataset.for_each_quad(|subject, predicate, object, _graph| {
+            if predicate == RDF_TYPE
+                && let Subject::Named(term) = &subject
+                && term.starts_with(GMEOW_NS)
+                && matches!(object, Object::Named(_))
+            {
+                typed_terms.insert(term.clone());
+            }
+            if predicate == RDFS_IS_DEFINED_BY
+                && let Subject::Named(term) = &subject
+            {
+                assertions.push((
+                    term.clone(),
+                    match object {
+                        Object::Named(owner) => Some(owner.clone()),
+                        _ => None,
+                    },
+                    source.clone(),
+                ));
+            }
+        });
+    }
     let mut candidates: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut malformed = BTreeSet::new();
-    dataset.for_each_quad(|subject, predicate, object, _graph| {
-        if predicate != RDFS_IS_DEFINED_BY {
-            return;
+    for (term, owner, source) in assertions {
+        if !typed_terms.contains(&term) {
+            continue;
         }
-        let Subject::Named(term) = &subject else {
-            return;
-        };
-        if !typed_terms.contains(term) {
-            return;
-        }
-        match object {
-            Object::Named(owner) => {
-                candidates
-                    .entry(term.clone())
-                    .or_default()
-                    .insert(owner.clone());
+        match owner {
+            Some(owner) => {
+                candidates.entry(term).or_default().insert(owner);
             }
-            _ => {
-                malformed.insert(term.clone());
+            None => {
+                malformed.insert((term, source));
             }
         }
-    });
-    if let Some(term) = malformed.into_iter().next() {
+    }
+    if let Some((term, source)) = malformed.into_iter().next() {
         return Err(parse_err(
-            &repo_root.join(DOCS_TERM_AUTHORITY_PATH),
+            &source,
             &format!("typed GMEOW term <{term}> has a non-IRI rdfs:isDefinedBy authority"),
         ));
     }
@@ -1303,9 +1329,18 @@ fn docs_term_ownership(repo_root: &Path) -> Result<DocsTermOwnership> {
         ownership.owners.extend(owners.iter().cloned());
         ownership.by_term.insert(term, owners);
     }
-    Ok(ownership)
+    Ok(DocsTermCorpus {
+        declared,
+        ownership,
+    })
 }
 
+/// Discover exact documentation term ownership from the shared authored corpus.
+fn docs_term_ownership(repo_root: &Path) -> Result<DocsTermOwnership> {
+    Ok(docs_term_corpus(repo_root)?.ownership)
+}
+
+/// Return the first repeated manifest value in deterministic input order.
 fn duplicate_value(values: &[String]) -> Option<&str> {
     let mut seen = BTreeSet::new();
     values
@@ -1418,6 +1453,7 @@ fn parse_docs_authority_text(
     Ok(authorities)
 }
 
+/// Parse the authority manifest against the already-discovered docs and owners.
 fn docs_authorities(
     repo_root: &Path,
     docs: &[PathBuf],
@@ -1432,14 +1468,12 @@ fn docs_authorities(
 /// non-vacuity guard can prove the fence/inline extractor is not silently
 /// yielding an empty set (a broken regex would otherwise pass vacuously).
 pub fn docs_gmeow_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
-    let mut out = BTreeSet::new();
-    for md in docs_md_files(repo_root)? {
-        let text = std::fs::read_to_string(&md).map_err(|e| io_err(&md, &e))?;
-        out.extend(extract_gmeow_terms_from_markdown(&text));
-    }
-    Ok(out)
+    Ok(docs_gmeow_terms_from_documents(&read_docs_documents(
+        repo_root,
+    )?))
 }
 
+/// Compare an already-loaded docs corpus with its exact local authority map.
 fn detect_docs_undeclared_terms(
     docs: &[(PathBuf, String)],
     authorities: &BTreeMap<String, DocsDocumentAuthority>,
@@ -1500,23 +1534,28 @@ fn detect_docs_undeclared_terms(
     findings
 }
 
+/// Evaluate docs authority from an already-loaded corpus, parsing each ownership source once.
+fn docs_undeclared_findings_from_documents(
+    repo_root: &Path,
+    docs: &[(PathBuf, String)],
+    ownership: &DocsTermOwnership,
+) -> Result<Vec<Finding>> {
+    let paths: Vec<PathBuf> = docs.iter().map(|(path, _)| path.clone()).collect();
+    let authorities = docs_authorities(repo_root, &paths, ownership)?;
+    Ok(detect_docs_undeclared_terms(
+        docs,
+        &authorities,
+        ownership,
+        repo_root,
+    ))
+}
+
 /// R3e: every user-copyable `gmeow:` reference is authorized by its own document's
 /// explicit import or declaration. There is no repository-global or transitive fallback.
 pub fn docs_undeclared_findings(repo_root: &Path) -> Result<Vec<Finding>> {
-    let paths = docs_md_files(repo_root)?;
+    let docs = read_docs_documents(repo_root)?;
     let ownership = docs_term_ownership(repo_root)?;
-    let authorities = docs_authorities(repo_root, &paths, &ownership)?;
-    let mut docs = Vec::with_capacity(paths.len());
-    for path in paths {
-        let text = std::fs::read_to_string(&path).map_err(|e| io_err(&path, &e))?;
-        docs.push((path, text));
-    }
-    Ok(detect_docs_undeclared_terms(
-        &docs,
-        &authorities,
-        &ownership,
-        repo_root,
-    ))
+    docs_undeclared_findings_from_documents(repo_root, &docs, &ownership)
 }
 
 // ── R9: registered minting namespaces ────────────────────────────────────────
