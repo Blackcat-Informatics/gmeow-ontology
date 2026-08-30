@@ -481,8 +481,16 @@ use session_common::*;
 /// pre-modal structured-DL boundary. `native_contract_hash()` folds both `modal.rs` and
 /// `reason/mod.rs`, so these policy/documentation edits move the source-content identity while
 /// leaving every modal evaluation and reasoning verdict unchanged.
+/// Re-blessed once more for routing the shared bounded typed-modal kernel through
+/// `reason_program_budgeted` — the program-carrying `reason_program` /
+/// `reason_program_closure_dataset` closure now applies `augment_inferred_with_modal`
+/// exactly as `reason_all_certified` / `reason_all_budgeted` already do (plus its doc
+/// correction and an added `#[cfg(test)]` routing test). `native_contract_hash()`
+/// `include_str!`s the whole of `reason/mod.rs`, so the source-content identity folded
+/// into this descriptor moves. The pass is inert on the fixed edge-only input (which
+/// carries no modal frame), so no reasoning verdict changes.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "c9e5efff3b8e77cc3a12652d7934b561960d5ec5be4418c130d2db674c54f3ef";
+    "642be0d7224dce1d7808eb481e871ed53d5d69aedf3a1b038bd7b6a7c34d2174";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below. A drift here is a
 /// deliberate session-identity contract bump (it also moves whenever the engine, program,
@@ -724,8 +732,14 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// described by the engine golden above. The forward contract hash is one of the seven folded
 /// session-identity axes; this fixed edge-only input still carries no modal frame and its verdict
 /// remains unchanged.
+/// Re-blessed once more for routing the shared typed-modal kernel through
+/// `reason_program_budgeted` (see the engine-descriptor golden above): the forward
+/// contract hash `include_str!`s the whole of `reason/mod.rs` and is one of the seven
+/// folded session-identity axes, so this fixed edge-only input's session identity moves
+/// with the added call / doc / test even though it carries no modal frame and its
+/// reasoning verdict is unchanged.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "6fb7f43a55104c3c367417b9850f23eb48e25a47e866ff2663f89a84bb39f3af";
+    "eeef1ca0c097ced9dc254deefa2e6117ac86a59eb2b05276d0138aa463c6ce35";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {
