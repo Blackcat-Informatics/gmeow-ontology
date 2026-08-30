@@ -912,7 +912,30 @@ fn vocabulary_source_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
 /// undeclared predicate a fixture/example uses is the silent typo SHACL leaves
 /// inert.
 pub fn declared_ontology_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
-    Ok(docs_term_corpus(repo_root)?.declared)
+    vocabulary_declared_terms(repo_root)
+}
+
+/// Declared GMEOW vocabulary terms parsed from the merged `vocabulary_source_files`
+/// alone. This is the exact corpus behind the public [`declared_ontology_terms`]: its
+/// result and failure surface depend only on the vocabulary sources, never on the
+/// broader docs-authority sources that [`docs_term_corpus`] additionally parses for
+/// ownership.
+fn vocabulary_declared_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
+    use purrdf::slice::rdf_query::DatasetAccumulator;
+    let mut acc = DatasetAccumulator::new();
+    for source in vocabulary_source_files(repo_root)? {
+        let bytes = std::fs::read(&source).map_err(|e| io_err(&source, &e))?;
+        acc.add_turtle(&bytes, &source.display().to_string())
+            .map_err(|e| parse_err(&source, &e.to_string()))?;
+    }
+    let ds = acc
+        .freeze()
+        .map_err(|e| parse_err(repo_root, &e.to_string()))?;
+    Ok(
+        crate::lint::declared_terms_dataset(ds.inner(), &minimal_lint_cfg())
+            .into_iter()
+            .collect(),
+    )
 }
 
 /// Every GMEOW-namespace vocabulary term used in a dataset (any triple position),
@@ -1261,25 +1284,18 @@ fn docs_authority_source_files(repo_root: &Path) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-/// Parse the authored term corpus once, deriving both the declared-term set and
-/// `term -> exact owning IRIs`. A small number of terms are deliberately declared by
-/// more than one authored vocabulary; retaining the exact set lets a document import
-/// the authority whose declaration it uses without inventing a repository-global winner.
+/// Derive the declared-term set (from the vocabulary sources, via
+/// [`vocabulary_declared_terms`]) and `term -> exact owning IRIs` (from the authored
+/// authority sources, parsed once here). A small number of terms are deliberately
+/// declared by more than one authored vocabulary; retaining the exact set lets a
+/// document import the authority whose declaration it uses without inventing a
+/// repository-global winner.
 fn docs_term_corpus(repo_root: &Path) -> Result<DocsTermCorpus> {
-    let vocabulary_sources: BTreeSet<PathBuf> =
-        vocabulary_source_files(repo_root)?.into_iter().collect();
-    let lint_config = minimal_lint_cfg();
-    let mut declared = BTreeSet::new();
+    let declared = vocabulary_declared_terms(repo_root)?;
     let mut typed_terms = BTreeSet::new();
     let mut assertions = Vec::new();
     for source in docs_authority_source_files(repo_root)? {
         let dataset = parse_ttl(&source)?;
-        if vocabulary_sources.contains(&source) {
-            declared.extend(crate::lint::declared_terms_dataset(
-                dataset.inner(),
-                &lint_config,
-            ));
-        }
         dataset.for_each_quad(|subject, predicate, object, _graph| {
             if predicate == RDF_TYPE
                 && let Subject::Named(term) = &subject
