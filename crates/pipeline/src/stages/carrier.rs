@@ -2526,7 +2526,7 @@ mod stratum_canonical_tests {
 
 /// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
 /// snapshot payload: its quad set minus the medium-envelope subgraph, canonicalized
-/// exactly as [`stratum_nquads`] does.
+/// exactly as `stratum_nquads` does.
 ///
 /// This is the reader-side inverse. It is what makes the stratum CHECKABLE rather
 /// than merely asserted: a consumer folds the bundle, strips the envelope quads by
