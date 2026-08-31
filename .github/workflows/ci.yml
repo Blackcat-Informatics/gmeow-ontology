@@ -1455,6 +1455,6 @@ jobs:
       - name: Attest successful-check receipt provenance
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         # actions/attest-build-provenance v3.1.0
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8
         with:
           subject-path: dist/check-receipt.txt
