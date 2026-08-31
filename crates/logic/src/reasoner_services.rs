@@ -7,49 +7,49 @@
 //! `entail` crate: consistency, class satisfiability, classification, realization,
 //! instance retrieval and axiom entailment through [`purrdf::entail::Reasoner`],
 //! plus the two services that need no tableau at all — profile certification
-//! ([`purrdf::entail::profile`]) and syntactic-locality module extraction
+//! ([`purrdf::entail::profile`](purrdf::entail::profile())) and syntactic-locality module extraction
 //! ([`purrdf::entail::extract_module`]) — and the query-directed combined and
 //! certain-answer surfaces.
 //!
 //! These wrappers add exactly two things and remove nothing:
 //!
 //! * they map [`purrdf::entail::EntailError`] onto the shared
-//!   [`gmeow_errors`](gmeow_errors) substrate through the reasoning-core
+//!   [`gmeow_errors`] substrate through the reasoning-core
 //!   [`Reason`](crate::error::Reason) diagnostic, so a caller inside this workspace
 //!   sees a typed [`Diag`](gmeow_errors::Diag) rather than a foreign error type; and
 //! * they carry every [`purrdf::entail::Certified`] answer WITH its
 //!   [`purrdf::entail::DlCertificate`] completeness verdict and construct boundaries
-//!   as one value, [`CertifiedAnswer`], so a service's answer is never read apart
+//!   as one value, [`CertifiedAnswer`](crate::reasoner_services::CertifiedAnswer), so a service's answer is never read apart
 //!   from how complete it is.
 //!
-//! Nothing is flattened: a [`Verdict::Unknown`] stays `Unknown`, a boundary residue
+//! Nothing is flattened: a [`Verdict::Unknown`](purrdf::entail::Verdict::Unknown) stays `Unknown`, a boundary residue
 //! stays on the answer, and an unsatisfiable ontology stays the typed error every
-//! service but [`DlReasoner::consistency`] returns for it. The dataset type is
-//! purrdf's own [`RdfDataset`], which is already the reasoning core's carrier — no
+//! service but [`DlReasoner::consistency`](crate::reasoner_services::DlReasoner::consistency) returns for it. The dataset type is
+//! purrdf's own [`RdfDataset`](purrdf::RdfDataset), which is already the reasoning core's carrier — no
 //! conversion sits between the caller and the service.
 //!
 //! # Evaluation ceilings are external, and exhaustion is never a fabricated answer
 //!
 //! Every service here runs under a purrdf ceiling this repository cannot raise: the
 //! datalog engine's `pub const` budgets (`MAX_JOIN_STEPS`, `MAX_STORED_FACTS`,
-//! `MAX_TERM_ARENA_BYTES`) for the chase-backed surfaces ([`certain_answers`],
-//! [`materialize_combined`]), and the size-derived per-decision hypertableau step cap
-//! for the tableau surfaces on [`DlReasoner`]. Raising any of them is an
+//! `MAX_TERM_ARENA_BYTES`) for the chase-backed surfaces ([`certain_answers`](crate::reasoner_services::certain_answers),
+//! [`materialize_combined`](crate::reasoner_services::materialize_combined)), and the size-derived per-decision hypertableau step cap
+//! for the tableau surfaces on [`DlReasoner`](crate::reasoner_services::DlReasoner). Raising any of them is an
 //! upstream-purrdf change, never an in-repo tune. What this module guarantees is that
 //! exhaustion is HONEST, taking exactly one of two shapes and never a third:
 //!
 //! * a service that answers through a [`Certified`](purrdf::entail::Certified) value
 //!   carries the exhaustion in its certificate — an exhausted hypertableau run reports
-//!   [`DlCompleteness::BudgetExhausted`], its [`CertifiedAnswer::is_decided`] and
-//!   [`CertifiedAnswer::is_exact`] both read `false`, and a boolean service returns
-//!   [`Verdict::Unknown`] rather than guessing `True`/`False`; and
-//! * a service that returns a bare [`Result`] maps every [`EntailError`] — including
+//!   [`DlCompleteness::BudgetExhausted`](purrdf::entail::DlCompleteness::BudgetExhausted), its [`CertifiedAnswer::is_decided`](crate::reasoner_services::CertifiedAnswer::is_decided) and
+//!   [`CertifiedAnswer::is_exact`](crate::reasoner_services::CertifiedAnswer::is_exact) both read `false`, and a boolean service returns
+//!   [`Verdict::Unknown`](purrdf::entail::Verdict::Unknown) rather than guessing `True`/`False`; and
+//! * a service that returns a bare [`Result`] maps every [`EntailError`](purrdf::entail::EntailError) — including
 //!   the budget refusals — onto a hard [`Diag`](gmeow_errors::Diag) through
-//!   [`map_entail_err`], so an exhausted chase becomes a refusal, never a partial
+//!   `map_entail_err`, so an exhausted chase becomes a refusal, never a partial
 //!   answer passed off as complete.
 //!
 //! Neither shape truncates silently. The per-decision step cap is the one ceiling that
-//! CAN be narrowed in-repo — only downward, through [`DlReasoner::with_step_cap`] —
+//! CAN be narrowed in-repo — only downward, through [`DlReasoner::with_step_cap`](crate::reasoner_services::DlReasoner::with_step_cap) —
 //! which exists so the exhaustion path is reachable and testable rather than a branch
 //! nothing exercises.
 

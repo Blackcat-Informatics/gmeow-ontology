@@ -16,7 +16,7 @@
 //! content-addressed derivation IRIs into RDF-serializable data the `gmeow-pipeline`
 //! `stage-goal-directed` folds into `graph/goal-directed` of `gmeow.gts`.
 //!
-//! It is NOT a fork of the engine: it constructs PurRDF [`FolProgram`]s, reads back
+//! It is NOT a fork of the engine: it constructs PurRDF [`FolProgram`](purrdf::datalog::resolve_fol::FolProgram)s, reads back
 //! PurRDF [`FolProof`](purrdf::datalog::resolve_fol::FolProof)s, and never re-implements
 //! resolution or proof checking. There is
 //! exactly ONE production source of goal-directed programs — the authored
