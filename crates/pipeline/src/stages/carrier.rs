@@ -2526,7 +2526,9 @@ mod stratum_canonical_tests {
 
 /// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
 /// snapshot payload: its quad set minus the medium-envelope subgraph, canonicalized
-/// exactly as [`stratum_nquads`] does.
+/// with the same RDFC-1.0 `purrdf::canonicalize` pass that [`snapshot_stratum_digest`]
+/// applies to the writer-side stratum, so the two converge to identical canonical
+/// N-Quads and the digest the envelope carries is reproducible by a reader.
 ///
 /// This is the reader-side inverse. It is what makes the stratum CHECKABLE rather
 /// than merely asserted: a consumer folds the bundle, strips the envelope quads by
