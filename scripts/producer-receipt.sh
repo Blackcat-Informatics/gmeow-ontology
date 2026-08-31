@@ -4,10 +4,8 @@
 
 set -euo pipefail
 
-script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-# The lint target checks common.sh independently and does not enable
-# external-source traversal for this runtime-resolved path.
-# shellcheck disable=SC1091
+script_dir=$(dirname -- "${BASH_SOURCE[0]}")
+# shellcheck source=build-support/common.sh
 source "$script_dir/../build-support/common.sh"
 
 usage() {
@@ -22,11 +20,8 @@ EOF
 [[ $# -ge 1 ]] || usage
 mode=$1
 shift
-command -v jq > /dev/null || {
-  echo "jq is required to verify producer receipts" >&2
-  exit 1
-}
-repo_root=$(repository_root)
+gmeow_require_command jq
+repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 tmp_dir=$(mktemp -d)
 trap 'rm -rf -- "$tmp_dir"' EXIT
@@ -144,7 +139,6 @@ verify_manifest_tree() {
 
 validate_manifest_contract() {
   local manifest=$1
-  # Kept in lockstep with dev_sync::MANIFEST_VERSION by make_gate_contract.
   jq -e '
     .version == 5 and
     .output == "generated" and

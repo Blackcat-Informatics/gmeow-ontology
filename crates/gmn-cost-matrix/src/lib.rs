@@ -3,7 +3,7 @@
 
 //! The **GMN token-cost matrix**: an off-gate, INFORMS-only sweep of the five mandated
 //! tokenizer families over the SAME emitted GMN / Turtle / JSON-LD serializations of the
-//! grounding corpus the on-gate Task-7 byte-fallback estimator GATES.
+//! grounding corpus the on-gate byte-fallback estimator GATES.
 //!
 //! ## Why this exists (and why it is off-gate)
 //!

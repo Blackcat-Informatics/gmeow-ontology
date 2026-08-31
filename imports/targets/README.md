@@ -6,14 +6,14 @@ These are **generated**, minimal snapshots of external vocabularies. The snapsho
 - **Property-axiom shape** (`schema` / `concept_scheme` targets — bridged at the
   property level). Keeps `rdfs:domain`/`rdfs:range` (and schema.org's
   `domainIncludes`/`rangeIncludes`), `owl:inverseOf`/`schema:inverseOf`, and
-  property-type triples. No labels or prose. Used by the SSSOM alignment-direction
-  linter (`gmeow_slice.lint_projection`) to check, offline, whether a GMEOW mapping
-  points at the right target term *or its inverse* (issue #25).
+  property-type triples. No labels or prose. Used by the native correspondence-
+  soundness checks to verify, offline, whether a GMEOW mapping points at the right
+  target term *or its inverse*.
 - **Class-fact shape** (`upper` ontologies — bridged at the class level). Keeps each
   `owl:Class` in the namespace, its in-namespace `rdfs:subClassOf` parents, and its
   short `rdfs:label`. Used by the gUFO↔BFO **foundational bridge** to verify, offline,
-  that every emitted upper-ontology IRI is a real class with the expected label
-  (issue #40; `tests/test_foundational_bridging.py`). Labels are kept only for
+  that every emitted upper-ontology IRI is a real class with the expected label;
+  the native foundational-bridging conformance suite owns this invariant. Labels are kept only for
   IMPORT_OK upper ontologies whose license permits it (BFO is CC-BY-4.0).
 
 ## Not part of the published ontology

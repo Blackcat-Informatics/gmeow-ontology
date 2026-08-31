@@ -455,7 +455,7 @@ fn section_methodology(out: &mut String, model: &DocsModel) {
          pipeline produced.\n\n",
     );
 
-    // Provenance chain (Task 12 / issue 1404): this PDF is one projection of the
+    // This PDF is one projection of the same evidence graph as the HTML site:
     // documentation render, itself the product of the build DAG. Render the
     // coarse-grain producing-stage chain walked backward over
     // `gmeow:dataflowConsumes` from `stage-docs-render`, so the PDF carries the

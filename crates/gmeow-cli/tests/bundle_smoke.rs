@@ -4,11 +4,10 @@
 //! Post-build binary smoke test for the shipped `gmeow` CLI — the native residue
 //! of the retired `scripts/pypi_smoke.py`.
 //!
-//! Recreates natively the invariant the Python smoke script pinned — the built
-//! binary loads the shipped bundle and answers a basic query/verify — then
-//! extends it to cover the Task 4 production change: `gmeow verify` is re-wired
-//! onto the native `purrdf::gts::verify` primitive (never the external `gts`
-//! binary), so this file proves BOTH that the verify leg is genuinely hermetic
+//! The built binary loads the shipped bundle and answers a basic query/verify.
+//! The same surface proves that `gmeow verify` is wired onto the native
+//! `purrdf::gts::verify` primitive (never the external `gts` binary), so the
+//! verify leg is genuinely hermetic
 //! (runs correctly with `gts` absent from `PATH`) AND that it performs REAL
 //! Ed25519 cryptographic verification (accepts a validly-signed, trusted
 //! ephemeral bundle; rejects the same bundle under a different trusted key) —
@@ -89,7 +88,7 @@ fn validate_clean_fixture_passes() {
 /// cryptographically verified anything (that is item 3 below). Run with a fully
 /// cleared environment (mirrors `cli.rs::gts_shim_hard_fails_when_binary_missing`)
 /// to empirically prove the re-wired verify leg needs no `gts` binary on `PATH`
-/// at all — the whole point of the Task 4 native re-wire.
+/// at all — the native verify path is self-contained.
 #[test]
 fn verify_allow_unsigned_needs_no_external_gts_on_path() {
     let output = StdCommand::new(gmeow_bin())

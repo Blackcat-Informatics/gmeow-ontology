@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Integration tests for the S6a semantic Merkle merged-SHACL source key wired
-//! into the production validation pipeline (RFC §12, gap G3).
+//! into the production validation pipeline (RFC §12).
 //!
 //! The merged-SHACL `source_key` is now `merged_shacl_source_key(slices_dir)` —
 //! the Merkle PRODUCT root over the whole slice composition. These tests prove

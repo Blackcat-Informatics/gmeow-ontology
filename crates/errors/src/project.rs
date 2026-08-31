@@ -72,7 +72,7 @@ impl DiagNode {
         }
         // The canonical fingerprint IRI: the SAME IRI downstream findings' antecedent
         // edges point at, so the projected diagnostic graph's subject and
-        // antecedent-object IRIs close (the join the Task-2 meta-rules match on).
+        // antecedent-object IRIs close (the join the declared meta-rules match on).
         finding.finding_iri = Some(fingerprint_iri(&self.fingerprint));
         // The code-blind source anchor + its non-triviality guard.
         let anchor = DiagFingerprint::anchor(&self.source_ctx);
@@ -378,7 +378,7 @@ mod tests {
         // D3 join-closure: build two findings where one is the other's antecedent,
         // project, and assert the child's antecedent-edge object IRI textually
         // equals the parent finding's OWN subject IRI (`finding_iri`). This is the
-        // equality the Task-2 root-cause / cluster meta-rules match on: subject and
+        // equality the declared root-cause / cluster meta-rules match on: subject and
         // antecedent-object must be the SAME blake3 fingerprint IRI.
         let mut ledger = DiagLedger::new();
         let cause = diag_at(

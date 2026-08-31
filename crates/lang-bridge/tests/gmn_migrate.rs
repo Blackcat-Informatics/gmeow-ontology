@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Executable teeth for the GMN version-migration executor and the version-provenance stamp
-//! (`crates/lang-bridge/src/gmn_migrate.rs`, req #19 migration half + #20 provenance infra).
+//! (`crates/lang-bridge/src/gmn_migrate.rs`, including migration and provenance handling).
 //!
 //! The authored demonstrator is `slices/grounding/lang/examples/gmn-migration.ttl`: a
 //! synthetic v1 → v2 crossing carrying a real schema delta (a ¬→! glyph rename with a 90→80

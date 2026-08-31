@@ -92,7 +92,7 @@ fn small_model() -> DocsModel {
         linkages: Vec::new(),
         examples: Vec::new(),
         // A fixture that references gmeow:Cat, so the term projects a `fixture`
-        // gmeow:DocEvidence node (issue 1404).
+        // gmeow:DocEvidence node.
         fixtures: vec![DocFixture {
             slice: format!("{GMEOW}slice/zoo"),
             logical_path: "tests/conformance-fixtures/cat-ok.ttl".to_string(),
@@ -214,7 +214,7 @@ fn gmeow_rdf_carries_the_documentation_vocabulary_in_the_named_graph() {
         "gmeow/docHasDefinition",
         "gmeow/docUrl",
         "gmeow/docOwnerSlice",
-        // The uniform gmeow:DocEvidence layer (issue 1404).
+        // The uniform gmeow:DocEvidence layer.
         "gmeow/DocEvidence",
         "gmeow/docEvidenceKind",
         "gmeow/docEvidenceKindFixture",

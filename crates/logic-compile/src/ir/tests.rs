@@ -84,7 +84,7 @@ fn semantic_profile_ids_match_module_ttl() {
     .collect();
 
     // The six preset local names must be EXACTLY the logic:ReasoningPreset named
-    // individuals declared in module.ttl (reviewer B1): the historical
+    // individuals declared in module.ttl: the historical
     // logic:SemanticProfile class is retired, so the source of truth is now the
     // set of logic:ReasoningPreset individuals. Reuse individuals_of_type, which
     // only flags a block from a genuine rdf:type position (a bare `logic:T`

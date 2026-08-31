@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Fixed-subject render goldens for the max-info enrichment surfaces (issue 1404).
+//! Fixed-subject render goldens for the max-info enrichment surfaces.
 //!
 //! These lock the *new* enrichment renderers on a deterministic subject so a
 //! future refactor cannot silently blank or garble them:

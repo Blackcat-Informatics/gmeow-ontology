@@ -1,8 +1,3 @@
-# yamllint disable rule:line-length
-# This workflow legitimately contains unbreakable long lines — GitHub Actions
-# cache `key:`/`restore-keys:` values (single ${{ ... }} expressions that cannot
-# be wrapped without changing the cache key) and SHA-pinned `uses:` refs. Workflow
-# correctness is enforced by actionlint, not by a yamllint line-length ceiling.
 name: CI
 
 on:
@@ -21,7 +16,9 @@ env:
   # CI artifacts must not inherit the repo's local `target-cpu=native` default.
   # This target-specific env appends after .cargo/config.toml; the last
   # -Ctarget-cpu wins while wasm/cross-target jobs stay unaffected.
-  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: "-Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=x86-64-v3"
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS: >-
+    -Zunstable-options -Clink-self-contained=+linker
+    -Clinker-features=+lld -Ctarget-cpu=x86-64-v3
   CARGO_ENV_CFLAGS_VALUE: "-O2 -march=x86-64-v3 -mtune=generic"
   CARGO_ENV_CXXFLAGS_VALUE: "-O2 -march=x86-64-v3 -mtune=generic"
   CARGO_ENV_CFLAGS_FORCE: "true"
@@ -41,7 +38,8 @@ jobs:
   # === SOURCE-BUILT PRODUCER BINARY ===
   # Build gmeow-dev once for the exact Rust source + toolchain contract. Ontology-only
   # changes reuse that immutable producer binary; Rust changes miss the exact-source
-  # cache and rebuild it. No consumer is compiled before generated/dist/gmeow.gts exists.
+  # cache and rebuild it. No consumer is compiled before
+  # generated/dist/gmeow.gts exists.
   producer-build:
     runs-on: ubuntu-latest
     # Every long job carries an explicit budget. Without one, a job that is OOM-killed
@@ -80,7 +78,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: dist/bin/gmeow-dev
-          key: producer-bin-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.toolchain.outputs.sha256 }}-${{ steps.producer-inputs.outputs.sha256 }}
+          key: producer-bin-v2-${{runner.os}}-${{runner.arch}}-${{steps.toolchain.outputs.sha256}}-${{steps.producer-inputs.outputs.sha256}}
 
       - name: Cache Cargo dependencies
         if: steps.producer-cache.outputs.cache-hit != 'true'
@@ -124,7 +122,8 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -138,12 +137,17 @@ jobs:
       # dies mid-pipeline the last streamed stage NAMES the resident stage, which is the
       # difference between a diagnosable failure and a bare `Killed`.
       - name: Cold-materialize the generated product
+        env:
+          SYNC_VERBOSE: "1"
+          SYNC_TIMINGS_JSON: dist/sync/update-timings.json
         run: |
           mkdir -p dist/sync
-          make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update SYNC_VERBOSE=1 SYNC_TIMINGS_JSON=dist/sync/update-timings.json
+          make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=update
 
       - name: Strict sync fixed-point + drift/orphan gate (read-only)
-        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=check SYNC_TIMINGS_JSON=dist/sync/check-timings.json
+        env:
+          SYNC_TIMINGS_JSON: dist/sync/check-timings.json
+        run: make check-sync GMEOW_DEV=./dist/bin/gmeow-dev SYNC_MODE=check
 
       - name: GTS frame/profile gate
         run: make gts-frame-profile-gate GMEOW_DEV=./dist/bin/gmeow-dev
@@ -156,7 +160,9 @@ jobs:
         run: make medium-gate GMEOW_DEV=./dist/bin/gmeow-dev
 
       - name: Capture the immutable sync manifest
-        run: cp .cache/gmeow-sync/manifests/generated-default.json dist/sync/manifest.json
+        run: >-
+          cp .cache/gmeow-sync/manifests/generated-default.json
+          dist/sync/manifest.json
 
       - name: Upload independent generated tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -193,25 +199,29 @@ jobs:
           persist-credentials: false
 
       - name: Download generation A
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}-a
           path: ${{ runner.temp }}/generated-a
 
       - name: Download generation B
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}-b
           path: ${{ runner.temp }}/generated-b
 
       - name: Download generation A evidence
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generation-evidence-${{ github.sha }}-a
           path: ${{ runner.temp }}/evidence-a
 
       - name: Download generation B evidence
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generation-evidence-${{ github.sha }}-b
           path: ${{ runner.temp }}/evidence-b
@@ -225,7 +235,10 @@ jobs:
         id: digest
         run: |
           set -euo pipefail
-          sha256=$(sha256sum "${RUNNER_TEMP}/generated-a/dist/gmeow.gts" | cut -d' ' -f1)
+          sha256=$(
+            sha256sum "${RUNNER_TEMP}/generated-a/dist/gmeow.gts" |
+              cut -d' ' -f1
+          )
           echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
           echo "producer bundle sha256=$sha256"
 
@@ -327,21 +340,23 @@ jobs:
           echo "rustc=$(rustc -Vv | sha256sum | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       # The run/attempt suffix makes every producer save a fresh, complete cache rather
-      # than restoring an immutable exact key that can never be advanced. Restore prefixes
-      # admit exact-source first, then compatible-source Cargo reuse; Cargo itself validates
+      # than restoring an immutable exact key that can never be advanced.
+      # Restore prefixes admit exact-source first, then compatible-source Cargo
+      # reuse; Cargo itself validates
       # every unit against source, dependency, flags, and compiler fingerprints. The key
-      # deliberately binds runner OS + architecture, not the rolling image patch revision:
-      # same-run jobs can land on adjacent ubuntu-latest revisions, and the authenticated
+      # deliberately binds runner OS + architecture, not the rolling image patch
+      # revision: same-run jobs can land on adjacent ubuntu-latest revisions, and
+      # the authenticated
       # archive is itself replayed across that same ABI-compatible runner family.
       - name: Restore producer-independent Rust build products
         id: rust-prebuild-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: target
-          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
           restore-keys: |
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-
 
       - name: Restore producer-independent typed fixtures
         id: fixture-prebuild-cache
@@ -350,10 +365,10 @@ jobs:
           path: |
             .cache/gmeow-sync/actions
             .cache/gmeow-sync/test-fixture-manifest-v2.json
-          key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: test-actions-v3-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
           restore-keys: |
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-
-            test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-
+            test-actions-v3-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-${{github.sha}}-
+            test-actions-v3-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-
 
       - name: Compile producer-independent CI tests and shared fixture tool
         run: make rust-prebuild
@@ -413,17 +428,18 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: target
-          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
           restore-keys: |
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-
 
       - name: Rebuild producer-independent products on transfer miss
         if: steps.rust-prebuild-cache.outputs.cache-hit != 'true'
         run: make rust-prebuild
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -436,7 +452,8 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Download the authoritative producer receipt
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: producer-receipt-${{ github.sha }}
           path: dist
@@ -445,7 +462,8 @@ jobs:
         run: ./scripts/producer-receipt.sh verify generated dist/producer-receipt.json
 
       - name: Download producer-independent fixture evidence
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: rust-prebuild-evidence-${{ github.sha }}
           path: dist/nextest
@@ -460,7 +478,7 @@ jobs:
           path: |
             .cache/gmeow-sync/actions
             .cache/gmeow-sync/test-fixture-manifest-v2.json
-          key: test-actions-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: test-actions-v3-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
 
       - name: Require the exact same-run fixture transfer
         if: steps.fixture-prebuild-cache.outputs.cache-hit != 'true'
@@ -473,14 +491,14 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/gmeow-bundle-import
-          key: bundle-import-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/bundle-import/**', 'crates/errors/**', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ hashFiles('generated/dist/gmeow.gts') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: bundle-import-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/bundle-import/**','crates/errors/**','.cargo/config.toml','rust-toolchain.toml')}}-${{hashFiles('generated/dist/gmeow.gts')}}-${{github.run_id}}-${{github.run_attempt}}
           restore-keys: |
-            bundle-import-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/bundle-import/**', 'crates/errors/**', '.cargo/config.toml', 'rust-toolchain.toml') }}-${{ hashFiles('generated/dist/gmeow.gts') }}-
+            bundle-import-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/bundle-import/**','crates/errors/**','.cargo/config.toml','rust-toolchain.toml')}}-${{hashFiles('generated/dist/gmeow.gts')}}-
 
       - name: Verify every transferred test-profile pipeline fixture read-only
         run: make verify-producer-independent-test-fixtures
 
-      - name: Produce generated-bound docs and bundle-import fixtures before archive construction
+      - name: Produce generated-bound fixtures before archive construction
         env:
           BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
         run: >-
@@ -500,7 +518,8 @@ jobs:
             --variant candidate \
             --sample-index 1 \
             --cache-state partial \
-            --partial-change "producer-bundle:generated/dist/gmeow.gts:${BUNDLE_DIGEST}" \
+            --partial-change \
+            "producer-bundle:generated/dist/gmeow.gts:${BUNDLE_DIGEST}" \
             --cargo-cache-state partial \
             --sync-cache-state not-applicable \
             --pipeline-cache-state warm \
@@ -595,9 +614,11 @@ jobs:
 
       # The producer-materialized tree must be present before any workspace compile —
       # gmeow-cli / gmeow-lsp embed generated/dist/gmeow.gts, and the docs tests read
-      # generated/catalog/*.nq. Download it and validate the bundle digest; never regenerate.
+      # generated/catalog/*.nq. Download it and validate the bundle digest;
+      # never regenerate.
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -610,13 +631,15 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Download the authenticated test archive and exact fixtures
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: rust-test-archive-${{ github.sha }}
           path: .
 
       - name: Download the authenticated whole-bundle import product
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: bundle-import-cache-${{ github.sha }}
           path: .cache/gmeow-bundle-import
@@ -627,7 +650,9 @@ jobs:
           tool: cargo-nextest@0.9.137
 
       - name: Restore report-only evidence tool modes
-        run: chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample dist/nextest/perf_accept
+        run: >-
+          chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample
+          dist/nextest/perf_accept
 
       # crates/xtask/tests/issue_refs_lint.rs drives scripts/lint-issue-refs.sh, which
       # hard-requires ripgrep and is not on the runner image by default — the same
@@ -649,9 +674,12 @@ jobs:
           GMEOW_BUNDLE_IMPORT_SOURCE_SHA256: ${{ needs.producer.outputs.bundle_digest }}
         run: |
           set -euo pipefail
-          export GMEOW_TEST_FIXTURE_MANIFEST="$PWD/.cache/gmeow-sync/test-fixture-manifest-v2.json"
+          fixture_manifest="$PWD/.cache/gmeow-sync/test-fixture-manifest-v2.json"
+          export GMEOW_TEST_FIXTURE_MANIFEST="$fixture_manifest"
           export GMEOW_TEST_FIXTURE_MANIFEST_SHA256
-          GMEOW_TEST_FIXTURE_MANIFEST_SHA256=$(jq -er '.test_fixture_manifest.sha256' dist/nextest/receipt.json)
+          GMEOW_TEST_FIXTURE_MANIFEST_SHA256=$(
+            jq -er '.test_fixture_manifest.sha256' dist/nextest/receipt.json
+          )
           # The exact bundle-import product is authenticated and selected read-only by
           # digest, so isolated processes never rebuild the same whole-bundle dataset.
           dist/nextest/perf_sample \
@@ -735,7 +763,8 @@ jobs:
           toolchain: nightly
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -748,13 +777,15 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Download the authenticated test archive and exact fixtures
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: rust-test-archive-${{ github.sha }}
           path: .
 
       - name: Download the producer-bound bundle-import cache
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: bundle-import-cache-${{ github.sha }}
           path: .cache/gmeow-bundle-import
@@ -765,7 +796,9 @@ jobs:
           tool: cargo-nextest@0.9.137
 
       - name: Restore report-only evidence tool modes
-        run: chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample dist/nextest/perf_accept
+        run: >-
+          chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample
+          dist/nextest/perf_accept
 
       - name: Verify producer receipt before consumer replay
         run: ./scripts/producer-receipt.sh verify generated dist/producer-receipt.json
@@ -868,13 +901,14 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: target
-          key: rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
           restore-keys: |
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-${{ github.sha }}-
-            rust-prebuild-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.rust-prebuild-identity.outputs.rustc }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', '.cargo/config.toml', 'rust-toolchain.toml', '.config/nextest.toml') }}-
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-${{github.sha}}-
+            rust-prebuild-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml','.config/nextest.toml')}}-
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -934,7 +968,8 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -951,7 +986,8 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -975,7 +1011,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/validate
-          key: validate-${{ runner.os }}-${{ hashFiles('slices/**/*.ttl', 'shapes/**/*.ttl', 'dsl/**/*.ttl', 'crates/shacl/**/*.rs', 'crates/validate/**/*.rs') }}
+          key: validate-${{runner.os}}-${{hashFiles('slices/**/*.ttl','shapes/**/*.ttl','dsl/**/*.ttl','crates/shacl/**/*.rs','crates/validate/**/*.rs')}}
           restore-keys: |
             validate-${{ runner.os }}-
 
@@ -994,7 +1030,8 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1010,11 +1047,13 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      # The authoritative sync + strict fixed-point / drift / orphan gate runs ONCE in the
-      # producer job. Here we consume its exact artifact and validate the bundle digest —
-      # never a second regeneration — then run the checks that read the materialized tree.
+      # The authoritative sync + strict fixed-point / drift / orphan gate runs ONCE
+      # in the producer job. Here we consume its exact artifact and validate the
+      # bundle digest — never a second regeneration — then run the checks that read
+      # the materialized tree.
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1044,7 +1083,8 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1061,7 +1101,8 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1074,7 +1115,9 @@ jobs:
           echo "${BUNDLE_DIGEST}  generated/dist/gmeow.gts" | sha256sum -c -
 
       - name: Native reason + reasoned-graph verify (one closure)
-        run: make reason-verify REASON_VERIFY_TIMINGS_JSON=dist/reason/reason-verify.json
+        env:
+          REASON_VERIFY_TIMINGS_JSON: dist/reason/reason-verify.json
+        run: make reason-verify
 
       - name: Upload native reasoning work evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1102,7 +1145,8 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1119,7 +1163,8 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1196,7 +1241,8 @@ jobs:
           persist-credentials: false
 
       - name: Download the exact producer binary
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: gmeow-dev-producer-${{ github.sha }}
           path: dist/bin
@@ -1228,7 +1274,8 @@ jobs:
       # and `make acceptance` reads generated/mappings + generated/projections, so the
       # producer artifact must be present before `make heavy`.
       - name: Download the producer-materialized generated/ tree
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # actions/download-artifact v8.0.1
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: generated-tree-${{ github.sha }}
           path: generated
@@ -1254,8 +1301,8 @@ jobs:
       # dependency — and the optimized artifact bytes — are reproducible, rather than
       # relying on whatever the runner image happens to preinstall.
       #
-      # The tag is read FROM the Makefile, not repeated here. When it was written down in
-      # both places the two drifted: this step installed a release predating
+      # The tag is read FROM the Makefile, not repeated here. When it was written
+      # down in both places the two drifted: this step installed a release predating
       # `--enable-bulk-memory-opt`, so every wasm-opt rule died on an unknown option and
       # took all four Node parity lanes with it.
       - name: Install binaryen (wasm-opt) — pinned release
@@ -1271,34 +1318,35 @@ jobs:
           echo "/tmp/binaryen/bin" >> "$GITHUB_PATH"
           /tmp/binaryen/bin/wasm-opt --version
 
-      # The browser smoke lane's pinned runner MUST be installed BEFORE `make
-      # console-smoke` runs below. The `console-smoke` Make recipe hard-fails the
-      # instant the runner is absent, so an install step ordered *after* the smoke
-      # run never executes in time — the lane died on "the pinned Playwright runner
-      # is not installed" while these steps sat below the run step. `npm ci`
-      # requires the committed lockfile, so the Playwright version the lane drives
-      # is the version that was reviewed.
+      # The browser smoke lane's pinned runner. `npm ci` requires the committed
+      # lockfile, so the Playwright version the lane drives is the version that was
+      # reviewed. Provision it before invoking the selected Make target:
+      # `console-smoke` deliberately fails closed when its runner is absent.
       - name: Install the pinned Playwright runner
         if: ${{ matrix.task == 'console-smoke' }}
         run: npm ci --prefix crates/docs/assets/console/smoke
 
-      # …and the browser it drives. `--with-deps` provisions the shared libraries a headless
-      # Chromium needs on a bare runner; without it the lane fails at launch rather than at
-      # an assertion.
+      # …and the browser it drives. `--with-deps` provisions the shared libraries a
+      # headless Chromium needs on a bare runner; without it the lane fails at
+      # launch rather than at an assertion.
       - name: Install the Chromium build Playwright drives
         if: ${{ matrix.task == 'console-smoke' }}
-        run: npx --prefix crates/docs/assets/console/smoke playwright install --with-deps chromium
+        run: >-
+          npx --prefix crates/docs/assets/console/smoke playwright install
+          --with-deps chromium
 
       - name: Heavy DAG branch — ${{ matrix.task }}
         run: make ${{ matrix.task }}
 
       # The standalone console's DOM-free acceptance lane. It drives the SHIPPED
-      # `crates/docs/assets/mcp-core/` wasm image over the materialized bundle and asserts
-      # the console's derived surface: the pane set read out of the shipped action policy,
+      # `crates/docs/assets/mcp-core/` wasm image over the materialized bundle and
+      # asserts the console's derived surface: the pane set read out of the shipped
+      # action policy,
       # the recorded (never aborting) round-trip failure, the hard error on a missing
       # asset, the RDF-1.2 quoted-triple session annotations, the conjecture selector
-      # against the shipped library, and the wasm export subset. It rides this job because
-      # it needs the same Node + materialized-bundle preconditions `wasm-parity` does.
+      # against the shipped library, and the wasm export subset. It rides this job
+      # because it needs the same Node + materialized-bundle preconditions
+      # `wasm-parity` does.
       - name: Standalone console acceptance (make console-test)
         if: ${{ matrix.task == 'wasm-parity' }}
         run: make console-test
@@ -1317,7 +1365,18 @@ jobs:
   # and Java-free. Statements now run natively via the purrdf codec inside the
   # generated-artifact job's strict sync — there is no separate statements lane.
   quality:
-    needs: [producer, lint, rust-archive, rust, rust-static, heavy, medium-consumer-surface, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs:
+      - producer
+      - lint
+      - rust-archive
+      - rust
+      - rust-static
+      - heavy
+      - medium-consumer-surface
+      - ontology-validate
+      - ontology-generated
+      - ontology-reason
+      - ontology-misc
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -1340,14 +1399,34 @@ jobs:
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: producer=$PRODUCER lint=$LINT rust-archive=$RUST_ARCHIVE rust=$RUST rust-static=$RUST_STATIC heavy=$HEAVY medium-consumer-surface=$MEDIUM_CONSUMER_SURFACE ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$PRODUCER" "$LINT" "$RUST_ARCHIVE" "$RUST" "$RUST_STATIC" "$HEAVY" "$MEDIUM_CONSUMER_SURFACE" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          printf '%s\n' \
+            "results: producer=$PRODUCER lint=$LINT" \
+            "rust-archive=$RUST_ARCHIVE rust=$RUST rust-static=$RUST_STATIC" \
+            "heavy=$HEAVY medium-consumer-surface=$MEDIUM_CONSUMER_SURFACE" \
+            "ontology-validate=$ONTOLOGY_VALIDATE" \
+            "ontology-generated=$ONTOLOGY_GENERATED" \
+            "ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in \
+            "$PRODUCER" \
+            "$LINT" \
+            "$RUST_ARCHIVE" \
+            "$RUST" \
+            "$RUST_STATIC" \
+            "$HEAVY" \
+            "$MEDIUM_CONSUMER_SURFACE" \
+            "$ONTOLOGY_VALIDATE" \
+            "$ONTOLOGY_GENERATED" \
+            "$ONTOLOGY_REASON" \
+            "$ONTOLOGY_MISC"
+          do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1
             fi
           done
-          echo "all required quality jobs succeeded (single producer artifact; native reasoning + reasoned-graph verify run in the reason lane)"
+          echo "all required quality jobs succeeded" \
+            "(single producer artifact; native reasoning +" \
+            "reasoned-graph verify run in the reason lane)"
 
       - name: Check out the proven source revision
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -1375,6 +1454,7 @@ jobs:
 
       - name: Attest successful-check receipt provenance
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v3.1.0
+        # actions/attest-build-provenance v3.1.0
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373
         with:
           subject-path: dist/check-receipt.txt

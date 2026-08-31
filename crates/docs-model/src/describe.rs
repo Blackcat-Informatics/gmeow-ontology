@@ -480,8 +480,7 @@ fn json_schema_namespaces() -> purrdf::Namespaces {
 /// signal EVERY term→model gate must share (§19 one-path): the docs-site card
 /// (`crate::slug::doc_term_card`) and the folded/MCP card
 /// (`gmeow_pipeline::stages::export::term_to_card`) key `$defs` the SAME way, so
-/// a term never disagrees on whether it carries a `python_model` link (issue:
-/// Pydantic model surface, finding F3).
+/// a term never disagrees on whether it carries a `python_model` link.
 fn class_is_modeled(term: &str, modeled_defs: &BTreeSet<String>) -> bool {
     modeled_defs.contains(&json_schema_namespaces().def_key(term))
 }
@@ -582,10 +581,8 @@ pub fn build_card(
     // path of its generated Pydantic model plus a compact construct/validate
     // snippet, computed via the SAME emitter routing (never duplicated). Gated on
     // `class_is_modeled` (the class actually names a `$defs` entry) — an abstract
-    // class with no SHACL NodeShape has NO generated model, and unconditionally
-    // emitting the link (the pre-fix gate: `category == "Class" && defined_by.
-    // is_some()`) fabricated an ImportError for a user who copied it (issue:
-    // Pydantic model surface, finding F3). The slice defaults to "" (matching
+    // class with no SHACL NodeShape has NO generated model, so category and owner
+    // alone cannot authorize a link. The slice defaults to "" (matching
     // `crate::slug::doc_term_card`'s `DocTerm::owner_slice: String`) so the two
     // builders never disagree over a modeled class with no recovered slice.
     let (python_model, python_snippet) =
@@ -1036,7 +1033,7 @@ mod tests {
         assert_eq!(from_dataset, from_bytes);
     }
 
-    /// `class_is_modeled` gate (issue: Pydantic model surface, finding F3): a
+    /// `class_is_modeled` gate: a
     /// Class with NO `$defs` entry for its `def_key` must never carry a
     /// `python_model` line, even though the pre-fix gate (`category == "Class" &&
     /// defined_by.is_some()`) would have fabricated one for every documented

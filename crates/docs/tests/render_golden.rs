@@ -67,8 +67,8 @@ fn fully_populated_term_slug(model: &DocsModel) -> String {
 /// constraint, related term, competency back-ref, example cross-link, box role,
 /// conformance fixture back-ref, pipeline-stage identity}. Locks a byte-golden
 /// that actually renders the new term-page sections — the conformance Do/Don't
-/// pairs and the enriched pipeline-stage surface (issue 1404) join here so the
-/// richest term reaches those renderers too, not just the pre-1404 sections.
+/// pairs and the enriched pipeline-stage surface join here so the
+/// richest term reaches those renderers too, not just the earlier core sections.
 fn richest_surface_term_slug(model: &DocsModel) -> String {
     let surface_count = |t: &gmeow_docs::DocTerm| -> usize {
         let has_constraint = model.shapes.iter().any(|s| s.target_term == t.iri);
@@ -80,7 +80,7 @@ fn richest_surface_term_slug(model: &DocsModel) -> String {
             .examples
             .iter()
             .any(|e| e.terms_referenced.iter().any(|c| c == &t.curie));
-        // The conformance Do/Don't fixtures reference a term by CURIE (issue 1404);
+        // The conformance Do/Don't fixtures reference a term by CURIE;
         // a term with fixtures reaches the "Conformance examples" renderer.
         let has_fixture = model
             .fixtures
@@ -155,7 +155,7 @@ fn pipeline_stage_term_markdown_golden() {
     // A fixed-subject golden over `gmeow:stage-gts-sink`: locks the enriched
     // "stage of the build pipeline" section — the `stageImpl`→Rust binding, the
     // consumes / consumed-by dataflow tables, the flowing named graphs, and the
-    // capabilities/resources — so this surface (issue 1404) cannot silently
+    // capabilities/resources — so this surface cannot silently
     // regress to the pre-wiring DARK state where no stage was a term page.
     let model = common::cached_model();
     let slug = stage_term_slug(&model, STAGE_GTS_SINK_IRI);

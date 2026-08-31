@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! File-driven transcode conformance corpus harness (Task 5).
+//! File-driven transcode conformance corpus harness.
 //!
 //! Discovers every subdirectory of `tests/transcode_corpus/` that contains a
 //! `profile.json`, runs the universal transcoder on the input file, and

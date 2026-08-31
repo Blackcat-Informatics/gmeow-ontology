@@ -17,8 +17,8 @@ mod common;
 use common::native_token;
 
 /// The committed W3C-divergence slugs the case-split sub-decider now DECIDES, with
-/// the W3C published verdict each must reproduce. These are the NAMED Task-5 targets
-/// its certified-complete fragment covers.
+/// the W3C published verdict each must reproduce. These are the named divergence
+/// targets its certified-complete fragment covers.
 const DECIDED: &[(&str, &str)] = &[
     // Family 6b — malformed rdf:List.
     ("webont-i5-5-003", "inconsistent"),

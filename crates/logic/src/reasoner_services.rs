@@ -7,7 +7,7 @@
 //! `entail` crate: consistency, class satisfiability, classification, realization,
 //! instance retrieval and axiom entailment through [`purrdf::entail::Reasoner`],
 //! plus the two services that need no tableau at all — profile certification
-//! ([`purrdf::entail::profile`](purrdf::entail::profile())) and syntactic-locality module extraction
+//! ([`purrdf::entail::profile()`]) and syntactic-locality module extraction
 //! ([`purrdf::entail::extract_module`]) — and the query-directed combined and
 //! certain-answer surfaces.
 //!

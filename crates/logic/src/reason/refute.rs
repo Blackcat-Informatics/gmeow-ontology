@@ -53,14 +53,14 @@ use purrdf::{RdfDataset, RdfTerm};
 
 use crate::facts::skolem_iri;
 
-/// Family 5 — the datatype value-space sub-decider (Task 3, the first REAL family).
+/// Family 5 — the datatype value-space sub-decider.
 pub(crate) mod datatype;
 
-/// Families 2/6a/7 — the counting / arithmetic-feasibility sub-decider (Task 4).
+/// Families 2/6a/7 — the counting / arithmetic-feasibility sub-decider.
 pub(crate) mod counting;
 
 /// Families 1/3/6b (+ entangled Family 4) — the bounded case-split / complement /
-/// union-disjoint / malformed-list sub-decider (Task 5).
+/// union-disjoint / malformed-list sub-decider.
 pub(crate) mod casesplit;
 
 // ── Shared term / world / value helpers (used by every family sub-decider) ──────
@@ -127,7 +127,7 @@ pub(crate) fn is_rational_tower(dt: &str) -> bool {
 }
 
 /// The certified-complete construct families the kernel decides. Each name is the
-/// stable identity a family sub-decider (Tasks 3/4/5) registers under and that
+/// stable identity a family sub-decider registers under and that
 /// [`crate::reason::dl::classify_coverage`] promotes on an `InFragment{Consistent}`
 /// decision. The order is the canonical decider order (datatype → counting →
 /// case-split); it is never derived from declaration position by accident because
@@ -262,8 +262,7 @@ pub(crate) struct Witness {
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum FragmentBoundary {
     /// No registered sub-decider recognized the case's shape — the kernel did not
-    /// engage. The Task-2 steady state (no family decides yet) and the honest edge
-    /// for any construct no decider claims.
+    /// engage. This is the honest edge for any construct no decider claims.
     NoDeciderEngaged,
     /// A family's shape is present but the completeness bound could not be
     /// certified, so the case lies outside the certified-complete fragment. The
@@ -408,9 +407,9 @@ type SubDecider = fn(&RdfDataset) -> Option<RefutationCertificate>;
 
 /// The registered sub-deciders, tried in order; the first `InFragment` wins.
 ///
-/// Task 3 registers the datatype value-space decider ([`datatype::decide`], Family
-/// 5); Task 4 registers the counting / arithmetic-feasibility decider
-/// ([`counting::decide`], Families 2/6a/7); Task 5 adds the case-split/complement
+/// The registry contains the datatype value-space decider ([`datatype::decide`], Family
+/// 5), the counting / arithmetic-feasibility decider ([`counting::decide`], Families
+/// 2/6a/7), and the case-split/complement
 /// decider. Each decider returns `None` when its family shape is absent, so a
 /// closure carrying no datatype value-space or counting obligation still withholds
 /// with `NoDeciderEngaged` — the kernel decides only the fragment a registered
@@ -509,18 +508,18 @@ pub(crate) fn boundary_diag_ledger(reason: &FragmentBoundary) -> DiagLedger {
 // this registry's projection. Every string here is a TECHNICAL fragment /
 // completeness / boundary characterization — never a process or issue reference.
 //
-// The registry types and functions are the shipped, forward-facing kernel API,
-// consumed by the Part C agreement test (`module_ttl_projects_the_kernel_registry`,
-// under `#[cfg(test)]`) and the forthcoming Task 8 `gmeow` CLI surface — not yet by a
-// non-test production caller. Each therefore carries a NARROW, item-scoped
-// `#[allow(dead_code)]` (never the blanket module allowance, which was removed): they
-// are a genuine registry the ontology manifest projects, not dead scaffold.
+// The registry values are the executable counterpart of the authored manifest.
+// The agreement test (`module_ttl_projects_the_kernel_registry`) proves exact
+// identity; the public CLI reads the manifest from the shipped bundle, while the
+// runtime kernel invokes the registered deciders directly. Item-scoped
+// `#[allow(dead_code)]` attributes therefore cover metadata used by the agreement
+// proof without weakening dead-code checks for the rest of the module.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// A refutation pattern: the decision-procedure schema a decided construct family
 /// closes under. Several families may share one pattern (a cardinality count and a
 /// `hasSelf` self-edge are both [`RefutationPattern::CountingPigeonhole`]).
-#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum RefutationPattern {
     /// A finite pigeonhole count of distinct fillers / edges against a numeric bound.
@@ -540,7 +539,7 @@ pub(crate) enum RefutationPattern {
     NominalClash,
 }
 
-#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 impl RefutationPattern {
     /// Every pattern variant, in canonical [`RefutationPattern::slug`] order — the
     /// closed set the shipped `logic:RefutationPattern` individuals must match.
@@ -572,7 +571,7 @@ impl RefutationPattern {
 /// One decided construct family: a stable `id` (the local name of its shipped
 /// `logic:DecidedFragment` individual), the [`RefutationPattern`] it closes under,
 /// and a short TECHNICAL completeness-bound characterization.
-#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct DecidedFragment {
     /// The stable kebab-case fragment id / shipped individual local name.
@@ -586,7 +585,7 @@ pub(crate) struct DecidedFragment {
 /// One deliberately-RETAINED withhold: a construct the kernel does NOT decide, with
 /// a stable `id` (its shipped `logic:expressivenessBoundary`-record local name) and
 /// a TECHNICAL fragment-boundary `reason`.
-#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) struct FragmentBoundaryRecord {
     /// The stable kebab-case boundary id / shipped record local name.
@@ -600,7 +599,7 @@ pub(crate) struct FragmentBoundaryRecord {
 /// shipped `logic:DecidedFragment` manifest projects. Families 6a (arithmetic
 /// identity collapse) and 6b (malformed list) are distinct patterns, so each is its
 /// own entry (the "seven construct families" fold Family 6's two sub-families).
-#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
     let mut fragments = vec![
         DecidedFragment {
@@ -674,7 +673,7 @@ pub(crate) fn decided_fragments() -> Vec<DecidedFragment> {
 /// per retained-withhold construct, returned sorted by `id` (deterministic). Each
 /// carries a technical fragment-boundary reason; the shipped
 /// `logic:expressivenessBoundary` records project these.
-#[allow(dead_code)] // Shipped registry API — consumed by the agreement test + Task 8 CLI.
+#[allow(dead_code)] // Registry metadata consumed by the manifest-agreement proof.
 pub(crate) fn retained_boundaries() -> Vec<FragmentBoundaryRecord> {
     let mut boundaries = vec![
         FragmentBoundaryRecord {
@@ -898,7 +897,7 @@ mod tests {
     }
 
     // An empty decider slice withholds with `NoDeciderEngaged`. The production
-    // `refute` now registers the datatype value-space decider (Task 3), which
+    // `refute` now registers the datatype value-space decider, which
     // returns `None` on an EDB carrying no datatype value-space obligation, so an
     // empty EDB still withholds `NoDeciderEngaged` — the family engages only on its
     // shape, never on a closure that does not carry it.

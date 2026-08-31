@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! CrossRef deposit-XML generation in Rust (Task 11).
+//! CrossRef deposit-XML generation in Rust.
 //!
 //! Reproduces the byte-identical output of the Python
 //! `crossref.build_deposit_xml` / `crossref.lint_deposit` pair so the

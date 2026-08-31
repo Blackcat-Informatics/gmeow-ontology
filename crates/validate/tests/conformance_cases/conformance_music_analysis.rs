@@ -143,7 +143,7 @@ fn music_foundation_tbox_assertions_are_rust_covered() {
     }
 
     // Functionality is now carried by the canonical `logic:` characteristic records
-    // (issue 1579 deprecated the source `owl:FunctionalProperty` marker to a
+    // (the source `owl:FunctionalProperty` marker is deprecated to a
     // generated-view-only projection), so query the carrier over the merged ontology.
     let g = GraphStore::ontology();
     let gmeow = |local: &str| format!("https://blackcatinformatics.ca/gmeow/{local}");

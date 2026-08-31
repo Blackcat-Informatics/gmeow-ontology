@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Closed-world fidelity proof (Task 6, Deliverable 2).
+//! Closed-world fidelity proof.
 //!
 //! The headline acceptance criterion: the SHACL-derived JSON Schema is a
 //! CLOSED-WORLD projection — a required property (`sh:minCount 1`) REJECTS an

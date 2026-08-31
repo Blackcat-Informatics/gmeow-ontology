@@ -740,10 +740,8 @@ fn add_inferred_fact(
 /// honest gap).
 ///
 /// Returns whether any witness fact was added, so the caller can fold the kernel
-/// into its fixpoint if it ever decides on materialized facts. Task 2 registers no
-/// family sub-decider, so on every real closure the kernel returns `OutOfFragment`
-/// and this is a strict no-op — no current verdict changes — while still being
-/// CALLED on the production path (no dark code).
+/// into its fixpoint only for an `InFragment { Inconsistent }` decision. Consistent
+/// decisions and honest `OutOfFragment` withholds are strict no-ops.
 fn materialize_refutation(
     certificate: &crate::reason::refute::RefutationCertificate,
     inferred: &mut Vec<InferredAxiom>,
@@ -2645,12 +2643,9 @@ pub(crate) fn augment_inferred_with_dl_certificates(
     // Decide the precisely-characterized COMPLETE fragment of the beyond-Horn
     // constructs the forward chase above withholds (datatype value-space,
     // counting, case-split/complement), and honestly withhold outside it. The
-    // kernel is CALLED on every production closure — so its wiring is exercised,
-    // not dark — but Task 2 registers no family sub-decider yet, so it returns
-    // `OutOfFragment` and `materialize_refutation` adds nothing: a strict no-op on
-    // real inputs (no current verdict changes; the drift-pinned withholds stay
-    // `incomplete`). Tasks 3/4/5 register the per-family sub-deciders whose
-    // `InFragment{Inconsistent}` clashes are materialized here as
+    // kernel is CALLED on every production closure. Registered family sub-deciders
+    // return certified decisions or honest withholds; only `InFragment{Inconsistent}`
+    // clashes are materialized here as
     // `type(?i, owl:Nothing)` witnesses `verdict_from_inferred` reads off.
     materialize_refutation(&crate::reason::refute::refute(edb), inferred, &mut facts);
 
@@ -7639,9 +7634,9 @@ mod tests {
     // The refutation-kernel materialization seam: an `InFragment{Inconsistent}`
     // certificate materializes its `type(?i, owl:Nothing)` clash witness into the
     // closure, which `verdict_from_inferred` then reads off as an inconsistency —
-    // while an `OutOfFragment` withhold (the Task-2 production steady state) and an
+    // while an `OutOfFragment` withhold for any unrecognized shape and an
     // `InFragment{Consistent}` decision materialize nothing. This exercises the
-    // decide-path seam the per-family deciders (Tasks 3/4/5) plug into.
+    // decide-path seam used by the registered per-family deciders.
     #[test]
     fn materialize_refutation_seam_forces_owl_nothing_only_on_inconsistent() {
         use crate::reason::refute::{

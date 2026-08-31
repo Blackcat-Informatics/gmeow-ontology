@@ -100,7 +100,7 @@ pub mod provenance_graph;
 pub mod substrate_graph;
 // The SHACL-derived Pydantic v2 package emitter (`gmeow_models/<slice>.py`),
 // co-derived from the SAME shape compilation as the JSON-Schema stage so the two
-// surfaces agree (Task 8).
+// surfaces agree.
 pub mod pydantic;
 pub mod reason;
 pub mod references;

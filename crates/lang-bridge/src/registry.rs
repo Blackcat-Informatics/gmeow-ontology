@@ -195,7 +195,7 @@ pub fn registry() -> Vec<Box<dyn LangProjectionTarget>> {
 
 /// Every "emission-worthy" `lang:` class paired with the registered target names that MUST
 /// cover it (functor totality). The registry-completeness gate asserts each class maps to
-/// ≥1 registered target; extend this as Tasks 3–4 add targets (TEI/NIF/SemAF/BCP-47/…).
+/// ≥1 registered target; extend this when the registry gains targets (TEI/NIF/SemAF/BCP-47/…).
 pub const EMISSION_WORTHY_CLASSES: &[(&str, &[&str])] = &[
     ("Grammar", &["ebnf", "abnf", "gbnf", "lark"]),
     ("Lexeme", &["ontolex-lemon"]),
@@ -600,9 +600,9 @@ fn emission_artifact_bytes(emission: Option<&LangEmission>) -> Vec<u8> {
 /// This target's `emit` NEVER hard-fails on an uncovered source construct (unlike a `Bridge`):
 /// `lang_models` here spans EVERY slice's `examples/*.ttl` referencing `lang:` (the
 /// registry's input aBox carries no slice-scoping metadata to filter on), while the
-/// GMN-1 codec's TOTAL-coverage claim (Task 6) is scoped to the grounding slices only —
+/// GMN-1 codec's TOTAL-coverage claim is scoped to the grounding slices only —
 /// full coverage of every other slice is the separate, floor-gated `axisGmn1Coverage`
-/// slice-quality axis (Task 7), not this seam. So a source outside the codec's covered
+/// slice-quality axis, not this seam. So a source outside the codec's covered
 /// fragment is an honest [`PreservationKind::SoundUnder`] emission enumerating the
 /// uncovered construct — mirroring [`AbnfTarget`]'s non-ABNF-expressible branch — never a
 /// silent drop and never a build-wide hard fail for content outside this task's scope.
@@ -649,7 +649,7 @@ impl LangProjectionTarget for Gmn1Target {
         }
         // The two fallible bundle-level ecosystem products (token-metrics + verbalizer) are
         // computed BEFORE the pack so the pack folds a content-addressed leaf over each one's
-        // EMITTED bytes (the whole-ecosystem pack root, Task 15). Both are Options: a missing
+        // EMITTED bytes (the whole-ecosystem pack root). Both are Options: a missing
         // corpus / operator inventory yields None (no vacuous product), which folds as an empty
         // leaf. The token-metric gate is the flagship compression claim's teeth — a corpus where
         // GMN's byte-fallback worst case does NOT beat Turtle's best case HARD-FAILS. A
@@ -680,7 +680,7 @@ impl LangProjectionTarget for Gmn1Target {
         // content-addressed leaf over EVERY ecosystem surface (the GBNF + Lark grammar
         // artifacts, the token-metrics measurement, and the verbalizations) beside the existing
         // codebook / grammar / sigil leaves, so the pack certifies the whole ecosystem from the
-        // bundle alone and any perturbed surface changes the root (Task 15).
+        // bundle alone and any perturbed surface changes the root.
         if let (Some(dict), Some(codebook), Some(grammar), Some(major)) = (
             input.gmn_dictionary.as_ref(),
             input.gmn_codebook.as_ref(),
@@ -874,7 +874,7 @@ fn gmn1_conformance_pack_emission(
 /// seven part references. All digest literals are lowercase-hex (the view leaves) or algorithm-tagged
 /// (`blake3:<hex>`) ASCII and need no escaping. Every leaf enters the bundle so the shipped
 /// `gmeow gmn verify` recomputes `gmnPackRoot` from the bundle alone, with no source checkout —
-/// certifying the WHOLE GMN ecosystem, tamper-evident (Task 15).
+/// certifying the WHOLE GMN ecosystem, tamper-evident.
 fn pack_triples(
     codebook_digest: &str,
     pack_root: &str,

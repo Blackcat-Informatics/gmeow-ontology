@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Criterion benchmark for the SoA/predicate-indexed `FactStore` inside the
-//! Gelfond-Lifschitz reduct engine (`rule_ir::least_model_of_reduct`) — Gap 3 of the
-//! Phase-5 acceptance criteria.
+//! Gelfond-Lifschitz reduct engine (`rule_ir::least_model_of_reduct`), measuring
+//! the shipped reduct path rather than a benchmark-only implementation.
 //!
 //! `least_model_of_reduct` is `pub(crate)`, so the bench drives it through the public
 //! entry point [`gmeow_logic::wellfounded::bench_wf_materialize`], which takes a

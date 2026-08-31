@@ -226,7 +226,7 @@ fn resolve_rel(page_dir: &str, path: &str) -> Option<String> {
 
 #[test]
 fn book_cross_document_links_resolve_inside_the_book() {
-    // Task 3: every intra-book cross-document link (and its anchor) in an emitted
+    // Every intra-book cross-document link (and its anchor) in an emitted
     // slice/child-document chapter must resolve to a chapter the book actually
     // emits — with `create-missing = false`, a dangling relative link would fail
     // `mdbook build`. Off-corpus references are absolutized (external) upstream and

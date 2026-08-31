@@ -73,6 +73,7 @@ rustc-ice-*.txt
 .coding-ethos/cache/
 .coding-ethos/code-intel.duckdb
 .coding-ethos/code-intel.duckdb.wal
+.coding-ethos/code-intel-v2/
 .coding-ethos/events/
 .coding-ethos/hook-runs/
 .coding-ethos/lint-runs/

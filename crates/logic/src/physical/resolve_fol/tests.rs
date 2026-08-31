@@ -889,8 +889,8 @@ fn g11_comma_bearing_answer_surfaces_collide_but_both_survive_by_content_key() {
     // identically, because `render` comma-joins `App` arguments. Their ARENA CONTENT KEYS
     // differ (distinct arity + content). `project` must dedup by the content key, NOT by the
     // rendered surface; keying on the surface would silently drop one of two genuinely distinct
-    // answers (a completeness bug — before the #10 fix this test drops one, after it both
-    // survive).
+    // answers. Complete answer accumulation must retain both distinct values even
+    // though their rendered surfaces collide.
     let mut dag = TermDag::new();
     let a = iri(&mut dag, "a");
     let b = iri(&mut dag, "b");

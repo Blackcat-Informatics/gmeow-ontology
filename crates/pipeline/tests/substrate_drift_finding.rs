@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Issue 1672 (F2): substrate drift surfaces as a `gmeow:Finding` on the PRODUCTION
+//! Substrate drift surfaces as a `gmeow:Finding` on the PRODUCTION
 //! validate path.
 //!
 //! The substrate reconciliation A-Box rides `graph/provenance` in the source-load

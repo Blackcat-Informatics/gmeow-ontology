@@ -14,7 +14,7 @@
 //! are dispositioned to the `den` named key and MUST NOT appear as graphemes of the GMN
 //! script — the ruling's outcome, observable in the bundle.
 //!
-//! The same generic cross-check also covers the Task-5 factored qualifier-slot
+//! The same generic cross-check also covers the factored qualifier-slot
 //! aliases (`m`/`ek`/`bd` — modality, evidentiality-kind, and `@p`-record boundary), since
 //! they carry `gmeow:gmnGlyphTokenCost` + `gmeow:gmnCodepoints` on their
 //! `gmeow:GmnDictionaryEntry` individuals exactly like a script glyph does. What the generic
@@ -34,10 +34,10 @@ const GMN_FORM_DENOTATION: &str = "https://blackcatinformatics.ca/gmeow/gmnFormD
 const LEFT_WHITE_BRACKET: &str = "U+27E6";
 const RIGHT_WHITE_BRACKET: &str = "U+27E7";
 
-/// The Task-5 factored qualifier-slot aliases: `(alias, full canonical IRI)` pairs
+/// The declared factored qualifier-slot aliases: `(alias, full canonical IRI)` pairs
 /// for every marker admitted under razor half (a) — measured cost reduction
 /// (`design/LANG-GMN.md`, "The measured token-cost razor"). None is admitted under half (b)
-/// (the ambiguity-class discharge, which the Task-6 GMN-1 codec/gate now makes possible):
+/// (the ambiguity-class discharge implemented by the GMN-1 codec/gate):
 /// every marker here pays its way on the measured half alone, so no marker needs a
 /// fires-without/absent-with fixture pair.
 const QUALIFIER_MARKER_ALIASES: &[(&str, &str)] = &[
@@ -186,12 +186,12 @@ fn authored_glyph_cost_matches_measurement() {
 }
 
 /// The razor's half-(a) discharge (`design/LANG-GMN.md`, "The measured token-cost razor"):
-/// every Task-5 qualifier-slot alias must cost strictly fewer `cl100k_base` tokens
+/// every declared qualifier-slot alias must cost strictly fewer `cl100k_base` tokens
 /// than the full canonical IRI it dealiases — the cost the alternative of inlining or
 /// separately asserting the full term would pay, and the reason the dictionary bijection
 /// exists at all. A marker that failed this inequality would not be paying its way and would
 /// have to be justified under half (b) instead (an executable fires-without/absent-with
-/// fixture pair tied to a named `lang:Gmn*` failure class, run through the Task-6 codec/gate)
+/// fixture pair tied to a named `lang:Gmn*` failure class, run through the shipped codec/gate)
 /// or dropped.
 #[test]
 fn qualifier_marker_aliases_cost_less_than_full_iri() {
@@ -207,7 +207,7 @@ fn qualifier_marker_aliases_cost_less_than_full_iri() {
     }
 }
 
-/// Every Task-5 qualifier-slot alias is actually present in the authored bundle as a
+/// Every declared qualifier-slot alias is actually present in the authored bundle as a
 /// `gmeow:GmnDictionaryEntry` binding the expected term to the expected alias string — the
 /// razor discharge above is meaningless unless the marker it measures is the one the carrier
 /// ships.
@@ -243,13 +243,13 @@ fn qualifier_marker_aliases_are_authored_dictionary_entries() {
     }
 }
 
-/// The Task-6 closing-the-loop check: the codec must actually EMIT each qualifier
+/// The declared closing-the-loop check: the codec must actually EMIT each qualifier
 /// marker's authored alias, verbatim, when a GMN-0 quad uses the term the alias
 /// dealiases — not merely carry a dictionary entry that happens to agree with it. Reads
 /// `gmeow:gmnDictV3` through `GmnDictionary::from_dataset` (the same "compiled carrier"
 /// load path the codec's own writer uses — never a hardcoded parallel alias table) and
 /// asserts the emitted GMN-1 text contains the exact `<slot>: <alias>` token the
-/// dictionary declares, for every Task-5 qualifier marker.
+/// dictionary declares, for every declared qualifier marker.
 #[test]
 fn codec_emits_the_authored_qualifier_marker_aliases_verbatim() {
     use gmeow_lang_bridge::{Gmn0Model, GmnDictionary, gmn1_write};

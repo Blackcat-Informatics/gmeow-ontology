@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free engine for the statement-metadata invariants (Gap B3).
+//! PyO3-free engine for the statement-metadata invariants.
 //!
 //! These four checks — ported semantics-exact from
 //! `src/gmeow_tools/statement_lint.py`'s `annotation_property_soundness`,

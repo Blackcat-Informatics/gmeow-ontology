@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The `gmn-training-corpus` stage: a rejection-sampled, PROOF-CARRYING GMN training-corpus
-//! emitter (req #21 + #20). Corpus GENERATION only — it never trains a model.
+//! emitter with explicit provenance. Corpus GENERATION only — it never trains a model.
 //!
 //! # What it is
 //!
@@ -39,13 +39,13 @@
 //!    proof object) is the discharged obligation carried on the certificate. A term that
 //!    resolves to zero proof-checked answers carries NO obligation and is rejected.
 //! 5. **Carries no security-ring leakage** — tagging the term's atoms at a content ring and
-//!    admitting them into a target ring through Task 9's
+//!    admitting them into a target ring through the
 //!    [`gmeow_lang_bridge::consume_project`] over the carrier's authored ring lattice raises
 //!    no [`gmeow_lang_bridge::GmnConsumeError`] (a ring leak is the shipped `lang:GmnRingLeak`).
 //!
 //! On every KEPT pair the stage emits the acceptance certificate: the five verdicts, the
 //! discharged proof-obligation derivation IRI, and the version provenance quad
-//! ([`gmeow_lang_bridge::tag_schema_version`], Task 4's graph-resolved schema major). The
+//! ([`gmeow_lang_bridge::tag_schema_version`], using the graph-resolved schema major). The
 //! corpus is thus proof-carrying.
 //!
 //! # Determinism
@@ -450,7 +450,7 @@ fn sample(candidate: &Candidate, ctx: &GenContext) -> Outcome {
         }
     };
 
-    // Verifier 5 — carries no security-ring leakage (Task 9's consume-path filter).
+    // Verifier 5 — carries no security-ring leakage (the consume-path filter).
     if let Err(e) = ring_admits(&model, ctx, RING_CORE, RING_TRUSTED) {
         return reject(RejectStage::RingLeak, e.failure_class());
     }
@@ -554,7 +554,7 @@ fn typecheck_and_prove(candidate: &Candidate, ctx: &GenContext) -> ProofResult {
     }
 }
 
-/// Run Task 9's consume-path filter over the term's atoms tagged at `content_ring`, admitting
+/// Run the consume-path filter over the term's atoms tagged at `content_ring`, admitting
 /// into `target_ring`. A clean admission is `Ok`; any ring-leak / lattice condition is the
 /// typed [`GmnConsumeError`]. Used by verifier 5 (all atoms at `gmnRingCore`, admitted into
 /// `gmnRingTrusted`) and by the negative test (an atom at `gmnRingRestricted`).
@@ -738,7 +738,7 @@ fn emit_kept(quads: &mut Vec<RdfQuad>, index: usize, cert: &Certificate, schema_
         &format!("{GMEOW}gmnTrainingProofDerivation"),
         &cert.derivation_iri,
     ));
-    // Version provenance (Task 4): exactly one gmnSchemaVersion per kept pair.
+    // Version provenance: exactly one gmnSchemaVersion per kept pair.
     quads.push(str_quad(
         &subject,
         gmeow_lang_bridge::PRED_GMN_SCHEMA_VERSION,

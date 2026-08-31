@@ -1278,7 +1278,7 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        // v12: attach the substrate SBOM (issue 1672, F1) — the reconciliation A-Box
+        // v12: attach the substrate SBOM — the reconciliation A-Box
         // projected through the compiled spdx.rq into graph/substrate-sbom. Bump busts the
         // stage cache so the new named graph is emitted on cached inputs.
         // v11: added the shape-grounding certificate ledger
@@ -1326,7 +1326,7 @@ impl Stage for MappingsStage {
                     .join(format!("{name}.ttl")),
             );
         }
-        // The substrate SBOM projection (issue 1672, F1) reads the substrate
+        // The substrate SBOM projection reads the substrate
         // reconciliation A-Box's build INPUTS directly (manifests, lockfile, shipped
         // SUBSTRATE.txt stamps, prose), none of which any upstream product reflects — so
         // each must bust this stage's cache on edit, else a substrate pin change would
@@ -1498,7 +1498,7 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS,
         )?;
-        // graph/substrate-sbom — the substrate reconciliation A-Box (issue 1672, F1)
+        // graph/substrate-sbom — the substrate reconciliation A-Box
         // projected through THIS run's compiled `spdx.rq` into pure SPDX (one spdx:Package
         // per engine/library + `contains` relationships). It rides its own bundle-internal
         // named graph so the presenter reads it via `producer_graph`; it flattens into the
@@ -1669,7 +1669,7 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
     /// and the schema.org cells are re-expressed against the migrated shape
     /// (`gmeow:Language` + `lang:signSystemKind`; `lang:Orthography` binding). Computed
     /// FRESH from the DSL, so it verifies the rewiring independently of the committed
-    /// (Task-6-re-blessed) `.rq` bytes.
+    /// (current) `.rq` bytes.
     #[test]
     fn bcp47_projection_queries_join_through_variety() {
         let root = repo_root();

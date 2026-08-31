@@ -37,7 +37,7 @@ blake3.workspace = true
 # The GMN-0 → GMN-1 codec, the pinned glyph registry, and the Turtle/JSON-LD
 # serializers all come from the ONE canonical lang bridge — the matrix runs the five
 # tokenizer families over the SAME emitted GMN / Turtle / JSON-LD bytes the on-gate
-# Task-7 estimator measures, never a re-derived surface.
+# byte-fallback estimator measures, never a re-derived surface.
 gmeow-lang-bridge = { path = "../lang-bridge" }
 # The ONE canonical RDF parser + Turtle/JSON-LD serializers (never a second, hand-rolled
 # path), matching every other crate's `purrdf` dependency.

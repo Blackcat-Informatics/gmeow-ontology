@@ -930,13 +930,13 @@ fn run_conformance_cell(
                     ),
                 }));
             }
-            // GAP 4: every `logic:Constraint` projects to the SAME generic finding
+            // Every `logic:Constraint` projects to the SAME generic finding
             // component (`shacl.SPARQLConstraintComponent`), so a component-code match
             // alone cannot prove the SPECIFIC named rule fired — the counter-example
             // could be tripping a DIFFERENT constraint that happens to share the code.
             // When the cell pins `gmeow:expectedSourceShape`, additionally require that
             // at least one finding carrying the expected code ALSO originates from that
-            // source shape. A cell that omits it keeps the pre-GAP-4 behaviour (the
+            // source shape. A cell that omits it keeps the legacy component-only behaviour (the
             // component-code match above is conclusive) — so no other slice's cells,
             // which never set it, are affected.
             if let Some(expected_shape) = ec.expected_source_shape.as_deref() {
@@ -1008,8 +1008,8 @@ fn run_conformance_cell(
             //
             // * A soleness claim is a claim about WHICH law is the only one. "Exactly one
             //   law fired" without naming it still cannot fail when a fixture drifts onto
-            //   a DIFFERENT single law raising the same generic component — GAP 4 above,
-            //   which is the whole reason `gmeow:expectedSourceShape` exists.
+            //   a DIFFERENT single law raising the same generic component — precisely the
+            //   source-shape invariant that `gmeow:expectedSourceShape` enforces.
             // * It would give one term two meanings, selected silently by whether a
             //   sibling property happens to be bound. A declared claim whose strength
             //   depends on an absent input is exactly the silent degradation the
