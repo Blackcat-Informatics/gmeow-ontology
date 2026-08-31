@@ -8,13 +8,13 @@
 //!
 //! # Scope
 //!
-//! Per the F1 user decision (`gmeow:gmnCorrNormalToGmn`'s carrier declaration), the
-//! codec + this gate are TOTAL over the **grounding slices' GMN-0 NOW**
+//! `gmeow:gmnCorrNormalToGmn`'s carrier declaration makes the codec and this gate
+//! total over the **grounding slices' GMN-0**
 //! (`slices/grounding/{logic,lang,math}`, authored `module.ttl` PLUS `examples/*.ttl` —
 //! the SAME domain the `axisGmn1Coverage` slice-quality axis's own definition scopes
 //! coverage to). Coverage of every other slice is a separate, floor-gated quality axis
-//! (Task 7), not this gate's job — this gate never reads a non-grounding slice, so it
-//! can never red on a non-grounding gap.
+//! outside this gate's source domain: it never reads a non-grounding slice and
+//! therefore cannot grade one.
 //!
 //! # What the gate proves
 //!
@@ -55,8 +55,8 @@ use purrdf::{RdfDataset, RdfTerm, parse_dataset};
 /// `axisGmn1Coverage` axis's own `slices/grounding/` scope, minus `kernel`: the kernel
 /// module carries no independent GMN-0 content beyond what `logic`/`lang`/`math`
 /// already exercise structurally, and is folded into the `lang`/`logic` round-trips via
-/// their cross-references — this gate's own corpus is the three content-bearing
-/// grounding modules named in the carrier declaration and Task 6's own text).
+/// their cross-references). This gate's corpus is the three content-bearing
+/// grounding modules named by the carrier declaration.
 const GROUNDING_SLICES: [&str; 3] = ["logic", "lang", "math"];
 
 /// One grounding-slice source file's round-trip outcome, carrying the ONE typed
@@ -640,9 +640,9 @@ pub struct Gmn1PackRootReport {
 }
 
 impl Gmn1PackRootReport {
-    /// The check passes when no pack is shipped (a no-op the post-pipeline fanout activates in
-    /// Task 11) OR the shipped pack's declared root byte-equals the recomputation. A shipped
-    /// pack that declares NO root, or a different root, is a hard fail.
+    /// The check passes when no pack is shipped (the post-pipeline fanout may activate
+    /// it) or when the shipped pack's declared root byte-equals the recomputation. A
+    /// shipped pack with no root, or a different root, is a hard failure.
     #[must_use]
     pub fn is_clean(&self) -> bool {
         !self.pack_present || self.declared_root.as_deref() == Some(self.recomputed_root.as_str())
@@ -758,7 +758,7 @@ mod tests {
     /// temporarily corrupting a real committed slice file).
     ///
     /// The prior witness (an IRI under no registered namespace) is NO LONGER uncovered:
-    /// G11 (issue 1579) makes such external IRIs ride LOSSLESSLY by reference. The
+    /// G11 makes such external IRIs ride LOSSLESSLY by reference. The
     /// still-uncovered witness is therefore an unsafe blank-node label — the blank arm
     /// still raises `UncoveredTerm` → `CLASS_UNCOVERED_TERM`, so the gate keeps its teeth.
     #[test]
@@ -884,7 +884,7 @@ mod tests {
     /// tally machinery [`check_gmn1_construct_coverage`] runs in production then flags
     /// that category unexercised. This demonstrates the completeness assertion has real
     /// teeth: removing a real grounding construct's only occurrence genuinely fails the
-    /// audit, exactly the failure mode Task 3 exists to catch (a construct present in
+    /// audit, exactly the failure mode this gate exists to catch (a construct present in
     /// production content but never proven against by any test).
     #[test]
     fn construct_coverage_audit_is_falsifiable_when_a_real_category_is_removed() {

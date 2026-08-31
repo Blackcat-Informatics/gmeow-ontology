@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Production-surface acceptance of the Task-6 verify expansion: `gmeow verify`
+//! Production-surface acceptance of the enriched `gmeow verify` path:
 //! renders the SAME proof-carrying enrichment as `gmeow validate` — remediation
 //! ("how to fix") + per-term usage guidance — on ALL THREE channels
 //! (text / SARIF / JSON), and its ontology-completeness findings are non-blocking
@@ -10,7 +10,7 @@
 //! The fixture is a minimal, unsigned GTS bundle carrying one `gmeow:`-namespaced
 //! `owl:Class` that is LABELED but carries NO `skos:definition` (so verify emits a
 //! real `ontology.missing-definition` finding) and authors `gmeow:howToUse` guidance
-//! on the same term (so the Task-4 documented-term guidance join lights up on
+//! on the same term (so the documented-term guidance join lights up on
 //! verify). Driving the BUILT binary proves the whole command end-to-end, not just a
 //! library seam.
 

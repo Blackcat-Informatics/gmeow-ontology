@@ -870,7 +870,7 @@ pub fn catalog_anchor_uri(code: &str) -> String {
     if let Some((suffix, _, _)) = FAMILY_SUFFIXES.iter().find(|(s, _, _)| code.ends_with(s)) {
         return help_uri_for(suffix);
     }
-    // Unknown to the registry: cannot happen for an emitted code (GAP 1 makes
+    // Unknown to the registry: cannot happen for an emitted code (the registry makes
     // the code set total, checked by `every_declared_code_is_classified`).
     // Fall back to the code's own slug rather than panicking, since
     // `help_uri_for`/`rule_for` are infallible by design.

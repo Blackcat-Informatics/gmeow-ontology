@@ -222,7 +222,7 @@ fn parse_rejects_a_body_without_the_result_subject() {
     );
 }
 
-// ── Finding 1: witness-order determinism ─────────────────────────────────────
+// ── Witness-order determinism ────────────────────────────────────────────────
 
 /// Two ReasoningResults with the SAME witness set but in DIFFERENT order must
 /// produce the exact same RDF bytes (same digest, same blank-node numbering).
@@ -285,7 +285,7 @@ fn witness_order_does_not_affect_projection() {
     assert_eq!(result_node_iri(&r1), result_node_iri(&r2));
 }
 
-// ── Finding 2: fail-closed provenance round-trip ──────────────────────────────
+// ── Fail-closed provenance round-trip ────────────────────────────────────────
 
 /// A body that is missing a required provenance field (resultQuery) must parse
 /// to Err — no silent default substitution.
@@ -339,7 +339,7 @@ fn parse_fails_closed_on_missing_result_budget_consumed() {
     );
 }
 
-// ── Finding 3: derived-axiom blank-node and literal round-trip ───────────────
+// ── Derived-axiom blank-node and literal round-trip ──────────────────────────
 
 /// Axioms with blank-node subjects/objects and literal-summary objects must
 /// survive the projection → parse round-trip (they were previously silently

@@ -296,8 +296,8 @@ fn g3_contains_node_rejects_foreign_arena() {
 // ── (d) DAG ↔ ir.rs congruence ─────────────────────────────────────────────────────
 //
 // The `logic:` lowering the congruence corpus exercises is the promoted, non-test
-// three-consumer API [`crate::physical::lower::lower_logic_formula`] (Task 3), which
-// reproduces exactly the equivalences `ir::Formula::content_key` decides. The Task-2
+// three-consumer API [`crate::physical::lower::lower_logic_formula`], which
+// reproduces exactly the equivalences `ir::Formula::content_key` decides. The
 // focused helper that once lived here has been removed (greenfield: one lowering, not
 // a test-local duplicate).
 

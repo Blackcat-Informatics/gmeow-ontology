@@ -9,7 +9,7 @@
 //! the unified report, carrying its explain-skeleton derivation citation.
 //!
 //! The fixture is a TINY entailed-inconsistency TBox (mirrors
-//! `crates/validate/src/validate_all.rs`'s Task-5 `INCONSISTENT_TTL` /
+//! `crates/validate/src/validate_all.rs`'s `INCONSISTENT_TTL` /
 //! `gts_bytes_from_turtle` test helpers, adapted here for a CLI-binary test):
 //! `ex:A rdfs:subClassOf ex:B, ex:C` with `ex:B owl:disjointWith ex:C` and
 //! `ex:x rdf:type ex:A` forces `ex:x` into `owl:Nothing` — a real DL clash the

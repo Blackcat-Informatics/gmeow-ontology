@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! JSON-Schema instance validator (Task 4).
+//! JSON-Schema instance validator.
 //!
 //! Validates a JSON or YAML instance document against a JSON Schema (the
-//! SHACL-derived `generated/schemas/gmeow.schema.json` produced in Task 3, or
+//! SHACL-derived `generated/schemas/gmeow.schema.json`, or
 //! any user-supplied draft-2020-12 schema). The engine is the Rust authority:
 //! the consumer `gmeow validate --schema` CLI is a thin PyO3 binding over
 //! [`validate_instance`].
@@ -51,7 +51,7 @@ pub fn validate_instance(
     })?;
 
     // Compile for draft 2020-12 (the dialect the SHACL→JSON-Schema emitter targets
-    // in Task 2/3). A compile failure (malformed schema) is a hard error.
+    // in this validator). A compile failure (malformed schema) is a hard error.
     let validator: Validator = jsonschema::options()
         .with_draft(Draft::Draft202012)
         .build(&schema_value)

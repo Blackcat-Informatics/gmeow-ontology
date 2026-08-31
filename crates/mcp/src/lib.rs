@@ -603,7 +603,8 @@ const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 /// `x-gmeow-english` — the preferred label language tag (mirrors the pipeline's
 /// verbalizer label harvest: a GMEOW-English label wins, ties break to the smallest
-/// lexical form), so the gloss the tool serves is byte-identical to Task 8's.
+/// lexical form), so the gloss the tool serves is byte-identical to the pipeline
+/// verbalizer's rendering.
 #[cfg(feature = "core")]
 const GMEOW_ENGLISH: &str = "x-gmeow-english";
 /// `lang:Denotation` — the typed meaning-assignment node `gmn_explain` resolves a
@@ -1249,7 +1250,7 @@ fn select_rows(value: &Value) -> Vec<BTreeMap<String, String>> {
 }
 
 /// The string value of `key` in a JSON object, or `""` when absent / non-string.
-/// A small adapter so the full-tier `doc_card` panels can reuse the Task-4
+/// A small adapter so the full-tier `doc_card` panels can reuse the declared
 /// `term_entailments` / `term_fixtures` JSON records without re-querying the graph.
 #[cfg(feature = "core")]
 fn value_str(value: &Value, key: &str) -> String {
@@ -4457,7 +4458,8 @@ impl McpServer {
 
     /// `gmn_explain` — resolve a GMN operator glyph to its `lang:Denotation` and its
     /// graph-authored `gmeow:gmnFixity` / `gmeow:gmnPrecedence` / `gmeow:gmnArity`
-    /// signature, plus its controlled-NL gloss (the SAME Task 8 verbalizer rendering).
+    /// signature, plus its controlled-NL gloss (the same rendering produced by the
+    /// verbalizer).
     /// An input that is not a covered operator glyph returns an HONEST typed miss
     /// (`found:false` + `lang:GmnUncoveredTerm`), never a fabricated answer.
     #[cfg(feature = "core")]
@@ -4486,7 +4488,7 @@ impl McpServer {
             })
             .to_string());
         };
-        // The controlled-NL gloss is Task 8's verbalizer rendering VERBATIM: build the whole
+        // The controlled-NL gloss is the verbalizer rendering VERBATIM: build the whole
         // (injective, disambiguated) corpus and read off this form's rendered pair, so the
         // gloss the LLM sees is the exact GMN⇄NL training-pair surface, not a re-derivation.
         let pairs = build_verbalization_pairs(&forms).map_err(|error| {
@@ -7111,7 +7113,7 @@ fn guard_gmn_size(gmn: &str, tool: &str) -> gmeow_errors::Result<()> {
 
 /// Harvest the `rdfs:label` index (`IRI → label`) from the bundle dataset — the SAME
 /// deterministic pick the pipeline verbalizer uses (a `@x-gmeow-english` label wins; ties
-/// break to the smallest lexical form), so `gmn_explain`'s gloss nucleus matches Task 8.
+/// break to the smallest lexical form), so `gmn_explain`'s gloss nucleus matches the verbalizer.
 #[cfg(feature = "core")]
 fn harvest_dataset_labels(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
     // (is_gmeow_english, lexical_form) per IRI — the preference key.
@@ -14399,7 +14401,7 @@ mod tests {
 
     #[test]
     fn conjecture_test_budget_bound_forces_open_via_the_mcp_surface() {
-        // GAP G1: the `max_steps` / `max_answers` bound is reachable from the SHIPPED MCP
+        // The `max_steps` / `max_answers` bound is reachable from the SHIPPED MCP
         // surface (not just the logic-crate unit test). A run whose derived closure exceeds the
         // ceiling is truncated → evaluation budget-exhausted → lifecycle open → discharge
         // Unknown. This is a PURE assertion on `conjecture_test`: no persist tail exists on
@@ -14702,7 +14704,7 @@ mod tests {
     ///
     /// `gmeow:Activity` documents BOTH a well-formed exemplar and a counter-example
     /// in the shipped `gmeow:graph/documentation` graph (verified by the projection
-    /// query in Task 1); `gmeow:AboutnessMode` is a documented term that authors no
+    /// query in the shipped surface); `gmeow:AboutnessMode` is a documented term that authors no
     /// fixtures.
     #[test]
     fn tool_counter_examples_surface() {
@@ -16221,7 +16223,7 @@ mod tests {
                 .is_some_and(|d| d.contains("blackcatinformatics.ca")),
             "the lang:Denotation IRI is surfaced, not fabricated: {hit}"
         );
-        // The gloss is Task 8's verbalizer rendering: the prefix template `<label> arg1`.
+        // The gloss is the verbalizer rendering: the prefix template `<label> arg1`.
         assert!(
             hit["gloss"].as_str().is_some_and(|g| g.contains("arg1")),
             "the controlled-NL gloss is the prefix verbalizer rendering: {hit}"

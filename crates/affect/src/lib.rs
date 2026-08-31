@@ -1015,7 +1015,7 @@ mod tests {
     }
 
     // Two vectorComponent cells on the SAME core axis is a hard fail, not a
-    // silent last-writer-wins overwrite (no-optionality; reviewer r3611415426).
+    // silent last-writer-wins overwrite (no-optionality).
     #[test]
     fn duplicate_core_axis_cell_hard_fails() {
         let turtle = observation_turtle(

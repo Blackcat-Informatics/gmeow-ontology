@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Task 7 (Part A): executable production-surface acceptance tests over the
+//! Executable production-surface acceptance tests over the
 //! PUBLIC `gmeow_validate::data_validate::run` entry — the exact fn the CLI
 //! renders (`commands.rs:572`) — proving the proof-carrying enrichment
 //! (remediation / derivation / per-term guidance) reaches the rendered
@@ -14,8 +14,8 @@
 //! its OWN `shapes-archive` blob (so `data_validate::run` can validate
 //! repo-free) plus a small TBox that reasons to a genuine entailed
 //! inconsistency under `--deep` (mirroring the `INCONSISTENT_TTL` pattern
-//! `crates/validate/src/validate_all.rs`'s Task-5 tests already use) and a
-//! test-authored guidance-carrying term (mirroring the shape of Task 4's
+//! `crates/validate/src/validate_all.rs` tests already use) and a
+//! test-authored guidance-carrying term (mirroring the production guidance
 //! seeded `gmeow:requiresFrame` guidance, but authored fresh in THIS bundle
 //! since the real seeded terms live in `slices/*.ttl` sources that only reach
 //! `generated/dist/gmeow.gts` via `make check`, which this test must not

@@ -830,7 +830,7 @@ impl GraphStore {
     /// `R logic:characteristicSort logic:functionalProperty` — the canonical
     /// `logic:` carrier of a property's functional characteristic.
     ///
-    /// Since issue 1579 deprecated the source `owl:FunctionalProperty` marker,
+    /// Because the source `owl:FunctionalProperty` marker is deprecated,
     /// functionality on the merged source/bundle is carried EXCLUSIVELY by these
     /// `logic:PropertyCharacteristicAssertion` records (the `owl:FunctionalProperty`
     /// type triple now lives only in the generated OWL view). Conformance tests
@@ -1172,7 +1172,7 @@ pub const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/char
 pub const LOGIC_CHARACTERISTIC_SORT: &str =
     "https://blackcatinformatics.ca/logic/characteristicSort";
 /// `logic:functionalProperty` — the functional characteristic-sort marker, the
-/// canonical `logic:` carrier of `owl:FunctionalProperty` (deprecated at source, issue 1579).
+/// canonical `logic:` carrier of `owl:FunctionalProperty` (deprecated at source).
 pub const LOGIC_FUNCTIONAL_PROPERTY: &str =
     "https://blackcatinformatics.ca/logic/functionalProperty";
 /// `rdfs:subClassOf` — the closure edge for [`GraphStore::subclass_closure`].
@@ -1337,7 +1337,7 @@ pub enum Source {
 /// Construct with [`Case::inline`], [`Case::file`], or [`Case::repo_path`],
 /// refine with the builder methods, then call [`Case::run`].
 ///
-/// Assertion semantics (the contract Task-3 parity rests on):
+/// Assertion semantics for the shared parity contract:
 /// - [`Case::violations`] / [`Case::warnings`] are **subset** checks: every
 ///   listed substring must be present, extra messages are allowed. An empty list
 ///   (the default) asserts *nothing* on that channel — [`Case::run`] never
@@ -1852,7 +1852,7 @@ impl Feature {
 /// `(cq_id, feature_tags)` of the cases it lands, and the tag-union must stay ⊇
 /// [`Feature::ALL`] (enforced by `feature_registry_covers_all_features`).
 ///
-/// The rows below are the Task-1 seed: `conformance_sparql_features.rs` lands one
+/// The rows below are the conformance seed; `conformance_sparql_features.rs` carries one
 /// small, self-contained [`QueryCase`] per feature so the invariant is green from
 /// the first commit; later migrations extend the union, never shrink it.
 pub const MIGRATION_FEATURE_REGISTRY: &[(&str, &[Feature])] = &[

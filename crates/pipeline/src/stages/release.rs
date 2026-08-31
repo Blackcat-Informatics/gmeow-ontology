@@ -152,7 +152,7 @@ pub fn fold_release_bundle(
     //    frame under a different `rep` for the same digest. The minted
     //    attestation binds its artifact to the bytes by `gmeow:contentDigest`
     //    only, which the committed blob already satisfies, so deduping here keeps
-    //    exactly one blob frame AND one attestation envelope per artifact (GAP-2).
+    //    exactly one blob frame AND one attestation envelope per artifact.
     let committed_digests: std::collections::HashSet<&str> =
         graph.blobs.iter().map(|(d, _)| d.as_str()).collect();
     let report_blobs: Vec<BlobRow> = sorted
@@ -1147,7 +1147,7 @@ mod tests {
         assert_eq!(a, b, "same inputs + same issued_at must be byte-identical");
     }
 
-    /// GAP-4/8: the consumer verify must accept a well-formed signed bundle —
+    /// The consumer verifier accepts a well-formed signed bundle —
     /// signature + every attested artifact present — and report one verified
     /// artifact per evidence input.
     #[test]
@@ -1165,7 +1165,7 @@ mod tests {
         );
     }
 
-    /// GAP-4: a tampered bundle (a flipped byte) must fail the signature leg, and
+    /// A tampered bundle (a flipped byte) must fail the signature leg, and
     /// non-GTS garbage must fail too — verify never silently passes.
     #[test]
     fn verify_release_bundle_rejects_tampered_and_garbage() {
@@ -1186,7 +1186,7 @@ mod tests {
         );
     }
 
-    /// GAP-8: supplying the WRONG out-of-band trusted key must fail the trust
+    /// Supplying the WRONG out-of-band trusted key must fail the trust
     /// leg even though the embedded self-signature is cryptographically valid.
     #[test]
     fn verify_release_bundle_rejects_untrusted_key() {
@@ -1240,7 +1240,7 @@ mod tests {
         }
     }
 
-    /// GAP-2: evidence whose bytes already ride in the committed snapshot must NOT
+    /// Evidence whose bytes already ride in the committed snapshot must NOT
     /// be folded a second time. The duplicate is invisible after `read()` (the
     /// model dedups blobs by digest), so we count raw blob FRAMES via the
     /// streaming sink: the colliding digest must appear exactly once. The minted

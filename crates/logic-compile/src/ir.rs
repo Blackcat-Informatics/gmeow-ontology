@@ -997,7 +997,7 @@ pub struct ReasoningContract {
     /// (`"OpenWorldClosure"` / `"ClosedWorldClosure"`).
     pub closure_entries: BTreeMap<String, String>,
 
-    /// Carried decidability data (reviewer B2): the `logic:complexityClass` value.
+    /// Carried decidability data: the `logic:complexityClass` value.
     pub complexity: Option<ComplexityClass>,
 }
 

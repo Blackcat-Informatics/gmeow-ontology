@@ -1141,8 +1141,8 @@ impl ValidationRun {
 /// build the [`gmeow_logic::explain::explanations_for_result`] derivation
 /// skeletons, and fold the shared `logic:ReasoningResult` verdict into `report`
 /// via [`fold_reasoning_result`]. That means the report gains the same reasoned
-/// `validate.deep.*` findings the enrichment pass attaches `derived_from_quads` to
-/// (Task 5), and it INHERITS the same hard-fail discipline: a verdict that cannot
+/// `validate.deep.*` findings the enrichment pass attaches `derived_from_quads` to,
+/// and it INHERITS the same hard-fail discipline: a verdict that cannot
 /// be joined to its explain-skeleton derivation (an internal invariant violation)
 /// propagates as `Err`, never a graceful advisory — the caller must treat it as a
 /// `Severity::Error` failure, not swallow it. There is no reimplementation of the

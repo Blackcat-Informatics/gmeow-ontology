@@ -151,7 +151,7 @@ fn lawful_rules_from_program(
 /// The corpus-independent put-leg program: the gate-verified rule sets plus the value-rule
 /// residue count. Built ONCE from the SSSOM/projection/ontology inputs (which do not vary per
 /// source file) via [`PutLegProgram::derive`], then applied to each source graph. Hoisting this
-/// out of the per-file [`execute_put_legs`] loop is the GAP 5 fix: the gate machinery (one
+/// out of the per-file [`execute_put_legs`] loop makes the gate machinery (one
 /// correspondence + five gates per candidate term) runs once per corpus, not once per file.
 pub struct PutLegProgram {
     lawful: LawfulRules,
@@ -795,7 +795,7 @@ mod tests {
 
     #[test]
     fn gate_red_excluded_term_is_never_lifted_by_the_executor() {
-        // The parity guard (invariant). `foaf:bad` has a direct EDOAL path on
+        // The parity guard. `foaf:bad` has a direct EDOAL path on
         // <gmeow:forward> and an inverse EDOAL path on a DIFFERENT predicate <gmeow:notInverse>:
         // the reverse path does NOT invert the forward path, so the correspondence round-trip
         // gate RED-excludes it (audit tier = red_excluded). `foaf:good` has a matching
@@ -880,7 +880,7 @@ mod tests {
         }
         // `foaf:bad` has no gate-surviving rule, so it is an honest gap term, not a silent drop.
         // It occurs TWICE in the source; the reported count must be the real occurrence count
-        // (2), never a fabricated constant (1) — the GAP 4 honesty invariant.
+        // (2), never a fabricated constant (1).
         assert_eq!(
             report.gap_terms.get("foaf:bad").copied(),
             Some(2),

@@ -182,7 +182,7 @@ pub fn on_disk_shacl_input_digest(root: &Path) -> Result<String, gmeow_errors::D
         })
     })?;
     members.extend(on_disk_members(root, shape_files));
-    // The substrate A-Box (issue 1672, F2) is folded into the validated corpus from these
+    // The substrate A-Box is folded into the validated corpus from these
     // build INPUTS, so the on-disk recompute must fold them too — otherwise a consumer's
     // digest would never match the recorded `shaclInputDigest`.
     members.extend(on_disk_members(
@@ -345,7 +345,7 @@ fn validate_parsed_source_graph(
 /// A-Box from the rest of `graph/provenance`.
 const SUBSTRATE_IRI_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/substrate/";
 
-/// Extract the substrate reconciliation A-Box (issue 1672) from the consumed
+/// Extract the substrate reconciliation A-Box from the consumed
 /// `stage-source-load` product's `graph/provenance` named graph, as default-graph
 /// N-Triples.
 ///
@@ -515,7 +515,7 @@ impl Stage for ValidateStage {
         // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        // v7: fold the substrate reconciliation A-Box (issue 1672, F2) into the validated
+        // v7: fold the substrate reconciliation A-Box into the validated
         // corpus so the derived PinAgreement/PinCoverage constraints target it on the
         // production path; the substrate build inputs join the recorded shaclInputDigest.
         // The bump busts the stage cache so the wider corpus is validated on cached inputs.
@@ -564,7 +564,7 @@ impl Stage for ValidateStage {
                     message: format!("source graph parse: {e}"),
                 })
             })?;
-        // Fold the substrate reconciliation A-Box (issue 1672, F2) into the validated
+        // Fold the substrate reconciliation A-Box into the validated
         // corpus so the derived PinAgreement / PinCoverage constraints have target data on
         // the PRODUCTION validate path (the authored default graph carries none). The A-Box
         // rides `graph/provenance` in the consumed source-load product; N-Triples are
@@ -621,7 +621,7 @@ impl Stage for ValidateStage {
             members.extend(crate::stages::shape_union_fresh::effective_union_members(
                 input.root, &fresh,
             )?);
-            // The validated corpus now also carries the substrate A-Box (issue 1672, F2),
+            // The validated corpus now also carries the substrate A-Box,
             // derived from these build INPUTS, so they join the recorded digest — a
             // freshness consumer re-deriving over the same disk files (via
             // [`on_disk_shacl_input_digest`]) computes the identical digest. Gated on the
@@ -1173,7 +1173,7 @@ ex:RequiredShape a sh:NodeShape ;
         );
     }
 
-    /// Task 7 Part C (adversary F1, cross-surface parity/drift guard): the FULL
+    /// The FULL cross-surface parity and drift guard
     /// `ValidateStage::run` (not just `validate_source_graph`, which returns
     /// BEFORE the enrichment call) routes its report through the SAME
     /// `gmeow_validate::enrich::enrich_findings` the CLI/consumer
@@ -1294,9 +1294,8 @@ ex:RequiredShape a sh:NodeShape ;
     /// Build the full `ValidateStage::run` harness — a `stage-source-load` product
     /// with an empty base graph + `REP_SPAN_TABLE` blob, plus header-only members for
     /// the four shape producers — parameterized on the authored `shapes/gmeow-shapes.ttl`
-    /// body, and run the stage. Factored out of
-    /// `stage_validate_run_is_enriched_matching_the_cli_path` so Task 4's two new tests
-    /// reuse the EXACT same harness shape rather than a hand-rolled twin.
+    /// body, and run the stage. All enrichment controls reuse this exact harness
+    /// shape rather than constructing a divergent twin.
     /// The base-graph fixture (N-Quads, default graph): an individual whose data MATCHES
     /// the advisory constraint in `ADVICE_SHAPE` (`ex:badThing a gmeow:Foo`). The
     /// data-matching guard fires exactly one Info result, which the bridge lifts into a
@@ -1557,7 +1556,7 @@ ex:RequiredShape a sh:NodeShape ;
         assert_compliance_assessment_present(&norm_claims);
     }
 
-    /// Task 4 (Completion-Adversary F5): the `gmeow:ComplianceAssessment` claim must be
+    /// The `gmeow:ComplianceAssessment` claim must be
     /// emitted UNCONDITIONALLY — even on a NON-conforming run — because it rides the
     /// same unconditional completion path as the flat advisory Note (never gated behind
     /// `report.conforms`). Reuses the SHACL-violation shape from

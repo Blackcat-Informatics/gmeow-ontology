@@ -199,8 +199,8 @@ view `V`.** Therefore:
 
 Rationale: the view should be the *smaller, derived* thing, and `put`'s job — "fold a modified
 view back into the rich source" — is the only reading under which the lens laws say what we
-want. The Geminis' relational framing left this ambiguous (and one inverted it); `take1` fixes
-it. Note the `put : V × S → S` signature takes the *old source* as well as the new view; the
+want. Relational framing alone leaves this orientation ambiguous; `take1` fixes it. Note the
+`put : V × S → S` signature takes the *old source* as well as the new view; the
 **ingest-with-no-prior-state** case (`S` empty) is precisely where the view alone is
 insufficient and a *witness must travel in the view* — which is the in-band complement (§13)
 and the motivation for mnemomorphism (§6).

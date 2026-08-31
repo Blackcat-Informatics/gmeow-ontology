@@ -423,7 +423,7 @@ pub fn dc_coverage(json_mode: bool, threshold: f64) -> i32 {
     }
 }
 
-/// `gmeow-dev wikidata [--existence --fixtures]` — validate the QIDs/PIDs in use.
+/// `gmeow-dev wikidata [--existence --fixtures]` — validate the Wikidata entity ids in use.
 pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
     let root = project_root();
     if fixtures {
@@ -463,9 +463,9 @@ pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
         ));
     }
     if existence {
-        // The live lookup: query every syntactically-valid QID/PID against the
-        // Wikidata entity API (native `check_existence`, `ureq` under the hood)
-        // and hard-fail on any id that does not resolve (missing / redirected).
+        // The live lookup queries every syntactically valid Q/P/L/L-S entity id
+        // against the Wikidata entity API (native `check_existence`, `ureq` under the hood)
+        // and hard-fails on any id that does not resolve (missing / redirected).
         let statuses = match gmeow_validate::mapping_eval::check_existence(
             &syntax.valid,
             &root,
@@ -489,8 +489,7 @@ pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
             .filter(|(_, v)| v.as_str() != "ok")
             .map(|(k, v)| (k, v.as_str()))
             .collect();
-        // `statuses` is a HashMap; sort by id so the reported failures are in a
-        // stable, reproducible order (Principle 18) regardless of hash iteration.
+        // Retain stable, reproducible reporting order (Principle 18) at this boundary.
         bad.sort_by(|a, b| a.0.cmp(b.0));
         for (id, status) in &bad {
             note(

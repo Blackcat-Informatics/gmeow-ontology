@@ -24,7 +24,7 @@
 //! - an `assert` proof holds iff its goal is a member of the asserted EDB the caller supplies
 //!   in [`RuleCtx`];
 //! - a `by_rule` proof holds iff, after recursively checking every subproof to the atom it
-//!   proves, the cited rule's body atoms UNIFY (Task-4 [`unify`]) with those proven atoms and
+//!   proves, the cited rule's body atoms UNIFY ([`unify`]) with those proven atoms and
 //!   the resulting substitution, [`apply`]'d to the rule's head, is NodeId-EQUAL to the
 //!   proof's stated goal.
 //!

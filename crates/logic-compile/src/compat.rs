@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The reasoning-contract **compatibility feature model** (Task 3).
+//! The reasoning-contract **compatibility feature model**.
 //!
 //! A [`ReasoningContract`] selects values across orthogonal reasoning facets.  Not
 //! every combination is soundly evaluable: some facet pairs name semantics that
@@ -19,7 +19,7 @@
 //! contract; the verdict is [`ContractVerdict::Supported`] iff no rule fires.
 //! Adding a forbidden combination is one new array entry — no new control flow.
 //!
-//! # Hard verdict, no silent approximation (reviewer C3)
+//! # Hard verdict, no silent approximation
 //!
 //! An [`ContractVerdict::Unsupported`] contract is a **hard** condition.  The
 //! front-end turns it into a `Severity::Error` diagnostic so the compile `Report`

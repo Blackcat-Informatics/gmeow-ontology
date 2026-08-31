@@ -19,7 +19,7 @@
 //!   dropped in silence: presentation/annotation is absorbed or skipped, every other
 //!   uncovered predicate lands in [`ShapeRead::unsupported`], and only genuine
 //!   malformation is an `Err`.
-//! * **Part B** ([`oracle`]) decides equivalence through the Task-1 subsumption lattice
+//! * **Part B** ([`oracle`]) decides equivalence through the shared subsumption lattice
 //!   ([`gmeow_logic_compile::projections::subsumption`]): `≡` over the covered `ir`, the
 //!   Galois soundness direction (`projected ⊒ legacy`), the residue normal form, and the
 //!   `residue_bearing` flag — a residue-bearing legacy class is NOT deletable on the
@@ -1299,7 +1299,7 @@ pub struct OracleVerdict {
     /// keeps the projection never loses enforcement on the covered part.
     pub legacy_subsumed_by_projected: bool,
     /// The residue normal form of the LEGACY covered fragment (the constructs no SHACL
-    /// surface can faithfully hold), reused from the Task-1 classifier.
+    /// surface can faithfully hold), reused from the shared classifier.
     pub residue: Vec<String>,
     /// The genuinely-uncovered constructs the legacy shape also carried (from the read).
     pub unsupported: Vec<String>,
@@ -1360,7 +1360,7 @@ fn diff_reason(legacy: &ValidationShapeIr, projected: &ValidationShapeIr) -> Str
 }
 
 /// Decide equivalence and Galois soundness for a legacy read vs a projected shape through
-/// the Task-1 subsumption lattice.
+/// the shared subsumption lattice.
 ///
 /// Equivalence is decided over the COVERED fragment only (`legacy.ir` vs `projected`) — the
 /// projected side is minted from canon and bears no residue. The verdict carries the

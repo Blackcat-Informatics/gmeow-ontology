@@ -58,19 +58,13 @@ or source material for a claim.
 
 ## Updating The Ledger
 
-Run the backfill tool when adding or refreshing citation coverage:
+Edit `metadata/references.ttl` directly. Preserve the cited and citing entity
+IRIs, citation intent, authority, selectors, and exact source locations. GitHub
+review and issue-comment labels include the exact `discussion_r…` or
+`issuecomment-…` identity carried by their source URL; the references generator
+fails if a label is unknown or disagrees with that URL.
 
-```bash
-cargo run -p gmeow-dev-cli -- references-backfill
-```
-
-The command reads authored local files and accessible GitHub issue/PR/review
-text through the `gh` CLI. It writes:
-
-- `metadata/references.ttl` — the canonical curated ledger
-- `dist/reference-candidates.jsonl` — an audit trail of harvested candidates
-
-After changing `metadata/references.ttl`, regenerate exports:
+After changing the canonical ledger, regenerate and validate its projections:
 
 ```bash
 make check

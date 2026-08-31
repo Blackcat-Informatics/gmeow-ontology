@@ -2667,7 +2667,7 @@ mod tests {
         assert!(!is_absolute_iri("1http://bad-scheme")); // scheme must start with a letter
     }
 
-    /// Production-surface    /// Production-surface antecedent guard (gap G3): the primary reasoning path
+    /// Production-surface antecedent guard: the primary reasoning path
     /// (`reason_all` → `reason_closure` → `run_reasoning` → `forward_oracle().materialize`
     /// → `chase_rows_to_inferred`) must carry REAL native premises end-to-end, not
     /// just non-empty inferred facts. `forward_oracle()` funnels the binary

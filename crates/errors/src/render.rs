@@ -2300,7 +2300,7 @@ mod tests {
     /// A parent finding and its downstream witness, both carrying the canonical
     /// fingerprint IRIs a ledger projection mints, so the RDF subject/antecedent
     /// join is exercised. The child's `antecedents` names the parent's own
-    /// `finding_iri` — the equality the Task-2 meta-rules match on.
+    /// `finding_iri` — the equality the declared meta-rules match on.
     const PARENT_IRI: &str = "https://blackcatinformatics.ca/gmeow/diagnostics/finding/aaaa1111";
     const CHILD_IRI: &str = "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bbbb2222";
     const ANCHOR_IRI: &str = "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/cccc3333";
@@ -2546,7 +2546,7 @@ mod tests {
 
     #[test]
     fn text_renders_per_term_guidance_and_derivation_citations() {
-        // D2c/D2b (Task 2): the three per-term Guidance modalities projected onto
+        // D2c/D2b: the three per-term Guidance modalities projected onto
         // `finding.guidance` all render, and each `finding.derived_from_quads`
         // reifier IRI renders a derivation-citation line — a SEPARATE surface from
         // the finding-fingerprint `antecedents`/`root_cause` edges, which this test

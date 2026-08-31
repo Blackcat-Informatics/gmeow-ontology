@@ -220,7 +220,7 @@ fn unknown_semantic_profile_emits_diagnostic() {
 
 #[test]
 fn unknown_semantic_profile_is_a_hard_error() {
-    // Greenfield (reviewer C3): an unrecognised preset reference is a hard error,
+    // Greenfield: an unrecognised preset reference is a hard error,
     // not a fail-soft warning — otherwise it is a silent approximation.
     let (_, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
     assert!(
@@ -230,7 +230,7 @@ fn unknown_semantic_profile_is_a_hard_error() {
     );
 }
 
-// ── Compatibility firewall (Task 3 / reviewer C3) ──────────────────────
+// ── Compatibility firewall ─────────────────────────────────────────────
 
 #[test]
 fn unsupported_contract_is_a_hard_compile_failure() {
@@ -273,7 +273,7 @@ fn supported_contract_compiles_clean() {
 
 #[test]
 fn probabilistic_measure_without_model_is_unsupported() {
-    // Reviewer C4: a probabilistic measure with NO declared logic:ProbabilityModel
+    // A probabilistic measure with NO declared logic:ProbabilityModel
     // is a hard error (never a silent independence assumption).
     let (_, diags) = parse(
         "ex:ProbContract a logic:ReasoningContract ;
@@ -346,7 +346,7 @@ fn probabilistic_measure_with_declared_model_is_supported() {
     );
 }
 
-// ── Meta-config does not leak into domain axioms (Gap 1) ───────────────
+// ── Meta-config does not leak into domain axioms ───────────────────────
 
 #[test]
 fn contract_facet_config_does_not_leak_into_domain_axioms() {
@@ -385,7 +385,7 @@ fn contract_facet_config_does_not_leak_into_domain_axioms() {
     );
 }
 
-// ── Malformed ClosureEntry hard-fail (Gap 4) ───────────────────────────
+// ── Malformed ClosureEntry hard-fail ───────────────────────────────────
 
 #[test]
 fn closure_entry_missing_value_is_a_hard_error() {
@@ -3684,7 +3684,7 @@ fn join_aggregate_single_leg_is_not_a_join() {
 
 /// Build a two-leg `logic:joinPath` Turtle fragment where `bad_pred`'s value on the FIRST leg is
 /// replaced with `bad_value_ttl` (a literal or blank node), and every other structural predicate
-/// on that leg — plus the whole second leg — is a well-formed IRI. Used to falsify Gap 12b: each
+/// on that leg — plus the whole second leg — is a well-formed IRI. Each
 /// of `legSource`/`legTarget`/`legValue`/`legRecordType` must reject a non-IRI value rather than
 /// silently stringify it.
 fn join_leg_with_bad_value(bad_pred: &str, bad_value_ttl: &str) -> String {
@@ -3721,7 +3721,7 @@ fn join_leg_with_bad_value(bad_pred: &str, bad_value_ttl: &str) -> String {
 #[test]
 fn join_aggregate_leg_rejects_a_literal_value_for_every_structural_predicate() {
     // legSource/legTarget/legValue/legRecordType are record→endpoint/value PREDICATES; a
-    // literal value must be rejected as malformed, not silently stringified (Gap 12b).
+    // literal value must be rejected as malformed, not silently stringified.
     for bad_pred in ["legSource", "legTarget", "legValue", "legRecordType"] {
         let (prog, diags) = parse(&join_leg_with_bad_value(bad_pred, "\"not-an-iri\""));
         assert!(
@@ -3741,7 +3741,7 @@ fn join_aggregate_leg_rejects_a_literal_value_for_every_structural_predicate() {
 #[test]
 fn join_aggregate_leg_rejects_a_blank_node_value_for_every_structural_predicate() {
     // Same as above, but the malformed value is a blank node rather than a literal — neither
-    // is an IRI, and both must be rejected the same way (Gap 12b).
+    // is an IRI, and both must be rejected the same way.
     for bad_pred in ["legSource", "legTarget", "legValue", "legRecordType"] {
         let (prog, diags) = parse(&join_leg_with_bad_value(bad_pred, "[ ]"));
         assert!(
@@ -3949,7 +3949,7 @@ fn term_application_carrier_excludes_other_value_kinds() {
     );
 }
 
-// ── Reasoning programs (`logic:ReasoningProgram`) — R1 hard-fail (Task 3) ─────────────────
+// ── Reasoning programs (`logic:ReasoningProgram`) — R1 hard-fail ──────────────────────────
 
 /// A well-formed `logic:ReasoningProgram`: a ground fact `add(z, Y, Y)`, a Horn rule
 /// `add(s(X), Y, s(Z)) :- add(X, Y, Z), not blocked(X)` (a compound `Term::App` head over a

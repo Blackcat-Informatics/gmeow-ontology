@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The deterministic GMN operator ⇄ controlled-NL **verbalizer** (req #15).
+//! The deterministic GMN operator ⇄ controlled-NL **verbalizer**.
 //!
 //! For every GMN operator form the carrier graph resolves — an executable glyph with a
 //! `gmeow:gmnFixity`/`gmeow:gmnArity` signature denoting a term that carries an
