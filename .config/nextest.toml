@@ -60,6 +60,44 @@ slow-timeout = { period = "600s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-dev-cli) & binary(medium_gate)'
 slow-timeout = { period = "600s", "terminate-after" = 2, "grace-period" = "30s" }
 
+# These required consumers each restore or open the authenticated shipped bundle. A
+# 32-CPU gate started all 28 together and every one reached the same
+# 120-second runaway backstop without an assertion failure; the slice-lint witness passed
+# unchanged in 31.013 seconds when run alone. Reserve the runner's natural width for only
+# these exact tests so bundle decoding cannot oversubscribe itself. Their assertions,
+# inventory, retries, and the default 120-second runaway backstop remain unchanged.
+[[profile.default.overrides]]
+filter = 'package(gmeow-bundle-view) & test(/^(export::tests::export_contracts_share_one_authenticated_fold|bundle_blobs::tests::bundle_reader_contracts_share_one_authenticated_parse)$/)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-affect) & binary(crosscheck_definiteness) & test(shipped_core_affect_gram_authored_pd_is_certified)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & test(/^commands::explain_tests::explain_(decomposes_a_chase_invented_null_in_the_shipped_bundle|walks_a_real_shipped_finding_and_hard_fails_unknown)$/)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & binary(cli) & test(/^(affect_intensity_schadenfreude_is_computed_from_the_metric|affect_goemotions_ingest_recover_round_trips_through_the_cli|affect_classify_finds_schadenfreude_prototype|describe_known_term_renders_prose|info_summarizes_the_bundle|validate_fail_file_sarif_is_well_formed|validate_fail_file_json_is_well_formed|logic_fragments_default_embedded_bundle_ships_the_manifest|mcp_serves_a_native_jsonrpc_initialize|validate_fail_file_exits_one_human|validate_clean_file_passes)$/)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & binary(bundle_smoke) & test(/^(verify_allow_unsigned_needs_no_external_gts_on_path|info_loads_the_shipped_bundle|validate_clean_fixture_passes)$/)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & binary(gmn_conformance) & test(/^gmn_verify_(fails_on_a_corrupted_vectors_dir|passes_over_the_committed_corpus|fails_on_a_tampered_pack_root)$/)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & binary(slice_brief_cli) & test(/^slice_brief_from_bundle_(json_serves_a_packet|unknown_slice_hard_fails|turtle_emits_the_packet_body)$/)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+filter = 'package(gmeow-cli) & test(/^(installed_binary_reads_embedded_bundle_from_blinded_cwd|slice_lint_and_slice_quality_share_one_checkout_free_assessment|external_slice_bundle_contracts_share_one_bundle_decode)$/)'
+threads-required = "num-cpus"
+
 # Native-to-wasm parity restores the authenticated bundle into both engines.
 [[profile.default.overrides]]
 filter = 'package(gmeow-mcp-wasm) & binary(witness_mcp)'
