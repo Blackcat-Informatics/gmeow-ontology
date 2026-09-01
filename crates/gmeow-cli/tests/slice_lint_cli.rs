@@ -51,6 +51,7 @@ fn staged_fixture() -> (tempfile::TempDir, PathBuf) {
 fn shared_advisory_code(finding: &serde_json::Value) -> Option<&str> {
     finding
         .get("code")
+        .or_else(|| finding.get("ruleId"))
         .and_then(|code| code.as_str())
         .filter(|code| {
             !matches!(
@@ -65,6 +66,14 @@ fn shared_advisory_code(finding: &serde_json::Value) -> Option<&str> {
 #[test]
 fn slice_lint_and_slice_quality_share_one_checkout_free_assessment() {
     let (_tmp, slice_dir) = staged_fixture();
+    let expected_manifest = slice_dir
+        .join("manifest.ttl")
+        .to_string_lossy()
+        .replace('\\', "/");
+    let expected_module = slice_dir
+        .join("module.ttl")
+        .to_string_lossy()
+        .replace('\\', "/");
 
     let quality_out = gmeow()
         .args(["slice", "quality", "--format", "json"])
@@ -82,7 +91,14 @@ fn slice_lint_and_slice_quality_share_one_checkout_free_assessment() {
         .expect("quality report carries a findings array");
 
     let lint_out = gmeow()
-        .args(["slice", "lint", "--format", "json"])
+        .args([
+            "slice",
+            "lint",
+            "--format",
+            "sarif",
+            "--min-tier",
+            "Registered",
+        ])
         .arg(&slice_dir)
         .assert()
         .success()
@@ -90,11 +106,10 @@ fn slice_lint_and_slice_quality_share_one_checkout_free_assessment() {
         .stdout
         .clone();
     let lint_json: serde_json::Value =
-        serde_json::from_slice(&lint_out).expect("lint stdout is parseable JSON");
-    let lint_findings = lint_json
-        .get("findings")
-        .and_then(|findings| findings.as_array())
-        .expect("lint report carries a findings array");
+        serde_json::from_slice(&lint_out).expect("lint stdout is parseable SARIF JSON");
+    let lint_findings = lint_json["runs"][0]["results"]
+        .as_array()
+        .expect("lint SARIF carries a results array");
 
     let quality_codes = quality_findings
         .iter()
@@ -113,5 +128,35 @@ fn slice_lint_and_slice_quality_share_one_checkout_free_assessment() {
     assert_eq!(
         quality_codes, lint_codes,
         "lint and quality must expose the same underlying advisory assessment"
+    );
+
+    let mut source_uris = std::collections::BTreeSet::new();
+    for result in lint_findings {
+        let primary = &result["locations"][0];
+        let uri = primary["physicalLocation"]["artifactLocation"]["uri"]
+            .as_str()
+            .expect("every lint result has a real physical source");
+        assert!(
+            uri == expected_manifest.as_str() || uri == expected_module.as_str(),
+            "lint SARIF must name the exact real slice-owned file, got {uri}"
+        );
+        assert!(
+            primary["physicalLocation"].get("region").is_none(),
+            "file-level identity must not fabricate a line/column region: {primary:#?}"
+        );
+        assert!(
+            primary
+                .get("properties")
+                .and_then(|properties| properties.get("gmeow.syntheticPhysicalLocation"))
+                .is_none(),
+            "a real slice source must not be marked synthetic: {primary:#?}"
+        );
+        assert!(!uri.contains("ontology/gmeow.ttl"));
+        source_uris.insert(uri);
+    }
+    assert!(source_uris.contains(expected_manifest.as_str()));
+    assert!(
+        source_uris.contains(expected_module.as_str()),
+        "term-owned findings should resolve to module.ttl when it exists: {source_uris:?}"
     );
 }

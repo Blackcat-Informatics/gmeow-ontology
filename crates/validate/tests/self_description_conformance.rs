@@ -13,10 +13,11 @@
 //!   * `models_project_repository_and_brand_assets`  ← `test_self_description_models_project_repository_and_brand_assets`
 //!   * `canonical_abstract_is_standardized`          ← `test_canonical_description_is_standardized`
 //!
-//! Every source read here is an **authored** file (`metadata/gmeow-self.ttl`,
-//! `ontology/gmeow.ttl`, `CITATION.cff`) or an authored in-crate constant
-//! (`deposit_config::ALIGNMENT_TARGETS`) — never a `generated/` projection — so the gate
-//! is self-contained on a fresh checkout with no prior regeneration.
+//! The abstract authority is the authored `metadata/gmeow-abstract.txt`; the matching
+//! fields in `metadata/gmeow-self.ttl`, `ontology/gmeow.ttl`, and `CITATION.cff` are
+//! producer-owned projections. Other inputs here are authored files or the authored
+//! `deposit_config::ALIGNMENT_TARGETS` constant. None is a `generated/` projection, so
+//! the gate remains self-contained on a fresh checkout.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -48,13 +49,6 @@ fn g(local: &str) -> String {
 }
 fn s(local: &str) -> String {
     format!("{SELF}{local}")
-}
-
-/// Collapse whitespace runs to single spaces and trim, so the three abstract copies
-/// compare equal regardless of authored wrap style (the CFF `abstract` is a YAML folded
-/// block `>-`). Faithful to the retired Python test's `_norm_ws`.
-fn norm_ws(text: &str) -> String {
-    text.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 fn parse(path: &Path) -> Arc<RdfDataset> {
@@ -276,12 +270,19 @@ fn hard_codes_slice_count(text: &str) -> bool {
 
 #[test]
 fn canonical_abstract_is_standardized() {
-    let canonical = load_self_description(&default_self_desc_path(&repo_root()))
+    let canonical_source = std::fs::read_to_string(repo_root().join("metadata/gmeow-abstract.txt"))
+        .expect("canonical abstract source is readable");
+    let canonical = canonical_source
+        .strip_suffix('\n')
+        .unwrap_or(&canonical_source);
+    assert!(!canonical.is_empty(), "canonical abstract source is empty");
+
+    let self_description = load_self_description(&default_self_desc_path(&repo_root()))
         .expect("self-description loads")
         .description;
-    assert!(
-        !canonical.is_empty(),
-        "self-description carries no description"
+    assert_eq!(
+        self_description, canonical,
+        "metadata/gmeow-self.ttl skos:definition drifted from the canonical abstract"
     );
 
     // Ontology header dcterms:description == canonical (the serialization-facing copy).
@@ -289,8 +290,7 @@ fn canonical_abstract_is_standardized() {
     let onto_desc = first_literal(&onto, WORK, DCTERMS_DESCRIPTION)
         .expect("ontology/gmeow.ttl carries dcterms:description on the ontology subject");
     assert_eq!(
-        norm_ws(&onto_desc),
-        norm_ws(&canonical),
+        onto_desc, canonical,
         "ontology/gmeow.ttl dcterms:description drifted from the canonical abstract"
     );
 
@@ -304,8 +304,7 @@ fn canonical_abstract_is_standardized() {
         .and_then(serde_yaml::Value::as_str)
         .expect("CITATION.cff carries an `abstract`");
     assert_eq!(
-        norm_ws(cff_abstract),
-        norm_ws(&canonical),
+        cff_abstract, canonical,
         "CITATION.cff abstract drifted from the canonical abstract"
     );
 
@@ -335,7 +334,7 @@ fn canonical_abstract_is_standardized() {
         "canonical abstract must mention 'self-contained slices'"
     );
     assert!(
-        !hard_codes_slice_count(&canonical),
+        !hard_codes_slice_count(canonical),
         "slice count must not be hard-coded in the canonical description"
     );
 }

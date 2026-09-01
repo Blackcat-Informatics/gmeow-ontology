@@ -1081,6 +1081,10 @@ mod tests {
 
         assert!(relative.contains(Path::new("ontology/gmeow.ttl")));
         assert!(
+            relative.contains(Path::new("metadata/gmeow-abstract.txt")),
+            "the authored abstract must invalidate the whole-run manifest before source loading"
+        );
+        assert!(
             relative.contains(Path::new("tests/fixtures/coverage/external/bii.ttl")),
             "a product-bearing fixture declared by the mappings stage remains an input"
         );

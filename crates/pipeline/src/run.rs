@@ -857,6 +857,41 @@ pub fn run_full_scoped_with_progress(
     progress: Option<Arc<dyn Reporter>>,
 ) -> Result<RunReport, gmeow_errors::Diag> {
     let total_started = Instant::now();
+
+    // The abstract fields are producer-owned inputs to `source_load`, so this
+    // field-level projection must reach its fixed point before the DAG reads the
+    // ontology/self-description documents. Check mode compares without writing.
+    let canonical_started = Instant::now();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_start("pipeline:canonical-abstract");
+    }
+    let canonical_targets = crate::canonical_abstract::render_targets(root)?;
+    let mut canonical_drifted = Vec::new();
+    let mut canonical_reproduced = 0usize;
+    let mut canonical_written = 0usize;
+    let mut canonical_skipped_writes = 0usize;
+    let canonical_output_paths: Vec<String> = canonical_targets
+        .iter()
+        .map(|target| target.path.to_owned())
+        .collect();
+    for target in &canonical_targets {
+        if mode == RunMode::Update {
+            if write_artifact(root, target.path, &target.bytes)? {
+                canonical_written += 1;
+            } else {
+                canonical_skipped_writes += 1;
+            }
+        } else if std::fs::read(root.join(target.path)).is_ok_and(|bytes| bytes == target.bytes) {
+            canonical_reproduced += 1;
+        } else {
+            canonical_drifted.push(target.path.to_owned());
+        }
+    }
+    let canonical_elapsed = canonical_started.elapsed();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_end("pipeline:canonical-abstract", canonical_elapsed);
+    }
+
     let spec = full_spec();
 
     // Single-pass: the schemas leaf is now a normal carrier-reading
@@ -895,6 +930,11 @@ pub fn run_full_scoped_with_progress(
         );
     }
     let mut timings: Vec<TimingRecord> = Vec::new();
+    timings.push(TimingRecord {
+        phase: "canonical-abstract".to_string(),
+        elapsed_ms: canonical_elapsed.as_millis(),
+        metadata: Some(format!("targets={}", canonical_targets.len())),
+    });
     timings.push(TimingRecord {
         phase: "pipeline-scheduler".to_string(),
         elapsed_ms: scheduler_elapsed,
@@ -976,13 +1016,13 @@ pub fn run_full_scoped_with_progress(
         })
     })?;
 
-    let mut drifted: Vec<String> = Vec::new();
-    let mut produced = 0usize;
-    let mut reproduced = 0usize;
-    let mut written = 0usize;
-    let mut skipped_writes = 0usize;
+    let mut drifted = canonical_drifted;
+    let mut produced = canonical_targets.len();
+    let mut reproduced = canonical_reproduced;
+    let mut written = canonical_written;
+    let mut skipped_writes = canonical_skipped_writes;
     let mut removed = 0usize;
-    let mut output_paths: Vec<String> = Vec::new();
+    let mut output_paths = canonical_output_paths;
 
     // ── Reconcile every produced artifact against committed / write it. ──
     let reconcile_started = Instant::now();
