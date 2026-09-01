@@ -4,8 +4,15 @@
 
 set -euo pipefail
 
+# Shared repository shell helpers (strict-mode base + deterministic digest
+# helpers) sourced by every top-level scripts/ CI script. The path is computed
+# from BASH_SOURCE so it resolves regardless of the caller's CWD; shellcheck
+# cannot statically follow a computed source, so it is pointed at /dev/null.
+# shellcheck source=/dev/null
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/ci/common.sh"
+
 usage() {
-  cat >&2 <<'EOF'
+  cat >&2 << 'EOF'
 usage:
   producer-receipt.sh write <generated-a> <manifest-a> <generated-b> <manifest-b> <receipt> <source-sha>
   producer-receipt.sh verify <generated> <receipt>
@@ -16,7 +23,7 @@ EOF
 [[ $# -ge 1 ]] || usage
 mode=$1
 shift
-command -v jq >/dev/null || {
+command -v jq > /dev/null || {
   echo "jq is required to verify producer receipts" >&2
   exit 1
 }
@@ -139,7 +146,7 @@ verify_manifest_tree() {
 validate_manifest_contract() {
   local manifest=$1
   jq -e '
-    .version == 4 and
+    .version == 5 and
     .output == "generated" and
     .language == "default" and
     .strict_checked == true and
@@ -149,7 +156,7 @@ validate_manifest_contract() {
     (.stage_receipt_root | test("^[0-9a-f]{64}$")) and
     (.build_identity.fingerprint == .build_fingerprint) and
     (.files | length > 0)
-  ' "$manifest" >/dev/null || {
+  ' "$manifest" > /dev/null || {
     echo "sync manifest does not satisfy the producer receipt contract: $manifest" >&2
     return 1
   }
@@ -171,7 +178,7 @@ validate_receipt_contract() {
   }
   if ! jq -e '
     .receipt_digest | type == "string" and test("^[0-9a-f]{64}$")
-  ' "$receipt" >/dev/null; then
+  ' "$receipt" > /dev/null; then
     echo "producer receipt has an unknown, missing, or malformed field: $receipt" >&2
     return 1
   fi
@@ -191,7 +198,7 @@ validate_receipt_contract() {
     (.payload.generated.bytes | type == "number" and . > 0) and
     (.payload.generated.bundle_sha256 | type == "string" and test("^[0-9a-f]{64}$")) and
     (.payload.generated.bundle_bytes | type == "number" and . > 0)
-  ' "$receipt" >/dev/null; then
+  ' "$receipt" > /dev/null; then
     echo "producer receipt has an unknown, missing, or malformed field: $receipt" >&2
     return 1
   fi
@@ -233,11 +240,11 @@ if [[ "$mode" == "write" ]]; then
 
   payload=$tmp_dir/payload.json
   source_tree_sha256=$(tracked_tree_digest)
-  manifest_sha256=$(sha256sum "$normalized_a" | cut -d' ' -f1)
+  manifest_sha256=$(sha256_file "$normalized_a")
   generated_file_count=$(find "$generated_a" -type f | wc -l | tr -d ' ')
   generated_bytes=$(tree_bytes "$generated_a")
   bundle=$generated_a/dist/gmeow.gts
-  bundle_sha256=$(sha256sum "$bundle" | cut -d' ' -f1)
+  bundle_sha256=$(sha256_file "$bundle")
   bundle_bytes=$(stat -c '%s' "$bundle")
   managed_file_count=$(jq '.files | length' "$normalized_a")
   managed_bytes=$(jq '[.files[].len] | add' "$normalized_a")
