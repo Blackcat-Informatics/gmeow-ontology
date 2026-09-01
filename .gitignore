@@ -88,7 +88,6 @@ rustc-ice-*.txt
 # skill mirrors. The repo's own .agents/skills/gmeow-*/ and deficiency-cleanup
 # skills are real gmeow content and stay tracked (not matched below).
 .coding-ethos/memories/
-.coding-ethos/code-intel-v2/
 .gemini/extensions/
 .agents/skills/agent-operating-discipline/
 .agents/skills/coding-ethos-agent-workflow/
