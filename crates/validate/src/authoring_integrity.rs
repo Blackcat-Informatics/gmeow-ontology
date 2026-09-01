@@ -3359,6 +3359,71 @@ mod tests {
     }
 
     #[test]
+    fn docs_term_authority_manifest_rejects_malformed_and_duplicate_declarations() {
+        let root = Path::new("/repo");
+        let docs = vec![PathBuf::from("/repo/docs/example.md")];
+        let ownership = docs_test_ownership(&[("Person", DOCS_ENTITIES_OWNER)]);
+        let local_term = format!("{GMEOW_NS}IllustrativeOnly");
+        let cases = [
+            (
+                "missing declares field",
+                "version = 1\n\n[[document]]\npath = \"docs/example.md\"\nimports = []\n"
+                    .to_owned(),
+                None,
+            ),
+            (
+                "duplicate document entry",
+                "version = 1\n\n[[document]]\npath = \"docs/example.md\"\nimports = []\n\
+                 declares = []\n\n[[document]]\npath = \"docs/example.md\"\nimports = []\n\
+                 declares = []\n"
+                    .to_owned(),
+                Some("duplicate term-authority entry"),
+            ),
+            (
+                "duplicate local declaration",
+                format!(
+                    "version = 1\n\n[[document]]\npath = \"docs/example.md\"\nimports = []\n\
+                     declares = [\"{local_term}\", \"{local_term}\"]\n"
+                ),
+                Some("declares term"),
+            ),
+            (
+                "duplicate owner import",
+                format!(
+                    "version = 1\n\n[[document]]\npath = \"docs/example.md\"\n\
+                     imports = [\"{DOCS_ENTITIES_OWNER}\", \"{DOCS_ENTITIES_OWNER}\"]\n\
+                     declares = []\n"
+                ),
+                Some("imports authority"),
+            ),
+            (
+                "non-GMEOW declaration",
+                "version = 1\n\n[[document]]\npath = \"docs/example.md\"\nimports = []\n\
+                 declares = [\"https://example.org/not-gmeow\"]\n"
+                    .to_owned(),
+                Some("declares non-GMEOW term"),
+            ),
+        ];
+
+        for (name, manifest, expected_message) in cases {
+            let error = parse_docs_authority_text(
+                Path::new("/repo/docs/term-authority.toml"),
+                &manifest,
+                &docs,
+                root,
+                &ownership,
+            )
+            .expect_err(name);
+            if let Some(expected_message) = expected_message {
+                assert!(
+                    error.message().contains(expected_message),
+                    "{name}: {error}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn docs_term_authority_covers_the_committed_document_corpus() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()

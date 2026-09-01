@@ -619,6 +619,7 @@ pub fn lower_recovery_case(case: &RecoveryCaseIr) -> gmeow_errors::Result<Recove
 
 type EndpointRelation = BTreeSet<(String, String)>;
 
+/// Render the normalized executable property path as an endpoint-selecting query.
 fn leg_relation_query(path: &LegPath) -> String {
     format!(
         "SELECT ?s ?o WHERE {{ ?s {} ?o . }}",
@@ -626,6 +627,7 @@ fn leg_relation_query(path: &LegPath) -> String {
     )
 }
 
+/// Convert a selected endpoint into the deterministic key used for relation comparison.
 fn endpoint_key(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Iri(iri) => Ok(iri.clone()),
@@ -633,6 +635,7 @@ fn endpoint_key(term: &TermValue) -> gmeow_errors::Result<String> {
     }
 }
 
+/// Execute one resolved leg body against the complete recovery seed.
 fn execute_leg_relation(
     engine: &NativeSparqlEngine,
     seed: &SeedGraph,
@@ -688,6 +691,7 @@ fn execute_leg_relation(
     Ok(relation)
 }
 
+/// Build a deterministic countermodel for two endpoint relations that should agree.
 fn relation_mismatch(
     seed: &SeedGraph,
     reason: String,
@@ -829,6 +833,7 @@ pub fn discharge_recovery_case(
     }
 }
 
+/// Require every attached recovery case to discharge against the same resolved leg bodies.
 fn discharge_recovery_cases(
     correspondence: &Correspondence,
     get: &LegPath,
