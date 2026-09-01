@@ -11,6 +11,7 @@
 
 use crate::conformance_support::*;
 use gmeow_test_batch_macros::batch_cases;
+use regex::Regex;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -85,6 +86,71 @@ fn motivation_values_are_individuals() {
         g.subjects_of_type(&gm("AnnotationMotivation")).len(),
         10,
         "expected exactly 10 gmeow:AnnotationMotivation seed individuals"
+    );
+}
+
+// ── Generated query header hygiene ───────────────────────────────────────────
+
+/// Generated query headers are published metadata and must not carry local
+/// tracker tokens consisting of a hash followed by one to five decimal digits.
+#[gmeow_test_batch_macros::batch_test]
+fn generated_query_headers_exclude_tracker_tokens() {
+    let tracker_token = Regex::new(r"#[0-9]{1,5}\b").expect("tracker-token regex must compile");
+
+    for digits in ["1", "12", "123", "1234", "12345"] {
+        let token = format!("#{digits}");
+        assert!(
+            tracker_token.is_match(&token),
+            "policy regex must reject tracker token {token}"
+        );
+    }
+    for suffix in ["123456", "TextPositionSelector"] {
+        let identifier = format!("#{suffix}");
+        assert!(
+            !tracker_token.is_match(&identifier),
+            "policy regex must allow technical identifier {identifier}"
+        );
+    }
+    for identifier in ["RDF 1.2", "SHA-256", "schema:ClaimReview"] {
+        assert!(
+            !tracker_token.is_match(identifier),
+            "policy regex must allow technical identifier {identifier}"
+        );
+    }
+
+    let queries = generated_queries();
+    assert!(
+        !queries.is_empty(),
+        "authenticated generated-query archive must not be empty"
+    );
+
+    let mut violations = Vec::new();
+    for (name, bytes) in queries {
+        let query = std::str::from_utf8(bytes)
+            .unwrap_or_else(|error| panic!("authenticated query {name} is not UTF-8: {error}"));
+        let mut header_lines = query
+            .lines()
+            .take_while(|line| line.starts_with('#'))
+            .peekable();
+        assert!(
+            header_lines.peek().is_some(),
+            "authenticated generated query {name} has no leading comment header"
+        );
+        for (line_index, line) in header_lines.enumerate() {
+            if let Some(token) = tracker_token.find(line) {
+                violations.push(format!(
+                    "{name}:{} contains {}",
+                    line_index + 1,
+                    token.as_str()
+                ));
+            }
+        }
+    }
+
+    assert!(
+        violations.is_empty(),
+        "generated query headers contain tracker tokens:\n{}",
+        violations.join("\n")
     );
 }
 
