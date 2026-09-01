@@ -1164,7 +1164,7 @@ const GROUNDING_FLOOR_EPS: f64 = 1e-9;
 
 /// Project the ontology-resident `gmeow:ProjectionCeilingCommitment` set into the
 /// `(slice IRI, vocab prefix) -> count` map every ratchet pass (count gate,
-/// monotonicity, grandfather) reads. The rubric loader (Task 4) already enforces
+/// monotonicity, grandfather) reads. The rubric loader already enforces
 /// `(slice, vocab)` uniqueness across the loaded commitments, so this is a plain
 /// projection — no collision handling needed here.
 fn ceilings_from_rubric(rubric: &Rubric) -> std::collections::BTreeMap<(String, String), u64> {
@@ -1475,7 +1475,7 @@ fn measure_base_residues(
 }
 
 /// Derive, per declared `(from, to, vocab)` edge, WHY the residue of the moving
-/// constructs is not conserved across the move — the three Task-2 reason codes
+/// constructs is not conserved across the move — the three declared reason codes
 /// (`exemption-shift-owner-boundary`, `grounding-orphaned`, `bridge-exempt-both-sides`),
 /// keyed by relocation-invariant anchor IRI.
 ///
@@ -2168,7 +2168,7 @@ fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> Strin
 /// slice — see `rdfs:isDefinedBy <{slice_iri}>` in [`format_ceiling_line`]).
 ///
 /// Reads the guarded vocabulary registry off the loaded rubric
-/// (`rubric.floors.vocabularies` — the ontology-resident set Task 2 seeded) and
+/// (`rubric.floors.vocabularies` — the ontology-resident guarded set) and
 /// measures every discovered slice against it through
 /// `gmeow_slice_quality::measure_repo_residues`, the SAME shared counter the ratchet
 /// gate reads — seed and gate can never diverge on what "measured" means.
@@ -2188,7 +2188,7 @@ pub fn slice_quality_seed_ceilings() -> i32 {
         Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
     };
 
-    // The guarded set must be loaded (Task 2's ontology-resident registry) — an
+    // The guarded set must be loaded (the ontology-resident registry) — an
     // empty set here means the registry failed to load, never a legitimate "guard
     // nothing" state (.goals no-optionality).
     let vocabularies = rubric.floors.vocabularies;
@@ -3190,7 +3190,7 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
     #[test]
     fn tier_floor_naming_unknown_tier_hard_fails() {
         // A gmeow:floorTier that resolves to no ladder rung is a hard fail — the gate
-        // never silently drops a floor it cannot rank. Since Gap 4 the rubric LOADER
+        // never silently drops a floor it cannot rank. The rubric LOADER
         // already rejects an unknown gmeow:floorTier at load time, so this case can no
         // longer be reached through `load_rubric_from_ttl`. The `tier_floors_from_rubric`
         // guard is now defense-in-depth behind that load-time validation, so this test

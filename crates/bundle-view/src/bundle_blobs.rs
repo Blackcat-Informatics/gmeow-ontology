@@ -370,8 +370,8 @@ impl Bundle {
     /// (`gmeow_docs::render::doc_term_card`) all check a class's
     /// [`purrdf::shapes::json_schema::Namespaces::def_key`] against this set before
     /// emitting a `python_model` link, so a class the emitter never gave a `$defs`
-    /// entry never gets a fabricated one (issue: Pydantic model surface, finding
-    /// F3). Empty when the bundle carries no `schemas-archive` rep (the
+    /// entry never gets a fabricated one. Empty when the bundle carries no
+    /// `schemas-archive` rep (the
     /// wheel-only-install contract) or the schema declares no `$defs`.
     pub fn modeled_def_keys(&self) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
         let Some(schema_bytes) = self.schema()? else {

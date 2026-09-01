@@ -16,7 +16,7 @@
 //! content-addressed derivation IRIs into RDF-serializable data the `gmeow-pipeline`
 //! `stage-goal-directed` folds into `graph/goal-directed` of `gmeow.gts`.
 //!
-//! It is NOT a fork of the engine: it constructs PurRDF [`FolProgram`]s, reads back
+//! It is NOT a fork of the engine: it constructs PurRDF [`FolProgram`](purrdf::datalog::resolve_fol::FolProgram)s, reads back
 //! PurRDF [`FolProof`](purrdf::datalog::resolve_fol::FolProof)s, and never re-implements
 //! resolution or proof checking. There is
 //! exactly ONE production source of goal-directed programs — the authored
@@ -348,15 +348,16 @@ fn leaf(dag: &mut TermDag, s: &str) -> NodeId {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────────────
-// The reasoning-program compiler: `ReasoningProgramIr` → `BuiltDemonstrator` (Task 4).
+// The reasoning-program compiler: `ReasoningProgramIr` → `BuiltDemonstrator`.
 // ─────────────────────────────────────────────────────────────────────────────────────
 //
 // This is the SOLE production source of goal-directed programs: it lowers an
-// authored+compiled `logic:ReasoningProgram` (`gmeow_logic_compile::ir::ReasoningProgramIr`,
-// Task 3) into the `FolProgram`/`SortContext`/verdict-probe shape [`evaluate_demonstrator`]
+// authored+compiled `logic:ReasoningProgram`
+// (`gmeow_logic_compile::ir::ReasoningProgramIr`) into the
+// `FolProgram`/`SortContext`/verdict-probe shape [`evaluate_demonstrator`]
 // resolves, proof-checks, verdict-probes, and projects — there is no second engine, and
-// (as of Task 7) no second SOURCE either: the earlier hand-interned Rust-constant
-// demonstrator corpus has been removed.
+// no second SOURCE; the earlier hand-interned Rust-constant demonstrator corpus has
+// been removed.
 //
 // ## One lowering onto the shared PurRDF arena
 //
@@ -598,7 +599,7 @@ pub(crate) fn lower_reasoning_program(
 ) -> gmeow_errors::Result<BuiltDemonstrator> {
     // `EvaluationMode` is a closed, single-variant enum today — `EvaluationMode::from_local`
     // (the ONLY constructor reachable from parsed input) rejects every IRI except
-    // `logic:BackwardEvaluation` at Task 3's parse stage, so a `ReasoningProgramIr` carrying
+    // `logic:BackwardEvaluation` at the parse stage, so a `ReasoningProgramIr` carrying
     // any other mode is already unrepresentable by construction. This irrefutable pattern
     // documents that exhaustively: it is a COMPILE ERROR (not a runtime `unreachable!`) the
     // day a second `EvaluationMode` variant lands without this dispatch being extended.
@@ -687,7 +688,7 @@ pub(crate) fn lower_reasoning_program(
     }
 
     // CONSTANT order-sort tagging (`SortContext::term_sorts`): `program.constant_sorts` is
-    // Task 4's `(constant IRI, rdf:type IRI)` capture — the plain domain `rdf:type` triple a
+    // the `(constant IRI, rdf:type IRI)` capture — the plain domain `rdf:type` triple a
     // constant like `ex:one` carries, which the stage's L3 fold otherwise drops (it is not
     // `logic:` structural vocabulary). Interning each constant/sort IRI through the SAME
     // `leaf` helper `lower_atom`'s `Term::Iri` arm uses means hash-consing resolves a
@@ -754,7 +755,7 @@ pub(crate) fn lower_reasoning_program(
 }
 
 /// Evaluate a compiled set of `logic:ReasoningProgram`s — the authored clause-set-plus-goal
-/// surface (Tasks 1-3), the SOLE production source of goal-directed programs — against the
+/// surface, the SOLE production source of goal-directed programs — against the
 /// reasoned `rdfs:subClassOf` closure (`subsort_edges`, narrowed by the caller to the sorts
 /// these programs actually reference). [`lower_reasoning_program`] compiles each program into
 /// the exact shape [`evaluate_demonstrator`] resolves, proof-checks, verdict-probes, and
@@ -1263,11 +1264,11 @@ mod tests {
     const TEST_MATH_INTEGER: &str = "https://blackcatinformatics.ca/math/Integer";
     const TEST_MATH_REAL: &str = "https://blackcatinformatics.ca/math/RealNumber";
 
-    // ── Task 4: compiled `logic:ReasoningProgram` → `FolProgram`, via `lower_reasoning_program` ──
+    // ── Compiled `logic:ReasoningProgram` → `FolProgram`, via `lower_reasoning_program` ──
     //
     // These parse a `logic:ReasoningProgram` from a Turtle fixture (the SAME authoring
     // vocabulary `crates/logic-compile`'s own frontend tests exercise), compile it to
-    // `ReasoningProgramIr` (Task 3), then run it through `evaluate_reasoning_programs` — the
+    // `ReasoningProgramIr`, then run it through `evaluate_reasoning_programs` — the
     // SOLE production path for goal-directed programs.
 
     /// `add(zero,Y,Y). add(s(X),Y,s(Z)) :- add(X,Y,Z).` with goal
@@ -1472,11 +1473,11 @@ mod tests {
         }
     }
 
-    // ── Task 4 M5/F-4: compiled math-subsort + incomparable control, term_sorts seeded ──
+    // ── Compiled math-subsort + incomparable control, with seeded `term_sorts` ──
     //
     // `ex:one` is an ordinary domain individual, typed `math:Integer` by a plain
     // `rdf:type` triple (never `logic:` structural vocabulary, so the stage's L3 fold drops
-    // it — `ReasoningProgramIr::constant_sorts`, Task 4's fix, is what recovers it). Program
+    // it — `ReasoningProgramIr::constant_sorts` is what preserves it). Program
     // A's query variable is declared `math:RealNumber`; program B's (the control) is
     // declared the INCOMPARABLE `math:Set`. Both share the SAME fact `p(one)` and the SAME
     // constant `ex:one`, so the ONLY difference between A's answer and B's empty answer set
@@ -1594,8 +1595,8 @@ mod tests {
     /// Two STRUCTURALLY-IDENTICAL clauses `p(X)`, one declaring `X:Nat` and one `X:Real`. They
     /// share a `Formula::content_key` (a `logic:variableSort` is harvested separately, not part
     /// of the clause AST), so ONLY the per-clause occurrence-index disambiguation keeps their
-    /// scopes distinct. Proves consequence #2 of the residual bug is closed: each clause lowers
-    /// under its OWN sort, never one scope's declarations bleeding into the other's `X`.
+    /// scopes distinct. Each clause lowers under its OWN sort; one scope's declarations never
+    /// bleed into the other clause's `X`.
     const DUP_CLAUSES_DISTINCT_SORTS_TTL: &str = "\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
         @prefix ex: <https://example.org/goal-directed-test/> .\n\
@@ -1624,8 +1625,8 @@ mod tests {
         let (prog, diags) =
             gmeow_logic_compile::frontend::parse_logic_str(DUP_CLAUSES_DISTINCT_SORTS_TTL, None)
                 .expect("parse succeeds");
-        // Consequence #1 closed: the two identical clauses are ACCEPTED, not falsely rejected
-        // by `ReasoningProgramIr::new`'s intra-scope conflict guard.
+        // The two identical clauses are accepted rather than falsely rejected by
+        // `ReasoningProgramIr::new`'s intra-scope conflict guard.
         assert!(
             diags
                 .iter()
@@ -1835,7 +1836,7 @@ mod tests {
         );
     }
 
-    // ── Task 7: the authored/compiled path is now the SOLE source — every demonstrator
+    // ── The authored/compiled path is the SOLE source — every demonstrator
     // behavior below is asserted directly against `evaluate_reasoning_programs` over a
     // parsed `logic:ReasoningProgram` fixture, never a hand-interned Rust-constant corpus.
 
@@ -2075,10 +2076,10 @@ mod tests {
         assert_eq!(verdict_of(&atom_of("c")), "true", "move to lost d ⇒ won");
         assert_eq!(verdict_of(&atom_of("d")), "false", "no move ⇒ lost");
 
-        // #5: the rule clause `win(X) :- move(X,Y), not win(Y)` lowers to a DETERMINISTIC
-        // conjunct order — the positive `move` literal (content_key `ATOM…`) always precedes the
+        // The rule clause `win(X) :- move(X,Y), not win(Y)` lowers to a deterministic conjunct
+        // order: the positive `move` literal (content_key `ATOM…`) always precedes the
         // negation-as-failure `not win` literal (content_key `NOT…`), regardless of the authored
-        // RDF `logic:and` object order (which carries no index). Assert the ORDER structurally
+        // RDF `logic:and` object order (which carries no index). Assert the order structurally
         // (robust to the exact `?n` metavariable numbering).
         let rule = win
             .clauses
@@ -2321,7 +2322,7 @@ mod tests {
         );
     }
 
-    // ── #6: distinct authored IRIs sharing a local name mint COLLISION-FREE resource nodes ──
+    // ── Distinct authored IRIs sharing a local name mint collision-free resource nodes ──
 
     #[test]
     fn distinct_authored_iris_with_same_local_name_project_to_distinct_nodes() {
@@ -2373,7 +2374,7 @@ mod tests {
         );
     }
 
-    // ── #8: an order-sorted binary program is EXCLUDED from the unsorted forward oracle ──
+    // ── An order-sorted binary program is excluded from the unsorted forward oracle ──
 
     const SORTED_BINARY_REASONING_PROGRAM_TTL: &str = "\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
@@ -2437,7 +2438,7 @@ mod tests {
         );
     }
 
-    // ── #7: a constant carrying MULTIPLE asserted sorts binds when ANY of them satisfies ──
+    // ── A constant carrying multiple asserted sorts binds when any of them satisfies ──
 
     const MULTI_TYPE_CONSTANT_REASONING_PROGRAM_TTL: &str = "\
         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\

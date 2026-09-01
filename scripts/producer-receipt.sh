@@ -4,13 +4,9 @@
 
 set -euo pipefail
 
-# Shared repository shell helpers (strict-mode base + deterministic digest
-# helpers) sourced by every top-level scripts/ CI script. The path is computed
-# from BASH_SOURCE so it resolves regardless of the caller's CWD; shellcheck
-# cannot statically follow a computed source, so it is pointed at /dev/null.
-# shellcheck source=/dev/null
-source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)/ci/common.sh"
-
+script_dir=$(dirname -- "${BASH_SOURCE[0]}")
+# shellcheck source=build-support/common.sh
+source "$script_dir/../build-support/common.sh"
 usage() {
   cat >&2 << 'EOF'
 usage:
@@ -23,10 +19,7 @@ EOF
 [[ $# -ge 1 ]] || usage
 mode=$1
 shift
-command -v jq > /dev/null || {
-  echo "jq is required to verify producer receipts" >&2
-  exit 1
-}
+gmeow_require_command jq
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 tmp_dir=$(mktemp -d)
@@ -240,11 +233,11 @@ if [[ "$mode" == "write" ]]; then
 
   payload=$tmp_dir/payload.json
   source_tree_sha256=$(tracked_tree_digest)
-  manifest_sha256=$(sha256_file "$normalized_a")
+  manifest_sha256=$(gmeow_sha256_file "$normalized_a")
   generated_file_count=$(find "$generated_a" -type f | wc -l | tr -d ' ')
   generated_bytes=$(tree_bytes "$generated_a")
   bundle=$generated_a/dist/gmeow.gts
-  bundle_sha256=$(sha256_file "$bundle")
+  bundle_sha256=$(gmeow_sha256_file "$bundle")
   bundle_bytes=$(stat -c '%s' "$bundle")
   managed_file_count=$(jq '.files | length' "$normalized_a")
   managed_bytes=$(jq '[.files[].len] | add' "$normalized_a")

@@ -1190,8 +1190,8 @@ mod tests {
         );
     }
 
-    // Gap G15: the prior hand-rolled splitter did `flat.split('.')` over the flattened WHERE
-    // body, which mis-splits any full `<IRI>` whose authority/path contains a dot. A real
+    // The WHERE parser must treat a dot inside a full `<IRI>` as IRI content, not
+    // as a triple-pattern separator. A real
     // SPARQL predicate IRI is atomic to the parser regardless of embedded dots, so it must
     // survive into the seed as ONE triple pattern, not be chopped into garbage statements.
     #[test]
@@ -1211,8 +1211,8 @@ mod tests {
         assert_eq!(branch.atoms[0].1, "http://ex.example/p.q");
     }
 
-    // Gap G15: a triple pattern joined OUTSIDE a `UNION` (`?s a ex:C .` here) must be
-    // distributed into EVERY branch, not dropped. The prior `split_union_branches` only
+    // A triple pattern joined OUTSIDE a `UNION` (`?s a ex:C .` here) must be
+    // distributed into EVERY branch, not dropped. The branch normalizer
     // extracted patterns found INSIDE `{...}` groups, silently losing this shared atom.
     #[test]
     fn triple_pattern_shared_outside_union_appears_in_every_branch() {

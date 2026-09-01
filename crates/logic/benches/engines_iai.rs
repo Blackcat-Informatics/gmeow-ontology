@@ -10,7 +10,7 @@
 //! corroborates the on-gate `steps + alloc + peak-live` cost gate from a fully
 //! independent measurement path.
 //!
-//! Metric doctrine (Task 1): **only the retired-instruction (`Instructions`) column
+//! Metric doctrine: **only the retired-instruction (`Instructions`) column
 //! is a gating-eligible metric.** iai-callgrind additionally reports estimated
 //! cycles and L1/L2/LL cache figures — those are microarchitecture-dependent and
 //! therefore ADVISORY only; never gate on them.

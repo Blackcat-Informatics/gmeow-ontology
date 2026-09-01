@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Fixed-subject golden for the per-term Python (Pydantic) + Rust example-syntax
-//! tabs (issue 1408, gap G5).
+//! tabs for modeled classes.
 //!
 //! `python_syntax_tab` / `rust_syntax_tab` (`crates/docs/src/render.rs`) render
 //! only when `model.schema_fragments.schema_by_term` carries an entry for the
@@ -140,7 +140,7 @@ fn python_and_rust_syntax_tabs_render_for_a_modeled_class() {
 /// (`gmeow_docs::card::python_model_path` / `python_model_snippet`), never a third
 /// copy. Before this test the static `card.md`/`card.json` builder never populated
 /// `python_model`/`python_snippet` at all, so every shipped card file carried
-/// `python_model: null` even for a modeled class (issue 1408 req 18).
+/// `python_model: null` even for a modeled class.
 ///
 /// Gated on the SAME `model.schema_fragments.schema_by_term` digest the Python/Rust
 /// syntax tabs use (see `python_and_rust_syntax_tabs_render_for_a_modeled_class`

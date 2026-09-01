@@ -59,7 +59,7 @@ fn result_err(detail: String) -> gmeow_errors::Diag {
 //   * `wire()`       — the SEMANTICS canonical hyphenated-lowercase value, used in
 //                      every JSON/text projection (PyO3, conformance, certs).
 //   * `local_name()` — the `module.ttl` named-individual local name (PascalCase),
-//                      tied 1:1 by the Rust↔TTL cross-check (Task 8).
+//                      tied 1:1 by the Rust↔TTL cross-check.
 // --------------------------------------------------------------------------- //
 
 /// `input` — was the request well-formed? (SEMANTICS:246-251)
@@ -948,7 +948,7 @@ impl ReasoningResult {
     /// classifying the information state at the single [`InformationState::classify`]
     /// chokepoint (so the conclusiveness invariant cannot be violated).
     ///
-    /// This is the query-surface entry point (Task 3): `proof` is present iff
+    /// This is the query-surface entry point: `proof` is present iff
     /// the conclusion is derivable; `counterproof` is present iff its explicit
     /// negation is derivable. The Belnap quadrant follows: proof-only ⇒ supported,
     /// counterproof-only ⇒ opposed, both ⇒ a witnessed contradiction (`both`),

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Retained Python↔Rust parity regression test for the constitution gate (Gap 4).
+//! Retained Python↔Rust parity regression test for the constitution gate.
 //!
 //! The old Python ``gmeow_tools.constitution`` authority was deleted once the
 //! Rust-native path reached parity. This test pins the Rust

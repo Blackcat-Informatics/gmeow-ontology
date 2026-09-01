@@ -22,7 +22,7 @@
 //!   RANGE emptiness/cardinality decision over the IEEE float/double grids and the
 //!   integer strata is DELEGATED to purrdf's exact interval algebra
 //!   ([`purrdf::xsd::range`]), gated on [`purrdf::xsd::range::is_exactly_decided`]: purrdf
-//!   is the value-space range decider (Task 4b). Facet ranges over
+//!   is the value-space range decider. Facet ranges over
 //!   `owl:rational`/`owl:real` endpoints — purrdf's named `Undecided` residue — and
 //!   value-space MEMBERSHIP over the full exact-ℚ tower stay the NATIVE residue decision
 //!   (purrdf's `XsdValue` does not model those endpoints, so purrdf is not
@@ -31,13 +31,13 @@
 //!   exactly-decided and native already DECIDED; it withholds (`Tri::Unknown`) exactly
 //!   where the native path withheld, so it never widens coverage. The slice-grounded
 //!   [`FINITE_NAMED_CARDINALITY`] table remains the sole cardinality authority for a
-//!   NAMED finite datatype (Task 4c).
+//!   NAMED finite datatype.
 //! * **`owl:oneOf` datatype enumerations** — distinct-value counting across the
 //!   whole rational tower (`xsd:decimal`/`xsd:integer`/`owl:rational` share one
 //!   value space, so `"0.5"^^xsd:decimal` and `"1/2"^^owl:rational` are ONE value)
 //!   through the exact-ℚ [`purrdf::xsd::rational::Rational`] value-space identity — its
 //!   structural reduced `Eq` is the authority for whether two lexical forms denote one
-//!   value (Task 4a).
+//!   value.
 //! * **`owl:datatypeComplementOf`** value-space membership where decidable.
 //!
 //! Everything the subsolver cannot prove complete returns
@@ -340,7 +340,7 @@ pub(crate) fn all_oneof_are_literal_enumerations(edb: &RdfDataset) -> bool {
 /// different lexical spaces compare equal. The whole `xsd:decimal`/`xsd:integer`/
 /// `owl:rational` tower shares one value space, carried as
 /// [`purrdf::xsd::rational::Rational`] whose reduced `Eq` is the value-space identity
-/// authority (Task 4a); IEEE `xsd:float`/`xsd:double` are their own (bit-distinct) value
+/// authority; IEEE `xsd:float`/`xsd:double` are their own (bit-distinct) value
 /// spaces; strings and booleans are theirs.
 #[derive(Clone, Debug)]
 enum Value {
@@ -359,7 +359,7 @@ impl Value {
         match self {
             // purrdf's `Rational` is reduced with a positive denominator, so `num/den`
             // is a canonical, injective value-space key: `"0.5"^^xsd:decimal` and
-            // `"1/2"^^owl:rational` reduce to the same `1/2` (Task 4a).
+            // `"1/2"^^owl:rational` reduce to the same `1/2`.
             Self::Rat(q) => Some(format!("Q:{}/{}", q.numerator(), q.denominator())),
             Self::Str(s) => Some(format!("S:{s}")),
             Self::Bool(b) => Some(format!("B:{b}")),
@@ -1568,7 +1568,7 @@ fn parse_value(lit: &RdfLiteral) -> Option<Value> {
 /// Parse an `xsd:decimal`/`xsd:integer`/`owl:rational`/`owl:real` lexical form into the
 /// exact value-space rational whose reduced identity is DECIDED by
 /// [`purrdf::xsd::rational::Rational`] — its structural reduced `Eq` is what makes
-/// `"0.5"^^xsd:decimal` and `"1/2"^^owl:rational` ONE value (Task 4a). purrdf owns the
+/// `"0.5"^^xsd:decimal` and `"1/2"^^owl:rational` ONE value. purrdf owns the
 /// identity: a ratio lexical goes through [`Rational::parse`], a decimal/integer lexical
 /// through purrdf's own `xsd:decimal` value space (`parse_by_iri` + [`Rational::from_xsd`]).
 /// The exact-`i128` lexical fallback covers a decimal PAST purrdf's `XsdValue` scale-≤18

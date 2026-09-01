@@ -35,7 +35,7 @@ fn organization(#[case] case: Case) {
     case.run();
 }
 
-// ── Standpoint coexistence: contested membership / succession (#51) ───────────
+// ── Standpoint coexistence: contested membership / succession ────────────────
 
 #[gmeow_test_batch_macros::batch_test]
 fn contested_membership_coexists() {

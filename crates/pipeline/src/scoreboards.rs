@@ -623,7 +623,7 @@ fn draft_gates(
 /// The corpus-wide context shared by every source file in one acceptance run: the ontology
 /// N-Triples, the language tag maps, and the ONCE-derived gate-verified put-leg program. Building
 /// this once (rather than re-reading SSSOM/projection TTLs and re-running the correspondence gates
-/// per file) is the GAP 5 fix — the gate machinery is corpus-independent, so it need not re-run
+/// per file) is sufficient — the gate machinery is corpus-independent, so it need not re-run
 /// per source file.
 struct AcceptanceContext {
     ontology_nt: String,
@@ -736,7 +736,7 @@ pub fn run_acceptance_corpus(
         }));
     }
     // Derive the corpus-independent context (ontology + gate-verified put-leg program) ONCE, then
-    // apply it to every source file — the gate machinery is not re-run per file (GAP 5).
+    // apply it to every source file — the gate machinery is not re-run per file.
     let ctx = AcceptanceContext::load(root)?;
     sources
         .iter()
@@ -754,7 +754,7 @@ pub fn default_corpus(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     )
 }
 
-/// The HARD corpus-aggregate round-trip recall floor (GAP 3).
+/// The HARD corpus-aggregate round-trip recall floor.
 ///
 /// The measured derived aggregate recall (Σ recovered / Σ addressable) over the
 /// external parity corpus (`bii.ttl` + `paudley.ttl`) is **64.57 %** — established
@@ -804,7 +804,7 @@ pub fn aggregate_recall_gate(results: &[FileAcceptance], floor: f64) -> GateResu
 /// recall floor is cleared ([`aggregate_recall_gate`] passes at `floor`). The
 /// aggregate floor is a corpus-level gate with no per-file home, so without folding
 /// it in here the structured verdict could report `passed = true` while the hard
-/// aggregate gate FAILED — an internal inconsistency (GAP 3 / finding). The
+/// aggregate gate FAILED — an internal inconsistency. The
 /// CLI hard-fails on the same aggregate check, so this only strengthens the
 /// structured API to match; it never weakens an existing gate.
 pub fn corpus_passed(results: &[FileAcceptance], floor: f64) -> bool {
@@ -871,7 +871,7 @@ pub fn render_acceptance_report(results: &[FileAcceptance]) -> String {
 pub fn acceptance_diagnostics(results: &[FileAcceptance]) -> Report {
     let stage = StageId::new("scoreboard.acceptance");
     let mut ledger = DiagLedger::new();
-    // The HARD corpus-aggregate recall floor (GAP 3): a pooled recall below
+    // The HARD corpus-aggregate recall floor: a pooled recall below
     // ACCEPTANCE_MIN_RECALL_PCT is a real coverage regression. A blocking
     // ModelingDisciplineViolation asserted from a Binding standpoint gates Fatal,
     // so the diagnostics fold consumed by `make check` still fails on it.

@@ -8526,10 +8526,9 @@ mod tests {
         assert_eq!(rust_raw_fence_width(r#"a "quoted" string"#), 1);
 
         // A literal string value immediately followed by a `#`-fragment IRI
-        // puts a `"#` run in the content — this demands a wider fence than
-        // the naive one-`#` fence the old code always used (`r#"..."#`),
-        // which is exactly the twin bug the reviewer flagged in
-        // `python_syntax_tab`'s raw-triple-quote interpolation.
+        // puts a `"#` run in the content — this demands a wider fence than a
+        // naive single-`#` fence (`r#"..."#`), the same twin hazard that
+        // `python_syntax_tab`'s raw-triple-quote interpolation must widen for.
         let turtle = "ex:x ex:note \"ends right here\"##weird .";
         let width = rust_raw_fence_width(turtle);
         assert_eq!(

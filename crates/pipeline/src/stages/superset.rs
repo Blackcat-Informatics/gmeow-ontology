@@ -864,7 +864,7 @@ pub(crate) fn read_expected_outputs(
 
 /// The independent-oracle completeness HARD-FAIL: every AUTHORED expected path must be
 /// PRODUCED by the reconstructed bundle (`expected ⊆ files.keys()`). The message names EVERY
-/// missing path. This is the anchor that survives the Task-3 disk-walk inversion: it is the
+/// missing path. This anchor survives the source-to-product disk-walk inversion: it is the
 /// "every declared output is produced" direction, proved against the bundle rather than the
 /// on-disk tree, so a clean clone that no longer emits a consumed output cannot pass silently.
 fn check_expected_completeness(

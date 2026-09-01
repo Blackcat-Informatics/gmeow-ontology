@@ -1171,7 +1171,7 @@ fn declaration_integrity(
 /// Name the SHORTFALL behind an unmet demand: how much of the raise is unwitnessed,
 /// how much is witnessed but unpaid, which arrivals no declaration covers, how many
 /// destination constructs have no relocation-invariant identity at all, and the
-/// residue-conservation reason codes the Task-2 accounting derived for the edges.
+/// residue-conservation reason codes derived by the edge accounting.
 #[allow(clippy::too_many_arguments)]
 fn explain_shortfall(
     cmp: &CeilingComparison<'_>,

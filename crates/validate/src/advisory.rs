@@ -1243,7 +1243,7 @@ mod tests {
     /// The demonstrator claim's full expected triple shape: exactly one
     /// verdict/vantage/confidence, present event/norm links, the norm's
     /// deontic/issuer/partOf triples, and the event's temporal frame with NO
-    /// eventTime — the exact contract Task 2 specifies.
+    /// eventTime — the exact contract this module specifies.
     #[test]
     fn demonstrator_claim_emits_the_full_expected_shape() {
         let claim = demo_claim();

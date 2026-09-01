@@ -1117,7 +1117,7 @@ fn extract_contracts(
             }
         }
 
-        // Carried decidability data (reviewer B2): logic:complexityClass.
+        // Carried decidability data: logic:complexityClass.
         if let Some(cn) = value(store, &individual, &nn(&logic_iri("complexityClass"))) {
             let label = term_str(&cn).trim().to_owned();
             match ComplexityClass::new(label.clone()) {

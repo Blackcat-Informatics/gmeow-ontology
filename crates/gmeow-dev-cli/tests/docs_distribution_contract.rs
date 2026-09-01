@@ -156,7 +156,7 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     assert!(
         read("crates/docs/src/render.rs")
             .contains("files.extend(crate::console::console_files(exec))"),
-        "AC3 (Task 12.6): the site render must fold `crate::console::console_files(exec)` \
+        "AC3: the site render must fold `crate::console::console_files(exec)` \
          into its own tree, or the console does not ride the `ontology-docs` Pages upload \
          at all. If that fold moved, retarget this reader — do not delete the assertion."
     );
@@ -166,7 +166,7 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     let console = gmeow_docs::console_files(&interactive_exec());
     assert!(
         console.contains_key("console/index.html"),
-        "AC3 (Task 12.6): `console_files` must emit `console/index.html`; got {:?}",
+        "AC3: `console_files` must emit `console/index.html`; got {:?}",
         console.keys().collect::<Vec<_>>()
     );
 }
@@ -231,7 +231,7 @@ fn ac3_makefile_release_publish_attaches_docs_tar_via_docs_package() {
     assert!(
         gmeow_pipeline::stages::distribution_catalog::distribution_row("console")
             .is_some_and(|row| row.rel_path == "dist/gmeow-docs/console"),
-        "AC3 (Task 12.6): the console must be a declared distribution under \
+        "AC3: the console must be a declared distribution under \
          `dist/gmeow-docs/`, or it cannot ride `dist/gmeow-docs.tar` at all"
     );
 }
@@ -878,7 +878,7 @@ fn docs_package_cmd(root: &Path) -> assert_cmd::Command {
     cmd
 }
 
-/// Task 12.6 — the console RIDES `dist/gmeow-docs.tar`.
+/// The console RIDES `dist/gmeow-docs.tar`.
 ///
 /// Driven through the real `gmeow-dev docs-package` binary over a materialized
 /// `dist/gmeow-docs/` tree, and read back out of the produced archive: the tar's member
@@ -923,7 +923,7 @@ fn docs_package_archives_the_console_alongside_every_other_distribution() {
 
     assert!(
         members.contains("console/index.html"),
-        "Task 12.6: `dist/gmeow-docs.tar` must carry the interactive console under \
+        "Archive contract: `dist/gmeow-docs.tar` must carry the interactive console under \
          `console/` — the release asset ships every distribution or it ships a lie; \
          members were {members:?}"
     );
@@ -933,7 +933,7 @@ fn docs_package_archives_the_console_alongside_every_other_distribution() {
         let slug = row.rel_path.trim_start_matches("dist/gmeow-docs/");
         assert!(
             members.contains(&format!("{slug}/index.html")),
-            "Task 12.6: distribution {slug:?} is missing from the packaged archive: \
+            "Archive contract: distribution {slug:?} is missing from the packaged archive: \
              {members:?}"
         );
     }

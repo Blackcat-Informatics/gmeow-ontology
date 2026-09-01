@@ -2723,7 +2723,7 @@ const KNOWN_SIGILS: [&str; 13] = [
     SIGIL_RETRACT,
 ];
 
-/// The `gmeow:` class IRIs the three repair sigils map to (Task 1's vocabulary): a
+/// The `gmeow:` class IRIs the three repair sigils map to (the vocabulary): a
 /// repair record is a GMN-0 subject typed with exactly one of these three
 /// `gmeow:StandpointClaim` subclasses.
 const CLASS_GMN_ERR: &str = "https://blackcatinformatics.ca/gmeow/GmnErr";
@@ -4086,11 +4086,11 @@ fn lex_tabular_row(cols: &[&'static str], line: &str) -> Result<LexedRecord, Gmn
 /// `model`'s quads whose subject, predicate, and object each encode losslessly to a
 /// GMN-1 token, WITHOUT hard-failing the whole model on the first uncovered quad.
 ///
-/// This is deliberately NOT [`round_trip_check`]: the round-trip gate (Task 6,
+/// This is deliberately NOT [`round_trip_check`]: the round-trip gate (implemented by
 /// `crates/pipeline/src/stages/gmn1_gate.rs`) is total-or-hard-fail over the
 /// grounding slices' GMN-0 (no optionality within that domain); this report is the
 /// MEASUREMENT primitive `gmeow-slice-quality`'s `gmn1_coverage_axis` composes over
-/// every OTHER slice's GMN-0 vocabulary (Task 7's convergence-contract axis) — a
+/// every OTHER slice's GMN-0 vocabulary (the convergence-contract axis) — a
 /// bounded `[0,1]` fraction, never an unbounded ratio.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct CoverageReport {
@@ -5327,7 +5327,7 @@ ex:fixtureDenotation a lang:Denotation ;
 
     #[test]
     fn iri_under_no_registered_namespace_rides_by_reference() {
-        // G11 (issue 1579): an IRI under no registered namespace no longer hard-fails as
+        // G11: an IRI under no registered namespace no longer hard-fails as
         // `lang:GmnUncoveredTerm` — it rides LOSSLESSLY by reference as an `x_<hash>` token,
         // its full IRI carried out-of-band in the reference table. This mirrors the
         // literal-by-reference machinery and lets realistic external URLs round-trip.

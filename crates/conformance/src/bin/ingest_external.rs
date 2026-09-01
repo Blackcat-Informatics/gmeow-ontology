@@ -3421,7 +3421,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         );
     }
 
-    /// A missing ROOT catalog directory must hard-fail (Gap G3): it is a required
+    /// A missing ROOT catalog directory must hard-fail: it is a required
     /// input, not a benign "nothing here yet" — unlike a subdirectory vanishing
     /// mid-walk (a benign race), a missing root must never silently degrade to an
     /// empty model set.
@@ -3448,7 +3448,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
 
     /// A present root catalog containing one populated model dir and one entirely
     /// blank (empty) subdir must still succeed and return only the models that were
-    /// actually found — the ROOT-only hard-fail added for Gap G3 must not make the
+    /// actually found — the ROOT-only hard-fail must not make the
     /// walk over-eager and start rejecting ordinary empty subdirectories too.
     #[test]
     fn collect_ontouml_models_tolerates_blank_subdir_but_finds_present_models() {

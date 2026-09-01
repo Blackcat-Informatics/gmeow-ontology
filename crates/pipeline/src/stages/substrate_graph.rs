@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The dogfooded substrate reconciliation projection (issue 1672).
+//! The dogfooded substrate reconciliation projection.
 //!
 //! Promotes the purrdf substrate's identity — today scattered across eight
 //! mutually-unaware representations (two manifest pins, the lockfile, three
@@ -757,7 +757,7 @@ mod tests {
 
     #[test]
     fn substrate_inputs_are_all_build_inputs_never_generated() {
-        // The non-fixpoint property (Audit #7 / SOLID finding 4): every claim value
+        // The non-fixpoint property: every claim value
         // derives from a repo INPUT, never a render-produced digest under generated/.
         let root = Path::new("/repo");
         for p in substrate_input_paths(root) {
@@ -948,7 +948,7 @@ mod tests {
 
     #[test]
     fn spdx_sbom_projection_carries_a_package_per_engine_and_contains_edges() {
-        // F1 (issue 1672): the substrate reconciliation A-Box, projected through the
+        // The substrate reconciliation A-Box, projected through the
         // COMPILED `spdx.rq` (the same projection authority a consumer view runs), yields
         // a first-class SBOM — one `spdx:Package` per shipped engine and embedded library,
         // `spdx:versionInfo` from the reconciled pin, and an SPDX `contains` relationship

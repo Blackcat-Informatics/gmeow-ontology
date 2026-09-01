@@ -1023,8 +1023,8 @@ pub fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// generated Pydantic model" existence signal `term_to_card`'s `python_model`
 /// gate reads. Shared with `gmeow_docs::render::doc_term_card` and
 /// `gmeow_docs_model::describe::build_card` in spirit (never in code — the crate
-/// boundary is one-directional), so all three builders agree (issue: Pydantic
-/// model surface, finding F3).
+/// boundary is one-directional), so all three builders apply the same `$defs`
+/// membership rule.
 fn class_is_modeled(iri: &str, modeled_defs: &BTreeSet<String>) -> bool {
     modeled_defs.contains(&gmeow_ns::gmeow_json_schema_namespaces().def_key(iri))
 }
@@ -1069,9 +1069,8 @@ pub fn term_to_card(t: &Term, modeled_defs: &BTreeSet<String>) -> gmeow_docs_mod
     // snippet, from the SAME emitter routing the docs-site Python tab uses (never
     // duplicated). Gated on `class_is_modeled` (the class actually names a `$defs`
     // entry) rather than merely "is a Class with an owning slice" — an abstract
-    // class with no SHACL NodeShape has NO generated model, and unconditionally
-    // emitting the link fabricated an ImportError for a user who copied it (issue:
-    // Pydantic model surface, finding F3).
+    // class with no SHACL NodeShape has NO generated model, so emitting the link
+    // would fabricate an ImportError-inducing path.
     let (python_model, python_snippet) =
         if t.category == "class" && class_is_modeled(&t.iri, modeled_defs) {
             (
@@ -3176,7 +3175,7 @@ mod tests {
         );
     }
 
-    /// `class_is_modeled` gate (finding F3, reproduced by issue 1408): a Class
+    /// `class_is_modeled` gate: a Class
     /// with NO `$defs` entry (an abstract class with no SHACL NodeShape) must
     /// never get a fabricated `python_model` link, even though `term_to_card`'s
     /// PRE-fix gate (`category == "class" && !owner_slice.is_empty()`) would have
@@ -3479,8 +3478,7 @@ mod tests {
 
     /// `class_is_modeled` gate: a class whose IRI names a `$defs` entry gets the
     /// `python_model` link; an otherwise-identical class that does not is honestly
-    /// omitted — never a fabricated ImportError-inducing link (issue: Pydantic
-    /// model surface, finding F3).
+    /// omitted — never a fabricated ImportError-inducing link.
     fn term_to_card_gates_python_model_on_schema_defs_membership() {
         let modeled = Term {
             category: "class",

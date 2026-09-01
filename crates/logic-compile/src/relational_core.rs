@@ -2169,7 +2169,7 @@ mod tests {
         assert_eq!(lines, sorted, "projection lines are sorted (deterministic)");
     }
 
-    /// Finding 1 regression: a literal whose lexical form begins with '?' must be
+    /// A literal whose lexical form begins with '?' must be
     /// classified as a Literal, not as a Var, regardless of variable-syntax heuristic.
     #[test]
     fn declared_literal_starting_with_question_mark_is_not_a_var() {
@@ -2186,7 +2186,7 @@ mod tests {
         );
     }
 
-    /// Finding 2 regression: a rule with a repeated body atom (same content at two
+    /// A rule with a repeated body atom (same content at two
     /// positions) must round-trip without rcIndex collision on a shared node IRI.
     #[test]
     fn repeated_body_atom_round_trips_with_distinct_indices() {

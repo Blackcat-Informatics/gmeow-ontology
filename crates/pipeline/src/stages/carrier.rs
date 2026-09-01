@@ -159,7 +159,7 @@ pub(crate) use gmeow_bundle_view::graph_iris::{GRAPH_DIAGNOSTICS, GRAPH_DOCUMENT
 /// needs no reconstruction rep and stays OUT of the reasoned object-level EDB
 /// (`gts_compose` folds only the default graph).
 pub(crate) const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm-claims";
-/// The substrate SBOM projection (issue 1672, F1): the reconciliation A-Box
+/// The substrate SBOM projection: the reconciliation A-Box
 /// (`graph/provenance`) projected through the compiled `spdx.rq` into pure SPDX —
 /// one `spdx:Package` per engine/library, `spdx:versionInfo` from the reconciled pin,
 /// and an `spdx:relationship … contains` per `gmeow:embeds` edge. `stage-mappings`
@@ -739,7 +739,7 @@ pub(crate) fn self_description_source_files(
     // for what the scorer reads — sharing it keeps the cache key and the score set from
     // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
     files.extend(gmeow_slice_quality::scored_source_files(root));
-    // The substrate reconciliation A-Box (issue 1672) folds into graph/provenance from build
+    // The substrate reconciliation A-Box folds into graph/provenance from build
     // INPUTS that are not authored ontology sources — the manifests, the lockfile, the
     // shipped SUBSTRATE.txt stamps, and the prose mention — so they must be declared here
     // or a stamp/pin change would leave a stale substrate A-Box in the bundle.
@@ -805,7 +805,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
     // closed set of sanctioned cross-grounding channels reaches `gmeow.gts`.
     let grounding_seams = build_grounding_seams(&catalog)?;
     let provenance_nt = build_provenance_projection(root)?;
-    // graph/provenance also carries the substrate reconciliation A-Box (issue 1672): one
+    // graph/provenance also carries the substrate reconciliation A-Box: one
     // gmeow:SubstrateComponent per external engine/library, a gmeow:PinClaim per (site,
     // component, dimension) read from build INPUTS (manifests, lockfile, linked
     // constants, shipped SUBSTRATE.txt stamps, prose), a gmeow:ReconciledPin per
@@ -840,7 +840,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
             "application/n-triples",
             crate::stages::provenance_graph::GRAPH_PROVENANCE,
         )?,
-        // The substrate reconciliation A-Box (issue 1672) folds into the SAME
+        // The substrate reconciliation A-Box folds into the SAME
         // graph/provenance named graph — no new graph is minted.
         parse_into_graph(
             substrate_nt.as_bytes(),
@@ -1181,7 +1181,7 @@ fn assemble_carrier(
         // graph the same way graph/diagnostics is (a pure keyed fold).
         producer_graph(upstream, "stage-validate", GRAPH_NORM_CLAIMS)?,
         // graph/substrate-sbom — the substrate reconciliation A-Box projected through the
-        // compiled `spdx.rq` (issue 1672, F1), read off stage-mappings' attached graph (a
+        // compiled `spdx.rq`, read off stage-mappings' attached graph (a
         // pure keyed fold, PIPELINE_SPINE §4). It flattens into the bundle base graph so
         // `gmeow project --profile spdx` returns the substrate packages; bundle-internal,
         // so it stays OUT of the reasoned EDB (`gts_compose` folds only the default graph).
@@ -2526,7 +2526,7 @@ mod stratum_canonical_tests {
 
 /// The `gmeow:stratumPayloadExcludingMediumEnvelope` region of an ALREADY-EMITTED
 /// snapshot payload: its quad set minus the medium-envelope subgraph, canonicalized
-/// exactly as [`stratum_nquads`] does.
+/// exactly as `stratum_nquads` does.
 ///
 /// This is the reader-side inverse. It is what makes the stratum CHECKABLE rather
 /// than merely asserted: a consumer folds the bundle, strips the envelope quads by

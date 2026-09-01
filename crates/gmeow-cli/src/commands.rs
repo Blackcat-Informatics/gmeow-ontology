@@ -532,7 +532,7 @@ pub fn verify(
     // parity with `validate --deep`): plain `verify` never reasons. When `deep`
     // is set, this calls the SAME public entry the dev bundle pass runs, so
     // verify emits real `validate.deep.*` reasoned-quad verdicts (the witnesses
-    // the derivation attaches to). Honors the Task-5 hard-fail: a verdict that
+    // the derivation attaches to). Honors the required hard-fail: a verdict that
     // cannot be joined to its explain-skeleton derivation propagates as `Err`
     // and is a `Severity::Error` failure here, never swallowed.
     if deep && let Err(e) = gmeow_validate::validate_all::bundle_deep_findings(&bytes, &mut report)
@@ -606,7 +606,7 @@ pub fn verify(
 /// Fold one rule-coded, ledger-identified [`Finding`] per ontology-completeness
 /// gap — a missing `rdfs:label` or `skos:definition` on a documented class/property
 /// — into `report`, routing each through a [`DiagLedger`] so it carries a stable
-/// `finding_iri`/anchor identity and its term IRI as `documented_terms` (the Task-4
+/// `finding_iri`/anchor identity and its term IRI as `documented_terms` (the declared
 /// documented-term guidance join key). Non-blocking Warnings: a bundle that passes
 /// `gmeow verify` today has none, so the exit contract is preserved.
 fn append_ontology_findings(bytes: &[u8], report: &mut gmeow_errors::Report) -> Result<(), Diag> {
@@ -860,7 +860,7 @@ pub fn substrate(
     // JSON branch returns — so the finding reaches BOTH output paths through the
     // reporter, i.e. a structured/NDJSON consumer sees the drift as a diagnostic
     // even on `--format json`. Drift is a reported finding, not a process
-    // failure: the exit code stays 0 (issue 1672).
+    // failure: the exit code stays 0.
     let mut any_drift = false;
     for ((comp, dim), values) in &groups {
         if !component_matches(comp) || !dimension_matches(dim) {
@@ -987,7 +987,7 @@ pub fn describe(
     // The JSON Schema `$defs` key set folded into THIS bundle — the
     // model-existence signal `build_card` gates a class's `python_model` link on
     // (a class with no `$defs` entry has no generated Pydantic model, so the link
-    // must never be fabricated: issue "Pydantic model surface", finding F3).
+    // must never be fabricated).
     let (modeled_defs, dataset) = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
         .and_then(|bundle| Ok((bundle.modeled_def_keys()?, bundle.dataset()?)))
     {

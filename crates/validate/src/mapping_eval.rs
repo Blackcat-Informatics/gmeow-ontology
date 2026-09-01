@@ -4,7 +4,7 @@
 //! Native Wikidata and Dublin Core mapping evaluators.
 //!
 //! The public command surface remains Python (`gmeow-dev`), but the evaluator
-//! authority lives here: QID/PID syntax, mapping-IRI namespace misuse, offline
+//! authority lives here: Wikidata entity-id syntax, mapping-IRI namespace misuse, offline
 //! Wikidata/DC coverage reports, and the maintainer-only live Wikidata existence
 //! check.
 
@@ -296,8 +296,7 @@ fn is_valid_sense_id(identifier: &str) -> bool {
 
 /// Whether `identifier` is a well-formed Wikidata **entity** id of any kind an alignment object
 /// may name: an item (`Q…`), a property (`P…`), a lexeme (`L…`), or a sense (`L…-S…`). This is
-/// the SYNTAX gate, distinct from `is_valid_id` (the item/property queryability filter for the
-/// live existence check).
+/// the shared fail-closed syntax gate for both offline validation and live existence checks.
 pub fn is_valid_entity_id(identifier: &str) -> bool {
     is_valid_id(identifier) || is_valid_lexeme_id(identifier) || is_valid_sense_id(identifier)
 }
@@ -759,7 +758,7 @@ pub fn check_existence(
     let mut statuses = BTreeMap::new();
     let mut queryable = Vec::new();
     for identifier in identifiers {
-        if is_valid_id(identifier) {
+        if is_valid_entity_id(identifier) {
             queryable.push(identifier.clone());
         } else {
             statuses.insert(identifier.clone(), ExistenceStatus::BadSyntax);
@@ -1482,6 +1481,56 @@ mod tests {
         assert!(zero.message().contains("between 1 and 50"));
         let too_large = check_existence(&identifiers, root.path(), timeout, 51, delay).unwrap_err();
         assert!(too_large.message().contains("between 1 and 50"));
+    }
+
+    #[test]
+    fn check_existence_uses_cache_for_every_wikidata_entity_kind() {
+        let root = tempfile::tempdir().unwrap();
+        let valid = [
+            "Q42",
+            "P31",
+            "L7",
+            "L1119",
+            "L14462",
+            "L7-S1",
+            "L1119-S1",
+            "L14462-S2",
+        ]
+        .map(str::to_owned)
+        .to_vec();
+        let malformed = ["Q0", "P0", "L0", "L01", "L7-S0", "L7-Sx", "Q42-S1"]
+            .map(str::to_owned)
+            .to_vec();
+        let entities = valid
+            .iter()
+            .map(|identifier| (identifier.clone(), serde_json::json!({})))
+            .collect::<serde_json::Map<_, _>>();
+        let cached = serde_json::json!({
+            "success": 1,
+            "entities": entities,
+        });
+        save_cached(root.path(), &cache_key(&valid), &cached).unwrap();
+
+        let identifiers = valid.iter().chain(&malformed).cloned().collect::<Vec<_>>();
+        let statuses = check_existence(
+            &identifiers,
+            root.path(),
+            Duration::from_nanos(1),
+            WIKIDATA_MAX_IDS_PER_REQUEST,
+            Duration::ZERO,
+        )
+        .expect("the complete cache entry prevents every network request");
+
+        for identifier in valid {
+            assert_eq!(statuses[&identifier], ExistenceStatus::Ok, "{identifier}");
+        }
+        for identifier in malformed {
+            assert_eq!(
+                statuses[&identifier],
+                ExistenceStatus::BadSyntax,
+                "{identifier}"
+            );
+        }
     }
 
     #[test]

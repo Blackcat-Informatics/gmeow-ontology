@@ -229,7 +229,7 @@ install: ## Bootstrap a clean clone source-first: build ONLY the producer, mater
 fmt: ## Rewrite Rust formatting with cargo fmt.
 	cargo fmt
 
-lint-issue-refs: ## Reject issue/PR number references in Rust comments, Markdown docs, and TOML config.
+lint-issue-refs: ## Reject tracker/reviewer provenance across authored prose and branch-added lines.
 	./scripts/lint-issue-refs.sh
 
 test-corpus-purity: ## Reject every direct or indirect corpus producer reachable from tests.
@@ -1530,7 +1530,7 @@ maint-gmn-cost-matrix: ## (maintainer) Full five-family GMN token-cost matrix ov
 	@# Runs the five mandated tokenizer families (o200k_base + cl100k_base embedded via
 	@# tiktoken-rs; Qwen vendored + blake3-pinned; Llama + Gemma fetched-at-maint-time) over the
 	@# SAME emitted GMN / Turtle / JSON-LD serializations of the grounding corpus the on-gate
-	@# Task-7 byte-fallback estimator gates, and writes dist/bench/gmn-token-cost-matrix.md.
+	@# byte-fallback estimator gates, and writes dist/bench/gmn-token-cost-matrix.md.
 	@# NOT a `make check` (CHECK_DAG) target: it INFORMS the S2-S4 glyph/tokenizer co-design; the
 	@# on-gate teeth remain `compute_token_metrics`. HARD-FAILS if ANY of the five families cannot
 	@# be fetched/verified (no silent three-family degrade), and re-checks byte-identity across two

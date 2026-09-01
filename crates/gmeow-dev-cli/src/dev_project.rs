@@ -40,7 +40,7 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     // The JSON Schema `$defs` key set folded into THIS bundle — the
     // model-existence signal `build_card` gates a class's `python_model` link on
     // (a class with no `$defs` entry has no generated Pydantic model, so the link
-    // must never be fabricated: issue "Pydantic model surface", finding F3).
+    // must never be fabricated).
     let modeled_defs = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
         .and_then(|bundle| bundle.modeled_def_keys())
     {

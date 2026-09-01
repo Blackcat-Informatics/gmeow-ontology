@@ -1048,7 +1048,7 @@ mod tests {
         assert!(err.message().contains("Principle 5"), "{err}");
     }
 
-    // ── Entity-kind derivation (issue: EDOAL mistyped predicates) ──────────────────
+    // ── Entity-kind derivation rejects EDOAL-mistyped predicates ───────────────────
 
     /// Parse Turtle into a frozen dataset for an ontology view (native lenient codec so
     /// `@x-gmeow-*` tags parse — mirrors the pipeline file edge, which reads file bytes).

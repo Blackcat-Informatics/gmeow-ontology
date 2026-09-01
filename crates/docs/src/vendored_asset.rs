@@ -639,7 +639,7 @@ pub static QUERY_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // same file. Also listed in `vendored_files` above, so `DIGESTS.blake3` pins its
     // exact bytes alongside the engine's: a stale witness (one that no longer matches
     // the corpus it claims to attest) cannot slip through re-vendoring undetected.
-    // Task 14 consumes this to gate the explorer's interactive capability.
+    // The explorer consumes this to gate its interactive capability.
     witness_attestation: Some("WITNESS.query.txt"),
 };
 
@@ -696,7 +696,7 @@ pub static VALIDATE_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // The native↔wasm parity attestation (`WITNESS.validate.json`): the byte-identical
     // Tier-1 findings the native validator produced and the wasm engine must
     // reproduce (proven by `crates/validate-wasm/js/tests/witness.test.mjs` +
-    // `crates/validate/tests/witness_parity.rs`). Task 14 consumes it to gate the
+    // `crates/validate/tests/witness_parity.rs`). The interactive validator consumes it to gate the
     // interactive validate Capability.
     witness_attestation: Some("WITNESS.validate.json"),
 };
@@ -750,7 +750,7 @@ pub static REASON_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     refresh_target: "maint-refresh-reason-asset",
     // The native↔wasm reasoning parity attestation (`WITNESS.reason.nq`): the reasoned
     // closure the native chase produces and the wasm engine reproduces (proven by
-    // `crates/reason-wasm/tests/witness_reason.rs` + the Node lane). Task 14 consumes
+    // `crates/reason-wasm/tests/witness_reason.rs` + the Node lane). The live reasoner consumes
     // it to gate the LiveReasoning capability.
     witness_attestation: Some("WITNESS.reason.nq"),
 };
@@ -805,7 +805,7 @@ pub static GMN_ASSET: VendoredWasmAsset = VendoredWasmAsset {
     // The native↔wasm GMN transcode parity attestation (`WITNESS.gmn1.txt`): the GMN-1
     // surface the native codec writes and the wasm engine reproduces, and which reads
     // back to the input's canonical N-Quads byte-for-byte (proven by
-    // `crates/gmn-wasm/tests/witness_gmn.rs` + the Node lane). Task 14 consumes it to
+    // `crates/gmn-wasm/tests/witness_gmn.rs` + the Node lane). The GMN transcoder consumes it to
     // gate the GMN transcode capability.
     witness_attestation: Some("WITNESS.gmn1.txt"),
 };

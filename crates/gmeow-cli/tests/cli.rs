@@ -660,7 +660,7 @@ fn music_render_missing_source_is_a_runtime_error() {
         .stderr(predicate::str::contains("Error:"));
 }
 
-// ── conjecture test (Task 5b production surface) ─────────────────────────────
+// ── Conjecture production surface ───────────────────────────────────────────
 
 const LOGIC_NS_TEST: &str = "https://blackcatinformatics.ca/logic/";
 
@@ -780,7 +780,7 @@ fn multi_trigger_kb_ttl() -> String {
         .to_owned()
 }
 
-/// GAP G1: `--max-steps` is reachable from the SHIPPED CLI. A bound of 1 truncates
+/// `--max-steps` is reachable from the SHIPPED CLI. A bound of 1 truncates
 /// the multi-fact derived closure ⇒ evaluation budget-exhausted → lifecycle open →
 /// discharge ObligationUnknown, and (being inconclusive) nothing is persisted-open
 /// beyond the Open verdict.
@@ -812,7 +812,7 @@ fn conjecture_test_max_steps_bound_forces_open() {
         );
 }
 
-// ── hybrid-query (Gap E2/E3: external-relation provider on the shipped CLI) ──
+// ── Hybrid query: external-relation provider on the shipped CLI ──────────────
 
 /// Ordinary asserted RDF facts: two documents, one active and one inactive.
 /// The hard RDF constraint `ex:status(D, ex:active)` filters the provider's
@@ -980,7 +980,7 @@ fn hybrid_query_relation_not_referenced_by_program_still_succeeds() {
         );
 }
 
-// ── logic backward (Task 8: interactive backward-engine CLI surface) ────────
+// ── Interactive backward-engine CLI surface ─────────────────────────────────
 
 /// The repo-committed goal-directed demonstrator corpus — the SAME
 /// `logic:ReasoningProgram` cell `stage-goal-directed` compiles into
@@ -1179,7 +1179,7 @@ fn logic_backward_program_free_cell_hard_fails() {
         .stderr(predicate::str::contains("zero logic:ReasoningProgram"));
 }
 
-// ── logic fragments (Task 8: the shipped decidability-surface query) ─────────
+// ── Shipped decidability-surface query ───────────────────────────────────────
 
 /// The committed `logic` grounding slice `module.ttl`, which ships the
 /// `logic:DecidedFragment` / `logic:RefutationPattern` / `logic:expressivenessBoundary`

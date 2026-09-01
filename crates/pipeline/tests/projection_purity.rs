@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Projection-purity leak guard for the exact-numeric value tower (issue 1428).
+//! Projection-purity leak guard for the exact-numeric value tower.
 //!
 //! The moded builtin evaluator carries [`gmeow_logic`]'s `Value` tower — exact
 //! rationals, SI ℚ⁷ dimension vectors, and dimensioned quantities — between
