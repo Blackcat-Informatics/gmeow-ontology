@@ -1,23 +1,7 @@
 cff-version: 1.2.0
 message: "If you use the GMEOW ontology, please cite it as below."
 title: "GMEOW — Global Metadata and Entity Ontology for the Web"
-abstract: >-
-  GMEOW is an ontology engine for machine and human minds that treats every mental
-  act as an attributed, revisable claim rather than a stored truth — a place to
-  record not just what an agent (or a person) believes, but who held it, from what
-  vantage, with what confidence, on what evidence, by which kind of reasoning, in
-  what state of awareness, and whether it has since been defeated. Its flagship use
-  is grounded agent memory — store, recall, revise — that can tell a recalled fact
-  from a confabulated one and surfaces disagreement as coexisting standpoints rather
-  than overwriting the loser. Truth is never a bit on a triple: belief, knowledge,
-  inference, calibration, and reality-monitoring are all first-class, vantage-indexed
-  claims, revision is suppression rather than deletion, and a full model of mind —
-  endurant states and occurrent processes over content typed by direction of fit —
-  gives every faculty both a human and a machine face. Every fact is authored once
-  across GMEOW's self-contained slices, generated outward as lossy projections
-  (OWL, SHACL, JSON-LD, schema.org, citation and deposit forms) and maximally linked
-  to 86 external vocabularies and authority identifiers, so a GMEOW graph is a
-  first-class node in the linked-data and persistent-identifier web.
+abstract: "GMEOW is an ontology engine for machine and human minds that treats every mental act as an attributed, revisable claim rather than a stored truth — a place to record not just what an agent (or a person) believes, but who held it, from what vantage, with what confidence, on what evidence, by which kind of reasoning, in what state of awareness, and whether it has since been defeated. Its flagship use is grounded agent memory — store, recall, revise — that can tell a recalled fact from a confabulated one and surfaces disagreement as coexisting standpoints rather than overwriting the loser. Truth is never a bit on a triple: belief, knowledge, inference, calibration, and reality-monitoring are all first-class, vantage-indexed claims, revision is suppression rather than deletion, and a full model of mind — endurant states and occurrent processes over content typed by direction of fit — gives every faculty both a human and a machine face. Every fact is authored once across GMEOW's self-contained slices, generated outward as lossy projections (OWL, SHACL, JSON-LD, schema.org, citation and deposit forms) and maximally linked to 86 external vocabularies and authority identifiers, so a GMEOW graph is a first-class node in the linked-data and persistent-identifier web."
 type: dataset
 authors:
   - name: "Blackcat Informatics® Inc."

@@ -1068,6 +1068,7 @@ mod tests {
     }
 
     #[test]
+    /// The authored abstract participates in sync invalidation without widening to harness code.
     fn generated_sync_inputs_exclude_unrelated_test_harness_implementation() {
         // This is a declaration audit only: it binds the DAG and enumerates paths. It
         // never starts a stage, generator, corpus build, or fixture producer.
@@ -1080,6 +1081,10 @@ mod tests {
             .collect::<BTreeSet<_>>();
 
         assert!(relative.contains(Path::new("ontology/gmeow.ttl")));
+        assert!(
+            relative.contains(Path::new("metadata/gmeow-abstract.txt")),
+            "the authored abstract must invalidate the whole-run manifest before source loading"
+        );
         assert!(
             relative.contains(Path::new("tests/fixtures/coverage/external/bii.ttl")),
             "a product-bearing fixture declared by the mappings stage remains an input"

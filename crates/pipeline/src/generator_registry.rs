@@ -56,6 +56,16 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         dependencies: &[],
     },
     GeneratorInfo {
+        name: "canonical-abstract",
+        sources: &["metadata/gmeow-abstract.txt"],
+        outputs: &[
+            "ontology/gmeow.ttl",
+            "metadata/gmeow-self.ttl",
+            "CITATION.cff",
+        ],
+        dependencies: &[],
+    },
+    GeneratorInfo {
         name: "catalog",
         sources: &["slices/", "metadata/"],
         outputs: &["generated/catalog/"],
@@ -418,12 +428,29 @@ mod tests {
     use super::*;
 
     #[test]
+    /// The registry retains every required producer, including canonical abstract projection.
     fn registry_has_expected_generators() {
         let names: Vec<_> = generator_names();
+        assert!(names.contains(&"canonical-abstract"));
         assert!(names.contains(&"mappings"));
         assert!(names.contains(&"statements"));
         assert!(names.contains(&"gts"));
         assert!(names.contains(&"docs"));
+    }
+
+    #[test]
+    /// Canonical abstract projection declares exactly one source and all three consumers.
+    fn canonical_abstract_registry_names_its_one_source_and_three_targets() {
+        let generator = generator_by_name("canonical-abstract").expect("generator registered");
+        assert_eq!(generator.sources, ["metadata/gmeow-abstract.txt"]);
+        assert_eq!(
+            generator.outputs,
+            [
+                "ontology/gmeow.ttl",
+                "metadata/gmeow-self.ttl",
+                "CITATION.cff",
+            ]
+        );
     }
 
     #[test]

@@ -10,6 +10,8 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use crate::model::GMEOW;
 
+const PUBLIC_ENGLISH: &str = "en";
+
 /// The `rdf:type` IRI.
 pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The `rdfs:label` IRI.
@@ -45,6 +47,42 @@ pub fn one_lit(ds: &RdfDataset, subject: TermId, pred: TermId) -> Option<String>
             TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
             _ => None,
         })
+}
+
+/// The deterministic consumer-facing literal for `(subject, predicate)`.
+///
+/// Internal carrier English is authoritative, followed by public RDF English,
+/// an untagged literal, and finally the remaining languages in stable language /
+/// lexical order. The dataset is only read: every multilingual literal remains
+/// available to consumers that need the complete annotation coat.
+#[must_use]
+pub fn display_lit(ds: &RdfDataset, subject: TermId, pred: TermId) -> Option<String> {
+    /// Rank carrier English, public English, neutral, then every other language.
+    fn language_rank(language: Option<&str>) -> u8 {
+        match language {
+            Some(tag) if tag.eq_ignore_ascii_case(gmeow_errors::abox::X_GMEOW_ENGLISH) => 0,
+            Some(tag) if tag.eq_ignore_ascii_case(PUBLIC_ENGLISH) => 1,
+            None => 2,
+            Some(_) => 3,
+        }
+    }
+
+    let mut literals: Vec<(Option<String>, String)> = ds
+        .quads_for_pattern(Some(subject), Some(pred), None, GraphMatch::Any)
+        .filter_map(|q| match ds.resolve(q.o) {
+            TermRef::Literal {
+                lexical, language, ..
+            } => Some((language.map(str::to_owned), lexical.to_owned())),
+            _ => None,
+        })
+        .collect();
+    literals.sort_by(|a, b| {
+        language_rank(a.0.as_deref())
+            .cmp(&language_rank(b.0.as_deref()))
+            .then_with(|| a.0.cmp(&b.0))
+            .then_with(|| a.1.cmp(&b.1))
+    });
+    literals.into_iter().next().map(|(_, lexical)| lexical)
 }
 
 /// Every literal lexical for `(subject, predicate)`.
@@ -124,6 +162,55 @@ pub fn instances_of(ds: &RdfDataset, class_iri: &str) -> Vec<String> {
 #[must_use]
 pub fn label_of(ds: &RdfDataset, subject: TermId) -> String {
     id(ds, RDFS_LABEL)
-        .and_then(|p| one_lit(ds, subject, p))
+        .and_then(|p| display_lit(ds, subject, p))
         .unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SUBJECT: &str = "https://example.test/tier";
+
+    /// Parse one compact multilingual label fixture.
+    fn dataset(labels: &str) -> std::sync::Arc<RdfDataset> {
+        let turtle = format!(
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             <{SUBJECT}> {labels} .\n"
+        );
+        crate::dataset_from_documents(&[("labels.ttl", turtle.as_bytes())])
+            .expect("label fixture parses")
+    }
+
+    #[test]
+    /// Carrier English wins regardless of source quad order without deleting translations.
+    fn carrier_english_wins_independently_of_quad_order() {
+        let forward = dataset("rdfs:label \"Lie\"@fr, \"Public\"@en, \"Carrier\"@x-gmeow-english");
+        let reverse = dataset("rdfs:label \"Carrier\"@x-gmeow-english, \"Public\"@en, \"Lie\"@fr");
+        for ds in [&forward, &reverse] {
+            let subject = id(ds, SUBJECT).expect("subject interned");
+            assert_eq!(label_of(ds, subject), "Carrier");
+            let label = id(ds, RDFS_LABEL).expect("label predicate interned");
+            assert_eq!(all_lits(ds, subject, label).len(), 3, "labels are retained");
+        }
+    }
+
+    #[test]
+    /// Public English precedes neutral and non-English literals when carrier English is absent.
+    fn public_english_precedes_neutral_and_other_languages() {
+        let ds = dataset("rdfs:label \"Zulu\"@zu, \"Neutral\", \"English\"@en");
+        let subject = id(&ds, SUBJECT).expect("subject interned");
+        assert_eq!(label_of(&ds, subject), "English");
+    }
+
+    #[test]
+    /// Other-language fallback is total-ordered independently of parser insertion order.
+    fn non_english_fallback_is_a_stable_total_order() {
+        let forward = dataset("rdfs:label \"Zulu\"@zu, \"Francais\"@fr");
+        let reverse = dataset("rdfs:label \"Francais\"@fr, \"Zulu\"@zu");
+        for ds in [&forward, &reverse] {
+            let subject = id(ds, SUBJECT).expect("subject interned");
+            assert_eq!(label_of(ds, subject), "Francais");
+        }
+    }
 }

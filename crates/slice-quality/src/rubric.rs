@@ -680,6 +680,34 @@ gmeow:exFoo a gmeow:AxisExemption ;
     }
 
     #[test]
+    /// Parsed multilingual tiers retain translations but resolve the carrier CLI label.
+    fn parsed_multilingual_tier_uses_carrier_label_for_cli_resolution() {
+        let ttl = rubric_ttl("gmeow:axisFoo")
+            .replacen(
+                "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+                "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+                1,
+            )
+            .replacen(
+                "gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .",
+                "gmeow:tierRegistered a gmeow:QualityTier ; rdfs:label \"Inscrit\"@fr, \"Public registered\"@en, \"Registered\"@x-gmeow-english ; gmeow:tierRank 0 .",
+                1,
+            );
+        let rubric = load(&ttl).expect("multilingual rubric loads");
+
+        let by_label = crate::lint::resolve_min_tier(&rubric.standard, "registered")
+            .expect("carrier label resolves");
+        let by_local = crate::lint::resolve_min_tier(&rubric.standard, "tierREGISTERED")
+            .expect("stable IRI local name resolves");
+        assert_eq!(by_label.label, "Registered");
+        assert_eq!(by_label.iri, by_local.iri);
+        assert!(
+            crate::lint::resolve_min_tier(&rubric.standard, "Inscrit").is_err(),
+            "a retained translation must not replace the carrier CLI authority"
+        );
+    }
+
+    #[test]
     fn exemption_naming_a_real_axis_loads() {
         // Control: the same fixture with a valid axis_iri loads cleanly, proving the
         // negative test isolates the axis check (not a malformed fixture).

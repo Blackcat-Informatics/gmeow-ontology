@@ -576,7 +576,10 @@ impl Stage for SourceLoadStage {
         // v11: publish the complete RDF 1.2 authored carrier for compile-logic. Predicate
         // denylisting was not a stable reader boundary and could discard newly semantic
         // ownership/projection metadata.
-        "source_load.v11-lossless-compile-input"
+        // v12: the pre-source field projector reads the canonical authored abstract;
+        // declare it here so the whole-run manifest and stage cache cannot serve a
+        // source graph whose projected description predates that authored byte string.
+        "source_load.v12-canonical-abstract"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -592,6 +595,7 @@ impl Stage for SourceLoadStage {
         // use its own single discovery authority so the cache key cannot drift from
         // the scorer's actual reads.
         let mut files = crate::stages::carrier::self_description_source_files(root)?;
+        files.push(root.join(crate::canonical_abstract::CANONICAL_ABSTRACT_PATH));
         files.extend(example_files(root)?);
         files.extend(gmeow_slice_quality::scored_source_files(root));
         files.sort();
