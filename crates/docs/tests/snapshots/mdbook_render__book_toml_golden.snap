@@ -5,7 +5,6 @@ expression: toml
 [book]
 title = "GMEOW Ontology Documentation"
 language = "en"
-multilingual = false
 
 [build]
 create-missing = false

@@ -123,11 +123,17 @@ fn target_recipe(source: &str, target: &str) -> String {
 fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
     let source = pages_workflow();
     assert!(
-        source.contains("run: make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
+        source.contains("run: make maint-mdbook-smoke"),
         "AC3 (source-backed export): .github/workflows/pages.yml must render the \
-         Pages site from canonical sources via the exact step `run: make check-sync \
-         SYNC_MODE=update SYNC_OUTPUTS=docs` — the single producer target, and never a \
-         stale or hand-copied tree"
+         Pages site through the maintained rendered-book proof via the exact step \
+         `run: make maint-mdbook-smoke`, never from a stale or hand-copied tree"
+    );
+    let smoke_recipe = target_recipe(&makefile(), "maint-mdbook-smoke");
+    assert!(
+        smoke_recipe.contains("$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
+        "AC3 (source-backed export): the maintained mdBook smoke target must own the \
+         exact canonical docs producer invocation `$(MAKE) check-sync SYNC_MODE=update \
+         SYNC_OUTPUTS=docs` before rendering and auditing the book"
     );
     assert!(
         source.contains("uses: actions/upload-pages-artifact"),
@@ -338,8 +344,8 @@ fn sub_assets_are_priced_but_never_enter_the_nine_slug_bijection() {
 
     // Ownership is distribution-parameterized and every owner is itself a declared
     // distribution: the release-time producer prices each sub-asset out of each owner's own
-    // tree, so a site-only pricing can no longer leave the console's identical copy of a
-    // 7 MB wasm image with no release digest.
+    // tree, so a site-only pricing can no longer leave the packed mdBook or console's
+    // identical copy of a 7 MB wasm image with no release digest.
     let owners: BTreeSet<String> = catalog::sub_asset_owner_slugs()
         .into_iter()
         .map(str::to_string)
@@ -348,19 +354,20 @@ fn sub_assets_are_priced_but_never_enter_the_nine_slug_bijection() {
         owners.is_subset(&bijection),
         "AC2/AC6: every sub-asset owner must be a declared distribution; owners={owners:?}"
     );
-    assert!(
-        owners.contains("site") && owners.contains("console"),
-        "AC2/AC6: the two interactive surfaces both ship the shared engine set and must both \
-         own it; owners={owners:?}"
+    assert_eq!(
+        owners,
+        BTreeSet::from([
+            "site".to_string(),
+            "mdbook".to_string(),
+            "console".to_string()
+        ]),
+        "AC2/AC6: all three interactive distributions must own the shared engine set"
     );
 
     // The release-time digest producer prices exactly the declared set, for every owner
     // (one authority, parameterized — never a second sub-asset list).
     let priced = catalog::sub_asset_pricing();
-    let priced_slugs: BTreeSet<String> = priced
-        .iter()
-        .map(|(_, slug, _, _)| (*slug).to_string())
-        .collect();
+    let priced_slugs: BTreeSet<String> = priced.iter().map(|row| row.slug.to_string()).collect();
     assert_eq!(
         priced_slugs, sub_assets,
         "the release-time sub-asset pricing set must equal the catalog-declared sub-asset set"

@@ -157,6 +157,13 @@ NEXTEST_FILTER_ARG := $(if $(NEXTEST_FILTER),-E '$(NEXTEST_FILTER)',)
 NEXTEST_JUNIT_INVENTORY ?= dist/nextest/junit_inventory
 NEXTEST_PERF_SAMPLE ?= dist/nextest/perf_sample
 NEXTEST_PERF_ACCEPT ?= dist/nextest/perf_accept
+# mdBook is presentation-only LANE TOOLING: it is installed under the ignored local cache
+# by `maint-mdbook-smoke`, never added to Cargo.toml/Cargo.lock, never linked by the
+# pipeline, and never invoked by `make check` or `make heavy`.
+MDBOOK_VERSION := 0.5.4
+MDBOOK_TOOL_ROOT := $(abspath .cache/gmeow-tools/mdbook/$(MDBOOK_VERSION))
+MDBOOK_BIN := $(MDBOOK_TOOL_ROOT)/bin/mdbook
+MDBOOK_SMOKE_OUT := $(abspath dist/mdbook-smoke)
 RUST_PREBUILD_WORKSPACE_ARGS := --workspace --exclude gmeow-cli --exclude gmeow-lsp
 FIXTURE_TIMINGS_JSON ?=
 FIXTURE_TIMINGS_ARG := $(if $(FIXTURE_TIMINGS_JSON),--timings-json $(FIXTURE_TIMINGS_JSON),)
@@ -209,6 +216,7 @@ print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exac
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
 	maint-bench-engines maint-bench-cost-baseline maint-medium-sweep maint-refresh-term-release-authority \
 	maint-medium-model-facing-diff maint-rust-heavy \
+	maint-mdbook-smoke \
 	maint-external-corpora maint-tptp-corpus \
 	maint-chasebench-corpus maint-gmn-cost-matrix
 
@@ -1120,6 +1128,27 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 	$(GMEOW_DEV) compliance-report --from-passing-check
 
 ##@ Maintainer Tasks
+
+maint-mdbook-smoke: ## Build and audit the emitted interactive mdBook with pinned off-gate mdBook lane tooling.
+	$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
+	@set -euo pipefail; \
+		have=""; \
+		if [ -x "$(MDBOOK_BIN)" ]; then \
+			have="$$("$(MDBOOK_BIN)" --version 2>/dev/null | sed -n 's/^mdbook v\{0,1\}\([^ ]*\).*$$/\1/p')"; \
+		fi; \
+		if [ "$$have" != "$(MDBOOK_VERSION)" ]; then \
+			cargo install mdbook --version "=$(MDBOOK_VERSION)" --locked --force \
+				--no-default-features --features search --root "$(MDBOOK_TOOL_ROOT)"; \
+		fi; \
+		have="$$("$(MDBOOK_BIN)" --version 2>/dev/null | sed -n 's/^mdbook v\{0,1\}\([^ ]*\).*$$/\1/p')"; \
+		[ "$$have" = "$(MDBOOK_VERSION)" ] || { \
+			echo "ERROR: pinned mdBook $(MDBOOK_VERSION) was not obtained at $(MDBOOK_BIN) (reported '$$have')"; \
+			exit 1; \
+		}; \
+		rm -rf -- "$(MDBOOK_SMOKE_OUT)"; \
+		"$(MDBOOK_BIN)" build "$(abspath dist/gmeow-docs/mdbook)" --dest-dir "$(MDBOOK_SMOKE_OUT)"; \
+		cargo run -q -p gmeow-docs --example mdbook-smoke -- \
+			"$(abspath dist/gmeow-docs/mdbook)" "$(MDBOOK_SMOKE_OUT)"
 
 maint-extract: ## Run import/extract policy for TARGET.
 	$(GMEOW_DEV) extract --target $(TARGET)

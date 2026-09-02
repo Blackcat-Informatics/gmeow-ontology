@@ -9,10 +9,10 @@ name: Pages
 on:
   push:
     branches: [main]
-    # The site is rendered from CANONICAL SOURCES (make check-sync SYNC_OUTPUTS=docs), not
-    # from the git-ignored generated/ product — so trigger on the sources the bundle and
-    # site are projected from, the renderer/CLI/pipeline, or this workflow, never on a
-    # generated/ path (which no longer exists in the tree).
+    # The site is rendered from CANONICAL SOURCES (`make maint-mdbook-smoke` owns the docs
+    # sync plus rendered-book proof), not from the git-ignored generated/ product — so
+    # trigger on the sources the bundle and site are projected from, the
+    # renderer/CLI/pipeline, or this workflow, never on a generated/ path.
     paths:
       - slices/**
       - shapes/**
@@ -25,6 +25,7 @@ on:
       - crates/docs/**
       - crates/gmeow-dev-cli/**
       - crates/pipeline/**
+      - Makefile
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -55,11 +56,13 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      # Render every documentation projection from canonical repository sources.
-      # The site remains external to gmeow.gts; sync writes the Pages tree into
-      # ontology-docs/ and validates the complete one-pass fixed point.
-      - name: Render ontology docs
-        run: make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs
+      # Render every documentation projection from canonical repository sources, then
+      # build and audit the packed mdBook with the Makefile-pinned lane binary. This is an
+      # off-gate publication proof: required PR CI and `make check` never install or invoke
+      # mdBook, while Pages refuses to publish a source tree whose rendered links or four
+      # interactive engines do not close.
+      - name: Render and smoke-test ontology docs
+        run: make maint-mdbook-smoke
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

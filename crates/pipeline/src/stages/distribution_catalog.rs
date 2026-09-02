@@ -132,13 +132,15 @@ pub struct DistRow {
     /// `gmeow-dev sync`'s docs fanout reconciles to and the `gmeow:sourceLocation` the
     /// release manifest records.
     pub rel_path: &'static str,
-    /// Whether this distribution ships the shared interactive-engine `SubAsset`s.
+    /// Owner-tree root under which this distribution ships the shared interactive-engine
+    /// `SubAsset`s, or `None` when it does not ship them.
     ///
-    /// The sub-assets are ONE set of shared subjects; every owner links to them with
-    /// `gmeow:hasSubAsset` and prices them out of its OWN rendered tree, so the
-    /// byte-identity of the engine across owners is a checkable release-time fact rather
-    /// than an assumption.
-    pub sub_assets: bool,
+    /// The sub-assets are ONE set of shared subjects, but their presentation roots differ:
+    /// `site` and `console` use `assets/`, while mdBook's source tree uses `src/assets/` so
+    /// the external builder copies them into the rendered book. Every owner links to the
+    /// same subjects with `gmeow:hasSubAsset` and prices them out of its OWN rendered tree;
+    /// comparison normalizes only this catalog-owned layout root.
+    pub sub_asset_root: Option<&'static str>,
 }
 
 /// **The** distribution table: the single declaration of the nine shipped documentation
@@ -152,7 +154,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerPublicSite",
         surface: Some(DistributionSurface::Format(DocFormat::Site)),
         rel_path: "dist/gmeow-docs/site",
-        sub_assets: true,
+        sub_asset_root: Some(""),
     },
     DistRow {
         slug: "mdbook",
@@ -161,7 +163,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerOfflineBook",
         surface: Some(DistributionSurface::Format(DocFormat::Mdbook)),
         rel_path: "dist/gmeow-docs/mdbook",
-        sub_assets: false,
+        sub_asset_root: Some("src/"),
     },
     DistRow {
         slug: "pdf",
@@ -170,7 +172,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerPrintArchive",
         surface: Some(DistributionSurface::Format(DocFormat::Pdf)),
         rel_path: "dist/gmeow-docs/pdf",
-        sub_assets: false,
+        sub_asset_root: None,
     },
     DistRow {
         slug: "snippets",
@@ -179,7 +181,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerAgentMemory",
         surface: Some(DistributionSurface::Format(DocFormat::Snippets)),
         rel_path: "dist/gmeow-docs/snippets",
-        sub_assets: false,
+        sub_asset_root: None,
     },
     // The standalone interactive console. Its capability ledger — including its declared
     // loss of `search-index` and `cross-link-fidelity` — is DERIVED from the surface
@@ -192,7 +194,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerInteractiveConsole",
         surface: Some(DistributionSurface::Console),
         rel_path: "dist/gmeow-docs/console",
-        sub_assets: true,
+        sub_asset_root: Some(""),
     },
     DistRow {
         slug: "okf",
@@ -201,7 +203,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerKnowledgeFederation",
         surface: None,
         rel_path: "dist/gmeow-docs/okf",
-        sub_assets: false,
+        sub_asset_root: None,
     },
     DistRow {
         slug: "jsonld",
@@ -210,7 +212,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerLinkedDataTooling",
         surface: None,
         rel_path: "dist/gmeow-docs/jsonld",
-        sub_assets: false,
+        sub_asset_root: None,
     },
     DistRow {
         slug: "yamlld",
@@ -219,7 +221,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerLinkedDataTooling",
         surface: None,
         rel_path: "dist/gmeow-docs/yamlld",
-        sub_assets: false,
+        sub_asset_root: None,
     },
     DistRow {
         slug: "pydantic",
@@ -228,7 +230,7 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
         consumer: "consumerTypedModelClient",
         surface: None,
         rel_path: "dist/gmeow-docs/pydantic",
-        sub_assets: false,
+        sub_asset_root: None,
     },
 ];
 
@@ -246,9 +248,10 @@ pub const DISTRIBUTIONS: [DistRow; 9] = [
 /// rows (family / consumer / media-type) ride here DIGEST-FREE; the per-release content
 /// digests live only in the `dist/` instance manifest ([`crate::docs_distribution`]).
 ///
-/// The subjects are SHARED across owners: `site` and `console` ship the byte-identical
-/// engine set (`gmeow_docs::console_files` folds `interactive_asset_files` in), so they
-/// name the same [`sub_asset_iri`] rather than each minting a private copy of it.
+/// The subjects are SHARED across owners: `site`, the packed `mdbook`, and `console` ship
+/// the byte-identical engine set (`render_book` and `gmeow_docs::console_files` both fold
+/// `interactive_asset_files` in), so they name the same [`sub_asset_iri`] rather than each
+/// minting a private copy of it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum SerializationDist {
     Okf,
@@ -293,11 +296,11 @@ impl SerializationDist {
     }
 }
 
-/// A `site` sub-asset: one of the vendored interactive engines or the conjecture
-/// demo library the site (and the packed mdbook) ships EXTERNALLY, content-addressed.
-/// These are
-/// SUB-ASSETS of the `site` distribution — never new top-level distributions — so they
-/// are NOT in [`declared_distribution_slugs`] and the eight-slug bijection is preserved.
+/// A shared interactive sub-asset: one of the vendored engines or the conjecture demo
+/// library that `site`, packed `mdbook`, and `console` ship externally,
+/// content-addressed from each owner's tree. These are SUB-ASSETS of those distributions
+/// — never new top-level distributions — so they are NOT in
+/// [`declared_distribution_slugs`] and the nine-slug bijection is preserved.
 /// Their schema rows (family / consumer / media-type) ride here DIGEST-FREE; the
 /// per-release content digests live only in the `dist/` instance manifest
 /// ([`crate::docs_distribution`]).
@@ -345,11 +348,12 @@ impl SiteSubAsset {
         }
     }
 
-    /// The OWNER-tree-relative path (or directory prefix) the sub-asset's bytes ship at,
-    /// so the release-time digest producer content-addresses exactly what the catalog
-    /// prices. The prefix is the same in every owner's tree, which is what makes the
-    /// cross-owner byte-identity check meaningful.
-    fn tree_path_prefix(self) -> &'static str {
+    /// The owner-independent path (or directory prefix) for this shared sub-asset.
+    /// [`sub_asset_pricing`] prepends each distribution's catalog-owned layout root to
+    /// locate the real emitted copy, then hashes under this canonical path so `assets/…`
+    /// and mdBook's `src/assets/…` can prove byte identity without pretending their
+    /// presentation layouts are the same.
+    fn canonical_path_prefix(self) -> &'static str {
         match self {
             SiteSubAsset::QueryWasm => "assets/query/",
             SiteSubAsset::ValidateWasm => "assets/validate/",
@@ -447,9 +451,9 @@ fn loss_iri(slug: &str, cap_slug: &str) -> String {
 /// subject, never a re-derived string.
 ///
 /// The subject deliberately sits OUTSIDE the `…/distribution/dist/` namespace, for two
-/// reasons. It is now shared by every owning distribution (`site` and `console` both link
-/// to it with `gmeow:hasSubAsset`), so nesting it under one owner would have been a false
-/// identity claim. And the previous `…/dist/site/sub-asset/<slug>` shape was actively
+/// reasons. It is now shared by every owning distribution (`site`, `mdbook`, and `console`
+/// all link to it with `gmeow:hasSubAsset`), so nesting it under one owner would have been
+/// a false identity claim. And the previous `…/dist/site/sub-asset/<slug>` shape was actively
 /// broken on the consumer side: [`crate::docs_distribution::verify_docs_distribution`]
 /// recovers a distribution slug by stripping `…/distribution/dist/` off every manifest
 /// subject, so a real release manifest handed it the pseudo-slug
@@ -464,29 +468,46 @@ pub(crate) fn sub_asset_iri(slug: &str) -> String {
     format!("{DISTRIBUTION_BASE}sub-asset/{slug}")
 }
 
-/// Every `site` sub-asset slug the catalog declares (the vendored interactive engines +
-/// the conjecture demo library). Exposed so the release-time instance producer prices the SAME
-/// set, and a contract gate can assert these are sub-assets of `site` — NOT members of
-/// the eight-slug distribution bijection.
+/// Every shared interactive sub-asset slug the catalog declares (the vendored engines +
+/// the conjecture demo library). Exposed so the release-time instance producer prices the
+/// SAME set for every owner, and a contract gate can assert these are sub-assets — NOT
+/// members of the nine-slug distribution bijection.
 pub fn declared_site_sub_asset_slugs() -> std::collections::BTreeSet<&'static str> {
     SiteSubAsset::ALL.into_iter().map(|s| s.slug()).collect()
 }
 
 /// Every [`DISTRIBUTIONS`] row that ships the shared sub-assets, in table order.
-fn sub_asset_owners() -> impl Iterator<Item = &'static DistRow> {
-    DISTRIBUTIONS.iter().filter(|row| row.sub_assets)
+fn sub_asset_owners() -> impl Iterator<Item = (&'static DistRow, &'static str)> {
+    DISTRIBUTIONS
+        .iter()
+        .filter_map(|row| row.sub_asset_root.map(|root| (row, root)))
 }
 
-/// The distribution slugs that own the shared sub-assets (`site`, `console`), derived
-/// from [`DISTRIBUTIONS`]. Exposed so a contract gate can check ownership without
+/// The distribution slugs that own the shared sub-assets (`site`, `mdbook`, `console`),
+/// derived from [`DISTRIBUTIONS`]. Exposed so a contract gate can check ownership without
 /// restating it.
 #[must_use]
 pub fn sub_asset_owner_slugs() -> std::collections::BTreeSet<&'static str> {
-    sub_asset_owners().map(|row| row.slug).collect()
+    sub_asset_owners().map(|(row, _)| row.slug).collect()
 }
 
-/// The DISTRIBUTION-PARAMETERIZED `(owner slug, sub-asset slug, owner-tree path prefix,
-/// media type)` pricing tuples: one per (owner, sub-asset) pair, in a fixed order.
+/// One distribution-parameterized sub-asset pricing row.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SubAssetPricingRow {
+    /// Distribution that owns this emitted copy.
+    pub owner: &'static str,
+    /// Shared catalog sub-asset slug.
+    pub slug: &'static str,
+    /// Actual path/prefix in this owner's rendered tree.
+    pub tree_path_prefix: String,
+    /// Owner-independent path/prefix used only to compare byte identity across layouts.
+    pub canonical_path_prefix: &'static str,
+    /// Declared artifact media type.
+    pub media_type: &'static str,
+}
+
+/// The DISTRIBUTION-PARAMETERIZED pricing rows: one per (owner, sub-asset) pair, in
+/// a fixed order.
 ///
 /// The release-time digest producer (`gmeow-dev sync`) iterates this to content-address
 /// each sub-asset OUT OF ITS OWNER'S OWN rendered tree and hang its `gmeow:contentDigest`
@@ -495,21 +516,25 @@ pub fn sub_asset_owner_slugs() -> std::collections::BTreeSet<&'static str> {
 /// digests is a contradiction the producer must refuse rather than silently publish — see
 /// `gmeow-dev-cli`'s `price_sub_assets`.
 ///
-/// This replaced a site-only `site_sub_asset_pricing()`: with the console a shipped
-/// distribution that ships the identical engine set, a site-only pricing would have left
-/// the console's copy of a 7 MB wasm image with no release digest at all.
+/// `tree_path_prefix` includes the catalog-owned presentation root (`src/` for mdBook,
+/// empty for site/console); `canonical_path_prefix` omits it so identical payload trees at
+/// different presentation roots compare equal. This replaced a site-only
+/// `site_sub_asset_pricing()`: both the packed mdBook and console ship the identical engine
+/// set, so site-only pricing would leave their copies of a 7 MB wasm image with no release
+/// digest at all.
 #[must_use]
-pub fn sub_asset_pricing() -> Vec<(&'static str, &'static str, &'static str, &'static str)> {
+pub fn sub_asset_pricing() -> Vec<SubAssetPricingRow> {
     sub_asset_owners()
-        .flat_map(|owner| {
-            SiteSubAsset::ALL.into_iter().map(move |sub| {
-                (
-                    owner.slug,
-                    sub.slug(),
-                    sub.tree_path_prefix(),
-                    sub.media_type(),
-                )
-            })
+        .flat_map(|(owner, owner_root)| {
+            SiteSubAsset::ALL
+                .into_iter()
+                .map(move |sub| SubAssetPricingRow {
+                    owner: owner.slug,
+                    slug: sub.slug(),
+                    tree_path_prefix: format!("{owner_root}{}", sub.canonical_path_prefix()),
+                    canonical_path_prefix: sub.canonical_path_prefix(),
+                    media_type: sub.media_type(),
+                })
         })
         .collect()
 }
@@ -658,10 +683,10 @@ fn emit_capability_ledger(lines: &mut Vec<String>, subject: &str, surface: Distr
 /// Emit the shared sub-assets: one digest-free schema row per [`SubAsset`], linked from
 /// EVERY owning distribution ([`sub_asset_owners`]) with `gmeow:hasSubAsset`.
 ///
-/// One subject per sub-asset, not one per (owner, sub-asset) pair: `site` and `console`
-/// ship the byte-identical engine set, so two subjects would have asserted that the two
-/// copies are different components and would have doubled the release-manifest rows for a
-/// single shipped artifact. Each owner's consumer rides onto the shared node, so the
+/// One subject per sub-asset, not one per (owner, sub-asset) pair: `site`, `mdbook`, and
+/// `console` ship the byte-identical engine set, so separate subjects would assert that the
+/// copies are different components and multiply the release-manifest rows for one shipped
+/// artifact. Each owner's consumer rides onto the shared node, so the
 /// sub-asset's audience is the union of its owners' audiences rather than a hard-coded one.
 fn emit_sub_assets(lines: &mut Vec<String>) {
     for sub in SiteSubAsset::ALL {
@@ -685,7 +710,7 @@ fn emit_sub_assets(lines: &mut Vec<String>) {
             &iri(GMEOW_NS, "artifactMediaType"),
             sub.media_type(),
         ));
-        for owner in sub_asset_owners() {
+        for (owner, _) in sub_asset_owners() {
             lines.push(triple(
                 &dist_iri(owner.slug),
                 &iri(GMEOW_NS, "hasSubAsset"),
@@ -986,7 +1011,7 @@ fn emit_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
         ));
 
         // The capability ledger, SOURCED FROM the single authority — never re-authored
-        // here, and identical in kind for the console and for `site`.
+        // here, and identical in kind for `site`, `mdbook`, and the console.
         // `gmeow:DocumentationDistribution` is a `gmeow:LossBearingProfile`, which is what
         // makes it a legal subject of `gmeow:declaredLoss`. A serialization row has no
         // surface and therefore no ledger at all.
@@ -1027,7 +1052,7 @@ fn emit_ntriples() -> Result<Vec<u8>, gmeow_errors::Diag> {
         ));
     }
 
-    // ── site sub-assets: the vendored interactive engines + the conjecture demo library ──
+    // ── shared sub-assets: the vendored interactive engines + conjecture demo library ──
     // First-class schema rows, DIGEST-FREE (the per-release content digests ride only in
     // the `dist/` instance manifest). Hung off EVERY owning distribution via
     // gmeow:hasSubAsset, so they are sub-assets — NOT top-level distributions — and the
@@ -1242,14 +1267,15 @@ mod tests {
             "the nine-slug bijection must hold: {bijection:?}"
         );
 
-        // Ownership is SHARED: both `site` and `console` ship the identical engine set, so
-        // both must link to the same subjects. A single owner here would leave the other
-        // distribution's copy of a 7 MB wasm image unpriced on the release path.
+        // Ownership is SHARED: `site`, packed `mdbook`, and `console` ship the identical
+        // engine set, so all three must link to the same subjects. Omitting an owner here
+        // leaves that distribution's copy of a 7 MB wasm image unpriced on the release
+        // path.
         let owners = sub_asset_owner_slugs();
         assert_eq!(
             owners,
-            std::collections::BTreeSet::from(["site", "console"]),
-            "the shared sub-assets must be owned by exactly the two interactive surfaces"
+            std::collections::BTreeSet::from(["site", "mdbook", "console"]),
+            "the shared sub-assets must be owned by exactly the three interactive distributions"
         );
 
         for slug in declared_site_sub_asset_slugs() {
@@ -1688,7 +1714,9 @@ mod tests {
         for owner in &owners {
             for sub in &subs {
                 assert!(
-                    priced.iter().any(|(o, s, _, _)| o == owner && s == sub),
+                    priced
+                        .iter()
+                        .any(|row| row.owner == *owner && row.slug == *sub),
                     "no pricing row for owner {owner:?} sub-asset {sub:?}"
                 );
             }
@@ -1696,22 +1724,36 @@ mod tests {
         // Every priced media type agrees with the emitted schema row, and every priced
         // owner really is a declared distribution.
         let nt = ntriples_text();
-        for (owner, sub, prefix, media_type) in &priced {
+        for row in &priced {
             assert!(
-                distribution_row(owner).is_some(),
-                "pricing owner {owner:?} is not a declared distribution"
+                distribution_row(row.owner).is_some(),
+                "pricing owner {:?} is not a declared distribution",
+                row.owner
             );
             assert!(
-                !prefix.is_empty(),
-                "sub-asset {sub:?} has an empty tree prefix"
+                !row.tree_path_prefix.is_empty() && !row.canonical_path_prefix.is_empty(),
+                "sub-asset {:?} has an empty tree or canonical prefix",
+                row.slug
             );
+            if row.owner == "mdbook" {
+                assert!(
+                    row.tree_path_prefix.starts_with("src/assets/"),
+                    "mdBook sub-assets must name their emitted source-tree layout: {row:?}"
+                );
+            } else {
+                assert!(
+                    row.tree_path_prefix.starts_with("assets/"),
+                    "site/console sub-assets must name their rendered-tree layout: {row:?}"
+                );
+            }
             assert!(
                 nt.contains(&triple_lit(
-                    &sub_asset_iri(sub),
+                    &sub_asset_iri(row.slug),
                     &iri(GMEOW_NS, "artifactMediaType"),
-                    media_type
+                    row.media_type
                 )),
-                "priced media type for {sub:?} disagrees with the emitted schema row"
+                "priced media type for {:?} disagrees with the emitted schema row",
+                row.slug
             );
         }
     }
