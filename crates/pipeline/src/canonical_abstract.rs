@@ -25,10 +25,13 @@ const CITATION_PATH: &str = ABSTRACT_TARGET_PATHS[2];
 
 /// One fully rendered managed field target.
 pub(crate) struct ProjectedAbstract {
+    /// Repository-relative managed target path.
     pub path: &'static str,
+    /// Complete target bytes after replacing only the managed field.
     pub bytes: Vec<u8>,
 }
 
+/// Build a stage-scoped diagnostic for malformed or unreadable projection inputs.
 fn error(detail: impl Into<String>) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::StageFailed {
         stage: "canonical-abstract".to_owned(),
@@ -36,11 +39,13 @@ fn error(detail: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+/// Read one projection input as UTF-8 and retain its repository-relative identity.
 fn read_utf8(root: &Path, relative: &str) -> gmeow_errors::Result<String> {
     std::fs::read_to_string(root.join(relative))
         .map_err(|source| error(format!("read {relative}: {source}")))
 }
 
+/// Load and validate the exact one-line canonical abstract lexical form.
 fn canonical_text(root: &Path) -> gmeow_errors::Result<String> {
     let source = read_utf8(root, CANONICAL_ABSTRACT_PATH)?;
     let text = source.strip_suffix('\n').unwrap_or(&source);
@@ -57,6 +62,7 @@ fn canonical_text(root: &Path) -> gmeow_errors::Result<String> {
     Ok(text.to_owned())
 }
 
+/// Encode the canonical text as an internal-carrier English Turtle literal.
 fn turtle_literal(value: &str) -> String {
     let escaped = value
         .replace('\\', "\\\\")
@@ -65,6 +71,7 @@ fn turtle_literal(value: &str) -> String {
     format!("\"{escaped}\"@{}", gmeow_errors::abox::X_GMEOW_ENGLISH)
 }
 
+/// Locate exactly one structural anchor, rejecting absent or ambiguous targets.
 fn unique_span(haystack: &str, needle: &str, source: &str) -> gmeow_errors::Result<(usize, usize)> {
     let mut matches = haystack.match_indices(needle);
     let Some((start, _)) = matches.next() else {
@@ -78,6 +85,7 @@ fn unique_span(haystack: &str, needle: &str, source: &str) -> gmeow_errors::Resu
     Ok((start, start + needle.len()))
 }
 
+/// Replace one predicate line inside an exact subject-and-type Turtle block.
 fn replace_turtle_field(
     input: &str,
     source: &str,
@@ -120,16 +128,14 @@ fn replace_turtle_field(
     ))
 }
 
+/// Replace exactly one top-level CFF `abstract` field with a JSON-compatible scalar.
 fn replace_citation_abstract(input: &str, value: &str) -> gmeow_errors::Result<String> {
-    let mut starts = input.match_indices("abstract:");
+    let mut starts = input
+        .match_indices("abstract:")
+        .filter(|(start, _)| *start == 0 || input[..*start].ends_with('\n'));
     let Some((start, _)) = starts.next() else {
         return Err(error(format!("{CITATION_PATH} lacks abstract field")));
     };
-    if start != 0 && !input[..start].ends_with('\n') {
-        return Err(error(format!(
-            "{CITATION_PATH} abstract is not a top-level YAML field"
-        )));
-    }
     if starts.next().is_some() {
         return Err(error(format!("{CITATION_PATH} repeats abstract field")));
     }
@@ -196,6 +202,7 @@ mod tests {
     const ABSTRACT: &str = "One canonical abstract with a \\\"quote\\\".";
 
     #[test]
+    /// Turtle projection is byte-stable and leaves every unmanaged field unchanged.
     fn turtle_projection_is_deterministic_and_field_local() {
         let input = "<x>\n    a owl:Ontology ;\n    dcterms:description \"old\"@en ;\n    dcterms:title \"kept\" .\n\n<y> a <Z> .\n";
         let once = replace_turtle_field(
@@ -221,6 +228,7 @@ mod tests {
     }
 
     #[test]
+    /// Subject-and-type anchoring prevents replacement in another matching resource.
     fn turtle_projection_anchors_subject_and_type_together() {
         let input = "<target>\n    a gmeow:Work ;\n    skos:definition \"old\"@x-gmeow-english ;\n    rdfs:isDefinedBy <target> .\n\n<other>\n    a gmeow:Work ;\n    skos:definition \"kept\"@x-gmeow-english .\n";
         let projected = replace_turtle_field(
@@ -242,6 +250,7 @@ mod tests {
     }
 
     #[test]
+    /// CFF projection removes the complete prior scalar and reaches a fixed point.
     fn citation_projection_replaces_the_whole_folded_scalar_only() {
         let input = "title: kept\nabstract: >-\n  stale text\n  on two lines\ntype: dataset\n";
         let rendered = replace_citation_abstract(input, ABSTRACT).expect("projection succeeds");
@@ -251,6 +260,22 @@ mod tests {
         assert_eq!(
             rendered,
             replace_citation_abstract(&rendered, ABSTRACT).expect("fixed point")
+        );
+    }
+
+    #[test]
+    /// Field-like prose inside the scalar cannot become a second YAML field match.
+    fn citation_projection_ignores_field_text_inside_the_abstract_value() {
+        let value = "Canonical prose may literally discuss an abstract: field.";
+        let input = "title: kept\nabstract: stale\ntype: dataset\n";
+        let rendered = replace_citation_abstract(input, value).expect("projection succeeds");
+        let reparsed: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("projected CFF remains YAML");
+
+        assert_eq!(reparsed["abstract"].as_str(), Some(value));
+        assert_eq!(
+            rendered,
+            replace_citation_abstract(&rendered, value).expect("embedded text remains fixed point")
         );
     }
 }

@@ -316,6 +316,7 @@ fn add(out: &mut Vec<RdfQuad>, s: &str, p: &str, o: RdfTerm) {
     out.push(RdfQuad::new(RdfTerm::iri(s), p, o));
 }
 
+/// Build a public RDF English literal for outward VoID/DCAT metadata.
 fn lit_en(s: &str) -> RdfTerm {
     RdfTerm::literal(RdfLiteral::language_tagged(s, "en"))
 }
@@ -811,6 +812,7 @@ mod tests {
     }
 
     #[test]
+    /// Generated VoID/DCAT prose exposes only public `@en` language tags.
     fn authenticated_external_metadata_uses_only_public_english_tags() {
         let root = repo_root();
         for path in [VOID_PATH, DCAT_PATH] {

@@ -1068,6 +1068,7 @@ mod tests {
     }
 
     #[test]
+    /// The authored abstract participates in sync invalidation without widening to harness code.
     fn generated_sync_inputs_exclude_unrelated_test_harness_implementation() {
         // This is a declaration audit only: it binds the DAG and enumerates paths. It
         // never starts a stage, generator, corpus build, or fixture producer.

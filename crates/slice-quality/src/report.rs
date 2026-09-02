@@ -143,6 +143,7 @@ pub const MANIFEST_KEY: &str = "manifest.ttl";
 const MODULE_KEY: &str = "module.ttl";
 
 impl SliceSourceFiles {
+    /// Discover the real manifest and optional module identities in one file map.
     fn from_files(files: &BTreeMap<String, Vec<u8>>) -> Self {
         Self {
             manifest: MANIFEST_KEY.to_owned(),
@@ -152,6 +153,7 @@ impl SliceSourceFiles {
         }
     }
 
+    /// Rebase slice-relative identities onto the caller-supplied directory path.
     fn prefix_with_slice_dir(&mut self, slice_dir: &Path) {
         self.manifest = normalized_source_path(slice_dir, MANIFEST_KEY);
         self.module = self
@@ -161,6 +163,7 @@ impl SliceSourceFiles {
     }
 }
 
+/// Produce a portable file identity without inventing canonicalized filesystem bytes.
 fn normalized_source_path(slice_dir: &Path, file: &str) -> String {
     let normalized = slice_dir.join(file).to_string_lossy().replace('\\', "/");
     normalized
@@ -554,6 +557,7 @@ impl SliceReport {
         }
     }
 
+    /// Remove the optional module identity for the manifest-fallback negative control.
     pub(crate) fn remove_module_source_for_test(&mut self) {
         self.source_files.module = None;
     }

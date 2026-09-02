@@ -48,6 +48,7 @@ fn staged_fixture() -> (tempfile::TempDir, PathBuf) {
     (tmp, slice_dir)
 }
 
+/// Extract advisory identities shared by the quality JSON and lint SARIF surfaces.
 fn shared_advisory_code(finding: &serde_json::Value) -> Option<&str> {
     finding
         .get("code")
@@ -64,6 +65,7 @@ fn shared_advisory_code(finding: &serde_json::Value) -> Option<&str> {
 }
 
 #[test]
+/// The installed CLI preserves one assessment and real source identities across formats.
 fn slice_lint_and_slice_quality_share_one_checkout_free_assessment() {
     let (_tmp, slice_dir) = staged_fixture();
     let expected_manifest = slice_dir

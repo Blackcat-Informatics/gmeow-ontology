@@ -428,6 +428,7 @@ mod tests {
     use super::*;
 
     #[test]
+    /// The registry retains every required producer, including canonical abstract projection.
     fn registry_has_expected_generators() {
         let names: Vec<_> = generator_names();
         assert!(names.contains(&"canonical-abstract"));
@@ -438,6 +439,7 @@ mod tests {
     }
 
     #[test]
+    /// Canonical abstract projection declares exactly one source and all three consumers.
     fn canonical_abstract_registry_names_its_one_source_and_three_targets() {
         let generator = generator_by_name("canonical-abstract").expect("generator registered");
         assert_eq!(generator.sources, ["metadata/gmeow-abstract.txt"]);

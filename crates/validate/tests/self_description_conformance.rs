@@ -269,6 +269,7 @@ fn hard_codes_slice_count(text: &str) -> bool {
 }
 
 #[test]
+/// Every parsed consumer exposes bytes equal to the sole authored abstract.
 fn canonical_abstract_is_standardized() {
     let canonical_source = std::fs::read_to_string(repo_root().join("metadata/gmeow-abstract.txt"))
         .expect("canonical abstract source is readable");

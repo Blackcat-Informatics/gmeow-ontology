@@ -71,6 +71,10 @@ filter = 'package(gmeow-bundle-view) & test(/^(export::tests::export_contracts_s
 threads-required = "num-cpus"
 
 [[profile.default.overrides]]
+filter = 'package(gmeow-pipeline) & binary(medium_bundle) & test(the_emitted_bundle_ships_its_declared_medium)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
 filter = 'package(gmeow-affect) & binary(crosscheck_definiteness) & test(shipped_core_affect_gram_authored_pd_is_certified)'
 threads-required = "num-cpus"
 

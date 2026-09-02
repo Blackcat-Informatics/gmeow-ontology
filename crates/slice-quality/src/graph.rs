@@ -57,6 +57,7 @@ pub fn one_lit(ds: &RdfDataset, subject: TermId, pred: TermId) -> Option<String>
 /// available to consumers that need the complete annotation coat.
 #[must_use]
 pub fn display_lit(ds: &RdfDataset, subject: TermId, pred: TermId) -> Option<String> {
+    /// Rank carrier English, public English, neutral, then every other language.
     fn language_rank(language: Option<&str>) -> u8 {
         match language {
             Some(tag) if tag.eq_ignore_ascii_case(gmeow_errors::abox::X_GMEOW_ENGLISH) => 0,
@@ -171,6 +172,7 @@ mod tests {
 
     const SUBJECT: &str = "https://example.test/tier";
 
+    /// Parse one compact multilingual label fixture.
     fn dataset(labels: &str) -> std::sync::Arc<RdfDataset> {
         let turtle = format!(
             "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
@@ -181,6 +183,7 @@ mod tests {
     }
 
     #[test]
+    /// Carrier English wins regardless of source quad order without deleting translations.
     fn carrier_english_wins_independently_of_quad_order() {
         let forward = dataset("rdfs:label \"Lie\"@fr, \"Public\"@en, \"Carrier\"@x-gmeow-english");
         let reverse = dataset("rdfs:label \"Carrier\"@x-gmeow-english, \"Public\"@en, \"Lie\"@fr");
@@ -193,6 +196,7 @@ mod tests {
     }
 
     #[test]
+    /// Public English precedes neutral and non-English literals when carrier English is absent.
     fn public_english_precedes_neutral_and_other_languages() {
         let ds = dataset("rdfs:label \"Zulu\"@zu, \"Neutral\", \"English\"@en");
         let subject = id(&ds, SUBJECT).expect("subject interned");
@@ -200,6 +204,7 @@ mod tests {
     }
 
     #[test]
+    /// Other-language fallback is total-ordered independently of parser insertion order.
     fn non_english_fallback_is_a_stable_total_order() {
         let forward = dataset("rdfs:label \"Zulu\"@zu, \"Francais\"@fr");
         let reverse = dataset("rdfs:label \"Francais\"@fr, \"Zulu\"@zu");

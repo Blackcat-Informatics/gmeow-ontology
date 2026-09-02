@@ -680,6 +680,7 @@ gmeow:exFoo a gmeow:AxisExemption ;
     }
 
     #[test]
+    /// Parsed multilingual tiers retain translations but resolve the carrier CLI label.
     fn parsed_multilingual_tier_uses_carrier_label_for_cli_resolution() {
         let ttl = rubric_ttl("gmeow:axisFoo")
             .replacen(

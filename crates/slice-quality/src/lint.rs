@@ -105,6 +105,7 @@ fn higher_rank(a: Option<&Tier>, b: Option<&Tier>) -> Option<Tier> {
     }
 }
 
+/// Add an honest slice-owned file anchor when an advisory has no parser location.
 fn attach_file_level_source(report: &SliceReport, finding: &mut Finding) {
     if finding
         .locations
@@ -699,6 +700,7 @@ mod tests {
     }
 
     #[test]
+    /// SARIF receives real manifest/module files while preserving file-level semantics.
     fn lint_sarif_uses_real_file_level_slice_sources_without_fake_spans() {
         let mut term_finding = Finding::new(
             Severity::Warning,
@@ -743,6 +745,7 @@ mod tests {
     }
 
     #[test]
+    /// A missing module falls back to the slice manifest, never the shared ontology.
     fn term_finding_without_module_uses_manifest_not_shared_ontology() {
         let mut finding = Finding::new(
             Severity::Warning,
