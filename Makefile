@@ -854,13 +854,20 @@ maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resol
 	$(MAKE) maint-refresh-gmn-asset
 	$(MAKE) maint-refresh-mcp-core-asset
 	$(MAKE) maint-refresh-mcp-asset
-	@# Every engine the attestation gate witnesses must now stamp the new substrate. This
-	@# is the same check `make check` runs, asserted here so the bump cannot report
-	@# success while a segment still links the old pin.
+	@# Every engine must now stamp the new substrate AND have its DIGESTS.blake3 agree
+	@# with the bytes on disk. Both are asserted, because a stamp check alone is not
+	@# enough: each `maint-refresh-*` re-stamps EVERY engine's SUBSTRATE.txt but re-pins
+	@# only its OWN digest manifest, so refreshing engine N leaves engines 1..N-1 with a
+	@# digest that no longer covers the SUBSTRATE.txt they now carry. Refreshing six
+	@# engines in sequence therefore ends with five stale digest manifests and a green
+	@# stamp check — the anti-rot gate catches it, so run that gate here rather than
+	@# re-deriving a weaker version of it.
 	@for e in query validate reason gmn mcp mcp-core; do \
 		grep -qF 'purrdf $(VERSION);' "crates/docs/assets/$$e/SUBSTRATE.txt" \
 			|| { echo "FAIL: crates/docs/assets/$$e/SUBSTRATE.txt does not stamp purrdf $(VERSION) after re-vendoring"; exit 1; }; \
 	done
+	$(TEST_FIXTURE_ENV) cargo nextest run -p gmeow-docs --test mcp_asset --test attestation_gate \
+		|| { echo "FAIL: an engine's digest manifest or witness attestation is stale after the bump; re-run the maint-refresh-*-asset lane it names, then re-run this target"; exit 1; }
 	@echo "OK: purrdf bumped to $(VERSION) and all six wasm engines re-vendored against it."
 	@echo "    Next: one \`make check\` to re-materialize generated/ and gate."
 
