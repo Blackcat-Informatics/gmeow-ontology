@@ -1,0 +1,17 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 66abbcd40ab68b1e2d4028bf13dbf685d556508c
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1713
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1713
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 36df2d8365468697516f42b8c03a39d7824e5f98
+GhpRsq-Head-Ref: agent/ci-tooling-hygiene
+GhpRsq-Head-OID: 66abbcd40ab68b1e2d4028bf13dbf685d556508c
+GhpRsq-Result-Tree: 12d66df618e2b7c3d1e609d700aae0da24e2b858
+GhpRsq-Result-Commit: aee7d9fee255a2b44260341de362c758b0fdb142
+GhpRsq-Parent-Hashes: 66abbcd40ab68b1e2d4028bf13dbf685d556508c
+GhpRsq-Squash-Notes-SHA256: a1c9f73c373a9cb789e4662bad131eb5a4b69ed80c7d4d3e282db42be9d5449d
