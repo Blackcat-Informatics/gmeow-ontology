@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: c55e0620690e879aea2616902ea91c5313a7106a
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1688
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1688
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: aa7ec47fc4ce36a83cd04e5ab7fdf2fe32078d92
+GhpRsq-Head-Ref: dependabot/github_actions/Swatinem/rust-cache-2.9.2
+GhpRsq-Head-OID: c55e0620690e879aea2616902ea91c5313a7106a
+GhpRsq-Result-Tree: 94f0acc06b3a95d14d2fb8b57283bdbe5b96713f
+GhpRsq-Result-Commit: 98bb9a6af56af452cdb52fd485d22e9410404d1d
+GhpRsq-Parent-Hashes: c55e0620690e879aea2616902ea91c5313a7106a
+GhpRsq-Squash-Notes-SHA256: a5cc0c66357fec35311d888972ac968844a8e63e5304af4095108cd021f57bef
