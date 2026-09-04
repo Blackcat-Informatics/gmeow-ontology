@@ -25,7 +25,7 @@ fn consumer_advisory_shapes() -> &'static Shapes {
     static CACHE: OnceLock<Shapes> = OnceLock::new();
     CACHE.get_or_init(|| {
         let path = repo_root().join("slices/core/kernel/shapes.ttl");
-        parse_shapes(&read_ttl(&path)).expect("consumer-advisory SHACL shapes must parse")
+        parse_shapes(&read_ttl(&path), None).expect("consumer-advisory SHACL shapes must parse")
     })
 }
 

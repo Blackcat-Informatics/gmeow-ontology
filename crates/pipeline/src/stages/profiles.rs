@@ -236,7 +236,7 @@ fn profile_document(
 
 fn parse_manifest(path: &Path) -> Result<SliceMeta, gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    let dataset = Dataset::parse_turtle(&bytes, &path.display().to_string()).map_err(|e| {
+    let dataset = Dataset::parse_turtle(&bytes, None, &path.display().to_string()).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: e.to_string(),
         })

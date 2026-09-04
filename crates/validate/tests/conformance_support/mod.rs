@@ -161,7 +161,7 @@ pub fn authenticated_bundle_dataset() -> &'static Arc<RdfDataset> {
 /// graph emitter and thereby constructed a second copy of shipped corpus content. A
 /// missing graph is a hard failure; there is no source-tree or producer fallback.
 pub fn authenticated_named_graph_nt(graph_iri: &str) -> String {
-    let graph = authenticated_bundle_dataset().project_named_graph_full(graph_iri);
+    let graph = authenticated_bundle_dataset().project_named_graph(graph_iri);
     assert!(
         graph.quad_count() > 0,
         "authenticated bundle omitted required named graph <{graph_iri}>"
@@ -238,7 +238,7 @@ fn object_marker_view(predicate: &str, object: &purrdf::RdfTerm) -> Option<&'sta
 /// so cache the parsed `Shapes` inside each test process.
 pub fn whole_shapes() -> &'static Shapes {
     static CACHE: OnceLock<Shapes> = OnceLock::new();
-    CACHE.get_or_init(|| parse_shapes(whole_shapes_ttl()).expect("whole SHACL shapes parse"))
+    CACHE.get_or_init(|| parse_shapes(whole_shapes_ttl(), None).expect("whole SHACL shapes parse"))
 }
 
 /// Parse N-Triples into a frozen native dataset (flattened to the default graph).
@@ -418,7 +418,7 @@ pub fn conformance_shapes() -> &'static Shapes {
         .expect("authenticated domain-conformance shapes; tests never produce them");
         let ttl = String::from_utf8(bytes)
             .expect("authenticated domain-conformance shape union is UTF-8");
-        parse_shapes(&ttl).expect("parse authenticated domain-conformance shape union")
+        parse_shapes(&ttl, None).expect("parse authenticated domain-conformance shape union")
     })
 }
 
@@ -1044,7 +1044,7 @@ impl GraphStore {
         self.slice_ds.get_or_init(|| {
             let canonical = canonical_flat_nquads(&self.ds)
                 .unwrap_or_else(|e| panic!("canonical slice n-quads failed: {e}"));
-            SliceDataset::parse(canonical.as_bytes(), "application/n-quads", "slice view")
+            SliceDataset::parse(canonical.as_bytes(), "application/n-quads", None, "slice view")
                 .unwrap_or_else(|e| panic!("slice dataset reconstruction failed: {e}"))
         })
     }
@@ -2568,7 +2568,7 @@ fn shard_parity_key(
 
 pub fn sharded_validation_matches_serial_byte_for_byte() {
     let shapes =
-        parse_shapes(SHARD_PARITY_SHAPES_TTL).expect("shard-parity SHACL shapes must parse");
+        parse_shapes(SHARD_PARITY_SHAPES_TTL, None).expect("shard-parity SHACL shapes must parse");
     let dataset = nt_to_dataset(&ttl_str_to_nt(SHARD_PARITY_DATA_TTL));
 
     let serial =

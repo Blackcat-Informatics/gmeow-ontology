@@ -263,7 +263,7 @@ fn load_authored_no_imports(root: &Path) -> Result<Dataset, gmeow_errors::Diag> 
             continue;
         }
         let bytes = std::fs::read(&path)?;
-        acc.add_turtle(&bytes, &path.display().to_string())
+        acc.add_turtle(&bytes, None, &path.display().to_string())
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {
                     message: e.to_string(),
@@ -762,9 +762,8 @@ gmeow:syntheticUse a logic:AdviceGuidance ;
     logic:adviceSourceField logic:ProseFieldUseWhen ;
     logic:formalizes gmeow:SyntheticTerm ;
     logic:message "Use exactly this case" .
-"#,
-            "synthetic advice graph",
-        )
+"#, None,
+            "synthetic advice graph")
         .expect("parse synthetic advice graph");
         let advice = collect_advice(&dataset).expect("collect advice");
         let entity = format!("{GMEOW}SyntheticTerm");

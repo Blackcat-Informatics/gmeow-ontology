@@ -41,7 +41,7 @@ gmeow:ThingShape a sh:NodeShape ;
 
 /// Compile [`SHAPES_TTL`] into the closed-world JSON Schema bytes.
 fn schema_bytes() -> Vec<u8> {
-    let shapes = engine::parse_shapes(SHAPES_TTL).expect("parse shapes");
+    let shapes = engine::parse_shapes(SHAPES_TTL, None).expect("parse shapes");
     let compiled = json_schema::compile(&shapes, &gmeow_namespaces());
     compiled.schema_json.into_bytes()
 }

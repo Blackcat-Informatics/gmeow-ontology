@@ -146,7 +146,7 @@ fn every_coverage_key_maps_to_a_declared_doc_coverage_dimension_individual() {
     let root = common::repo_root();
     let path = root.join("slices/core/documentation/module.ttl");
     let bytes = std::fs::read(&path).expect("read documentation module.ttl");
-    let ds = Dataset::parse_turtle(&bytes, &path.display().to_string())
+    let ds = Dataset::parse_turtle(&bytes, None, &path.display().to_string())
         .expect("documentation module.ttl parses");
 
     let mut declared: BTreeSet<String> = BTreeSet::new();

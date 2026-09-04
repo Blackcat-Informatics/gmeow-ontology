@@ -7743,6 +7743,7 @@ fn gts_iri(value: &str) -> GtsTerm {
         lang: None,
         direction: None,
         reifier: None,
+        triple: None,
     }
 }
 
@@ -7755,6 +7756,7 @@ fn gts_literal_dt(value: &str, datatype: usize) -> GtsTerm {
         lang: None,
         direction: None,
         reifier: None,
+        triple: None,
     }
 }
 
@@ -8011,6 +8013,7 @@ fn intern_nt_term(
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             };
             let id = push_gts_term(terms, term);
             seen.insert(sig, id);

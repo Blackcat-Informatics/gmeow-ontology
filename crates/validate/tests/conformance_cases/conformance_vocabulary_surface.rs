@@ -38,7 +38,7 @@ fn repo_root() -> PathBuf {
 fn parse(path: &Path) -> Dataset {
     let bytes =
         std::fs::read(path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
-    Dataset::parse_turtle(&bytes, &path.display().to_string())
+    Dataset::parse_turtle(&bytes, None, &path.display().to_string())
         .unwrap_or_else(|e| panic!("cannot parse {}: {e}", path.display()))
 }
 

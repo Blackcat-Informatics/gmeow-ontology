@@ -518,7 +518,7 @@ impl ValidationRun {
                     Some(root) => purrdf::shapes::shape_union::load_shapes(root)
                         .map(|(store, shapes)| (Some(store), shapes))
                         .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
-                    None => purrdf::shapes::engine::parse_shapes(shapes_ttl)
+                    None => purrdf::shapes::engine::parse_shapes(shapes_ttl, None)
                         .map(|shapes| (None, shapes))
                         .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e })),
                 },
@@ -2464,6 +2464,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.terms.push(Term {
             kind: TermKind::Iri,
@@ -2472,6 +2473,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.terms.push(Term {
             kind: TermKind::Iri,
@@ -2480,6 +2482,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.quads.push((0, 1, 2, None));
 

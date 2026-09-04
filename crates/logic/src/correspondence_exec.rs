@@ -792,9 +792,10 @@ const BRANCH_SEED_BASE: &str = "http://seed.example/v";
 /// required (left) side: SPARQL OPTIONAL semantics do not require the right side to match, so
 /// its content is not a positive obligation the seed corpus must recover — forcing it into
 /// every seed would wrongly demand round-tripping data that is, by construction, optional.
-/// `Filter`/`Extend` (`BIND`)/`Graph`/solution-modifier wrappers contribute no atoms of their
-/// own and are unwrapped down to their inner pattern; `Minus` likewise keeps only its required
-/// (left) side. Constructs with no positive triple-pattern content (`Path`, `Service`,
+/// `Filter`/`Extend` (`BIND`)/`Unfold` (`UNFOLD`)/`Graph`/solution-modifier wrappers contribute
+/// no atoms of their own and are unwrapped down to their inner pattern; `Minus` likewise keeps
+/// only its required (left) side. Constructs with no positive triple-pattern content (`Path`,
+/// `Service`,
 /// `Values`, and a configured `PropertyFunction` call — a computed relation, not asserted
 /// triples the seed corpus could recover) yield no branches — deterministically dropped,
 /// never guessed at.
@@ -831,6 +832,7 @@ fn dnf_branches(pattern: &GraphPattern) -> Vec<Vec<SparqlTriplePattern>> {
         }
         GraphPattern::Filter { inner, .. }
         | GraphPattern::Extend { inner, .. }
+        | GraphPattern::Unfold { inner, .. }
         | GraphPattern::Graph { inner, .. }
         | GraphPattern::OrderBy { inner, .. }
         | GraphPattern::Project { inner, .. }

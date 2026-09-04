@@ -180,7 +180,7 @@ pub fn derive_grounding_certificates(
                      (judgment underivable)"
                 )));
             }
-            purrdf::shapes::engine::parse_shapes(&format!("{SURFACE_PREFIXES}{subgraph}"))
+            purrdf::shapes::engine::parse_shapes(&format!("{SURFACE_PREFIXES}{subgraph}"), None)
                 .map_err(|e| {
                     grounding_err(format!(
                         "shape-grounding: record <{record}> does not parse as an executable \

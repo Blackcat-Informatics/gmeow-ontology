@@ -4009,13 +4009,13 @@ fn parse_example(
         "trig" => "application/trig",
         "rdf" | "xml" => "application/rdf+xml",
         "jsonld" => {
-            return purrdf::native_codecs::jsonld::parse_jsonld(text.as_bytes())
+            return purrdf::native_codecs::jsonld::parse_jsonld(text.as_bytes(), None)
                 .map_err(|e| stage_err(&format!("example jsonld parse {logical_path}: {e}")));
         }
         "yamlld" | "yaml" | "yml" => {
             let json = purrdf::native_codecs::jsonld::yamlld_to_jsonld(text.as_bytes())
                 .map_err(|e| stage_err(&format!("example yamlld convert {logical_path}: {e}")))?;
-            return purrdf::native_codecs::jsonld::parse_jsonld(json.as_bytes())
+            return purrdf::native_codecs::jsonld::parse_jsonld(json.as_bytes(), None)
                 .map_err(|e| stage_err(&format!("example yamlld parse {logical_path}: {e}")));
         }
         other => {
