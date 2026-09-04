@@ -34,9 +34,11 @@
 //!
 //! # Derivation-ID recipe
 //!
-//! `sha1(rule_iri + "\n" + "\n".join(sorted(source_reifier_iris))).hexdigest()`
+//! `sha1(raw_rule_identity + "\n" + "\n".join(sorted(source_reifier_iris))).hexdigest()`
 //! under `{NAMESPACE}derivation/`.
-//! Sources are sorted for order-independence.
+//! The firing identity is folded byte-for-byte (a full IRI, a native rule label, or
+//! the assertion sentinel); public artifact rendering must not rewrite it before
+//! hashing. Sources are sorted for order-independence.
 
 use purrdf::TermValue;
 use sha1::{Digest, Sha1};
@@ -555,7 +557,7 @@ pub fn nary_arg_index(predicate: &str) -> Option<usize> {
 /// The canonical derivation-id recipe (Python `derivation_id_iri` in
 /// `gmeow_tools.logic_materialize` retired):
 /// ```text
-/// payload = rule_iri + "\n" + "\n".join(sorted(source_reifier_iris))
+/// payload = raw_rule_identity + "\n" + "\n".join(sorted(source_reifier_iris))
 /// digest  = sha1(payload.encode("utf-8")).hexdigest()
 /// iri     = f"{NAMESPACE}derivation/{digest}"
 /// ```
@@ -564,7 +566,8 @@ pub fn nary_arg_index(predicate: &str) -> Option<usize> {
 ///
 /// # Arguments
 ///
-/// - `rule_iri` — The IRI of the fired rule (or the assert-sentinel).
+/// - `rule_iri` — The byte-exact firing identity: a full rule IRI, a native rule
+///   label, or the assert sentinel. Callers must not canonicalize it before hashing.
 /// - `source_reifier_iris` — The reifier IRIs of the consumed antecedent quads.
 ///
 /// # Returns

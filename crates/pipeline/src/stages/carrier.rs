@@ -43,7 +43,7 @@ use crate::stages::archive_blobs::{
 use crate::stages::archive_blobs::AXIOM_FILES;
 use crate::stages::statements::RDF12_PATH;
 
-use gmeow_ns::GMEOW_NS;
+use gmeow_ns::{GMEOW_NS, LOGIC_NS};
 
 /// The committed logical path of the serialized GTS bundle — the single artifact
 /// this stage produces and every fold-reading leaf (and the sink) consumes.
@@ -3624,20 +3624,24 @@ fn build_docs_print_blob(
     Ok((archive_blob(REP_DOCS_PRINT, &members)?, pdf_digest))
 }
 
-/// One reasoner-derivation's raw shape, accumulated per blank-node subject while
+/// One reasoner-derivation's raw shape, accumulated per resource subject while
 /// walking the explanations Turtle (see [`term_entailments_from_explanations`]).
 #[derive(Default)]
 struct RawDerivation {
     /// Whether an `rdf:type gmeow:Derivation` triple was seen for this subject — a
-    /// defensive check so a stray blank node in the explanations graph (there should
+    /// defensive check so a stray resource in the explanations graph (there should
     /// be none) can never masquerade as a derivation.
     is_derivation: bool,
-    /// The `gmeow:concludes` quoted-triple object, if seen.
-    concludes: Option<RdfTriple>,
+    /// Every distinct `gmeow:concludes` quoted-triple object seen. A derivation
+    /// identifies one rule firing from one exact source set, so a multi-head firing
+    /// legitimately carries more than one conclusion under the same identity.
+    conclusions: Vec<RdfTriple>,
     /// Every `gmeow:hasPremise` quoted-triple object seen (zero or more).
     premises: Vec<RdfTriple>,
     /// The `gmeow:viaRule` object IRI, if seen.
     via_rule: Option<String>,
+    /// The `logic:derivationIdentifier` literal, which must repeat the resource IRI.
+    identifier: Option<String>,
 }
 
 /// Whether any documented term IRI appears in `triple`'s subject, predicate, or
@@ -3690,8 +3694,8 @@ pub(crate) fn term_entailments_from_upstream(
 /// entailment digest.
 ///
 /// For every `gmeow:Derivation`, any IRI in `term_iris` that appears in the subject,
-/// predicate, or object position of EITHER the `gmeow:concludes` conclusion OR any
-/// `gmeow:hasPremise` premise gets that derivation's rule + a display of its
+/// predicate, or object position of EITHER a `gmeow:concludes` conclusion OR any
+/// `gmeow:hasPremise` premise gets that derivation's rule + a display of each
 /// conclusion + displays of its premises appended to its panel. Pure function of the
 /// bytes + the term-IRI set — independently testable without a pipeline product map
 /// (mirrors [`executable_docs_from_sources`]'s fixture-only core).
@@ -3706,19 +3710,13 @@ fn term_entailments_from_explanations(
         ))
     })?;
 
-    // `gmeow_logic::reason::artifacts::build_explanations_ttl` writes each
-    // `gmeow:concludes` / `gmeow:hasPremise` object via `emit_term(&RdfTerm::triple(..))`,
-    // which serializes the RDF 1.2 triple-term shorthand `<< <s> <p> <o> >>` — the
-    // BARE (non-parenthesized) form. Per the RDF 1.2 Turtle grammar, a bare `<<...>>`
-    // used as the object of any predicate OTHER than `rdf:reifies` is the REIFYING-
-    // TRIPLE production, not a triple-term value: the parser mints a fresh reifier
-    // (here, a blank node) IN THAT POSITION and records the actual triple as a
-    // reifier binding — `dataset.owned_reifiers()` — rather than inline as
-    // `RdfTerm::Triple` on the base quad. So `q.object` here is the reifier (a
-    // blank node), and the real conclusion/premise triple is looked up from this
-    // map. (The canonical parenthesized form `<<( s p o )>>` — used by hand-built
-    // fixtures/tests — parses directly to `RdfTerm::Triple` and is honored as a
-    // fallback below, so both forms resolve identically.)
+    // `gmeow_logic::reason::artifacts::build_explanations_ttl` emits each
+    // `gmeow:concludes` / `gmeow:hasPremise` object in canonical parenthesized RDF 1.2
+    // triple-term form, `<<( s p o )>>`, which parses directly as `RdfTerm::Triple`.
+    // The equivalent bare reifying-triple syntax, `<< s p o >>`, instead puts its minted
+    // reifier in the object position and records the statement in
+    // `dataset.owned_reifiers()`. Resolve that RDF-level spelling to the same typed triple
+    // so syntax alone cannot change a term's entailment digest.
     let reifier_triples: std::collections::HashMap<RdfTerm, RdfTriple> = dataset
         .owned_reifiers()
         .map(|r| (r.reifier, r.statement))
@@ -3734,57 +3732,104 @@ fn term_entailments_from_explanations(
     let concludes_p = format!("{GMEOW_NS}concludes");
     let has_premise_p = format!("{GMEOW_NS}hasPremise");
     let via_rule_p = format!("{GMEOW_NS}viaRule");
+    let derivation_identifier_p = format!("{LOGIC_NS}derivationIdentifier");
 
+    // Production explanations name every derivation with its content-addressed IRI.
+    // A blank node or an unrelated IRI would erase that identity at the documentation
+    // seam, so reject either instead of accepting an alternate representation.
+    let derivation_prefix = gmeow_logic::provenance::DERIVATION_PREFIX;
     let mut raw: BTreeMap<String, RawDerivation> = BTreeMap::new();
     for q in dataset.owned_quads() {
-        let RdfTerm::BlankNode(label) = &q.subject else {
+        let is_derivation_type = q.predicate == RDF_TYPE
+            && matches!(&q.object, RdfTerm::Iri(iri) if iri == &derivation_ty);
+        let RdfTerm::Iri(subject) = &q.subject else {
+            if is_derivation_type {
+                return Err(stage_err(
+                    "reasoning explanation derivation must be named by its content-addressed IRI",
+                ));
+            }
             continue;
         };
-        let entry = raw.entry(label.clone()).or_default();
-        if q.predicate == RDF_TYPE {
-            if let RdfTerm::Iri(iri) = &q.object
-                && *iri == derivation_ty
-            {
-                entry.is_derivation = true;
-            }
+        if is_derivation_type && !subject.starts_with(derivation_prefix) {
+            return Err(stage_err(&format!(
+                "reasoning explanation derivation {subject} is outside the content-addressed \
+                 {derivation_prefix} namespace"
+            )));
+        }
+        let entry = raw.entry(subject.clone()).or_default();
+        if is_derivation_type {
+            entry.is_derivation = true;
         } else if q.predicate == concludes_p {
-            if let Some(triple) = resolve_triple(&q.object) {
-                entry.concludes = Some(triple);
+            let Some(triple) = resolve_triple(&q.object) else {
+                return Err(stage_err(&format!(
+                    "reasoning explanation derivation {subject} has a non-triple conclusion"
+                )));
+            };
+            if !entry.conclusions.contains(&triple) {
+                entry.conclusions.push(triple);
             }
         } else if q.predicate == has_premise_p {
-            if let Some(triple) = resolve_triple(&q.object) {
-                entry.premises.push(triple);
+            let Some(triple) = resolve_triple(&q.object) else {
+                return Err(stage_err(&format!(
+                    "reasoning explanation derivation {subject} has a non-triple premise"
+                )));
+            };
+            entry.premises.push(triple);
+        } else if q.predicate == via_rule_p {
+            let RdfTerm::Iri(iri) = &q.object else {
+                return Err(stage_err(&format!(
+                    "reasoning explanation derivation {subject} has a non-IRI firing rule"
+                )));
+            };
+            if let Some(previous) = entry.via_rule.replace(iri.clone())
+                && previous != iri.as_str()
+            {
+                return Err(stage_err(&format!(
+                    "reasoning explanation derivation {subject} has conflicting firing rules"
+                )));
             }
-        } else if q.predicate == via_rule_p
-            && let RdfTerm::Iri(iri) = &q.object
-        {
-            entry.via_rule = Some(iri.clone());
+        } else if q.predicate == derivation_identifier_p {
+            let RdfTerm::Literal(literal) = &q.object else {
+                return Err(stage_err(&format!(
+                    "reasoning explanation derivation {subject} has a non-literal derivation identifier"
+                )));
+            };
+            if let Some(previous) = entry.identifier.replace(literal.lexical_form.clone())
+                && previous != literal.lexical_form.as_str()
+            {
+                return Err(stage_err(&format!(
+                    "reasoning explanation derivation {subject} has conflicting derivation identifiers"
+                )));
+            }
         }
     }
 
     let mut term_entailments: BTreeMap<String, Vec<gmeow_docs::Entailment>> = BTreeMap::new();
-    for derivation in raw.into_values() {
+    for (derivation_iri, derivation) in raw {
         if !derivation.is_derivation {
             continue;
         }
-        let Some(concludes) = &derivation.concludes else {
-            continue;
+        if derivation.conclusions.is_empty() {
+            return Err(stage_err(&format!(
+                "reasoning explanation derivation {derivation_iri} has no conclusion"
+            )));
+        }
+        let Some(rule) = derivation.via_rule.as_deref() else {
+            return Err(stage_err(&format!(
+                "reasoning explanation derivation {derivation_iri} has no firing rule"
+            )));
         };
-        let mut matched: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-        collect_term_matches(concludes, term_iris, &mut matched);
-        for premise in &derivation.premises {
-            collect_term_matches(premise, term_iris, &mut matched);
+        let Some(identifier) = derivation.identifier.as_deref() else {
+            return Err(stage_err(&format!(
+                "reasoning explanation derivation {derivation_iri} has no derivation identifier"
+            )));
+        };
+        if identifier != derivation_iri.as_str() {
+            return Err(stage_err(&format!(
+                "reasoning explanation derivation identifier {identifier} does not match its resource IRI {derivation_iri}"
+            )));
         }
-        if matched.is_empty() {
-            continue;
-        }
-        let rule = derivation
-            .via_rule
-            .as_deref()
-            .map(compact_iri)
-            .unwrap_or_default();
-        let conclusion =
-            triple_display(&concludes.subject, &concludes.predicate, &concludes.object);
+        let rule = compact_iri(rule);
         let mut premises: Vec<String> = derivation
             .premises
             .iter()
@@ -3792,16 +3837,30 @@ fn term_entailments_from_explanations(
             .collect();
         premises.sort();
         premises.dedup();
-        let entailment = gmeow_docs::Entailment {
-            rule,
-            conclusion,
-            premises,
-        };
-        for term_iri in matched {
-            term_entailments
-                .entry(term_iri)
-                .or_default()
-                .push(entailment.clone());
+        for conclusion in &derivation.conclusions {
+            let mut matched: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+            collect_term_matches(conclusion, term_iris, &mut matched);
+            for premise in &derivation.premises {
+                collect_term_matches(premise, term_iris, &mut matched);
+            }
+            if matched.is_empty() {
+                continue;
+            }
+            let entailment = gmeow_docs::Entailment {
+                rule: rule.clone(),
+                conclusion: triple_display(
+                    &conclusion.subject,
+                    &conclusion.predicate,
+                    &conclusion.object,
+                ),
+                premises: premises.clone(),
+            };
+            for term_iri in matched {
+                term_entailments
+                    .entry(term_iri)
+                    .or_default()
+                    .push(entailment.clone());
+            }
         }
     }
     for entries in term_entailments.values_mut() {
@@ -7750,22 +7809,18 @@ ex:rex a ex:Dog .
 mod term_entailments_tests {
     use super::*;
 
-    /// A hand-built `reasoning-explanations.rdf12.ttl`-shaped fixture, mirroring
-    /// `gmeow_logic::reason::artifacts::build_explanations_ttl`'s ACTUAL output shape:
-    /// one `gmeow:Derivation` blank node with a `gmeow:concludes` quoted triple, one
-    /// `gmeow:hasPremise` quoted triple, and a `gmeow:viaRule` IRI. The quoted triples
-    /// use the BARE `<< s p o >>` form — exactly what `purrdf::turtle::emit_term`
-    /// serializes for a `RdfTerm::Triple` — which the RDF 1.2 Turtle grammar parses as
-    /// the REIFYING-triple production (a minted reifier bound via
-    /// `RdfDataset::owned_reifiers()`), not as an inline `RdfTerm::Triple` object; the
-    /// join must resolve through that reifier binding.
-    const EXPLANATIONS_TTL: &str = "\
+    /// The alternate bare-reifying spelling of the production fixture below. RDF 1.2
+    /// parses each quoted triple through a minted reifier bound in
+    /// `RdfDataset::owned_reifiers()`; the join must resolve that statement identically.
+    const EXPLANATIONS_TTL_REIFYING: &str = "\
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
-[] a gmeow:Derivation ;
+<https://blackcatinformatics.ca/gmeow/derivation/0123456789abcdef0123456789abcdef01234567> a gmeow:Derivation ;
    gmeow:concludes << <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> >> ;
+   logic:derivationIdentifier \"https://blackcatinformatics.ca/gmeow/derivation/0123456789abcdef0123456789abcdef01234567\" ;
    gmeow:hasPremise << <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Mammal> >> ;
    gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/subclass-transitivity> ;
    gmeow:inferenceKind gmeow:Deduction ;
@@ -7773,16 +7828,20 @@ mod term_entailments_tests {
    gmeow:inWorld <https://blackcatinformatics.ca/gmeow/world/default> .
 ";
 
-    /// The same derivation, but with the CANONICAL parenthesized `<<( s p o )>>` triple-
-    /// term form — parses directly to an inline `RdfTerm::Triple` (no reifier). Both
-    /// forms must resolve to the identical entailment digest.
-    const EXPLANATIONS_TTL_PARENTHESIZED: &str = "\
+    /// A hand-built `reasoning-explanations.rdf12.ttl` fixture mirroring
+    /// `gmeow_logic::reason::artifacts::build_explanations_ttl`'s production shape: one
+    /// named, content-addressed derivation carrying canonical parenthesized
+    /// `<<( s p o )>>` triple terms, which parse inline as `RdfTerm::Triple`, plus its
+    /// exact derivation-identifier literal and firing-rule IRI.
+    const EXPLANATIONS_TTL: &str = "\
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
-[] a gmeow:Derivation ;
+<https://blackcatinformatics.ca/gmeow/derivation/0123456789abcdef0123456789abcdef01234567> a gmeow:Derivation ;
    gmeow:concludes <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> )>> ;
+   logic:derivationIdentifier \"https://blackcatinformatics.ca/gmeow/derivation/0123456789abcdef0123456789abcdef01234567\" ;
    gmeow:hasPremise <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Mammal> )>> ;
    gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/subclass-transitivity> ;
    gmeow:inferenceKind gmeow:Deduction ;
@@ -7848,18 +7907,127 @@ mod term_entailments_tests {
                 .expect("parse explanations fixture (unrelated term)");
         assert!(digest_unrelated.is_empty());
 
-        // The canonical parenthesized `<<( s p o )>>` form (an inline `RdfTerm::Triple`,
-        // no reifier) must resolve to the IDENTICAL digest as the bare reifying form —
-        // the join is agnostic to which triple-term serialization produced the data.
-        let digest_parenthesized = term_entailments_from_explanations(
-            EXPLANATIONS_TTL_PARENTHESIZED.as_bytes(),
-            &term_iris,
-        )
-        .expect("parse parenthesized explanations fixture");
+        // The bare reifying spelling must resolve to the IDENTICAL digest as the
+        // production parenthesized triple-term form.
+        let digest_reifying =
+            term_entailments_from_explanations(EXPLANATIONS_TTL_REIFYING.as_bytes(), &term_iris)
+                .expect("parse reifying explanations fixture");
         assert_eq!(
-            digest, digest_parenthesized,
-            "bare-reifier and parenthesized triple-term forms must join identically"
+            digest, digest_reifying,
+            "parenthesized triple terms and bare reifiers must join identically"
         );
+    }
+
+    #[test]
+    fn term_entailments_preserves_every_conclusion_of_one_rule_firing() {
+        let multi_conclusion = EXPLANATIONS_TTL.replacen(
+            "   gmeow:concludes <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> )>> ;",
+            "   gmeow:concludes <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> )>>,\
+             <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://example.org/CompanionAnimal> )>> ;",
+            1,
+        );
+        assert_ne!(multi_conclusion, EXPLANATIONS_TTL);
+        let term_iris = [
+            "https://blackcatinformatics.ca/gmeow/Cat".to_owned(),
+            "https://blackcatinformatics.ca/gmeow/Animal".to_owned(),
+            "https://example.org/CompanionAnimal".to_owned(),
+            "https://blackcatinformatics.ca/gmeow/Mammal".to_owned(),
+        ]
+        .into_iter()
+        .collect();
+
+        let digest = term_entailments_from_explanations(multi_conclusion.as_bytes(), &term_iris)
+            .expect("one content-addressed firing may carry every head conclusion");
+
+        let cat = &digest["https://blackcatinformatics.ca/gmeow/Cat"];
+        assert_eq!(
+            cat.len(),
+            2,
+            "both conclusions must survive the identity join"
+        );
+        assert!(cat.iter().any(|entry| entry.conclusion.contains("Animal")));
+        assert!(
+            cat.iter()
+                .any(|entry| entry.conclusion.contains("CompanionAnimal"))
+        );
+        assert!(cat.iter().all(|entry| entry.premises.len() == 1));
+
+        assert_eq!(
+            digest["https://blackcatinformatics.ca/gmeow/Animal"].len(),
+            1
+        );
+        assert_eq!(digest["https://example.org/CompanionAnimal"].len(), 1);
+        assert_eq!(
+            digest["https://blackcatinformatics.ca/gmeow/Mammal"].len(),
+            2,
+            "the exact shared premise participates in each head's entailment"
+        );
+    }
+
+    #[test]
+    fn term_entailments_rejects_an_unnamed_derivation() {
+        let unnamed = EXPLANATIONS_TTL.replacen(
+            "<https://blackcatinformatics.ca/gmeow/derivation/0123456789abcdef0123456789abcdef01234567>",
+            "[]",
+            1,
+        );
+        let term_iris = ["https://blackcatinformatics.ca/gmeow/Cat".to_owned()]
+            .into_iter()
+            .collect();
+        let err = term_entailments_from_explanations(unnamed.as_bytes(), &term_iris)
+            .expect_err("an unnamed derivation must not lose its content identity");
+        assert!(
+            err.message().contains("content-addressed IRI"),
+            "got: {err}"
+        );
+    }
+
+    #[test]
+    fn term_entailments_rejects_incomplete_provenance() {
+        let term_iris = ["https://blackcatinformatics.ca/gmeow/Cat".to_owned()]
+            .into_iter()
+            .collect();
+        for (malformed, expected) in [
+            (
+                EXPLANATIONS_TTL.replacen(
+                    "gmeow:concludes",
+                    "<https://example.org/ignoredConclusion>",
+                    1,
+                ),
+                "has no conclusion",
+            ),
+            (
+                EXPLANATIONS_TTL.replacen("gmeow:viaRule", "<https://example.org/ignoredRule>", 1),
+                "has no firing rule",
+            ),
+            (
+                EXPLANATIONS_TTL.replacen(
+                    "logic:derivationIdentifier",
+                    "<https://example.org/ignoredIdentifier>",
+                    1,
+                ),
+                "has no derivation identifier",
+            ),
+        ] {
+            let err = term_entailments_from_explanations(malformed.as_bytes(), &term_iris)
+                .expect_err("incomplete derivation provenance must fail closed");
+            assert!(err.message().contains(expected), "got: {err}");
+        }
+    }
+
+    #[test]
+    fn term_entailments_rejects_a_mismatched_derivation_identity() {
+        let mismatched = EXPLANATIONS_TTL.replacen(
+            "\"https://blackcatinformatics.ca/gmeow/derivation/0123456789abcdef0123456789abcdef01234567\"",
+            "\"https://blackcatinformatics.ca/gmeow/derivation/ffffffffffffffffffffffffffffffffffffffff\"",
+            1,
+        );
+        let term_iris = ["https://blackcatinformatics.ca/gmeow/Cat".to_owned()]
+            .into_iter()
+            .collect();
+        let err = term_entailments_from_explanations(mismatched.as_bytes(), &term_iris)
+            .expect_err("derivation identifier must repeat the exact resource IRI");
+        assert!(err.message().contains("does not match"), "got: {err}");
     }
 
     #[test]

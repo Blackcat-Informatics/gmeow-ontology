@@ -20,11 +20,10 @@ use session_common::*;
 /// reasoning-contract hash, and ordered profile/decidability manifest. Any byte-level
 /// change to that public runtime contract moves this pin so existing checkpoints cannot
 /// claim compatibility without an explicit version decision.
-/// The current value deliberately includes the source bytes after process-history comments
-/// were replaced by the executable invariants those comments described and after the
-/// gmeow-logic public rustdoc intra-doc links were corrected in place.
+/// The current value includes both the process-history/rustdoc corrections from main and
+/// the shared typed-modal production route, whose source participates in engine identity.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "4e50404342bcee7729ce99f3b13e32244776545b495e9755b6b3785cbcf6c457";
+    "c5ce1e368cef2a21c6e34ba15b1e11f97e99a1a7d76708cdf85244e4788b5c94";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below.
 ///
@@ -34,7 +33,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// so those seven axes contribute eight fields. Any change must move this pin and
 /// refuse restoration of a stale checkpoint.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "4287e07f56d4cdd3e2123c9b70d963ee1693e1832142af177dbacaf186a7fd64";
+    "7f1aff6525937ff16e508718bd025df5a83e4684758fb54e458ca492ce9ce415";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

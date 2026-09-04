@@ -605,6 +605,21 @@ fn modal_box_holds_when_body_true_in_all_accessible() {
             .any(|q| q.predicate == format!("{LOGIC}modalNecessityFails")),
         "no □-failure when the body holds everywhere accessible"
     );
+    let verdict = quads
+        .iter()
+        .find(|q| q.predicate == format!("{LOGIC}modalNecessityHolds"))
+        .expect("shared modal kernel verdict");
+    let source = crate::provenance::reifier_from_strings(
+        &format!("{base}/a"),
+        &format!("{base}/knows"),
+        &format!("<{base}/b>"),
+    );
+    assert_eq!(verdict.rule_iri, crate::modal::MODAL_RULE_IRI);
+    assert_eq!(verdict.source_quad_ids, vec![source.clone()]);
+    assert_eq!(
+        verdict.derivation_id,
+        crate::provenance::mint_derivation_id(crate::modal::MODAL_RULE_IRI, &[source.as_str()])
+    );
 }
 
 #[test]

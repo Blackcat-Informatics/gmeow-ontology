@@ -33,6 +33,7 @@ pub use ledger::{
 pub use rl::{RlClosure, RlTriple, rl_closure};
 
 use crate::facts::TypedFactSet;
+use crate::modal::{self, ModalFact};
 use crate::oracle::TypedRow;
 use crate::query_ir::Budget;
 use crate::result::{
@@ -108,7 +109,7 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
 }
 
-/// The content-addressed identity of the native EL/DL reasoning contract —
+/// The content-addressed identity of the native logic reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
 ///
 /// The RL lane's SOURCE TEXT no longer participates: it is purrdf's OWL 2 RL chase
@@ -140,6 +141,8 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   non-monotone evaluators exposed as the forward runtime materialization surface;
 /// * the source of this file (`mod.rs`), which owns the production reasoning
 ///   orchestration and typed-result fold;
+/// * the shared bounded typed-modal kernel (`modal.rs`), whose post-closure verdicts
+///   are part of every complete native reasoning result;
 /// * the source of `reasoner_services.rs`, the public OWL 2 Direct-Semantics DL
 ///   service façade (consistency, classification, realization, instance retrieval,
 ///   axiom entailment, profile certification, module extraction) — a change to how
@@ -156,6 +159,7 @@ const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
     ("reason/dl.rs", include_str!("dl.rs")),
     ("reason/refute.rs", include_str!("refute.rs")),
     ("reason/mod.rs", include_str!("mod.rs")),
+    ("modal.rs", include_str!("../modal.rs")),
     ("oracle.rs", include_str!("../oracle.rs")),
     ("certify.rs", include_str!("../certify.rs")),
     ("lower.rs", include_str!("../lower.rs")),
@@ -297,16 +301,17 @@ pub(crate) fn reason_closure(
     Ok((inferred, verdict))
 }
 
-/// The native reasoning closure ONLY — the sorted asserted+derived axiom set — with
-/// the DL consistency *verdict* left uncomputed.
+/// The native structured-DL closure ONLY — the sorted asserted+derived axiom set — with
+/// the typed modal post-pass and DL consistency *verdict* left uncomputed.
 ///
 /// This is the shared `run_reasoning → augment_inferred_with_dl → sort` half of
-/// [`reason_closure`], so the returned closure is byte-identical to
-/// `reason_all(edb)?.inferred()`. It exists for callers that need only the closure
-/// and would otherwise pay for — and discard — [`dl::verdict_from_inferred`]'s
-/// O(EDB) consistency/coverage scan. The reasoner-derived slice-quality axis is the
-/// motivating caller: its leave-one-out redundancy probe re-reasons the EDB dozens of
-/// times but reads only the closure's IRI-object triples, never the verdict.
+/// [`reason_closure`] and the pre-modal prefix of [`reason_all_certified`]. It exists for
+/// callers that need only the structured-DL closure and would otherwise pay for — and
+/// discard — both typed modal evaluation and [`dl::verdict_from_inferred`]'s O(EDB)
+/// consistency/coverage scan. The reasoner-derived slice-quality axis is the motivating
+/// caller: its leave-one-out redundancy probe re-reasons the EDB dozens of times but reads
+/// only the structured-DL closure's IRI-object triples, never modal verdicts or the DL
+/// consistency verdict.
 ///
 /// # Errors
 ///
@@ -991,9 +996,9 @@ pub fn leave_one_out_rederived(
     Ok(results)
 }
 
-/// Run native predicate-as-DATA entailment + DL consistency, returning the typed
-/// [`ReasoningResult`] (ME2) — the single shared result model every
-/// consumer reads.
+/// Run native predicate-as-DATA entailment, DL augmentation/consistency, and bounded
+/// typed-modal evaluation, returning the typed [`ReasoningResult`] (ME2) — the single
+/// shared result model every consumer reads.
 ///
 /// The DL verdict is folded into the result via
 /// [`ReasoningResult::from_dl_verdict`]: an inconsistent verdict becomes
@@ -1014,7 +1019,9 @@ pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
 }
 
 /// Run the same production reasoning path as [`reason_all`] while retaining the
-/// existential-chase admission certificates emitted during that single pass.
+/// existential-chase admission certificates emitted during that single pass. Typed modal
+/// evaluation runs after rule closure and DL augmentation, then its verdicts join the same
+/// closure before final sorting, consistency scanning, and result construction.
 ///
 /// # Errors
 ///
@@ -1024,6 +1031,7 @@ pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedR
     let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
     let (chase_certificates, witness_derivations) =
         dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
+    augment_inferred_with_modal(&mut inferred, edb)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok(CertifiedReasoning {
@@ -1072,6 +1080,7 @@ pub fn reason_all_budgeted(
         // so the closure and folded verdict match the certified path exactly).
         let mut inferred = closure.inferred;
         dl::augment_inferred_with_dl(&mut inferred, edb)?;
+        augment_inferred_with_modal(&mut inferred, edb)?;
         inferred.sort();
         let verdict = dl::verdict_from_inferred(&inferred, edb)?;
         Ok(typed_result(inferred, &verdict))
@@ -1124,6 +1133,178 @@ fn budget_exhausted_result(
     )
 }
 
+impl ModalFact for InferredAxiom {
+    fn graph(&self) -> &str {
+        &self.world
+    }
+
+    fn subject(&self) -> &str {
+        &self.subject
+    }
+
+    fn predicate(&self) -> &str {
+        &self.predicate
+    }
+
+    fn object(&self) -> &str {
+        &self.object
+    }
+}
+
+/// One malformed typed-accessibility target retained directly from the EDB for modal
+/// validation.
+///
+/// The fixed resource-valued chase intentionally omits literal/triple-valued objects.
+/// Those rows must still reach the modal boundary when their predicate is one of the six
+/// accessibility relations: a malformed edge selected by a real frame is an atomic error,
+/// while an unrelated row remains outside the resolved frame's active edge set.
+struct ModalEdbFact {
+    graph: String,
+    subject: String,
+    predicate: String,
+    object: String,
+}
+
+enum ReasonModalFact<'a> {
+    Closure(&'a InferredAxiom),
+    Edb(&'a ModalEdbFact),
+}
+
+impl ModalFact for ReasonModalFact<'_> {
+    fn graph(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.graph(),
+            Self::Edb(fact) => &fact.graph,
+        }
+    }
+
+    fn subject(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.subject(),
+            Self::Edb(fact) => &fact.subject,
+        }
+    }
+
+    fn predicate(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.predicate(),
+            Self::Edb(fact) => &fact.predicate,
+        }
+    }
+
+    fn object(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.object(),
+            Self::Edb(fact) => &fact.object,
+        }
+    }
+}
+
+fn modal_accessibility_edb_facts(edb: &RdfDataset) -> impl Iterator<Item = ModalEdbFact> + '_ {
+    edb.quads().filter_map(|quad| {
+        let TermRef::Iri(predicate) = edb.resolve(quad.p) else {
+            return None;
+        };
+        if !modal::TYPED_ACCESSIBILITY.contains(&predicate) {
+            return None;
+        }
+        if matches!(edb.resolve(quad.o), TermRef::Iri(_)) {
+            return None;
+        }
+        let subject = match edb.resolve(quad.s) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            _ => crate::provenance::term_display(&edb.term_value(quad.s)),
+        };
+        let graph = quad
+            .g
+            .map_or_else(String::new, |graph| match edb.resolve(graph) {
+                TermRef::Iri(iri) => iri.to_owned(),
+                _ => crate::provenance::term_display(&edb.term_value(graph)),
+            });
+        Some(ModalEdbFact {
+            graph,
+            subject,
+            predicate: predicate.to_owned(),
+            object: crate::provenance::term_display(&edb.term_value(quad.o)),
+        })
+    })
+}
+
+fn augment_inferred_with_modal(
+    inferred: &mut Vec<InferredAxiom>,
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<()> {
+    let mut known: std::collections::BTreeSet<(String, String, String, String)> = inferred
+        .iter()
+        .map(|axiom| {
+            (
+                axiom.world.clone(),
+                axiom.subject.clone(),
+                axiom.predicate.clone(),
+                axiom.object.clone(),
+            )
+        })
+        .collect();
+    let mut additions = Vec::new();
+    let malformed_accessibility_facts = modal_accessibility_edb_facts(edb).collect::<Vec<_>>();
+    let verdicts = modal::evaluate_replayable(|| {
+        inferred.iter().map(ReasonModalFact::Closure).chain(
+            malformed_accessibility_facts
+                .iter()
+                .map(ReasonModalFact::Edb),
+        )
+    })?;
+    for verdict in verdicts {
+        let object = format!("<{}>", verdict.object);
+        let key = (
+            verdict.graph.clone(),
+            verdict.subject.clone(),
+            verdict.predicate.clone(),
+            object.clone(),
+        );
+        if !known.insert(key) {
+            continue;
+        }
+        let source_quad_ids: Vec<String> = verdict
+            .premises
+            .iter()
+            .map(|(subject, predicate, object)| {
+                crate::provenance::reifier_from_strings(subject, predicate, object)
+            })
+            .collect();
+        if source_quad_ids != verdict.source_quad_ids {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "modal verdict {} did not preserve its ordered premise reifiers",
+                    verdict.derivation_id
+                ),
+            }));
+        }
+        let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
+        if crate::provenance::mint_derivation_id(&verdict.rule_iri, &source_refs)
+            != verdict.derivation_id
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "modal verdict {} did not preserve its content-addressed derivation identity",
+                    verdict.derivation_id
+                ),
+            }));
+        }
+        additions.push(InferredAxiom {
+            subject: verdict.subject,
+            predicate: verdict.predicate,
+            object,
+            world: verdict.graph,
+            is_edb: false,
+            rule_name: Some(verdict.rule_iri),
+            premises: verdict.premises,
+        });
+    }
+    inferred.extend(additions);
+    Ok(())
+}
+
 /// Result of applying one ground conjecture candidate to a cached fixed-rule
 /// reasoning state.
 pub(crate) struct IncrementalReasoningResult {
@@ -1149,7 +1330,9 @@ pub(crate) struct GroundFactIncrementalRequest<'a> {
 /// The stable base result is reused byte-for-byte outside `scenario_world`. Inside
 /// that world the fixed DL rule program is maintained by the signed nested-iteration
 /// circuit, with newly derived facts carrying a real firing rule and immediate
-/// premises. The finite DL post-pass then runs over the sound adjusted closure.
+/// premises. The finite DL post-pass and shared typed-modal evaluator then run over
+/// the sound adjusted closure. Cached modal verdicts are globally invalidated because
+/// their evaluation can cross into `scenario_world` from another world.
 ///
 /// The fixed rule text only inspects resource-valued class/property axioms, but the
 /// physical fact carrier is fully typed. A ground literal candidate is therefore kept
@@ -1306,18 +1489,26 @@ pub(crate) fn reason_ground_fact_insert_incremental(
         });
     }
 
-    // The DL-only post-pass is monotone, so every base consequence remains valid and
-    // is free cached state. Only run the post-pass for NEW consequences when the
-    // governed recursive transaction reached its natural fixed point; doing so after a
-    // cut would smuggle uncharged derivations into the partial closure.
+    // The DL-only post-pass is monotone, so every base DL consequence remains valid and
+    // is free cached state. Modal verdicts are not monotone under insertion: adding an
+    // atom to an accessible world can turn a cached necessity failure into a success.
+    // Remove every cached modal row before the post-passes, including rows outside the
+    // candidate world whose evaluation traverses into it.
     inferred.extend(
         base.inferred()
             .iter()
             .filter(|axiom| axiom.world == scenario_world)
             .cloned(),
     );
+    inferred.retain(|axiom| axiom.rule_name.as_deref() != Some(modal::MODAL_RULE_IRI));
+
+    // Only run the DL and modal post-passes for NEW consequences when the governed
+    // recursive transaction reached its natural fixed point; doing so after a cut
+    // would smuggle uncharged derivations into the partial closure. A cut therefore
+    // carries no cached modal verdict rather than a stale conclusive one.
     if adjusted.status == crate::seam::BudgetStatus::Ok {
         dl::augment_inferred_with_dl(&mut inferred, with_candidate_edb)?;
+        augment_inferred_with_modal(&mut inferred, with_candidate_edb)?;
     }
     inferred.retain(|axiom| {
         let key = (
@@ -1427,13 +1618,13 @@ pub fn reason_program(
 /// agent-influenced input is genuinely chase-bounded, not relabeled after a full run.
 ///
 /// * `max_steps == None` (or a ceiling at/above the true closure) is byte-identical to the
-///   ungoverned evaluation: the forward chase, the n-ary head chase, and the DL post-pass
-///   all run, and the folded verdict is unchanged (`BudgetStatus::Ok`).
+///   ungoverned evaluation: the forward chase, the n-ary head chase, the DL post-pass, and
+///   typed modal evaluation all run, and the folded verdict is unchanged (`BudgetStatus::Ok`).
 /// * A ceiling BELOW the true closure size cuts the forward chase mid-flight and returns the
 ///   sound PARTIAL closure on a non-conclusive [`EvaluationStatus::BudgetExhausted`] verdict.
-///   The n-ary head chase and the DL post-pass are SKIPPED on a cut — running either over a
-///   truncated closure would smuggle uncharged derivations past the governor — and any
-///   formula-lowering residue is still disclosed in the preservation claim.
+///   The n-ary head chase, the DL post-pass, and modal evaluation are SKIPPED on a cut —
+///   running any over a truncated closure would smuggle uncharged derivations past the
+///   governor — and any formula-lowering residue is still disclosed in the preservation claim.
 ///
 /// # Errors
 ///
@@ -1476,6 +1667,7 @@ pub(crate) fn reason_program_budgeted(
     }
 
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
+    augment_inferred_with_modal(&mut inferred, edb)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
 
@@ -2515,6 +2707,7 @@ mod tests {
                 "reason/dl.rs",
                 "reason/refute.rs",
                 "reason/mod.rs",
+                "modal.rs",
                 "oracle.rs",
                 "certify.rs",
                 "lower.rs",
@@ -3575,5 +3768,240 @@ mod tests {
             "the same input + the same small max_steps must yield the SAME partial closure"
         );
         assert_eq!(a.provenance.consumed_budget.consumed, 7);
+    }
+
+    fn modal_fixture_quads(base: &str, include_atom_predicate: bool) -> Vec<RdfQuad> {
+        const RELATION: &str = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
+        let frame = format!("{base}/frame");
+        let formula = format!("{base}/F");
+        let body = format!("{base}/B");
+        let w0 = format!("{base}/w0");
+        let w1 = format!("{base}/w1");
+        let w2 = format!("{base}/w2");
+        let subject = format!("{base}/a");
+        let predicate = format!("{base}/knows");
+        let object = format!("{base}/b");
+
+        let mut quads = vec![
+            quad_in(&frame, &formula, crate::modal::NECESSARILY, &body),
+            quad_in(&frame, &formula, crate::modal::OVER_ACCESSIBILITY, RELATION),
+            quad_in(&frame, &formula, crate::modal::MODAL_EVAL_WORLD, &w0),
+            quad_in(&frame, &body, crate::modal::ATOM_SUBJECT, &subject),
+            quad_in(&frame, &body, crate::modal::ATOM_OBJECT, &object),
+            quad_in(&frame, &w0, RELATION, &w1),
+            quad_in(&frame, &w0, RELATION, &w2),
+            quad_in(&w1, &subject, &predicate, &object),
+        ];
+        if include_atom_predicate {
+            quads.push(quad_in(
+                &frame,
+                &body,
+                crate::modal::ATOM_PREDICATE,
+                &predicate,
+            ));
+        }
+        quads
+    }
+
+    #[test]
+    fn reason_all_certified_routes_modal_evaluation_through_the_native_closure() {
+        let store = dataset(modal_fixture_quads("https://example.org/modal", true));
+        let result = reason_all_certified(store.as_ref())
+            .expect("production certified reasoner evaluates modal frame")
+            .result;
+        let failure = result
+            .inferred()
+            .iter()
+            .find(|axiom| axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS)
+            .expect("necessity failure is in the production closure");
+        assert_eq!(failure.world, "https://example.org/modal/w0");
+        assert_eq!(failure.subject, "https://example.org/modal/F");
+        assert_eq!(failure.object, "<https://example.org/modal/B>");
+        assert_eq!(
+            failure.rule_name.as_deref(),
+            Some(crate::modal::MODAL_RULE_IRI)
+        );
+        assert_eq!(
+            failure.premises,
+            vec![(
+                "https://example.org/modal/a".to_owned(),
+                "https://example.org/modal/knows".to_owned(),
+                "<https://example.org/modal/b>".to_owned(),
+            )]
+        );
+
+        let counterexample = result
+            .inferred()
+            .iter()
+            .find(|axiom| axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD)
+            .expect("counterexample world is in the production closure");
+        assert_eq!(counterexample.world, "https://example.org/modal/w0");
+        assert_eq!(counterexample.object, "<https://example.org/modal/w2>");
+        assert_eq!(
+            counterexample.rule_name.as_deref(),
+            Some(crate::modal::MODAL_RULE_IRI)
+        );
+        assert_eq!(counterexample.premises.len(), 2);
+    }
+
+    #[test]
+    fn reason_all_ignores_unrelated_literal_sharpens_without_a_modal_frame() {
+        let unrelated = RdfQuad::new(
+            RdfTerm::iri("https://example.org/domain/source"),
+            "https://blackcatinformatics.ca/gmeow/sharpens",
+            RdfTerm::literal(purrdf::RdfLiteral::simple("a non-world value")),
+        )
+        .in_graph(RdfTerm::iri("https://example.org/domain/world"));
+        let result = reason_all(dataset(vec![unrelated]).as_ref())
+            .expect("ordinary sharpens data does not enter modal frame validation");
+        assert!(
+            !result
+                .inferred()
+                .iter()
+                .any(|axiom| axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI))
+        );
+    }
+
+    #[test]
+    fn reason_all_hard_fails_on_a_malformed_active_modal_edge() {
+        const RELATION: &str = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
+        let base = "https://example.org/malformed-active-edge";
+        let mut quads = modal_fixture_quads(base, true);
+        quads.push(
+            RdfQuad::new(
+                RdfTerm::iri(format!("{base}/w0")),
+                RELATION,
+                RdfTerm::literal(purrdf::RdfLiteral::simple("not a world IRI")),
+            )
+            .in_graph(RdfTerm::iri(format!("{base}/frame"))),
+        );
+
+        let err = reason_all(dataset(quads).as_ref())
+            .expect_err("an edge selected by the modal frame must remain fail-closed");
+        assert!(
+            err.message()
+                .contains("typed accessibility edge target world must be an IRI"),
+            "got: {err}"
+        );
+    }
+
+    #[test]
+    fn incremental_ground_insert_recomputes_modal_verdicts_across_worlds() {
+        let base = "https://example.org/incremental-modal";
+        let w2 = format!("{base}/w2");
+        let subject = format!("{base}/a");
+        let predicate = format!("{base}/knows");
+        let object_iri = format!("{base}/b");
+
+        let base_quads = modal_fixture_quads(base, true);
+        let base_edb = dataset(base_quads.clone());
+        let base_result = reason_all(base_edb.as_ref()).expect("base modal frame reasons");
+        assert!(base_result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS
+                && axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI)
+        }));
+        assert!(base_result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD
+                && axiom.object == format!("<{w2}>")
+        }));
+
+        let mut candidate_quads = base_quads;
+        candidate_quads.push(quad_in(&w2, &subject, &predicate, &object_iri));
+        let with_candidate_edb = dataset(candidate_quads);
+        let scratch = reason_all(with_candidate_edb.as_ref())
+            .expect("scratch reasoning recomputes the completed modal frame");
+        let object = RdfTerm::iri(object_iri);
+        let incremental = reason_ground_fact_insert_incremental(GroundFactIncrementalRequest {
+            base_edb: base_edb.as_ref(),
+            with_candidate_edb: with_candidate_edb.as_ref(),
+            base: &base_result,
+            scenario_world: &w2,
+            subject: &subject,
+            predicate: &predicate,
+            object: &object,
+            max_steps: None,
+        })
+        .expect("incremental reasoning recomputes modal verdicts");
+
+        let modal_axioms = |result: &ReasoningResult| {
+            result
+                .inferred()
+                .iter()
+                .filter(|axiom| axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI))
+                .cloned()
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(incremental.status, crate::seam::BudgetStatus::Ok);
+        assert_eq!(
+            modal_axioms(&incremental.result),
+            modal_axioms(&scratch),
+            "incremental modal rows must be identical to a scratch production closure"
+        );
+        assert!(incremental.result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_NECESSITY_HOLDS
+                && axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI)
+        }));
+        assert!(!incremental.result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS
+                || axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD
+        }));
+    }
+
+    #[test]
+    fn modal_augmentation_is_atomic_when_any_frame_is_malformed() {
+        let mut quads = modal_fixture_quads("https://example.org/valid-modal", true);
+        quads.extend(modal_fixture_quads(
+            "https://example.org/malformed-modal",
+            false,
+        ));
+        let edb = dataset(quads);
+        let mut inferred = run_reasoning_rules(edb.as_ref(), dl::structured_dl_rules())
+            .expect("both RDF-valid frames reach the modal boundary");
+        let before = inferred.clone();
+
+        let err = augment_inferred_with_modal(&mut inferred, edb.as_ref()).unwrap_err();
+        assert!(
+            err.message().contains(crate::modal::ATOM_PREDICATE),
+            "got: {err}"
+        );
+        assert_eq!(
+            inferred, before,
+            "a malformed frame must publish no partial modal verdicts"
+        );
+    }
+
+    #[test]
+    fn reason_program_routes_modal_evaluation_through_the_native_closure() {
+        // `reason_program` (the program-carrying path the slicetest competency-question
+        // projection and the conjecture lane run over) must evaluate typed modal frames on its
+        // completed closure, exactly like `reason_all_certified`/`reason_all_budgeted` —
+        // otherwise a completed program result could silently omit modal verdicts. An empty
+        // program carries the modal frame purely as EDB, so this exercises the same shared
+        // kernel through the program entry point.
+        let program = LogicProgram::new(vec![], vec![], vec![], None);
+        let store = dataset(modal_fixture_quads("https://example.org/modal", true));
+        let result =
+            reason_program(&program, store.as_ref()).expect("program reasoner evaluates the frame");
+
+        let failure = result
+            .inferred()
+            .iter()
+            .find(|axiom| axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS)
+            .expect("necessity failure is in the program closure");
+        assert_eq!(failure.world, "https://example.org/modal/w0");
+        assert_eq!(failure.subject, "https://example.org/modal/F");
+        assert_eq!(failure.object, "<https://example.org/modal/B>");
+        assert_eq!(
+            failure.rule_name.as_deref(),
+            Some(crate::modal::MODAL_RULE_IRI)
+        );
+
+        assert!(
+            result
+                .inferred()
+                .iter()
+                .any(|axiom| axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD),
+            "the counterexample world must reach the program closure too"
+        );
     }
 }

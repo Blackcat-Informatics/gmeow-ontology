@@ -7,7 +7,6 @@ set -euo pipefail
 script_dir=$(dirname -- "${BASH_SOURCE[0]}")
 # shellcheck source=build-support/common.sh
 source "$script_dir/../build-support/common.sh"
-
 usage() {
   cat >&2 << 'EOF'
 usage:
@@ -234,11 +233,11 @@ if [[ "$mode" == "write" ]]; then
 
   payload=$tmp_dir/payload.json
   source_tree_sha256=$(tracked_tree_digest)
-  manifest_sha256=$(sha256sum "$normalized_a" | cut -d' ' -f1)
+  manifest_sha256=$(gmeow_sha256_file "$normalized_a")
   generated_file_count=$(find "$generated_a" -type f | wc -l | tr -d ' ')
   generated_bytes=$(tree_bytes "$generated_a")
   bundle=$generated_a/dist/gmeow.gts
-  bundle_sha256=$(sha256sum "$bundle" | cut -d' ' -f1)
+  bundle_sha256=$(gmeow_sha256_file "$bundle")
   bundle_bytes=$(stat -c '%s' "$bundle")
   managed_file_count=$(jq '.files | length' "$normalized_a")
   managed_bytes=$(jq '[.files[].len] | add' "$normalized_a")
