@@ -128,7 +128,33 @@ fn ac3_pages_workflow_renders_from_source_and_uploads_ontology_docs() {
          Pages site through the maintained rendered-book proof via the exact step \
          `run: make maint-mdbook-smoke`, never from a stale or hand-copied tree"
     );
+    assert!(
+        source.contains("version=$(make --no-print-directory print-mdbook-ver)"),
+        "AC3 (pinned lane tooling): Pages must derive the mdBook cache identity from the \
+         Makefile pin instead of repeating the version literal"
+    );
+    assert!(
+        source.contains(
+            "path: .cache/gmeow-tools/mdbook/${{ steps.mdbook-version.outputs.version }}"
+        ) && source.contains(
+            "key: mdbook-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.mdbook-version.outputs.version }}"
+        ),
+        "AC3 (pinned lane tooling): Pages must cache exactly the versioned mdBook \
+         lane-tool root under an exact-version, platform-specific key"
+    );
     let smoke_recipe = target_recipe(&makefile(), "maint-mdbook-smoke");
+    assert_eq!(
+        target_recipe(&makefile(), "print-mdbook-ver").trim(),
+        r#"@echo "$(MDBOOK_VERSION)""#,
+        "AC3 (pinned lane tooling): the workflow-facing version target must print the \
+         Makefile's single mdBook version pin"
+    );
+    assert_eq!(
+        smoke_recipe.matches("|| true").count(),
+        2,
+        "AC3 (pinned lane tooling): both mdBook version probes must tolerate an unusable \
+         cached executable so the target can reinstall it or emit its explicit mismatch"
+    );
     assert!(
         smoke_recipe.contains("$(MAKE) check-sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
         "AC3 (source-backed export): the maintained mdBook smoke target must own the \

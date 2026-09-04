@@ -196,7 +196,10 @@ TEST_FIXTURE_TOOL := $(CARGO_TARGET_DIR)/debug/gmeow-dev
 print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
 	@echo "$(BINARYEN_VER)"
 
-.PHONY: help print-binaryen-ver \
+print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exactly this).
+	@echo "$(MDBOOK_VERSION)"
+
+.PHONY: help print-binaryen-ver print-mdbook-ver \
 	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
 	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-prebuild rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
@@ -1134,13 +1137,13 @@ maint-mdbook-smoke: ## Build and audit the emitted interactive mdBook with pinne
 	@set -euo pipefail; \
 		have=""; \
 		if [ -x "$(MDBOOK_BIN)" ]; then \
-			have="$$("$(MDBOOK_BIN)" --version 2>/dev/null | sed -n 's/^mdbook v\{0,1\}\([^ ]*\).*$$/\1/p')"; \
+			have="$$("$(MDBOOK_BIN)" --version 2>/dev/null | sed -n 's/^mdbook v\{0,1\}\([^ ]*\).*$$/\1/p' || true)"; \
 		fi; \
 		if [ "$$have" != "$(MDBOOK_VERSION)" ]; then \
 			cargo install mdbook --version "=$(MDBOOK_VERSION)" --locked --force \
 				--no-default-features --features search --root "$(MDBOOK_TOOL_ROOT)"; \
 		fi; \
-		have="$$("$(MDBOOK_BIN)" --version 2>/dev/null | sed -n 's/^mdbook v\{0,1\}\([^ ]*\).*$$/\1/p')"; \
+		have="$$("$(MDBOOK_BIN)" --version 2>/dev/null | sed -n 's/^mdbook v\{0,1\}\([^ ]*\).*$$/\1/p' || true)"; \
 		[ "$$have" = "$(MDBOOK_VERSION)" ] || { \
 			echo "ERROR: pinned mdBook $(MDBOOK_VERSION) was not obtained at $(MDBOOK_BIN) (reported '$$have')"; \
 			exit 1; \
