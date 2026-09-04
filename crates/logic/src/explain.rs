@@ -42,8 +42,36 @@ use std::hash::{BuildHasher, Hash, Hasher};
 use foldhash::fast::FixedState;
 use gmeow_errors::dag::{DagError, DagNode, walk};
 use hashbrown::HashTable;
+use purrdf::turtle::rule_iri;
 
 use crate::provenance::{ASSERT_RULE_IRI, mint_derivation_id, reifier_from_strings};
+
+const RULE_IRI_BASE: &str = "https://blackcatinformatics.ca/gmeow/rule/";
+const ANONYMOUS_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/rule/anonymous";
+const RECEIPT_RULE_IDENTITY_WIRE_PREFIX: &str = "gmeow-receipt-rule-identity-v1:";
+
+/// Resolve an engine rule label to the canonical full IRI exposed by public artifacts.
+pub(crate) fn canonical_rule_iri(rule: &str) -> String {
+    if rule.starts_with("https://") || rule.starts_with("http://") || rule.starts_with("urn:") {
+        rule.to_owned()
+    } else {
+        rule_iri(RULE_IRI_BASE, rule)
+    }
+}
+
+/// Encode the exact engine firing identity as a tagged standard `prov:value` literal.
+///
+/// Public `gmeow:viaRule` links always use [`canonical_rule_iri`], while derivation
+/// receipts continue to hash the engine's original bytes. The tagged literal keeps
+/// those raw bytes independently auditable without minting another ontology term.
+pub(crate) fn encode_receipt_rule_identity(rule: &str) -> String {
+    format!("{RECEIPT_RULE_IDENTITY_WIRE_PREFIX}{rule}")
+}
+
+/// Decode the raw receipt identity from its tagged `prov:value` wire form.
+pub(crate) fn decode_receipt_rule_identity(value: &str) -> Option<&str> {
+    value.strip_prefix(RECEIPT_RULE_IDENTITY_WIRE_PREFIX)
+}
 
 // ── Input row ────────────────────────────────────────────────────────────────
 
@@ -64,10 +92,20 @@ pub struct Row {
     pub obj: String,
     /// Content-addressed derivation IRI for this quad's firing.
     pub derivation_id: String,
-    /// The firing rule IRI (`logic:assert` for asserted facts).
+    /// The canonical public firing-rule IRI (`logic:assert` for asserted facts).
     pub rule_iri: String,
     /// Reifier IRIs of the antecedent quads consumed by the firing.
     pub source_quad_ids: Vec<String>,
+}
+
+/// One axiom's public explanation row plus its byte-exact receipt hash input.
+///
+/// The raw identity is intentionally not part of the public [`Row`] API: consumers
+/// see a canonical rule IRI, while production RDF projections can retain the exact
+/// native firing bytes independently in a tagged `prov:value`.
+pub(crate) struct AxiomReceipt {
+    pub(crate) row: Row,
+    pub(crate) raw_rule_identity: String,
 }
 
 // ── Errors ───────────────────────────────────────────────────────────────────
@@ -492,6 +530,54 @@ fn explain_with_index(
 
 // ── Reasoning-result bridge ────────────────────────────────────────────────────
 
+/// Build the canonical receipt for one inferred axiom.
+///
+/// This is the single raw-rule/public-rule/source/derivation recipe used by
+/// explanation and RDF artifact projections. It intentionally does not close the
+/// row set under missing premises; [`rows_for_result`] owns that explanation-tree
+/// concern.
+pub(crate) fn receipt_for_axiom(axiom: &crate::reason::InferredAxiom) -> AxiomReceipt {
+    let self_reifier = reifier_from_strings(&axiom.subject, &axiom.predicate, &axiom.object);
+    let receipt_rule_identity = match (axiom.is_edb, axiom.rule_name.as_deref()) {
+        (true, _) => ASSERT_RULE_IRI.to_owned(),
+        // The native chase hashes the rule identity exactly as carried by the firing
+        // (`el:...`, `dl:...`, or a full IRI). Preserve those bytes independently
+        // from the canonical public rule resource.
+        (false, Some(rule)) => rule.to_owned(),
+        (false, None) => ANONYMOUS_RULE_IRI.to_owned(),
+    };
+    let rule_iri = canonical_rule_iri(&receipt_rule_identity);
+    let source_quad_ids: Vec<String> = if axiom.is_edb {
+        vec![self_reifier]
+    } else {
+        axiom
+            .premises
+            .iter()
+            .map(|(subject, predicate, object)| {
+                reifier_from_strings(subject, predicate, &premise_object_n3(object))
+            })
+            .collect()
+    };
+    let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
+    AxiomReceipt {
+        row: Row {
+            graph: axiom.world.clone(),
+            subject: axiom.subject.clone(),
+            predicate: axiom.predicate.clone(),
+            obj: axiom.object.clone(),
+            derivation_id: mint_derivation_id(&receipt_rule_identity, &source_refs),
+            rule_iri,
+            source_quad_ids,
+        },
+        raw_rule_identity: receipt_rule_identity,
+    }
+}
+
+/// Build the canonical public explanation row for one inferred axiom.
+pub(crate) fn row_for_axiom(axiom: &crate::reason::InferredAxiom) -> Row {
+    receipt_for_axiom(axiom).row
+}
+
 /// Build the premise-closed [`Row`] set for a reasoning result — the SINGLE
 /// row-building implementation shared by [`explanations_for_result`] (which then
 /// explains every row) and the bounded single-target `explain(witness)` consumers
@@ -501,12 +587,13 @@ fn explain_with_index(
 /// [`Row`]: the world becomes the row `graph`; the axiom's `(subject, predicate,
 /// object)` its `(S, P, O)` (the `object` is already the `term_display`/N3 surface
 /// the reasoner carries, so it is used verbatim — never re-encoded); and the firing
-/// rule its `rule_iri` (an asserted EDB row carries
+/// rule becomes the canonical full IRI in `rule_iri` (an asserted EDB row carries
 /// [`crate::provenance::ASSERT_RULE_IRI`]). An asserted row lists its OWN reifier as
 /// its single source — the self-reference [`reconstruct_tree`] filters out, so it
 /// stays a leaf; a derived row lists the reifiers of its immediate premises. The
 /// per-row `derivation_id` is the content-addressed
-/// [`crate::provenance::mint_derivation_id`] over that rule and those sources.
+/// [`crate::provenance::mint_derivation_id`] over the raw native firing identity and
+/// those sources; canonicalization never changes content-addressed receipt identity.
 ///
 /// # Premise object surface
 ///
@@ -543,35 +630,10 @@ pub fn rows_for_result(result: &crate::result::ReasoningResult) -> Result<Vec<Ro
 
     // 1. One row per inferred axiom (derived or asserted-EDB echo).
     for axiom in result.inferred() {
-        let self_reifier = reifier_from_strings(&axiom.subject, &axiom.predicate, &axiom.object);
-        let rule_iri = axiom
-            .rule_name
-            .clone()
-            .unwrap_or_else(|| assert_rule.clone());
-        // Asserted facts are leaves: they carry their own reifier as the sole source
-        // (filtered out during reconstruction). A derived quad cites the reifiers of
-        // its immediate premises (object normalized to the row N3 surface).
-        let source_quad_ids: Vec<String> = if axiom.is_edb {
-            vec![self_reifier.clone()]
-        } else {
-            axiom
-                .premises
-                .iter()
-                .map(|(s, p, o)| reifier_from_strings(s, p, &premise_object_n3(o)))
-                .collect()
-        };
-        let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
-        let derivation_id = mint_derivation_id(&rule_iri, &source_refs);
-        present.insert((axiom.world.clone(), self_reifier));
-        rows.push(Row {
-            graph: axiom.world.clone(),
-            subject: axiom.subject.clone(),
-            predicate: axiom.predicate.clone(),
-            obj: axiom.object.clone(),
-            derivation_id,
-            rule_iri,
-            source_quad_ids,
-        });
+        let row = row_for_axiom(axiom);
+        let self_reifier = reifier_from_strings(&row.subject, &row.predicate, &row.obj);
+        present.insert((row.graph.clone(), self_reifier));
+        rows.push(row);
     }
 
     // 2. Close the row set under premises: any premise NOT already present as a row

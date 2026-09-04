@@ -14,3 +14,17 @@ gmeow_require_command() {
     return 2
   fi
 }
+
+# Print the lowercase SHA-256 digest of one file without its filename.
+gmeow_sha256_file() {
+  local path=$1
+
+  if command -v sha256sum > /dev/null 2>&1; then
+    sha256sum -- "$path" | cut -d' ' -f1
+  elif command -v shasum > /dev/null 2>&1; then
+    shasum -a 256 -- "$path" | cut -d' ' -f1
+  else
+    printf 'sha256sum or shasum is required\n' >&2
+    return 2
+  fi
+}

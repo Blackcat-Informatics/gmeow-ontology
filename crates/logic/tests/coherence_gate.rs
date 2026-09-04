@@ -32,7 +32,7 @@ use gmeow_logic::reason::dl_consistency;
 use gmeow_logic::reasoning_graphs::is_object_level_named_graph;
 use gmeow_logic::store::WorldStore;
 use purrdf::{NativeRdfFormat, RdfDatasetBuilder, RdfQuad, RdfTerm, dataset_from_bytes};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -73,6 +73,13 @@ const LOGIC_TRANSITIVE_PROPERTY: &str = "https://blackcatinformatics.ca/logic/tr
 const LOGIC_SYMMETRIC_PROPERTY: &str = "https://blackcatinformatics.ca/logic/symmetricProperty";
 const LOGIC_CHARACTERIZES: &str = "https://blackcatinformatics.ca/logic/characterizes";
 const LOGIC_CHARACTERISTIC_SORT: &str = "https://blackcatinformatics.ca/logic/characteristicSort";
+const LOGIC_NECESSARILY: &str = "https://blackcatinformatics.ca/logic/necessarily";
+const LOGIC_POSSIBLY: &str = "https://blackcatinformatics.ca/logic/possibly";
+const LOGIC_OVER_ACCESSIBILITY: &str = "https://blackcatinformatics.ca/logic/overAccessibility";
+const LOGIC_MODAL_EVAL_WORLD: &str = "https://blackcatinformatics.ca/logic/modalEvalWorld";
+const LOGIC_ATOM_SUBJECT: &str = "https://blackcatinformatics.ca/logic/atomSubject";
+const LOGIC_ATOM_PREDICATE: &str = "https://blackcatinformatics.ca/logic/atomPredicate";
+const LOGIC_ATOM_OBJECT: &str = "https://blackcatinformatics.ca/logic/atomObject";
 const LOGIC_IRREFLEXIVITY_VIOLATION: &str =
     "https://blackcatinformatics.ca/logic/IrreflexivityViolation";
 const LOGIC_ASYMMETRY_VIOLATION: &str = "https://blackcatinformatics.ca/logic/AsymmetryViolation";
@@ -359,13 +366,28 @@ fn is_characteristic_marker(iri: &str) -> bool {
     )
 }
 
+fn is_modal_frame_predicate(predicate: &str) -> bool {
+    matches!(
+        predicate,
+        LOGIC_NECESSARILY | LOGIC_POSSIBLY | LOGIC_OVER_ACCESSIBILITY | LOGIC_MODAL_EVAL_WORLD
+    )
+}
+
+fn projected_iri_quad(subject: &str, predicate: &str, object: &str, graph: &str) -> String {
+    format!("<{subject}> <{predicate}> <{object}> <{graph}> .\n")
+}
+
 /// Project the committed bundle to the IRI-only fact set the characteristic pass needs,
 /// world-scoped in [`CHAR_WORLD`]:
 ///
 /// - each `?P rdf:type <characteristic marker>` type triple (owl: or logic:),
 /// - each central record `?rec logic:characterizes ?P` / `?rec logic:characteristicSort ?sort`,
 /// - every edge `?s ?P ?o` whose predicate ?P carries a characteristic, so the pass can
-///   close/mirror it and detect a self- or mutual-pair clash.
+///   close/mirror it and detect a self- or mutual-pair clash,
+/// - the complete modal frame, atom binding, typed-accessibility, and world-scoped atom
+///   closure for any such edge that is modal grammar. Foundation evaluation is atomic over
+///   malformed modal frames, so projecting only a characterized `logic:overAccessibility`
+///   edge would manufacture malformed input that the shipped bundle does not contain.
 ///
 /// The foundation chase is all-IRI, so literal- and blank-object triples are dropped.
 fn project_characteristic_facts(onto: &purrdf::RdfDataset) -> BTreeSet<String> {
@@ -382,7 +404,10 @@ fn project_characteristic_facts(onto: &purrdf::RdfDataset) -> BTreeSet<String> {
         }
     }
     // Pass 2: emit the markers, the record links, and the edges of characterized predicates.
+    // Remember any modal formula pulled into that projection so pass 3 can retain its whole
+    // bounded-Kripke frame rather than manufacturing a partial one.
     let mut lines: BTreeSet<String> = BTreeSet::new();
+    let mut modal_formulas: BTreeSet<String> = BTreeSet::new();
     for q in onto.owned_quads() {
         let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
             continue;
@@ -393,7 +418,99 @@ fn project_characteristic_facts(onto: &purrdf::RdfDataset) -> BTreeSet<String> {
             pred => characterized.contains(pred),
         };
         if emit {
-            lines.insert(format!("<{s}> <{}> <{o}> <{CHAR_WORLD}> .\n", q.predicate));
+            lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
+            if is_modal_frame_predicate(&q.predicate) {
+                modal_formulas.insert(s.clone());
+            }
+        }
+    }
+
+    if modal_formulas.is_empty() {
+        return lines;
+    }
+
+    // Pass 3a: retain every operator/frame binding for each selected modal formula and
+    // collect the bodies, evaluation worlds, and typed relations whose closure is needed.
+    let mut modal_bodies: BTreeSet<String> = BTreeSet::new();
+    let mut modal_worlds: BTreeSet<String> = BTreeSet::new();
+    let mut modal_relations: BTreeSet<String> = BTreeSet::new();
+    for q in onto.owned_quads() {
+        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
+            continue;
+        };
+        if !modal_formulas.contains(s) || !is_modal_frame_predicate(&q.predicate) {
+            continue;
+        }
+        lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
+        match q.predicate.as_str() {
+            LOGIC_NECESSARILY | LOGIC_POSSIBLY => {
+                modal_bodies.insert(o.clone());
+            }
+            LOGIC_OVER_ACCESSIBILITY => {
+                modal_relations.insert(o.clone());
+            }
+            LOGIC_MODAL_EVAL_WORLD => {
+                modal_worlds.insert(o.clone());
+            }
+            _ => unreachable!("modal-frame predicate was matched above"),
+        }
+    }
+
+    // Pass 3b: retain each body's ground-atom bindings as ONE complete (subject, predicate,
+    // object) triple per body, so pass 3c admits a ground-atom presence quad only when its
+    // FULL triple matches a single body — never a cross-body mix of an atomSubject from one
+    // body with an atomPredicate/atomObject from another. The modal kernel will still reject
+    // missing, repeated, non-IRI, or otherwise malformed bindings atomically.
+    let mut body_atom_s: BTreeMap<String, String> = BTreeMap::new();
+    let mut body_atom_p: BTreeMap<String, String> = BTreeMap::new();
+    let mut body_atom_o: BTreeMap<String, String> = BTreeMap::new();
+    for q in onto.owned_quads() {
+        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
+            continue;
+        };
+        if !modal_bodies.contains(s) {
+            continue;
+        }
+        match q.predicate.as_str() {
+            LOGIC_ATOM_SUBJECT => {
+                body_atom_s.insert(s.clone(), o.clone());
+            }
+            LOGIC_ATOM_PREDICATE => {
+                body_atom_p.insert(s.clone(), o.clone());
+            }
+            LOGIC_ATOM_OBJECT => {
+                body_atom_o.insert(s.clone(), o.clone());
+            }
+            _ => continue,
+        }
+        lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
+    }
+    // The exact (subject, predicate, object) ground atom of each body that carries all three.
+    let atom_bindings: BTreeSet<(String, String, String)> = modal_bodies
+        .iter()
+        .filter_map(|body| {
+            Some((
+                body_atom_s.get(body)?.clone(),
+                body_atom_p.get(body)?.clone(),
+                body_atom_o.get(body)?.clone(),
+            ))
+        })
+        .collect();
+
+    // Pass 3c: retain accessibility edges and ground-atom truth in their ORIGINAL named
+    // worlds. Collapsing atom presence into CHAR_WORLD would silently change a modal
+    // verdict; preserving the source graph keeps evaluation-world identity exact.
+    for q in onto.owned_quads() {
+        let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&q.subject, &q.object) else {
+            continue;
+        };
+        if modal_worlds.contains(s) && modal_relations.contains(&q.predicate) {
+            lines.insert(projected_iri_quad(s, &q.predicate, o, CHAR_WORLD));
+        }
+        if atom_bindings.contains(&(s.clone(), q.predicate.clone(), o.clone()))
+            && let Some(RdfTerm::Iri(graph)) = &q.graph_name
+        {
+            lines.insert(projected_iri_quad(s, &q.predicate, o, graph));
         }
     }
     lines

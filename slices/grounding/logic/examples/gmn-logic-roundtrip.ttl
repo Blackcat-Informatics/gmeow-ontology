@@ -84,6 +84,9 @@ ex:aliceTrustworthy
 ex:aliceReliable
     a logic:Formula ;
     rdfs:label "Reliable(alice)"@x-gmeow-english ;
+    logic:atomSubject ex:alice ;
+    logic:atomPredicate rdf:type ;
+    logic:atomObject ex:Reliable ;
     logic:relation ex:Reliable ;
     logic:argument [
         a logic:TermCarrier ;
@@ -110,19 +113,28 @@ ex:reliabilitySequent
 # The box (necessity) and diamond (possibility) are the standard translation over ONE named
 # typed accessibility relation, pinned through logic:overAccessibility — here the typed
 # alethic relation logic:epistemicallyPossible. A well-formed modal node never floats over
-# the bare logic:accessibleFrom union, which would manufacture cross-type entailment.
+# the bare logic:accessibleFrom union, which would manufacture cross-type entailment. The
+# explicit example-world self-edge makes this scene an executable finite frame. Because the
+# production loader roots the ground atom in graph/examples instead, both modal formulas
+# fail at ex:modalWorld and thereby demonstrate that truth remains world-indexed.
+
+ex:modalWorld logic:epistemicallyPossible ex:modalWorld .
+
+ex:alice a ex:Reliable .
 
 ex:necessarilyReliable
     a logic:Formula ;
     rdfs:label "□ Reliable(alice)  (over epistemicallyPossible)"@x-gmeow-english ;
     logic:necessarily ex:aliceReliable ;
-    logic:overAccessibility logic:epistemicallyPossible .
+    logic:overAccessibility logic:epistemicallyPossible ;
+    logic:modalEvalWorld ex:modalWorld .
 
 ex:possiblyReliable
     a logic:Formula ;
     rdfs:label "◇ Reliable(alice)  (over epistemicallyPossible)"@x-gmeow-english ;
     logic:possibly ex:aliceReliable ;
-    logic:overAccessibility logic:epistemicallyPossible .
+    logic:overAccessibility logic:epistemicallyPossible ;
+    logic:modalEvalWorld ex:modalWorld .
 
 #### §5  Belnap-graded verdict witness — BelnapTrue realized as InfoSupported ####
 # Restating the canonical algebra→verdict binding (never re-minting it) lets the scene

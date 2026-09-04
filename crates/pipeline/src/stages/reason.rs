@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `reason` stage: native EL/DL reasoned closure + artifacts — the SOLE
+//! The `reason` stage: native EL/DL closure, typed-modal evaluation, and artifacts — the SOLE
 //! reasoning pass.
 //!
 //! It reasons ONCE over the object-level EDB
@@ -853,6 +853,273 @@ mod tests {
             bundle.graph_digest(crate::stages::carrier::GRAPH_DIAGNOSTICS),
             bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
             "graph/diagnostics always carries the run's native contract evidence"
+        );
+    }
+
+    #[test]
+    fn reason_product_projects_modal_verdict_and_counterexample_into_stage_reason() {
+        let nq = br#"
+<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/necessarily> <https://example.org/modal/B> <https://example.org/modal/frame> .
+<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/overAccessibility> <https://blackcatinformatics.ca/logic/epistemicallyPossible> <https://example.org/modal/frame> .
+<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalEvalWorld> <https://example.org/modal/w0> <https://example.org/modal/frame> .
+<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomSubject> <https://example.org/modal/a> <https://example.org/modal/frame> .
+<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomPredicate> <https://example.org/modal/knows> <https://example.org/modal/frame> .
+<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomObject> <https://example.org/modal/b> <https://example.org/modal/frame> .
+<https://example.org/modal/w0> <https://blackcatinformatics.ca/logic/epistemicallyPossible> <https://example.org/modal/w1> <https://example.org/modal/frame> .
+<https://example.org/modal/w0> <https://blackcatinformatics.ca/logic/epistemicallyPossible> <https://example.org/modal/w2> <https://example.org/modal/frame> .
+<https://example.org/modal/a> <https://example.org/modal/knows> <https://example.org/modal/b> <https://example.org/modal/w1> .
+"#;
+        let reasoned = reason_artifacts(nq).expect("reason modal frame");
+        let modal = reasoned
+            .result
+            .inferred()
+            .iter()
+            .find(|axiom| {
+                axiom.predicate == "https://blackcatinformatics.ca/logic/modalNecessityFails"
+            })
+            .expect("typed production result carries the modal verdict");
+        assert_eq!(modal.world, "https://example.org/modal/w0");
+        assert_eq!(modal.subject, "https://example.org/modal/F");
+        assert_eq!(modal.object, "<https://example.org/modal/B>");
+        assert_eq!(
+            modal.rule_name.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
+        );
+        assert_eq!(
+            modal.premises,
+            vec![(
+                "https://example.org/modal/a".to_owned(),
+                "https://example.org/modal/knows".to_owned(),
+                "<https://example.org/modal/b>".to_owned(),
+            )]
+        );
+        let body_source = gmeow_logic::provenance::reifier_from_strings(
+            "https://example.org/modal/a",
+            "https://example.org/modal/knows",
+            "<https://example.org/modal/b>",
+        );
+        let access_source = gmeow_logic::provenance::reifier_from_strings(
+            "https://example.org/modal/w0",
+            "https://blackcatinformatics.ca/logic/epistemicallyPossible",
+            "<https://example.org/modal/w2>",
+        );
+        let verdict_derivation = gmeow_logic::provenance::mint_derivation_id(
+            "https://blackcatinformatics.ca/logic/rule/modal-evaluation",
+            &[body_source.as_str()],
+        );
+        let counterexample_derivation = gmeow_logic::provenance::mint_derivation_id(
+            "https://blackcatinformatics.ca/logic/rule/modal-evaluation",
+            &[body_source.as_str(), access_source.as_str()],
+        );
+        let counterexample = reasoned
+            .result
+            .inferred()
+            .iter()
+            .find(|axiom| {
+                axiom.predicate == "https://blackcatinformatics.ca/logic/modalCounterexampleWorld"
+            })
+            .expect("typed production result carries the counterexample world");
+        assert_eq!(counterexample.world, "https://example.org/modal/w0");
+        assert_eq!(counterexample.subject, "https://example.org/modal/F");
+        assert_eq!(counterexample.object, "<https://example.org/modal/w2>");
+        assert_eq!(
+            counterexample.rule_name.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
+        );
+        assert_eq!(
+            counterexample.premises,
+            vec![
+                (
+                    "https://example.org/modal/a".to_owned(),
+                    "https://example.org/modal/knows".to_owned(),
+                    "<https://example.org/modal/b>".to_owned(),
+                ),
+                (
+                    "https://example.org/modal/w0".to_owned(),
+                    "https://blackcatinformatics.ca/logic/epistemicallyPossible".to_owned(),
+                    "<https://example.org/modal/w2>".to_owned(),
+                ),
+            ]
+        );
+        assert!(
+            reasoned.closure.contains(
+                "<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalNecessityFails> <https://example.org/modal/B> ."
+            ),
+            "stage-reason's closure must carry the shared modal verdict"
+        );
+        assert!(
+            reasoned.closure.contains(
+                "<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalCounterexampleWorld> <https://example.org/modal/w2> ."
+            ),
+            "stage-reason's closure must carry the exact modal counterexample"
+        );
+        for artifact in [&reasoned.closure, &reasoned.explanations] {
+            assert!(
+                artifact.contains("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
+            );
+            assert!(artifact.contains(&body_source));
+            assert!(artifact.contains(&access_source));
+            assert!(artifact.contains(&verdict_derivation));
+            assert!(artifact.contains(&counterexample_derivation));
+            assert!(artifact.contains("https://example.org/modal/w0"));
+        }
+        let product = reason_product(nq).expect("stage-reason product");
+        let reasoning_graph = product.dataset().project_named_graph(GRAPH_REASONING);
+        let projected = reasoning_graph.owned_quads().collect::<Vec<_>>();
+        assert!(projected.iter().any(|quad| {
+            quad.predicate == "https://blackcatinformatics.ca/gmeow/viaRule"
+                && matches!(
+                    &quad.object,
+                    RdfTerm::Iri(iri)
+                        if iri == "https://blackcatinformatics.ca/logic/rule/modal-evaluation"
+                )
+        }));
+        assert!(projected.iter().any(|quad| {
+            quad.predicate == "https://blackcatinformatics.ca/logic/derivationIdentifier"
+                && matches!(
+                    &quad.object,
+                    RdfTerm::Literal(literal) if literal.lexical_form == verdict_derivation
+                )
+        }));
+        assert!(projected.iter().any(|quad| {
+            quad.predicate == "https://blackcatinformatics.ca/logic/derivationIdentifier"
+                && matches!(
+                    &quad.object,
+                    RdfTerm::Literal(literal) if literal.lexical_form == counterexample_derivation
+                )
+        }));
+        assert!(projected.iter().any(|quad| {
+            quad.predicate == "http://www.w3.org/ns/prov#wasDerivedFrom"
+                && matches!(&quad.object, RdfTerm::Iri(iri) if iri.as_str() == body_source.as_str())
+        }));
+        assert!(projected.iter().any(|quad| {
+            quad.predicate == "http://www.w3.org/ns/prov#wasDerivedFrom"
+                && matches!(&quad.object, RdfTerm::Iri(iri) if iri.as_str() == access_source.as_str())
+        }));
+
+        let handle = product
+            .bundle()
+            .handle(GRAPH_REASONING)
+            .expect("stage-reason pins its typed result");
+        let PipelineHandle::Reasoning(transported) = &handle.payload else {
+            panic!("graph/reasoning must carry a Reasoning handle");
+        };
+        let transported_modal = transported
+            .inferred()
+            .iter()
+            .find(|axiom| {
+                axiom.predicate == "https://blackcatinformatics.ca/logic/modalNecessityFails"
+            })
+            .expect("stage-reason handle retains modal verdict");
+        assert_eq!(transported_modal, modal);
+        let transported_counterexample = transported
+            .inferred()
+            .iter()
+            .find(|axiom| {
+                axiom.predicate == "https://blackcatinformatics.ca/logic/modalCounterexampleWorld"
+            })
+            .expect("stage-reason handle retains the modal counterexample");
+        assert_eq!(transported_counterexample, counterexample);
+    }
+
+    #[test]
+    fn shipped_modal_example_is_a_complete_reason_product_frame() {
+        // Parse only the authored example under test, root it exactly as source-load does,
+        // and hand its in-memory N-Quads to the actual stage-reason product. The example's
+        // frame is self-accessible while its ground atom remains in graph/examples, so both
+        // modal formulas must fail at the distinct example world. This is read-only fixture
+        // consumption: no corpus producer, cache fallback, or foundation evaluator is
+        // involved.
+        let example = purrdf::parse_dataset(
+            include_bytes!("../../../../slices/grounding/logic/examples/gmn-logic-roundtrip.ttl"),
+            "text/turtle",
+            None,
+        )
+        .expect("parse the shipped modal example");
+        let rooted = crate::stages::carrier::rooted_in_graph(
+            example.as_ref(),
+            gmeow_logic::reasoning_graphs::GRAPH_EXAMPLES,
+        )
+        .expect("root the example in its production named world");
+        let nq = purrdf::serialize_dataset(
+            rooted.as_ref(),
+            "application/n-quads",
+            purrdf::SerializeGraph::Dataset,
+        )
+        .expect("serialize the rooted example as in-memory N-Quads");
+
+        let product = reason_product(&nq).expect("the shipped modal frame must reason");
+        let handle = product
+            .bundle()
+            .handle(GRAPH_REASONING)
+            .expect("stage-reason pins its typed result");
+        let PipelineHandle::Reasoning(result) = &handle.payload else {
+            panic!("graph/reasoning must carry a Reasoning handle");
+        };
+        for (formula, predicate) in [
+            (
+                "https://blackcatinformatics.ca/gmeow/examples/logic/necessarilyReliable",
+                "https://blackcatinformatics.ca/logic/modalNecessityFails",
+            ),
+            (
+                "https://blackcatinformatics.ca/gmeow/examples/logic/possiblyReliable",
+                "https://blackcatinformatics.ca/logic/modalPossibilityFails",
+            ),
+        ] {
+            let verdict = result
+                .inferred()
+                .iter()
+                .find(|axiom| axiom.subject == formula && axiom.predicate == predicate)
+                .unwrap_or_else(|| panic!("missing production modal verdict for {formula}"));
+            assert_eq!(
+                verdict.world,
+                "https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld"
+            );
+            assert_eq!(
+                verdict.rule_name.as_deref(),
+                Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
+            );
+        }
+        let counterexample = result
+            .inferred()
+            .iter()
+            .find(|axiom| {
+                axiom.subject
+                    == "https://blackcatinformatics.ca/gmeow/examples/logic/necessarilyReliable"
+                    && axiom.predicate
+                        == "https://blackcatinformatics.ca/logic/modalCounterexampleWorld"
+            })
+            .expect("shipped necessity verdict carries its exact counterexample world");
+        assert_eq!(
+            counterexample.object,
+            "<https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld>"
+        );
+        assert_eq!(
+            counterexample.world,
+            "https://blackcatinformatics.ca/gmeow/examples/logic/modalWorld"
+        );
+        assert_eq!(
+            counterexample.rule_name.as_deref(),
+            Some("https://blackcatinformatics.ca/logic/rule/modal-evaluation")
+        );
+    }
+
+    #[test]
+    fn reason_product_hard_fails_on_malformed_modal_frames() {
+        let nq = br#"
+<https://example.org/valid/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/valid/B> <https://example.org/valid/w> .
+<https://example.org/valid/B> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://example.org/valid/C> <https://example.org/valid/w> .
+<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/necessarily> <https://example.org/modal/B> <https://example.org/modal/frame> .
+<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/overAccessibility> <https://blackcatinformatics.ca/logic/accessibleFrom> <https://example.org/modal/frame> .
+<https://example.org/modal/F> <https://blackcatinformatics.ca/logic/modalEvalWorld> <https://example.org/modal/w0> <https://example.org/modal/frame> .
+<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomSubject> <https://example.org/modal/a> <https://example.org/modal/frame> .
+<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomPredicate> <https://example.org/modal/knows> <https://example.org/modal/frame> .
+<https://example.org/modal/B> <https://blackcatinformatics.ca/logic/atomObject> <https://example.org/modal/b> <https://example.org/modal/frame> .
+"#;
+        let err = reason_product(nq).expect_err("malformed modal frame must fail closed");
+        assert!(
+            err.message().contains("prose-only"),
+            "the hard-fail should name the malformed modal accessibility: {err}"
         );
     }
 
