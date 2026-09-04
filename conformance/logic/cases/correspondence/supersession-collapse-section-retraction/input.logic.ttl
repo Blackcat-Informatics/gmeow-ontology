@@ -24,9 +24,9 @@ ex:collapse a logic:Correspondence ;
     logic:getLeg ex:collapseGet ;
     logic:recoveryCase ex:collapseRecovery .
 
-# The get leg reads the language's signSystemKind; the retraction (put) is its
-# structural inverse (recover the class from the kind value).
-ex:collapseGet gmeow:path ex:collapseStep .
+# The get leg consumes the source type relation exercised by the recovery case;
+# the retraction (put) is its structural inverse.
+ex:collapseGet gmeow:path rdf:type .
 
 # The complete source query class is executed, not inferred from the mechanically derived
 # path inverse: the distinct kind value is what permits exact recovery of FormalLanguage.

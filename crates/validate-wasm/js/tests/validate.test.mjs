@@ -58,6 +58,39 @@ test("a conforming instance validates clean against the real bundle", () => {
   );
 });
 
+test("a bare Entity surfaces authored advice through the real wasm bundle", () => {
+  const json = validate(
+    `${PREFIXES}ex:bare a gmeow:Entity .\n`,
+    "turtle",
+    BUNDLE,
+    GMEOW_NS,
+    "bare-entity.ttl",
+  );
+  const findings = JSON.parse(json).findings ?? [];
+  const advice = findings.find(
+    (finding) =>
+      finding.code?.startsWith("advice.") &&
+      finding.suggestions?.includes(
+        "Type each instance with its most specific sortal (Agent, InformationObject, PhysicalObject, SocialObject) and let it inherit Entity; attach the universal facets here because they range over the whole sortal spine.",
+      ) &&
+      finding.suggestions?.includes(
+        "Use when: Use as the universal domain when a property, facet, or claim must attach to anything that persists and can bear properties — the anchor for the domain-free facets (granularity, determinacy, sensitivity, consumer eligibility) that are defined Entity-wide.",
+      ),
+  );
+  assert.ok(
+    advice,
+    `a bare gmeow:Entity must surface its authored howToUse and useWhen advice: ${json}`,
+  );
+  assert.equal(advice.severity, "note");
+  assert.ok(
+    !findings.some(
+      (finding) =>
+        finding.code?.startsWith("shacl.") && finding.severity === "info",
+    ),
+    `the raw shacl.* Info finding must be suppressed after advisory projection: ${json}`,
+  );
+});
+
 test("a shape-violating instance yields an error finding", () => {
   // gmeow:ToolCallShape requires gmeow:usedTool (sh:minCount 1); a bare
   // gmeow:ToolCall violates it — a Tier-1 SHACL catch that needs no reasoner.
