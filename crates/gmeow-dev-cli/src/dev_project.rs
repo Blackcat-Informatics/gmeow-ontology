@@ -99,9 +99,10 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
     let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
         .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
     // The W4 conjecture-playground demo library: the committed curated
-    // `logic:Conjecture` corpus, shipped verbatim as a site sub-asset. No-optionality —
-    // a missing example is a HARD FAIL (never a silently empty playground); the release
-    // path also hard-fails on an empty declared `ConjectureDemo` sub-asset.
+    // `logic:Conjecture` corpus, shipped verbatim as a shared interactive sub-asset.
+    // No-optionality — a missing example is a HARD FAIL (never a silently empty
+    // playground); the release path also hard-fails on an empty declared
+    // `ConjectureDemo` sub-asset.
     let conjectures_path = root.join("slices/grounding/logic/examples/conjectures.ttl");
     let conjectures_ttl = std::fs::read(&conjectures_path).map_err(|e| {
         fail(format!(
@@ -253,7 +254,7 @@ pub fn sync_docs(update: bool, lang: Option<&str>) -> Result<DocsSyncReport, i32
     let site = gmeow_docs::render_site_lang_exec(&model, &source_lang, &exec).files;
     let snippets =
         source_snippets(&site).map_err(|e| fail(format!("cannot render snippets: {e}")))?;
-    let mdbook = render_source_book(&model);
+    let mdbook = render_source_book(&model, &exec);
     let pdf = render_source_print(&root, &model)
         .map_err(|e| fail(format!("cannot render print docs: {e}")))?;
     let pydantic = gmeow_pipeline::stages::pydantic::render_models_python_package(&root)
@@ -464,15 +465,18 @@ pub(crate) fn content_address_distributions(
 /// bundle, the conjecture demo library) into the release-instance manifest.
 ///
 /// Pricing is DISTRIBUTION-PARAMETERIZED: `sub_asset_pricing()` yields one
-/// `(owner, sub-asset, prefix, media type)` row per owning distribution, and each is
-/// content-addressed out of THAT OWNER'S rendered tree. A site-only pricing would have
-/// left the console's copy of the same 7 MB wasm image with no release digest at all.
+/// owner-specific row per owning distribution, and each is content-addressed out of THAT
+/// OWNER'S rendered tree. A site-only pricing would leave both the packed mdBook and
+/// console copies of the same 7 MB wasm image with no release digest at all.
 ///
 /// The digest hangs off the SHARED `sub_asset_iri` subject the carrier catalog prices
-/// digest-free. Because that subject is shared, two owners pricing one sub-asset to two
-/// different digests is a contradiction — the site and the console assemble the identical
-/// engine set from the identical `interactive_asset_files` producer — so a disagreement is
-/// refused here rather than published as an ambiguous release row.
+/// digest-free. Because that subject is shared, any owners pricing one sub-asset to
+/// different digests create a contradiction — the site, packed mdBook, and console
+/// assemble the identical engine set from the identical `interactive_asset_files`
+/// producer. Their owner-tree layout roots differ (`assets/` versus mdBook's
+/// `src/assets/`), so pricing rewrites only that catalog-declared root to the canonical
+/// sub-asset path before hashing; a payload disagreement is still refused here rather
+/// than published as an ambiguous release row.
 ///
 /// This release render is unconditionally interactive (`exec` is hard-required by
 /// `sync_docs`), so every declared sub-asset is a mandatory output: one that produced zero
@@ -485,7 +489,10 @@ pub(crate) fn price_sub_assets(
 
     let mut entries = Vec::new();
     let mut digest_by_slug: BTreeMap<&str, String> = BTreeMap::new();
-    for (owner, slug, prefix, media_type) in sub_asset_pricing() {
+    for pricing in sub_asset_pricing() {
+        let owner = pricing.owner;
+        let slug = pricing.slug;
+        let prefix = pricing.tree_path_prefix.as_str();
         let owner_row = distribution_row(owner).ok_or_else(|| {
             error::sync(format!(
                 "sub-asset owner {owner:?} is not a declared distribution"
@@ -499,8 +506,10 @@ pub(crate) fn price_sub_assets(
         })?;
         let subtree: BTreeMap<String, Vec<u8>> = tree
             .iter()
-            .filter(|(p, _)| p.as_str() == prefix || p.starts_with(prefix))
-            .map(|(p, b)| (p.clone(), b.clone()))
+            .filter_map(|(path, bytes)| {
+                canonical_sub_asset_path(path, prefix, pricing.canonical_path_prefix)
+                    .map(|canonical| (canonical, bytes.clone()))
+            })
             .collect();
         if subtree.is_empty() {
             return Err(error::sync(format!(
@@ -532,10 +541,30 @@ pub(crate) fn price_sub_assets(
             slug: slug.to_string(),
             rel_path: format!("{}/{prefix}", owner_row.rel_path),
             blake3,
-            media_type: media_type.to_string(),
+            media_type: pricing.media_type.to_string(),
         });
     }
     Ok(entries)
+}
+
+/// Map one owner-tree path onto the shared sub-asset's canonical path namespace.
+///
+/// Directory prefixes retain the suffix below that directory. File prefixes match only
+/// the exact file, so `assets/conjectures.ttl.backup` can never be priced as the declared
+/// `assets/conjectures.ttl` payload.
+fn canonical_sub_asset_path(
+    path: &str,
+    tree_path_prefix: &str,
+    canonical_path_prefix: &str,
+) -> Option<String> {
+    if path == tree_path_prefix {
+        return Some(canonical_path_prefix.to_string());
+    }
+    if !tree_path_prefix.ends_with('/') {
+        return None;
+    }
+    path.strip_prefix(tree_path_prefix)
+        .map(|suffix| format!("{canonical_path_prefix}{suffix}"))
 }
 
 fn pick_source_lang(
@@ -562,8 +591,11 @@ fn pick_source_lang(
     Ok(gmeow_docs::i18n::ENGLISH.to_string())
 }
 
-fn render_source_book(model: &gmeow_docs::DocsModel) -> BTreeMap<String, Vec<u8>> {
-    gmeow_docs::mdbook::render_book(model, &gmeow_docs::ExecutableDocsData::default()).files
+fn render_source_book(
+    model: &gmeow_docs::DocsModel,
+    exec: &gmeow_docs::ExecutableDocsData,
+) -> BTreeMap<String, Vec<u8>> {
+    gmeow_docs::mdbook::render_book(model, exec).files
 }
 
 fn render_source_print(
@@ -1142,18 +1174,20 @@ mod tests {
 
     /// A non-empty tree carrying every declared sub-asset prefix, so a fixture built from
     /// it exercises the real pricing loop rather than a stub.
-    fn interactive_tree() -> BTreeMap<String, Vec<u8>> {
+    fn interactive_tree(owner: &str) -> BTreeMap<String, Vec<u8>> {
         let mut tree = BTreeMap::from([("index.html".to_string(), b"<html/>".to_vec())]);
-        for (_, slug, prefix, _) in
-            gmeow_pipeline::stages::distribution_catalog::sub_asset_pricing()
+        for pricing in gmeow_pipeline::stages::distribution_catalog::sub_asset_pricing()
+            .into_iter()
+            .filter(|pricing| pricing.owner == owner)
         {
+            let prefix = pricing.tree_path_prefix;
             // A directory prefix ends in `/`; a file prefix IS the key.
             let key = if prefix.ends_with('/') {
                 format!("{prefix}engine.wasm")
             } else {
-                prefix.to_string()
+                prefix
             };
-            tree.insert(key, format!("bytes-for-{slug}").into_bytes());
+            tree.insert(key, format!("bytes-for-{}", pricing.slug).into_bytes());
         }
         tree
     }
@@ -1168,7 +1202,7 @@ mod tests {
     fn every_slug_rendered() -> BTreeMap<&'static str, BTreeMap<String, Vec<u8>>> {
         gmeow_pipeline::stages::distribution_catalog::DISTRIBUTIONS
             .iter()
-            .map(|row| (row.slug, interactive_tree()))
+            .map(|row| (row.slug, interactive_tree(row.slug)))
             .collect()
     }
 
@@ -1242,7 +1276,7 @@ mod tests {
         assert!(err.contains("console") && err.contains("no tree"), "{err}");
 
         let mut trees = every_slug_rendered();
-        trees.insert("not-a-distribution", interactive_tree());
+        trees.insert("not-a-distribution", interactive_tree("site"));
         let err = content_address_distributions(&full_rendered(&trees))
             .expect_err("a producer with no catalog row must hard-fail")
             .to_string();
@@ -1280,6 +1314,47 @@ mod tests {
                 .any(|e| e.rel_path.starts_with("dist/gmeow-docs/console/")),
             "the console's copy of the shared engines must be priced: {entries:?}"
         );
+        assert!(
+            entries
+                .iter()
+                .any(|e| e.rel_path.starts_with("dist/gmeow-docs/mdbook/src/assets/")),
+            "the mdbook's src/assets copy of the shared engines must be priced: {entries:?}"
+        );
+    }
+
+    /// Exercise the actual three renderers, not a shape-compatible fixture: mdBook's
+    /// `src/assets/` layout must normalize to the same shared payload digest as the site's
+    /// and console's `assets/` layouts while retaining its real release path.
+    #[test]
+    fn real_interactive_render_layouts_price_the_same_shared_assets() {
+        let model = gmeow_docs::DocsModel {
+            title: "Synthetic interactive distributions".to_string(),
+            version: "test".to_string(),
+            ..Default::default()
+        };
+        let exec = gmeow_docs::ExecutableDocsData {
+            playground_trig: b"synthetic playground".to_vec(),
+            full_bundle_gts: b"synthetic bundle".to_vec(),
+            conjectures_ttl: b"synthetic conjectures".to_vec(),
+            ..Default::default()
+        };
+        let site =
+            gmeow_docs::render_site_lang_exec(&model, gmeow_docs::i18n::ENGLISH, &exec).files;
+        let mdbook = render_source_book(&model, &exec);
+        let console = gmeow_docs::console_files(&exec);
+        let rendered: RenderedTrees<'_> =
+            BTreeMap::from([("site", &site), ("mdbook", &mdbook), ("console", &console)]);
+
+        let entries = price_sub_assets(&rendered).expect("real interactive trees price");
+        assert_eq!(
+            entries.len(),
+            gmeow_pipeline::stages::distribution_catalog::sub_asset_pricing().len()
+        );
+        assert!(entries.iter().any(|entry| {
+            entry
+                .rel_path
+                .starts_with("dist/gmeow-docs/mdbook/src/assets/")
+        }));
     }
 
     /// An owner whose tree is missing a declared sub-asset hard-fails naming both.
@@ -1302,12 +1377,16 @@ mod tests {
     #[test]
     fn divergent_copies_of_a_shared_sub_asset_are_refused() {
         let mut trees = every_slug_rendered();
-        let mut console = interactive_tree();
-        for (_, _, prefix, _) in gmeow_pipeline::stages::distribution_catalog::sub_asset_pricing() {
+        let mut console = interactive_tree("console");
+        for pricing in gmeow_pipeline::stages::distribution_catalog::sub_asset_pricing()
+            .into_iter()
+            .filter(|pricing| pricing.owner == "console")
+        {
+            let prefix = pricing.tree_path_prefix;
             let key = if prefix.ends_with('/') {
                 format!("{prefix}engine.wasm")
             } else {
-                prefix.to_string()
+                prefix
             };
             console.insert(key, b"DIFFERENT BYTES".to_vec());
         }

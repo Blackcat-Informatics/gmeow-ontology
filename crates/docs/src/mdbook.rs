@@ -307,7 +307,6 @@ fn book_toml(model: &DocsModel, interactive: bool) -> String {
         "[book]\n\
          title = \"{}\"\n\
          language = \"en\"\n\
-         multilingual = false\n\
          \n\
          [build]\n\
          create-missing = false\n\

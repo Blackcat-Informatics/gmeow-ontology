@@ -13,7 +13,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_docs::formats::{DocFormat, format_capabilities};
+use gmeow_docs::mdbook::{MDBOOK_BOOT_JS_PATH, render_book};
 use gmeow_docs::render::{Page, book_pages, slice_slug, to_markdown_exec};
+use gmeow_docs::vendored_asset::capability_backing_assets;
 use gmeow_docs::{DocSlice, ExecutableDocsData};
 
 mod common;
@@ -29,6 +32,59 @@ fn non_interactive_book_packs_no_engines() {
         !toml.contains("additional-js"),
         "static book must not wire additional-js"
     );
+}
+
+/// An exec-backed render must realize mdBook's declared interactive capabilities in the
+/// emitted source tree. The four-engine set is derived from the capability registry (not
+/// copied into this test), and the shared controller must name both runtime files for
+/// every engine before an external mdBook build can load them.
+#[test]
+fn interactive_book_packs_the_registry_derived_engine_chain() {
+    let model = gmeow_docs::DocsModel {
+        title: "Synthetic interactive book".to_string(),
+        version: "test".to_string(),
+        ..Default::default()
+    };
+    let exec = ExecutableDocsData {
+        playground_trig: b"synthetic playground".to_vec(),
+        full_bundle_gts: b"synthetic bundle".to_vec(),
+        ..Default::default()
+    };
+    let book = render_book(&model, &exec);
+    let toml = std::str::from_utf8(book.files.get("book.toml").unwrap()).unwrap();
+    assert!(toml.contains(&format!("additional-js = [\"{MDBOOK_BOOT_JS_PATH}\"]")));
+    let boot = std::str::from_utf8(book.files.get(MDBOOK_BOOT_JS_PATH).unwrap()).unwrap();
+    assert!(boot.contains("assets/gmeow-docs.js"));
+    let controller = std::str::from_utf8(book.files.get("src/assets/gmeow-docs.js").unwrap())
+        .expect("controller is UTF-8");
+
+    let mut engines = BTreeMap::new();
+    for capability in format_capabilities(DocFormat::Mdbook).representable {
+        for asset in capability_backing_assets(capability) {
+            engines.insert(asset.name, *asset);
+        }
+    }
+    assert_eq!(
+        engines.keys().copied().collect::<BTreeSet<_>>(),
+        BTreeSet::from(["gmn", "query", "reason", "validate"]),
+        "mdBook's represented capabilities must resolve to the four docs engines"
+    );
+    for asset in engines.values() {
+        for (filename, expected) in asset.emitted_files {
+            let path = format!("src/assets/{}/{filename}", asset.name);
+            assert_eq!(
+                book.files.get(&path).map(Vec::as_slice),
+                Some(*expected),
+                "interactive book did not pack the registry asset {path} byte-for-byte"
+            );
+            if filename.ends_with(".js") || filename.ends_with(".wasm") {
+                assert!(
+                    controller.contains(&format!("./{}/{filename}", asset.name)),
+                    "controller does not load the packed engine asset {path}"
+                );
+            }
+        }
+    }
 }
 
 #[test]

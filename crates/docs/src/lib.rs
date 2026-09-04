@@ -23,6 +23,7 @@ pub mod console;
 pub mod fixture;
 pub mod lint;
 pub mod mdbook;
+pub mod rendered_book;
 // The documentation model now lives in `gmeow-docs-model`, re-exported here at
 // its original paths so every `gmeow_docs::<module>` caller is unchanged.
 pub use gmeow_docs_model::{
