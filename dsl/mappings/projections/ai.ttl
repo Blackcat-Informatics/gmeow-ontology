@@ -7,28 +7,22 @@
 @prefix schema: <https://schema.org/> .
 @prefix oa:     <http://www.w3.org/ns/oa#> .
 
-# Projection mappings: the AI claim layer (#54) → W3C Web Annotation and
+# Projection mappings: the AI claim layer → W3C Web Annotation and
 # schema.org. Generated lossy downcasts (P4); every drop declared.
 #
-# schema:ClaimReview — THE CORRECTED TRANSLATION (#34 audit): the original
-# blanket refusal was a translation error. ClaimReview is per-REVIEW, not
-# per-claim: each review node carries its own schema:author and its own
-# reviewRating, so N competing Assessments translate faithfully as N
-# coexisting ClaimReview nodes, each authored by its vantage — nothing
-# computed, no winner picked, no verdict dropped. The rule is EPISTEMIC-
-# SHAPE PRESERVATION in both directions: an attributed verdict stays
-# authored; an ANONYMOUS aggregate in the input is an anonymous claim in
-# the review set and passes through anonymous — neither fabricate an
-# author for it nor demand one before carrying it (imposed attribution
-# structure is fabrication too); and a projection that COMPUTED an
-# unasserted aggregate would not be violating a principle, it would be
-# broken. There is NO ClaimReview refusal.
+# schema:ClaimReview preserves one review node per Assessment. The Assessment
+# node is reused as the review; its optional vantage maps to schema:author and
+# its optional score maps through a separately minted schema:Rating. Thus N
+# competing Assessments remain N coexisting ClaimReview nodes. Attribution is
+# carried when present, anonymous Assessments remain author-less, and the
+# projection never computes or selects an aggregate verdict.
 
 # --------------------------------------------------------------------------- #
 # Grounded claim → oa:Annotation: body = the claim node, target = the chunk
-# pinned by a TextPositionSelector built from the typed offsets. The #55
-# AIS-mechanical story: the evidentiary bytes are recoverable from the
-# projection alone.
+# pinned by a TextPositionSelector built from the typed offsets. The position
+# selector carries the zero-based, half-open Unicode code-point range.
+# Quote-selector precision is contributed separately when the citations
+# selector projection joins.
 # --------------------------------------------------------------------------- #
 
 gmeow:mapOaGroundedClaim a gmeow:ProjectionMapping ;
@@ -60,7 +54,7 @@ gmeow:mapOaGroundedClaim a gmeow:ProjectionMapping ;
         gmeow:profile "web-annotation" ; gmeow:relation "<=" ;
         gmeow:edoalTarget oa:Annotation ; gmeow:edoalTargetKind "class" ;
         gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "supportPolarity dropped (no faithful oa motivation — assessing would imply a verdict); claim epistemics (confidence, standpoint, modality, clocks) dropped; the quote selector half (#55) joins when the citations selectors project" ;
+        gmeow:lossyDrop "supportPolarity dropped (no faithful oa motivation — assessing would imply a verdict); claim epistemics (confidence, standpoint, modality, clocks) dropped; quote-selector precision is absent unless the citations selector projection joins" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "ann" ; gmeow:tPred rdf:type ; gmeow:tObjValue oa:Annotation ]
             [ gmeow:tSubj "ann" ; gmeow:tPred oa:hasBody ; gmeow:tObj "claim" ]
@@ -128,14 +122,12 @@ gmeow:mapSchemaModelCard a gmeow:ProjectionMapping ;
 
 
 # --------------------------------------------------------------------------- #
-# Assessment-of-claim → schema:ClaimReview, ONE PER REVIEW (#34 audit): the
-# Assessment node IS the review (reused, not minted); its vantage is the
-# author; its score rides a minted schema:Rating. Competing assessments
-# yield coexisting ClaimReviews — the standpoint structure in schema.org's
-# own idiom. The claim itself never carries an aggregated rating (P9).
-# The vantage atom is OPTIONAL: an anonymous assessment passes through as
-# an author-less ClaimReview — anonymous stays anonymous; attribution is
-# carried when it exists, never demanded as an admission gate.
+# Assessment-of-claim → schema:ClaimReview, one node per Assessment. The
+# Assessment node is reused as the review; its optional vantage becomes the
+# author and its optional score is carried by a minted schema:Rating. Competing
+# assessments yield coexisting ClaimReviews; the claim itself never carries an
+# aggregated rating (P9). Anonymous assessments remain author-less, so missing
+# attribution never blocks projection and is never fabricated.
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaClaimReview a gmeow:ProjectionMapping ;
@@ -156,7 +148,7 @@ gmeow:mapSchemaClaimReview a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:assessmentTarget ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toClass schema:ClaimReview ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the criterion/rubric structure and scale metadata collapse to a bare ratingValue; each review stays authored by its vantage — N competing assessments emit N coexisting ClaimReviews, never one aggregated rating (P9)" ;
+        gmeow:lossyDrop "the criterion/rubric structure and scale metadata collapse to a bare ratingValue; each Assessment emits its own ClaimReview and carries vantage attribution when present — competing assessments never collapse to one rating (P9)" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "crAssess" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:ClaimReview ]
             [ gmeow:tSubj "crAssess" ; gmeow:tPred schema:itemReviewed ; gmeow:tObj "crClaim" ]

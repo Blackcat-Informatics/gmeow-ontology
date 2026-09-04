@@ -89,7 +89,7 @@ fn rich_result() -> ReasoningResult {
         InferredAxiom {
             subject: "http://ex/Felix".to_owned(),
             predicate: "http://www.w3.org/2000/01/rdf-schema#subClassOf".to_owned(),
-            object: "http://ex/Animal".to_owned(),
+            object: "<http://ex/Animal>".to_owned(),
             world: "http://ex/world/actual".to_owned(),
             is_edb: false,
             rule_name: Some("rule:subclass-transitive".to_owned()),
@@ -168,6 +168,10 @@ fn content_address_is_stable_and_differs_with_content() {
 #[test]
 fn round_trip_recovers_axes_and_provenance() {
     let original = rich_result();
+    let ResultPayload::Inferred(original_rows) = &original.payload else {
+        panic!("fixture payload must be inferred");
+    };
+    let original_derived = original_rows[0].clone();
     let body = project_reasoning_result(&original);
     let parsed = parse_reasoning_graph(&body).expect("parse graph/reasoning");
 
@@ -191,10 +195,44 @@ fn round_trip_recovers_axes_and_provenance() {
         1,
         "only the one derived (non-EDB) axiom is carried"
     );
-    assert_eq!(rows[0].subject, "http://ex/Felix");
-    assert!(!rows[0].is_edb);
+    assert_eq!(rows[0], original_derived);
     // The re-parsed result is itself a valid ReasoningResult.
     parsed.validate().expect("re-parsed result validates");
+}
+
+#[test]
+fn native_rule_label_has_one_canonical_public_iri_and_raw_receipt_identity() {
+    let result = rich_result();
+    let ResultPayload::Inferred(axioms) = &result.payload else {
+        panic!("fixture payload must be inferred");
+    };
+    let expected = &axioms[0];
+    let receipt = receipt_for_axiom(expected);
+    let canonical = canonical_rule_iri("rule:subclass-transitive");
+
+    assert_eq!(receipt.raw_rule_identity, "rule:subclass-transitive");
+    assert_eq!(receipt.row.rule_iri, canonical);
+    assert_eq!(
+        receipt.row.derivation_id,
+        crate::provenance::mint_derivation_id("rule:subclass-transitive", &[]),
+        "canonical public rendering must not rewrite the receipt hash input"
+    );
+
+    let body = project_reasoning_result(&result);
+    assert!(body.contains(&format!("<{}> <{canonical}>", gmeow("viaRule"))));
+    assert!(
+        !body.contains("<rule:subclass-transitive>"),
+        "the raw firing label is receipt data, never a public rule resource"
+    );
+    assert!(body.contains("receipt-rule-identity"));
+    assert!(body.contains("rule:subclass-transitive"));
+    assert!(body.contains(&receipt.row.derivation_id));
+
+    let parsed = parse_reasoning_graph(&body).expect("canonical receipt-bearing graph parses");
+    let ResultPayload::Inferred(rows) = parsed.payload else {
+        panic!("payload must remain inferred");
+    };
+    assert_eq!(rows[0], *expected);
 }
 
 #[test]
@@ -215,12 +253,12 @@ fn modal_derived_row_round_trips_its_complete_receipt() {
         "<https://example.org/modal/b>".to_owned(),
     )];
     let expected = modal.clone();
-    let receipt = row_for_axiom(&expected);
+    let receipt = receipt_for_axiom(&expected);
 
     let body = project_reasoning_result(&result);
     assert!(body.contains(crate::modal::MODAL_RULE_IRI));
-    assert!(body.contains(&receipt.derivation_id));
-    for source in &receipt.source_quad_ids {
+    assert!(body.contains(&receipt.row.derivation_id));
+    for source in &receipt.row.source_quad_ids {
         assert!(body.contains(source));
     }
     assert!(body.contains(&format!("<{PROV_VALUE}>")));
@@ -250,11 +288,51 @@ fn derived_row_parser_rejects_a_tampered_source_receipt() {
     let body = project_reasoning_result(&result);
     let tampered: String = body
         .lines()
-        .filter(|line| !line.contains(PROV_VALUE))
+        .filter(|line| !line.contains(PROV_VALUE) || line.contains("receipt-rule-identity"))
         .map(|line| format!("{line}\n"))
         .collect();
     let err = parse_reasoning_graph(&tampered).unwrap_err();
     assert!(err.message().contains("source reifier"), "got: {err}");
+}
+
+#[test]
+fn derived_row_parser_rejects_public_rule_that_disagrees_with_raw_identity() {
+    let body = project_reasoning_result(&rich_result());
+    let canonical = canonical_rule_iri("rule:subclass-transitive");
+    let tampered = body.replacen(
+        &format!("<{}> <{canonical}>", gmeow("viaRule")),
+        &format!("<{}> <https://example.org/wrong-rule>", gmeow("viaRule")),
+        1,
+    );
+    assert_ne!(
+        tampered, body,
+        "fixture must contain the canonical rule edge"
+    );
+    let err = parse_reasoning_graph(&tampered).unwrap_err();
+    assert!(
+        err.message().contains("does not canonicalize"),
+        "got: {err}"
+    );
+}
+
+#[test]
+fn derived_row_parser_rejects_a_missing_raw_receipt_identity() {
+    let body = project_reasoning_result(&rich_result());
+    let tampered: String = body
+        .lines()
+        .filter(|line| !line.contains("receipt-rule-identity"))
+        .map(|line| format!("{line}\n"))
+        .collect();
+    assert_ne!(
+        tampered, body,
+        "fixture must carry the raw receipt identity"
+    );
+    let err = parse_reasoning_graph(&tampered).unwrap_err();
+    assert!(
+        err.message()
+            .contains("missing its raw receipt rule identity"),
+        "got: {err}"
+    );
 }
 
 #[test]
@@ -271,10 +349,10 @@ fn derived_row_round_trip_preserves_duplicate_source_multiplicity() {
     axioms[0].premises = vec![premise.clone(), premise];
     axioms[0].object = "<http://ex/Animal>".to_owned();
     let expected = axioms[0].clone();
-    let receipt = row_for_axiom(&expected);
+    let receipt = receipt_for_axiom(&expected);
 
     let body = project_reasoning_result(&result);
-    assert!(body.contains(&receipt.derivation_id));
+    assert!(body.contains(&receipt.row.derivation_id));
     let parsed = parse_reasoning_graph(&body).expect("duplicate-source receipt parses");
     let ResultPayload::Inferred(rows) = parsed.payload else {
         panic!("payload must remain inferred");

@@ -57,6 +57,24 @@ pub(crate) trait ModalFact {
     fn object(&self) -> &str;
 }
 
+impl<T: ModalFact + ?Sized> ModalFact for &T {
+    fn graph(&self) -> &str {
+        <T as ModalFact>::graph(*self)
+    }
+
+    fn subject(&self) -> &str {
+        <T as ModalFact>::subject(*self)
+    }
+
+    fn predicate(&self) -> &str {
+        <T as ModalFact>::predicate(*self)
+    }
+
+    fn object(&self) -> &str {
+        <T as ModalFact>::object(*self)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ModalOp {
     Box,
@@ -100,13 +118,27 @@ struct ModalFrameIndexes {
 }
 
 pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<ModalVerdict>> {
+    evaluate_replayable(|| facts.iter())
+}
+
+/// Evaluate a replayable typed fact stream without materializing a second full closure.
+///
+/// The kernel makes three deterministic passes: frame resolution, active accessibility
+/// validation, and atom-presence indexing. A production caller can therefore replay a
+/// borrowed closure chained with a narrow typed-EDB supplement while retaining the same
+/// single evaluator and bounded memory profile as [`evaluate`].
+pub(crate) fn evaluate_replayable<T, I, F>(facts: F) -> gmeow_errors::Result<Vec<ModalVerdict>>
+where
+    T: ModalFact,
+    I: Iterator<Item = T>,
+    F: Fn() -> I,
+{
     let mut frame_indexes = ModalFrameIndexes {
         typed_relations: TYPED_ACCESSIBILITY.iter().copied().collect(),
         ..ModalFrameIndexes::default()
     };
-    let mut access: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
 
-    for fact in facts {
+    for fact in facts() {
         match fact.predicate() {
             NECESSARILY => {
                 frame_indexes
@@ -157,14 +189,6 @@ pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<Mo
                     .or_default()
                     .insert(normalize_object(fact.object()).to_owned());
             }
-            predicate if frame_indexes.typed_relations.contains(predicate) => {
-                let source = iri_binding(fact.subject(), "typed accessibility edge source world")?;
-                let target = iri_binding(fact.object(), "typed accessibility edge target world")?;
-                access
-                    .entry((source, fact.predicate().to_owned()))
-                    .or_default()
-                    .insert(target);
-            }
             _ => {}
         }
     }
@@ -173,6 +197,36 @@ pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<Mo
     if frames.is_empty() {
         return Ok(Vec::new());
     }
+
+    // A typed relation can also occur as ordinary domain data (notably
+    // `gmeow:sharpens`). Validate only the edge rows selected by a resolved modal
+    // frame's exact `(evaluation world, relation)` pair. This keeps unrelated
+    // literal/blank/triple-valued domain facts outside the modal seam while an
+    // ill-typed endpoint on an edge that the frame actually evaluates remains an
+    // atomic failure before any verdict is published.
+    let active_access: BTreeSet<(&str, &str)> = frames
+        .iter()
+        .map(|frame| (frame.w0.as_str(), frame.relation.as_str()))
+        .collect();
+    let mut access: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    for fact in facts() {
+        if !frame_indexes.typed_relations.contains(fact.predicate()) {
+            continue;
+        }
+        let Ok(source) = iri_binding(fact.subject(), "typed accessibility edge source world")
+        else {
+            continue;
+        };
+        if !active_access.contains(&(source.as_str(), fact.predicate())) {
+            continue;
+        }
+        let target = iri_binding(fact.object(), "typed accessibility edge target world")?;
+        access
+            .entry((source, fact.predicate().to_owned()))
+            .or_default()
+            .insert(target);
+    }
+    drop(active_access);
 
     // The production closure can contain millions of rows. Retain only the facts
     // whose ground atom is named by a resolved modal frame instead of cloning the
@@ -189,7 +243,7 @@ pub(crate) fn evaluate<T: ModalFact>(facts: &[T]) -> gmeow_errors::Result<Vec<Mo
         })
         .collect();
     let mut presence: BTreeSet<(String, String, String, String)> = BTreeSet::new();
-    for fact in facts {
+    for fact in facts() {
         let object = normalize_object(fact.object());
         if required_atoms.contains(&(fact.subject(), fact.predicate(), object)) {
             presence.insert((
@@ -813,6 +867,58 @@ mod tests {
         ));
         let err = evaluate(&facts).unwrap_err();
         assert!(err.message().contains("must be an IRI"), "got: {err}");
+    }
+
+    #[test]
+    fn unrelated_non_iri_typed_edges_are_outside_modal_frame_validation() {
+        let sharpens = "https://blackcatinformatics.ca/gmeow/sharpens";
+        let unrelated = [
+            fact(
+                "https://example.org/domain",
+                "https://example.org/domain/source",
+                sharpens,
+                "\"literal target\"",
+            ),
+            fact(
+                "https://example.org/domain",
+                "_:blank-source",
+                sharpens,
+                "<<(<https://example.org/s> <https://example.org/p> <https://example.org/o>)>>",
+            ),
+        ];
+        assert!(
+            evaluate(&unrelated)
+                .expect("unrelated domain facts are not a modal frame")
+                .is_empty()
+        );
+
+        let relation = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
+        let mut framed = modal_frame("necessarily", relation, &["w1", "w2"]);
+        framed.extend(unrelated);
+        let verdicts = evaluate(&framed).expect("unrelated sharpens rows do not poison a frame");
+        assert!(
+            verdicts
+                .iter()
+                .any(|verdict| verdict.predicate == MODAL_NECESSITY_HOLDS)
+        );
+    }
+
+    #[test]
+    fn malformed_endpoint_on_an_active_frame_edge_aborts_atomically() {
+        let relation = "https://blackcatinformatics.ca/gmeow/sharpens";
+        let mut facts = without_access_edges(modal_frame("necessarily", relation, &[]), relation);
+        facts.push(fact(
+            "https://example.org/modal/frame",
+            "https://example.org/modal/w0",
+            relation,
+            "\"not-a-world-iri\"",
+        ));
+        let err = evaluate(&facts).unwrap_err();
+        assert!(
+            err.message()
+                .contains("typed accessibility edge target world must be an IRI"),
+            "got: {err}"
+        );
     }
 
     #[test]

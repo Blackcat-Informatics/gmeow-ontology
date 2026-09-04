@@ -23,7 +23,7 @@ use session_common::*;
 /// The current value includes both the process-history/rustdoc corrections from main and
 /// the shared typed-modal production route, whose source participates in engine identity.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "557249bcfe559119a1e07eda4eb1ed377e73bf24021c864281fb710ccca7f9f7";
+    "c5ce1e368cef2a21c6e34ba15b1e11f97e99a1a7d76708cdf85244e4788b5c94";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below.
 ///
@@ -33,7 +33,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// so those seven axes contribute eight fields. Any change must move this pin and
 /// refuse restoration of a stale checkpoint.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "0a5eb27eca268fd221efc9625b1d4129566814242050e23541f4528bd653df31";
+    "7f1aff6525937ff16e508718bd025df5a83e4684758fb54e458ca492ce9ce415";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

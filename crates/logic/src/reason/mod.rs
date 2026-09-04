@@ -1031,7 +1031,7 @@ pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedR
     let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
     let (chase_certificates, witness_derivations) =
         dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
-    augment_inferred_with_modal(&mut inferred)?;
+    augment_inferred_with_modal(&mut inferred, edb)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok(CertifiedReasoning {
@@ -1080,7 +1080,7 @@ pub fn reason_all_budgeted(
         // so the closure and folded verdict match the certified path exactly).
         let mut inferred = closure.inferred;
         dl::augment_inferred_with_dl(&mut inferred, edb)?;
-        augment_inferred_with_modal(&mut inferred)?;
+        augment_inferred_with_modal(&mut inferred, edb)?;
         inferred.sort();
         let verdict = dl::verdict_from_inferred(&inferred, edb)?;
         Ok(typed_result(inferred, &verdict))
@@ -1151,7 +1151,89 @@ impl ModalFact for InferredAxiom {
     }
 }
 
-fn augment_inferred_with_modal(inferred: &mut Vec<InferredAxiom>) -> gmeow_errors::Result<()> {
+/// One malformed typed-accessibility target retained directly from the EDB for modal
+/// validation.
+///
+/// The fixed resource-valued chase intentionally omits literal/triple-valued objects.
+/// Those rows must still reach the modal boundary when their predicate is one of the six
+/// accessibility relations: a malformed edge selected by a real frame is an atomic error,
+/// while an unrelated row remains outside the resolved frame's active edge set.
+struct ModalEdbFact {
+    graph: String,
+    subject: String,
+    predicate: String,
+    object: String,
+}
+
+enum ReasonModalFact<'a> {
+    Closure(&'a InferredAxiom),
+    Edb(&'a ModalEdbFact),
+}
+
+impl ModalFact for ReasonModalFact<'_> {
+    fn graph(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.graph(),
+            Self::Edb(fact) => &fact.graph,
+        }
+    }
+
+    fn subject(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.subject(),
+            Self::Edb(fact) => &fact.subject,
+        }
+    }
+
+    fn predicate(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.predicate(),
+            Self::Edb(fact) => &fact.predicate,
+        }
+    }
+
+    fn object(&self) -> &str {
+        match self {
+            Self::Closure(fact) => fact.object(),
+            Self::Edb(fact) => &fact.object,
+        }
+    }
+}
+
+fn modal_accessibility_edb_facts(edb: &RdfDataset) -> impl Iterator<Item = ModalEdbFact> + '_ {
+    edb.quads().filter_map(|quad| {
+        let TermRef::Iri(predicate) = edb.resolve(quad.p) else {
+            return None;
+        };
+        if !modal::TYPED_ACCESSIBILITY.contains(&predicate) {
+            return None;
+        }
+        if matches!(edb.resolve(quad.o), TermRef::Iri(_)) {
+            return None;
+        }
+        let subject = match edb.resolve(quad.s) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            _ => crate::provenance::term_display(&edb.term_value(quad.s)),
+        };
+        let graph = quad
+            .g
+            .map_or_else(String::new, |graph| match edb.resolve(graph) {
+                TermRef::Iri(iri) => iri.to_owned(),
+                _ => crate::provenance::term_display(&edb.term_value(graph)),
+            });
+        Some(ModalEdbFact {
+            graph,
+            subject,
+            predicate: predicate.to_owned(),
+            object: crate::provenance::term_display(&edb.term_value(quad.o)),
+        })
+    })
+}
+
+fn augment_inferred_with_modal(
+    inferred: &mut Vec<InferredAxiom>,
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<()> {
     let mut known: std::collections::BTreeSet<(String, String, String, String)> = inferred
         .iter()
         .map(|axiom| {
@@ -1164,7 +1246,15 @@ fn augment_inferred_with_modal(inferred: &mut Vec<InferredAxiom>) -> gmeow_error
         })
         .collect();
     let mut additions = Vec::new();
-    for verdict in modal::evaluate(inferred)? {
+    let malformed_accessibility_facts = modal_accessibility_edb_facts(edb).collect::<Vec<_>>();
+    let verdicts = modal::evaluate_replayable(|| {
+        inferred.iter().map(ReasonModalFact::Closure).chain(
+            malformed_accessibility_facts
+                .iter()
+                .map(ReasonModalFact::Edb),
+        )
+    })?;
+    for verdict in verdicts {
         let object = format!("<{}>", verdict.object);
         let key = (
             verdict.graph.clone(),
@@ -1240,7 +1330,9 @@ pub(crate) struct GroundFactIncrementalRequest<'a> {
 /// The stable base result is reused byte-for-byte outside `scenario_world`. Inside
 /// that world the fixed DL rule program is maintained by the signed nested-iteration
 /// circuit, with newly derived facts carrying a real firing rule and immediate
-/// premises. The finite DL post-pass then runs over the sound adjusted closure.
+/// premises. The finite DL post-pass and shared typed-modal evaluator then run over
+/// the sound adjusted closure. Cached modal verdicts are globally invalidated because
+/// their evaluation can cross into `scenario_world` from another world.
 ///
 /// The fixed rule text only inspects resource-valued class/property axioms, but the
 /// physical fact carrier is fully typed. A ground literal candidate is therefore kept
@@ -1397,18 +1489,26 @@ pub(crate) fn reason_ground_fact_insert_incremental(
         });
     }
 
-    // The DL-only post-pass is monotone, so every base consequence remains valid and
-    // is free cached state. Only run the post-pass for NEW consequences when the
-    // governed recursive transaction reached its natural fixed point; doing so after a
-    // cut would smuggle uncharged derivations into the partial closure.
+    // The DL-only post-pass is monotone, so every base DL consequence remains valid and
+    // is free cached state. Modal verdicts are not monotone under insertion: adding an
+    // atom to an accessible world can turn a cached necessity failure into a success.
+    // Remove every cached modal row before the post-passes, including rows outside the
+    // candidate world whose evaluation traverses into it.
     inferred.extend(
         base.inferred()
             .iter()
             .filter(|axiom| axiom.world == scenario_world)
             .cloned(),
     );
+    inferred.retain(|axiom| axiom.rule_name.as_deref() != Some(modal::MODAL_RULE_IRI));
+
+    // Only run the DL and modal post-passes for NEW consequences when the governed
+    // recursive transaction reached its natural fixed point; doing so after a cut
+    // would smuggle uncharged derivations into the partial closure. A cut therefore
+    // carries no cached modal verdict rather than a stale conclusive one.
     if adjusted.status == crate::seam::BudgetStatus::Ok {
         dl::augment_inferred_with_dl(&mut inferred, with_candidate_edb)?;
+        augment_inferred_with_modal(&mut inferred, with_candidate_edb)?;
     }
     inferred.retain(|axiom| {
         let key = (
@@ -1567,7 +1667,7 @@ pub(crate) fn reason_program_budgeted(
     }
 
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
-    augment_inferred_with_modal(&mut inferred)?;
+    augment_inferred_with_modal(&mut inferred, edb)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
 
@@ -3745,23 +3845,121 @@ mod tests {
     }
 
     #[test]
-    fn modal_augmentation_is_atomic_when_any_frame_is_malformed() {
-        let valid = dataset(modal_fixture_quads("https://example.org/valid-modal", true));
-        let mut inferred = run_reasoning_rules(valid.as_ref(), dl::structured_dl_rules())
-            .expect("valid fixture reaches the modal boundary");
+    fn reason_all_ignores_unrelated_literal_sharpens_without_a_modal_frame() {
+        let unrelated = RdfQuad::new(
+            RdfTerm::iri("https://example.org/domain/source"),
+            "https://blackcatinformatics.ca/gmeow/sharpens",
+            RdfTerm::literal(purrdf::RdfLiteral::simple("a non-world value")),
+        )
+        .in_graph(RdfTerm::iri("https://example.org/domain/world"));
+        let result = reason_all(dataset(vec![unrelated]).as_ref())
+            .expect("ordinary sharpens data does not enter modal frame validation");
+        assert!(
+            !result
+                .inferred()
+                .iter()
+                .any(|axiom| axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI))
+        );
+    }
 
-        let malformed = dataset(modal_fixture_quads(
+    #[test]
+    fn reason_all_hard_fails_on_a_malformed_active_modal_edge() {
+        const RELATION: &str = "https://blackcatinformatics.ca/logic/epistemicallyPossible";
+        let base = "https://example.org/malformed-active-edge";
+        let mut quads = modal_fixture_quads(base, true);
+        quads.push(
+            RdfQuad::new(
+                RdfTerm::iri(format!("{base}/w0")),
+                RELATION,
+                RdfTerm::literal(purrdf::RdfLiteral::simple("not a world IRI")),
+            )
+            .in_graph(RdfTerm::iri(format!("{base}/frame"))),
+        );
+
+        let err = reason_all(dataset(quads).as_ref())
+            .expect_err("an edge selected by the modal frame must remain fail-closed");
+        assert!(
+            err.message()
+                .contains("typed accessibility edge target world must be an IRI"),
+            "got: {err}"
+        );
+    }
+
+    #[test]
+    fn incremental_ground_insert_recomputes_modal_verdicts_across_worlds() {
+        let base = "https://example.org/incremental-modal";
+        let w2 = format!("{base}/w2");
+        let subject = format!("{base}/a");
+        let predicate = format!("{base}/knows");
+        let object_iri = format!("{base}/b");
+
+        let base_quads = modal_fixture_quads(base, true);
+        let base_edb = dataset(base_quads.clone());
+        let base_result = reason_all(base_edb.as_ref()).expect("base modal frame reasons");
+        assert!(base_result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS
+                && axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI)
+        }));
+        assert!(base_result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD
+                && axiom.object == format!("<{w2}>")
+        }));
+
+        let mut candidate_quads = base_quads;
+        candidate_quads.push(quad_in(&w2, &subject, &predicate, &object_iri));
+        let with_candidate_edb = dataset(candidate_quads);
+        let scratch = reason_all(with_candidate_edb.as_ref())
+            .expect("scratch reasoning recomputes the completed modal frame");
+        let object = RdfTerm::iri(object_iri);
+        let incremental = reason_ground_fact_insert_incremental(GroundFactIncrementalRequest {
+            base_edb: base_edb.as_ref(),
+            with_candidate_edb: with_candidate_edb.as_ref(),
+            base: &base_result,
+            scenario_world: &w2,
+            subject: &subject,
+            predicate: &predicate,
+            object: &object,
+            max_steps: None,
+        })
+        .expect("incremental reasoning recomputes modal verdicts");
+
+        let modal_axioms = |result: &ReasoningResult| {
+            result
+                .inferred()
+                .iter()
+                .filter(|axiom| axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI))
+                .cloned()
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(incremental.status, crate::seam::BudgetStatus::Ok);
+        assert_eq!(
+            modal_axioms(&incremental.result),
+            modal_axioms(&scratch),
+            "incremental modal rows must be identical to a scratch production closure"
+        );
+        assert!(incremental.result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_NECESSITY_HOLDS
+                && axiom.rule_name.as_deref() == Some(crate::modal::MODAL_RULE_IRI)
+        }));
+        assert!(!incremental.result.inferred().iter().any(|axiom| {
+            axiom.predicate == crate::modal::MODAL_NECESSITY_FAILS
+                || axiom.predicate == crate::modal::MODAL_COUNTEREXAMPLE_WORLD
+        }));
+    }
+
+    #[test]
+    fn modal_augmentation_is_atomic_when_any_frame_is_malformed() {
+        let mut quads = modal_fixture_quads("https://example.org/valid-modal", true);
+        quads.extend(modal_fixture_quads(
             "https://example.org/malformed-modal",
             false,
         ));
-        let malformed_rows = run_reasoning_rules(malformed.as_ref(), dl::structured_dl_rules())
-            .expect("malformed frame is still an RDF-valid closure");
-        inferred.extend(malformed_rows);
-        inferred.sort();
-        inferred.dedup();
+        let edb = dataset(quads);
+        let mut inferred = run_reasoning_rules(edb.as_ref(), dl::structured_dl_rules())
+            .expect("both RDF-valid frames reach the modal boundary");
         let before = inferred.clone();
 
-        let err = augment_inferred_with_modal(&mut inferred).unwrap_err();
+        let err = augment_inferred_with_modal(&mut inferred, edb.as_ref()).unwrap_err();
         assert!(
             err.message().contains(crate::modal::ATOM_PREDICATE),
             "got: {err}"

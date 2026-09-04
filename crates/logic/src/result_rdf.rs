@@ -63,7 +63,10 @@ use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, PreservationKind};
 use sha2::{Digest, Sha256};
 
 use crate::conjecture::{ConjectureAnswer, ConjectureDischarge, ConjectureLifecycleState};
-use crate::explain::row_for_axiom;
+use crate::explain::{
+    canonical_rule_iri, decode_receipt_rule_identity, encode_receipt_rule_identity,
+    receipt_for_axiom,
+};
 use crate::reason::el::InferredAxiom;
 use crate::result::{
     Assumption, BudgetLimit, CompletenessStatus, ContradictionWitness, DerivationRef, EngineId,
@@ -536,14 +539,24 @@ fn project_derived_axioms(sink: &mut Sink, subject: &Node, axioms: &[InferredAxi
         );
         sink.push(node.clone(), logic("axiomWorld"), axiom_term(&axiom.world));
 
-        let receipt = row_for_axiom(axiom);
-        sink.push(node.clone(), gmeow("viaRule"), Node::iri(receipt.rule_iri));
+        let receipt = receipt_for_axiom(axiom);
+        sink.push(
+            node.clone(),
+            gmeow("viaRule"),
+            Node::iri(receipt.row.rule_iri.clone()),
+        );
         sink.push(
             node.clone(),
             logic("derivationIdentifier"),
-            Node::string(receipt.derivation_id),
+            Node::string(receipt.row.derivation_id.clone()),
+        );
+        sink.push(
+            node.clone(),
+            PROV_VALUE,
+            Node::string(encode_receipt_rule_identity(&receipt.raw_rule_identity)),
         );
         for (index, (source, (premise_subject, premise_predicate, premise_object))) in receipt
+            .row
             .source_quad_ids
             .into_iter()
             .zip(&axiom.premises)
@@ -976,15 +989,27 @@ fn parse_derived_axioms(
             })
             .collect::<gmeow_errors::Result<_>>()?;
         let mut premises_by_index = BTreeMap::new();
+        let mut receipt_rule_identity = None;
         for wire in triples
             .iter()
             .filter(|triple| triple.subject == node && triple.predicate == PROV_VALUE)
         {
             let wire = wire.object_string().ok_or_else(|| {
                 result_err(format!(
-                    "graph/reasoning: derived axiom {node} has a non-literal indexed premise"
+                    "graph/reasoning: derived axiom {node} has a non-literal receipt value"
                 ))
             })?;
+            if let Some(raw_rule_identity) = decode_receipt_rule_identity(&wire) {
+                if receipt_rule_identity
+                    .replace(raw_rule_identity.to_owned())
+                    .is_some()
+                {
+                    return Err(result_err(format!(
+                        "graph/reasoning: derived axiom {node} repeats its raw receipt rule identity"
+                    )));
+                }
+                continue;
+            }
             let (index, premise) = decode_premise(&wire)?;
             if premises_by_index.insert(index, premise).is_some() {
                 return Err(result_err(format!(
@@ -1001,6 +1026,16 @@ fn parse_derived_axioms(
                 "graph/reasoning: derived axiom {node} premise indexes are not contiguous from zero"
             )));
         }
+        let receipt_rule_identity = receipt_rule_identity.ok_or_else(|| {
+            result_err(format!(
+                "graph/reasoning: derived axiom {node} is missing its raw receipt rule identity"
+            ))
+        })?;
+        if canonical_rule_iri(&receipt_rule_identity) != rule_name {
+            return Err(result_err(format!(
+                "graph/reasoning: derived axiom {node} public gmeow:viaRule does not canonicalize its raw receipt rule identity"
+            )));
+        }
         let premises: Vec<(String, String, String)> = premises_by_index.into_values().collect();
         let axiom = InferredAxiom {
             subject: field("axiomSubject"),
@@ -1008,17 +1043,22 @@ fn parse_derived_axioms(
             object,
             world: field("axiomWorld"),
             is_edb: false,
-            rule_name: Some(rule_name),
+            rule_name: Some(receipt_rule_identity),
             premises,
         };
-        let receipt = row_for_axiom(&axiom);
-        let expected_sources: BTreeSet<String> = receipt.source_quad_ids.into_iter().collect();
+        let receipt = receipt_for_axiom(&axiom);
+        if receipt.row.rule_iri != rule_name {
+            return Err(result_err(format!(
+                "graph/reasoning: derived axiom {node} public firing-rule identity does not match its receipt"
+            )));
+        }
+        let expected_sources: BTreeSet<String> = receipt.row.source_quad_ids.into_iter().collect();
         if emitted_sources != expected_sources {
             return Err(result_err(format!(
                 "graph/reasoning: derived axiom {node} source reifiers do not match its source premises"
             )));
         }
-        if receipt.derivation_id != derivation_id {
+        if receipt.row.derivation_id != derivation_id {
             return Err(result_err(format!(
                 "graph/reasoning: derived axiom {node} derivation identity does not match its rule and source premises"
             )));

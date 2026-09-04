@@ -26,7 +26,7 @@ use purrdf::{
     RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, TermValue,
 };
 
-use crate::explain::{canonical_rule_iri, row_for_axiom};
+use crate::explain::{canonical_rule_iri, encode_receipt_rule_identity, receipt_for_axiom};
 use crate::math_expression::{MATH_ALPHA_EQUIVALENCE_CLASS, MATH_ALPHA_EQUIVALENCE_CLASS_TYPE};
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
@@ -51,6 +51,8 @@ const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
 const PROV_WAS_DERIVED_BY: &str = "http://www.w3.org/ns/prov#wasDerivedBy";
 /// `prov:wasDerivedFrom` — the exact immediate-premise reifier links.
 const PROV_WAS_DERIVED_FROM: &str = "http://www.w3.org/ns/prov#wasDerivedFrom";
+/// `prov:value` — carries the tagged raw firing identity used by receipt hashing.
+const PROV_VALUE: &str = "http://www.w3.org/ns/prov#value";
 /// `logic:derivationIdentifier` — the content-addressed derivation IRI as data.
 const LOGIC_DERIVATION_IDENTIFIER: &str =
     "https://blackcatinformatics.ca/logic/derivationIdentifier";
@@ -194,7 +196,8 @@ const MATH_EXPRESSION_IDENTITY_RULE: &str = "math-expression-identity";
 ///
 /// For every *derived* (non-EDB) axiom this emits the base triple plus an RDF
 /// 1.2 reifier carrying its derivation provenance: `prov:wasDerivedBy` and
-/// `gmeow:viaRule` (both pointing at the namespaced rule IRI),
+/// `gmeow:viaRule` (both pointing at the canonical namespaced rule IRI), a
+/// tagged `prov:value` retaining the raw firing identity used by the receipt hash,
 /// `gmeow:inferenceKind gmeow:Deduction`, and `gmeow:inWorld` recording the
 /// world. When `merge_asserted` is supplied, its told graph is prepended so the
 /// document is the union of asserted and derived axioms (the `--merge` mode).
@@ -233,7 +236,7 @@ pub fn build_inferred_closure_ttl(
     out.push_str("\n# --- derived (inferred) closure ---\n");
     for axiom in derived_sorted(result) {
         let triple = axiom_triple(axiom);
-        let receipt = row_for_axiom(axiom);
+        let receipt = receipt_for_axiom(axiom);
         let rule = RdfTerm::iri(derived_rule_iri(axiom)?);
         let world = RdfTerm::iri(bare_iri(&axiom.world).to_owned());
         out.push_str(&emit_quad(&RdfQuad::new(
@@ -247,13 +250,20 @@ pub fn build_inferred_closure_ttl(
             (gmeow("viaRule"), rule),
             (
                 LOGIC_DERIVATION_IDENTIFIER.to_owned(),
-                RdfTerm::literal(RdfLiteral::simple(receipt.derivation_id)),
+                RdfTerm::literal(RdfLiteral::simple(receipt.row.derivation_id.clone())),
+            ),
+            (
+                PROV_VALUE.to_owned(),
+                RdfTerm::literal(RdfLiteral::simple(encode_receipt_rule_identity(
+                    &receipt.raw_rule_identity,
+                ))),
             ),
             (gmeow("inferenceKind"), RdfTerm::iri(gmeow("Deduction"))),
             (gmeow("inWorld"), world),
         ];
         annotations.extend(
             receipt
+                .row
                 .source_quad_ids
                 .into_iter()
                 .map(|source| (PROV_WAS_DERIVED_FROM.to_owned(), RdfTerm::iri(source))),
@@ -314,8 +324,9 @@ fn alpha_equivalence_section(alpha_edges: &[(String, String)]) -> String {
 ///
 /// Each content-addressed derivation node links the conclusion (an RDF 1.2 triple term via
 /// `gmeow:concludes`) to its premises (`gmeow:hasPremise`, each also a triple
-/// term) and the firing rule (`gmeow:viaRule`), recording the inference kind, an
-/// English label, and the world.
+/// term) and the canonical firing rule (`gmeow:viaRule`), plus the raw firing
+/// identity in a tagged `prov:value`, the inference kind, an English label, and
+/// the world.
 ///
 /// # Errors
 ///
@@ -324,14 +335,14 @@ pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<
     let mut out = String::from(EXPLANATIONS_HEADER);
     out.push_str("\n# --- derivation proof skeletons ---\n");
     for axiom in derived_sorted(result) {
-        let receipt = row_for_axiom(axiom);
+        let receipt = receipt_for_axiom(axiom);
         let rule = derived_rule_iri(axiom)?;
         let mut properties: Vec<(String, RdfTerm)> = vec![
             (RDF_TYPE.to_owned(), RdfTerm::iri(gmeow("Derivation"))),
             (gmeow("concludes"), RdfTerm::triple(axiom_triple(axiom))),
             (
                 LOGIC_DERIVATION_IDENTIFIER.to_owned(),
-                RdfTerm::literal(RdfLiteral::simple(receipt.derivation_id.clone())),
+                RdfTerm::literal(RdfLiteral::simple(receipt.row.derivation_id.clone())),
             ),
         ];
         for (ps, pp, po) in &axiom.premises {
@@ -340,12 +351,19 @@ pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<
         }
         properties.extend(
             receipt
+                .row
                 .source_quad_ids
                 .iter()
                 .cloned()
                 .map(|source| (PROV_WAS_DERIVED_FROM.to_owned(), RdfTerm::iri(source))),
         );
         properties.push((gmeow("viaRule"), RdfTerm::iri(rule)));
+        properties.push((
+            PROV_VALUE.to_owned(),
+            RdfTerm::literal(RdfLiteral::simple(encode_receipt_rule_identity(
+                &receipt.raw_rule_identity,
+            ))),
+        ));
         properties.push((gmeow("inferenceKind"), RdfTerm::iri(gmeow("Deduction"))));
         properties.push((
             RDFS_LABEL.to_owned(),
@@ -359,7 +377,7 @@ pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<
             RdfTerm::iri(bare_iri(&axiom.world).to_owned()),
         ));
 
-        out.push_str(&emit_resource(&receipt.derivation_id, &properties));
+        out.push_str(&emit_resource(&receipt.row.derivation_id, &properties));
     }
     Ok(out)
 }
@@ -777,13 +795,15 @@ mod tests {
             "http://example.org/C",
             Some("el:subClassOf-transitive"),
         );
-        let receipt = row_for_axiom(&derived);
-        assert_eq!(receipt.rule_iri, "el:subClassOf-transitive");
+        let receipt = receipt_for_axiom(&derived);
+        let canonical_rule = canonical_rule_iri("el:subClassOf-transitive");
+        assert_eq!(receipt.row.rule_iri, canonical_rule);
+        assert_eq!(receipt.raw_rule_identity, "el:subClassOf-transitive");
         assert_eq!(
-            receipt.derivation_id,
+            receipt.row.derivation_id,
             crate::provenance::mint_derivation_id(
                 "el:subClassOf-transitive",
-                &[receipt.source_quad_ids[0].as_str()]
+                &[receipt.row.source_quad_ids[0].as_str()]
             ),
             "the receipt hash preserves the native firing identity bytes"
         );
@@ -791,9 +811,15 @@ mod tests {
         let ttl = build_inferred_closure_ttl(&result, None, &[]).unwrap();
         assert!(ttl.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
         assert!(ttl.contains("rdf-syntax-ns#reifies> <<( "));
-        assert!(ttl.contains("rule/el%3AsubClassOf-transitive"));
-        assert!(ttl.contains(&receipt.derivation_id));
-        assert!(ttl.contains(&receipt.source_quad_ids[0]));
+        assert!(ttl.contains(&format!("<{}> <{canonical_rule}>", gmeow("viaRule"))));
+        assert!(
+            !ttl.contains("<el:subClassOf-transitive>"),
+            "the raw firing label is receipt data, never a public rule resource"
+        );
+        assert!(ttl.contains("receipt-rule-identity"));
+        assert!(ttl.contains("el:subClassOf-transitive"));
+        assert!(ttl.contains(&receipt.row.derivation_id));
+        assert!(ttl.contains(&receipt.row.source_quad_ids[0]));
         assert!(
             ttl.contains("gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction>")
         );
@@ -892,19 +918,27 @@ mod tests {
 
     #[test]
     fn explanations_emit_derivation_with_premise() {
-        let result = result_with(
-            vec![axiom(
-                "http://example.org/A",
-                RDFS_SUBCLASS_OF,
-                "http://example.org/C",
-                Some("el:subClassOf-transitive"),
-            )],
-            true,
+        let derived = axiom(
+            "http://example.org/A",
+            RDFS_SUBCLASS_OF,
+            "http://example.org/C",
+            Some("el:subClassOf-transitive"),
         );
+        let receipt = receipt_for_axiom(&derived);
+        let canonical_rule = canonical_rule_iri("el:subClassOf-transitive");
+        let result = result_with(vec![derived], true);
         let ttl = build_explanations_ttl(&result).unwrap();
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/Derivation>"));
         assert!(ttl.contains("gmeow/concludes> <<( "));
         assert!(ttl.contains("gmeow/hasPremise> <<( <http://example.org/A>"));
+        assert!(ttl.contains(&format!("<{}> <{canonical_rule}>", gmeow("viaRule"))));
+        assert!(
+            !ttl.contains("<el:subClassOf-transitive>"),
+            "the raw firing label is receipt data, never a public rule resource"
+        );
+        assert!(ttl.contains("receipt-rule-identity"));
+        assert!(ttl.contains("el:subClassOf-transitive"));
+        assert!(ttl.contains(&receipt.row.derivation_id));
         assert!(ttl.contains("\"derivation of an inferred axiom\"@en"));
     }
 
@@ -923,20 +957,25 @@ mod tests {
                 "<https://example.org/modal/b>".to_owned(),
             )],
         };
-        let receipt = row_for_axiom(&modal);
+        let receipt = receipt_for_axiom(&modal);
         let result = result_with(vec![modal], true);
 
         let closure = build_inferred_closure_ttl(&result, None, &[]).unwrap();
         let explanations = build_explanations_ttl(&result).unwrap();
         for artifact in [&closure, &explanations] {
-            assert!(artifact.contains(crate::modal::MODAL_RULE_IRI));
-            assert!(artifact.contains(&receipt.derivation_id));
-            for source in &receipt.source_quad_ids {
+            assert!(artifact.contains(&format!(
+                "<{}> <{}>",
+                gmeow("viaRule"),
+                crate::modal::MODAL_RULE_IRI
+            )));
+            assert!(artifact.contains("receipt-rule-identity"));
+            assert!(artifact.contains(&receipt.row.derivation_id));
+            for source in &receipt.row.source_quad_ids {
                 assert!(artifact.contains(source));
             }
         }
         assert!(
-            explanations.contains(&format!("<{}>", receipt.derivation_id)),
+            explanations.contains(&format!("<{}>", receipt.row.derivation_id)),
             "the derivation is a named content-addressed resource"
         );
     }
