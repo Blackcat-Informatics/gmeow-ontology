@@ -68,27 +68,16 @@ rustc-ice-*.txt
 # insta pending-snapshot temp files (never commit)
 *.snap.new
 
-# Local agent-tooling runtime state. `.coding-ethos/` is matched at any depth on
-# purpose: the previous per-subdirectory patterns (`.coding-ethos/hook-runs/` and
-# friends) each contain an interior slash, so Git anchored them to the repository
-# root and a nested `.coding-ethos/.coding-ethos/hook-runs/` escaped the ignore and
-# was staged by `git add -A`. No path under this directory is ever gmeow content.
+# Local agent-tooling state. A developer's locally installed agent tooling is not
+# gmeow content, and neither is the ignore rule for it: this file is a tracked,
+# shipped artifact, so naming a third-party local tool here puts that tool in the
+# repository just as surely as committing its bytes would. Local-only paths belong
+# in a local-only ignore surface — `.git/info/exclude`, which is per-clone and
+# untracked — or in the tool's own configuration, never here.
+#
+# The repo's own .agents/skills/gmeow-*/ and deficiency-cleanup skills ARE gmeow
+# content and stay tracked.
 .claude/settings.local.json
-.coding-ethos/
 .gemini/settings.json
-.mcp.json
-# coding-ethos tooling source checked out into the worktree (not gmeow content)
-/coding-ethos/
-# Agent tooling installed locally into the worktree — never gmeow content: the
-# assistant extension payload and the local skill mirrors. The repo's own
-# .agents/skills/gmeow-*/ and deficiency-cleanup skills are real gmeow content
-# and stay tracked (not matched below).
 .gemini/extensions/
-.agents/skills/agent-operating-discipline/
-.agents/skills/coding-ethos-agent-workflow/
-.agents/skills/conditional-imports/
-.agents/skills/lint-remediation/
-.agents/skills/managed-lint-workflow/
-.agents/skills/managed-toolchain/
-.agents/skills/modern-web-guidance/
-.agents/skills/safe-git-workflow/
+.mcp.json
