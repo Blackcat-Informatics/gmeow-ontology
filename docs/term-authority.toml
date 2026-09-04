@@ -1,0 +1,393 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Exact per-document authority for user-copyable `gmeow:` references. Imports name
+# authored rdfs:isDefinedBy owners; declarations are document-local illustrative or
+# retired names with no authored vocabulary owner. Authority is never transitive.
+# A multiply-owned term resolves through one matching imported owner. When the
+# document needs several matching authorities, `resolves` must select the exact one.
+version = 1
+
+[[document]]
+path = "docs/CITATIONS.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/citations",
+    "https://blackcatinformatics.ca/gmeow/slices/documents",
+    "https://blackcatinformatics.ca/gmeow/slices/sources",
+]
+declares = []
+[[document]]
+path = "docs/CLI_ARCHITECTURE.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slice-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/GATE-AND-PIPELINE.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/pipeline",
+    "https://blackcatinformatics.ca/gmeow/slices/quality",
+    "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric",
+    "https://blackcatinformatics.ca/gmeow/slices/versions",
+    "https://blackcatinformatics.ca/gmeow/test-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/GROUNDING.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slice-dsl",
+    "https://blackcatinformatics.ca/gmeow/slices/documentation",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+]
+declares = []
+
+[[document]]
+path = "docs/MIGRATING-SHAPES-TO-LOGIC.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/ai",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+    "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric",
+]
+declares = [
+    "https://blackcatinformatics.ca/gmeow/ClaimNeedsEvidenceShape",
+]
+
+[[document]]
+path = "docs/PIPELINE_SPINE.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/gts",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+]
+declares = []
+
+[[document]]
+path = "docs/PROJECTION-VOCABULARY-RATCHET.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/mapping-dsl",
+    "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric",
+]
+declares = []
+
+[[document]]
+path = "docs/RATIONALE.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/accounts",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/slices/software",
+    "https://blackcatinformatics.ca/gmeow/slices/standpoint",
+]
+declares = []
+
+[[document]]
+path = "docs/SLICE_GUIDE.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slice-dsl",
+    "https://blackcatinformatics.ca/gmeow/slices/documentation",
+    "https://blackcatinformatics.ca/gmeow/slices/guides",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/lang",
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric",
+    "https://blackcatinformatics.ca/gmeow/slices/tags",
+    "https://blackcatinformatics.ca/gmeow/test-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/SLICE_QA.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric",
+    "https://blackcatinformatics.ca/gmeow/test-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/TESTING.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/test-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/cli-extensions.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slice-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/deception.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/attestation",
+    "https://blackcatinformatics.ca/gmeow/slices/coreference",
+    "https://blackcatinformatics.ca/gmeow/slices/deception",
+    "https://blackcatinformatics.ca/gmeow/slices/documents",
+    "https://blackcatinformatics.ca/gmeow/slices/email",
+    "https://blackcatinformatics.ca/gmeow/slices/events",
+    "https://blackcatinformatics.ca/gmeow/slices/gender",
+    "https://blackcatinformatics.ca/gmeow/slices/narrative",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/slices/standpoint",
+    "https://blackcatinformatics.ca/gmeow/slices/trust",
+]
+declares = []
+
+[[document]]
+path = "docs/documentation-inventory.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/documentation",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+]
+declares = []
+
+[[document]]
+path = "docs/dois.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/creative-works",
+    "https://blackcatinformatics.ca/gmeow/slices/gts",
+    "https://blackcatinformatics.ca/gmeow/slices/sources",
+    "https://blackcatinformatics.ca/gmeow/slices/versions",
+]
+declares = []
+
+[[document]]
+path = "docs/dublin-core.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/creative-works",
+    "https://blackcatinformatics.ca/gmeow/slices/documents",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/events",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/names",
+    "https://blackcatinformatics.ca/gmeow/slices/places",
+    "https://blackcatinformatics.ca/gmeow/slices/software",
+    "https://blackcatinformatics.ca/gmeow/slices/sources",
+    "https://blackcatinformatics.ca/gmeow/slices/tags",
+]
+declares = []
+
+[[document]]
+path = "docs/foundational-bridging.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/mapping-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/four-boxes.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+]
+declares = []
+
+[[document]]
+path = "docs/git-provenance-boundary.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/software",
+    "https://blackcatinformatics.ca/gmeow/slices/sources",
+]
+declares = []
+
+[[document]]
+path = "docs/gts-narrow-waist.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/gts",
+    "https://blackcatinformatics.ca/gmeow/slices/lang",
+]
+declares = []
+
+[[document]]
+path = "docs/identity-mapping.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/gender",
+    "https://blackcatinformatics.ca/gmeow/slices/names",
+    "https://blackcatinformatics.ca/gmeow/slices/sexuality",
+]
+declares = [
+    "https://blackcatinformatics.ca/gmeow/gender",
+]
+
+[[document]]
+path = "docs/import-provenance.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/citations",
+    "https://blackcatinformatics.ca/gmeow/slices/contacts",
+    "https://blackcatinformatics.ca/gmeow/slices/creative-works",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/slices/sources",
+    "https://blackcatinformatics.ca/gmeow/slices/temporal",
+]
+declares = []
+
+[[document]]
+path = "docs/location-mapping.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/accessibility",
+    "https://blackcatinformatics.ca/gmeow/slices/aggregation",
+    "https://blackcatinformatics.ca/gmeow/slices/connectivity",
+    "https://blackcatinformatics.ca/gmeow/slices/contacts",
+    "https://blackcatinformatics.ca/gmeow/slices/coreference",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/names",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+    "https://blackcatinformatics.ca/gmeow/slices/places",
+    "https://blackcatinformatics.ca/gmeow/slices/profiles",
+    "https://blackcatinformatics.ca/gmeow/slices/rights",
+    "https://blackcatinformatics.ca/gmeow/slices/temporal",
+]
+declares = [
+    "https://blackcatinformatics.ca/gmeow/alternateName",
+]
+
+[[document]]
+path = "docs/lpg-mapping.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/email",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+]
+declares = []
+
+[[document]]
+path = "docs/mcp-server.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/agentic",
+]
+declares = []
+
+[[document]]
+path = "docs/mentation-architecture.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/creative-works",
+    "https://blackcatinformatics.ca/gmeow/slices/events",
+    "https://blackcatinformatics.ca/gmeow/slices/inference",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/learning",
+    "https://blackcatinformatics.ca/gmeow/slices/mentation",
+]
+declares = []
+
+[[document]]
+path = "docs/projections.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/mapping-dsl",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/events",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/language",
+    "https://blackcatinformatics.ca/gmeow/slices/names",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+]
+declares = [
+    "https://blackcatinformatics.ca/gmeow/mapSchemaBirthDate",
+]
+
+[[document]]
+path = "docs/projects-mapping.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/creative-works",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/software",
+]
+declares = []
+
+[[document]]
+path = "docs/reasoning.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/gender",
+    "https://blackcatinformatics.ca/gmeow/slices/genealogy",
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/names",
+    "https://blackcatinformatics.ca/gmeow/slices/temporal",
+]
+declares = [
+    "https://blackcatinformatics.ca/gmeow/DeadnameSuppressionShape",
+    "https://blackcatinformatics.ca/gmeow/SupersededFacetSuppressionShape",
+]
+
+[[document]]
+path = "docs/research-objects.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/ai",
+    "https://blackcatinformatics.ca/gmeow/slices/documents",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/slices/rights",
+    "https://blackcatinformatics.ca/gmeow/slices/software",
+]
+declares = []
+
+[[document]]
+path = "docs/rights.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/mapping-dsl",
+    "https://blackcatinformatics.ca/gmeow/slices/agreements",
+    "https://blackcatinformatics.ca/gmeow/slices/documents",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/names",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/slices/rights",
+    "https://blackcatinformatics.ca/gmeow/slices/temporal",
+    "https://blackcatinformatics.ca/gmeow/slices/trust",
+]
+declares = [
+    "https://blackcatinformatics.ca/gmeow/NoPreferredClaimShape",
+]
+resolves = { "https://blackcatinformatics.ca/gmeow/confidence" = "https://blackcatinformatics.ca/gmeow/slices/provenance" }
+
+[[document]]
+path = "docs/standpoints.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+    "https://blackcatinformatics.ca/gmeow/slices/places",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/slices/standpoint",
+    "https://blackcatinformatics.ca/gmeow/slices/temporal",
+]
+declares = [
+    "https://blackcatinformatics.ca/gmeow/NoPreferredClaimShape",
+    "https://blackcatinformatics.ca/gmeow/StandpointCoexistenceShape",
+]
+
+[[document]]
+path = "docs/temporal-queries.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/events",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+]
+declares = []
+
+[[document]]
+path = "docs/transpile.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/statement-dsl",
+]
+declares = []
+
+[[document]]
+path = "docs/up-projection-gap-triage.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/slices/documents",
+    "https://blackcatinformatics.ca/gmeow/slices/finance",
+]
+declares = []
+
+[[document]]
+path = "docs/wikidata-mapping.md"
+imports = [
+    "https://blackcatinformatics.ca/gmeow/mapping-dsl",
+    "https://blackcatinformatics.ca/gmeow/slices/coreference",
+]
+declares = []

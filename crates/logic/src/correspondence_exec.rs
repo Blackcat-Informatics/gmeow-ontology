@@ -14,8 +14,13 @@
 //! fragment is `forall(vars, source -> view)`, where both sides are positive conjunctions of
 //! binary RDF atoms.  The executor deterministically instantiates the source, lowers the
 //! implication to get/put `CONSTRUCT`s, runs both, and returns a countermodel on information
-//! loss.  This makes the evidence neutral: the same mechanism proves a genuine recovery and
-//! refutes a lossy correspondence.
+//! loss.  Recovery evidence is not an independent semantic source: the executor also runs the
+//! correspondence's resolved `get` and `put`
+//! [`LegPath`](gmeow_logic_compile::ir::LegPath) bodies on that same complete seed,
+//! requires their endpoint relations to agree under inversion, and requires every variable-bound
+//! endpoint selected by the executable `get` relation to survive in the formula's view.  This
+//! makes the evidence neutral: the same mechanism proves a genuine recovery and refutes either a
+//! lossy formula or an unrelated executable leg body.
 //!
 //! Atomic pure-path renames retain a synthesized one-triple recovery case for the large mapping
 //! surface.  Composite paths do not: endpoints alone cannot recover their hidden intermediate
@@ -30,13 +35,14 @@ use gmeow_logic_compile::ir::{
 };
 use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_gates::CorrespondenceVerdicts;
+use gmeow_logic_compile::projections::paths::leg_path_canonical;
 use purrdf::sparql::{
     GraphPattern, NamedNodePattern, NativeSparqlEngine, Query, SparqlParser, TermPattern,
     TriplePattern as SparqlTriplePattern,
 };
 use purrdf::{
-    RdfQuad, RdfTerm, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult, canonicalize,
-    parse_dataset, serialize_dataset,
+    RdfQuad, RdfTerm, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult, TermValue,
+    canonicalize, parse_dataset, serialize_dataset,
 };
 
 const VIEW_PREDICATE: &str = "https://blackcatinformatics.ca/logic/recovery#view";
@@ -45,18 +51,19 @@ const ATOMIC_SEED_SUBJECT: &str =
 const ATOMIC_SEED_OBJECT: &str = "https://blackcatinformatics.ca/logic/recovery-seed/atomic/object";
 const RECOVERY_SEED_BASE: &str = "https://blackcatinformatics.ca/logic/recovery-seed/var/";
 
-/// Common prefix of every generated recovery-execution IRI ([`VIEW_PREDICATE`],
+/// Exact namespaces containing every generated recovery-execution IRI ([`VIEW_PREDICATE`],
 /// [`ATOMIC_SEED_SUBJECT`], [`ATOMIC_SEED_OBJECT`], [`RECOVERY_SEED_BASE`]-derived bindings).
-/// An authored recovery-case formula or atomic leg predicate that collides with this namespace
+/// An authored recovery-case formula or atomic leg predicate that collides with either namespace
 /// could make a generated seed/binding IRI equal an authored constant, collapsing two distinct
 /// terms into one in the seed graph and letting a lossy correspondence FALSELY discharge.  The
 /// guard below rejects that at lowering time, before any seed graph is built, so the generated
 /// IRIs stay disjoint from authored constants by construction.
-const RECOVERY_RESERVED_NS: &str = "https://blackcatinformatics.ca/logic/recovery";
+const RECOVERY_VIEW_NS: &str = "https://blackcatinformatics.ca/logic/recovery#";
+const RECOVERY_SEED_NS: &str = "https://blackcatinformatics.ca/logic/recovery-seed/";
 
-/// Whether an authored IRI collides with the reserved recovery-execution namespace.
+/// Whether an authored IRI collides with either reserved recovery-execution namespace.
 fn is_reserved_recovery_iri(iri: &str) -> bool {
-    iri.starts_with(RECOVERY_RESERVED_NS)
+    iri.starts_with(RECOVERY_VIEW_NS) || iri.starts_with(RECOVERY_SEED_NS)
 }
 
 /// A comparable RDF atom: subject, predicate, object as canonical term keys.
@@ -460,9 +467,9 @@ fn reject_reserved_recovery_iris(
     for pattern in patterns {
         if is_reserved_recovery_iri(&pattern.predicate) {
             return Err(exec_error(format!(
-                "{side} atom predicate <{}> uses the reserved recovery-execution namespace \
-                 `{RECOVERY_RESERVED_NS}`; author IRIs outside that namespace so generated seed \
-                 bindings stay fresh",
+                "{side} atom predicate <{}> uses a reserved recovery-execution namespace \
+                 (`{RECOVERY_VIEW_NS}` or `{RECOVERY_SEED_NS}`); author IRIs outside those \
+                 namespaces so generated seed bindings stay fresh",
                 pattern.predicate
             )));
         }
@@ -471,9 +478,9 @@ fn reject_reserved_recovery_iris(
                 && is_reserved_recovery_iri(iri)
             {
                 return Err(exec_error(format!(
-                    "{side} {position} <{iri}> uses the reserved recovery-execution namespace \
-                     `{RECOVERY_RESERVED_NS}`; author IRIs outside that namespace so generated \
-                     seed bindings stay fresh"
+                    "{side} {position} <{iri}> uses a reserved recovery-execution namespace \
+                     (`{RECOVERY_VIEW_NS}` or `{RECOVERY_SEED_NS}`); author IRIs outside those \
+                     namespaces so generated seed bindings stay fresh"
                 )));
             }
         }
@@ -612,9 +619,115 @@ pub fn lower_recovery_case(case: &RecoveryCaseIr) -> gmeow_errors::Result<Recove
     })
 }
 
-/// Execute one recovery case.  An out-of-fragment formula is an explicit violated
-/// obligation with a countermodel reason, never a silently skipped case.
-pub fn discharge_recovery_case(case: &RecoveryCaseIr) -> DischargeOutcome {
+type EndpointRelation = BTreeSet<(String, String)>;
+
+/// Render the normalized executable property path as an endpoint-selecting query.
+fn leg_relation_query(path: &LegPath) -> String {
+    format!(
+        "SELECT ?s ?o WHERE {{ ?s {} ?o . }}",
+        leg_path_canonical(path)
+    )
+}
+
+/// Convert a selected endpoint into the deterministic key used for relation comparison.
+fn endpoint_key(term: &TermValue) -> gmeow_errors::Result<String> {
+    match term {
+        TermValue::Iri(iri) => Ok(iri.clone()),
+        _ => crate::provenance::term_n3(term),
+    }
+}
+
+/// Execute one resolved leg body against the complete recovery seed.
+fn execute_leg_relation(
+    engine: &NativeSparqlEngine,
+    seed: &SeedGraph,
+    path: &LegPath,
+) -> gmeow_errors::Result<EndpointRelation> {
+    let query = leg_relation_query(path);
+    let source_nt = seed.to_ntriples();
+    let dataset = parse_dataset(source_nt.as_bytes(), "application/n-triples", None)
+        .map_err(|error| exec_error(format!("parse correspondence source graph: {error}")))?;
+    let result = engine
+        .query(
+            &dataset,
+            SparqlRequest {
+                query: &query,
+                base_iri: None,
+                substitutions: &[],
+            },
+        )
+        .map_err(|error| {
+            exec_error(format!(
+                "correspondence leg SELECT evaluation failed: {error}\nquery: {query}"
+            ))
+        })?;
+    let SparqlResult::Solutions {
+        variables, rows, ..
+    } = result
+    else {
+        return Err(exec_error(format!(
+            "correspondence leg SELECT did not return solutions\nquery: {query}"
+        )));
+    };
+    let subject_index = variables
+        .iter()
+        .position(|variable| variable == "s")
+        .ok_or_else(|| exec_error("correspondence leg SELECT omitted ?s".to_owned()))?;
+    let object_index = variables
+        .iter()
+        .position(|variable| variable == "o")
+        .ok_or_else(|| exec_error("correspondence leg SELECT omitted ?o".to_owned()))?;
+
+    let mut relation = EndpointRelation::new();
+    for row in rows {
+        let subject = row
+            .get(subject_index)
+            .and_then(Option::as_ref)
+            .ok_or_else(|| exec_error("correspondence leg SELECT left ?s unbound".to_owned()))?;
+        let object = row
+            .get(object_index)
+            .and_then(Option::as_ref)
+            .ok_or_else(|| exec_error("correspondence leg SELECT left ?o unbound".to_owned()))?;
+        relation.insert((endpoint_key(subject)?, endpoint_key(object)?));
+    }
+    Ok(relation)
+}
+
+/// Build a deterministic countermodel for two endpoint relations that should agree.
+fn relation_mismatch(
+    seed: &SeedGraph,
+    reason: String,
+    actual: &EndpointRelation,
+    expected: &EndpointRelation,
+) -> DischargeOutcome {
+    let as_atoms = |relation: &EndpointRelation| {
+        relation
+            .iter()
+            .map(|(subject, object)| (subject.clone(), VIEW_PREDICATE.to_owned(), object.clone()))
+            .collect::<BTreeSet<_>>()
+    };
+    let actual = as_atoms(actual);
+    let expected = as_atoms(expected);
+    DischargeOutcome {
+        verdict: DischargeVerdict::ObligationViolated,
+        countermodel: Some(Countermodel {
+            seed_label: seed.label.clone(),
+            reason,
+            spurious: actual.difference(&expected).cloned().collect(),
+            missing: expected.difference(&actual).cloned().collect(),
+        }),
+    }
+}
+
+/// Execute one recovery case and cross-check it against the correspondence's actual resolved
+/// leg bodies.  An out-of-fragment formula, an unexecutable or empty leg relation, or any
+/// formula/body disagreement is an explicit violated obligation with a countermodel reason,
+/// never a silently skipped case.
+pub fn discharge_recovery_case(
+    case: &RecoveryCaseIr,
+    get: &LegPath,
+    put: &LegPath,
+) -> DischargeOutcome {
     let execution = match lower_recovery_case(case) {
         Ok(execution) => execution,
         Err(reason) => {
@@ -627,14 +740,107 @@ pub fn discharge_recovery_case(case: &RecoveryCaseIr) -> DischargeOutcome {
             );
         }
     };
-    discharge_section_law(
+    let formula_outcome = discharge_section_law(
         &execution.get_query,
         &execution.put_query,
         std::slice::from_ref(&execution.seed),
-    )
+    );
+    if formula_outcome.verdict != DischargeVerdict::ObligationDischarged {
+        return formula_outcome;
+    }
+
+    let engine = NativeSparqlEngine::new();
+    let get_relation = match execute_leg_relation(&engine, &execution.seed, get) {
+        Ok(relation) => relation,
+        Err(error) => {
+            return violated(
+                &execution.seed,
+                format!("resolved get leg body is not executable: {error}"),
+            );
+        }
+    };
+    if get_relation.is_empty() {
+        return violated(
+            &execution.seed,
+            "resolved get leg body produced no relation on the recovery seed".to_owned(),
+        );
+    }
+
+    let put_relation = match execute_leg_relation(&engine, &execution.seed, put) {
+        Ok(relation) => relation,
+        Err(error) => {
+            return violated(
+                &execution.seed,
+                format!("resolved put leg body is not executable: {error}"),
+            );
+        }
+    };
+    if put_relation.is_empty() {
+        return violated(
+            &execution.seed,
+            "resolved put leg body produced no relation on the recovery seed".to_owned(),
+        );
+    }
+    let recovered_get: EndpointRelation = put_relation
+        .into_iter()
+        .map(|(subject, object)| (object, subject))
+        .collect();
+    if recovered_get != get_relation {
+        return relation_mismatch(
+            &execution.seed,
+            "resolved get and put leg bodies disagree under inversion on the recovery seed"
+                .to_owned(),
+            &get_relation,
+            &recovered_get,
+        );
+    }
+
+    let formula_view =
+        match run_construct(&engine, &execution.seed.to_ntriples(), &execution.get_query) {
+            Ok(quads) => quads,
+            Err(error) => {
+                return violated(
+                    &execution.seed,
+                    format!("recovery formula view is not executable: {error}"),
+                );
+            }
+        };
+    let formula_view_terms: BTreeSet<String> = formula_view
+        .iter()
+        .flat_map(|quad| [term_key(&quad.subject), term_key(&quad.object)])
+        .collect();
+    let unwitnessed_bindings: BTreeSet<String> = get_relation
+        .iter()
+        .flat_map(|(subject, object)| [subject, object])
+        .filter(|term| term.starts_with(RECOVERY_SEED_BASE))
+        .filter(|term| !formula_view_terms.contains(*term))
+        .cloned()
+        .collect();
+    if !unwitnessed_bindings.is_empty() {
+        return violated(
+            &execution.seed,
+            format!(
+                "resolved get leg binds recovery variables absent from the formula view: {}",
+                unwitnessed_bindings
+                    .into_iter()
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+        );
+    }
+
+    DischargeOutcome {
+        verdict: DischargeVerdict::ObligationDischarged,
+        countermodel: None,
+    }
 }
 
-fn discharge_recovery_cases(correspondence: &Correspondence) -> DischargeOutcome {
+/// Require every attached recovery case to discharge against the same resolved leg bodies.
+fn discharge_recovery_cases(
+    correspondence: &Correspondence,
+    get: &LegPath,
+    put: &LegPath,
+) -> DischargeOutcome {
     if correspondence.recovery_cases.is_empty() {
         return DischargeOutcome {
             verdict: DischargeVerdict::ObligationUnknown,
@@ -642,7 +848,7 @@ fn discharge_recovery_cases(correspondence: &Correspondence) -> DischargeOutcome
         };
     }
     for case in &correspondence.recovery_cases {
-        let outcome = discharge_recovery_case(case);
+        let outcome = discharge_recovery_case(case, get, put);
         if outcome.verdict != DischargeVerdict::ObligationDischarged {
             return outcome;
         }
@@ -687,14 +893,14 @@ pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> DischargeVerdict {
         return DischargeVerdict::ObligationUnknown;
     };
     // The atomic get/put predicates are authored constants.  If either collides with the
-    // reserved recovery-execution namespace (`RECOVERY_RESERVED_NS`), the synthesized atomic
-    // seed (`ATOMIC_SEED_SUBJECT`/`ATOMIC_SEED_OBJECT`) or its `VIEW_PREDICATE` carrier could
-    // collapse with an authored term and FALSELY discharge.  `ObligationUnknown` is not
-    // acceptable here — the gates below treat Unknown as "honest and passes", which would let
-    // the collision through silently.  `ObligationViolated` fails closed: it reds the Law,
-    // Round-trip, and Mnemomorphism gates exactly like a genuine put∘get counterexample, and is
-    // diagnosable because the gates' fixed-template refutation clause already names the failing
-    // correspondence IRI.
+    // reserved recovery-execution namespaces (`RECOVERY_VIEW_NS` / `RECOVERY_SEED_NS`), the
+    // synthesized atomic seed (`ATOMIC_SEED_SUBJECT`/`ATOMIC_SEED_OBJECT`) or its
+    // `VIEW_PREDICATE` carrier could collapse with an authored term and FALSELY discharge.
+    // `ObligationUnknown` is not acceptable here — the gates below treat Unknown as "honest and
+    // passes", which would let the collision through silently.  `ObligationViolated` fails
+    // closed: it reds the Law, Round-trip, and Mnemomorphism gates exactly like a genuine put∘get
+    // counterexample, and is diagnosable because the gates' fixed-template refutation clause
+    // already names the failing correspondence IRI.
     if is_reserved_recovery_iri(get_path.predicate)
         || is_reserved_recovery_iri(recovered_path.predicate)
     {
@@ -730,27 +936,29 @@ pub fn leg_pair_verdict(get: &LegPath, put: &LegPath) -> DischargeVerdict {
 
 /// Compute the executed recovery verdict for every correspondence.
 ///
-/// First-class recovery cases are authoritative.  When none are authored, only a complete
-/// atomic path rename can synthesize its one-triple case.  Missing/unresolvable or composite
-/// legs remain Unknown rather than passing by structural inversion.
+/// First-class recovery cases are authoritative evidence, but never an independent semantic
+/// source: their formula execution is cross-checked against both resolved leg bodies.  When no
+/// cases are authored, only a complete atomic path rename can synthesize its one-triple case.
+/// Missing/unresolvable or composite legs remain Unknown without evidence; missing legs are a
+/// violated obligation when recovery evidence claims that executable bodies exist.
 pub fn program_verdicts(program: &CorrespondenceProgram) -> CorrespondenceVerdicts {
     let mut verdicts = BTreeMap::new();
     for correspondence in &program.correspondences {
-        let verdict = if correspondence.recovery_cases.is_empty() {
-            let get = correspondence
-                .get_leg
-                .as_deref()
-                .and_then(|iri| program.resolve_leg(iri));
-            let put = correspondence
-                .put_leg
-                .as_deref()
-                .and_then(|iri| program.resolve_leg(iri));
-            match (get, put) {
-                (Some(get), Some(put)) => leg_pair_verdict(get, put),
-                _ => DischargeVerdict::ObligationUnknown,
+        let get = correspondence
+            .get_leg
+            .as_deref()
+            .and_then(|iri| program.resolve_leg(iri));
+        let put = correspondence
+            .put_leg
+            .as_deref()
+            .and_then(|iri| program.resolve_leg(iri));
+        let verdict = match (correspondence.recovery_cases.is_empty(), get, put) {
+            (true, Some(get), Some(put)) => leg_pair_verdict(get, put),
+            (true, _, _) => DischargeVerdict::ObligationUnknown,
+            (false, Some(get), Some(put)) => {
+                discharge_recovery_cases(correspondence, get, put).verdict
             }
-        } else {
-            discharge_recovery_cases(correspondence).verdict
+            (false, _, _) => DischargeVerdict::ObligationViolated,
         };
         verdicts.insert(correspondence.iri.clone(), verdict);
     }
@@ -1034,6 +1242,29 @@ mod tests {
         .expect("recovery case")
     }
 
+    fn recovery_correspondence(case: RecoveryCaseIr) -> Correspondence {
+        Correspondence::new(
+            "https://example.org/correspondence",
+            CorrespondenceRelation::Subsumes,
+            MorphismClass::SectionRetraction,
+            MorphismKind::InstitutionMorphism,
+            true,
+            None,
+            Some("https://example.org/get".to_owned()),
+            Some("https://example.org/put".to_owned()),
+            Vec::new(),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
+        .expect("correspondence")
+        .with_recovery_cases(vec![case])
+        .expect("case")
+    }
+
     #[test]
     fn atomic_inverse_recovers_the_real_source_predicate() {
         let get = step("https://example.org/source");
@@ -1068,14 +1299,16 @@ mod tests {
 
     #[test]
     fn recovery_formula_discharges_only_when_the_view_retains_every_source_variable() {
-        let good = discharge_recovery_case(&recovery_case(true));
+        let get = step("https://example.org/sourceDetail");
+        let put = get.invert();
+        let good = discharge_recovery_case(&recovery_case(true), &get, &put);
         assert_eq!(
             good.verdict,
             DischargeVerdict::ObligationDischarged,
             "{good:#?}"
         );
 
-        let bad = discharge_recovery_case(&recovery_case(false));
+        let bad = discharge_recovery_case(&recovery_case(false), &get, &put);
         assert_eq!(
             bad.verdict,
             DischargeVerdict::ObligationViolated,
@@ -1084,6 +1317,38 @@ mod tests {
         let countermodel = bad.countermodel.expect("loss has a countermodel");
         assert_eq!(countermodel.missing.len(), 1, "{countermodel:#?}");
         assert!(countermodel.spurious.is_empty(), "{countermodel:#?}");
+    }
+
+    #[test]
+    fn recovery_formula_literal_endpoints_fail_closed() {
+        let subject = Term::var("subject").expect("subject variable");
+        let source = atom(
+            "https://example.org/sourceValue",
+            subject.clone(),
+            Term::literal("source", None).expect("source literal"),
+        );
+        let view = atom(
+            "https://example.org/viewValue",
+            subject,
+            Term::literal("view", None).expect("view literal"),
+        );
+        let case = RecoveryCaseIr::new(
+            "https://example.org/recovery/literal-endpoint",
+            Formula::Forall {
+                vars: vec!["subject".to_owned()],
+                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
+            },
+        )
+        .expect("literal-endpoint recovery case");
+        let get = step("https://example.org/sourceValue");
+
+        let outcome = discharge_recovery_case(&case, &get, &get.invert());
+        assert_eq!(
+            outcome.verdict,
+            DischargeVerdict::ObligationViolated,
+            "literal constants are outside the declared recovery-case RDF-atom fragment and \
+             must fail closed: {outcome:#?}"
+        );
     }
 
     #[test]
@@ -1111,7 +1376,8 @@ mod tests {
         )
         .expect("recovery case");
 
-        let outcome = discharge_recovery_case(&case);
+        let get = step("https://example.org/sourceKind");
+        let outcome = discharge_recovery_case(&case, &get, &get.invert());
         assert_eq!(
             outcome.verdict,
             DischargeVerdict::ObligationViolated,
@@ -1121,27 +1387,34 @@ mod tests {
     }
 
     #[test]
-    fn program_prefers_authored_recovery_evidence_over_a_mechanical_put() {
-        let correspondence = Correspondence::new(
-            "https://example.org/correspondence",
-            CorrespondenceRelation::Subsumes,
-            MorphismClass::SectionRetraction,
-            MorphismKind::InstitutionMorphism,
-            true,
-            None,
-            Some("https://example.org/get".to_owned()),
-            Some("https://example.org/put".to_owned()),
-            Vec::new(),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
+    fn canonical_recovery_vocabulary_outside_the_execution_namespaces_remains_usable() {
+        let subject = Term::var("subject").expect("subject variable");
+        let object = Term::var("object").expect("object variable");
+        let predicate = "https://blackcatinformatics.ca/logic/recoveryTransform";
+        let source = atom(predicate, subject.clone(), object.clone());
+        let view = atom("https://example.org/viewKind", subject, object);
+        let case = RecoveryCaseIr::new(
+            "https://example.org/recovery/canonical-vocabulary-prefix",
+            Formula::Forall {
+                vars: vec!["subject".to_owned(), "object".to_owned()],
+                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
+            },
         )
-        .expect("correspondence")
-        .with_recovery_cases(vec![recovery_case(false)])
-        .expect("case");
+        .expect("recovery case");
+
+        let get = step(predicate);
+        let outcome = discharge_recovery_case(&case, &get, &get.invert());
+        assert_eq!(
+            outcome.verdict,
+            DischargeVerdict::ObligationDischarged,
+            "canonical logic:recovery* terms outside the generated execution namespaces must \
+             not be rejected by a raw string-prefix collision guard: {outcome:#?}"
+        );
+    }
+
+    #[test]
+    fn program_requires_both_recovery_evidence_and_the_resolved_leg_bodies() {
+        let correspondence = recovery_correspondence(recovery_case(false));
         let program = CorrespondenceProgram::new(
             vec![correspondence],
             Vec::new(),
@@ -1161,6 +1434,114 @@ mod tests {
             program_verdicts(&program)["https://example.org/correspondence"],
             DischargeVerdict::ObligationViolated,
             "the mechanically perfect path pair must not override a refuting source case"
+        );
+    }
+
+    #[test]
+    fn mutating_only_the_resolved_get_body_refutes_a_fixed_recovery_case() {
+        let source_detail = step("https://example.org/sourceDetail");
+        let program = CorrespondenceProgram::new(
+            vec![recovery_correspondence(recovery_case(true))],
+            Vec::new(),
+            PreservationKind::SoundUnder,
+        )
+        .with_leg_programs(vec![
+            TransactionProgramIr {
+                iri: "https://example.org/get".to_owned(),
+                body: source_detail.clone(),
+            },
+            TransactionProgramIr {
+                iri: "https://example.org/put".to_owned(),
+                body: source_detail.invert(),
+            },
+        ]);
+        assert_eq!(
+            program_verdicts(&program)["https://example.org/correspondence"],
+            DischargeVerdict::ObligationDischarged
+        );
+
+        let mut mutated = program.clone();
+        mutated
+            .leg_programs
+            .iter_mut()
+            .find(|leg| leg.iri == "https://example.org/get")
+            .expect("get body")
+            .body = step("https://example.org/unrelatedSource");
+        assert_eq!(
+            program_verdicts(&mutated)["https://example.org/correspondence"],
+            DischargeVerdict::ObligationViolated,
+            "the unchanged recovery case cannot discharge after only the formerly inert get \
+             body changes"
+        );
+    }
+
+    #[test]
+    fn recovery_evidence_with_a_missing_resolved_leg_fails_closed() {
+        let program = CorrespondenceProgram::new(
+            vec![recovery_correspondence(recovery_case(true))],
+            Vec::new(),
+            PreservationKind::SoundUnder,
+        )
+        .with_leg_programs(vec![TransactionProgramIr {
+            iri: "https://example.org/get".to_owned(),
+            body: step("https://example.org/sourceDetail"),
+        }]);
+        assert_eq!(
+            program_verdicts(&program)["https://example.org/correspondence"],
+            DischargeVerdict::ObligationViolated
+        );
+    }
+
+    #[test]
+    fn malformed_recovery_formula_fails_closed_before_leg_execution() {
+        let subject = Term::var("subject").expect("subject variable");
+        let object = Term::var("object").expect("object variable");
+        let case = RecoveryCaseIr::new(
+            "https://example.org/recovery/malformed",
+            atom("https://example.org/sourceDetail", subject, object),
+        )
+        .expect("recovery case carrier");
+        let get = step("https://example.org/sourceDetail");
+        assert_eq!(
+            discharge_recovery_case(&case, &get, &get.invert()).verdict,
+            DischargeVerdict::ObligationViolated
+        );
+    }
+
+    #[test]
+    fn complete_composite_recovery_executes_the_resolved_path_bodies() {
+        let subject = Term::var("subject").expect("subject variable");
+        let middle = Term::var("middle").expect("middle variable");
+        let object = Term::var("object").expect("object variable");
+        let source = Formula::And(vec![
+            atom("https://example.org/a", subject.clone(), middle.clone()),
+            atom("https://example.org/b", middle.clone(), object.clone()),
+        ]);
+        let view = Formula::And(vec![
+            atom("https://example.org/viewEndpoint", subject.clone(), object),
+            atom("https://example.org/viewWitness", subject, middle),
+        ]);
+        let case = RecoveryCaseIr::new(
+            "https://example.org/recovery/composite",
+            Formula::Forall {
+                vars: vec![
+                    "subject".to_owned(),
+                    "middle".to_owned(),
+                    "object".to_owned(),
+                ],
+                body: Box::new(Formula::Implies(Box::new(source), Box::new(view))),
+            },
+        )
+        .expect("composite recovery case");
+        let get = LegPath::Seq(vec![
+            step("https://example.org/a"),
+            step("https://example.org/b"),
+        ]);
+        let outcome = discharge_recovery_case(&case, &get, &get.invert());
+        assert_eq!(
+            outcome.verdict,
+            DischargeVerdict::ObligationDischarged,
+            "{outcome:#?}"
         );
     }
 
