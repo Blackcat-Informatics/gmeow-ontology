@@ -316,11 +316,9 @@ fn add(out: &mut Vec<RdfQuad>, s: &str, p: &str, o: RdfTerm) {
     out.push(RdfQuad::new(RdfTerm::iri(s), p, o));
 }
 
+/// Build a public RDF English literal for outward VoID/DCAT metadata.
 fn lit_en(s: &str) -> RdfTerm {
-    RdfTerm::literal(RdfLiteral::language_tagged(
-        s,
-        gmeow_errors::abox::X_GMEOW_ENGLISH,
-    ))
+    RdfTerm::literal(RdfLiteral::language_tagged(s, "en"))
 }
 
 fn lit_int(n: u64) -> RdfTerm {
@@ -731,7 +729,7 @@ impl Stage for MetadataStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "metadata.v1"
+        "metadata.v2-public-en"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // THIS run's snapshot carrier dataset, read DIRECTLY off the product bundle —
@@ -811,5 +809,39 @@ mod tests {
         let stats = fold_stats(&dataset).expect("metadata census succeeds");
         assert_eq!(stats.classes, 1);
         assert_eq!(stats.properties, 3);
+    }
+
+    #[test]
+    /// Generated VoID/DCAT prose exposes only public `@en` language tags.
+    fn authenticated_external_metadata_uses_only_public_english_tags() {
+        let root = repo_root();
+        for path in [VOID_PATH, DCAT_PATH] {
+            let artifact =
+                crate::fixture::authenticated_artifact(&root, "stage-export-metadata", path)
+                    .unwrap_or_else(|error| {
+                        panic!("authenticated {path}; tests never produce it: {error}")
+                    });
+            let dataset = purrdf::parse_dataset(&artifact, "text/turtle", None)
+                .unwrap_or_else(|error| panic!("{path} parses: {error}"));
+            let languages: Vec<String> = dataset
+                .owned_quads()
+                .filter_map(|quad| match quad.object {
+                    RdfTerm::Literal(RdfLiteral { language, .. }) => language,
+                    _ => None,
+                })
+                .collect();
+            assert!(
+                !languages.is_empty(),
+                "{path} carries language-tagged prose"
+            );
+            assert!(
+                languages.iter().all(|language| language == "en"),
+                "{path} publishes only public English language tags: {languages:?}"
+            );
+            assert!(
+                !String::from_utf8_lossy(&artifact).contains("@x-gmeow-"),
+                "{path} must not leak internal carrier language tags"
+            );
+        }
     }
 }

@@ -18,7 +18,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use gmeow_errors::{Finding, Report, Rule, Severity};
+use gmeow_errors::{Finding, Location, Report, Rule, Severity};
 use gmeow_validate::rule_catalog::help_uri_for;
 
 use crate::gate;
@@ -105,6 +105,26 @@ fn higher_rank(a: Option<&Tier>, b: Option<&Tier>) -> Option<Tier> {
     }
 }
 
+/// Add an honest slice-owned file anchor when an advisory has no parser location.
+fn attach_file_level_source(report: &SliceReport, finding: &mut Finding) {
+    if finding
+        .locations
+        .iter()
+        .any(|location| location.path.is_some())
+    {
+        return;
+    }
+    finding.locations.insert(
+        0,
+        Location::new(
+            Some(report.lint_source_path(finding).to_owned()),
+            None,
+            None,
+            None,
+        ),
+    );
+}
+
 /// The full result of linting an already-scored [`SliceReport`] against an
 /// effective tier bar.
 pub struct LintOutcome {
@@ -179,20 +199,21 @@ pub fn lint_report(
                 Severity::Warning
             }
         };
+        attach_file_level_source(report, &mut finding);
         findings.add_finding(finding);
     }
     if !passed && let Some(bar) = &effective_bar {
-        findings.add_finding(
-            Finding::new(
-                Severity::Error,
-                "slice-quality.lint.below-min-tier",
-                format!(
-                    "roll-up tier {} is below the required {}",
-                    report.assessment.rollup.label, bar.label
-                ),
-            )
-            .with_tool("slice-quality"),
-        );
+        let mut finding = Finding::new(
+            Severity::Error,
+            "slice-quality.lint.below-min-tier",
+            format!(
+                "roll-up tier {} is below the required {}",
+                report.assessment.rollup.label, bar.label
+            ),
+        )
+        .with_tool("slice-quality");
+        attach_file_level_source(report, &mut finding);
+        findings.add_finding(finding);
     }
 
     // Attach a rule descriptor for every distinct emitted code, each carrying a
@@ -676,6 +697,85 @@ mod tests {
         assert_eq!(by_label.rank, 1);
         let by_local = resolve_min_tier(&std, "tierLINKED").expect("local name matches");
         assert_eq!(by_local.rank, 2);
+    }
+
+    #[test]
+    /// SARIF receives real manifest/module files while preserving file-level semantics.
+    fn lint_sarif_uses_real_file_level_slice_sources_without_fake_spans() {
+        let mut term_finding = Finding::new(
+            Severity::Warning,
+            "slice-quality.grounding.no-stereotype",
+            "term-owned finding",
+        )
+        .with_tool("slice-quality");
+        term_finding
+            .documented_terms
+            .push("https://example.test/Term".to_owned());
+        let slice_finding = Finding::new(
+            Severity::Warning,
+            "slice-quality.documentation.no-docs",
+            "slice-owned finding",
+        )
+        .with_tool("slice-quality");
+        let report = report_with(
+            vec![axis("Grounding")],
+            vec![grade("Grounding", tier("Grounded", 1), 0.6)],
+            tier("Grounded", 1),
+            vec![term_finding, slice_finding],
+            vec![axis_iri("Grounding"), axis_iri("Grounding")],
+        );
+
+        let outcome = lint_report(&report, None, None);
+        let paths: Vec<&str> = outcome
+            .findings
+            .findings
+            .iter()
+            .map(|finding| {
+                let location = finding.locations.first().expect("physical location");
+                assert!(location.line.is_none() && location.column.is_none());
+                location.path.as_deref().expect("source path")
+            })
+            .collect();
+        assert_eq!(paths, ["module.ttl", "manifest.ttl"]);
+
+        let sarif = gmeow_errors::render::to_sarif(&outcome.findings).expect("lint SARIF renders");
+        assert!(!sarif.contains("ontology/gmeow.ttl"));
+        assert!(!sarif.contains("gmeow.syntheticPhysicalLocation"));
+        assert!(!sarif.contains("\"region\""));
+    }
+
+    #[test]
+    /// A missing module falls back to the slice manifest, never the shared ontology.
+    fn term_finding_without_module_uses_manifest_not_shared_ontology() {
+        let mut finding = Finding::new(
+            Severity::Warning,
+            "slice-quality.grounding.no-stereotype",
+            "term-owned finding without a module",
+        )
+        .with_tool("slice-quality");
+        finding
+            .documented_terms
+            .push("https://example.test/Term".to_owned());
+        let mut report = report_with(
+            vec![axis("Grounding")],
+            vec![grade("Grounding", tier("Grounded", 1), 0.6)],
+            tier("Grounded", 1),
+            vec![finding],
+            vec![axis_iri("Grounding")],
+        );
+        report.remove_module_source_for_test();
+
+        let outcome = lint_report(&report, None, None);
+        let location = outcome.findings.findings[0]
+            .locations
+            .first()
+            .expect("file-level source");
+        assert_eq!(location.path.as_deref(), Some("manifest.ttl"));
+        assert!(location.line.is_none() && location.column.is_none());
+
+        let sarif = gmeow_errors::render::to_sarif(&outcome.findings).expect("lint SARIF renders");
+        assert!(!sarif.contains("ontology/gmeow.ttl"));
+        assert!(!sarif.contains("\"region\""));
     }
 
     #[test]

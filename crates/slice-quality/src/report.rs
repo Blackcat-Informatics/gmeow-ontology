@@ -124,12 +124,53 @@ pub struct SliceReport {
     advisory_axes: Vec<String>,
     /// The axis IRI paired with each advisory, for weight-ranking and grouping.
     axis_weight: std::collections::HashMap<String, f64>,
+    /// Real slice-owned files available as file-level diagnostic anchors.
+    /// Paths are portable, forward-slash paths rooted at the supplied slice
+    /// directory (or slice-relative for an in-memory file map).
+    source_files: SliceSourceFiles,
+}
+
+#[derive(Debug, Clone)]
+struct SliceSourceFiles {
+    manifest: String,
+    module: Option<String>,
 }
 
 /// The slice-relative key of a slice's manifest — the ONE file that carries the
 /// slice's ontology identity, and therefore the one whose absence is a hard error
 /// rather than a scored shortfall.
 pub const MANIFEST_KEY: &str = "manifest.ttl";
+const MODULE_KEY: &str = "module.ttl";
+
+impl SliceSourceFiles {
+    /// Discover the real manifest and optional module identities in one file map.
+    fn from_files(files: &BTreeMap<String, Vec<u8>>) -> Self {
+        Self {
+            manifest: MANIFEST_KEY.to_owned(),
+            module: files
+                .contains_key(MODULE_KEY)
+                .then(|| MODULE_KEY.to_owned()),
+        }
+    }
+
+    /// Rebase slice-relative identities onto the caller-supplied directory path.
+    fn prefix_with_slice_dir(&mut self, slice_dir: &Path) {
+        self.manifest = normalized_source_path(slice_dir, MANIFEST_KEY);
+        self.module = self
+            .module
+            .as_ref()
+            .map(|_| normalized_source_path(slice_dir, MODULE_KEY));
+    }
+}
+
+/// Produce a portable file identity without inventing canonicalized filesystem bytes.
+fn normalized_source_path(slice_dir: &Path, file: &str) -> String {
+    let normalized = slice_dir.join(file).to_string_lossy().replace('\\', "/");
+    normalized
+        .strip_prefix("./")
+        .unwrap_or(&normalized)
+        .to_owned()
+}
 
 /// Extract the `gmeow:Slice` ontology IRI from already-parsed manifest bytes.
 ///
@@ -350,12 +391,13 @@ pub fn score_slice_files_with_standard(
     env: ScoringEnv,
 ) -> gmeow_errors::Result<SliceReport> {
     let slice_iri = slice_iri_of_files(files)?;
+    let source_files = SliceSourceFiles::from_files(files);
     let ds = crate::dataset_from_documents(&slice_ttl_documents(files))?;
     // The scoring environment decides where the two repo-anchored axes source their
     // wide-scope inputs; every in-repo caller passes `ScoringEnv::Repo` (byte-identical
     // to the pre-seam behaviour), the consumer wheel passes `ScoringEnv::Bundle`.
     let ctx = ScoreContext::new(slice_iri.clone(), files, &ds, env);
-    score_with_context(&ctx, &slice_iri, standard)
+    score_with_context(&ctx, &slice_iri, standard, source_files)
 }
 
 /// Score the slice at `slice_dir` — the on-disk convenience over
@@ -377,7 +419,9 @@ pub fn score_slice_with_standard(
     env: ScoringEnv,
 ) -> gmeow_errors::Result<SliceReport> {
     let files = slice_files_from_dir(slice_dir)?;
-    score_slice_files_with_standard(&files, standard, env)
+    let mut report = score_slice_files_with_standard(&files, standard, env)?;
+    report.source_files.prefix_with_slice_dir(slice_dir);
+    Ok(report)
 }
 
 /// Run every axis in `standard` over `ctx` and assemble the ranked report.
@@ -385,6 +429,7 @@ fn score_with_context(
     ctx: &ScoreContext,
     slice_iri: &str,
     standard: &MeasurementStandard,
+    source_files: SliceSourceFiles,
 ) -> gmeow_errors::Result<SliceReport> {
     let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(standard.axes.len());
     // Each entry is (axis_iri, axis_weight, advice_kind, finding). `advice_kind`
@@ -475,6 +520,7 @@ fn score_with_context(
         advisories,
         advisory_axes,
         axis_weight,
+        source_files,
     })
 }
 
@@ -504,11 +550,33 @@ impl SliceReport {
             advisories,
             advisory_axes,
             axis_weight,
+            source_files: SliceSourceFiles {
+                manifest: MANIFEST_KEY.to_owned(),
+                module: Some(MODULE_KEY.to_owned()),
+            },
         }
+    }
+
+    /// Remove the optional module identity for the manifest-fallback negative control.
+    pub(crate) fn remove_module_source_for_test(&mut self) {
+        self.source_files.module = None;
     }
 }
 
 impl SliceReport {
+    /// The real slice-owned file that can honestly anchor a lint finding when no
+    /// parser span exists. Term-specific findings belong to `module.ttl` when the
+    /// slice carries it; slice-level policy and tier findings belong to the
+    /// manifest that declares the slice identity.
+    pub(crate) fn lint_source_path(&self, finding: &Finding) -> &str {
+        if !finding.documented_terms.is_empty()
+            && let Some(module) = self.source_files.module.as_deref()
+        {
+            return module;
+        }
+        &self.source_files.manifest
+    }
+
     /// The advisories PRODUCED BY one axis, in report order.
     ///
     /// Reads the stored `advisory_axes` back-reference, so the answer is exact: it

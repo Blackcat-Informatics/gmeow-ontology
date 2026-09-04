@@ -42,6 +42,7 @@ pub mod bundle;
 pub use gmeow_bundle_view::bundle_blobs;
 pub use gmeow_bundle_view::diagnostics_reader;
 pub mod cache;
+mod canonical_abstract;
 pub mod catalog_families;
 pub mod cli_ops;
 pub mod correspondence_law;

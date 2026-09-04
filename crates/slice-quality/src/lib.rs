@@ -1304,9 +1304,10 @@ impl BundleStandards {
 ///
 /// This is the terminal external-scoring call: no repo checkout, no slice directory,
 /// nothing on a filesystem at all — the bundle bytes and the slice's own file map are
-/// the complete input. Every other external entry point ([`score_external_slice`],
-/// [`score_external_slice_bytes`], [`score_external_slice_files`]) reduces to this
-/// one, so a slice scores identically however its bytes were obtained.
+/// the complete input. The directory entry points use the same scoring implementation
+/// while retaining their real manifest/module paths for diagnostics, so a slice scores
+/// identically however its bytes were obtained without discarding actionable source
+/// identity.
 ///
 /// # Errors
 /// As [`report::score_slice_files_with_standard`].
@@ -1323,17 +1324,21 @@ pub fn score_external_slice_from_files(
 
 /// Score an external slice DIRECTORY against the standards flattened from a bundle
 /// (reuse one [`BundleStandards`] across many slices). Reads the bundle-carried
-/// standards + the external `slice_dir` ONLY — never a repo checkout. A thin on-disk
-/// convenience: it reads the directory into a file map and delegates to
-/// [`score_external_slice_from_files`].
+/// standards + the external `slice_dir` ONLY — never a repo checkout. This thin on-disk
+/// convenience reads the directory into the same file-map scorer while retaining
+/// `slice_dir` as the root of file-level diagnostic locations.
 ///
 /// # Errors
-/// As [`report::slice_files_from_dir`] and [`score_external_slice_from_files`].
+/// As [`report::slice_files_from_dir`] and [`report::score_slice_with_standard`].
 pub fn score_external_slice(
     std: &BundleStandards,
     slice_dir: &Path,
 ) -> gmeow_errors::Result<report::SliceReport> {
-    score_external_slice_from_files(std, &report::slice_files_from_dir(slice_dir)?)
+    report::score_slice_with_standard(
+        slice_dir,
+        &std.standard,
+        ScoringEnv::Bundle(std.gmn_dict.clone()),
+    )
 }
 
 /// Score an external slice held in memory straight from bundle bytes — the one-slice
@@ -1355,9 +1360,10 @@ pub fn score_external_slice_files(
 }
 
 /// Score an external slice directory straight from bundle bytes — the on-disk twin of
-/// [`score_external_slice_files`]: read the directory into a file map
-/// ([`report::slice_files_from_dir`]) and delegate, so both share ONE scoring
-/// implementation. Prefer the two-step form when scoring many slices from one bundle.
+/// [`score_external_slice_files`]: flatten the bundle standard once, then use the
+/// directory scorer so file-level diagnostics retain the supplied source paths. Both
+/// forms share one scoring implementation. Prefer the two-step form when scoring many
+/// slices from one bundle.
 ///
 /// # Errors
 /// HARD FAILS on a corrupt wheel (as [`BundleStandards::from_gts`]), an unreadable
@@ -1366,7 +1372,8 @@ pub fn score_external_slice_bytes(
     bundle_gts: &[u8],
     slice_dir: &Path,
 ) -> gmeow_errors::Result<report::SliceReport> {
-    score_external_slice_files(bundle_gts, &report::slice_files_from_dir(slice_dir)?)
+    let standards = BundleStandards::from_gts(bundle_gts)?;
+    score_external_slice(&standards, slice_dir)
 }
 
 #[cfg(test)]

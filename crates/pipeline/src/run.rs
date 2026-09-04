@@ -94,6 +94,45 @@ fn attach_pipeline_finding(ledger: &mut DiagLedger, code: &str, focus: &str, mes
     ledger.attach(diag, StageId::new(PIPELINE_STAGE_ID));
 }
 
+/// The file-level result of reconciling one canonical abstract projection.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum CanonicalTargetOutcome {
+    /// The target is reconciled; `written` distinguishes a rewrite from a fixed point.
+    Reproduced { written: bool },
+    /// Check mode observed bytes that differ from the canonical field projection.
+    Drifted,
+}
+
+/// Reconcile one canonical projection without weakening check mode into a write.
+fn reconcile_canonical_target(
+    root: &Path,
+    mode: RunMode,
+    target: &crate::canonical_abstract::ProjectedAbstract,
+) -> Result<CanonicalTargetOutcome, gmeow_errors::Diag> {
+    if mode == RunMode::Update {
+        return Ok(CanonicalTargetOutcome::Reproduced {
+            written: write_artifact(root, target.path, &target.bytes)?,
+        });
+    }
+    if std::fs::read(root.join(target.path)).is_ok_and(|bytes| bytes == target.bytes) {
+        Ok(CanonicalTargetOutcome::Reproduced { written: false })
+    } else {
+        Ok(CanonicalTargetOutcome::Drifted)
+    }
+}
+
+/// Attach one visible ledger diagnostic for every canonical projection drift.
+fn attach_canonical_drift_findings(ledger: &mut DiagLedger, drifted: &[String]) {
+    for path in drifted {
+        attach_pipeline_finding(
+            ledger,
+            CODE_DRIFT,
+            path,
+            format!("{path} differs from the canonical abstract projection"),
+        );
+    }
+}
+
 /// The sole serialization exit; its product carries the `gmeow.gts` bytes.
 pub(crate) const SINK_STAGE: &str = "stage-gts-sink";
 /// The committed fold path the sink writes / schemas project / fanout reads.
@@ -857,6 +896,45 @@ pub fn run_full_scoped_with_progress(
     progress: Option<Arc<dyn Reporter>>,
 ) -> Result<RunReport, gmeow_errors::Diag> {
     let total_started = Instant::now();
+
+    // The abstract fields are producer-owned inputs to `source_load`, so this
+    // field-level projection must reach its fixed point before the DAG reads the
+    // ontology/self-description documents. Check mode compares without writing.
+    let canonical_started = Instant::now();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_start("pipeline:canonical-abstract");
+    }
+    let canonical_targets = crate::canonical_abstract::render_targets(root)?;
+    let mut canonical_drifted = Vec::new();
+    let mut canonical_reproduced = 0usize;
+    let mut canonical_written = 0usize;
+    let mut canonical_skipped_writes = 0usize;
+    let canonical_output_paths: Vec<String> = canonical_targets
+        .iter()
+        .map(|target| target.path.to_owned())
+        .collect();
+    for target in &canonical_targets {
+        match reconcile_canonical_target(root, mode, target)? {
+            CanonicalTargetOutcome::Reproduced { written } => {
+                canonical_reproduced += 1;
+                if written {
+                    debug_assert_eq!(mode, RunMode::Update);
+                    canonical_written += 1;
+                } else if mode == RunMode::Update {
+                    canonical_skipped_writes += 1;
+                }
+            }
+            CanonicalTargetOutcome::Drifted => {
+                debug_assert_eq!(mode, RunMode::Check);
+                canonical_drifted.push(target.path.to_owned());
+            }
+        }
+    }
+    let canonical_elapsed = canonical_started.elapsed();
+    if let Some(progress) = progress.as_ref() {
+        progress.stage_end("pipeline:canonical-abstract", canonical_elapsed);
+    }
+
     let spec = full_spec();
 
     // Single-pass: the schemas leaf is now a normal carrier-reading
@@ -895,6 +973,11 @@ pub fn run_full_scoped_with_progress(
         );
     }
     let mut timings: Vec<TimingRecord> = Vec::new();
+    timings.push(TimingRecord {
+        phase: "canonical-abstract".to_string(),
+        elapsed_ms: canonical_elapsed.as_millis(),
+        metadata: Some(format!("targets={}", canonical_targets.len())),
+    });
     timings.push(TimingRecord {
         phase: "pipeline-scheduler".to_string(),
         elapsed_ms: scheduler_elapsed,
@@ -950,6 +1033,7 @@ pub fn run_full_scoped_with_progress(
     // SAME ledger (they are forward, run-level diagnostics), so the ledger stays the one
     // source of truth. The backward RDF→ledger read is gone (greenfield).
     let mut ledger = result.ledger;
+    attach_canonical_drift_findings(&mut ledger, &canonical_drifted);
 
     // PIPELINE_SPINE §4/§7: exactly one stage writes the bundle bytes, AND it must be
     // the stage that DECLARED the sink capability. Assert it on the ACTUAL produced
@@ -976,13 +1060,13 @@ pub fn run_full_scoped_with_progress(
         })
     })?;
 
-    let mut drifted: Vec<String> = Vec::new();
-    let mut produced = 0usize;
-    let mut reproduced = 0usize;
-    let mut written = 0usize;
-    let mut skipped_writes = 0usize;
+    let mut drifted = canonical_drifted;
+    let mut produced = canonical_targets.len();
+    let mut reproduced = canonical_reproduced;
+    let mut written = canonical_written;
+    let mut skipped_writes = canonical_skipped_writes;
     let mut removed = 0usize;
-    let mut output_paths: Vec<String> = Vec::new();
+    let mut output_paths = canonical_output_paths;
 
     // ── Reconcile every produced artifact against committed / write it. ──
     let reconcile_started = Instant::now();
@@ -1715,7 +1799,10 @@ pub(crate) fn write_artifact(
 
 #[cfg(test)]
 mod ledger_integration_tests {
-    use super::{CODE_DRIFT, CODE_SUPERSET_MISSING, DiagLedger, attach_pipeline_finding};
+    use super::{
+        CODE_DRIFT, CODE_SUPERSET_MISSING, DiagLedger, attach_canonical_drift_findings,
+        attach_pipeline_finding,
+    };
 
     /// F3: the drift/superset producers intern their diagnostics into the carrier
     /// ledger, and the wire findings are the ledger's projection — the ledger is
@@ -1755,11 +1842,32 @@ mod ledger_integration_tests {
                 .is_empty()
         );
     }
+
+    #[test]
+    /// Canonical drift becomes consumer-visible findings rather than path-only state.
+    fn canonical_drift_paths_are_visible_in_the_carrier_ledger() {
+        let mut ledger = DiagLedger::new();
+        attach_canonical_drift_findings(
+            &mut ledger,
+            &["CITATION.cff".to_owned(), "ontology/gmeow.ttl".to_owned()],
+        );
+
+        let findings = ledger.project_report("gmeow-pipeline").findings;
+        assert_eq!(findings.len(), 2);
+        assert!(findings.iter().all(|finding| finding.code == CODE_DRIFT));
+        assert!(findings.iter().any(|finding| {
+            finding.message == "CITATION.cff differs from the canonical abstract projection"
+        }));
+    }
 }
 
 #[cfg(test)]
 mod dag_profile_tests {
-    use super::{certify_build_plan, full_spec, write_artifact};
+    use super::{
+        CanonicalTargetOutcome, RunMode, certify_build_plan, full_spec, reconcile_canonical_target,
+        write_artifact,
+    };
+    use crate::canonical_abstract::ProjectedAbstract;
     use gmeow_logic::dag_profile::{DagCertification, certify_acyclic};
     use gmeow_logic::result::{
         CompletenessStatus, EvaluationStatus, InformationState, PreservationClaim,
@@ -1855,6 +1963,38 @@ mod dag_profile_tests {
         assert_eq!(
             std::fs::read(dir.path().join("generated/sample.txt")).expect("read changed"),
             b"v2"
+        );
+    }
+
+    #[test]
+    /// Update and check classify fixed points consistently while check remains read-only.
+    fn canonical_target_reconciliation_counts_fixed_points_and_reports_check_drift() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let target = ProjectedAbstract {
+            path: "CITATION.cff",
+            bytes: b"abstract: canonical\n".to_vec(),
+        };
+        std::fs::write(dir.path().join(target.path), &target.bytes).expect("seed fixed point");
+
+        assert_eq!(
+            reconcile_canonical_target(dir.path(), RunMode::Update, &target)
+                .expect("update fixed point"),
+            CanonicalTargetOutcome::Reproduced { written: false }
+        );
+        assert_eq!(
+            reconcile_canonical_target(dir.path(), RunMode::Check, &target)
+                .expect("check fixed point"),
+            CanonicalTargetOutcome::Reproduced { written: false }
+        );
+
+        std::fs::write(dir.path().join(target.path), b"abstract: drifted\n").expect("seed drift");
+        assert_eq!(
+            reconcile_canonical_target(dir.path(), RunMode::Check, &target).expect("check drift"),
+            CanonicalTargetOutcome::Drifted
+        );
+        assert_eq!(
+            reconcile_canonical_target(dir.path(), RunMode::Update, &target).expect("repair drift"),
+            CanonicalTargetOutcome::Reproduced { written: true }
         );
     }
 }
