@@ -267,10 +267,18 @@ impl TripleSink {
     /// emits canonical, deterministic Turtle — so no manual pre-sort is needed (the
     /// goldens compare by isomorphism either way). All projected quads live in the
     /// default graph, so `SerializeGraph::DefaultGraph` is the faithful selector.
+    /// # Panics
+    ///
+    /// If the accumulated triples cannot be frozen or serialized — most often because
+    /// a term is not a legal IRI (the RDF IR refuses to intern one containing a
+    /// control character or another disallowed codepoint). The underlying diagnostic
+    /// is carried into the panic message: it names the offending term, the codepoint
+    /// and its byte offset, which is the whole difference between a defect a reader
+    /// can act on and one they cannot.
     pub(crate) fn serialize(self, banner: &str) -> String {
         let body = self
             .serialize_as("text/turtle")
-            .expect("constructed triple set must serialize as Turtle");
+            .unwrap_or_else(|e| panic!("constructed triple set must serialize as Turtle: {e}"));
         let body = format!("{}\n", body.trim_end_matches('\n'));
         format!("{banner}{body}")
     }
@@ -279,14 +287,18 @@ impl TripleSink {
     /// Kept separate from [`Self::serialize`] so correspondence-owned formula trees can be
     /// embedded in their deterministic N-Triples carrier without reimplementing the formula
     /// projection.
-    fn serialize_as(self, media_type: &str) -> Option<String> {
-        self.builder
-            .freeze()
-            .ok()
-            .and_then(|dataset| {
-                serialize_dataset(dataset.as_ref(), media_type, SerializeGraph::DefaultGraph).ok()
-            })
-            .and_then(|bytes| String::from_utf8(bytes).ok())
+    ///
+    /// # Errors
+    ///
+    /// The freeze or the codec refused. Returning the diagnostic rather than `None` is
+    /// the point: `.ok()` here previously discarded exactly the message that says WHICH
+    /// term was rejected and why, leaving callers to panic with a sentence that could
+    /// not distinguish an illegal IRI from an encoding fault.
+    fn serialize_as(self, media_type: &str) -> Result<String, String> {
+        let dataset = self.builder.freeze().map_err(|e| e.to_string())?;
+        let bytes = serialize_dataset(dataset.as_ref(), media_type, SerializeGraph::DefaultGraph)
+            .map_err(|e| e.to_string())?;
+        String::from_utf8(bytes).map_err(|e| format!("serialized {media_type} is not UTF-8: {e}"))
     }
 }
 
@@ -1345,7 +1357,7 @@ pub(crate) fn formula_ntriples(node: &str, formula: &Formula) -> String {
     let mut sink = TripleSink::default();
     emit_formula(&mut sink, node, formula);
     sink.serialize_as("application/n-triples")
-        .expect("constructed logic:Formula must serialize as N-Triples")
+        .unwrap_or_else(|e| panic!("constructed logic:Formula must serialize as N-Triples: {e}"))
 }
 
 /// Emit the operands of a commutative connective (`and`/`or`/`iff`), sorted by content

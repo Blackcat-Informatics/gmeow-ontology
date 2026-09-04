@@ -814,7 +814,14 @@ maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resol
 	@# STATICALLY LINKED into each committed wasm engine. The last one is the trap: a
 	@# digest manifest compares committed bytes to committed bytes, so bumping the pin
 	@# leaves every browser engine on the OLD substrate with every gate green. Re-vendoring
-	@# all four is therefore part of the bump, not a follow-up.
+	@# every engine is therefore part of the bump, not a follow-up.
+	@#
+	@# There are SIX, not four. This target re-vendored only query/validate/reason/gmn
+	@# while claiming to do "EVERY wasm engine", so a bump left the two MCP segments
+	@# linking the old substrate — and the attestation gate then failed AFTER the bump
+	@# had reported success, naming `maint-refresh-mcp-core-asset` as the fix. A target
+	@# whose help text overstates what it does is a defect in the target, not a step the
+	@# caller was supposed to remember.
 	@test -n "$(VERSION)" || { echo "ERROR: VERSION is required, e.g. make maint-bump-purrdf VERSION=0.12.0"; exit 1; }
 	@echo "== re-pinning purrdf to $(VERSION) in both manifests =="
 	@# EXACT (`=x.y.z`), never a caret range: every wasm engine records the RESOLVED
@@ -845,7 +852,16 @@ maint-bump-purrdf: ## Bump the purrdf substrate: re-pin both manifests, re-resol
 	$(MAKE) maint-refresh-validate-asset
 	$(MAKE) maint-refresh-reason-asset
 	$(MAKE) maint-refresh-gmn-asset
-	@echo "OK: purrdf bumped to $(VERSION) and all four wasm engines re-vendored against it."
+	$(MAKE) maint-refresh-mcp-core-asset
+	$(MAKE) maint-refresh-mcp-asset
+	@# Every engine the attestation gate witnesses must now stamp the new substrate. This
+	@# is the same check `make check` runs, asserted here so the bump cannot report
+	@# success while a segment still links the old pin.
+	@for e in query validate reason gmn mcp mcp-core; do \
+		grep -qF 'purrdf $(VERSION);' "crates/docs/assets/$$e/SUBSTRATE.txt" \
+			|| { echo "FAIL: crates/docs/assets/$$e/SUBSTRATE.txt does not stamp purrdf $(VERSION) after re-vendoring"; exit 1; }; \
+	done
+	@echo "OK: purrdf bumped to $(VERSION) and all six wasm engines re-vendored against it."
 	@echo "    Next: one \`make check\` to re-materialize generated/ and gate."
 
 mcp-wasm-pkg: ## Build the gmeow-mcp-wasm npm/ESM package (release wasm + wasm-bindgen web bindings).

@@ -3,7 +3,7 @@
     "code": "named-graph-dropped",
     "from": "nquads",
     "to": "ntriples",
-    "note": "The target syntax has no named-graph construct; quads are folded into the default graph and graph names are dropped.",
+    "note": "The target syntax has no named-graph construct; a quad asserted in a named graph is DROPPED entirely — statement and graph name alike — and only the default graph survives. The quads are NOT folded into the default graph.",
     "count": 1
   }
 ]
