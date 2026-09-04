@@ -68,26 +68,21 @@ rustc-ice-*.txt
 # insta pending-snapshot temp files (never commit)
 *.snap.new
 
-# coding-ethos generated runtime output
+# Local agent-tooling runtime state. `.coding-ethos/` is matched at any depth on
+# purpose: the previous per-subdirectory patterns (`.coding-ethos/hook-runs/` and
+# friends) each contain an interior slash, so Git anchored them to the repository
+# root and a nested `.coding-ethos/.coding-ethos/hook-runs/` escaped the ignore and
+# was staged by `git add -A`. No path under this directory is ever gmeow content.
 .claude/settings.local.json
-.coding-ethos/cache/
-.coding-ethos/code-intel.duckdb
-.coding-ethos/code-intel.duckdb.wal
-.coding-ethos/code-intel-v2/
-.coding-ethos/events/
-.coding-ethos/hook-runs/
-.coding-ethos/lint-runs/
-.coding-ethos/prune-runs/
-.coding-ethos/state/
+.coding-ethos/
 .gemini/settings.json
 .mcp.json
 # coding-ethos tooling source checked out into the worktree (not gmeow content)
 /coding-ethos/
-# coding-ethos agent tooling installed locally into the worktree — never gmeow
-# content: the local memory index, the Gemini extension payload, and the local
-# skill mirrors. The repo's own .agents/skills/gmeow-*/ and deficiency-cleanup
-# skills are real gmeow content and stay tracked (not matched below).
-.coding-ethos/memories/
+# Agent tooling installed locally into the worktree — never gmeow content: the
+# assistant extension payload and the local skill mirrors. The repo's own
+# .agents/skills/gmeow-*/ and deficiency-cleanup skills are real gmeow content
+# and stay tracked (not matched below).
 .gemini/extensions/
 .agents/skills/agent-operating-discipline/
 .agents/skills/coding-ethos-agent-workflow/
