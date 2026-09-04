@@ -7017,7 +7017,9 @@ mod tests {
         const ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
         let dt = "dt";
         let facet = "facet0";
-        let restriction = "restriction";
+        // Absolute, like every sibling fixture in this module. A bare `"restriction"` is a
+        // relative reference with no base in scope, which the RDF IR refuses to intern.
+        let restriction = "http://gmeow.example/restriction";
         let store = dataset(vec![
             // dt = xsd:float restricted by [ xsd:minExclusive "0.0" ] (a facet datatype)
             RdfQuad::new(
