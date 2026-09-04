@@ -56,7 +56,9 @@ fn merged_grounding_graph() -> Arc<RdfDataset> {
             for slice in ["lang", "math", "logic"] {
                 let ds = grounding_module(slice);
                 for quad in ds.flat_default_graph_quads() {
-                    store.insert(quad);
+                    store
+                        .insert(quad)
+                        .expect("grounding-module quads are absolute IRIs");
                 }
             }
             store.freeze().expect("freeze merged grounding graph")
@@ -72,12 +74,16 @@ fn merged_plus(extra_ttl: &str) -> Arc<RdfDataset> {
     let mut store = MutableDataset::new(Arc::new(RdfDataset::union(&[])));
     let base = merged_grounding_graph();
     for quad in base.flat_default_graph_quads() {
-        store.insert(quad);
+        store
+            .insert(quad)
+            .expect("grounding-module quads are absolute IRIs");
     }
     let extra = parse_dataset(extra_ttl.as_bytes(), "text/turtle", None)
         .expect("parse injected counter-example turtle");
     for quad in extra.flat_default_graph_quads() {
-        store.insert(quad);
+        store
+            .insert(quad)
+            .expect("grounding-module quads are absolute IRIs");
     }
     store
         .freeze()
