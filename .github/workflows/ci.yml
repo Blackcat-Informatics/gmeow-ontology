@@ -82,7 +82,7 @@ jobs:
 
       - name: Cache Cargo dependencies
         if: steps.producer-cache.outputs.cache-hit != 'true'
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
       - name: Build the producer (gmeow-dev only)
         if: steps.producer-cache.outputs.cache-hit != 'true'
@@ -324,7 +324,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache Cargo registry
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           cache-targets: false
 
@@ -405,7 +405,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache Cargo registry
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           cache-targets: false
 
@@ -887,7 +887,7 @@ jobs:
           components: clippy
 
       - name: Cache Cargo registry
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           cache-targets: false
 
@@ -983,7 +983,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
@@ -1045,7 +1045,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
       # The authoritative sync + strict fixed-point / drift / orphan gate runs ONCE
       # in the producer job. Here we consume its exact artifact and validate the
@@ -1098,7 +1098,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
@@ -1160,7 +1160,7 @@ jobs:
           toolchain: nightly
 
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
@@ -1260,7 +1260,7 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
 
       - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
 
       # `make heavy` ends with the two real medium consumer suites, whose Make
       # target invokes cargo-nextest. Provision the runner dependency explicitly;
