@@ -27,7 +27,7 @@ jobs:
           # artipacked).
           persist-credentials: false
 
-      - uses: actions/setup-python@v6.3.0
+      - uses: actions/setup-python@v7.0.0
         with:
           python-version: "3.13"
 
