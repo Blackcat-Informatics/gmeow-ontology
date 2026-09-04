@@ -2720,10 +2720,65 @@ impl DocsModel {
     /// catalog, and never a compile-time hole that forces every consumer crate to
     /// duplicate the same target gate.
     pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
-        let catalog = SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab())?;
+        let catalog =
+            SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab()).map_err(|e| {
+                attribute_mapping_parse_failure(slice_dir, &e)
+                    .unwrap_or_else(|| DocsError::Slice(e))
+            })?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         Self::from_catalog(&catalog, &ownership, &[])
     }
+}
+
+/// Re-attribute a catalog-discovery failure on a `mappings/` artifact to the slice that
+/// owns it, so the error names BOTH the offending path and the owning slice.
+///
+/// Discovery parses every slice artifact, so a syntactically broken `mappings/*.ttl` is
+/// refused there — before the mapping-extraction pass that would otherwise raise
+/// [`DocsError::MappingParse`] with the owner in hand. The generic catalog error names the
+/// path but no slice, and "which slice owns this file" is precisely what a reader needs
+/// when the path is a temp directory or one of many identically-named artifacts.
+///
+/// Returns `None` when the failure is not about a mapping artifact, or when the slice IRI
+/// cannot be recovered — the caller then keeps the original error rather than inventing an
+/// attribution it cannot support.
+fn attribute_mapping_parse_failure(slice_dir: &Path, err: &SliceError) -> Option<DocsError> {
+    let detail = err.to_string();
+    if !detail.contains("mappings/") {
+        return None;
+    }
+    // The manifest is a sibling of the artifact that failed, so it is readable even though
+    // discovery as a whole did not complete.
+    let manifest = std::fs::read_to_string(slice_dir.join("manifest.ttl")).ok()?;
+    let slice_iri = manifest
+        .lines()
+        .find_map(|line| {
+            let start = line.find('<')?;
+            let end = line[start + 1..].find('>')? + start + 1;
+            let iri = &line[start + 1..end];
+            line.contains("a gmeow:Slice")
+                .then(|| iri.to_owned())
+                .or_else(|| line.contains("gmeow:sliceIri").then(|| iri.to_owned()))
+        })
+        .or_else(|| {
+            manifest
+                .lines()
+                .find(|l| l.trim_start().starts_with('<'))
+                .and_then(|l| {
+                    let start = l.find('<')?;
+                    let end = l[start + 1..].find('>')? + start + 1;
+                    Some(l[start + 1..end].to_owned())
+                })
+        })?;
+    let source_path = detail
+        .split_whitespace()
+        .find(|tok| tok.contains("mappings/"))
+        .map(|tok| tok.trim_end_matches(':').to_owned())?;
+    Some(DocsError::MappingParse {
+        slice_iri,
+        source_path,
+        detail,
+    })
 }
 
 /// The prior-independent provenance a term carries in the materialized manifest.
