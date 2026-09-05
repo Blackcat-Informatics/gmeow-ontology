@@ -755,7 +755,7 @@ impl CorpusIndex {
                 ) {
                     continue;
                 }
-                let ds = Dataset::parse_turtle(&artifact.content, &artifact.logical_path)
+                let ds = Dataset::parse_turtle(&artifact.content, None, &artifact.logical_path)
                     .map_err(|e| parse_err(Path::new(&artifact.logical_path), &e.to_string()))?;
                 reference_predicates.absorb_artifact(
                     &record.manifest.slice_iri,

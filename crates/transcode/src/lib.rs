@@ -44,8 +44,8 @@ use gmeow_logic_compile::projections::{
 use purrdf::loss::pair_loss_ledger;
 use purrdf::native_codecs::jsonld;
 use purrdf::{
-    NativeRdfFormat, RdfDataset, SerializeGraph, TermId, dataset_from_bytes, import_gts_events,
-    serialize_dataset_base_only, serialize_dataset_to_format,
+    NativeRdfFormat, RdfDataset, SerializeGraph, SerializeOptions, StatementLayer, TermId,
+    dataset_from_bytes, import_gts_events, serialize_dataset_to_format, serialize_dataset_with,
 };
 
 /// gmeow's bundled YAML-LD schema. purrdf is namespace-neutral and would stamp its
@@ -307,7 +307,7 @@ pub fn read_to_dataset(input: &[u8], from: Codec) -> Result<Arc<RdfDataset>, gme
         // hand-rolled native JSON-LD(-star) parser (no `oxigraph::io`), which now
         // returns the frozen IR directly — the RDF 1.2 statement layer is folded at
         // `dataset_from_quads` freeze time inside the parser (no oxigraph quad bridge).
-        Codec::JsonLd => jsonld::parse_jsonld(input)
+        Codec::JsonLd => jsonld::parse_jsonld(input, None)
             .map_err(|e| e.to_string())
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::CodecError {
@@ -406,13 +406,25 @@ pub fn transcode(
     // loss (rdf12-star-jsonld-rejected), never silent (P7). The base-only N-Quads are
     // re-parsed into a star-free carrier dataset (no gts round-trip).
     if to == Codec::JsonLd {
-        let nq =
-            serialize_dataset_base_only(&dataset, "application/n-quads", SerializeGraph::Dataset)
-                .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::CodecError {
-                    message: format!("jsonld base nquads serialize: {e}"),
-                })
-            })?;
+        // `StatementLayer::Project` is what the retired `serialize_dataset_base_only`
+        // spelling fixed: the statement layer is dropped and the dropped-row count is
+        // returned rather than silently discarded.
+        let nq = serialize_dataset_with(
+            &dataset,
+            NativeRdfFormat::NQuads,
+            None,
+            &SerializeOptions {
+                selection: SerializeGraph::Dataset,
+                statement_layer: StatementLayer::Project,
+                jsonld_options: None,
+            },
+        )
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::CodecError {
+                message: format!("jsonld base nquads serialize: {e}"),
+            })
+        })?
+        .bytes;
         let base = dataset_from_bytes(&nq, NativeRdfFormat::NQuads).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::CodecError {
                 message: format!("jsonld base nquads->dataset: {e}"),

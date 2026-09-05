@@ -209,7 +209,7 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
     // surface can never disagree about which class a shape enforces.
     let failure_class_index = shape_failure_class_index(&shapes_ttl)?;
     // Surface a malformed shape set / module ONCE, as a typed diagnostic, before fanning out.
-    let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
+    let shapes = parse_shapes(&shapes_ttl, None).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("parsing slice shapes: {e}"),
         })
@@ -1613,7 +1613,7 @@ mod tests {
                 sh:targetClass ex:Owned .
             ex:Foreign-shape a sh:NodeShape ; sh:targetClass ex:Foreign .
         "#;
-        let parsed = parse_shapes(shapes_ttl).expect("shape union parses");
+        let parsed = parse_shapes(shapes_ttl, None).expect("shape union parses");
         let scoped = scope_shapes_to_slice(parsed, shapes_ttl, &module, None)
             .expect("shape union scopes to module authority");
         let ids: BTreeSet<String> = scoped
@@ -1862,7 +1862,7 @@ mod tests {
     fn the_sole_finding_flag_rejects_a_fixture_that_trips_a_second_law() {
         let slice_dir = paths::repo_root().join("slices/grounding/logic");
         let shapes_ttl = authenticated_shape_union();
-        let shapes = parse_shapes(shapes_ttl).expect("authenticated shape surface parses");
+        let shapes = parse_shapes(shapes_ttl, None).expect("authenticated shape surface parses");
         let owned_module = native_query::with_owl_rdfs_projection(
             &native_query::dataset_from_file(&paths::module_file(&slice_dir))
                 .expect("the logic module parses"),
@@ -1951,7 +1951,7 @@ mod tests {
     fn an_unpinned_sole_finding_claim_is_a_hard_failure() {
         let slice_dir = paths::repo_root().join("slices/grounding/lang");
         let shapes_ttl = authenticated_shape_union();
-        let shapes = parse_shapes(shapes_ttl).expect("authenticated shape surface parses");
+        let shapes = parse_shapes(shapes_ttl, None).expect("authenticated shape surface parses");
         let owned_module = native_query::with_owl_rdfs_projection(
             &native_query::dataset_from_file(&paths::module_file(&slice_dir))
                 .expect("the lang module parses"),
@@ -2047,7 +2047,7 @@ mod tests {
         let shapes_ttl =
             std::fs::read_to_string(paths::repo_root().join("shapes/test-dsl-shapes.ttl"))
                 .expect("the test-DSL shape file is readable");
-        let shapes = parse_shapes(&shapes_ttl).expect("the test-DSL shape file parses");
+        let shapes = parse_shapes(&shapes_ttl, None).expect("the test-DSL shape file parses");
 
         let cell = |pin: &str| {
             format!(

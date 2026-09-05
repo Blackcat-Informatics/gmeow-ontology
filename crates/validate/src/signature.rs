@@ -259,6 +259,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.terms.push(Term {
             kind: TermKind::Iri,
@@ -267,6 +268,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.terms.push(Term {
             kind: TermKind::Iri,
@@ -275,6 +277,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.quads.push((0, 1, 2, None));
 
@@ -363,6 +366,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             },
             Term {
                 kind: TermKind::Iri,
@@ -371,6 +375,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             },
             Term {
                 kind: TermKind::Iri,
@@ -379,6 +384,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             },
         ]);
         writer.add_quads(&[(0, 1, 2, None)]);

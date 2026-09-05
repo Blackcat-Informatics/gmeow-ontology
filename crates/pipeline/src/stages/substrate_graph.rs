@@ -43,13 +43,6 @@ use crate::stages::provenance_graph::GRAPH_PROVENANCE;
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The canonical git-rev abbreviation width used to reconcile an abbreviated
-/// manifest rev against the lockfile's full 40-char SHA. The manifest pins the
-/// substrate by a short rev (a prefix of the resolved full SHA); truncating every
-/// git-rev claim to this width makes two claims of the SAME commit compare equal
-/// (no false drift, Audit #7) while a genuinely different commit still differs.
-const GIT_REV_ABBREV: usize = 8;
-
 /// The four committed docs `.wasm` engines whose `SUBSTRATE.txt` stamps record the
 /// substrate they were statically built against (the shipped-artifact claim site).
 const SHIPPED_ENGINES: &[&str] = &["gmn", "query", "reason", "validate"];
@@ -63,7 +56,6 @@ const SITE_SHIPPED_ARTIFACT: &str = "claimSiteShippedArtifact";
 const SITE_PROSE: &str = "claimSiteProse";
 
 const DIM_CRATE_VERSION: &str = "dimensionCrateVersion";
-const DIM_GIT_REV: &str = "dimensionGitRev";
 const DIM_SHAPES_VERSION: &str = "dimensionShapesVersion";
 const DIM_WIRE_VERSION: &str = "dimensionWireVersion";
 const DIM_ZSTD_LEVEL: &str = "dimensionZstdLevel";
@@ -118,22 +110,6 @@ pub fn substrate_input_paths(root: &Path) -> Vec<PathBuf> {
     paths
 }
 
-/// Normalize a git rev to its canonical abbreviated form so an abbreviated manifest
-/// rev and the lockfile's full SHA for the SAME commit reconcile to one value. A rev
-/// shorter than [`GIT_REV_ABBREV`] is a HARD FAIL: truncating the full SHA to a
-/// longer width than the pin provides would make the same commit compare unequal
-/// (false drift), and silently shortening the comparison to the pin's width would
-/// weaken the check — the no-silent-degradation contract forbids both.
-fn normalize_git_rev(rev: &str) -> Result<String, gmeow_errors::Diag> {
-    if rev.len() < GIT_REV_ABBREV {
-        return Err(stage_err(&format!(
-            "substrate carrier: git rev {rev:?} is shorter than the {GIT_REV_ABBREV}-char \
-             reconciliation width — pin the substrate by at least {GIT_REV_ABBREV} hex chars"
-        )));
-    }
-    Ok(rev.chars().take(GIT_REV_ABBREV).collect())
-}
-
 /// Validate that `name` is a safe IRI local part before it becomes a substrate node
 /// IRI (a stamp could otherwise inject characters that malform the emitted IRI).
 fn checked_slug(name: &str) -> Result<String, gmeow_errors::Diag> {
@@ -150,56 +126,57 @@ fn checked_slug(name: &str) -> Result<String, gmeow_errors::Diag> {
     }
 }
 
-/// Extract purrdf's pinned git rev from a Cargo manifest line
-/// `purrdf = { git = "...", rev = "<rev>" }`. Returns the raw rev (un-normalized).
-fn parse_manifest_git_rev(manifest: &str) -> Option<String> {
+/// Extract purrdf's pinned crate version from a Cargo manifest line
+/// `purrdf = "=<version>"`. Returns the bare version with the `=` requirement
+/// operator stripped, so the manifest claim compares equal to the lockfile's and the
+/// shipped stamps' plain version strings.
+///
+/// Only the EXACT-version form is accepted. A caret/tilde/wildcard requirement admits
+/// more than one release, which is precisely the drift this graph exists to detect —
+/// treating it as a pin would make the reconciliation report agreement it cannot
+/// actually guarantee, so it is rejected as "no pin found" rather than accepted
+/// loosely.
+fn parse_manifest_version_pin(manifest: &str) -> Option<String> {
     for line in manifest.lines() {
         let trimmed = line.trim_start();
         if !(trimmed.starts_with("purrdf ") || trimmed.starts_with("purrdf=")) {
             continue;
         }
-        // Match the `rev` KEY of the inline table, not a "rev" substring inside the
-        // git URL: split the `{ … }` on its field separators and take the field whose
-        // trimmed head is exactly `rev` followed by `=`.
-        for field in trimmed.split(['{', '}', ',']) {
-            let field = field.trim();
-            let Some(rest) = field.strip_prefix("rev") else {
-                continue;
-            };
-            let rest = rest.trim_start().strip_prefix('=')?.trim_start();
-            if let Some(inner) = rest.strip_prefix('"')
-                && let Some(end) = inner.find('"')
-            {
-                return Some(inner[..end].to_string());
-            }
+        let rest = trimmed.split_once('=')?.1.trim_start();
+        let inner = rest.strip_prefix('"')?;
+        let end = inner.find('"')?;
+        let spec = &inner[..end];
+        // `=1.1.0` — the exact-version requirement, and nothing looser.
+        let version = spec.strip_prefix('=')?;
+        if version.is_empty() {
+            return None;
         }
+        return Some(version.to_string());
     }
     None
 }
 
-/// Parse the `[[package]] name = "purrdf"` block of a Cargo.lock, returning
-/// `(crate_version, full_git_rev)`. The full rev is the SHA after `#` in `source`.
-fn parse_lock_purrdf(lock: &str) -> Option<(String, Option<String>)> {
+/// Parse the `[[package]] name = "purrdf"` block of a Cargo.lock, returning the
+/// resolved crate version.
+///
+/// The block also carries the registry `checksum` — the release's content address —
+/// but that is not a claim any OTHER site can state, so it is not a reconciliation
+/// dimension. The crate version is what every site (both manifests, this lockfile,
+/// the shipped `SUBSTRATE.txt` stamps, and the prose) can name.
+fn parse_lock_purrdf(lock: &str) -> Option<String> {
     let mut lines = lock.lines();
     while let Some(line) = lines.next() {
         if line.trim() == "name = \"purrdf\"" {
-            let mut version = None;
-            let mut full_rev = None;
             for follow in lines.by_ref() {
                 let t = follow.trim();
                 if t.starts_with("[[") {
                     break;
                 }
                 if let Some(v) = t.strip_prefix("version = \"") {
-                    version = v.strip_suffix('"').map(str::to_string);
-                } else if let Some(src) = t.strip_prefix("source = \"")
-                    && let Some(hash) = src.find('#')
-                {
-                    let after = &src[hash + 1..];
-                    full_rev = Some(after.trim_end_matches('"').to_string());
+                    return v.strip_suffix('"').map(str::to_string);
                 }
             }
-            return version.map(|v| (v, full_rev));
+            return None;
         }
     }
     None
@@ -512,28 +489,37 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
     let mut claims: Vec<Claim> = Vec::new();
     let mut embeds: Vec<Embed> = Vec::new();
 
-    // #1 workspace manifest git rev, #2 fuzz manifest git rev.
-    let ws_rev = parse_manifest_git_rev(&read("Cargo.toml")?)
-        .ok_or_else(|| stage_err("substrate carrier: no purrdf rev in Cargo.toml"))?;
+    // #1 workspace manifest version pin, #2 fuzz manifest version pin. Both manifests
+    // pin the exact crates.io release, and the lockfile records that release's content
+    // checksum, so the crate version is the identity every site can state — the git rev
+    // no site names any more.
+    let ws_version = parse_manifest_version_pin(&read("Cargo.toml")?).ok_or_else(|| {
+        stage_err(
+            "substrate carrier: no exact purrdf version pin (`purrdf = \"=x.y.z\"`) in Cargo.toml",
+        )
+    })?;
     claims.push(Claim {
         component_slug: purrdf.into(),
         site: SITE_WORKSPACE_MANIFEST,
-        dimension: DIM_GIT_REV,
-        value: normalize_git_rev(&ws_rev)?,
+        dimension: DIM_CRATE_VERSION,
+        value: ws_version,
         witness: None,
     });
-    let fuzz_rev = parse_manifest_git_rev(&read("fuzz/Cargo.toml")?)
-        .ok_or_else(|| stage_err("substrate carrier: no purrdf rev in fuzz/Cargo.toml"))?;
+    let fuzz_version = parse_manifest_version_pin(&read("fuzz/Cargo.toml")?).ok_or_else(|| {
+        stage_err(
+            "substrate carrier: no exact purrdf version pin (`purrdf = \"=x.y.z\"`) in fuzz/Cargo.toml",
+        )
+    })?;
     claims.push(Claim {
         component_slug: purrdf.into(),
         site: SITE_FUZZ_MANIFEST,
-        dimension: DIM_GIT_REV,
-        value: normalize_git_rev(&fuzz_rev)?,
+        dimension: DIM_CRATE_VERSION,
+        value: fuzz_version,
         witness: None,
     });
 
-    // #3 lockfile crate version + full git rev.
-    let (lock_version, lock_full_rev) = parse_lock_purrdf(&read("Cargo.lock")?)
+    // #3 lockfile crate version.
+    let lock_version = parse_lock_purrdf(&read("Cargo.lock")?)
         .ok_or_else(|| stage_err("substrate carrier: no purrdf entry in Cargo.lock"))?;
     claims.push(Claim {
         component_slug: purrdf.into(),
@@ -542,15 +528,6 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
         value: lock_version.clone(),
         witness: None,
     });
-    if let Some(full) = lock_full_rev {
-        claims.push(Claim {
-            component_slug: purrdf.into(),
-            site: SITE_LOCKFILE,
-            dimension: DIM_GIT_REV,
-            value: normalize_git_rev(&full)?,
-            witness: None,
-        });
-    }
 
     // #4/#5/#6 linked constants (compiled into this binary from the pinned dep).
     claims.push(Claim {
@@ -791,47 +768,42 @@ mod tests {
     }
 
     #[test]
-    fn abbreviated_and_full_git_rev_reconcile() {
-        // Audit #7: the manifest's abbreviated rev and the lockfile's full SHA for the
-        // same commit must reconcile to one value (no false drift on the first build).
-        let short = normalize_git_rev("a59d9f2d").expect("8-char pin is valid");
-        let full =
-            normalize_git_rev("a59d9f2dd538594d1390775cb70f85f3be7673e7").expect("full SHA valid");
+    fn only_an_exact_version_requirement_counts_as_a_pin() {
+        // The manifests and the lockfile must state the SAME string, so the `=`
+        // requirement operator is stripped and the bare version is the claim.
         assert_eq!(
-            short, full,
-            "same-commit revs of different width must normalize equal"
+            parse_manifest_version_pin(r#"purrdf = "=1.1.0""#).as_deref(),
+            Some("1.1.0")
         );
-        let other = normalize_git_rev("b1234567deadbeef").expect("valid rev");
-        assert_ne!(short, other, "a genuinely different commit stays distinct");
-        // A pin shorter than the reconciliation width is a HARD FAIL, not silent
-        // truncation that would false-drift against the full SHA.
-        assert!(
-            normalize_git_rev("a59d9f2").is_err(),
-            "a 7-char pin must be rejected"
-        );
+        // A requirement that admits more than one release is not a pin. Accepting it
+        // would let the graph report agreement it cannot guarantee, which is exactly
+        // the drift this stage exists to catch.
+        for loose in [
+            r#"purrdf = "1.1.0""#,
+            r#"purrdf = "^1.1.0""#,
+            r#"purrdf = "~1.1.0""#,
+            r#"purrdf = "1.1.*""#,
+            r#"purrdf = "*""#,
+        ] {
+            assert_eq!(
+                parse_manifest_version_pin(loose),
+                None,
+                "a non-exact requirement must not be read as a pin: {loose}"
+            );
+        }
     }
 
     #[test]
     fn parses_manifest_lock_stamp_and_prose() {
         assert_eq!(
-            parse_manifest_git_rev(r#"purrdf = { git = "https://x", rev = "a59d9f2d" }"#)
-                .as_deref(),
-            Some("a59d9f2d")
+            parse_manifest_version_pin(r#"purrdf = "=1.1.0""#).as_deref(),
+            Some("1.1.0")
         );
-        // A "rev" substring inside the git URL must NOT be mistaken for the rev field.
-        assert_eq!(
-            parse_manifest_git_rev(
-                r#"purrdf = { git = "https://example.com/review/purrdf", rev = "abcd1234" }"#
-            )
-            .as_deref(),
-            Some("abcd1234")
-        );
-        let (v, rev) = parse_lock_purrdf(
-            "[[package]]\nname = \"purrdf\"\nversion = \"0.12.0\"\nsource = \"git+https://x?rev=a59d9f2d#a59d9f2dd538\"\n[[package]]\n",
+        let v = parse_lock_purrdf(
+            "[[package]]\nname = \"purrdf\"\nversion = \"1.1.0\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"eda81955\"\n[[package]]\n",
         )
         .expect("lock parses");
-        assert_eq!(v, "0.12.0");
-        assert_eq!(rev.as_deref(), Some("a59d9f2dd538"));
+        assert_eq!(v, "1.1.0");
         let stamp =
             parse_substrate_stamp("purrdf 0.12.0; wasm-bindgen 0.2.125; binaryen version_130\n")
                 .expect("well-formed stamp parses");

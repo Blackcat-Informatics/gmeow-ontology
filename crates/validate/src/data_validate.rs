@@ -184,7 +184,7 @@ impl Tier1Shapes {
         shapes_ttl: &str,
         ontology: Arc<RdfDataset>,
     ) -> gmeow_errors::Result<Self> {
-        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl).map_err(|e| {
+        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl, None).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 detail: format!("bundled SHACL shapes failed to parse: {e}"),
             })
@@ -749,7 +749,7 @@ fn data_dataset(data_bytes: &[u8], data_format: &str) -> gmeow_errors::Result<Ar
         // native JSON-LD-star codec, which folds the RDF 1.2 statement layer and
         // PRESERVES named graphs — the graph-preserving shape this Tier-2 path needs
         // (no longer the external gmeow-gts JSON-LD codec).
-        return purrdf::native_codecs::jsonld::parse_jsonld(data_bytes).map_err(|e| {
+        return purrdf::native_codecs::jsonld::parse_jsonld(data_bytes, None).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 detail: format!("JSON-LD parse error: {e}"),
             })
@@ -791,11 +791,12 @@ fn data_dataset_flat(
         // native JSON-LD-star codec, then re-home every named graph to the default graph
         // (the Tier-1 SHACL path needs the whole graph flat). This matches the prior
         // gmeow-gts → `dataset_from_gts` flattening behavior.
-        let dataset = purrdf::native_codecs::jsonld::parse_jsonld(data_bytes).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("JSON-LD parse error: {e}"),
-            })
-        })?;
+        let dataset =
+            purrdf::native_codecs::jsonld::parse_jsonld(data_bytes, None).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    detail: format!("JSON-LD parse error: {e}"),
+                })
+            })?;
         return flatten_to_default_graph(&dataset);
     }
 
@@ -1288,7 +1289,7 @@ logic:c rdf:type logic:ReasoningContract ;
     /// `logic:formalizes` provenance reader (`shapes_dataset`); `ontology_ttl` carries
     /// the formalized term's howToUse/useWhen prose.
     fn tier1_from_ttl(shapes_ttl: &str, ontology_ttl: &str) -> Tier1Shapes {
-        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl).expect("shapes parse");
+        let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl, None).expect("shapes parse");
         let shapes_dataset =
             purrdf::parse_dataset(shapes_ttl.as_bytes(), "text/turtle", None).expect("shapes ds");
         let ontology = purrdf::parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)

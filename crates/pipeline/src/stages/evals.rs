@@ -283,7 +283,7 @@ fn parse_corpus(
     path: &Path,
 ) -> Result<BTreeMap<String, (String, Vec<String>)>, gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    let dataset = Dataset::parse_turtle(&bytes, "corpus").map_err(|e| {
+    let dataset = Dataset::parse_turtle(&bytes, None, "corpus").map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: e.to_string(),
         })

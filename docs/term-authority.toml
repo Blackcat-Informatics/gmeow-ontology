@@ -60,6 +60,9 @@ path = "docs/PIPELINE_SPINE.md"
 imports = [
     "https://blackcatinformatics.ca/gmeow/slices/gts",
     "https://blackcatinformatics.ca/gmeow/slices/observations",
+    # §3.1 states that a grounding generator's findings ride the shared
+    # diagnostics rail, naming gmeow:Finding — a diagnostics-owned term.
+    "https://blackcatinformatics.ca/gmeow/slices/diagnostics",
 ]
 declares = []
 

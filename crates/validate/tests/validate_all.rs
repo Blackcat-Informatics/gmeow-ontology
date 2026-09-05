@@ -610,7 +610,7 @@ fn declined_correspondence_shape_has_teeth() {
     // `parse_shapes` (not `shapes::from_dataset`) recovers the document's `@prefix` map,
     // the same entrypoint `crates/validate/src/dsl_shacl.rs::validate_dsl` uses for the
     // mapping-DSL SHACL phase (phase 11) in the real orchestration.
-    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)
+    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl, None)
         .expect("the extracted DeclinedCorrespondenceShape text must parse as SHACL shapes");
 
     // POSITIVE: the real declined-bridge ledger conforms to the real shape.

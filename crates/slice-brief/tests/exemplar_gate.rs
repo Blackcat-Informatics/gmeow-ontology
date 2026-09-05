@@ -93,7 +93,7 @@ fn write_slice(dir: &Path) {
 
 /// Parse the bespoke shape set into the shared [`ShapeUnion`] type the gate consumes.
 fn shapes() -> ShapeUnion {
-    purrdf::shapes::engine::parse_shapes(SHAPES_TTL).expect("parse bespoke shapes")
+    purrdf::shapes::engine::parse_shapes(SHAPES_TTL, None).expect("parse bespoke shapes")
 }
 
 /// The gate excludes a full-coat term that VIOLATES a shape (rank 0), and ranks the

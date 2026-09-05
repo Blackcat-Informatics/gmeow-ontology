@@ -70,7 +70,7 @@ fn load_authored(root: &Path) -> Result<Dataset, gmeow_errors::Diag> {
             continue;
         }
         let bytes = std::fs::read(&path)?;
-        acc.add_turtle(&bytes, &path.display().to_string())
+        acc.add_turtle(&bytes, None, &path.display().to_string())
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {
                     message: e.to_string(),
@@ -560,7 +560,7 @@ mod tests {
         use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 
         let ttl = authenticated_constraint_shapes();
-        let shapes = parse_shapes(&ttl).expect("parse generated constraint-shapes");
+        let shapes = parse_shapes(&ttl, None).expect("parse generated constraint-shapes");
 
         let data = "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -619,6 +619,6 @@ mod tests {
         // The generated document must parse in the shape-union loader (the SHACL lane
         // that consumes generated/shapes/*.ttl), proving it is well-formed SHACL Turtle.
         let ttl = authenticated_constraint_shapes();
-        parse_shapes(&ttl).expect("generated constraint-shapes must parse as SHACL");
+        parse_shapes(&ttl, None).expect("generated constraint-shapes must parse as SHACL");
     }
 }

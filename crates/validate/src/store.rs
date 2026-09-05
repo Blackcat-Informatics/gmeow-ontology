@@ -672,6 +672,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
         }
         // Named graph slot to verify the flatten.
@@ -682,6 +683,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.quads.push((0, 1, 2, Some(3)));
 
@@ -714,6 +716,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
         }
         graph.terms.push(Term {
@@ -723,6 +726,7 @@ mod tests {
             lang: Some("x-gmeow-afrikaans".to_string()),
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.terms.push(Term {
             kind: TermKind::Iri,
@@ -731,6 +735,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         // Object (term 2) carries the private lang tag; quad lives in named graph (term 3).
         graph.quads.push((0, 1, 2, Some(3)));
@@ -777,6 +782,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
         }
         for lit in ["Cat", "A documentation node"] {
@@ -787,6 +793,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
         }
         // default-graph quad: Cat rdfs:label "Cat" .
@@ -831,6 +838,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
         }
         graph.quads.push((0, 1, 2, Some(3)));
@@ -897,6 +905,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.terms.push(Term {
             kind: TermKind::Iri,
@@ -905,6 +914,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.terms.push(Term {
             kind: TermKind::Iri,
@@ -913,6 +923,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         graph.quads.push((0, 1, 2, None));
 

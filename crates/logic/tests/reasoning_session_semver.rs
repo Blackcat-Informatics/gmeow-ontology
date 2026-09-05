@@ -20,10 +20,13 @@ use session_common::*;
 /// reasoning-contract hash, and ordered profile/decidability manifest. Any byte-level
 /// change to that public runtime contract moves this pin so existing checkpoints cannot
 /// claim compatibility without an explicit version decision.
-/// The current value includes both the process-history/rustdoc corrections from main and
-/// the shared typed-modal production route, whose source participates in engine identity.
+/// The current value additionally reflects the purrdf 1.1.0 substrate cutover: the engine
+/// descriptor frames the backward source hash, and handling the IRI-absoluteness `Result`
+/// that `DatasetMut::insert` now returns changed `verify.rs` and `store.rs` — both of which
+/// participate in engine identity. The descriptor moving is the correct signal, not noise:
+/// a checkpoint taken against the old substrate must not claim compatibility with this one.
 const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
-    "c5ce1e368cef2a21c6e34ba15b1e11f97e99a1a7d76708cdf85244e4788b5c94";
+    "6c0fac435e3d0cb00a48e0f419f22eb3f33625c390cab7062e9d6bf35036856c";
 
 /// Golden `SessionIdentity.descriptor_hash` over the fixed input below.
 ///
@@ -33,7 +36,7 @@ const GOLDEN_ENGINE_DESCRIPTOR_HASH: &str =
 /// so those seven axes contribute eight fields. Any change must move this pin and
 /// refuse restoration of a stale checkpoint.
 const GOLDEN_SESSION_DESCRIPTOR_HASH: &str =
-    "7f1aff6525937ff16e508718bd025df5a83e4684758fb54e458ca492ce9ce415";
+    "5adba2ac39518f708841b5b083870a01787836a7f5c99e0d02635be1fa6b93e4";
 
 #[test]
 fn semver_engine_descriptor_hash_is_pinned() {

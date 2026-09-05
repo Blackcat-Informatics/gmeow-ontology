@@ -42,6 +42,7 @@ fn iri(value: &str) -> Term {
         lang: None,
         direction: None,
         reifier: None,
+        triple: None,
     }
 }
 
@@ -53,6 +54,7 @@ fn en_literal(text: &str) -> Term {
         lang: Some("en".to_string()),
         direction: None,
         reifier: None,
+        triple: None,
     }
 }
 

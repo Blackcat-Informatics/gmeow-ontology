@@ -132,7 +132,7 @@ const RDF11_SHAPED_TARGETS: &[(Codec, &str)] = &[
 /// encoder pair agree with each other while both being wrong.
 fn reparse(codec: Codec, bytes: &[u8]) -> Vec<RdfQuad> {
     let dataset = match codec {
-        Codec::JsonLd => purrdf::native_codecs::jsonld::parse_jsonld(bytes)
+        Codec::JsonLd => purrdf::native_codecs::jsonld::parse_jsonld(bytes, None)
             .unwrap_or_else(|e| panic!("re-parse jsonld output: {e}")),
         // `owl-rdf12` is an intent label over the SAME RDF-1.2 Turtle codec, so it reads
         // back through the same decoder — which is precisely the claim under test.

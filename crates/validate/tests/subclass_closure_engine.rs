@@ -49,7 +49,7 @@ ex:SuperShape a sh:NodeShape ;
     sh:targetClass ex:Super ;
     sh:property [ sh:path ex:name ; sh:minCount 1 ] .
 "#;
-    let shapes = parse_shapes(SHAPES).expect("parse shapes");
+    let shapes = parse_shapes(SHAPES, None).expect("parse shapes");
     let report = validate_dataset(&dataset(), &shapes).expect("validate");
 
     assert!(
@@ -80,7 +80,7 @@ ex:RelatedShape a sh:NodeShape ;
     sh:targetNode ex:y ;
     sh:property [ sh:path ex:related ; sh:class ex:Super ] .
 "#;
-    let shapes = parse_shapes(SHAPES).expect("parse shapes");
+    let shapes = parse_shapes(SHAPES, None).expect("parse shapes");
     let report = validate_dataset(&dataset(), &shapes).expect("validate");
 
     assert!(
@@ -110,7 +110,7 @@ ex:SuperSparqlShape a sh:NodeShape ;
     ] ;
     sh:property [ sh:path ex:name ; sh:minCount 1 ] .
 "#;
-    let shapes = parse_shapes(SHAPES).expect("parse shapes");
+    let shapes = parse_shapes(SHAPES, None).expect("parse shapes");
     let report = validate_dataset(&dataset(), &shapes).expect("validate");
 
     assert!(
@@ -148,7 +148,7 @@ ex:RelatedSparqlShape a sh:NodeShape ;
         sh:select """SELECT $this WHERE { $this <http://example.org/related> ?v . FILTER NOT EXISTS { ?v a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* <http://example.org/Super> . } }""" ;
     ] .
 "#;
-    let shapes = parse_shapes(SHAPES).expect("parse shapes");
+    let shapes = parse_shapes(SHAPES, None).expect("parse shapes");
     let report = validate_dataset(&dataset(), &shapes).expect("validate");
 
     assert!(

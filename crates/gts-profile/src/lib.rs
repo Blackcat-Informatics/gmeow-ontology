@@ -529,12 +529,17 @@ impl GmeowGtsWriter {
     /// # Errors
     /// A codec failure encoding the frame payload.
     pub fn add_terms(&mut self, terms: &[Term]) -> gmeow_errors::Result<Vec<u8>> {
-        // A term's `datatype` / `reifier` slots are TERM IDS, and they are
+        // A term's `datatype` / `reifier` / `triple` slots are TERM IDS, and they are
         // segment-scoped exactly as a quad row's are (§7.5). An appended frame
         // therefore has to shift them by the same base — a typed literal whose
         // datatype id was left frame-local would resolve to whatever term happens to
         // sit at that index in the earlier part of the segment, which is how a
         // `xsd:dateTime` literal ends up claiming another literal as its datatype.
+        //
+        // `triple` is the RDF 1.2 self-describing triple term's own `(s, p, o)` ids,
+        // and it takes precedence over `reifier` when present, so leaving it frame-local
+        // would repoint a quoted triple at three unrelated terms — the same defect as the
+        // datatype case, on the surface that now decides triple-term identity.
         let shifted: Vec<Term>;
         let terms = if self.term_base == 0 {
             terms
@@ -545,6 +550,7 @@ impl GmeowGtsWriter {
                 .map(|term| Term {
                     datatype: term.datatype.map(|id| id + base),
                     reifier: term.reifier.map(|id| id + base),
+                    triple: term.triple.map(|(s, p, o)| (s + base, p + base, o + base)),
                     ..term.clone()
                 })
                 .collect();
@@ -1019,6 +1025,7 @@ mod tests {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         }
     }
 

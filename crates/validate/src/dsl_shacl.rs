@@ -36,7 +36,7 @@ pub fn validate_dsl(
     label: &str,
 ) -> gmeow_errors::Result<Vec<Finding>> {
     let merge = dsl::merge_with_provenance(paths)?;
-    let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl).map_err(|e| {
+    let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl, None).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             detail: format!("SHACL shapes failed to parse: {e}"),
         })

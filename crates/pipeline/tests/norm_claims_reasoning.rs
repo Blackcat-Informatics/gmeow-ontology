@@ -69,7 +69,7 @@ fn turtle_quads(rel_paths: &[&str]) -> Vec<RdfQuad> {
 /// is entirely absent from the bundle (no such graph-name term interned) — an absent graph
 /// and an empty graph are both honest "no norm-claims content" states.
 fn norm_claims_abox_quads() -> Vec<RdfQuad> {
-    let scoped = authenticated_bundle::dataset().project_named_graph_full(GRAPH_NORM_CLAIMS);
+    let scoped = authenticated_bundle::dataset().project_named_graph(GRAPH_NORM_CLAIMS);
     let mut quads = flat_rdf_quads_from_dataset(&scoped);
     for quad in &mut quads {
         quad.graph_name = None;

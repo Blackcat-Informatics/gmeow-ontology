@@ -534,7 +534,7 @@ mod tests {
                 sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://example.org/s> . ?cq gmeow:cqExpectRow ?this }\"\"\" ] ;\n\
                 sh:sparql [ sh:severity sh:Violation ; sh:message \"x must bind an IRI\" ;\n\
                     sh:select \"\"\"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'x' ; gmeow:cellValueLiteral ?val }\"\"\" ] .\n";
-        let shapes = parse_shapes(shapes_ttl).expect("parse generated-style shapes");
+        let shapes = parse_shapes(shapes_ttl, None).expect("parse generated-style shapes");
 
         let data = "\
             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -664,7 +664,7 @@ mod tests {
                     sh:select \"\"\"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE {{ $this gmeow:rowCell ?c . ?c gmeow:cellVar 'tag' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <{xsd_string}> ) }}\"\"\" ] .\n\
         "
         );
-        let shapes = parse_shapes(&shapes_ttl).expect("parse datatype-constraint shapes");
+        let shapes = parse_shapes(&shapes_ttl, None).expect("parse datatype-constraint shapes");
 
         // ex:good has "hello"^^xsd:string (correct); ex:bad has "5"^^xsd:integer (wrong)
         let data = "\

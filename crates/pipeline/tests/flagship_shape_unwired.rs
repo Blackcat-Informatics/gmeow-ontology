@@ -91,7 +91,7 @@ fn shared_flagship_shape_bites_on_a_missing_required_link() {
         .expect("load authenticated production shapes without rebuilding them"),
     )
     .expect("authenticated production shapes are UTF-8");
-    let shapes = parse_shapes(&shapes_text).expect("authenticated production shapes parse");
+    let shapes = parse_shapes(&shapes_text, None).expect("authenticated production shapes parse");
 
     // The shape -> failure-class map, resolved from the projected surface: the flagship gate
     // resolves to gmeow:UnwiredFlagshipScenario.

@@ -937,7 +937,7 @@ fn collect_declared(rel: &str, text: &str, out: &mut BTreeSet<String>) {
 
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-    let dataset = Dataset::parse_turtle(text.as_bytes(), rel)
+    let dataset = Dataset::parse_turtle(text.as_bytes(), None, rel)
         .unwrap_or_else(|err| panic!("{rel}: declaration surface does not parse: {err}"));
     dataset.graph(GraphSel::Any).for_each_quad(|s, p, _o, _g| {
         if p != RDF_TYPE {

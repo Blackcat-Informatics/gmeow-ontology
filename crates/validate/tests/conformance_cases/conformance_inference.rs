@@ -349,7 +349,7 @@ fn validate_against_slice_shapes(instance_ttl: &str) -> ValidationReport {
         fs::read_to_string(repo_root().join(INFERENCE_SHAPES)).expect("inference shapes");
     shapes_ttl.push('\n');
     shapes_ttl.push_str(&authenticated_corpus_text("validate-constraint-shapes.ttl"));
-    let shapes = parse_shapes(&shapes_ttl).expect("inference shapes parse");
+    let shapes = parse_shapes(&shapes_ttl, None).expect("inference shapes parse");
     let module_nt = ttl_file_to_nt(&repo_root().join(INFERENCE_MODULE));
     let instance_nt = ttl_str_to_nt(&format!("{PRELUDE}{instance_ttl}"));
     let data_nt = format!("{module_nt}\n{instance_nt}");

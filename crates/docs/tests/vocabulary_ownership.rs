@@ -54,8 +54,13 @@ fn gmeow_term_local(iri: &str) -> Option<&str> {
 /// every `gmeow:docEvidenceKind` object IRI in the GMEOW namespace. Derived by
 /// re-parsing the emitted N-Quads — never a hardcoded list.
 fn emitted_terms(nq: &str) -> BTreeSet<String> {
-    let ds = Dataset::parse(nq.as_bytes(), "application/n-quads", "to_gmeow_rdf output")
-        .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
+    let ds = Dataset::parse(
+        nq.as_bytes(),
+        "application/n-quads",
+        None,
+        "to_gmeow_rdf output",
+    )
+    .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
     let mut out = BTreeSet::new();
     // The projection lives entirely in the gmeow:graph/documentation NAMED graph,
     // so span every graph (the default for_each_quad sees the default graph only).
@@ -221,7 +226,7 @@ fn declared_terms(root: &Path) -> BTreeSet<String> {
         let Ok(bytes) = std::fs::read(&path) else {
             continue;
         };
-        let Ok(ds) = Dataset::parse_turtle(&bytes, &path.display().to_string()) else {
+        let Ok(ds) = Dataset::parse_turtle(&bytes, None, &path.display().to_string()) else {
             continue;
         };
         ds.graph(GraphSel::Any).for_each_quad(|s, p, _o, _g| {

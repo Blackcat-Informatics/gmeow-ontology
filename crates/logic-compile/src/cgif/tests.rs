@@ -265,73 +265,49 @@ fn comprehensive_round_trip_is_isomorphic() {
 }
 
 #[test]
-fn forbidden_iriref_chars_survive_the_round_trip() {
-    // An IRI carrying every character the N-Triples `IRIREF` grammar forbids raw — `{ } | ^ ` ``
-    // ` `` — plus a space and a TAB control. Both legs must `\uXXXX`-escape it; it must survive
-    // verbatim through `project_cgif` ∘ `parse_cgif_str`.
+#[should_panic(expected = "iri-disallowed-char")]
+fn forbidden_iriref_chars_are_refused_by_the_rdf_ir() {
+    // `{ } | ^ ` `` ` ``, a space and a TAB are not legal in an IRI (RFC 3987), so the RDF
+    // IR refuses to intern one carrying them and names the offending character and its byte
+    // offset. This test used to assert the opposite — that such an IRI SURVIVED a
+    // `project_cgif` round trip verbatim. It did, because the IR interned it unchecked and
+    // the codec emitted output no conforming parser would read back.
+    //
+    // Refusal is the correct behaviour and is pinned here so a regression to silent
+    // acceptance is caught. The `\uXXXX` escaping this test formerly reached only
+    // indirectly is covered directly by `crate::nt::tests`.
     let weird = format!("{LOGIC}weird/a{{b}}c|d^e`f g\th");
-    let axiom = LogicAxiom::ground(weird.clone(), iri("knows"), iri("target"), false).unwrap();
+    let axiom = LogicAxiom::ground(weird, iri("knows"), iri("target"), false).unwrap();
     let orig = LogicProgram::new(
         vec![axiom],
         Vec::new(),
         Vec::new(),
         Some("urn:test:iri".to_owned()),
     );
-
-    let src = Some("urn:test:iri".to_owned());
-    let cgif1 = project_cgif(&orig).expect("project_cgif").content;
-    let (fp, _diags) = parse_cgif_str(&cgif1, src.clone())
-        .expect("parse_cgif_str must not hard-fail on a forbidden-IRIREF-char subject");
-    assert!(
-        fp.axioms.iter().any(|a| a.subject == weird),
-        "the forbidden-char IRI subject was lost or mangled by the round-trip:\n{:#?}",
-        fp.axioms
-    );
-
-    // Idempotent at the fixpoint: a second round-trip is the byte identity.
-    let cgif2 = project_cgif(&fp).expect("project_cgif").content;
-    assert_eq!(
-        cgif1, cgif2,
-        "CGIF emission is not idempotent for a forbidden-IRIREF-char IRI"
-    );
-    let (fp2, _) = parse_cgif_str(&cgif2, src).expect("parse_cgif_str #2");
-    assert_ir_isomorphic(&fp, &fp2)
-        .unwrap_or_else(|e| panic!("forbidden-char IRI round-trip not idempotent: {e}"));
+    let _ = project_cgif(&orig);
 }
 
 #[test]
-fn control_chars_del_c1_c0_survive_the_round_trip() {
-    // The shared `crate::nt` codec (crates/logic-compile/src/nt.rs) must UCHAR-escape the
-    // FULL control-character range, not just `<= 0x20`: DEL (0x7F), a C1 control (0x85), and
-    // an arbitrary C0 control (0x01), injected into an IRI.
+#[should_panic(expected = "iri-disallowed-char")]
+fn control_chars_del_c1_c0_are_refused_by_the_rdf_ir() {
+    // DEL (0x7F), a C1 control (0x85) and a C0 control (0x01) are not legal in an IRI
+    // (RFC 3987), so the RDF IR refuses to intern one carrying them and names the offending
+    // codepoint and its byte offset. This test used to assert the opposite — that such an
+    // IRI SURVIVED the round trip verbatim. It did, because the IR interned it unchecked
+    // and the codec emitted output no conforming parser would read back.
+    //
+    // Refusal is the correct behaviour and is pinned here so a regression to silent
+    // acceptance is caught. The full-control-range `\uXXXX` escaping this test formerly
+    // reached only indirectly is covered directly by `crate::nt::tests`.
     let weird = format!("{LOGIC}weird/a\u{7F}b\u{85}c\u{01}d");
-    let axiom = LogicAxiom::ground(weird.clone(), iri("knows"), iri("target"), false).unwrap();
+    let axiom = LogicAxiom::ground(weird, iri("knows"), iri("target"), false).unwrap();
     let orig = LogicProgram::new(
         vec![axiom],
         Vec::new(),
         Vec::new(),
         Some("urn:test:iri".to_owned()),
     );
-
-    let src = Some("urn:test:iri".to_owned());
-    let cgif1 = project_cgif(&orig).expect("project_cgif").content;
-    let (fp, _diags) = parse_cgif_str(&cgif1, src.clone())
-        .expect("parse_cgif_str must not hard-fail on a DEL/C1/C0 control-char subject");
-    assert!(
-        fp.axioms.iter().any(|a| a.subject == weird),
-        "the control-char IRI subject was lost or mangled by the round-trip:\n{:#?}",
-        fp.axioms
-    );
-
-    // Idempotent at the fixpoint: a second round-trip is the byte identity.
-    let cgif2 = project_cgif(&fp).expect("project_cgif").content;
-    assert_eq!(
-        cgif1, cgif2,
-        "CGIF emission is not idempotent for a control-char IRI"
-    );
-    let (fp2, _) = parse_cgif_str(&cgif2, src).expect("parse_cgif_str #2");
-    assert_ir_isomorphic(&fp, &fp2)
-        .unwrap_or_else(|e| panic!("control-char IRI round-trip not idempotent: {e}"));
+    let _ = project_cgif(&orig);
 }
 
 #[test]

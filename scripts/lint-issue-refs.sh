@@ -52,7 +52,6 @@ rg_authored() {
     --glob '!.tox/**' --glob '!**/.tox/**' \
     --glob '!.cache/**' --glob '!**/.cache/**' \
     --glob '!generated/**' --glob '!**/generated/**' \
-    --glob '!vendor/**' --glob '!**/vendor/**' \
     --glob '!target/**' --glob '!**/target/**' \
     --glob '!build/**' --glob '!**/build/**' \
     --glob '!out/**' --glob '!**/out/**' \
@@ -99,7 +98,7 @@ filter_contexts() {
         $path =~ s{^\./}{};
 
         next if $path eq q{crates/xtask/tests/issue_refs_lint.rs};
-        next if $path =~ m{(?:^|/)(?:\.git|\.worktrees|\.venv|__pycache__|\.pytest_cache|\.ruff_cache|\.mypy_cache|\.tox|\.cache|generated|vendor|target|build|out|dist|ontology-docs|htmlcov|[^/]+\.egg-info|node_modules|mutants\.out[^/]*)(?:/|$)};
+        next if $path =~ m{(?:^|/)(?:\.git|\.worktrees|\.venv|__pycache__|\.pytest_cache|\.ruff_cache|\.mypy_cache|\.tox|\.cache|generated|target|build|out|dist|ontology-docs|htmlcov|[^/]+\.egg-info|node_modules|mutants\.out[^/]*)(?:/|$)};
         next if $path =~ m{^(?:pipeline|coding-ethos)(?:/|$)};
         next if $path =~ m{(?:^|/)(?:docs/_generated|\.stamps|\.tmp|\.gmeow-tmp-[^/]+|\.coding-ethos|\.codex|\.claude)(?:/|$)};
         next if $path =~ m{^packages/python/gmeow_models(?:/|$)};

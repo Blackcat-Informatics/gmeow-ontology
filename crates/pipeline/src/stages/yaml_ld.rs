@@ -205,7 +205,7 @@ pub(crate) fn preservation_ledger() -> String {
 /// Parse JSON-LD-star bytes into the native carrier [`RdfDataset`] (thin wrapper over
 /// the first-party rdf codec).
 pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    jsonld::parse_jsonld(json_bytes).map_err(codec_err)
+    jsonld::parse_jsonld(json_bytes, None).map_err(codec_err)
 }
 
 /// Convert a JSON-LD-star document to GMEOW statement-metadata N-Quads (thin wrapper
@@ -214,8 +214,12 @@ pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Arc<RdfDataset>, gmeow_err
 pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
     json_bytes: &[u8],
 ) -> Result<String, gmeow_errors::Diag> {
-    jsonld::jsonld_to_statement_metadata_nquads(json_bytes, Some(&gmeow_statement_metadata_vocab()))
-        .map_err(codec_err)
+    jsonld::jsonld_to_statement_metadata_nquads(
+        json_bytes,
+        None,
+        Some(&gmeow_statement_metadata_vocab()),
+    )
+    .map_err(codec_err)
 }
 
 /// Convert YAML-LD-star bytes to JSON-LD-star JSON (thin wrapper over the first-party
@@ -229,8 +233,12 @@ pub fn yaml_ld_star_to_json(yaml_bytes: &[u8]) -> Result<String, gmeow_errors::D
 pub fn yaml_ld_star_to_gmeow_statement_metadata_nquads(
     yaml_bytes: &[u8],
 ) -> Result<String, gmeow_errors::Diag> {
-    jsonld::yamlld_to_statement_metadata_nquads(yaml_bytes, Some(&gmeow_statement_metadata_vocab()))
-        .map_err(codec_err)
+    jsonld::yamlld_to_statement_metadata_nquads(
+        yaml_bytes,
+        None,
+        Some(&gmeow_statement_metadata_vocab()),
+    )
+    .map_err(codec_err)
 }
 
 /// Return an RDFC-1.0 canonical, deterministically sorted quad representation.
