@@ -30,7 +30,7 @@
 //! graph's triples (statement metadata folded in as edge/node properties).
 //! [`render_from_dataset`] preserves that EXACT scope by first projecting the
 //! carrier down to `STATEMENTS_GRAPH` via
-//! [`purrdf::RdfDataset::project_named_graph_full`] — purrdf's own established
+//! [`purrdf::RdfDataset::project_named_graph`] — purrdf's own established
 //! "graph-scoped fold with full RDF-star sidecar" primitive (used elsewhere in
 //! this pipeline, e.g. the superset gate's per-graph fold) — and THEN hands
 //! that small scoped dataset to purrdf's four LPG projections. Do not "fix"
