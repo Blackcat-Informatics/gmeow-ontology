@@ -1088,8 +1088,39 @@ wasm-parity: ## HEAVY (CI-only lane, `make heavy`) "native≡wasm" proof: wasm32
 		echo "SKIP: wasm32-unknown-unknown target or node not installed (local only; CI hard-fails) — 'rustup target add wasm32-unknown-unknown' + install node to run the native≡wasm parity lanes"; \
 	fi
 
-maint-rust-heavy: rust-build verify-test-fixtures ## Run the Rust suite INCLUDING the off-gate heavy tests, with corpus fixtures strictly read-only.
-	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
+maint-rust-heavy: rust-build verify-test-fixtures ## Run the Rust suite INCLUDING the off-gate heavy and #[ignore]d tests, with corpus fixtures strictly read-only.
+	@# `--run-ignored all` is what makes this the lane that "heavy lane only" refers to.
+	@# `#[ignore]` is a libtest attribute, invisible to every nextest filter expression, so
+	@# the profile's `default-filter` cannot readmit an ignored test no matter how broad it
+	@# is. The flag must be HERE and not in `.config/nextest.toml`: `run-ignored` is not a
+	@# profile key, and nextest answers one with a warning and then ignores it.
+	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run --profile maint-heavy --run-ignored all $(NEXTEST_PARTITION_ARG)
+
+maint-lang-corpus-sweeps: rust-build ## Round-trip a real UD treebank and OntoLex lexicon. Requires GMEOW_UD_TREEBANK and GMEOW_ONTOLEX_LEXICON; no corpus data ships with the repo.
+	@# The only lane for the two lang-bridge bulk sweeps. They are `#[ignore]`d and are
+	@# excluded by name from `maint-heavy`, because they hard-fail without external corpora
+	@# that deliberately do not ship: a UD treebank would import CC BY-SA content and a bulk
+	@# lexicon would import third-party lexical content. That hard failure is the designed
+	@# behaviour — an honest off-gate failure, never a silent skip — so it must not be billed
+	@# to a maintainer who has no local checkout. Point both variables at one and run this.
+	@if [ -z "$(GMEOW_UD_TREEBANK)" ] || [ -z "$(GMEOW_ONTOLEX_LEXICON)" ]; then \
+		echo "maint-lang-corpus-sweeps needs both corpora, which do not ship with the repo:"; \
+		echo "  GMEOW_UD_TREEBANK=/path/to/xx.conllu       (a Universal Dependencies file)"; \
+		echo "  GMEOW_ONTOLEX_LEXICON=/path/to/lexicon.ttl (an OntoLex-Lemon Turtle file)"; \
+		echo "Point both at a local checkout and re-run."; \
+		exit 1; \
+	fi
+	cargo nextest run --run-ignored all -p gmeow-lang-bridge \
+	  -E 'test(maint_conllu_treebank_sweep) | test(maint_lexicon_extract_sweep)'
+
+maint-docs-measure-determinism: rust-build ## Prove the docs design measurement is a pure function of the sources by running it twice and comparing.
+	@# The only lane for `measurement_is_deterministic_across_two_runs`. It is `#[ignore]`d
+	@# and excluded by name from `maint-heavy` because `measure_docs_designs` calls
+	@# `run_pipeline_products` — the production DAG — and this test calls it TWICE. A test
+	@# may never rebuild the corpus from inside a gate lane, so it gets a deliberate
+	@# maintainer invocation instead of a scheduled one. Expect two full pipeline runs.
+	cargo nextest run --run-ignored all -p gmeow-pipeline \
+	  -E 'test(measurement_is_deterministic_across_two_runs)'
 
 slicetest: rust-build verify-producer-bound-test-fixtures ## Run focused synthetic checks for the slice engine; declarative repository specs are already covered by the authenticated producer verdict.
 	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)

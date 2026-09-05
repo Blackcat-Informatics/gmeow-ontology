@@ -44,11 +44,59 @@ inherits = "default"
 junit = { path = "junit.xml" }
 fail-fast = false
 
+# The maintainer breadth lane. `default-filter` restores every selector the required lane
+# excludes — but it does NOT un-`#[ignore]` a test. `#[ignore]` is a libtest attribute and
+# a filter expression cannot see it, so before `make maint-rust-heavy` began passing
+# `--run-ignored all`, EVERY `#[ignore]`d test in this workspace ran in no lane at all: not
+# on `make check`, not in the breadth lane, nowhere. One of them carried the attribute text
+# "heavy lane only", which was therefore a false claim about the build — a defect of the
+# same kind as a broken assertion (P11).
+#
+# `run-ignored` MUST NOT be written here. It is a command-line flag, not a profile key:
+# nextest 0.9.137 answers a profile-level `run-ignored` with
+#   warning: ignoring unknown configuration key: profile.maint-heavy.run-ignored
+# and carries on, so putting it here looks like it enables the ignored tests while changing
+# nothing — and a warning does not fail the gate. The flag lives on the `maint-rust-heavy`
+# recipe in the Makefile, and `the_breadth_lane_actually_runs_ignored_tests` pins it there
+# and forbids it here.
+#
+# Two families must still stay out. They are excluded BY NAME rather than by silence, so
+# the decision is visible to the next reader instead of being rediscovered:
+#
+#   * The two lang-bridge corpus sweeps hard-fail without external data that deliberately
+#     does not ship (a UD treebank would import CC BY-SA content; a bulk lexicon would
+#     import third-party lexical content). Their own doc comments call an unset env var an
+#     honest off-gate failure, so scheduling them here would red the lane for every
+#     maintainer who has no local checkout. `make maint-lang-corpus-sweeps` runs them once
+#     the maintainer points them at one.
+#   * `measurement_is_deterministic_across_two_runs` calls `run_pipeline_products` — the
+#     production DAG — and does it twice. A test may never rebuild the corpus (P1), so no
+#     lane may schedule it; it stays a deliberate by-hand invocation.
 [profile.maint-heavy]
 inherits = "default"
-default-filter = 'all()'
+# Each exclusion names its test in full rather than by a shared pattern, so
+# `nextest_override_filters_all_match_a_live_test` can hold every one against the source
+# tree. An abbreviated pattern would still match after a rename and silently readmit.
+default-filter = '''
+  not (
+    (package(gmeow-lang-bridge) & test(maint_conllu_treebank_sweep))
+    | (package(gmeow-lang-bridge) & test(maint_lexicon_extract_sweep))
+    | (package(gmeow-pipeline) & test(measurement_is_deterministic_across_two_runs))
+  )
+'''
 junit = { path = "junit.xml" }
 fail-fast = false
+
+# The MCP deep-validate pass drives the native deep reasoner over the WHOLE shipped bundle
+# and states in its own doc comment that it runs "well past the 120 s on-gate nextest
+# cliff". It is `#[ignore]`d and so only ever executes under `run-ignored` above; the
+# inherited default budget would kill it at 120 s, which would make enabling it a
+# load-shaped red rather than a verdict (P7). It reserves the natural host width for the
+# same reason its sibling whole-bundle consumers do.
+[[profile.maint-heavy.overrides]]
+filter = 'package(gmeow-mcp) & test(validate_local_deep_pass_surfaces_deep_finding)'
+threads-required = "num-cpus"
+slow-timeout = { period = "900s", "terminate-after" = 2, "grace-period" = "30s" }
 
 # These two required heavy-lane binaries consume the authenticated producer bundle in
 # place. They never create a runtime store, tamper derivative, or fallback corpus.
