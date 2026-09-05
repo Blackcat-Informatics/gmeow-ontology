@@ -13,10 +13,15 @@ source "$script_dir/../build-support/common.sh"
 
 gmeow_require_command rg "ripgrep (rg)"
 gmeow_require_command perl
+gmeow_require_command git
 
 cd "${1:-.}"
 
 # Assemble tool names so this shell source does not become its own finding.
+# Only the review-bot *authorship* pattern is spelled out here, because that is
+# the policy itself — review-process provenance in prose is the thing being
+# rejected. The bots' on-disk state directories are NOT named: they are
+# untracked and ignored, so the derived exclusion below covers them.
 review_name_a='Code'
 review_name_b='Rabbit'
 review_bot_a='code'
@@ -24,17 +29,44 @@ review_bot_b='rabbit'
 review_bot_c='ai'
 review_name_c='Gem'
 review_name_d='ini'
-tool_state_a='.gem'
-tool_state_b='ini/extensions'
-tool_settings_b='ini/settings.json'
 REVIEW_TOOL_PATTERN="(?:${review_name_a}${review_name_b}s?|${review_bot_a}${review_bot_b}${review_bot_c}(?:\\[bot\\])?|${review_name_c}${review_name_d}(?:[- ]code[- ]assist)?s?(?:\\[bot\\])?)"
-REVIEW_TOOL_STATE="${tool_state_a}${tool_state_b}"
-REVIEW_TOOL_SETTINGS="${tool_state_a}${tool_settings_b}"
 
 # Shared by every scan leg. The process-code alternative is deliberately
 # qualified by a keyword; standalone competency identifiers remain technical.
 POLICY_PATTERN="(?i:(?:\\b(?:issue|pull[ -]?request|pr)[[:space:]]*(?:#[[:space:]]*)?[0-9]{2,}\\b|\\b[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]{2,}\\b|(?<![[:alnum:]_])#[0-9]{2,}\\b|\\b(?:tasks?|gap|finding|review(?:er)?)[[:space:]#:-]*[A-Z]?[0-9]+(?:\\.[0-9]+|[a-z])?\\b|\\b${REVIEW_TOOL_PATTERN}\\b))"
-export POLICY_PATTERN REVIEW_TOOL_PATTERN REVIEW_TOOL_SETTINGS REVIEW_TOOL_STATE
+export POLICY_PATTERN REVIEW_TOOL_PATTERN
+
+# Foreign trees are DERIVED, never enumerated by vendor name. A path that is
+# both untracked AND ignored is, by construction, not authored content of this
+# repository: a local tool checkout, agent runtime state, a vendored cache.
+# Naming each such tool inside a policy gate is a maintenance leak — the gate
+# grows an entry per tool and the repository ends up carrying the identity of
+# software it does not ship.
+#
+# `--exclude-standard` reads .gitignore, .git/info/exclude, and
+# core.excludesFile, so a purely local tool is excluded by purely local
+# configuration, which is where a local tool belongs. `--directory` collapses a
+# wholly ignored tree to a single entry. The result is a deterministic function
+# of the working tree: same tracked set and same ignore configuration, same
+# exclusions, on every machine.
+#
+# The rule is untracked AND ignored, never merely ignored. A TRACKED file is
+# always scanned even when an ignore rule matches it — the scan uses
+# `--no-ignore` deliberately, and that behaviour is pinned by
+# `tracked_authored_files_are_scanned_even_when_an_ignore_rule_matches`.
+#
+# NUL-delimited so a path containing a newline cannot forge a list entry. The
+# early globs and the canonical `filter_contexts` policy are fed from the same
+# read, which is what keeps the two in the parity the fixtures require.
+DERIVED_GLOBS=()
+DERIVED_EXCLUDE_LIST=''
+while IFS= read -r -d '' derived_path; do
+  derived_path="${derived_path%/}"
+  [[ -n "$derived_path" ]] || continue
+  DERIVED_GLOBS+=(--glob "!${derived_path}" --glob "!${derived_path}/**")
+  DERIVED_EXCLUDE_LIST+="${derived_path}"$'\n'
+done < <(git ls-files -z --others --ignored --exclude-standard --directory)
+export DERIVED_EXCLUDE_LIST
 
 # Hidden authored files are in scope. These globs are an early performance and
 # traversal bound only; every scan leg then passes through `filter_contexts`, the
@@ -65,24 +97,13 @@ rg_authored() {
     --glob '!.stamps/**' --glob '!.tmp/**' \
     --glob '!.gmeow-tmp-*/**' --glob '!node_modules/**' \
     --glob '!**/node_modules/**' --glob '!mutants.out*/**' \
-    --glob '!pipeline/**' --glob '!coding-ethos/**' \
-    --glob '!.coding-ethos/**' --glob '!.codex/**' \
-    --glob '!.claude/**' --glob "!${REVIEW_TOOL_STATE}/**" \
-    --glob "!${REVIEW_TOOL_SETTINGS}" --glob '!.mcp.json' \
-    --glob '!.antigravitycli' --glob '!.antigravitycli/**' \
+    --glob '!pipeline/**' --glob '!.mcp.json' \
     --glob '!.worktree' --glob '!keys/*.secret' \
     --glob '!keys/*.secret.asc' --glob '!keys/*.tmp' \
     --glob '!catalog-v001.xml' \
     --glob '!packages/python/gmeow_models/**' \
-    --glob '!.agents/skills/agent-operating-discipline/**' \
-    --glob '!.agents/skills/coding-ethos-agent-workflow/**' \
-    --glob '!.agents/skills/conditional-imports/**' \
-    --glob '!.agents/skills/lint-remediation/**' \
-    --glob '!.agents/skills/managed-lint-workflow/**' \
-    --glob '!.agents/skills/managed-toolchain/**' \
-    --glob '!.agents/skills/modern-web-guidance/**' \
-    --glob '!.agents/skills/safe-git-workflow/**' \
     --glob '!crates/xtask/tests/issue_refs_lint.rs' \
+    "${DERIVED_GLOBS[@]}" \
     "$@"
 }
 
@@ -91,6 +112,15 @@ rg_authored() {
 # fails. The original line is printed for diagnostics.
 filter_contexts() {
   perl -ne '
+        BEGIN {
+            # Mirror of the derived glob set, so the canonical policy accepts
+            # every early exclusion. Trailing slashes are stripped so a tree
+            # entry and a file entry compare the same way.
+            @DERIVED = map { my $p = $_; $p =~ s{/\z}{}; $p }
+                       grep { length }
+                       split /\n/, ($ENV{DERIVED_EXCLUDE_LIST} // q{});
+        }
+
         my $original = $_;
         my $audit = $_;
         my ($path) = $audit =~ m{^([^:\n]+):[0-9]+:};
@@ -99,17 +129,13 @@ filter_contexts() {
 
         next if $path eq q{crates/xtask/tests/issue_refs_lint.rs};
         next if $path =~ m{(?:^|/)(?:\.git|\.worktrees|\.venv|__pycache__|\.pytest_cache|\.ruff_cache|\.mypy_cache|\.tox|\.cache|generated|target|build|out|dist|ontology-docs|htmlcov|[^/]+\.egg-info|node_modules|mutants\.out[^/]*)(?:/|$)};
-        next if $path =~ m{^(?:pipeline|coding-ethos)(?:/|$)};
-        next if $path =~ m{(?:^|/)(?:docs/_generated|\.stamps|\.tmp|\.gmeow-tmp-[^/]+|\.coding-ethos|\.codex|\.claude)(?:/|$)};
+        next if $path =~ m{^pipeline(?:/|$)};
+        next if $path =~ m{(?:^|/)(?:docs/_generated|\.stamps|\.tmp|\.gmeow-tmp-[^/]+)(?:/|$)};
         next if $path =~ m{^packages/python/gmeow_models(?:/|$)};
-        next if $path =~ m{(?:^|/)\.antigravitycli(?:/|$)};
-        next if $path =~ m{^\.agents/skills/(?:agent-operating-discipline|coding-ethos-agent-workflow|conditional-imports|lint-remediation|managed-lint-workflow|managed-toolchain|modern-web-guidance|safe-git-workflow)(?:/|$)};
         next if $path =~ m{(?:^|/)(?:\.coverage|lcov\.info|llms\.txt|\.DS_Store|\.worktree|\.mcp\.json|catalog-v001\.xml)$};
         next if $path =~ m{(?:^|/)(?:[^/]+\.py[cod]|[^/]+\.snap\.new|[^/]+\.swp|rustc-ice-[^/]+\.txt)$};
         next if $path =~ m{^keys/[^/]+\.(?:secret|secret\.asc|tmp)$};
-        next if $path eq $ENV{REVIEW_TOOL_SETTINGS};
-        next if $path eq $ENV{REVIEW_TOOL_STATE}
-            || index($path, "$ENV{REVIEW_TOOL_STATE}/") == 0;
+        next if grep { $path eq $_ || index($path, "$_/") == 0 } @DERIVED;
 
         my $tool = qr/$ENV{REVIEW_TOOL_PATTERN}/i;
         $audit =~ s{\b(?:UAX|UTS)[[:space:]]*#[0-9]+\b}{}gi;
