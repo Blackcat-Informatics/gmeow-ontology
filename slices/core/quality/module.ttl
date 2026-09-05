@@ -3,6 +3,7 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:QualityAssessment
@@ -16,11 +17,11 @@ gmeow:QualityAssessment
             logic:onProperty gmeow:assessedEntity ;
             logic:someValuesFrom gmeow:Entity ;
         ] ;
-    skos:definition "A reified assessment of the quality of an entity or dataset, expressed as an observation about one or more quality dimensions. The result is typically a scalar quantity (accuracy in metres, a normalized dimensionless completeness ratio, etc.) or a categorical conformance statement, carrying its dimension, any applicable unit and reference frame, determinacy, and provenance in the same bundle as every other GMEOW measurement (Principle 11)."@x-gmeow-english ;
+    skos:definition "A reified assessment of the quality of an entity or dataset, expressed as an observation about one or more quality dimensions. A magnitude-valued result is a math:Quantity carrying math:quantityValue and math:hasDimension (accuracy in metres, a normalized dimensionless completeness ratio) — never a bare number — while a categorical verdict is a conformance individual; either way the result carries its dimension, any applicable unit and reference frame, determinacy, and provenance in the same bundle as every other GMEOW measurement (Principle 11)."@x-gmeow-english ;
     skos:example "ex:posAcc a gmeow:QualityAssessment ; gmeow:assessedEntity ex:roadLayer ; gmeow:qualityDimension gmeow:qualityDimensionPositionalAccuracy ; gmeow:observationResult ex:fiveMetres ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for ordinary measurements that are not quality judgements (use a plain gmeow:Observation) and for epistemic certainty about a claim (that is gmeow:confidence, not a quality assessment)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Type the assessment as gmeow:QualityAssessment, name the subject with gmeow:assessedEntity, the dimension(s) with gmeow:qualityDimension, and the verdict with gmeow:observationResult; reuse the Observation stack's method, vantage, dimension, and any applicable unit and frame rather than minting quality-specific copies."@x-gmeow-english ;
+    gmeow:howToUse "Type the assessment as gmeow:QualityAssessment, name the subject with gmeow:assessedEntity, the dimension(s) with gmeow:qualityDimension, and the verdict with gmeow:observationResult — a math:Quantity carrying math:quantityValue plus math:hasDimension when the verdict is a magnitude, a conformance individual when it is categorical; reuse the Observation stack's method, vantage, dimension, and any applicable unit and frame rather than minting quality-specific copies."@x-gmeow-english ;
     gmeow:useWhen "Use to record a quality verdict about an entity or dataset along one or more ISO 19157 dimensions — positional/temporal/thematic accuracy, completeness, consistency, or lineage — as a first-class observation carrying its own result, method, and provenance."@x-gmeow-english .
 
 gmeow:QualityDimension
