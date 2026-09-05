@@ -1044,7 +1044,7 @@ fn run_claim_shacl(
 
     let phase_started = Instant::now();
     let shapes = retain_claim_audit_shapes(
-        purrdf::shapes::engine::parse_shapes(&shapes_ttl)
+        purrdf::shapes::engine::parse_shapes(&shapes_ttl, None)
             .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?,
     )?;
     trace_claim_audit_phase(trace, "shacl.parse-shapes", phase_started);
@@ -1999,7 +1999,7 @@ fn run_range_shacl(
         let Some(shapes_ttl) = generate_range_shapes(root, prefix)? else {
             continue;
         };
-        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)
+        let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl, None)
             .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
         let report = purrdf::shapes::engine::validate_dataset(output, &shapes)
             .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;

@@ -108,17 +108,20 @@ impl WorldStore {
     ///
     /// # Errors
     ///
-    /// Infallible in practice (the in-memory delta insert cannot fail); the
-    /// `Result` is kept for API stability with the callers.
+    /// A quad naming a relative IRI. The insert validates that every IRI is
+    /// absolute, so a scheme-less reference is refused here rather than becoming
+    /// an unresolvable term inside the store.
     pub fn load_dataset(&self, source: &RdfDataset) -> gmeow_errors::Result<()> {
         let mut inner = self.inner.borrow_mut();
         for quad in source.quads() {
-            inner.insert(QuadValues {
-                s: source.term_value(quad.s),
-                p: source.term_value(quad.p),
-                o: source.term_value(quad.o),
-                g: quad.g.map(|g| source.term_value(g)),
-            });
+            inner
+                .insert(QuadValues {
+                    s: source.term_value(quad.s),
+                    p: source.term_value(quad.p),
+                    o: source.term_value(quad.o),
+                    g: quad.g.map(|g| source.term_value(g)),
+                })
+                .map_err(|e| store_err(format!("load_dataset: {e}")))?;
         }
         Ok(())
     }
@@ -127,13 +130,24 @@ impl WorldStore {
     /// whose IRI is `world`.
     ///
     /// Appends a delta: repeated calls accumulate, they do not reset the store.
+    ///
+    /// # Panics
+    ///
+    /// If any of `world`/`s`/`p`/`o` is not an absolute IRI. Every argument is
+    /// declared to be an IRI by this function's own signature, so a relative one
+    /// is a caller bug, not a runtime condition — and a store that silently
+    /// accepted it would hold a term nothing can resolve. Callers holding an IRI
+    /// that might be relative must resolve it against a base first.
     pub fn insert_quad(&self, world: &str, s: &str, p: &str, o: &str) {
-        self.inner.borrow_mut().insert(QuadValues {
-            s: TermValue::iri(s),
-            p: TermValue::iri(p),
-            o: TermValue::iri(o),
-            g: Some(TermValue::iri(world)),
-        });
+        self.inner
+            .borrow_mut()
+            .insert(QuadValues {
+                s: TermValue::iri(s),
+                p: TermValue::iri(p),
+                o: TermValue::iri(o),
+                g: Some(TermValue::iri(world)),
+            })
+            .expect("insert_quad requires absolute IRIs for world/subject/predicate/object");
     }
 
     /// Insert an already-materialized RDF triple into the named graph `world`.
@@ -144,7 +158,9 @@ impl WorldStore {
     ///
     /// # Errors
     ///
-    /// Infallible in practice; the `Result` is kept for API stability.
+    /// A relative IRI among the supplied terms or in `world`. The insert
+    /// validates absoluteness, so a scheme-less reference is refused here rather
+    /// than becoming an unresolvable term inside the store.
     pub fn insert_quad_terms(
         &self,
         world: &str,
@@ -152,12 +168,15 @@ impl WorldStore {
         predicate: TermValue,
         object: TermValue,
     ) -> gmeow_errors::Result<()> {
-        self.inner.borrow_mut().insert(QuadValues {
-            s: subject,
-            p: predicate,
-            o: object,
-            g: Some(TermValue::iri(world)),
-        });
+        self.inner
+            .borrow_mut()
+            .insert(QuadValues {
+                s: subject,
+                p: predicate,
+                o: object,
+                g: Some(TermValue::iri(world)),
+            })
+            .map_err(|e| store_err(format!("insert_quad_terms: {e}")))?;
         Ok(())
     }
 

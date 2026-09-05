@@ -891,6 +891,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             }])
             .expect("terms frame");
         writer.into_bytes()
@@ -944,6 +945,7 @@ mod tests {
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             }])
             .expect("terms frame");
         let diag = validate_declared_media(
@@ -1105,6 +1107,7 @@ gmeow:mediumStore a gmeow:ZstdDictMedium ;
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         }
     }
 

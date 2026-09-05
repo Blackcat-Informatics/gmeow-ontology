@@ -215,6 +215,7 @@ fn minimal_signed_gts_bytes(signing_key: &SigningKey, kid: &str) -> Vec<u8> {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         }
     }
     fn en_literal(text: &str) -> Term {
@@ -225,6 +226,7 @@ fn minimal_signed_gts_bytes(signing_key: &SigningKey, kid: &str) -> Vec<u8> {
             lang: Some("en".to_string()),
             direction: None,
             reifier: None,
+            triple: None,
         }
     }
 

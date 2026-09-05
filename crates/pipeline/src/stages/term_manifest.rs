@@ -115,7 +115,7 @@ fn load_authored_no_imports(root: &Path) -> Result<Dataset, gmeow_errors::Diag> 
             continue;
         }
         let bytes = std::fs::read(&path)?;
-        acc.add_turtle(&bytes, &path.display().to_string())
+        acc.add_turtle(&bytes, None, &path.display().to_string())
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {
                     message: e.to_string(),
@@ -701,14 +701,13 @@ logic:canonicalObjectProperty a logic:ObjectProperty ; rdfs:label "Canonical obj
 gmeow:canonicalDatatypeProperty a logic:DatatypeProperty ; rdfs:label "Canonical datatype property" .
 gmeow:canonicalAnnotationProperty a logic:AnnotationProperty ; rdfs:label "Canonical annotation property" .
 gmeow:canonicalIndividual a logic:NamedIndividual ; rdfs:label "Canonical individual" .
-"#,
-            "synthetic term manifest graph",
-        )
+"#, None,
+            "synthetic term manifest graph")
         .expect("parse synthetic term manifest graph")
     }
 
     fn digest_for(turtle: &[u8], term: &str) -> String {
-        let dataset = Dataset::parse_turtle(turtle, "synthetic digest graph")
+        let dataset = Dataset::parse_turtle(turtle, None, "synthetic digest graph")
             .expect("parse synthetic digest graph");
         let quads: Vec<RdfQuad> = dataset
             .inner()
@@ -820,7 +819,7 @@ gmeow:BoundaryTerm a owl:Class ;
     gmeow:addedInVersion "1.0.0" .
 "#
         );
-        Dataset::parse_turtle(turtle.as_bytes(), "release-boundary term graph")
+        Dataset::parse_turtle(turtle.as_bytes(), None, "release-boundary term graph")
             .expect("parse release-boundary term graph")
     }
 

@@ -136,7 +136,7 @@ fn bare_entity_fixture_fires_the_real_advisory_constraint_end_to_end() {
     let shapes_ttl = authenticated_advisory_shapes();
     let data_nt = fixture_abox_ntriples();
 
-    let report = purrdf::shapes::engine::validate_graphs(&data_nt, &shapes_ttl)
+    let report = purrdf::shapes::engine::validate_graphs(&data_nt, &shapes_ttl, None)
         .expect("SHACL validation of the fixture A-Box against the derived shapes must succeed");
 
     // Parse the same two graphs as RdfDatasets for `split_advisory_results`'s `shapes` /

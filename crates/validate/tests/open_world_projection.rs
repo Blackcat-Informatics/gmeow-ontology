@@ -52,7 +52,7 @@ fn gmeow_namespaces() -> json_schema::Namespaces {
 
 /// Compile a shapes Turtle document into `(schema_bytes, parsed_schema)`.
 fn compile_schema(shapes_ttl: &str) -> (Vec<u8>, serde_json::Value) {
-    let shapes = engine::parse_shapes(shapes_ttl).expect("parse shapes");
+    let shapes = engine::parse_shapes(shapes_ttl, None).expect("parse shapes");
     let compiled = json_schema::compile(&shapes, &gmeow_namespaces());
     let parsed: serde_json::Value =
         serde_json::from_str(&compiled.schema_json).expect("compiled schema is valid JSON");
@@ -69,7 +69,7 @@ fn project_instance(data_ttl: &str) -> Vec<u8> {
 
 /// Whether `data_ttl` conforms to `shapes_ttl` per the native SHACL engine.
 fn shacl_conforms(shapes_ttl: &str, data_ttl: &str) -> bool {
-    let shapes = engine::parse_shapes(shapes_ttl).expect("parse shapes");
+    let shapes = engine::parse_shapes(shapes_ttl, None).expect("parse shapes");
     let store = parse_dataset(data_ttl.as_bytes(), "text/turtle", None).expect("parse data graph");
     engine::validate_dataset(store.as_ref(), &shapes)
         .expect("validate_dataset over a frozen dataset is infallible")

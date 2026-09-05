@@ -105,6 +105,18 @@ pub enum ReasonedGraphOutcome {
     IncompleteClosure(Vec<Finding>),
 }
 
+/// An insert into the reasoned graph refused a relative IRI.
+///
+/// The insert validates that every IRI is absolute. Nothing spliced into the
+/// reasoned graph may carry a scheme-less reference: a verify query joins on IRI
+/// identity, so an unresolvable term would silently fail to match rather than
+/// report anything, and the gate would pass by not looking.
+fn reasoned_insert_err(e: impl std::fmt::Display) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Verify {
+        detail: format!("reasoned-graph insert refused a relative IRI: {e}"),
+    })
+}
+
 /// Materialize the reasoned graph every reasoned-graph consumer shares: flatten
 /// `edb`'s default graph (literals + `owl:members` RDF lists preserved), layer the
 /// native EL/DL closure's DERIVED (non-EDB) edges on top, splice in the math:
@@ -134,7 +146,9 @@ pub enum ReasonedGraphOutcome {
 /// Returns `Err` if the dimension gate or the freeze fails, or if the reasoned closure
 /// derives a `logic:EffectAttempt` / `logic:ExternalEffectReceipt` — the enactment
 /// kernel's observed-not-derived boundary, rejected here because this is the shared
-/// stage every reasoned-graph consumer builds from.
+/// stage every reasoned-graph consumer builds from. It also returns `Err` if any
+/// quad spliced into the reasoned graph names a relative IRI — see
+/// [`reasoned_insert_err`].
 pub fn materialize_reasoned_graph(
     edb: &RdfDataset,
     result: &ReasoningResult,
@@ -147,7 +161,7 @@ pub fn materialize_reasoned_graph(
     //    produced.
     let mut store = MutableDataset::new(Arc::new(RdfDataset::union(&[])));
     for quad in edb.flat_default_graph_quads() {
-        store.insert(quad);
+        store.insert(quad).map_err(reasoned_insert_err)?;
     }
 
     // 2. Native EL/DL closure; layer the derived (non-EDB) edges on top, also in
@@ -235,12 +249,14 @@ pub fn materialize_reasoned_graph(
         let predicate = bare_iri(&ax.predicate);
         let object = bare_iri(&ax.object);
         derived_predicates.insert(predicate.to_owned());
-        store.insert(QuadValues {
-            s: TermValue::iri(subject),
-            p: TermValue::iri(predicate),
-            o: TermValue::iri(object),
-            g: None,
-        });
+        store
+            .insert(QuadValues {
+                s: TermValue::iri(subject),
+                p: TermValue::iri(predicate),
+                o: TermValue::iri(object),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
         derived_edges.push(RdfQuad::new(
             RdfTerm::iri(subject),
             predicate,
@@ -286,12 +302,14 @@ pub fn materialize_reasoned_graph(
     for (subject, failure_class) in
         crate::reason::math_gate::dimension_gate_markers(edb, &derived_edges)?
     {
-        store.insert(QuadValues {
-            s: TermValue::iri(subject),
-            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            o: TermValue::iri(failure_class),
-            g: None,
-        });
+        store
+            .insert(QuadValues {
+                s: TermValue::iri(subject),
+                p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                o: TermValue::iri(failure_class),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
     }
 
     // The reasoner-derived enactment-kernel gate: compiles the enactment `logic:Constraint`s
@@ -338,18 +356,22 @@ pub fn materialize_reasoned_graph(
             .collect::<Vec<_>>(),
     )?;
     for violation in kernel_markers {
-        store.insert(QuadValues {
-            s: TermValue::iri(violation.subject.clone()),
-            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            o: TermValue::iri(violation.failure_class),
-            g: None,
-        });
-        store.insert(QuadValues {
-            s: TermValue::iri(violation.subject),
-            p: TermValue::iri("https://blackcatinformatics.ca/logic/violatedLaw"),
-            o: TermValue::iri(violation.law),
-            g: None,
-        });
+        store
+            .insert(QuadValues {
+                s: TermValue::iri(violation.subject.clone()),
+                p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                o: TermValue::iri(violation.failure_class),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
+        store
+            .insert(QuadValues {
+                s: TermValue::iri(violation.subject),
+                p: TermValue::iri("https://blackcatinformatics.ca/logic/violatedLaw"),
+                o: TermValue::iri(violation.law),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
     }
 
     // Freeze the reasoned graph once; every verify query + the obligation checks
@@ -379,18 +401,22 @@ pub fn materialize_reasoned_graph(
     }
     let mut with_alpha = MutableDataset::new(Arc::clone(&dataset));
     for (root, alpha_class) in alpha_edges {
-        with_alpha.insert(QuadValues {
-            s: TermValue::iri(root),
-            p: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS),
-            o: TermValue::iri(alpha_class.clone()),
-            g: None,
-        });
-        with_alpha.insert(QuadValues {
-            s: TermValue::iri(alpha_class),
-            p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-            o: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE),
-            g: None,
-        });
+        with_alpha
+            .insert(QuadValues {
+                s: TermValue::iri(root),
+                p: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS),
+                o: TermValue::iri(alpha_class.clone()),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
+        with_alpha
+            .insert(QuadValues {
+                s: TermValue::iri(alpha_class),
+                p: TermValue::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                o: TermValue::iri(MATH_ALPHA_EQUIVALENCE_CLASS_TYPE),
+                g: None,
+            })
+            .map_err(reasoned_insert_err)?;
     }
     let dataset = with_alpha.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Verify {

@@ -231,6 +231,7 @@ fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> purrdf::gts::
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
             id
         });
@@ -243,6 +244,7 @@ fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> purrdf::gts::
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
             id
         });
@@ -255,6 +257,7 @@ fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> purrdf::gts::
                 lang: None,
                 direction: None,
                 reifier: None,
+                triple: None,
             });
             id
         });
@@ -555,6 +558,7 @@ fn gts_validate_uses_cache_when_configured() {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
     }
 
@@ -567,6 +571,7 @@ fn gts_validate_uses_cache_when_configured() {
             lang: None,
             direction: None,
             reifier: None,
+            triple: None,
         });
         id
     }

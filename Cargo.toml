@@ -188,32 +188,31 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-# PINNED BY EXACT GIT REV — an immutable commit is even stronger than an `=x.y.z` crates.io
-# pin: `cargo update` cannot relink the RDF core to a different commit, so the docs wasm
-# engines that statically link this crate cannot drift from the substrate record, which now
-# keys off the commit SHA the lock records. Rev `3aa4ba51` is the purrdf-main commit that
-# carries the order-sorted goal-directed `resolve_fol`: it threads a caller
-# `SortContext` + `FolProgram::meta_sorts` through backward SLG–WFS resolution and exposes a
-# caller-reproducible, content-addressed proof/term identity (`clause_identity` / `canon`
-# / `derivation_id`). That is the substrate the `logic:ReasoningProgram` backward lane
-# (`goal_directed.rs` / `proof_tree.rs`) resolves onto — the crates.io 0.12.0 release and
-# every earlier rev lack the order-sorted resolver and cannot carry it.
+# PINNED BY EXACT CRATES.IO VERSION — `=1.1.0` admits exactly one release, and the
+# lockfile records that release's content `checksum`, so the docs wasm engines that
+# statically link this crate cannot drift from the substrate record. The record now keys
+# off the crate version plus the registry checksum rather than a commit SHA: a published
+# release is immutable and content-addressed, so it carries the same no-drift guarantee the
+# earlier git-rev pin provided, without the git source or a rev that no release names.
 #
-# `3aa4ba51` is the current purrdf-main tip: downstream of the order-sorted resolver merge it
-# also lands the later reasoning-substrate fixes merged upstream after it, which this repo's
-# reasoning cutover consumes; the pin advances to that tip so the shipped substrate record
-# matches the reviewed-and-merged upstream rather than an intermediate rev.
+# 1.1.0 is the first release after 1.0.0 and is additive over it — no published API shape
+# changed, so every 1.0.0 caller keeps working. It supersedes the previous `3aa4ba51`
+# git-rev pin (80 commits behind this release, zero divergent) and everything that pin
+# carried: the order-sorted goal-directed `resolve_fol` that the `logic:ReasoningProgram`
+# backward lane (`goal_directed.rs` / `proof_tree.rs`) resolves onto, the deterministic
+# evaluation governor (`Stopped { cause: StopCause, .. }`), and the multi-dictionary GTS
+# writer plus `DictStrategy::Pinned` that the machine-compression medium consumes.
 #
-# The rev is downstream of the earlier `a59d9f2d` pin (the deterministic-evaluation-governor
-# merge unifying `PagedQueryError::{Cancelled, DeadlineExceeded}` into
-# `Stopped { cause: StopCause, .. }`) and of `rust-v0.12.0`, so it also carries what the
-# machine-compression medium consumes: the multi-dictionary GTS writer (many named in-band
-# dictionaries, per-frame selection, `zstd-rsyncable` dictionary priming, an explicit
-# training seed and a declared catalog `level`) plus `DictStrategy::Pinned`, which lets a
-# compaction plan carry the SHIPPED dictionary bytes verbatim so one `gmeow:dictionaryId`
-# resolves to exactly one byte sequence, and the ownership analyzer's term-namespace scoping
-# fix (SliceVocab::with_term_namespaces / owns_term).
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf", rev = "3aa4ba51" }
+# Three fixes in this release reach surfaces this repository depends on:
+#   * gts — RDF 1.2 literal base direction is part of a term's identity in the snapshot
+#     composer. It was missing from the intern key, so `"Cat"@en--ltr` and `"Cat"@en--rtl`
+#     merged into ONE term and every quad was repointed at the survivor. Emitted bytes are
+#     unchanged for any input carrying no directional literals.
+#   * shacl — `sh:message` templates are substituted on the `sh:sparql` path, rendered per
+#     solution from that solution's own bindings instead of once and cloned.
+#   * entail — `entails::imports::imported_iris()` is public, so a consumer reads a
+#     document's `owl:imports` without re-deriving which objects count.
+purrdf = "=1.1.0"
 
 # Harness-scoped allocation accounting. Keeping the path here makes the workspace
 # the single dependency authority while individual crates retain dev-only scope.

@@ -48,7 +48,7 @@ fn nt_to_dataset(nt: &str) -> Arc<purrdf::RdfDataset> {
 }
 
 fn validate_nt(data_nt: &str, shapes_ttl: &str) -> ValidationReport {
-    let shapes = parse_shapes(shapes_ttl).expect("SHACL shapes must parse");
+    let shapes = parse_shapes(shapes_ttl, None).expect("SHACL shapes must parse");
     let dataset = nt_to_dataset(data_nt);
     validate_dataset(&dataset, &shapes).expect("native SHACL validation must succeed")
 }
@@ -168,7 +168,7 @@ fn turtle_to_dataset(ttl: &str) -> Arc<purrdf::RdfDataset> {
 }
 
 fn validate_ttl(data_ttl: &str, shapes_ttl: &str) -> ValidationReport {
-    let shapes = parse_shapes(shapes_ttl).expect("SHACL shapes must parse");
+    let shapes = parse_shapes(shapes_ttl, None).expect("SHACL shapes must parse");
     let dataset = turtle_to_dataset(data_ttl);
     validate_dataset(&dataset, &shapes).expect("native SHACL validation must succeed")
 }
@@ -298,7 +298,7 @@ fn partition_results_uses_hash_iri_local_name_for_unknown_roles() {
 
 #[test]
 fn parse_error_hard_fails() {
-    let err = parse_shapes("this is not valid turtle @@@").expect_err("must fail");
+    let err = parse_shapes("this is not valid turtle @@@", None).expect_err("must fail");
     assert!(!err.is_empty());
 }
 

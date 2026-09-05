@@ -3235,7 +3235,7 @@ mod procedural_tests {
 <https://ex/badForbidden> <https://ex/companion> <https://ex/c1> .\n\
 <https://ex/badForbidden> <https://ex/forbidden> <https://ex/f0> .\n";
 
-        let report = validate_graphs(data, &shapes_ttl).expect("validate");
+        let report = validate_graphs(data, &shapes_ttl, None).expect("validate");
         let flagged: Vec<String> = report
             .results
             .iter()
@@ -3750,7 +3750,7 @@ ex:aggv a logic:AggregateConstraint ;\n\
 <https://ex/bad> <https://ex/hasAxis> <https://ex/y> .\n\
 <https://ex/bad> <https://ex/dimensionCount> \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n"
         );
-        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let report = validate_graphs(&data, &shapes_ttl, None).expect("validate");
         let flagged: Vec<String> = report
             .results
             .iter()
@@ -3870,7 +3870,7 @@ ex:aggv a logic:AggregateConstraint ;\n\
         data.push_str(&inc("https://ex/bb", "https://ex/rb", 1));
         data.push_str(&inc("https://ex/cb", "https://ex/rb", -1));
         data.push_str(&inc("https://ex/cb", "https://ex/pb", -1)); // flipped: should be +1
-        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let report = validate_graphs(&data, &shapes_ttl, None).expect("validate");
         let flagged: Vec<String> = report
             .results
             .iter()
@@ -4054,7 +4054,7 @@ ex:scaleCmp a logic:ComparisonConstraint ;\n\
 <https://ex/bad> <https://ex/scaleMin> \"1.0\"{dec} .\n\
 <https://ex/bad> <https://ex/scaleMax> \"1.0\"{dec} .\n"
         );
-        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let report = validate_graphs(&data, &shapes_ttl, None).expect("validate");
         let flagged: Vec<String> = report
             .results
             .iter()
@@ -4076,7 +4076,7 @@ ex:scaleCmp a logic:ComparisonConstraint ;\n\
     /// Collect the focus nodes a projected constraint document flags over `data` (N-Triples).
     fn flagged_over(shapes_ttl: &str, data: &str) -> Vec<String> {
         use purrdf::shapes::engine::validate_graphs;
-        let report = validate_graphs(data, shapes_ttl).expect("validate");
+        let report = validate_graphs(data, shapes_ttl, None).expect("validate");
         report
             .results
             .iter()

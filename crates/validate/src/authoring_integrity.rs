@@ -108,7 +108,7 @@ fn parse_err(path: &Path, e: &str) -> Diag {
 /// HARD FAIL, never a silently skipped gate input).
 fn parse_ttl(path: &Path) -> Result<Dataset> {
     let bytes = std::fs::read(path).map_err(|e| io_err(path, &e))?;
-    Dataset::parse_turtle(&bytes, &path.display().to_string())
+    Dataset::parse_turtle(&bytes, None, &path.display().to_string())
         .map_err(|e| parse_err(path, &e.to_string()))
 }
 
@@ -925,7 +925,7 @@ fn vocabulary_declared_terms(repo_root: &Path) -> Result<BTreeSet<String>> {
     let mut acc = DatasetAccumulator::new();
     for source in vocabulary_source_files(repo_root)? {
         let bytes = std::fs::read(&source).map_err(|e| io_err(&source, &e))?;
-        acc.add_turtle(&bytes, &source.display().to_string())
+        acc.add_turtle(&bytes, None, &source.display().to_string())
             .map_err(|e| parse_err(&source, &e.to_string()))?;
     }
     let ds = acc
@@ -2518,7 +2518,7 @@ mod tests {
              @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
              @prefix dcterms: <http://purl.org/dc/terms/> .\n\
              @prefix ex: <https://example.org/> .\n";
-        Dataset::parse_turtle(format!("{prefixes}{ttl}").as_bytes(), "test").unwrap()
+        Dataset::parse_turtle(format!("{prefixes}{ttl}").as_bytes(), None, "test").unwrap()
     }
 
     #[test]

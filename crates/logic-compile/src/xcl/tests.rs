@@ -289,127 +289,50 @@ fn comprehensive_round_trip_is_isomorphic() {
 }
 
 #[test]
-fn xml_and_ntriples_forbidden_chars_survive_the_round_trip() {
-    // The Exact-claim guard for XML. Two composable escape layers must both hold:
-    //   * N-Triples IRIREF escaping for `{ } | ^ ` `` ` `` `, space, TAB in an IRI, and
-    //   * XML text escaping for `&` (rides an IRI raw through N-Triples), and `< > & "` in a
-    //     literal lexical (N-Triples escapes only `"`/`\`, so `< > &` reach the XML text node).
-    // Everything must survive verbatim through `project_xcl` ∘ `parse_xcl_str`.
+#[should_panic(expected = "iri-disallowed-char")]
+fn xml_and_ntriples_forbidden_chars_are_refused_by_the_rdf_ir() {
+    // `{ } | ^ ` `` ` ``, a space, a TAB and an XML-significant `&` are not legal in an IRI
+    // (RFC 3987), so the RDF IR refuses to intern one carrying them and names the offending
+    // character and its byte offset. This test used to assert the opposite — that such an
+    // IRI SURVIVED a `project_xcl` round trip verbatim. It did, because the IR interned it
+    // unchecked and the codec emitted output no conforming parser would read back.
+    //
+    // Refusal is the correct behaviour and is pinned here so a regression to silent
+    // acceptance is caught. The N-Triples `\uXXXX` escaping is covered directly by
+    // `crate::nt::tests`; the XML attribute/text escaping keeps its own dedicated
+    // `xml_escape_attr` / `xml_escape_text` coverage in this module.
     let weird_iri = format!("{LOGIC}weird/a{{b}}c|d^e`f g\th&amp");
-    let axiom = LogicAxiom::ground(weird_iri.clone(), iri("knows"), iri("target"), false).unwrap();
-
-    // A typed-literal formula argument carrying every XML-forbidden character.
-    let nasty_lex = "less<greater>amp&quote\"end";
-    let formula = Formula::atom(
-        Term::iri(iri("tagged")).unwrap(),
-        vec![Term::literal(nasty_lex, Some(iri("Tag"))).unwrap()],
-    )
-    .unwrap();
-
+    let axiom = LogicAxiom::ground(weird_iri, iri("knows"), iri("target"), false).unwrap();
     let orig = LogicProgram::new(
         vec![axiom],
         Vec::new(),
         Vec::new(),
         Some("urn:test:iri".to_owned()),
-    )
-    .with_formulas(vec![formula]);
-
-    let src = Some("urn:test:iri".to_owned());
-    let xcl1 = project_xcl(&orig).expect("project_xcl").content;
-    // The projection must remain well-formed XML despite the forbidden characters.
-    roxmltree::Document::parse(&xcl1)
-        .expect("XCL with forbidden chars must still be well-formed XML");
-
-    let (fp, _diags) = parse_xcl_str(&xcl1, src.clone())
-        .expect("parse_xcl_str must not hard-fail on forbidden-char content");
-    assert!(
-        fp.axioms.iter().any(|a| a.subject == weird_iri),
-        "the forbidden-char IRI subject was lost or mangled by the round-trip:\n{:#?}",
-        fp.axioms
     );
-    assert!(
-        fp.formulas.iter().any(|f| matches!(
-            f,
-            Formula::Atom { args, .. }
-                if args.iter().any(|t| matches!(
-                    t,
-                    Term::Literal { lexical, .. } if lexical == nasty_lex
-                ))
-        )),
-        "the XML-forbidden-char literal was lost or mangled by the round-trip:\n{:#?}",
-        fp.formulas
-    );
-
-    // Idempotent at the fixpoint: a second round-trip is the byte identity.
-    let xcl2 = project_xcl(&fp).expect("project_xcl").content;
-    assert_eq!(
-        xcl1, xcl2,
-        "XCL emission is not idempotent for forbidden-char content"
-    );
-    let (fp2, _) = parse_xcl_str(&xcl2, src).expect("parse_xcl_str #2");
-    assert_ir_isomorphic(&fp, &fp2)
-        .unwrap_or_else(|e| panic!("forbidden-char round-trip not idempotent: {e}"));
+    let _ = project_xcl(&orig);
 }
 
 #[test]
-fn control_chars_del_c1_c0_survive_the_round_trip() {
-    // The shared `crate::nt` codec (crates/logic-compile/src/nt.rs) must UCHAR-escape the
-    // FULL control-character range, not just `<= 0x20`: DEL (0x7F), a C1 control (0x85), and
-    // an arbitrary C0 control (0x01), injected into BOTH an IRI and a literal lexical. Proves
-    // the carrier survives the full control-char range and the emitted XML stays parseable.
-    let weird_iri = format!("{LOGIC}weird/a\u{7F}b\u{85}c\u{01}d");
-    let axiom = LogicAxiom::ground(weird_iri.clone(), iri("knows"), iri("target"), false).unwrap();
-
-    let nasty_lex = "del\u{7F}c1\u{85}c0\u{01}end";
-    let formula = Formula::atom(
-        Term::iri(iri("tagged")).unwrap(),
-        vec![Term::literal(nasty_lex, Some(iri("Tag"))).unwrap()],
-    )
-    .unwrap();
-
+#[should_panic(expected = "iri-disallowed-char")]
+fn control_chars_del_c1_c0_are_refused_by_the_rdf_ir() {
+    // DEL (0x7F), a C1 control (0x85) and a C0 control (0x01) are not legal in an IRI
+    // (RFC 3987), so the RDF IR refuses to intern one carrying them and names the offending
+    // codepoint and its byte offset. This test used to assert the opposite — that such an
+    // IRI SURVIVED the round trip verbatim. It did, because the IR interned it unchecked
+    // and the codec emitted output no conforming parser would read back.
+    //
+    // Refusal is the correct behaviour and is pinned here so a regression to silent
+    // acceptance is caught. The full-control-range `\uXXXX` escaping this test formerly
+    // reached only indirectly is covered directly by `crate::nt::tests`.
+    let weird = format!("{LOGIC}weird/a\u{7F}b\u{85}c\u{01}d");
+    let axiom = LogicAxiom::ground(weird, iri("knows"), iri("target"), false).unwrap();
     let orig = LogicProgram::new(
         vec![axiom],
         Vec::new(),
         Vec::new(),
         Some("urn:test:iri".to_owned()),
-    )
-    .with_formulas(vec![formula]);
-
-    let src = Some("urn:test:iri".to_owned());
-    let xcl1 = project_xcl(&orig).expect("project_xcl").content;
-    // The projection must remain well-formed XML despite the raw control characters.
-    roxmltree::Document::parse(&xcl1)
-        .expect("XCL with DEL/C1/C0 control chars must still be well-formed XML");
-
-    let (fp, _diags) = parse_xcl_str(&xcl1, src.clone())
-        .expect("parse_xcl_str must not hard-fail on control-char content");
-    assert!(
-        fp.axioms.iter().any(|a| a.subject == weird_iri),
-        "the control-char IRI subject was lost or mangled by the round-trip:\n{:#?}",
-        fp.axioms
     );
-    assert!(
-        fp.formulas.iter().any(|f| matches!(
-            f,
-            Formula::Atom { args, .. }
-                if args.iter().any(|t| matches!(
-                    t,
-                    Term::Literal { lexical, .. } if lexical == nasty_lex
-                ))
-        )),
-        "the control-char literal was lost or mangled by the round-trip:\n{:#?}",
-        fp.formulas
-    );
-
-    // Idempotent at the fixpoint: a second round-trip is the byte identity.
-    let xcl2 = project_xcl(&fp).expect("project_xcl").content;
-    assert_eq!(
-        xcl1, xcl2,
-        "XCL emission is not idempotent for control-char content"
-    );
-    let (fp2, _) = parse_xcl_str(&xcl2, src).expect("parse_xcl_str #2");
-    assert_ir_isomorphic(&fp, &fp2)
-        .unwrap_or_else(|e| panic!("control-char round-trip not idempotent: {e}"));
+    let _ = project_xcl(&orig);
 }
 
 #[test]

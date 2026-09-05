@@ -59,7 +59,7 @@ fn load_authored_no_imports(root: &Path) -> Result<Dataset, gmeow_errors::Diag> 
             continue;
         }
         let bytes = std::fs::read(&path)?;
-        acc.add_turtle(&bytes, &path.display().to_string())
+        acc.add_turtle(&bytes, None, &path.display().to_string())
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Parse {
                     message: e.to_string(),
@@ -365,6 +365,7 @@ gmeow:CharacterArc
 
 gmeow:arcFrame a owl:FunctionalProperty .
 "#,
+            None,
             "synthetic frame declarations",
         )
         .expect("parse synthetic frame declarations")
@@ -420,8 +421,9 @@ gmeow:arcFrame a owl:FunctionalProperty .
                 "@prefix sh: <http://www.w3.org/ns/shacl#> .\n{}",
                 project_validation_shape_shacl(shape)
             );
-            let bespoke_shapes = parse_shapes(&bespoke_ttl).expect("parse bespoke frame shape");
-            let shared_shapes = parse_shapes(&shared_ttl).expect("parse shared projection");
+            let bespoke_shapes =
+                parse_shapes(&bespoke_ttl, None).expect("parse bespoke frame shape");
+            let shared_shapes = parse_shapes(&shared_ttl, None).expect("parse shared projection");
 
             // A carrier instance MISSING its frame (violates minCount 1) and one that carries it.
             let data = format!(
@@ -462,7 +464,7 @@ gmeow:arcFrame a owl:FunctionalProperty .
         let ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
             gmeow:Soft gmeow:requiresFrame gmeow:softFrame ; gmeow:ruleSeverity \"advisory\" .\n\
             gmeow:Hard gmeow:requiresFrame gmeow:hardFrame .\n";
-        let store = Dataset::parse_turtle(ttl.as_bytes(), "test").unwrap();
+        let store = Dataset::parse_turtle(ttl.as_bytes(), None, "test").unwrap();
         let rows = frame_requirements(&store).unwrap();
         let soft = rows.iter().find(|r| r.0 == "Soft").expect("Soft row");
         let hard = rows.iter().find(|r| r.0 == "Hard").expect("Hard row");
@@ -511,7 +513,7 @@ gmeow:arcFrame a owl:FunctionalProperty .
     fn unknown_rule_severity_hard_fails() {
         let ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
             gmeow:Bad gmeow:requiresFrame gmeow:badFrame ; gmeow:ruleSeverity \"bogus\" .\n";
-        let store = Dataset::parse_turtle(ttl.as_bytes(), "test").unwrap();
+        let store = Dataset::parse_turtle(ttl.as_bytes(), None, "test").unwrap();
         assert!(frame_requirements(&store).is_err());
     }
 

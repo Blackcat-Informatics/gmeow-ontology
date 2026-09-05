@@ -222,7 +222,7 @@ fn assert_qualified(
 fn flag_with_shape(shape: &ValidationShapeIr, data_ttl: &str) -> Vec<String> {
     let doc = format!("{SH_HEADER}{}", project_validation_shape_shacl(shape));
     let shapes =
-        parse_shapes(&doc).unwrap_or_else(|e| panic!("projected shape parses: {e}\n{doc}"));
+        parse_shapes(&doc, None).unwrap_or_else(|e| panic!("projected shape parses: {e}\n{doc}"));
     let data = purrdf::parse_dataset(data_ttl.as_bytes(), "text/turtle", None)
         .expect("fixture parses as Turtle");
     validate_dataset(&data, &shapes)
@@ -247,7 +247,7 @@ fn flag_with_procedural(module_rel: &str, data_ttl: &str) -> Vec<String> {
         malformed.is_empty(),
         "{module_rel} has MALFORMED_CONSTRAINT: {malformed:?}"
     );
-    let shapes = parse_shapes(&project_procedural_constraints(&program))
+    let shapes = parse_shapes(&project_procedural_constraints(&program), None)
         .expect("projected procedural constraints parse");
     let data = purrdf::parse_dataset(data_ttl.as_bytes(), "text/turtle", None)
         .expect("fixture parses as Turtle");

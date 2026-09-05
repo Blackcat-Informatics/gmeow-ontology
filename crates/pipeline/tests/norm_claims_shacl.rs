@@ -20,7 +20,7 @@ const GRAPH_NORM_CLAIMS: &str = "https://blackcatinformatics.ca/gmeow/graph/norm
 const ADVICE_FAMILY: &str = "advice.";
 
 fn norm_claims_dataset() -> Arc<RdfDataset> {
-    let scoped = authenticated_bundle::dataset().project_named_graph_full(GRAPH_NORM_CLAIMS);
+    let scoped = authenticated_bundle::dataset().project_named_graph(GRAPH_NORM_CLAIMS);
     let mut quads = flat_rdf_quads_from_dataset(&scoped);
     for quad in &mut quads {
         quad.graph_name = None;
@@ -35,7 +35,7 @@ fn authenticated_shapes() -> purrdf::shapes::shapes::Shapes {
     )
     .expect("authenticated validation-shapes product; tests never produce it");
     let ttl = String::from_utf8(bytes).expect("authenticated validation-shapes product is UTF-8");
-    purrdf::shapes::engine::parse_shapes(&ttl).expect("authenticated validation shapes parse")
+    purrdf::shapes::engine::parse_shapes(&ttl, None).expect("authenticated validation shapes parse")
 }
 
 #[test]

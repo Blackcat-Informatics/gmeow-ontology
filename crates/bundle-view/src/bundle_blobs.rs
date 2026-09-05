@@ -212,9 +212,15 @@ impl Bundle {
                 },
             ));
         }
-        Ok(Self {
-            view: GtsFoldView::new(graph),
-        })
+        // `GtsFoldView::new` rejects a term table in which a term resolves through
+        // itself (`gts-self-reaching-term`). That is a malformed snapshot, not a
+        // recoverable one, so the diagnostic is surfaced rather than unwrapped away.
+        let view = GtsFoldView::new(graph).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleParse {
+                message: format!("snapshot term table is not foldable: {e}"),
+            })
+        })?;
+        Ok(Self { view })
     }
 
     /// Materialize the already-folded snapshot as the native RDF dataset.

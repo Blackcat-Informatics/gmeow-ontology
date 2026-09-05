@@ -50,7 +50,7 @@ fn flagged(fixture_rel: &str) -> Vec<(String, String)> {
         "attestation module has MALFORMED_CONSTRAINT: {malformed:?}"
     );
     let shapes_ttl = project_procedural_constraints(&program);
-    let shapes = parse_shapes(&shapes_ttl).expect("projected shapes parse");
+    let shapes = parse_shapes(&shapes_ttl, None).expect("projected shapes parse");
     let data_bytes = std::fs::read(r.join(fixture_rel)).expect("read fixture");
     let data = parse_dataset(&data_bytes, "text/turtle", None).expect("fixture parses as Turtle");
     let report = validate_dataset(&data, &shapes).expect("validate");

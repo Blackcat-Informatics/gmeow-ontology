@@ -47,7 +47,7 @@ fn shipped_grounding_pairs() -> BTreeSet<(String, String)> {
     let path = logic_module();
     let bytes =
         std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
-    let ds = Dataset::parse_turtle(&bytes, &path.display().to_string())
+    let ds = Dataset::parse_turtle(&bytes, None, &path.display().to_string())
         .unwrap_or_else(|e| panic!("cannot parse {}: {e}", path.display()));
 
     let mut pairs = BTreeSet::new();

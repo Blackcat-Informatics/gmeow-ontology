@@ -28,7 +28,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use purrdf::{ParseOptions, RdfDataset, SpanTable, parse_dataset_with};
+use purrdf::{ParseOptions, ParseOutcome, RdfDataset, SpanTable, parse_dataset_with};
 use serde::de::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -283,7 +283,14 @@ impl SourceAdapter for PurrdfAdapter {
         media_type: &str,
         bytes: &[u8],
     ) -> gmeow_errors::Result<Ingested> {
-        let (dataset, table) = parse_dataset_with(
+        // `parse_dataset_with` returns a `ParseOutcome` record rather than a
+        // `(dataset, spans)` pair; the document's end-of-parse base IRI is carried
+        // alongside and is not part of this adapter's contract.
+        let ParseOutcome {
+            dataset,
+            spans: table,
+            ..
+        } = parse_dataset_with(
             bytes,
             media_type,
             None,
