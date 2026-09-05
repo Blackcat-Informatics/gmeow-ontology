@@ -122,6 +122,45 @@ of carrying arena slack into the next whole-document buffer; on other allocators
 a no-op, and on every platform it changes only residency, never the live value graph or
 output.
 
+### 3.1 The grounding-generator contract
+
+A grounding slice (`logic:`, `lang:`, `math:`) does not only *declare* vocabulary —
+it computes things: closures, corpora, projections, executed lifts. Those computed
+artifacts reach consumers the same way every other stage output does, and the
+uniformity is the point: **a grounding slice's computed artifact is a carrier graph
+attached by a registered stage, never a file the slice writes and something else
+reads back.** Rule 1 of the stage contract admits no grounding exception.
+
+Three stages instantiate the contract today, and they differ only in what they
+compute — never in how it travels:
+
+| Stage | Computes | Attaches |
+| --- | --- | --- |
+| `stage-compile-logic` | the `logic:` IR and its typed views | `GRAPH_LOGIC`, `GRAPH_RELATIONAL_CORE`, `GRAPH_CORRESPONDENCE`, `GRAPH_DIAGNOSTICS` |
+| `stage-reason` | the reasoned closure (once — the razor) | `GRAPH_REASONING`, `GRAPH_EXAMPLES`, `GRAPH_DIAGNOSTICS` |
+| `stage-math-producers` | the `math:` producer outputs, including executed R / ONNX / TSTP lifts | `GRAPH_EXAMPLES` |
+
+Four properties bind a grounding generator, all inherited rather than special:
+
+1. **Determinism over a committed input.** The artifact is a pure function of authored
+   source plus, where a lift executes a real front-end, a committed artifact embedded
+   at compile time. `stage-math-producers` runs the shipped `gmeow_math_lift`
+   entrypoint — the same one the `gmeow` CLI calls — over a real committed script, so
+   the bundle carries the output of the actual parser rather than an imitation of it.
+2. **Attached, not written.** The output is one or more named graphs on the carrier.
+   A grounding artifact that appears under `generated/` is a *projection* of the
+   bundle produced by fanout (§6), never the transport that got it there.
+3. **Computed once.** The razor applies unchanged: a closure or a lift is computed a
+   single time and read from the carrier by every downstream consumer.
+4. **Diagnostics ride the same rail.** A grounding generator's findings attach to
+   `GRAPH_DIAGNOSTICS` alongside every other stage's, so a grounding failure is a
+   carrier-borne `gmeow:Finding` rather than a private error channel.
+
+The consequence for a new grounding capability is that there is nothing to design
+about its transport: register a stage, attach graphs, and it is in the bundle, in the
+superset law, and under the conformance gate automatically. The open question for any
+grounding slice is only *what to compute* — never *how to ship it*.
+
 ## 4. One terminal
 
 Exactly **one** stage writes bytes. The terminal takes the fully-accumulated
