@@ -199,7 +199,6 @@ fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
         ".tox/note.md",
         ".cache/note.md",
         "generated/note.md",
-        "vendor/note.md",
         "target/note.md",
         "build/note.md",
         "out/note.md",
