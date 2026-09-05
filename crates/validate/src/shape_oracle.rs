@@ -1668,11 +1668,12 @@ pub fn cross_check(
     data_graph: &RdfDataset,
     witnesses: &[Witness],
 ) -> gmeow_errors::Result<()> {
-    let projected = purrdf::shapes::engine::parse_shapes(projected_shacl_ttl, None).map_err(|e| {
-        parse_err(format!(
-            "cross_check: projected shapes failed to parse: {e}"
-        ))
-    })?;
+    let projected =
+        purrdf::shapes::engine::parse_shapes(projected_shacl_ttl, None).map_err(|e| {
+            parse_err(format!(
+                "cross_check: projected shapes failed to parse: {e}"
+            ))
+        })?;
     let legacy = purrdf::shapes::engine::parse_shapes(legacy_shacl_ttl, None)
         .map_err(|e| parse_err(format!("cross_check: legacy shapes failed to parse: {e}")))?;
 
@@ -2947,11 +2948,12 @@ pub fn semantic_cross_check(
             "semantic_cross_check: legacy shapes failed to parse: {e}"
         ))
     })?;
-    let projected = purrdf::shapes::engine::parse_shapes(projected_shacl_ttl, None).map_err(|e| {
-        parse_err(format!(
-            "semantic_cross_check: projected record shapes failed to parse: {e}"
-        ))
-    })?;
+    let projected =
+        purrdf::shapes::engine::parse_shapes(projected_shacl_ttl, None).map_err(|e| {
+            parse_err(format!(
+                "semantic_cross_check: projected record shapes failed to parse: {e}"
+            ))
+        })?;
     for w in witnesses {
         let ds = parse_dataset(w.triples.as_bytes(), "text/turtle", None).map_err(|e| {
             parse_err(format!(

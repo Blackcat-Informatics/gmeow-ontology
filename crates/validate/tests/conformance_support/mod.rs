@@ -1044,8 +1044,13 @@ impl GraphStore {
         self.slice_ds.get_or_init(|| {
             let canonical = canonical_flat_nquads(&self.ds)
                 .unwrap_or_else(|e| panic!("canonical slice n-quads failed: {e}"));
-            SliceDataset::parse(canonical.as_bytes(), "application/n-quads", None, "slice view")
-                .unwrap_or_else(|e| panic!("slice dataset reconstruction failed: {e}"))
+            SliceDataset::parse(
+                canonical.as_bytes(),
+                "application/n-quads",
+                None,
+                "slice view",
+            )
+            .unwrap_or_else(|e| panic!("slice dataset reconstruction failed: {e}"))
         })
     }
 

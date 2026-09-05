@@ -295,9 +295,8 @@ impl TripleSink {
     /// term was rejected and why, leaving callers to panic with a sentence that could
     /// not distinguish an illegal IRI from an encoding fault.
     fn serialize_as(self, media_type: &str) -> gmeow_errors::Result<String> {
-        let projection_err = |detail: String| {
-            gmeow_errors::Diag::of_kind(crate::error::Projection { detail })
-        };
+        let projection_err =
+            |detail: String| gmeow_errors::Diag::of_kind(crate::error::Projection { detail });
         let dataset = self
             .builder
             .freeze()

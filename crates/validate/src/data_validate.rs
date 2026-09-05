@@ -791,11 +791,12 @@ fn data_dataset_flat(
         // native JSON-LD-star codec, then re-home every named graph to the default graph
         // (the Tier-1 SHACL path needs the whole graph flat). This matches the prior
         // gmeow-gts → `dataset_from_gts` flattening behavior.
-        let dataset = purrdf::native_codecs::jsonld::parse_jsonld(data_bytes, None).map_err(|e| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("JSON-LD parse error: {e}"),
-            })
-        })?;
+        let dataset =
+            purrdf::native_codecs::jsonld::parse_jsonld(data_bytes, None).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    detail: format!("JSON-LD parse error: {e}"),
+                })
+            })?;
         return flatten_to_default_graph(&dataset);
     }
 
