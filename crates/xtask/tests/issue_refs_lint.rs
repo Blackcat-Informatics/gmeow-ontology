@@ -186,8 +186,14 @@ fn rust_block_scan_stops_at_each_comment_boundary() {
     assert_lint(repo.path(), 0);
 }
 
+/// Structural exclusions: reproducible build products, scratch state, and
+/// secrets, all of which are named because they are properties of *this*
+/// repository's layout rather than of whatever tools a developer has installed.
+///
+/// Foreign trees are no longer part of this list — they are derived, and are
+/// covered by the untracked-and-ignored fixture below.
 #[test]
-fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
+fn excludes_only_reproducible_products_and_scratch_state() {
     let paths = [
         ".git/private-note",
         ".worktrees/other/note.md",
@@ -226,15 +232,7 @@ fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
         "node_modules/pkg/note.md",
         "mutants.out/note.md",
         "pipeline/note.md",
-        "coding-ethos/note.md",
-        ".coding-ethos/note.md",
-        ".codex/note.md",
-        ".claude/note.md",
-        ".gemini/extensions/note.md",
-        ".gemini/settings.json",
         ".mcp.json",
-        ".antigravitycli/note.md",
-        "nested/.antigravitycli/note.md",
         ".worktree",
         "nested/.worktree",
         "nested/.coverage",
@@ -247,20 +245,46 @@ fn excludes_only_reproducible_products_foreign_trees_and_tool_state() {
         "keys/signing.tmp",
         "catalog-v001.xml",
         "packages/python/gmeow_models/note.md",
-        ".agents/skills/agent-operating-discipline/note.md",
-        ".agents/skills/coding-ethos-agent-workflow/note.md",
-        ".agents/skills/conditional-imports/note.md",
-        ".agents/skills/lint-remediation/note.md",
-        ".agents/skills/managed-lint-workflow/note.md",
-        ".agents/skills/managed-toolchain/note.md",
-        ".agents/skills/modern-web-guidance/note.md",
-        ".agents/skills/safe-git-workflow/note.md",
     ];
 
     let repo = FixtureRepo::new();
     for path in paths {
         repo.write(path, "issue 42\n");
     }
+    assert_lint(repo.path(), 0);
+}
+
+/// Foreign trees — local tool checkouts, agent runtime state, vendored caches —
+/// are excluded by a *derived* rule rather than by name: a path that is both
+/// untracked and ignored is not authored content of this repository.
+///
+/// The tool names that the gate used to enumerate are deliberately absent from
+/// this fixture. That the rule needs no vendor name is the point of it: the
+/// repository should not have to carry the identity of software it does not
+/// ship, and the gate should not need an edit when the next tool appears.
+///
+/// This asserts only the excluding direction. The conjunct that makes the rule
+/// safe — a *tracked* file is still scanned even when an ignore rule matches
+/// it — is pinned separately by
+/// `tracked_authored_files_are_scanned_even_when_an_ignore_rule_matches`.
+/// Weakening the rule to "ignored" alone would red that test, which is exactly
+/// the guard rail wanted here.
+#[test]
+fn foreign_trees_are_excluded_by_being_untracked_and_ignored_not_by_name() {
+    let repo = FixtureRepo::new();
+    repo.write(
+        ".gitignore",
+        "vendor-tool/\n.vendor-tool-state/\nscratch.md\n",
+    );
+    repo.commit_as_origin(".gitignore");
+
+    // Untracked AND ignored: a local tool checkout, its runtime state, and a
+    // scratch file. Policy-as-code tooling is full of tracker references, and
+    // none of it is this repository's content.
+    repo.write("vendor-tool/README.md", "See issue 42 for the rationale.\n");
+    repo.write(".vendor-tool-state/run.log", "applied issue 42\n");
+    repo.write("scratch.md", "issue 42\n");
+
     assert_lint(repo.path(), 0);
 }
 
