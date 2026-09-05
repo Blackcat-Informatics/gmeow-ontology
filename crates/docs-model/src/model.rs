@@ -2722,8 +2722,7 @@ impl DocsModel {
     pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
         let catalog =
             SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab()).map_err(|e| {
-                attribute_mapping_parse_failure(slice_dir, &e)
-                    .unwrap_or_else(|| DocsError::Slice(e))
+                attribute_mapping_parse_failure(slice_dir, &e).unwrap_or(DocsError::Slice(e))
             })?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         Self::from_catalog(&catalog, &ownership, &[])

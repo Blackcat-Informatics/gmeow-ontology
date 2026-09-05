@@ -294,11 +294,18 @@ impl TripleSink {
     /// the point: `.ok()` here previously discarded exactly the message that says WHICH
     /// term was rejected and why, leaving callers to panic with a sentence that could
     /// not distinguish an illegal IRI from an encoding fault.
-    fn serialize_as(self, media_type: &str) -> Result<String, String> {
-        let dataset = self.builder.freeze().map_err(|e| e.to_string())?;
+    fn serialize_as(self, media_type: &str) -> gmeow_errors::Result<String> {
+        let projection_err = |detail: String| {
+            gmeow_errors::Diag::of_kind(crate::error::Projection { detail })
+        };
+        let dataset = self
+            .builder
+            .freeze()
+            .map_err(|e| projection_err(e.to_string()))?;
         let bytes = serialize_dataset(dataset.as_ref(), media_type, SerializeGraph::DefaultGraph)
-            .map_err(|e| e.to_string())?;
-        String::from_utf8(bytes).map_err(|e| format!("serialized {media_type} is not UTF-8: {e}"))
+            .map_err(|e| projection_err(e.to_string()))?;
+        String::from_utf8(bytes)
+            .map_err(|e| projection_err(format!("serialized {media_type} is not UTF-8: {e}")))
     }
 }
 
