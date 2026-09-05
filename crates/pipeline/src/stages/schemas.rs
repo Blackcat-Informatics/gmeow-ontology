@@ -247,6 +247,15 @@ fn linkml_ncname_local(local: &str) -> String {
 /// `(def_name, old_property, new_property)` triples for loss reporting — the
 /// rename is real information loss (the LinkML slot no longer names the exact
 /// source property), never silent.
+///
+/// **Retirement condition.** This pre-pass exists only because `emit_linkml`
+/// hard-fails the whole document on the first non-NCName slot instead of
+/// reporting the offending slots. When the emitter reports them — or performs a
+/// declared, loss-reported rename itself — this function is deleted rather than
+/// kept as a second place that decides LinkML slot naming; the doctrine is that
+/// purrdf owns the output formats. The condition is stated rather than a tracker
+/// id because the issue-refs policy forbids tracker provenance in authored prose,
+/// and a condition stays true after the tracker item is renumbered or superseded.
 fn sanitize_linkml_property_names(
     schema: &mut serde_json::Value,
     prefixes: &BTreeMap<String, String>,

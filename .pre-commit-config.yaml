@@ -8,15 +8,13 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-      # Whitespace fixers skip vendored (gUFO, public fixtures), generated
-      # (metadata), license texts, and tab-delimited data (TSV) so they stay
-      # byte-faithful — stripping a trailing space inside a vendored string
-      # literal or a TSV column tab would corrupt content.
+      # Whitespace fixers skip generated (metadata), license texts, and
+      # tab-delimited data (TSV) so they stay byte-faithful — stripping a
+      # trailing space inside a TSV column tab would corrupt content.
       - id: trailing-whitespace
         exclude: &keep-verbatim >
           (?x)^(
             imports/.*|
-            vendor/.*|
             generated/metadata/.*|
             generated/schemas/.*|
             generated/lpg/.*|
@@ -98,7 +96,7 @@ repos:
         # under generated/projections/glossary.*) carry the fr/zh terminology
         # renderings verbatim; codespell reads that non-English text as typos, so
         # they are excluded exactly as the authored i18n catalogs are.
-        exclude: '^(crates/gmn-cost-matrix/assets/vocab/|generated/briefs/|generated/catalog/glossary\.md|generated/projections/glossary\.|vendor/)'
+        exclude: '^(crates/gmn-cost-matrix/assets/vocab/|generated/briefs/|generated/catalog/glossary\.md|generated/projections/glossary\.)'
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1
@@ -114,7 +112,7 @@ repos:
     rev: v0.17.2
     hooks:
       - id: markdownlint-cli2
-        exclude: '^(ontology-docs/|vendor/)'
+        exclude: '^(ontology-docs/)'
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1

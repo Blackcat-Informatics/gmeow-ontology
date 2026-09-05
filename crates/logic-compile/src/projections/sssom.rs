@@ -831,6 +831,15 @@ fn build_meta(
 /// this content; splicing it in at render time is GMEOW's own provenance
 /// convention layered on top of the canonical serializer, not a competing SSSOM
 /// serializer.
+///
+/// **Retirement condition.** This exists only because the SSSOM codec has no
+/// set-level provenance slot that survives a `parse_tsv` round trip. When one
+/// lands upstream, the trailer rides in `SssomMeta`, the splice becomes dead
+/// weight, and this function is deleted rather than kept as a second way to
+/// spell the same content — the doctrine is that purrdf owns the output formats.
+/// The condition is stated rather than a tracker id because the issue-refs
+/// policy forbids tracker provenance in authored prose, and because a condition
+/// stays true after the tracker item is renumbered, closed, or superseded.
 fn splice_trailer(tsv: String, trailer: &str) -> String {
     if trailer.is_empty() {
         return tsv;
