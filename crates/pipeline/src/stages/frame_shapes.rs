@@ -364,8 +364,10 @@ gmeow:CharacterArc
     gmeow:ruleSeverity "binding" .
 
 gmeow:arcFrame a owl:FunctionalProperty .
-"#, None,
-            "synthetic frame declarations")
+"#,
+            None,
+            "synthetic frame declarations",
+        )
         .expect("parse synthetic frame declarations")
     }
 
@@ -419,7 +421,8 @@ gmeow:arcFrame a owl:FunctionalProperty .
                 "@prefix sh: <http://www.w3.org/ns/shacl#> .\n{}",
                 project_validation_shape_shacl(shape)
             );
-            let bespoke_shapes = parse_shapes(&bespoke_ttl, None).expect("parse bespoke frame shape");
+            let bespoke_shapes =
+                parse_shapes(&bespoke_ttl, None).expect("parse bespoke frame shape");
             let shared_shapes = parse_shapes(&shared_ttl, None).expect("parse shared projection");
 
             // A carrier instance MISSING its frame (violates minCount 1) and one that carries it.

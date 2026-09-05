@@ -762,8 +762,10 @@ gmeow:syntheticUse a logic:AdviceGuidance ;
     logic:adviceSourceField logic:ProseFieldUseWhen ;
     logic:formalizes gmeow:SyntheticTerm ;
     logic:message "Use exactly this case" .
-"#, None,
-            "synthetic advice graph")
+"#,
+            None,
+            "synthetic advice graph",
+        )
         .expect("parse synthetic advice graph");
         let advice = collect_advice(&dataset).expect("collect advice");
         let entity = format!("{GMEOW}SyntheticTerm");

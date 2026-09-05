@@ -494,7 +494,9 @@ pub fn build_substrate_projection(root: &Path) -> Result<String, gmeow_errors::D
     // checksum, so the crate version is the identity every site can state — the git rev
     // no site names any more.
     let ws_version = parse_manifest_version_pin(&read("Cargo.toml")?).ok_or_else(|| {
-        stage_err("substrate carrier: no exact purrdf version pin (`purrdf = \"=x.y.z\"`) in Cargo.toml")
+        stage_err(
+            "substrate carrier: no exact purrdf version pin (`purrdf = \"=x.y.z\"`) in Cargo.toml",
+        )
     })?;
     claims.push(Claim {
         component_slug: purrdf.into(),

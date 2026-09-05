@@ -236,11 +236,12 @@ fn profile_document(
 
 fn parse_manifest(path: &Path) -> Result<SliceMeta, gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    let dataset = Dataset::parse_turtle(&bytes, None, &path.display().to_string()).map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: e.to_string(),
-        })
-    })?;
+    let dataset =
+        Dataset::parse_turtle(&bytes, None, &path.display().to_string()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?;
 
     // The slice IRI: the last named subject of `?s a gmeow:Slice` (the old scan kept
     // the final match, so mirror that — `subjects_of_type` is in dataset order).
