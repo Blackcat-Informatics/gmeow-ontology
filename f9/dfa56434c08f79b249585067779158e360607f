@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: f9dfa56434c08f79b249585067779158e360607f
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1722
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1722
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: d53f4e5c7df5fd1beee858dce7e14fa55b214916
+GhpRsq-Head-Ref: agent/issue-1654-receipt-reuse
+GhpRsq-Head-OID: f9dfa56434c08f79b249585067779158e360607f
+GhpRsq-Result-Tree: 98f75edbe53711cad2a0ff408a906021d30fac07
+GhpRsq-Result-Commit: 33fe4a302f67c32fdb1dee0ffcd4e5e885f674a7
+GhpRsq-Parent-Hashes: f9dfa56434c08f79b249585067779158e360607f
+GhpRsq-Squash-Notes-SHA256: ab331ec20762a28776491161c3e840f73bdab0ac22af7acf61178c1c3fbfd327
