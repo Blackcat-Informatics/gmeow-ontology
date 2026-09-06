@@ -40,6 +40,14 @@ const AXIS_TRANSLATION: &str = "https://blackcatinformatics.ca/gmeow/axisTransla
 /// therefore environment-DIVERGENT by construction, not a byte-equality bug.
 const AXIS_ADVICE_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisAdviceCoverage";
 
+/// Definitional-harvest coverage is environment-DIVERGENT for exactly the reason its
+/// advisory sibling above is, and by the same construction: Repo mode resolves the central
+/// `logic:` module through a `slices/` ancestor to read the axiom authority, so a fixture
+/// staged with no such ancestor goes vacuous 1.0, while Bundle mode measures the fixture's
+/// OWN graph self-containedly and finds no realized axiom, scoring the real 0.0. Not a
+/// byte-equality bug — the two environments legitimately have different authorities in view.
+const AXIS_HARVEST_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisHarvestCoverage";
+
 /// The fixture slice's stable IRI (matches `manifest.ttl`).
 const FIXTURE_SLICE_IRI: &str =
     "https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice";
@@ -354,6 +362,18 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
          terms author no realized advisory carrier of their own, so the real score is 0.0"
     );
     assert_eq!(
+        grade_for(&repo, AXIS_HARVEST_COVERAGE).score,
+        1.0,
+        "definitional-harvest coverage goes vacuous 1.0 in Repo mode off-repo (no slices/ \
+         ancestor to resolve the central logic:Constraint / logic:Formula authority from)"
+    );
+    assert_eq!(
+        grade_for(&bundle, AXIS_HARVEST_COVERAGE).score,
+        0.0,
+        "Bundle mode measures the fixture's own graph self-containedly: its defined terms \
+         author no realized axiom of their own, so the real score is 0.0"
+    );
+    assert_eq!(
         grade_for(&repo, AXIS_GMN_GLYPH).score,
         0.0,
         "glyph optimality fails closed when Repo mode has no lang audit authority"
@@ -372,6 +392,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
             || bg.axis_iri == AXIS_GMN_GLYPH
             || bg.axis_iri == AXIS_DOC_MATURITY
             || bg.axis_iri == AXIS_ADVICE_COVERAGE
+            || bg.axis_iri == AXIS_HARVEST_COVERAGE
         {
             continue;
         }
@@ -391,7 +412,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
     }
     assert_eq!(
         compared, 12,
-        "exactly the 12 env-agnostic axes are compared (16 total minus four environment-dependent axes)"
+        "exactly the 12 env-agnostic axes are compared (17 total minus five environment-dependent axes)"
     );
 }
 

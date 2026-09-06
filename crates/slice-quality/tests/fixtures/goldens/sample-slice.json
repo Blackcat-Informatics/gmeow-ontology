@@ -46,6 +46,13 @@
     {
       "severity": "warning",
       "code": "slice-quality.axis-advice",
+      "message": "axisHarvestCoverage: Author the definitional obligation as executable logic: in slices/grounding/logic/module.ttl for each term the advisor names — a logic:Constraint at logic:severity \"Violation\" or \"Warning\" with its logic:Formula guard, or a standalone logic:Formula, carrying logic:formalizes naming the term whose skos:definition it realizes. Harvest the semantics the definition already states; do not mint OWL/RDFS/gUFO axioms while translating (Principle 4/17/19 — those are generated projections, not authoring surfaces). The domain slice keeps only its prose; the axiom lives centrally and formalizes the term.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
       "message": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).",
       "tool": "slice-quality",
       "standpoint": "advisory"
@@ -89,6 +96,13 @@
       "severity": "warning",
       "code": "slice-quality.gmn1-coverage.no-repo-root",
       "message": "the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.harvest-coverage.no-repo-root",
+      "message": "the slice directory carries no resolvable slices/ path prefix — harvest coverage cannot be measured (vacuous 1.0).",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -372,6 +386,13 @@
     {
       "severity": "info",
       "code": "slice-quality.grade",
+      "message": "axisHarvestCoverage: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
       "message": "axisMaximalGrounding: Maximal (score 1.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
@@ -482,6 +503,11 @@
       "id": "slice-quality.grade",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-grade",
       "default_severity": "info"
+    },
+    {
+      "id": "slice-quality.harvest-coverage.no-repo-root",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-harvest-coverage-no-repo-root",
+      "default_severity": "warning"
     },
     {
       "id": "slice-quality.linkage.no-calculus-eligible-correspondence",
