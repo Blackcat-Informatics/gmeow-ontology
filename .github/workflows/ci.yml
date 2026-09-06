@@ -56,7 +56,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Fingerprint the resolved Rust toolchain
         id: toolchain
@@ -277,7 +277,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
           components: rustfmt
 
       # Commit hygiene is source-only. Compiled all-target clippy is owned exactly
@@ -321,7 +321,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Cache Cargo registry
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -402,7 +402,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Cache Cargo registry
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -484,6 +484,19 @@ jobs:
         if: steps.fixture-prebuild-cache.outputs.cache-hit != 'true'
         run: |
           echo "exact same-run pipeline fixture cache was not transferred" >&2
+          echo >&2
+          echo "The key binds runner OS/arch, the resolved rustc identity, the Cargo" >&2
+          echo "manifest hash, github.sha, github.run_id AND github.run_attempt." >&2
+          echo >&2
+          echo "Because the attempt number is part of the key, RE-RUNNING ONLY FAILED" >&2
+          echo "JOBS CAN NEVER FIX THIS: the attempt advances but rust-prebuild, having" >&2
+          echo "succeeded, does not re-run, so nothing writes the new key. Re-run ALL" >&2
+          echo "jobs instead." >&2
+          echo >&2
+          echo "If the rustc segment of the key differs between this job and the" >&2
+          echo "rust-prebuild save line, the two jobs resolved different compilers." >&2
+          echo "The toolchain is date-pinned in rust-toolchain.toml precisely so that" >&2
+          echo "cannot happen; a mismatch means a workflow drifted off that pin." >&2
           exit 1
 
       - name: Restore exact generated-bundle import products
@@ -610,7 +623,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       # The producer-materialized tree must be present before any workspace compile —
       # gmeow-cli / gmeow-lsp embed generated/dist/gmeow.gts, and the docs tests read
@@ -760,7 +773,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Download the producer-materialized generated/ tree
         # actions/download-artifact v8.0.1
@@ -883,7 +896,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
           components: clippy
 
       - name: Cache Cargo registry
@@ -980,7 +993,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -1042,7 +1055,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -1095,7 +1108,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -1157,7 +1170,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
@@ -1253,7 +1266,7 @@ jobs:
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Install wasm32 target for the parity branch
         if: ${{ matrix.task == 'wasm-parity' }}
@@ -1438,7 +1451,7 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
 
       - name: Emit exact successful-check receipt
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

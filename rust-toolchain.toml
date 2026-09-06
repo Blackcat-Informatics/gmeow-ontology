@@ -2,10 +2,23 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 # Nightly Rust is required because gmeow-logic uses `portable_simd` for targeted
-# native vector kernels. Use the latest available nightly.
-# CI keeps this in lockstep via the dtolnay `toolchain:` inputs in ci.yml.
+# native vector kernels.
+#
+# The channel is PINNED TO A DATE, like every other tool this repository depends on
+# (cargo-nextest, the purrdf substrate, every GitHub Action by SHA). A floating
+# `nightly` was the one exception, and it was not free: each CI job re-resolves the
+# channel when that job starts, and `rust-prebuild` runs about half an hour before its
+# `rust-archive` consumer, so a run straddling the nightly publication boundary built its
+# producer and its consumer with DIFFERENT compilers. The same-run fixture cache key
+# binds the resolved `rustc -Vv` hash, so the handoff missed and the archive lane hard
+# failed on a verdict set by the clock rather than by the diff.
+#
+# Every `toolchain:` input in .github/workflows/ must name this exact channel;
+# `the_ci_toolchain_matches_the_pinned_channel` enforces that, so the lockstep is a
+# checked property rather than a comment. Bumping the nightly is a deliberate edit here
+# plus the workflows, in one commit.
 [toolchain]
-channel = "nightly"
+channel = "nightly-2026-09-05"
 components = ["rustfmt", "clippy"]
 # The purrdf wasm engine (P10) + the wasm-clean SPARQL leaf
 # compile to wasm32-unknown-unknown; `make wasm` builds
