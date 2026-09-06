@@ -158,6 +158,29 @@
             }
           ],
           "message": {
+            "text": "axisHarvestCoverage: Author the definitional obligation as executable logic: in slices/grounding/logic/module.ttl for each term the advisor names — a logic:Constraint at logic:severity \"Violation\" or \"Warning\" with its logic:Formula guard, or a standalone logic:Formula, carrying logic:formalizes naming the term whose skos:definition it realizes. Harvest the semantics the definition already states; do not mint OWL/RDFS/gUFO axioms while translating (Principle 4/17/19 — those are generated projections, not authoring surfaces). The domain slice keeps only its prose; the axiom lives centrally and formalizes the term."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "17d33dae7670225f"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a hand-authored alignment cell to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."
           },
           "partialFingerprints": {
@@ -302,6 +325,29 @@
             "gmeowFindingHash/v2": "0bbe5df4a42face2"
           },
           "ruleId": "slice-quality.gmn1-coverage.no-repo-root"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "the slice directory carries no resolvable slices/ path prefix — harvest coverage cannot be measured (vacuous 1.0)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7e2a535e2e721745"
+          },
+          "ruleId": "slice-quality.harvest-coverage.no-repo-root"
         },
         {
           "level": "warning",
@@ -886,6 +932,29 @@
             }
           ],
           "message": {
+            "text": "axisHarvestCoverage: Maximal (score 1.00)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a477b3a42975fc1e"
+          },
+          "ruleId": "slice-quality.grade"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "axisMaximalGrounding: Maximal (score 1.00)"
           },
           "partialFingerprints": {
@@ -1177,6 +1246,13 @@
               },
               "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-grade",
               "id": "slice-quality.grade"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-harvest-coverage-no-repo-root",
+              "id": "slice-quality.harvest-coverage.no-repo-root"
             },
             {
               "defaultConfiguration": {
