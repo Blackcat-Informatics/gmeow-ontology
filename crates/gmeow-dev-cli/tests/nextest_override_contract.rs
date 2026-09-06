@@ -474,3 +474,109 @@ fn the_contract_catches_a_filter_whose_test_moved_crates() {
         "the identifier extraction must surface `{moved}` from {filter}; got {names:?}"
     );
 }
+
+/// Every clause of the per-commit `default-filter` carries a numbered justification.
+///
+/// The head comment used to say only that "the exclusions are architectural lanes with an
+/// independently invoked owner". That is one sentence standing in for fifteen separate
+/// decisions, and a reader checking any single clause could not tell which owner it meant
+/// or whether anyone had ever decided. An exclusion is a coverage decision; an
+/// undocumented one is indistinguishable from an oversight.
+///
+/// The justification cannot live beside its clause: a nextest filterset is an EXPRESSION,
+/// not a config table, and rejects `#` with "expected expression". So it sits immediately
+/// above, numbered, in clause order — and this test pins that correspondence positionally
+/// so the two cannot drift. A clause added without a reason reds; a reason orphaned by a
+/// deleted clause reds too.
+#[test]
+fn every_default_filter_clause_is_justified() {
+    let config = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+        .expect("read .config/nextest.toml");
+
+    // The per-commit block is the FIRST default-filter; `[profile.maint-heavy]`'s own
+    // filter is a separate, smaller decision documented at its own site.
+    const MARKER: &str = "default-filter = '''";
+    let start = config
+        .find(MARKER)
+        .expect("the per-commit default-filter exists");
+    let body = &config[start + MARKER.len()..];
+    let end = body
+        .find("'''")
+        .expect("the per-commit default-filter is closed");
+    let clauses: Vec<&str> = body[..end]
+        .lines()
+        .map(|l| l.trim().trim_start_matches('|').trim())
+        .filter(|l| l.starts_with('(') && l.ends_with(')'))
+        .collect();
+
+    // The numbered justification bullets in the comment block immediately above.
+    let head = &config[..start];
+    // A bullet is its opening `#  N.` line PLUS every continuation line up to the next
+    // bullet, so the pairing below reads the whole reason and not just its first sentence.
+    let is_bullet_start = |l: &str| -> bool {
+        l.trim()
+            .strip_prefix('#')
+            .map(str::trim_start)
+            .is_some_and(|rest| {
+                rest.split_once('.')
+                    .is_some_and(|(n, _)| !n.is_empty() && n.chars().all(|c| c.is_ascii_digit()))
+            })
+    };
+    let mut reasons: Vec<String> = Vec::new();
+    for line in head.lines() {
+        if is_bullet_start(line) {
+            reasons.push(line.trim().to_string());
+        } else if let Some(current) = reasons.last_mut()
+            && let Some(rest) = line.trim().strip_prefix('#')
+            && !rest.trim().is_empty()
+        {
+            current.push(' ');
+            current.push_str(rest.trim());
+        }
+    }
+
+    assert!(
+        clauses.len() >= 15,
+        "parsed {} exclusion clause(s) — the parse is broken and this gate would pass \
+         vacuously",
+        clauses.len()
+    );
+    assert_eq!(
+        reasons.len(),
+        clauses.len(),
+        "the per-commit default-filter has {} exclusion clause(s) but {} numbered \
+         justification(s) above it. Every exclusion is a coverage decision and must say \
+         which lane owns it; nextest filtersets reject inline comments, so the numbered \
+         list immediately above the filter is where it goes.",
+        clauses.len(),
+        reasons.len()
+    );
+
+    // Positional pairing: justification N must name a package its clause N selects, so
+    // reordering or inserting a clause without moving its reason is caught rather than
+    // silently renumbering the whole list.
+    let mut mismatched = Vec::new();
+    for (i, (clause, reason)) in clauses.iter().zip(reasons.iter()).enumerate() {
+        // A justification identifies its clause by naming the package, the binary, or a
+        // test it selects — any of the three tells a reader which decision this is, and
+        // all three move together when a clause is edited.
+        let mut handles: Vec<String> = calls_of(clause, "package");
+        handles.extend(calls_of(clause, "binary"));
+        for payload in calls_of(clause, "test") {
+            handles.extend(candidate_test_names(&payload));
+        }
+        if !handles.iter().any(|h| reason.contains(h.trim())) {
+            mismatched.push(format!(
+                "  - justification {} names none of its clause's package/binary/test \
+                 handles {handles:?}\n      clause: {clause}\n      reason: {reason}",
+                i + 1
+            ));
+        }
+    }
+    assert!(
+        mismatched.is_empty(),
+        "{} justification(s) have drifted away from the clause they document:\n{}",
+        mismatched.len(),
+        mismatched.join("\n")
+    );
+}
