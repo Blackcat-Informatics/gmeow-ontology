@@ -6,6 +6,15 @@
 # The `gmeow_models/` tree under packages/python/ is a GENERATED, committed
 # artifact (written + drift-checked by `gmeow-dev sync`); this workflow packages
 # the committed tree and does not execute the synchronization pipeline.
+#
+# A tag push publishes. A manual dispatch REHEARSES: it runs the whole build leg
+# — the generated-tree guard, the wheel and sdist build, and the wheel-content
+# assertions — and stops before the upload unless `publish` is explicitly set to
+# true. That default exists so the build leg can be exercised on demand rather
+# than for the first time during a real release, and so that clicking "Run
+# workflow" cannot push to PyPI by accident. The upload step itself, and the OIDC
+# trusted-publishing handshake with it, remain exercisable only against the real
+# index; nothing here simulates them.
 name: Publish gmeow-ontology to PyPI
 
 permissions: {}
@@ -15,19 +24,27 @@ on:
     tags:
       - "gmeow-ontology-v*"
   workflow_dispatch:
+    inputs:
+      publish:
+        description: >-
+          Upload to PyPI. Leave false to rehearse the build leg only. A tag push
+          always publishes and ignores this.
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # This job needs no git credentials after checkout (it builds + uploads
           # an artifact); dropping them avoids credential persistence (zizmor
           # artipacked).
           persist-credentials: false
 
-      - uses: actions/setup-python@v7.0.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
 
@@ -50,22 +67,26 @@ jobs:
           python -m zipfile -l "$W" | grep -q 'gmeow_models/py.typed' \
             || { echo "built wheel does not contain the py.typed marker"; exit 1; }
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dist-gmeow-ontology
           path: dist/
 
   publish:
     needs: build
+    # A tag push publishes. A dispatch publishes only when explicitly asked to,
+    # so the default manual run is a rehearsal of the build leg above.
+    if: >-
+      ${{ github.event_name == 'push' || inputs.publish }}
     runs-on: ubuntu-latest
     environment: pypi-gmeow
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dist-gmeow-ontology
           path: dist/
 
       - name: Publish to PyPI (trusted publishing)
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
