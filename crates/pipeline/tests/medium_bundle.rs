@@ -266,7 +266,27 @@ fn iri_of(quads: &[RdfQuad], subject: &str, predicate: &str) -> String {
 /// the stratum check a tautology — it would compare the producer's answer with
 /// itself — and the whole point of a stratified digest is that a READER can
 /// reconstruct the region independently from the declaration alone.
-fn split_envelope_subgraph(payload: &[RdfQuad]) -> (Vec<RdfQuad>, Vec<RdfQuad>) {
+/// Partitions `payload` IN PLACE and returns the index where the envelope arm begins:
+/// `payload[..k]` is the stratum, `payload[k..]` the medium-envelope subgraph.
+///
+/// The obvious spelling — two filtered `.cloned().collect()` passes — allocates a second
+/// owned copy of EVERY quad in the bundle, because the two arms cover the payload exactly
+/// by construction. Measured on a 4-core/16 GiB reproduction of the CI runner class, this
+/// one test peaked at ~11.9 GiB of ANONYMOUS memory against a 16 GiB envelope, and that
+/// duplicate was the bulk of it: it is the largest single memory consumer in the whole
+/// required lane, and the reason nothing else may be scheduled beside it.
+///
+/// Partitioning in place removes the copy outright rather than shrinking it. The caller
+/// gets two subslices of the payload it already owns, so the peak carries ONE quad set
+/// instead of two, and `canonical()` still receives the contiguous `&[RdfQuad]` that
+/// `purrdf::flat_dataset_from_quads` requires.
+///
+/// Reordering the payload is sound here and is not a weakening: every consumer is
+/// order-independent by construction — the partition proof compares hash SETS, and the
+/// stratum digest is RDFC-1.0 canonical N-Quads, which sorts its own input. A consumer
+/// that DID depend on payload order would already have been depending on the fold's
+/// incidental emission order, which nothing pins.
+fn partition_envelope_subgraph_in_place(payload: &mut [RdfQuad]) -> usize {
     let registry_graph = Some(RdfTerm::iri(MEDIUM_REGISTRY_GRAPH));
     let envelope_class = RdfTerm::iri(format!("{GMEOW}MediumEnvelope"));
     let subjects: BTreeSet<String> = payload
@@ -285,13 +305,17 @@ fn split_envelope_subgraph(payload: &[RdfQuad]) -> (Vec<RdfQuad>, Vec<RdfQuad>) 
         quad.graph_name == registry_graph
             && matches!(&quad.subject, RdfTerm::Iri(iri) if subjects.contains(iri))
     };
-    let stratum = payload
-        .iter()
-        .filter(|q| !is_envelope(q))
-        .cloned()
-        .collect();
-    let envelopes = payload.iter().filter(|q| is_envelope(q)).cloned().collect();
-    (stratum, envelopes)
+    // Single linear sweep, swapping every stratum quad down to the front. O(n) with no
+    // allocation — `sort_by_key` on the boolean would be correct too, but its stable
+    // merge buffer reintroduces an allocation proportional to the payload.
+    let mut next_stratum = 0usize;
+    for i in 0..payload.len() {
+        if !is_envelope(&payload[i]) {
+            payload.swap(next_stratum, i);
+            next_stratum += 1;
+        }
+    }
+    next_stratum
 }
 
 /// The RDFC-1.0 canonical N-Quads of a quad set — the serialization the stratum
@@ -345,7 +369,7 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     let dataset = decoded.dataset();
 
     // ── (b) graph/medium-registry: one realization per dictionary + one envelope per frame ──
-    let payload: Vec<RdfQuad> = purrdf::flat_rdf_quads_from_dataset(dataset);
+    let mut payload: Vec<RdfQuad> = purrdf::flat_rdf_quads_from_dataset(dataset);
     let registry_quads: Vec<RdfQuad> = payload
         .iter()
         .filter(|quad| quad.graph_name == Some(RdfTerm::iri(MEDIUM_REGISTRY_GRAPH)))
@@ -495,7 +519,8 @@ fn the_emitted_bundle_ships_its_declared_medium() {
 
     // The declared stratum, recomputed from the emitted payload: the payload's quad
     // set MINUS the medium-envelope subgraph, in BOTH directions, and non-degenerate.
-    let (stratum, envelope_quads) = split_envelope_subgraph(&payload);
+    let envelope_start = partition_envelope_subgraph_in_place(&mut payload);
+    let (stratum, envelope_quads) = payload.split_at(envelope_start);
     assert!(
         !envelope_quads.is_empty(),
         "the envelope subgraph must be non-empty, or the stratum is trivially the payload"
@@ -544,11 +569,12 @@ fn the_emitted_bundle_ships_its_declared_medium() {
     // The stratum digest, recomputed independently over exactly that quad set.
     assert_eq!(
         literal_of(&registry_quads, &snapshot_envelope, "strataDigest"),
-        blake3(canonical(&stratum).as_bytes()),
+        blake3(canonical(stratum).as_bytes()),
         "the snapshot envelope's gmeow:strataDigest must be the blake3 of its declared stratum"
     );
-    drop(stratum);
-    drop(envelope_quads);
+    // No early drop here any more, and nothing is leaked by its absence: both arms are
+    // now subslices of `payload` rather than owned copies, so there is no second quad set
+    // to release. The one set is freed by `drop(payload)` below, as before.
     // …and it is a genuine ADDITION: the content digest is the frame's own wire
     // identity over a different serialization, so the two are not one value twice.
     let content_digest = literal_of(&registry_quads, &snapshot_envelope, "contentDigest");
