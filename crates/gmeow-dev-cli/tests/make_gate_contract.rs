@@ -1504,3 +1504,82 @@ fn validate_help_matches_the_phase_coverage_registry() {
         "validate help must not claim corpus validation is delegated to tests: {help:?}"
     );
 }
+
+/// Every CI job must provision the SAME, DATE-PINNED nightly that
+/// `rust-toolchain.toml` names.
+///
+/// A floating `nightly` is resolved independently by each job, when that job starts.
+/// `rust-prebuild` runs roughly half an hour ahead of its `rust-archive` consumer, so a
+/// run straddling the nightly publication boundary built the producer and the consumer
+/// with different compilers — observed as `rust-prebuild` on
+/// `1.100.0-nightly (0ed41eb41 2026-09-04)` and `rust-archive` on
+/// `1.100.0-nightly (f248f4038 2026-09-05)` inside one run. The same-run fixture cache
+/// key binds the resolved `rustc -Vv` hash, so the handoff missed every time and the
+/// archive lane hard-failed. Nothing about the diff could explain it, and re-reading it
+/// could not either: the verdict was set by the clock.
+///
+/// Pinning is only half the fix; the two places have to agree, or the workflows provision
+/// one compiler while every local build and `cargo` invocation uses another. The lockstep
+/// used to be asserted in a comment and enforced by nothing.
+#[test]
+fn the_ci_toolchain_matches_the_pinned_channel() {
+    let toolchain_file = std::fs::read_to_string(repo_root().join("rust-toolchain.toml"))
+        .expect("read rust-toolchain.toml");
+    let channel = toolchain_file
+        .lines()
+        .map(str::trim)
+        .find_map(|l| l.strip_prefix("channel"))
+        .and_then(|l| l.trim_start().strip_prefix('='))
+        .map(|l| l.trim().trim_matches('"').to_string())
+        .expect("rust-toolchain.toml declares a channel");
+
+    assert!(
+        channel.starts_with("nightly-") && channel.len() == "nightly-YYYY-MM-DD".len(),
+        "the toolchain channel must be a DATE-PINNED nightly (nightly-YYYY-MM-DD); a floating \
+         `{channel}` is re-resolved per CI job and lets one run build its producer and its \
+         consumer with different compilers"
+    );
+
+    let workflows = repo_root().join(".github/workflows");
+    let mut offenders = Vec::new();
+    let mut checked = 0usize;
+    for entry in std::fs::read_dir(&workflows).expect("read .github/workflows") {
+        let path = entry.expect("read a workflow entry").path();
+        if path.extension().is_none_or(|e| e != "yml") {
+            continue;
+        }
+        let text = std::fs::read_to_string(&path).expect("read a workflow");
+        let name = path
+            .file_name()
+            .expect("workflow file name")
+            .to_string_lossy();
+        for (lineno, line) in text.lines().enumerate() {
+            let Some(value) = line.trim().strip_prefix("toolchain:") else {
+                continue;
+            };
+            let value = value.trim();
+            // A toolchain sourced from an expression is resolved elsewhere; only literals
+            // are this gate's business.
+            if value.starts_with("${{") {
+                continue;
+            }
+            checked += 1;
+            if value != channel {
+                offenders.push(format!("  - {name}:{} declares `{value}`", lineno + 1));
+            }
+        }
+    }
+
+    assert!(
+        checked >= 10,
+        "expected to find the workflows' toolchain inputs; checked {checked} — the scan is broken \
+         and this gate would pass vacuously"
+    );
+    assert!(
+        offenders.is_empty(),
+        "{} CI toolchain input(s) disagree with rust-toolchain.toml's `{channel}`, so CI would \
+         build with a different compiler than every local build:\n{}",
+        offenders.len(),
+        offenders.join("\n")
+    );
+}
