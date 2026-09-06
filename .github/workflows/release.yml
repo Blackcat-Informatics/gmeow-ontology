@@ -40,7 +40,7 @@ jobs:
       - name: Install Rust (nightly + wasm32)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          toolchain: nightly
+          toolchain: nightly-2026-09-05
           targets: wasm32-unknown-unknown
 
       # `make release` -> `make build` -> the $(RUST_READY_STAMP) prereq runs
