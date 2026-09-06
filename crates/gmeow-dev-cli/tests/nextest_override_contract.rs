@@ -94,24 +94,41 @@ fn override_filters(config: &str) -> Vec<String> {
     out
 }
 
-/// The parenthesized clauses of the `default-filter = '''…'''` block.
+/// The parenthesized clauses of EVERY `default-filter = '''…'''` block.
 ///
 /// Each clause is a standalone filter expression joined by `|`, so each can be validated
 /// on its own exactly as an override filter is.
+///
+/// Every such block is read, not just the first. `[profile.maint-heavy]` carries its own
+/// filter naming the tests that even the breadth lane must not schedule, and those names
+/// rot exactly like the ones in `[profile.default]` — with the same silent consequence
+/// described above, one step further out: a clause that stops matching readmits a test the
+/// maintainer lane deliberately excludes, and there is no lane beyond that one to catch it.
 fn default_filter_clauses(config: &str) -> Vec<String> {
-    let Some(start) = config.find("default-filter = '''") else {
-        return Vec::new();
-    };
-    let body = &config[start + "default-filter = '''".len()..];
-    let Some(end) = body.find("'''") else {
-        return Vec::new();
-    };
-    let clauses: Vec<String> = body[..end]
-        .lines()
-        .map(|l| l.trim().trim_start_matches('|').trim())
-        .filter(|l| l.starts_with('(') && l.ends_with(')'))
-        .map(str::to_string)
-        .collect();
+    const MARKER: &str = "default-filter = '''";
+    let mut clauses = Vec::new();
+    let mut rest = config;
+    let mut blocks = 0usize;
+    while let Some(start) = rest.find(MARKER) {
+        let body = &rest[start + MARKER.len()..];
+        let Some(end) = body.find("'''") else {
+            break;
+        };
+        blocks += 1;
+        clauses.extend(
+            body[..end]
+                .lines()
+                .map(|l| l.trim().trim_start_matches('|').trim())
+                .filter(|l| l.starts_with('(') && l.ends_with(')'))
+                .map(str::to_string),
+        );
+        rest = &body[end + 3..];
+    }
+    assert!(
+        blocks >= 2,
+        "expected both the per-commit and the maintainer-breadth filter blocks; found {blocks} — \
+         the parse is broken and this gate would pass vacuously"
+    );
     assert!(
         clauses.len() >= 15,
         "expected the default filter to carry the live architectural exclusions; parsed {} — the \
@@ -249,6 +266,155 @@ fn nextest_has_no_fixed_concurrency_caps() {
             .all(|line| *line == "threads-required = \"num-cpus\""),
         "fixed nextest concurrency reservations are forbidden; use the runner-scaled \
          threads-required = \"num-cpus\": {reservations:?}"
+    );
+}
+
+/// `run-ignored` belongs on the command line, never in the profile.
+///
+/// It reads like a profile key and is not one. Nextest 0.9.137 answers
+/// `profile.maint-heavy.run-ignored` with
+///
+/// ```text
+/// warning: in config file .config/nextest.toml, ignoring unknown configuration key:
+///          profile.maint-heavy.run-ignored
+/// ```
+///
+/// and then carries on. A warning does not fail anything, so the config *looks* like it
+/// enables the workspace's `#[ignore]`d tests while changing nothing at all — the exact
+/// shape of a gate that cannot fail (P8). This was written that way first and the full
+/// `make check` passed over it; only listing the tests revealed that none had been added.
+///
+/// So the flag is pinned to the recipe and forbidden in the config, in both directions.
+#[test]
+fn the_breadth_lane_actually_runs_ignored_tests() {
+    let config = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+        .expect("read .config/nextest.toml");
+    let makefile =
+        std::fs::read_to_string(repo_root().join("Makefile")).expect("read the Makefile");
+
+    let stray: Vec<&str> = config
+        .lines()
+        .filter(|l| {
+            let t = l.trim();
+            !t.starts_with('#') && t.starts_with("run-ignored")
+        })
+        .collect();
+    assert!(
+        stray.is_empty(),
+        "`run-ignored` is not a nextest profile key — nextest warns `ignoring unknown \
+         configuration key` and proceeds, so this setting silently does NOTHING. Pass \
+         `--run-ignored all` on the maint-rust-heavy recipe instead. Found: {stray:?}"
+    );
+
+    assert!(
+        makefile
+            .lines()
+            .any(|l| l.contains("--profile maint-heavy") && l.contains("--run-ignored all")),
+        "no Makefile recipe invokes the maint-heavy profile with --run-ignored all, so every \
+         #[ignore]d test in the workspace runs in no lane"
+    );
+}
+
+/// Every `#[ignore]`d test function in the workspace, as `(file, fn name)`.
+///
+/// `#[ignore]` is a libtest attribute. No nextest filter expression can see it, so a test
+/// carrying it is invisible to `default-filter` — including `all()`. The name is read from
+/// the first `fn` line following the attribute; the intervening lines are other attributes.
+fn ignored_test_fns() -> Vec<(String, String)> {
+    fn walk(dir: &Path, out: &mut Vec<(String, String)>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                walk(&path, out);
+                continue;
+            }
+            if path.extension().is_none_or(|e| e != "rs") {
+                continue;
+            }
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                continue;
+            };
+            let lines: Vec<&str> = text.lines().collect();
+            for (i, line) in lines.iter().enumerate() {
+                // A doc comment may *mention* `#[ignore]` while explaining it; only an
+                // attribute in attribute position marks a test.
+                if !line.trim_start().starts_with("#[ignore") {
+                    continue;
+                }
+                if let Some(name) = lines[i + 1..]
+                    .iter()
+                    .take(6)
+                    .find_map(|l| l.trim_start().strip_prefix("fn "))
+                    .and_then(|l| l.split(['(', '<', ' ']).next())
+                {
+                    out.push((path.display().to_string(), name.to_string()));
+                }
+            }
+        }
+    }
+    let mut out = Vec::new();
+    walk(&repo_root().join("crates"), &mut out);
+    out
+}
+
+/// No test may be excluded from every lane.
+///
+/// `#[ignore]` silently removes a test from `make check` AND from `make maint-rust-heavy`,
+/// because a filter expression cannot see the attribute — `default-filter = 'all()'` does
+/// not un-ignore anything. Every `#[ignore]`d test in this repository was in exactly that
+/// position, one of them while its own attribute text claimed "heavy lane only" (P11).
+///
+/// So each `#[ignore]`d test must now be reachable one of two ways, and this pins both:
+/// the maintainer breadth lane runs it (`run-ignored = "all"`), or the breadth lane names
+/// it in an exclusion AND some `make` target names it, so it has a lane of its own. A test
+/// that is excluded there and mentioned in no target has no lane at all, which is the
+/// defect this gate exists to make loud.
+#[test]
+fn every_ignored_test_is_reachable_from_some_lane() {
+    let config = std::fs::read_to_string(repo_root().join(".config/nextest.toml"))
+        .expect("read .config/nextest.toml");
+    let makefile =
+        std::fs::read_to_string(repo_root().join("Makefile")).expect("read the Makefile");
+
+    // The breadth lane must actually pass the flag. See
+    // `the_breadth_lane_actually_runs_ignored_tests` for why it cannot live in the config.
+    assert!(
+        makefile
+            .lines()
+            .any(|l| { l.contains("--profile maint-heavy") && l.contains("--run-ignored all") }),
+        "the maint-heavy recipe must pass --run-ignored all; without it a filter expression \
+         cannot see #[ignore] and EVERY ignored test in the workspace runs in no lane at all"
+    );
+
+    let ignored = ignored_test_fns();
+    assert!(
+        ignored.len() >= 3,
+        "expected to find the workspace's #[ignore]d tests; found {} — the scan is broken and \
+         this gate would pass vacuously",
+        ignored.len()
+    );
+
+    // The clauses of the maint-heavy filter are what the breadth lane refuses to schedule.
+    let excluded_here: Vec<String> = default_filter_clauses(&config);
+
+    let mut laneless = Vec::new();
+    for (file, name) in &ignored {
+        let excluded_from_heavy = excluded_here.iter().any(|c| c.contains(name.as_str()));
+        if excluded_from_heavy && !makefile.contains(name.as_str()) {
+            laneless.push(format!(
+                "  - `{name}` ({file}) is #[ignore]d AND excluded from maint-heavy, but no make \
+                 target names it — it runs nowhere"
+            ));
+        }
+    }
+    assert!(
+        laneless.is_empty(),
+        "{} #[ignore]d test(s) are excluded from every lane in this repository:\n{}",
+        laneless.len(),
+        laneless.join("\n")
     );
 }
 

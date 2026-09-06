@@ -246,20 +246,14 @@ fn extract_reference_only_target_is_refused() {
         .stdout(predicate::str::contains("import-ok"));
 }
 
-#[test]
-#[ignore = "off-gate: live Wikidata network lookup (set GMEOW_RUN_NETWORK=1)"]
-fn wikidata_existence_live_lookup() {
-    if std::env::var("GMEOW_RUN_NETWORK").as_deref() != Ok("1") {
-        return;
-    }
-    // Every referenced QID/PID must resolve on the live Wikidata endpoint.
-    dev_cmd()
-        .arg("wikidata")
-        .arg("--existence")
-        .assert()
-        .success()
-        .stdout(predicate::str::contains("resolve on Wikidata"));
-}
+// The live Wikidata existence lookup used to sit here as an `#[ignore]`d test guarding
+// itself a second time with `if env::var("GMEOW_RUN_NETWORK") != Ok("1") { return; }`.
+// It could not fail: `#[ignore]` kept it out of every lane, and on the one path that
+// could have run it the env guard returned Ok before asserting anything — a gate that
+// ran and found nothing is indistinguishable from one that could not find anything (P8).
+// Its body was also the same `gmeow-dev wikidata --existence` invocation that
+// `make maint-wikidata-live` already runs for real, so the honest surface is that target
+// and this shell was the inferior duplicate.
 
 /// A fresh, empty temp directory owned by the returned [`tempfile::TempDir`].
 ///

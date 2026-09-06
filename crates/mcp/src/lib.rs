@@ -12750,8 +12750,12 @@ mod tests {
     /// (a `validate.deep.*` finding is present) AND that the Tier-1 surface is
     /// preserved (true tool-vs-`gmeow validate` parity). `#[ignore]`d because the
     /// native deep reasoner over the whole bundle runs well past the 120 s on-gate
-    /// nextest cliff; run in the heavy lane / manually
-    /// (`cargo nextest run -E 'test(validate_local_deep)' --run-ignored all`).
+    /// nextest cliff. It runs in `make maint-rust-heavy`, which is only true because that
+    /// recipe passes `--run-ignored all` — a filter expression cannot see `#[ignore]`, so
+    /// the profile's `default-filter` alone would leave this test in no lane at all, and
+    /// `run-ignored` is not a profile key. It also carries a 900 s budget there; the 120 s
+    /// would kill it on content it is expected to exceed. To run it alone:
+    /// `cargo nextest run -E 'test(validate_local_deep)' --run-ignored all`.
     /// `validate.deep.contract-invalid` is engine-enforced (it fires only on a bundle
     /// carrying a garbled `logic:admissibleValuation`, which the shipped bundle does
     /// not) and is regression-covered by
