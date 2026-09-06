@@ -11,6 +11,57 @@
 # and coherence teeth remain in this default inventory so the authenticated archive is
 # their only build/execution authority. No test is excluded merely because one contended
 # sample was slow.
+#
+# Every clause is justified INDIVIDUALLY below, in the order it appears, because "the
+# exclusions are architectural" is a claim about fifteen different decisions and a reader
+# checking any one of them cannot tell which. The justification lives here rather than
+# beside each clause because a nextest filterset is an EXPRESSION, not a config table: it
+# rejects `#` outright ("expected expression"), so there is no inline position to write in.
+# `every_default_filter_clause_is_justified` pins the correspondence positionally, so a
+# clause added without a reason — or a reason left behind by a deleted clause — reds.
+#
+# Unless a clause says otherwise, its off-gate home is `make maint-rust-heavy`: the
+# maintainer profile's own filter excludes only three named tests, so everything the
+# per-commit lane drops here is admitted there by construction.
+#
+#  1. `deep_surfaces_entailed_inconsistency…_heavy_offgate` — the Tier-2 deep-reasoner
+#     miss surface. Breadth priced by the whole reasoned closure, not by the edit.
+#  2. `maint_heavy_conformance_contracts_share_one_authenticated_corpus_heavy_offgate` —
+#     the exhaustive twin of the required
+#     `required_conformance_contracts_share_one_authenticated_corpus`, which stays
+#     on-gate. Same corpus, same process discipline, exhaustive inventory.
+#  3. `projections::tests::up_project_(recovers_message_superclass_via_prp_dom|
+#     never_fabricates_subkind_or_sibling)` — SIOC up-projection over the real corpus.
+#  4. `full_divergence_gate` `_heavy_offgate` — the 154-case soundness-scaling proof.
+#     Runtime is set by corpus breadth, which is criterion 2 of P6.
+#  5. `cli_parity::project_view_over_the_snapshot` — drives `project --profile gmeow`
+#     across the committed snapshot and writes a Turtle artifact.
+#  6. The `gmeow-cli` `cli` describe/project/export group — nine whole-bundle consumer
+#     verbs. Each folds the shipped bundle to answer one surface question.
+#  7. `bundle_smoke::describe_names_a_known_term` — a second whole-bundle fold for one
+#     describe lookup.
+#  8. `extract_roundtrip::rendered_tree_is_disk_faithful` — writes the ENTIRE rendered
+#     site to disk and reads every file back.
+#  9. `describe::tests::every_grounding_namespace_has_describable_terms_that_render` —
+#     the whole-repository grounding-namespace proof. This is the clause whose silent
+#     un-matching, when `describe` moved crates, put it back on-gate and timed out
+#     thirteen unrelated tests; see `nextest_override_contract.rs`.
+# 10. `describe_bundle_language::describe_resolves_carrier_tags_against_shipped_bundle` —
+#     a whole-bundle fold per carrier tag. Its own comment records that one
+#     representative non-English carrier is what keeps it inside any time budget.
+# 11. `gmeow-mcp` `_heavy_offgate` — the breadth-priced whole-bundle overlay and
+#     explain-quad proofs. The focused verifier laws stay on-gate as
+#     `required_mcp_contracts_share_one_authenticated_view`.
+# 12. `self_sufficiency` `_heavy_offgate` — one exhaustive full-width transpile over the
+#     authenticated snapshot; the required lane keeps the blinded installed-binary read
+#     plus the fixture-scale fan-out/leak proof (see its own override below).
+# 13. `mcp-dev` `the_reason_tool_…_heavy_offgate` — runs the native reasoner over the
+#     bundle's carrier graph to report its four status axes.
+# 14. `gmeow-cli` `medium_cli` — one of the two medium consumers. NOT maint-rust-heavy:
+#     its home is the REQUIRED CI lane `make medium-consumer-surface`, so it gates every
+#     pull request. See the Makefile target for why it is a consumer-verb contract over
+#     shipped bytes rather than a producer.
+# 15. `gmeow-dev-cli` `medium_gate` — the other medium consumer; same required CI lane.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
