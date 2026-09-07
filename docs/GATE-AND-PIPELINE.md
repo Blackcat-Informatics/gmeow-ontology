@@ -266,8 +266,9 @@ accurate. **A justification that names a path appearing only in an error string
 is a false claim about the build, and P11 applies to it.**
 
 **Corollary.** Splitting a node that declares itself serial is part of the same
-rule. The explicit fixture producer now sits between `rust-build` and nextest;
-clippy and doctests remain independent siblings, while carrier/coherence proofs
+rule. The explicit fixture producer and `rust-build` both depend on sync and
+run concurrently; nextest waits for both.
+Clippy and doctests remain independent siblings, while carrier/coherence proofs
 run inside the one nextest inventory. `rust-gate` survives as an aggregate alias
 because `AGENTS.md` references it, but the gate no longer runs it, so nothing
 executes twice.
@@ -284,6 +285,24 @@ The selector also records the producer-profile bundle-import receipt and every
 bundle-derived corpus-artifact action. Consumers compiled under the test profile
 load those selected producer actions; they do not derive a false miss from their
 own profile identity, and they never repair a miss by importing the corpus.
+
+Corpus production uses the dedicated `pipeline` Cargo profile: O3, full LTO,
+one codegen unit, no incremental compilation or debug information, and workspace
+debug assertions and overflow checks enabled. Dependency runtime checks retain
+their existing policy. Native C/C++ runtime dependencies use O3 too.
+`make producer-build` resolves and checks Cargo's actual runtime units and flags,
+then stages the executable with a receipt binding its recipe and SHA-256.
+The recipe includes the compiler, CPU features, dependency closure, and embedded
+authored inputs. Its full digest is embedded in the executable. Artifact build
+identities bind the resolved compilation policy and their own implementation
+closure, so unrelated CLI edits do not invalidate their products. A stale recipe
+rebuilds; malformed receipts or substituted bytes fail.
+
+Local Make producer commands establish this executable before invoking it. CI
+transfers the same executable and receipt to its producer jobs. Each production
+entry checks its embedded identity, executable bytes, and source freshness.
+`cli-build` retains this producer when building the consumer. Test/debug binaries
+stay separate, and fixture verification never invokes the builder.
 
 ### P6 — Local gate versus CI-only `heavy`
 

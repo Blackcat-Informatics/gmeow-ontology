@@ -478,7 +478,7 @@ fn the_rust_gate_is_split_into_independent_dag_nodes() {
 }
 
 /// Fixture production is a distinct DAG node before nextest. Both sides use the
-/// already-built maintenance binary, but test-facing targets select only read-only verify.
+/// authenticated producer binary, but test-facing targets select only read-only verify.
 #[test]
 fn fixture_production_and_test_consumption_are_structurally_separate() {
     let makefile = makefile();
@@ -488,16 +488,16 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
     let verifier = target_recipe(&makefile, "verify-test-fixtures");
 
     assert!(
-        target_header(&makefile, "produce-test-fixtures").contains("rust-build"),
-        "fixture executables must be owned by the shared Rust build"
+        !target_header(&makefile, "produce-test-fixtures").contains("rust-build"),
+        "fixture production must not wait for test compilation"
     );
     assert!(
         makefile.contains("cargo nextest run --no-run --profile ci $(RUST_TEST_WORKSPACE_ARGS)"),
         "the shared build must precompile the exact CI-profile nextest inventory"
     );
     assert!(
-        makefile.contains("TEST_FIXTURE_TOOL := $(CARGO_TARGET_DIR)/debug/gmeow-dev")
-            && producer.contains("$(TEST_FIXTURE_TOOL) test-fixtures produce --scope all")
+        makefile.contains("TEST_FIXTURE_TOOL := $(abspath dist/bin/gmeow-dev)")
+            && producer.contains("$(GMEOW_DEV) test-fixtures produce --scope all")
             && verifier.contains("$(TEST_FIXTURE_TOOL) test-fixtures verify --scope all")
             && verifier.contains("$(TEST_FIXTURE_ENV)"),
         "one already-built maintenance binary must expose separate producer and verifier modes"
@@ -531,8 +531,8 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
     assert!(
         !makefile.contains("FIXTURE_TOOL_BUILD_ARGS")
             && !makefile.contains("--example prime-")
-            && target_recipe(&makefile, "rust-prebuild").contains("test -x $(TEST_FIXTURE_TOOL)"),
-        "fixture coordination must reuse nextest's gmeow-dev binary without a second Cargo build lineage"
+            && !target_recipe(&makefile, "rust-prebuild").contains("$(TEST_FIXTURE_TOOL)"),
+        "test compilation must stay independent of the optimized producer"
     );
     assert!(
         !producer
@@ -541,26 +541,24 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
         "fixture production must not invoke Cargo after the Rust DAG fans out: {producer}"
     );
     assert!(
-        producer.contains(
-            "$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope all"
-        ),
+        producer
+            .contains("$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope all"),
         "the explicit producer must publish the exact shipped-bundle import before fanout"
     );
     let independent = target_recipe(&makefile, "produce-producer-independent-test-fixtures");
     let producer_bound = target_recipe(&makefile, "produce-producer-bound-test-fixtures");
     assert!(
-        independent
-            .contains("$(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-independent")
+        independent.contains("$(GMEOW_DEV) test-fixtures produce --scope producer-independent")
             && !independent.contains("BUNDLE_IMPORT_CACHE_ENV"),
         "the parallel fixture producer must contain only actions whose complete inputs are producer-independent"
     );
     assert!(
-        target_header(&makefile, "produce-producer-bound-test-fixtures").contains("rust-build"),
-        "a direct producer-bound invocation must establish the current shared Rust build before using gmeow-dev"
+        !target_header(&makefile, "produce-producer-bound-test-fixtures").contains("rust-build"),
+        "bound fixture production must use the producer independently of test compilation"
     );
     assert!(
         producer_bound.contains(
-            "$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-bound"
+            "$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope producer-bound"
         ),
         "the joined fixture profile must produce generated-dependent docs and bundle actions in one process"
     );
@@ -827,7 +825,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         job_needs(archive_job) == ["producer", "rust-prebuild"]
             && archive_job.contains("Restore same-run producer-independent Rust build products")
             && archive_job
-                .contains("Verify every transferred test-profile pipeline fixture read-only")
+                .contains("Verify every transferred producer-selected pipeline fixture read-only")
             && archive_job.contains("Produce generated-bound fixtures before archive construction")
             && archive_job.contains("Build dependency-light archive evidence tools")
             && archive_job.contains("target/debug/perf_sample")
@@ -974,6 +972,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         "perf_sample_sha256",
         "perf_accept_sha256",
         "test_fixture_manifest_sha256",
+        "producer_executable_receipt_sha256",
     ] {
         assert!(
             receipt_script.contains(field),
@@ -1062,8 +1061,8 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("      GMEOW_DEV: ./dist/bin/gmeow-dev").count(),
-        5,
-        "all four ontology lanes and every heavy branch must use the authenticated producer binary"
+        7,
+        "ontology, heavy, and fixture production lanes must use the authenticated producer binary"
     );
     assert!(
         console_producer_spec
@@ -1314,6 +1313,46 @@ fn standalone_targets_remain_complete_while_check_uses_scoped_composition() {
         !xtask_source.contains("AFTER_REASON")
             && !xtask_source.contains("target: \"coherence-gate-teeth\""),
         "coherence-gate-teeth must be part of nextest, not chained or compiled separately"
+    );
+}
+
+/// Build sampling precedes corpus generation, so its identity and inspection tools
+/// must be supplied independently of generated artifacts and restored caches.
+#[test]
+fn ci_cold_producer_build_supplies_measurement_prerequisites() {
+    let source = ci_workflow();
+    let job = source
+        .split_once("\n  producer-build:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  generation:\n"))
+        .map(|(job, _)| job)
+        .expect("producer build precedes generation");
+    let recipe = job
+        .find("sha256=$(make --no-print-directory producer-recipe)")
+        .expect("resolve the actual build recipe");
+    let identity = job
+        .find("> dist/producer-build-recipe.json")
+        .expect("persist recipe identity before any corpus exists");
+    let nextest = job
+        .find("tool: cargo-nextest@0.9.137")
+        .expect("the evidence sampler inspects a pinned nextest");
+    let measurement = job
+        .find("make perf-sample PERF_SAMPLE_ARGS=")
+        .expect("measure the optimized build");
+    assert!(recipe < identity && identity < measurement && nextest < measurement);
+    let sample = job[measurement..]
+        .split_once("\n      - name: Verify the producer binary")
+        .expect("producer verification follows build sampling")
+        .0;
+    assert!(
+        sample.contains("--identity-receipt producer=dist/producer-build-recipe.json")
+            && sample.contains("-- make producer-build")
+            && !job.contains("generated-tree-"),
+        "cold build evidence must select the resolved recipe without depending on corpus generation"
+    );
+    assert!(
+        job[recipe..identity].contains("--arg build_fingerprint \"$sha256\"")
+            && job.contains("identity_kind: \"producer-build-recipe-v1\""),
+        "the explicit identity must bind the resolved recipe, not an invented digest"
     );
 }
 

@@ -57,6 +57,11 @@ fn main() {
     hash.update(command_identity(&rustc, &["-Vv"]).as_bytes());
 
     let mut unit = BTreeMap::new();
+    println!("cargo:rerun-if-env-changed=GMEOW_PRODUCER_COMPILATION_CONTRACT");
+    unit.insert(
+        "GMEOW_PRODUCER_COMPILATION_CONTRACT".to_owned(),
+        std::env::var("GMEOW_PRODUCER_COMPILATION_CONTRACT").unwrap_or_default(),
+    );
     for name in [
         "HOST",
         "TARGET",

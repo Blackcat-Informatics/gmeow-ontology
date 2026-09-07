@@ -21,6 +21,7 @@ mod dev_feedback;
 mod dev_gates;
 mod dev_i18n;
 mod dev_logic;
+mod dev_producer;
 mod dev_project;
 mod dev_reason;
 mod dev_shapes;
@@ -113,6 +114,9 @@ pub struct Cli {
 /// The developer subcommands.
 #[derive(Debug, Subcommand)]
 pub enum Commands {
+    /// Print the build recipe embedded by the dedicated producer builder.
+    #[command(hide = true)]
+    BuildIdentity,
     /// Print the gmeow package version.
     Version,
     /// Show a summary of the bundled GMEOW ontology snapshot.
@@ -713,7 +717,7 @@ pub enum LogicCommands {
     Compile {
         #[arg(long = "check")]
         check: bool,
-        #[arg(long = "mode")]
+        #[arg(long = "mode", value_parser = dev_logic::mode_parser())]
         mode: Option<String>,
     },
 }
@@ -830,9 +834,18 @@ fn mcp() -> i32 {
 /// Parse the arguments, dispatch to the wired backend, and return the exit code.
 pub fn run() -> i32 {
     let cli = Cli::parse();
+    if dev_producer::requires_admission(&cli.command)
+        && let Err(error) = dev_producer::admit()
+    {
+        return dev_common::fail(format!("producer admission: {error}"));
+    }
     let console = cli.console;
     match cli.command {
         Commands::Version => version(),
+        Commands::BuildIdentity => {
+            println!("{}", gmeow_pipeline::cache::PRODUCER_BUILD_CONTRACT);
+            0
+        }
         Commands::Info => info(),
         Commands::TestFixtures {
             mode,

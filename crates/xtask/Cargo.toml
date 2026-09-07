@@ -14,6 +14,8 @@ name = "xtask"
 path = "src/main.rs"
 
 [dependencies]
+gmeow-action-cache = { path = "../action-cache" }
+serde_json.workspace = true
 gmeow-errors = { path = "../errors" }
 gmeow-logic-compile = { path = "../logic-compile" }
 

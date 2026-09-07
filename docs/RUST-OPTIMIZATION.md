@@ -26,8 +26,9 @@ Rust-first / Python-surface boundary.
   builds. Runtime checks are part of the gate.
 - Do not restore debug symbols in local dev/test builds. Full debug-symbol trees
   are banned because they produce tens of GB of useless artifacts per worktree.
-- Keep build-memory measurements in the optimization evidence. Do not enable
-  profile-wide options that create high-RSS opt-level/LTO/codegen shapes.
+- Keep build-memory measurements in the optimization evidence. The dedicated
+  producer pays the full-LTO build cost once per admitted recipe; keep its
+  compilation separate from the test and debugging profiles.
 
 ## Measurement Rules
 
@@ -225,12 +226,25 @@ The existing profile layout is part of the optimization surface:
   disable debug symbols, strip residual symbols, and use `opt-level = 3` for both
   first-party crates and dependencies. Dependency runtime checks remain off; workspace
   crates retain them. This is the measured checks-on O3 contract, not release mode.
-- Release builds use thin LTO and first-party `codegen-units = 1`.
+- The repository producer uses `profile.pipeline`: O3, full (fat) LTO, one codegen
+  unit, no incremental compilation, and no debug symbols. Workspace assertions and
+  overflow checks remain enabled; dependency checks retain their existing policy.
+  Its native C/C++ dependencies also compile at O3. `make producer-build` admits the
+  resolved runtime dependency graph and stamps the linked executable with that
+  recipe. CI caches and transfers the executable together with its receipt;
+  producer commands authenticate both before accessing the corpus. A test/debug
+  executable cannot enter a producer operation.
+  Action owners combine their own implementation inputs with the recipe's resolved
+  compilation policy. The executable's wider source identity authenticates the
+  binary without making a CLI-only edit invalidate unrelated corpus products.
+- Consumer release builds use thin LTO and first-party `codegen-units = 1`.
 - Bench builds intentionally drop thin LTO to keep iteration and memory costs bounded.
 
 Do not change these profiles opportunistically. Profile changes require a before /
 after measurement that includes wall time, peak memory where relevant, and the
-effect on the unified native extension.
+effect on the production pipeline. CI records producer build wall time, CPU time,
+and peak child-process RSS separately from pipeline execution. A compiler-profile
+change alone is not evidence of a runtime speedup.
 
 ## Validation Expectations
 
