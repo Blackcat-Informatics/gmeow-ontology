@@ -224,8 +224,14 @@ download_declared_artifact \
   "$evidence_dir/medium-consumer" \
   'name: medium-consumer-perf-receipt'
 
-# The repository workflow keeps every `needs` declaration on one line. Refuse a
-# different shape instead of silently inventing dependencies for critical-path math.
+# `needs` is read in both shapes GitHub Actions accepts: the inline flow sequence
+# (`needs: [a, b]` / `needs: a`) and the multi-line block sequence (`needs:` followed
+# by `- a` items). Any OTHER shape is still refused rather than guessed at, because
+# inventing a dependency edge would silently produce a wrong critical path — a
+# measurement that looks authoritative and is not.
+#
+# The block form is not hypothetical: the `quality` job lists its twelve dependencies
+# that way, and this collector refused to run at all until it was taught to read them.
 awk '
   /^jobs:$/ { in_jobs = 1; next }
   in_jobs && /^[^ ]/ { exit }
@@ -234,18 +240,43 @@ awk '
     sub(/:$/, "", job)
     order[++count] = job
     needs[job] = ""
+    collecting = 0
     next
   }
   in_jobs && job != "" && /^    needs:/ {
     value = $0
     sub(/^    needs:[[:space:]]*/, "", value)
+    sub(/[[:space:]]*#.*$/, "", value)
     if (value == "") {
-      print "multiline needs are not supported for job " job > "/dev/stderr"
-      exit 2
+      # Block sequence: the items follow on their own lines.
+      collecting = 1
+      next
     }
     gsub(/[\[\] ]/, "", value)
     needs[job] = value
+    collecting = 0
+    next
   }
+  # One `- job` item of a block sequence.
+  collecting && /^      -[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*(#.*)?$/ {
+    item = $0
+    sub(/^      -[[:space:]]*/, "", item)
+    sub(/[[:space:]]*#.*$/, "", item)
+    gsub(/[[:space:]]/, "", item)
+    if (item != "") {
+      needs[job] = (needs[job] == "" ? item : needs[job] "," item)
+    }
+    next
+  }
+  # Blank lines and comments do not terminate a block sequence.
+  collecting && /^[[:space:]]*(#.*)?$/ { next }
+  # An item shape this parser does not understand, still inside the block.
+  collecting && /^      -/ {
+    print "unsupported needs item shape for job " job ": " $0 > "/dev/stderr"
+    exit 2
+  }
+  # Anything else ends the block.
+  collecting { collecting = 0 }
   END {
     for (position = 1; position <= count; position++) {
       current = order[position]
@@ -268,8 +299,12 @@ mapfile -t producer_job_ids < <(
 producer_log=$tmp_dir/producer-build.log
 gh api --allow-escape-sequences \
   "repos/$repository/actions/jobs/${producer_job_ids[0]}/logs" > "$producer_log"
+# Match the key's SHAPE, not one version of it. This grep was pinned to
+# `producer-bin-v1-` and silently stopped matching when the workflow bumped the key
+# to v2, which took the whole collector down: what the receipt needs is the pair of
+# digests the key carries, and those survive a version bump.
 producer_cache_key=$(
-  grep -Eo 'producer-bin-v1-[^[:space:]]+' "$producer_log" | head -1 || true
+  grep -Eo 'producer-bin-v[0-9]+-[^[:space:]]+' "$producer_log" | head -1 || true
 )
 mapfile -t producer_key_digests < <(
   printf '%s\n' "$producer_cache_key" | grep -Eo '[0-9a-f]{64}' || true
