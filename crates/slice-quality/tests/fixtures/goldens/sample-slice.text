@@ -11,7 +11,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisMaximalLinkage: Maximal (1.00)
     axisAdviceCoverage: Maximal (1.00)
     axisGmn1Coverage: Maximal (1.00)
-    axisHarvestCoverage: Maximal (1.00)
+    axisHarvestCoverage: Maximal (0.00)
     axisMaximalProjection: Maximal (1.00)
     axisShapeMigration: Maximal (1.00)
     axisProseQuality: Maximal (1.00)
@@ -30,7 +30,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     9. [slice-quality.axis-advice] axisGmnGlyphOptimality: Disposition every audited grounding-plane symbol candidate exactly once as an adopted glyph, named key, structured constructor, or semantic rejection; add its cited rationale, candidate rendering, ASCII fallback, spoken label, and decision basis; and make adopted signs executable through a scoped lang:Denotation-backed glyph registry binding whose measured token cost does not lose to the fallback.
     10. [slice-quality.gmn-glyph-optimality.audit-graph-unavailable] GMN glyph optimality cannot be audited because the slice directory has no resolvable slices/ path prefix; scoring fails closed at 0.0 until the canonical grounding authority is available
     11. [slice-quality.axis-advice] axisHarvestCoverage: Author the definitional obligation as executable logic: in slices/grounding/logic/module.ttl for each term the advisor names — a logic:Constraint at logic:severity "Violation" or "Warning" with its logic:Formula guard, or a standalone logic:Formula, carrying logic:formalizes naming the term whose skos:definition it realizes. Harvest the semantics the definition already states; do not mint OWL/RDFS/gUFO axioms while translating (Principle 4/17/19 — those are generated projections, not authoring surfaces). The domain slice keeps only its prose; the axiom lives centrally and formalizes the term.
-    12. [slice-quality.harvest-coverage.no-repo-root] the slice directory carries no resolvable slices/ path prefix — harvest coverage cannot be measured (vacuous 1.0).
+    12. [slice-quality.harvest-coverage.no-repo-root] the slice directory carries no resolvable slices/ path prefix, so the central logic: axiom authority could not be located — definitional-harvest coverage is UNMEASURED and fails closed at 0.0.
     13. [slice-quality.axis-advice] axisTranslationCoverage: Add audited French and Mandarin translations for every localizable literal the slice authors — labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names — recorded (non-empty msgstr) in the slice's i18n/fr.po and i18n/zh.po catalogs.
     14. [slice-quality.translation.incomplete] cmn covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal.
     15. [slice-quality.translation.incomplete] fr covers 0/4 localizable literals (2 notation-only literal(s) — Turtle snippets, bare IRIs, wire values — are excluded from the denominator: notation is not prose and carries no translation duty); the top tier requires 100% en+fr+cmn on every localizable literal.

@@ -40,13 +40,21 @@ const AXIS_TRANSLATION: &str = "https://blackcatinformatics.ca/gmeow/axisTransla
 /// therefore environment-DIVERGENT by construction, not a byte-equality bug.
 const AXIS_ADVICE_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisAdviceCoverage";
 
-/// Definitional-harvest coverage is environment-DIVERGENT for exactly the reason its
-/// advisory sibling above is, and by the same construction: Repo mode resolves the central
-/// `logic:` module through a `slices/` ancestor to read the axiom authority, so a fixture
-/// staged with no such ancestor goes vacuous 1.0, while Bundle mode measures the fixture's
-/// OWN graph self-containedly and finds no realized axiom, scoring the real 0.0. Not a
-/// byte-equality bug — the two environments legitimately have different authorities in view.
+/// Definitional-harvest coverage is environment-DIVERGENT for the same structural reason its
+/// advisory sibling above is — Repo mode resolves the central `logic:` module through a
+/// `slices/` ancestor to read the axiom authority — but it resolves the failure the OTHER
+/// way: with no such ancestor it fails **closed** at 0.0 naming the authority it could not
+/// reach, joining glyph optimality and `DocMaturity` rather than banking a vacuous 1.0.
+///
+/// Its two arms therefore agree numerically (0.0 and 0.0) while meaning opposite things:
+/// Repo mode is UNMEASURED, Bundle mode is a genuinely measured zero over the fixture's own
+/// graph. It stays in the skip set for exactly that reason — letting it into the
+/// byte-equality sweep would pass on a numeric coincidence, not on env-agnosticism, and would
+/// silently start failing the day either arm moved. Both arms are pinned explicitly below.
 const AXIS_HARVEST_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisHarvestCoverage";
+/// The advisory the failed-closed harvest score must name, so "unmeasured" is never
+/// indistinguishable from "measured zero" in the emitted report.
+const AXIS_HARVEST_COVERAGE_UNMEASURED_CODE: &str = "slice-quality.harvest-coverage.no-repo-root";
 
 /// The fixture slice's stable IRI (matches `manifest.ttl`).
 const FIXTURE_SLICE_IRI: &str =
@@ -328,10 +336,12 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
     )
     .expect("repo score");
 
-    // The four env-DIVERGENT axes: two are vacuous off-repo; glyph optimality and
-    // DocMaturity are deliberately non-vacuous because losing their measuring authority
-    // must be VISIBLE. An axis that could not be measured is a defect to fix, never a
-    // grade to bank — scoring it 1.0 would launder "nothing was known" into the maximum.
+    // The five env-DIVERGENT axes. Two still go vacuous 1.0 off-repo (gmn1 coverage and
+    // advice coverage); glyph optimality, DocMaturity and definitional-harvest coverage are
+    // deliberately non-vacuous because losing their measuring authority must be VISIBLE. An
+    // axis that could not be measured is a defect to fix, never a grade to bank — scoring it
+    // 1.0 would launder "nothing was known" into the maximum. The two fail-open survivors are
+    // pinned here as the CURRENT state, not as an endorsement of the polarity.
     assert_eq!(
         grade_for(&repo, AXIS_GMN1).score,
         1.0,
@@ -363,9 +373,17 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
     );
     assert_eq!(
         grade_for(&repo, AXIS_HARVEST_COVERAGE).score,
-        1.0,
-        "definitional-harvest coverage goes vacuous 1.0 in Repo mode off-repo (no slices/ \
-         ancestor to resolve the central logic:Constraint / logic:Formula authority from)"
+        0.0,
+        "definitional-harvest coverage fails closed at 0.0 in Repo mode off-repo: with no \
+         slices/ ancestor the central logic:Constraint / logic:Formula authority cannot be \
+         resolved, so its coverage is UNMEASURED — never vacuously maximal"
+    );
+    assert!(
+        advisory_codes(&repo)
+            .iter()
+            .any(|code| code == AXIS_HARVEST_COVERAGE_UNMEASURED_CODE),
+        "the failed-closed harvest score names the axiom authority it could not reach, so an \
+         unmeasured 0.0 is distinguishable from a measured one"
     );
     assert_eq!(
         grade_for(&bundle, AXIS_HARVEST_COVERAGE).score,

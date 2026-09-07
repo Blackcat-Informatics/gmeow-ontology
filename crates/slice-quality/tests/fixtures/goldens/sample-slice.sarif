@@ -342,10 +342,10 @@
             }
           ],
           "message": {
-            "text": "the slice directory carries no resolvable slices/ path prefix — harvest coverage cannot be measured (vacuous 1.0)."
+            "text": "the slice directory carries no resolvable slices/ path prefix, so the central logic: axiom authority could not be located — definitional-harvest coverage is UNMEASURED and fails closed at 0.0."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "7e2a535e2e721745"
+            "gmeowFindingHash/v2": "62d33d0c7f023620"
           },
           "ruleId": "slice-quality.harvest-coverage.no-repo-root"
         },
@@ -932,10 +932,10 @@
             }
           ],
           "message": {
-            "text": "axisHarvestCoverage: Maximal (score 1.00)"
+            "text": "axisHarvestCoverage: Maximal (score 0.00)"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "a477b3a42975fc1e"
+            "gmeowFindingHash/v2": "54a8166066ab1788"
           },
           "ruleId": "slice-quality.grade"
         },

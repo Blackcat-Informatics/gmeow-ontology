@@ -170,7 +170,18 @@ and the growth rule.*
 The annotation-completeness gate requires `rdfs:label`, `skos:definition`, and
 `rdfs:isDefinedBy` on every term (Principle 8). The richness bar is higher:
 
-- `skos:definition` that states the concept *and its boundaries* — what it is NOT;
+- `skos:definition` that states the concept *and its boundaries* — what it is NOT. Like
+  the advisory prose below, a definition is harvestable: a central enforcing
+  `logic:Constraint` (`logic:severity "Violation"`/`"Warning"`) or a `logic:Formula` that
+  `logic:formalizes` the term turns the definitional obligation into executable logic,
+  and the `gmeow:axisHarvestCoverage` quality axis measures how much of a slice's
+  definitional prose is so realized. It counts realizations, never a
+  `logic:FormalizationCandidate` recording an intention. When a definition should
+  deliberately stay prose, record that as an accepted candidate carrying
+  `logic:candidateDeliberateNonAssertion true` with
+  `logic:candidateSourceField logic:ProseFieldDefinition` — a first-class outcome that
+  leaves the axis's denominator rather than scoring as a gap. See
+  [`SLICE_QA.md`](./SLICE_QA.md);
 - `skos:example` with a one-line worked triple;
 - `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse` — the three-part usage coat that
   makes the docs pages teach. `avoidWhen` / `useWhen` are not only prose: a central

@@ -102,7 +102,7 @@
     {
       "severity": "warning",
       "code": "slice-quality.harvest-coverage.no-repo-root",
-      "message": "the slice directory carries no resolvable slices/ path prefix — harvest coverage cannot be measured (vacuous 1.0).",
+      "message": "the slice directory carries no resolvable slices/ path prefix, so the central logic: axiom authority could not be located — definitional-harvest coverage is UNMEASURED and fails closed at 0.0.",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -386,7 +386,7 @@
     {
       "severity": "info",
       "code": "slice-quality.grade",
-      "message": "axisHarvestCoverage: Maximal (score 1.00)",
+      "message": "axisHarvestCoverage: Maximal (score 0.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },

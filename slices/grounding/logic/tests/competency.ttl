@@ -223,7 +223,7 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/logic/queries/competency/harvest-coverage.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly twenty-four accepted candidates carry the full harvest back-link — twenty-two sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
+    gmeow:cqRationale "The bidirectional prose→axiom harvest PROVENANCE trace must be queryable: each accepted FormalizationCandidate ties to the exact prose it was harvested from, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. This is governance, not the coverage measure — a candidate records a reviewed intention to formalize, so harvest coverage proper (realized enforcing logic:Constraint / logic:Formula per defined term) is measured by the gmeow:axisHarvestCoverage slice-quality axis, which deliberately does not count candidates. Over the production ontology exactly twenty-four accepted candidates carry the full harvest back-link — twenty-two sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHarvestCoverageShape ;
     gmeow:cqExpectRow ex:rowHarvestProperPart, ex:rowHarvestFunctionalComplex,
