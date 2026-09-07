@@ -80,6 +80,13 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.advice-coverage.unharvested",
     "slice-quality.advice-coverage.no-repo-root",
     "slice-quality.advice-coverage.no-constraint-source",
+    // Definitional-harvest-coverage axis codes (axes.rs harvest_coverage_axis) — the
+    // peer of the advice trio above. `deliberate-non-assertion` is not a deficiency
+    // but the visible record of a denominator exclusion, which must never be silent.
+    "slice-quality.harvest-coverage.unharvested",
+    "slice-quality.harvest-coverage.no-repo-root",
+    "slice-quality.harvest-coverage.no-axiom-source",
+    "slice-quality.harvest-coverage.deliberate-non-assertion",
     // Axis-level advice-template item (report.rs) — the rubric's
     // `gmeow:axisAdviceTemplate` surfaced once per DEFICIENT axis, ranked ahead of
     // that axis's per-term findings, plus the latent-data-gap code minted when a

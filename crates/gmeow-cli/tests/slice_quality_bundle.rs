@@ -40,6 +40,22 @@ const AXIS_TRANSLATION: &str = "https://blackcatinformatics.ca/gmeow/axisTransla
 /// therefore environment-DIVERGENT by construction, not a byte-equality bug.
 const AXIS_ADVICE_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisAdviceCoverage";
 
+/// Definitional-harvest coverage is environment-DIVERGENT for the same structural reason its
+/// advisory sibling above is — Repo mode resolves the central `logic:` module through a
+/// `slices/` ancestor to read the axiom authority — but it resolves the failure the OTHER
+/// way: with no such ancestor it fails **closed** at 0.0 naming the authority it could not
+/// reach, joining glyph optimality and `DocMaturity` rather than banking a vacuous 1.0.
+///
+/// Its two arms therefore agree numerically (0.0 and 0.0) while meaning opposite things:
+/// Repo mode is UNMEASURED, Bundle mode is a genuinely measured zero over the fixture's own
+/// graph. It stays in the skip set for exactly that reason — letting it into the
+/// byte-equality sweep would pass on a numeric coincidence, not on env-agnosticism, and would
+/// silently start failing the day either arm moved. Both arms are pinned explicitly below.
+const AXIS_HARVEST_COVERAGE: &str = "https://blackcatinformatics.ca/gmeow/axisHarvestCoverage";
+/// The advisory the failed-closed harvest score must name, so "unmeasured" is never
+/// indistinguishable from "measured zero" in the emitted report.
+const AXIS_HARVEST_COVERAGE_UNMEASURED_CODE: &str = "slice-quality.harvest-coverage.no-repo-root";
+
 /// The fixture slice's stable IRI (matches `manifest.ttl`).
 const FIXTURE_SLICE_IRI: &str =
     "https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice";
@@ -320,10 +336,12 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
     )
     .expect("repo score");
 
-    // The four env-DIVERGENT axes: two are vacuous off-repo; glyph optimality and
-    // DocMaturity are deliberately non-vacuous because losing their measuring authority
-    // must be VISIBLE. An axis that could not be measured is a defect to fix, never a
-    // grade to bank — scoring it 1.0 would launder "nothing was known" into the maximum.
+    // The five env-DIVERGENT axes. Two still go vacuous 1.0 off-repo (gmn1 coverage and
+    // advice coverage); glyph optimality, DocMaturity and definitional-harvest coverage are
+    // deliberately non-vacuous because losing their measuring authority must be VISIBLE. An
+    // axis that could not be measured is a defect to fix, never a grade to bank — scoring it
+    // 1.0 would launder "nothing was known" into the maximum. The two fail-open survivors are
+    // pinned here as the CURRENT state, not as an endorsement of the polarity.
     assert_eq!(
         grade_for(&repo, AXIS_GMN1).score,
         1.0,
@@ -354,6 +372,26 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
          terms author no realized advisory carrier of their own, so the real score is 0.0"
     );
     assert_eq!(
+        grade_for(&repo, AXIS_HARVEST_COVERAGE).score,
+        0.0,
+        "definitional-harvest coverage fails closed at 0.0 in Repo mode off-repo: with no \
+         slices/ ancestor the central logic:Constraint / logic:Formula authority cannot be \
+         resolved, so its coverage is UNMEASURED — never vacuously maximal"
+    );
+    assert!(
+        advisory_codes(&repo)
+            .iter()
+            .any(|code| code == AXIS_HARVEST_COVERAGE_UNMEASURED_CODE),
+        "the failed-closed harvest score names the axiom authority it could not reach, so an \
+         unmeasured 0.0 is distinguishable from a measured one"
+    );
+    assert_eq!(
+        grade_for(&bundle, AXIS_HARVEST_COVERAGE).score,
+        0.0,
+        "Bundle mode measures the fixture's own graph self-containedly: its defined terms \
+         author no realized axiom of their own, so the real score is 0.0"
+    );
+    assert_eq!(
         grade_for(&repo, AXIS_GMN_GLYPH).score,
         0.0,
         "glyph optimality fails closed when Repo mode has no lang audit authority"
@@ -372,6 +410,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
             || bg.axis_iri == AXIS_GMN_GLYPH
             || bg.axis_iri == AXIS_DOC_MATURITY
             || bg.axis_iri == AXIS_ADVICE_COVERAGE
+            || bg.axis_iri == AXIS_HARVEST_COVERAGE
         {
             continue;
         }
@@ -391,7 +430,7 @@ fn ac5_env_agnostic_axes_are_byte_equal_across_repo_and_bundle(std: &BundleStand
     }
     assert_eq!(
         compared, 12,
-        "exactly the 12 env-agnostic axes are compared (16 total minus four environment-dependent axes)"
+        "exactly the 12 env-agnostic axes are compared (17 total minus five environment-dependent axes)"
     );
 }
 

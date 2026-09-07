@@ -60,6 +60,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "gmn1_coverage_axis" => Some(gmn1_coverage_axis),
         "gmn_glyph_optimality_axis" => Some(gmn_glyph_optimality_axis),
         "advice_coverage_axis" => Some(advice_coverage_axis),
+        "harvest_coverage_axis" => Some(harvest_coverage_axis),
         "DocMaturity" => Some(crate::doc_maturity::DocMaturity::axis),
         _ => None,
     }
@@ -83,6 +84,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "gmn1_coverage_axis",
     "gmn_glyph_optimality_axis",
     "advice_coverage_axis",
+    "harvest_coverage_axis",
     "DocMaturity",
 ];
 
@@ -2095,6 +2097,28 @@ fn advice_guidance_terms(ds: &RdfDataset) -> BTreeSet<String> {
     out
 }
 
+/// One subject's `@x-gmeow-english` lexical form for one annotation predicate, or `None`
+/// when the cell is absent or carries no source-language literal.
+///
+/// Shared by both harvest denominators ([`slice_advice_prose`] and
+/// [`slice_definition_prose`]) so the two axes cannot drift on what counts as a prose
+/// cell: a fix to the source-language rule lands in one place or in neither.
+fn source_lang_literal(
+    ds: &RdfDataset,
+    term_id: purrdf::TermId,
+    prop_id: purrdf::TermId,
+) -> Option<String> {
+    ds.quads_for_pattern(Some(term_id), Some(prop_id), None, GraphMatch::Any)
+        .find_map(|q| match ds.resolve(q.o) {
+            TermRef::Literal {
+                lexical,
+                language: Some(lang),
+                ..
+            } if lang == ADVICE_SOURCE_LANG => Some(lexical.to_owned()),
+            _ => None,
+        })
+}
+
 /// The slice's own `(term, prose-predicate) → @x-gmeow-english lexical` advisory prose
 /// — the coverage denominator population, pinned to the source language (matching the
 /// candidate `sourceHash` discipline so numerator and denominator agree).
@@ -2109,17 +2133,7 @@ fn slice_advice_prose(ctx: &ScoreContext) -> BTreeMap<(String, String), String> 
             let Some(term_id) = id(ds, term) else {
                 continue;
             };
-            let source_lit = ds
-                .quads_for_pattern(Some(term_id), Some(prop_id), None, GraphMatch::Any)
-                .find_map(|q| match ds.resolve(q.o) {
-                    TermRef::Literal {
-                        lexical,
-                        language: Some(lang),
-                        ..
-                    } if lang == ADVICE_SOURCE_LANG => Some(lexical.to_owned()),
-                    _ => None,
-                });
-            if let Some(lexical) = source_lit {
+            if let Some(lexical) = source_lang_literal(ds, term_id, prop_id) {
                 out.insert((term.clone(), prop.to_owned()), lexical);
             }
         }
@@ -2222,6 +2236,285 @@ fn advice_coverage_axis(ctx: &ScoreContext) -> AxisScore {
                      data-matching guard, logic:severity \"Info\", and logic:formalizes {term}) so the \
                      guidance fires a deonticRecommendation Note when an individual matches the \
                      anti-pattern."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = covered as f64 / total as f64;
+    AxisScore { score, findings }
+}
+
+/// `skos:definition` — the definitional prose this axis measures the harvest of.
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
+/// The two non-advisory severities. A `logic:Constraint` at either one ENFORCES the
+/// semantics its prose states; `"Info"` is the soft advisory tier and belongs to
+/// [`advice_coverage_axis`], never here.
+const LOGIC_SEVERITY_VIOLATION: &str = "Violation";
+const LOGIC_SEVERITY_WARNING: &str = "Warning";
+/// `logic:Formula` — the standalone law carrier. A formula that `logic:formalizes` a term
+/// is a realized harvest even when it hangs off no `logic:Constraint`.
+const LOGIC_FORMULA: &str = "https://blackcatinformatics.ca/logic/Formula";
+
+/// The deliberate-non-assertion surface: an ACCEPTED `logic:FormalizationCandidate` flagged
+/// `logic:candidateDeliberateNonAssertion true` whose `logic:candidateSourceField` is
+/// `logic:ProseFieldDefinition` is a reviewed, standing commitment NOT to formalize that
+/// term's definition. It is the ontology's own "deliberately prose-only" register (see
+/// `slices/grounding/logic/queries/competency/deliberate-non-assertions.rq`).
+const LOGIC_FORMALIZATION_CANDIDATE: &str =
+    "https://blackcatinformatics.ca/logic/FormalizationCandidate";
+const LOGIC_CANDIDATE_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/candidateFormalizes";
+const LOGIC_CANDIDATE_SOURCE_FIELD: &str =
+    "https://blackcatinformatics.ca/logic/candidateSourceField";
+const LOGIC_CANDIDATE_DELIBERATE_NON_ASSERTION: &str =
+    "https://blackcatinformatics.ca/logic/candidateDeliberateNonAssertion";
+const LOGIC_CANDIDATE_LIFECYCLE: &str = "https://blackcatinformatics.ca/logic/candidateLifecycle";
+const LOGIC_CANDIDATE_ACCEPTED: &str = "https://blackcatinformatics.ca/logic/CandidateAccepted";
+const LOGIC_PROSE_FIELD_DEFINITION: &str =
+    "https://blackcatinformatics.ca/logic/ProseFieldDefinition";
+
+/// The terms whose DEFINITIONAL prose the foundation has deliberately, reviewedly refused to
+/// formalize — the "deliberately prose-only" set this axis must not score as a gap.
+///
+/// Three conditions, all required. **Accepted** lifecycle: a candidate still under review is a
+/// proposal, and letting an unreviewed one shrink the denominator would turn "someone asserted
+/// a boundary" into a free score. **`ProseFieldDefinition`** source field: the flag deliberately
+/// cuts across prose fields, and a non-assertion about a term's `avoidWhen` (say
+/// `logic:candidateDeceptiveIntentNotEntailed`) is the ADVICE axis's business — crediting it here
+/// would break the disjointness [`semantic_realization_terms`] is built to preserve.
+/// **The flag itself**, which is what makes the whole set queryable independent of category.
+///
+/// A term in this set is removed from the denominator entirely rather than counted as covered:
+/// it was never a harvest obligation, so it must not inflate the numerator either.
+fn deliberate_definition_non_assertions(ds: &RdfDataset) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    let (Some(flag_p), Some(field_p), Some(life_p), Some(form_p)) = (
+        id(ds, LOGIC_CANDIDATE_DELIBERATE_NON_ASSERTION),
+        id(ds, LOGIC_CANDIDATE_SOURCE_FIELD),
+        id(ds, LOGIC_CANDIDATE_LIFECYCLE),
+        id(ds, LOGIC_CANDIDATE_FORMALIZES),
+    ) else {
+        return out;
+    };
+    for c_iri in instances_of(ds, LOGIC_FORMALIZATION_CANDIDATE) {
+        let Some(c) = id(ds, &c_iri) else {
+            continue;
+        };
+        if !graph::all_lits(ds, c, flag_p).iter().any(|v| v == "true") {
+            continue;
+        }
+        if !graph::all_iris(ds, c, life_p)
+            .iter()
+            .any(|l| l == LOGIC_CANDIDATE_ACCEPTED)
+        {
+            continue;
+        }
+        if !graph::all_iris(ds, c, field_p)
+            .iter()
+            .any(|f| f == LOGIC_PROSE_FIELD_DEFINITION)
+        {
+            continue;
+        }
+        for term in graph::all_iris(ds, c, form_p) {
+            out.insert(term);
+        }
+    }
+    out
+}
+
+/// The set of terms a REALIZED, SEMANTIC `logic:` object already `logic:formalizes` — a
+/// `logic:Constraint` at a non-advisory severity, or a `logic:Formula`.
+///
+/// Advisory (`logic:severity "Info"`) constraints and `logic:AdviceGuidance` carriers are
+/// deliberately EXCLUDED. They are the numerator of [`advice_coverage_axis`], and counting
+/// them here would let one axis inflate the other: a slice that had harvested only its
+/// `avoidWhen` anti-patterns would score as though it had formalized its definitions. The
+/// two axes measure disjoint harvests and must be independently reachable.
+fn semantic_realization_terms(ds: &RdfDataset) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    let Some(form_p) = id(ds, LOGIC_FORMALIZES) else {
+        return out;
+    };
+    if let Some(sev_p) = id(ds, LOGIC_SEVERITY) {
+        for c_iri in instances_of(ds, LOGIC_CONSTRAINT) {
+            let Some(c) = id(ds, &c_iri) else { continue };
+            let severities = graph::all_lits(ds, c, sev_p);
+            // A constraint with NO severity is not assumed enforcing: an unstated
+            // severity is an unstated commitment, and crediting it would count a stub.
+            let enforcing = severities
+                .iter()
+                .any(|s| s == LOGIC_SEVERITY_VIOLATION || s == LOGIC_SEVERITY_WARNING);
+            if !enforcing {
+                continue;
+            }
+            for term in graph::all_iris(ds, c, form_p) {
+                out.insert(term);
+            }
+        }
+    }
+    for f_iri in instances_of(ds, LOGIC_FORMULA) {
+        let Some(f) = id(ds, &f_iri) else { continue };
+        for term in graph::all_iris(ds, f, form_p) {
+            out.insert(term);
+        }
+    }
+    out
+}
+
+/// The slice's `term → @x-gmeow-english skos:definition` population — the harvest
+/// denominator, pinned to the source language exactly as [`slice_advice_prose`] is so
+/// numerator and denominator agree on what a cell is.
+fn slice_definition_prose(ctx: &ScoreContext) -> BTreeMap<String, String> {
+    let ds = ctx.graph;
+    let mut out = BTreeMap::new();
+    let Some(prop_id) = id(ds, SKOS_DEFINITION) else {
+        return out;
+    };
+    for term in &ctx.terms {
+        let Some(term_id) = id(ds, term) else {
+            continue;
+        };
+        if let Some(lexical) = source_lang_literal(ds, term_id, prop_id) {
+            out.insert(term.clone(), lexical);
+        }
+    }
+    out
+}
+
+/// The fraction of a slice's definitional prose cells (`skos:definition`, at
+/// `@x-gmeow-english`) that have a REALIZED, EXECUTABLE `logic:` semantic realization
+/// linked back by `logic:formalizes` — an enforcing `logic:Constraint` (severity
+/// `Violation`/`Warning`) or a `logic:Formula`.
+///
+/// This is the definitional peer of [`advice_coverage_axis`]: that axis measures the
+/// harvest of ADVISORY prose (`useWhen` / `avoidWhen`) into soft carriers, this one the
+/// harvest of DEFINITIONAL prose into enforcing logic. The numerator sets are disjoint by
+/// construction — advisory `Info` constraints and `logic:AdviceGuidance` are excluded here —
+/// so neither axis can inflate the other.
+///
+/// It counts REALIZATIONS, never governance: a reviewed `logic:FormalizationCandidate` is
+/// provenance about an intention, not the formalization, so a term whose candidate has not
+/// become logic stays uncovered. Equally it is not prose presence — a term can carry a rich
+/// definition (counted by the information and prose axes) and score 0 here until its axiom
+/// is authored.
+///
+/// Numerator and denominator are both bounded counts over terms, so the score is an
+/// objective intrinsic fraction in `[0, 1]`, 1.0 exactly when every defined term carries a
+/// realized axiom — reachable honestly, never a tuned target or an unbounded ratio.
+///
+/// Terms the foundation has reviewed and committed to leaving unformalized leave the
+/// denominator via [`deliberate_definition_non_assertions`]: an accepted deliberate
+/// non-assertion on `logic:ProseFieldDefinition` was never a harvest obligation, so scoring
+/// it as a gap would push the corpus toward exactly the over-typing the typed-formalization
+/// lifecycle exists to prevent. Each exclusion is named in a finding.
+///
+/// Constraint source branches on the scoring environment exactly as
+/// [`advice_coverage_axis`] does: [`ScoringEnv::Repo`] reads the central logic slice module
+/// off the surrounding checkout (the axiom authority); [`ScoringEnv::Bundle`] reads
+/// self-containedly from the scored slice's own graph.
+///
+/// When that authority cannot be reached at all, the axis fails **closed** at 0.0 and names
+/// what was missing, joining `DocMaturity` and glyph optimality rather than the fail-open
+/// convention: an axis that could not be measured is a defect to fix, never a grade to bank,
+/// and returning 1.0 would launder "nothing was known" into the maximum.
+fn harvest_coverage_axis(ctx: &ScoreContext) -> AxisScore {
+    let definitions = slice_definition_prose(ctx);
+    if definitions.is_empty() {
+        // A slice defining no terms is vacuously harvested (the empty-population
+        // convention every other axis here uses).
+        return AxisScore::clean(1.0);
+    }
+
+    // Both the numerator authority and the deliberate-non-assertion register are read from
+    // the SAME dataset, so a slice can never be credited against one authority while being
+    // judged against another.
+    let (realized, excused) = match &ctx.env {
+        ScoringEnv::Repo { slice_dir } => {
+            let Some(root) = repo_root_of(slice_dir) else {
+                return AxisScore {
+                    score: 0.0,
+                    findings: vec![advisory(
+                        "slice-quality.harvest-coverage.no-repo-root",
+                        "the slice directory carries no resolvable slices/ path prefix, so the central logic: axiom authority could not be located — definitional-harvest coverage is UNMEASURED and fails closed at 0.0.".to_owned(),
+                    )],
+                };
+            };
+            let Ok(ds) = crate::dataset_from_paths(&[root.join(LOGIC_MODULE_REL).as_path()]) else {
+                return AxisScore {
+                    score: 0.0,
+                    findings: vec![advisory(
+                        "slice-quality.harvest-coverage.no-axiom-source",
+                        "the central logic slice module (slices/grounding/logic/module.ttl) failed to load, so the axiom authority is unreadable — definitional-harvest coverage is UNMEASURED and fails closed at 0.0.".to_owned(),
+                    )],
+                };
+            };
+            (
+                semantic_realization_terms(&ds),
+                deliberate_definition_non_assertions(&ds),
+            )
+        }
+        ScoringEnv::Bundle(_) => (
+            semantic_realization_terms(ctx.graph),
+            deliberate_definition_non_assertions(ctx.graph),
+        ),
+    };
+
+    // Deliberate non-assertions leave the POPULATION, not merely the numerator: the foundation
+    // reviewed the term and committed to leaving it prose-only, so it was never an obligation
+    // to harvest. Every exclusion is reported by name — a denominator that shrinks silently is
+    // a metric that can be improved by hiding cells rather than by harvesting them.
+    let mut findings = Vec::new();
+    let mut excluded: Vec<&String> = Vec::new();
+    let mut population: Vec<&String> = Vec::new();
+    for term in definitions.keys() {
+        if excused.contains(term) {
+            excluded.push(term);
+        } else {
+            population.push(term);
+        }
+    }
+    if !excluded.is_empty() {
+        let names = excluded
+            .iter()
+            .map(|t| t.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
+        findings.push(advisory(
+            "slice-quality.harvest-coverage.deliberate-non-assertion",
+            format!(
+                "{} term(s) left the definitional-harvest denominator as reviewed, ACCEPTED \
+                 deliberate non-assertions on logic:ProseFieldDefinition (the ontology's \
+                 deliberately-prose-only register): {names}.",
+                excluded.len()
+            ),
+        ));
+    }
+
+    let total = population.len();
+    if total == 0 {
+        // Every defined term is a reviewed deliberate non-assertion: the slice has no harvest
+        // obligation left to measure, which is coverage of an empty population, not a failure.
+        return AxisScore {
+            score: 1.0,
+            findings,
+        };
+    }
+
+    let mut covered = 0usize;
+    for term in population {
+        if realized.contains(term) {
+            covered += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.harvest-coverage.unharvested",
+                format!(
+                    "{term} states a skos:definition with no realized logic: axiom \
+                     formalizing it — harvest the definitional obligation into a \
+                     logic:Constraint (severity Violation/Warning) or logic:Formula that \
+                     logic:formalizes the term (SLICE_GUIDE §6; Principle 17). If the term is \
+                     deliberately prose-only, record an accepted logic:FormalizationCandidate \
+                     with logic:candidateDeliberateNonAssertion true and \
+                     logic:candidateSourceField logic:ProseFieldDefinition instead."
                 ),
             ));
         }
@@ -2419,6 +2712,267 @@ mod tests {
                 && f.message.contains("Bar")),
             "the uncovered Bar.useWhen cell must surface a logic:AdviceGuidance advisory: {:?}",
             result.findings
+        );
+    }
+
+    /// The definitional harvest counts an enforcing realization and refuses a stub.
+    ///
+    /// `Foo` is realized by a `Violation` constraint, `Baz` by a bare `logic:Formula`;
+    /// `Bar` carries only a reviewed-looking constraint with NO severity, which is an
+    /// unstated commitment and must not count. 2/3.
+    #[test]
+    fn harvest_coverage_counts_enforcing_realizations_only() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ; skos:definition \"a Foo\"@x-gmeow-english .\n\
+             gmeow:Bar a owl:Class ; rdfs:isDefinedBy <{slice}> ; skos:definition \"a Bar\"@x-gmeow-english .\n\
+             gmeow:Baz a owl:Class ; rdfs:isDefinedBy <{slice}> ; skos:definition \"a Baz\"@x-gmeow-english .\n\
+             gmeow:FooLaw a logic:Constraint ; logic:severity \"Violation\" ; logic:formalizes gmeow:Foo .\n\
+             gmeow:BarLaw a logic:Constraint ; logic:formalizes gmeow:Bar .\n\
+             gmeow:BazLaw a logic:Formula ; logic:formalizes gmeow:Baz .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let files = no_files();
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            &files,
+            &ds,
+            ScoringEnv::Bundle(std::sync::Arc::new(
+                gmeow_lang_bridge::GmnDictionary::default(),
+            )),
+        );
+        let result = harvest_coverage_axis(&ctx);
+        assert!(
+            (result.score - 2.0 / 3.0).abs() < 1e-9,
+            "expected 2/3 (Foo enforcing, Baz formula, Bar severity-less); got {}",
+            result.score
+        );
+        assert!(
+            result
+                .findings
+                .iter()
+                .any(|f| f.message.contains("Bar") && f.message.contains("no realized logic:")),
+            "the severity-less Bar constraint must leave Bar surfaced as unharvested: {:?}",
+            result.findings
+        );
+    }
+
+    /// The two coverage axes must be independently reachable: an advisory harvest may
+    /// never credit the definitional one. A term whose ONLY realizations are an `Info`
+    /// constraint and a `logic:AdviceGuidance` scores 1.0 on advice coverage and 0.0
+    /// here — if this ever ties, one axis is inflating the other.
+    #[test]
+    fn harvest_coverage_is_disjoint_from_advice_coverage() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ;\n\
+               skos:definition \"a Foo\"@x-gmeow-english ;\n\
+               gmeow:avoidWhen \"avoid Foo\"@x-gmeow-english ; gmeow:useWhen \"use Foo\"@x-gmeow-english .\n\
+             gmeow:FooAvoid a logic:Constraint ; logic:severity \"Info\" ; logic:formalizes gmeow:Foo .\n\
+             gmeow:FooUse a logic:AdviceGuidance ; logic:formalizes gmeow:Foo .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let files = no_files();
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            &files,
+            &ds,
+            ScoringEnv::Bundle(std::sync::Arc::new(
+                gmeow_lang_bridge::GmnDictionary::default(),
+            )),
+        );
+        assert!(
+            (advice_coverage_axis(&ctx).score - 1.0).abs() < 1e-9,
+            "both advisory cells carry their realized carriers"
+        );
+        assert!(
+            harvest_coverage_axis(&ctx).score.abs() < 1e-9,
+            "an Info constraint and an AdviceGuidance are advice, never a definitional harvest"
+        );
+    }
+
+    /// A slice defining no terms is vacuously harvested, matching every other axis's
+    /// empty-population convention — an empty denominator is not a zero score.
+    #[test]
+    fn harvest_coverage_is_vacuous_without_definitions() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ; rdfs:label \"Foo\"@x-gmeow-english .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let files = no_files();
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            &files,
+            &ds,
+            ScoringEnv::Bundle(std::sync::Arc::new(
+                gmeow_lang_bridge::GmnDictionary::default(),
+            )),
+        );
+        assert!((harvest_coverage_axis(&ctx).score - 1.0).abs() < 1e-9);
+    }
+
+    /// A reviewed, ACCEPTED deliberate non-assertion on `logic:ProseFieldDefinition` leaves the
+    /// denominator; a non-assertion on a DIFFERENT prose field does not.
+    ///
+    /// `Foo` is realized. `Bar` is an accepted definition-field non-assertion → excluded, so the
+    /// score is 1/1, not 1/2. `Baz` carries a non-assertion on `ProseFieldAvoidWhen` — that is
+    /// the ADVICE axis's business and must NOT excuse its definition, so it stays an uncovered
+    /// cell. `Qux`'s non-assertion is still `CandidateProposed`, an unreviewed proposal that must
+    /// not buy a score. Final population {Foo, Baz, Qux}, covered {Foo} = 1/3.
+    #[test]
+    fn harvest_coverage_excuses_only_accepted_definition_non_assertions() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/testslice";
+        let ttl = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+             gmeow:Foo a owl:Class ; rdfs:isDefinedBy <{slice}> ; skos:definition \"Foo\"@x-gmeow-english .\n\
+             gmeow:Bar a owl:Class ; rdfs:isDefinedBy <{slice}> ; skos:definition \"Bar\"@x-gmeow-english .\n\
+             gmeow:Baz a owl:Class ; rdfs:isDefinedBy <{slice}> ; skos:definition \"Baz\"@x-gmeow-english .\n\
+             gmeow:Qux a owl:Class ; rdfs:isDefinedBy <{slice}> ; skos:definition \"Qux\"@x-gmeow-english .\n\
+             gmeow:FooLaw a logic:Formula ; logic:formalizes gmeow:Foo .\n\
+             gmeow:BarNonAssertion a logic:FormalizationCandidate ;\n\
+               logic:candidateDeliberateNonAssertion true ;\n\
+               logic:candidateLifecycle logic:CandidateAccepted ;\n\
+               logic:candidateSourceField logic:ProseFieldDefinition ;\n\
+               logic:candidateFormalizes gmeow:Bar .\n\
+             gmeow:BazNonAssertion a logic:FormalizationCandidate ;\n\
+               logic:candidateDeliberateNonAssertion true ;\n\
+               logic:candidateLifecycle logic:CandidateAccepted ;\n\
+               logic:candidateSourceField logic:ProseFieldAvoidWhen ;\n\
+               logic:candidateFormalizes gmeow:Baz .\n\
+             gmeow:QuxNonAssertion a logic:FormalizationCandidate ;\n\
+               logic:candidateDeliberateNonAssertion true ;\n\
+               logic:candidateLifecycle logic:CandidateProposed ;\n\
+               logic:candidateSourceField logic:ProseFieldDefinition ;\n\
+               logic:candidateFormalizes gmeow:Qux .\n"
+        );
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse");
+        let files = no_files();
+        let ctx = ScoreContext::new(
+            slice.to_owned(),
+            &files,
+            &ds,
+            ScoringEnv::Bundle(std::sync::Arc::new(
+                gmeow_lang_bridge::GmnDictionary::default(),
+            )),
+        );
+        let result = harvest_coverage_axis(&ctx);
+        assert!(
+            (result.score - 1.0 / 3.0).abs() < 1e-9,
+            "only the accepted definition-field non-assertion leaves the denominator; expected \
+             1/3, got {}",
+            result.score
+        );
+        assert!(
+            result.findings.iter().any(|f| f.code
+                == "slice-quality.harvest-coverage.deliberate-non-assertion"
+                && f.message.contains("Bar")),
+            "the exclusion must be reported by name, never applied silently: {:?}",
+            result.findings
+        );
+        for uncovered in ["Baz", "Qux"] {
+            assert!(
+                result
+                    .findings
+                    .iter()
+                    .any(|f| f.code == "slice-quality.harvest-coverage.unharvested"
+                        && f.message.contains(uncovered)),
+                "{uncovered} must stay an uncovered cell: {:?}",
+                result.findings
+            );
+        }
+    }
+
+    /// Score a real on-disk slice through the `ScoringEnv::Repo` arm.
+    fn score_repo_slice(rel: &str, slice_iri: &str) -> AxisScore {
+        let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .expect("repo root");
+        let slice_dir = repo.join(rel);
+        let module = slice_dir.join("module.ttl");
+        let ds = crate::dataset_from_paths(&[module.as_path()]).expect("slice module parses");
+        let files = crate::report::slice_files_from_dir(&slice_dir).expect("slice files");
+        let ctx = ScoreContext::new(
+            slice_iri.to_owned(),
+            &files,
+            &ds,
+            ScoringEnv::Repo { slice_dir },
+        );
+        harvest_coverage_axis(&ctx)
+    }
+
+    /// Repo-mode integration, the peer of `advice_coverage_axis_repo_sees_advisory_constraints`:
+    /// it exercises the `ScoringEnv::Repo` arm against the REAL logic module, so a wrong
+    /// `LOGIC_MODULE_REL` path or a `semantic_realization_terms` read that behaves differently
+    /// against real data surfaces here rather than only in an end-to-end CLI test.
+    ///
+    /// It deliberately does NOT mirror the advice sibling's `score > 0.0` assertion on a domain
+    /// slice. The enforcing realizations in the central module formalize the logic slice's own
+    /// shape/schema terms (`logic:FreshnessGuardShape`, `logic:ActionSchema`,
+    /// `gmeow:GmeowClassShape`, …), so `slices/core/kernel` genuinely scores 0.0 today — the
+    /// corpus is unharvested, which is precisely what this axis exists to make visible. Asserting
+    /// a positive kernel score would pin a fiction. Instead the two arms are split: the grounding
+    /// slice proves realizations ARE found through the real read, and the domain slice proves the
+    /// read HAPPENED (no fail-closed escape) even though its honest answer is currently zero.
+    #[test]
+    fn harvest_coverage_axis_repo_reads_the_real_axiom_authority() {
+        let grounding = score_repo_slice(
+            "slices/grounding/logic",
+            "https://blackcatinformatics.ca/gmeow/slices/logic",
+        );
+        assert!(
+            grounding.score > 0.0,
+            "the real logic module's enforcing logic:Constraint / logic:Formula realizations MUST \
+             be found through the Repo read — a 0.0 here means the axiom read is broken \
+             (silent-wrong), got {}",
+            grounding.score
+        );
+
+        let kernel = score_repo_slice(
+            "slices/core/kernel",
+            "https://blackcatinformatics.ca/gmeow/slices/kernel",
+        );
+        assert!(
+            kernel
+                .findings
+                .iter()
+                .all(|f| f.code != "slice-quality.harvest-coverage.no-repo-root"
+                    && f.code != "slice-quality.harvest-coverage.no-axiom-source"),
+            "scoring a real on-disk slice must genuinely MEASURE, never take a fail-closed \
+             escape: {:?}",
+            kernel.findings
+        );
+        assert!(
+            kernel.score < 1.0,
+            "kernel still carries defined terms with no realized axiom, so coverage is a strict \
+             fraction, got {}",
+            kernel.score
+        );
+        assert!(
+            kernel
+                .findings
+                .iter()
+                .any(|f| f.code == "slice-quality.harvest-coverage.unharvested"),
+            "each uncovered term must surface an advisory naming the axiom to author"
         );
     }
 

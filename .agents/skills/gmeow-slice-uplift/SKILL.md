@@ -126,10 +126,30 @@ authority for why the top row is the right next move.
    > `check_advice_message_prose_binding` holds the carrier's `logic:message` to the
    > term's current prose directly. Author these carriers in
    > `slices/grounding/logic/module.ttl` — NOT in the target slice — so the domain slice
-   > asserts no `logic:` triple. This is the one axis whose uplift diff lands in the
-   > central logic slice; note it in the PR (the "keep the diff inside the slice" rule in
-   > §4 yields here to the projection-purity rule). See
-   > [`SLICE_QA.md`](../../../docs/SLICE_QA.md) § the advice-harvest-coverage axis.
+   > asserts no `logic:` triple. This and `gmeow:axisHarvestCoverage` below are the two
+   > axes whose uplift diff lands in the central logic slice; note it in the PR (the
+   > "keep the diff inside the slice" rule in §4 yields here to the projection-purity
+   > rule). See [`SLICE_QA.md`](../../../docs/SLICE_QA.md) § the advice-harvest-coverage
+   > axis.
+   >
+   > **Exception — `gmeow:axisHarvestCoverage` is also uplifted CENTRALLY.** The
+   > definitional peer of the axis above behaves the same way. The advisor names each
+   > term whose source-language `skos:definition` has no realized axiom; for each one,
+   > author in `slices/grounding/logic/module.ttl` — NOT in the target slice — either an
+   > enforcing `logic:Constraint` (`logic:severity "Violation"` or `"Warning"`, with a
+   > `logic:integrity` guard formula) or a standalone `logic:Formula` that
+   > `logic:formalizes` the term.
+   >
+   > Two rules keep the number honest. **A candidate is not a realization**: adding a
+   > `logic:FormalizationCandidate` records an intention and moves this axis not at all —
+   > only the constraint or formula counts. **Refusing to formalize is a legitimate
+   > outcome**: when a definition should deliberately stay prose, do not force an axiom —
+   > record an accepted `logic:FormalizationCandidate` with
+   > `logic:candidateDeliberateNonAssertion true` and
+   > `logic:candidateSourceField logic:ProseFieldDefinition`, which removes the term from
+   > the denominator and is reported by name. Over-typing a term to move a score is the
+   > failure mode this axis is designed to expose, not a way to satisfy it. See
+   > [`SLICE_QA.md`](../../../docs/SLICE_QA.md) § the definitional-harvest-coverage axis.
 
 ---
 

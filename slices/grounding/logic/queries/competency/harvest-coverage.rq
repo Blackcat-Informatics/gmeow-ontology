@@ -1,12 +1,20 @@
-# Competency: GMEOW must make prose→axiom harvest coverage queryable in BOTH
-# directions. Each row ties an accepted logic:FormalizationCandidate to the exact
-# prose it formalized: the term (logic:candidateFormalizes), the field kind
+# Competency: GMEOW must make the prose→axiom harvest PROVENANCE trace queryable in
+# BOTH directions. Each row ties an accepted logic:FormalizationCandidate to the exact
+# prose it was harvested from: the term (logic:candidateFormalizes), the field kind
 # (logic:candidateSourceField, a closed logic:ProseField) and the annotation
 # property that field stands for (logic:proseFieldProperty). Read forward — group
-# by ?candidate — it answers "what prose did this harvested axiom formalize?"; read
-# inverse — filter or group by ?term / ?fieldProperty — it answers "which harvested
-# axioms formalize this prose field?". Only accepted candidates are canonical, so
-# coverage is measured over the axiom-bearing population.
+# by ?candidate — it answers "what prose did this candidate harvest?"; read
+# inverse — filter or group by ?term / ?fieldProperty — it answers "which candidates
+# were harvested from this prose field?". Only accepted candidates are canonical.
+#
+# This is GOVERNANCE, not the coverage MEASURE. A candidate records a reviewed
+# intention to formalize; it is not itself the formalization, and this query counts
+# candidates rather than realized axioms. Harvest coverage proper — the fraction of a
+# slice's defined terms carrying an enforcing logic:Constraint (severity
+# Violation/Warning) or a logic:Formula that logic:formalizes them — is measured by the
+# gmeow:axisHarvestCoverage slice-quality axis, which deliberately does NOT count
+# candidates. Read the two together: this query says what was intended and from which
+# prose, the axis says what was actually realized. See docs/SLICE_QA.md.
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 
 SELECT ?candidate ?term ?field ?fieldProperty WHERE {

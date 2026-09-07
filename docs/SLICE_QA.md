@@ -166,6 +166,61 @@ that exact prose. The axis is advisory-only (no committed floor), so it never re
 gate — it exists to prioritize the background advice-harvest lane onto the slices with
 the most unharvested guidance.
 
+### The definitional-harvest-coverage axis (`gmeow:axisHarvestCoverage`)
+
+`gmeow:axisHarvestCoverage` is the **definitional peer** of the advice axis above, and
+it is uplifted the same way — centrally, never in the domain slice. It scores the
+fraction of a slice's terms carrying a source-language `skos:definition` whose
+definitional obligation has been **realized** in executable `logic:`: an enforcing
+`logic:Constraint` (`logic:severity "Violation"` or `"Warning"`) or a `logic:Formula`
+that `logic:formalizes` the term.
+
+Three boundaries make the number mean something:
+
+- **It counts realizations, never governance.** A reviewed `logic:FormalizationCandidate`
+  records an *intention* to formalize. Until that intention becomes a constraint or a
+  formula, the term is uncovered. (The competency query
+  `queries/competency/harvest-coverage.rq` traces candidate→prose provenance; it is not
+  the coverage measure, and the two must not be confused.)
+- **It is disjoint from advice coverage.** Advisory `Info`-severity constraints and
+  `logic:AdviceGuidance` carriers are excluded by construction, so a slice that harvested
+  only its `avoidWhen` anti-patterns cannot score as though it had formalized its
+  definitions. The two axes are independently reachable.
+- **It is not prose presence.** A term can carry a rich, well-formed definition — counted
+  by the information and prose axes — and score `0.0` here until its axiom exists.
+
+**The deliberately-prose-only escape.** Not every definition should become an axiom;
+forcing one is exactly the over-typing the typed-formalization lifecycle exists to
+prevent. A term leaves the denominator entirely — it is not counted as covered, it is
+not an obligation at all — when the foundation has recorded an **accepted**
+`logic:FormalizationCandidate` carrying `logic:candidateDeliberateNonAssertion true` and
+`logic:candidateSourceField logic:ProseFieldDefinition`. All three conditions are
+required: an unreviewed (`logic:CandidateProposed`) flag must not buy a score, and a
+non-assertion about a term's `avoidWhen` belongs to the advice axis, not this one. Every
+exclusion is reported by name in a
+`slice-quality.harvest-coverage.deliberate-non-assertion` finding — a denominator that
+shrank silently would be a metric you could improve by hiding cells instead of by
+harvesting them. Enumerate the whole register with
+`queries/competency/deliberate-non-assertions.rq`.
+
+**How to raise it — author the axiom CENTRALLY.** Like advice coverage, this axis is
+raised by editing `slices/grounding/logic/module.ttl`, never the domain slice: add a
+`logic:Constraint` at `logic:severity "Violation"`/`"Warning"` with a `logic:integrity`
+`logic:Formula` guard, or a standalone `logic:Formula`, that `logic:formalizes <term>`.
+The domain slice keeps only its prose. If the honest answer is that the definition
+should stay prose, record the deliberate non-assertion above instead — that is a
+first-class outcome, not a failure to harvest.
+
+**Unmeasured is not maximal.** When the central axiom authority cannot be reached at
+all (no `slices/` ancestor to resolve, or the logic module fails to load) the axis fails
+**closed** at `0.0` and names what was missing, joining `axisDocMaturity` and
+`axisGmnGlyphOptimality`. An axis that could not be measured is a defect to fix, never a
+grade to bank; returning `1.0` would launder "nothing was known" into the maximum.
+
+Like its advice sibling the axis is advisory-only — all five `gmeow:thrHarvestCoverage*`
+thresholds carry `gmeow:thresholdFloor 0.0`, so it reports coverage and prioritizes the
+background harvest lane without capping any slice's roll-up tier.
+
 - **Advisory worklist** — `make slice-quality` scores one slice (`SLICE=…`) or the
   whole repo (`--all`) against the rubric and prints a prioritized worklist: each
   slice's roll-up tier plus its capping axis (the weakest axis dragging the meet
