@@ -21,12 +21,13 @@ use std::sync::OnceLock;
 static REPOSITORY_ROOT: OnceLock<PathBuf> = OnceLock::new();
 
 /// Bind a producer or receipt verifier to its explicit checkout before any
-/// process-wide corpus store is accessed. A later attempt to switch roots fails.
-pub(crate) fn bind_repo_root(root: &Path) -> gmeow_errors::Result<()> {
+/// process-wide corpus store is accessed. Returns the canonical binding so path
+/// discovery and child commands use the same absolute root. A later switch fails.
+pub(crate) fn bind_repo_root(root: &Path) -> gmeow_errors::Result<&'static Path> {
     bind_root(&REPOSITORY_ROOT, root)
 }
 
-fn bind_root(binding: &OnceLock<PathBuf>, root: &Path) -> gmeow_errors::Result<()> {
+fn bind_root<'a>(binding: &'a OnceLock<PathBuf>, root: &Path) -> gmeow_errors::Result<&'a Path> {
     let fail = |detail| gmeow_errors::Diag::of_kind(crate::error::CellAggregate { detail });
     let selected = root
         .canonicalize()
@@ -45,7 +46,7 @@ fn bind_root(binding: &OnceLock<PathBuf>, root: &Path) -> gmeow_errors::Result<(
             bound.display()
         )));
     }
-    Ok(())
+    Ok(bound.as_path())
 }
 
 /// The immutable process repository root. Explicit producers and verifiers bind
@@ -173,7 +174,11 @@ mod tests {
             binding.get().is_none(),
             "a missing selection cannot bind another root"
         );
-        bind_root(&binding, first.path()).expect("bind relocated checkout");
+        let selected = bind_root(&binding, first.path()).expect("bind relocated checkout");
+        assert_eq!(
+            selected,
+            first.path().canonicalize().expect("absolute root")
+        );
         assert_eq!(
             binding.get(),
             Some(&first.path().canonicalize().expect("root"))
