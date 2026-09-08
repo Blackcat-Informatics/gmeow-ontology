@@ -815,27 +815,110 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     let prebuild_job = ci
         .split_once("\n  rust-prebuild:\n")
-        .and_then(|(_, tail)| tail.split_once("\n  # The receipt binds the\n"))
+        .and_then(|(_, tail)| tail.split_once("\n  # Optimized corpus work"))
         .map(|(job, _)| job)
-        .expect("producer-independent Rust prebuild job is bounded by the archive comment");
+        .expect("producer-independent Rust prebuild job precedes fixture production");
     assert!(
         prebuild_job.contains("run: make rust-prebuild")
-            && prebuild_job.contains("make produce-producer-independent-test-fixtures")
-            && prebuild_job.contains("rust-prebuild-evidence-${{ github.sha }}")
+            && job_needs(prebuild_job).is_empty()
+            && !prebuild_job.contains("test-fixtures")
             && !prebuild_job.contains("generated-tree-${{ github.sha }}"),
-        "the Rust build and explicit producer-independent fixture stage must overlap generation and must not consume its output"
+        "test compilation must start without waiting for any corpus producer"
     );
+    let prefix_job = ci
+        .split_once("\n  fixture-prefix:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # Complete the producer-selected fixtures"))
+        .map(|(job, _)| job)
+        .expect("independent optimized fixture producer");
+    let complete_job = ci
+        .split_once("\n  fixture-complete:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # The receipt binds the\n"))
+        .map(|(job, _)| job)
+        .expect("completed fixture producer");
+    assert!(
+        job_needs(prefix_job) == ["producer-build"]
+            && prefix_job.contains("make produce-producer-independent-test-fixtures")
+            && !prefix_job.contains("generated-tree-${{ github.sha }}")
+            && job_needs(complete_job) == ["producer", "fixture-prefix"]
+            && complete_job.contains("make produce-producer-bound-test-fixtures"),
+        "optimized prefix production must overlap cold generations, then complete against their exact bundle"
+    );
+    for producer in [prefix_job, complete_job] {
+        assert!(
+            producer.contains("GMEOW_DEV: ./dist/bin/gmeow-dev")
+                && producer.contains("gmeow-dev-producer-${{ github.sha }}")
+                && producer.contains("actions/cache/restore@")
+                && producer.contains("actions/cache/save@")
+                && producer.contains("always() && !cancelled()")
+                && producer.contains("steps.fixture-actions.outputs.cache-primary-key")
+                && !producer.contains("cargo nextest")
+                && !producer.contains("make rust-prebuild"),
+            "the optimized producer must publish completed actions even after a later failure, independently of test compilation"
+        );
+        for step in [
+            "Restore reusable completed actions",
+            "Persist every completed bounded action",
+        ] {
+            let marker = format!("- name: {step}\n");
+            let cache_step = producer
+                .split_once(marker.as_str())
+                .expect("producer cache step")
+                .1
+                .split("\n      - name:")
+                .next()
+                .expect("bounded producer cache step");
+            assert!(
+                cache_step.contains("path: |")
+                    && cache_step.contains(".cache/gmeow-sync/actions")
+                    && cache_step.contains(".cache/gmeow-sync/test-fixture-manifest-v2.json"),
+                "producer reuse needs both bounded actions and a prior selector candidate; consumers require a separately authenticated current-run artifact"
+            );
+        }
+        assert!(
+            producer.find("make produce-").expect("mandatory producer")
+                < producer
+                    .find("Bind the exact current-run fixture selector")
+                    .expect("current-run selector binding"),
+            "a cached candidate cannot become current-run authority before production revalidates the selected inputs and outputs"
+        );
+        let keys = producer
+            .split_once("restore-keys: |")
+            .expect("restore preferences")
+            .1
+            .split_once("\n\n")
+            .expect("end restore preferences")
+            .0;
+        assert!(
+            keys.find("-complete-").unwrap() < keys.find("-prefix-").unwrap(),
+            "a newer prefix save must never hide an older complete store"
+        );
+        let keys = keys
+            .lines()
+            .filter(|line| !line.trim().is_empty())
+            .collect::<Vec<_>>();
+        assert!(
+            keys[0].contains("-complete-${{github.sha}}-")
+                && keys[1].contains("-prefix-${{github.sha}}-")
+                && keys[2].ends_with("-complete-")
+                && keys[3].ends_with("-prefix-"),
+            "completed actions at the current revision must remain reachable after a later failure"
+        );
+    }
     let archive_job = ci
         .split_once("\n  rust-archive:\n")
         .and_then(|(_, tail)| tail.split_once("\n  # Shards execute"))
         .map(|(job, _)| job)
         .expect("Rust archive job is bounded by the shard comment");
     assert!(
-        job_needs(archive_job) == ["producer", "rust-prebuild"]
+        job_needs(archive_job) == ["producer", "rust-prebuild", "fixture-complete"]
             && archive_job.contains("Restore same-run producer-independent Rust build products")
             && archive_job
                 .contains("Verify every transferred producer-selected pipeline fixture read-only")
-            && archive_job.contains("Produce generated-bound fixtures before archive construction")
+            && archive_job.contains("complete-test-fixtures-${{ github.sha }}")
+            && archive_job.contains("needs.fixture-complete.outputs.selector_sha256")
+            && archive_job.contains("make verify-test-fixtures")
+            && !archive_job.contains("make produce-")
+            && !archive_job.contains("test-actions-v4-")
             && archive_job.contains("Build dependency-light archive evidence tools")
             && archive_job.contains("target/debug/perf_sample")
             && archive_job.contains("archive-build-sample.json")
@@ -1010,12 +1093,12 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         );
     }
     assert!(
-        ci.matches("key: test-actions-v3-").count() == 2
+        ci.matches("key: test-actions-v4-").count() == 2
             && ci.matches("key: bundle-import-v1-").count() == 1
             && ci
                 .matches("name: bundle-import-cache-${{ github.sha }}")
                 .count()
-                == 3
+                == 4
             && ci
                 .matches(".cache/gmeow-sync/test-fixture-manifest-v2.json")
                 .count()
@@ -1070,7 +1153,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("      GMEOW_DEV: ./dist/bin/gmeow-dev").count(),
-        7,
+        8,
         "ontology, heavy, and fixture production lanes must use the authenticated producer binary"
     );
     assert!(
