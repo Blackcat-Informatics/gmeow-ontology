@@ -69,6 +69,7 @@ const TOOLCHAIN_RECEIPT_FILES: &[&str] = &[
     "Makefile",
     "crates/xtask/src/main.rs",
     "crates/xtask/src/evidence.rs",
+    "crates/xtask/src/producer.rs",
     ".github/workflows/ci.yml",
 ];
 

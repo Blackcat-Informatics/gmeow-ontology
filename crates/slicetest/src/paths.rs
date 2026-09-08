@@ -3,10 +3,10 @@
 
 //! Path resolution for the slice-test harness.
 //!
-//! The harness is anchored at this crate's manifest directory
-//! (`crates/slicetest`) via `CARGO_MANIFEST_DIR`, so it never relies on the
-//! process working directory. From there it derives the repository root and the
-//! `slices/` tree, and resolves the two path conventions the test-DSL fixes:
+//! The repository producer binds its explicit checkout root before any corpus
+//! access. That binding is immutable for the process because the corpus stores
+//! are process-wide. Standalone read-only harness callers use this crate's
+//! compile-time checkout. Both routes share the same path conventions:
 //!
 //! * `gmeow:cqQueryFile` is **repo-root-relative** (so a shared
 //!   `queries/competency/<name>.rq` and a slice-local
@@ -16,21 +16,55 @@
 //!   slice directory, NOT the repo root) — resolved by [`example_file`].
 
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
-/// The repository root, derived from this crate's manifest directory at compile
-/// time (`crates/slicetest/../..`).
+static REPOSITORY_ROOT: OnceLock<PathBuf> = OnceLock::new();
+
+/// Bind a producer or receipt verifier to its explicit checkout before any
+/// process-wide corpus store is accessed. A later attempt to switch roots fails.
+pub(crate) fn bind_repo_root(root: &Path) -> gmeow_errors::Result<()> {
+    bind_root(&REPOSITORY_ROOT, root)
+}
+
+fn bind_root(binding: &OnceLock<PathBuf>, root: &Path) -> gmeow_errors::Result<()> {
+    let fail = |detail| gmeow_errors::Diag::of_kind(crate::error::CellAggregate { detail });
+    let selected = root
+        .canonicalize()
+        .map_err(|error| fail(format!("canonicalize selected repository root: {error}")))?;
+    if !selected.is_dir() {
+        return Err(fail(format!(
+            "selected repository root is not a directory: {}",
+            selected.display()
+        )));
+    }
+    let bound = binding.get_or_init(|| selected.clone());
+    if bound != &selected {
+        return Err(fail(format!(
+            "slice-spec repository root {} differs from the process-bound root {}",
+            selected.display(),
+            bound.display()
+        )));
+    }
+    Ok(())
+}
+
+/// The immutable process repository root. Explicit producers and verifiers bind
+/// their requested checkout first; standalone read-only harness callers select
+/// this crate's compile-time checkout on their first access.
 ///
 /// # Panics
 ///
-/// Panics if the canonical repo root does not exist, which can only happen if
-/// the crate is built outside the repository tree — an impossible state for the
-/// harness.
+/// Panics if an unbound standalone harness's compile-time checkout is absent.
+/// Producer paths instead return a typed error from their explicit root binding.
 pub fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
-        .expect("repo root (crates/slicetest/../..) must exist")
+    REPOSITORY_ROOT
+        .get_or_init(|| {
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../..")
+                .canonicalize()
+                .expect("standalone slice harness checkout must exist")
+        })
+        .clone()
 }
 
 /// The `slices/` tree under the repository root.
@@ -128,6 +162,29 @@ pub fn example_file(slice_dir: &Path, rel: &str) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn explicit_root_is_portable_immutable_and_missing_roots_fail_closed() {
+        let first = tempfile::tempdir().expect("first checkout");
+        let second = tempfile::tempdir().expect("second checkout");
+        let binding = OnceLock::new();
+        assert!(bind_root(&binding, &first.path().join("absent")).is_err());
+        assert!(
+            binding.get().is_none(),
+            "a missing selection cannot bind another root"
+        );
+        bind_root(&binding, first.path()).expect("bind relocated checkout");
+        assert_eq!(
+            binding.get(),
+            Some(&first.path().canonicalize().expect("root"))
+        );
+        bind_root(&binding, &first.path().join(".")).expect("same canonical root");
+        assert!(bind_root(&binding, second.path()).is_err());
+        assert_eq!(
+            binding.get(),
+            Some(&first.path().canonicalize().expect("root"))
+        );
+    }
 
     #[test]
     fn slice_dir_is_the_spec_grandparent() {

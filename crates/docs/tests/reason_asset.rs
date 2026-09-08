@@ -19,5 +19,9 @@ use gmeow_docs::vendored_asset::REASON_ASSET;
 
 #[test]
 fn vendored_reason_asset_passes_the_anti_rot_gate() {
-    REASON_ASSET.verify();
+    REASON_ASSET.verify(&repo_root());
+}
+
+fn repo_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

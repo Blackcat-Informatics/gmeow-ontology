@@ -21,6 +21,13 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         Commands::TestFixtures { mode, .. } => matches!(mode, TestFixtureMode::Produce),
         Commands::Fanout { .. }
         | Commands::DocsMeasure
+        | Commands::DocsPackage { .. }
+        | Commands::Normalize
+        | Commands::Transform { .. }
+        | Commands::UpProject { .. }
+        | Commands::Crossref
+        | Commands::ImportFoundation { .. }
+        | Commands::SliceSpecWorker { .. }
         | Commands::ReleaseBundle { .. }
         | Commands::Validate { .. }
         | Commands::Reason { .. }
@@ -36,7 +43,51 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         }
         | Commands::Mcp
         | Commands::SliceQuality { .. } => true,
-        _ => false,
+        // Console output-path refusal precedes admission; the handler admits
+        // the producer before opening the bundle or rendering any output.
+        Commands::ConsoleAssemble { .. } => false,
+        // Source inspection, user-input queries, and authoring maintenance do
+        // not produce the corpus. Keep this exhaustive so new commands must
+        // explicitly declare their producer boundary.
+        Commands::BuildIdentity
+        | Commands::Version
+        | Commands::Info
+        | Commands::GtsFrameProfile { .. }
+        | Commands::MediumGate { .. }
+        | Commands::ExternalTool { .. }
+        | Commands::ConstitutionCheck
+        | Commands::Audit { .. }
+        | Commands::ComplianceReport { .. }
+        | Commands::Explain
+        | Commands::Temporal { .. }
+        | Commands::Extract { .. }
+        | Commands::LintAlignment { .. }
+        | Commands::DocLint
+        | Commands::CrateCheck
+        | Commands::RefreshTargetAxioms { .. }
+        | Commands::Wikidata { .. }
+        | Commands::WikidataCoverage { .. }
+        | Commands::DcCoverage { .. }
+        | Commands::UpProjectionAudit { .. }
+        | Commands::Coverage { .. }
+        | Commands::Acceptance { .. }
+        | Commands::Quality { .. }
+        | Commands::Describe { .. }
+        | Commands::ShapeEquivalence { .. }
+        | Commands::ShapeLift { .. }
+        | Commands::ShapeMigrate { .. }
+        | Commands::Certify { .. }
+        | Commands::SliceQualityGate
+        | Commands::SliceQualitySeedFloors { .. }
+        | Commands::SliceQualitySeedCeilings { .. }
+        | Commands::SliceQualityProjectionDebt { .. }
+        | Commands::SliceQualityRelocationPreview { .. }
+        | Commands::SliceFixDeps { .. }
+        | Commands::BoxRoles { .. }
+        | Commands::Logic {
+            command: LogicCommands::Query { .. },
+        }
+        | Commands::I18n { .. } => false,
     }
 }
 
@@ -95,6 +146,26 @@ mod tests {
             vec!["gmeow-dev", "feedback"],
             vec!["gmeow-dev", "logic", "compile"],
             vec!["gmeow-dev", "mcp"],
+            vec!["gmeow-dev", "normalize"],
+            vec!["gmeow-dev", "docs-package"],
+            vec!["gmeow-dev", "crossref"],
+            vec!["gmeow-dev", "transform", "input.nq"],
+            vec!["gmeow-dev", "up-project", "input.nq"],
+            vec![
+                "gmeow-dev",
+                "import-foundation",
+                "input.jsonl",
+                "--out",
+                "output",
+            ],
+            vec![
+                "gmeow-dev",
+                "slice-spec-worker",
+                "--kind",
+                "structural",
+                "--spec",
+                "spec.yaml",
+            ],
         ] {
             let cli = crate::Cli::try_parse_from(arguments).expect("parse production operation");
             assert!(requires_admission(&cli.command));

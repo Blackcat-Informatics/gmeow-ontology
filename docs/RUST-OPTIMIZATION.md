@@ -234,6 +234,10 @@ The existing profile layout is part of the optimization surface:
   recipe. CI caches and transfers the executable together with its receipt;
   producer commands authenticate both before accessing the corpus. A test/debug
   executable cannot enter a producer operation.
+  Reusing that pair in another checkout retains the selected checkout as the
+  runtime root: fixture workers bind it before opening corpus stores, and each
+  immutable worker copy carries the same authenticated executable receipt.
+  Documentation asset gates also read the selected checkout's witnesses and pins.
   Action owners combine their own implementation inputs with the recipe's resolved
   compilation policy. The executable's wider source identity authenticates the
   binary without making a CLI-only edit invalidate unrelated corpus products.

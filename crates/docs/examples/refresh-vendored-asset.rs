@@ -20,5 +20,6 @@ fn main() {
         "mcp-core" => &MCP_CORE_ASSET,
         other => panic!("unknown vendored asset {other:?}"),
     };
-    asset.refresh_manifest();
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    asset.refresh_manifest(&root);
 }

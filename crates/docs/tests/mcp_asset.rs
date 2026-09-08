@@ -36,12 +36,12 @@ fn vendored_mcp_core_segment_passes_the_anti_rot_gate() {
     // Structural (real `\0asm` module + plausible size), export-surface (the wrapper's
     // `tieredMcp`/`initTiered` demand-loader plus the bindings' `mcp` frame entry), and the
     // `DIGESTS.blake3` equality gate — all defined once on the shared descriptor.
-    MCP_CORE_ASSET.verify();
+    MCP_CORE_ASSET.verify(&repo_root());
 }
 
 #[test]
 fn vendored_mcp_reasoning_segment_passes_the_anti_rot_gate() {
-    MCP_ASSET.verify();
+    MCP_ASSET.verify(&repo_root());
 }
 
 /// The attestation each segment ships must be PRESENT and CURRENT — that is what makes the
@@ -54,10 +54,10 @@ fn vendored_mcp_reasoning_segment_passes_the_anti_rot_gate() {
 fn both_segments_carry_a_present_and_current_native_wasm_attestation() {
     for asset in [&MCP_CORE_ASSET, &MCP_ASSET] {
         assert!(
-            asset.attestation_status().is_none(),
+            asset.attestation_status(&repo_root()).is_none(),
             "segment '{}' has no current native↔wasm attestation: {}",
             asset.name,
-            asset.attestation_status().unwrap_or_default()
+            asset.attestation_status(&repo_root()).unwrap_or_default()
         );
     }
 }
@@ -71,7 +71,7 @@ fn both_segments_carry_a_present_and_current_native_wasm_attestation() {
 /// without needing to re-measure a byte budget.
 #[test]
 fn the_two_segments_are_distinct_images_not_a_superset_and_a_subset() {
-    let dir = |a: &gmeow_docs::vendored_asset::VendoredWasmAsset| a.asset_dir();
+    let dir = |a: &gmeow_docs::vendored_asset::VendoredWasmAsset| a.asset_dir(&repo_root());
     let core = std::fs::read(dir(&MCP_CORE_ASSET).join(MCP_CORE_ASSET.wasm_file))
         .expect("the core segment blob is vendored");
     let reasoning = std::fs::read(dir(&MCP_ASSET).join(MCP_ASSET.wasm_file))
@@ -81,4 +81,8 @@ fn the_two_segments_are_distinct_images_not_a_superset_and_a_subset() {
         "the two segments must be different images — identical bytes would mean one is a \
          copy of the other rather than its disjoint half"
     );
+}
+
+fn repo_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

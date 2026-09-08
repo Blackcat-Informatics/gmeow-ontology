@@ -76,16 +76,7 @@ fn execute(args: &[String]) -> Result<ExitCode> {
         .open(parent.join(".producer-build.lock"))
         .map_err(fail)?;
     election.lock().map_err(fail)?;
-    // A valid old recipe is a build miss. Corrupt or substituted bytes fail closed.
-    let fresh = if staged.exists() || receipt_path.exists() {
-        let receipt = ExecutableReceipt::read(&receipt_path).map_err(fail)?;
-        receipt
-            .verify(&staged, &receipt.recipe.digest().map_err(fail)?)
-            .map_err(fail)?;
-        receipt.recipe == recipe
-    } else {
-        false
-    };
+    let fresh = staged_is_fresh(&staged, &receipt_path, &recipe)?;
     if !fresh {
         build(&root, &staged, &receipt_path, &recipe)?;
     }
@@ -448,6 +439,20 @@ fn verify(binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()>
         .map_err(fail)
 }
 
+/// An interrupted first publication can leave a binary without its receipt.
+/// It is a build miss, never an executable that can be reused or run. Once a
+/// receipt exists, corrupt or substituted bytes continue to fail closed.
+fn staged_is_fresh(staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe) -> Result<bool> {
+    if !receipt_path.try_exists().map_err(fail)? {
+        return Ok(false);
+    }
+    let receipt = ExecutableReceipt::read(receipt_path).map_err(fail)?;
+    receipt
+        .verify(staged, &receipt.recipe.digest().map_err(fail)?)
+        .map_err(fail)?;
+    Ok(&receipt.recipe == recipe)
+}
+
 fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe) -> Result<()> {
     let environment = &recipe.compiler_environment;
     let mut command = cargo_build(
@@ -545,6 +550,41 @@ mod tests {
             }),
             dependencies: vec![],
         }
+    }
+
+    #[test]
+    fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
+        let scratch = tempfile::tempdir().expect("scratch");
+        let binary = scratch.path().join("gmeow-dev");
+        let path = binary.with_extension("receipt.json");
+        let recipe = ExecutableRecipe {
+            schema: 1,
+            profile: "pipeline".into(),
+            source_digest: "source".into(),
+            rustc: "compiler".into(),
+            cargo: "cargo".into(),
+            compiler_environment: BTreeMap::new(),
+            units: Vec::new(),
+            roots: Vec::new(),
+        };
+        assert!(!staged_is_fresh(&binary, &path, &recipe).expect("empty build miss"));
+        std::fs::write(&binary, b"linked executable").expect("binary");
+        assert!(!staged_is_fresh(&binary, &path, &recipe).expect("unreceipted build miss"));
+        ExecutableReceipt {
+            schema: 1,
+            recipe: recipe.clone(),
+            executable_sha256: sha256_file(&binary).expect("digest"),
+        }
+        .write(&path)
+        .expect("receipt");
+        assert!(staged_is_fresh(&binary, &path, &recipe).expect("authenticated hit"));
+        let mut changed = recipe.clone();
+        changed.source_digest = "changed source".into();
+        assert!(!staged_is_fresh(&binary, &path, &changed).expect("stale build miss"));
+        std::fs::write(&binary, b"substituted bytes").expect("replace");
+        assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
+        std::fs::remove_file(&binary).expect("remove binary");
+        assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
     }
 
     #[test]

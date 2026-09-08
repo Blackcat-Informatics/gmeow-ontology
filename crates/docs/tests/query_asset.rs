@@ -26,5 +26,9 @@ fn the_query_engine_asset_passes_the_anti_rot_gate() {
     // Structural (real `\0asm` module + plausible size), export-surface (the
     // `Dataset.query` glue + `dataset_query` import + the `.d.ts` signature), and the
     // `DIGESTS.blake3` equality gate — all defined once on the shared descriptor.
-    QUERY_ASSET.verify();
+    QUERY_ASSET.verify(&repo_root());
+}
+
+fn repo_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

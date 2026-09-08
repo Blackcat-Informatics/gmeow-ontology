@@ -99,25 +99,25 @@ pub fn fail_code(message: impl std::fmt::Display, code: i32) -> i32 {
 
 /// The repository root the dev CLI operates on.
 ///
-/// The dev binary is invoked from within the checkout (the Makefile shells it),
-/// so the current working directory anchors every tree-relative path. `GMEOW_ROOT`
-/// overrides it (the parity tests set it to point at the worktree), and as a final
-/// fallback the compile-time manifest's grandparent locates the checkout even when
-/// the CWD has drifted.
+/// An explicit `GMEOW_ROOT` is authoritative. Otherwise use the checkout enclosing
+/// the working directory, including commands invoked from one of its subdirectories.
+/// An unrelated working directory remains selected so missing inputs fail there;
+/// a relocated executable never borrows its compile-time checkout.
 pub fn project_root() -> PathBuf {
-    if let Ok(root) = std::env::var("GMEOW_ROOT") {
+    if let Some(root) = std::env::var_os("GMEOW_ROOT") {
         return PathBuf::from(root);
     }
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    if cwd.join(GTS_SNAPSHOT_REL).exists() || cwd.join("slices").is_dir() {
-        return cwd;
-    }
-    // The workspace root is two levels above this crate's manifest.
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .canonicalize()
+    enclosing_checkout(&cwd)
+}
+
+fn enclosing_checkout(cwd: &Path) -> PathBuf {
+    cwd.ancestors()
+        .find(|directory| {
+            directory.join("Cargo.toml").is_file() && directory.join("slices").is_dir()
+        })
         .unwrap_or(cwd)
+        .to_path_buf()
 }
 
 /// The committed unsigned bundle bytes read from the working tree.
@@ -184,3 +184,23 @@ pub const LOGIC_DRIFT_PREFIXES: &[&str] = &[
     "generated/shacl-af/",
     "generated/cl/",
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn checkout_discovery_preserves_the_selected_tree_without_a_compiled_fallback() {
+        let directory = tempfile::tempdir().expect("isolated selection");
+        let selected = directory.path().join("checkout");
+        let nested = selected.join("crates/example/src");
+        std::fs::create_dir_all(&nested).expect("nested invocation directory");
+        std::fs::create_dir(selected.join("slices")).expect("source tree");
+        std::fs::write(selected.join("Cargo.toml"), b"[workspace]\n").expect("marker");
+        assert_eq!(enclosing_checkout(&nested), selected);
+        assert_eq!(enclosing_checkout(&selected), selected);
+        let unrelated = directory.path().join("unrelated");
+        std::fs::create_dir(&unrelated).expect("unrelated invocation directory");
+        assert_eq!(enclosing_checkout(&unrelated), unrelated);
+    }
+}

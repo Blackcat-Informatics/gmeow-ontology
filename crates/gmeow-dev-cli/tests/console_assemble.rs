@@ -46,8 +46,9 @@ fn console_assemble_refuses_the_regen_owned_bases() {
             .assert()
             .failure()
             .stderr(
-                predicate::str::contains("refusing to write the console into")
-                    .and(predicate::str::contains("make regen SYNC_OUTPUTS=docs")),
+                predicate::str::contains("refusing to write the console into").and(
+                    predicate::str::contains("make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs"),
+                ),
             );
     }
 }
@@ -61,16 +62,21 @@ fn console_assemble_does_not_refuse_a_sibling_name() {
     // that root's `dist/gmeow-docs` — the exact discrimination under test — while a
     // non-refused path that gets PAST the guard can no longer drop the full console tree
     // (engine wasm and all, ~13 MB) into the working checkout with nothing to clean it up.
-    // The temp root carries no bundle, so the run fails on the bundle read that follows;
-    // asserting only that the REFUSAL message is absent is exactly the claim.
+    // The test-profile executable must then fail producer admission, before
+    // reading any bundle or assembling output.
     let root = tempfile::tempdir().expect("tempdir");
     let mut cmd = Command::cargo_bin("gmeow-dev").expect("gmeow-dev binary");
     cmd.env("GMEOW_ROOT", root.path());
     cmd.args(["console-assemble", "--out", "dist/gmeow-docs-scratch"])
         .assert()
-        .stderr(predicate::str::contains("refusing to write the console into").not());
+        .code(1)
+        .stderr(
+            predicate::str::contains("refusing to write the console into")
+                .not()
+                .and(predicate::str::contains("producer admission")),
+        );
     assert!(
         !root.path().join("dist/gmeow-docs-scratch").exists(),
-        "a run that cannot read a bundle must write no console tree at all"
+        "an unadmitted executable must write no console tree at all"
     );
 }

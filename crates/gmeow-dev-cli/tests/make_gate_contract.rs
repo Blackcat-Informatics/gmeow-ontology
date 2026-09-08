@@ -484,6 +484,15 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
     let makefile = makefile();
     let pipeline_build = std::fs::read_to_string(repo_root().join("crates/pipeline/build.rs"))
         .expect("read pipeline build identity");
+    let controller = std::fs::read_to_string(repo_root().join("crates/xtask/src/producer.rs"))
+        .expect("read authenticated producer launcher");
+    assert!(
+        makefile.contains("GMEOW_DEV ?= cargo xtask producer run --")
+            && controller.contains("let staged = root.join(\"dist/bin/gmeow-dev\");")
+            && controller.contains("verify(&staged, &receipt_path, &recipe)?;")
+            && controller.contains("Command::new(&staged)"),
+        "the default producer launcher must verify and execute the same staged binary used by fixture consumers"
+    );
     let producer = target_recipe(&makefile, "produce-test-fixtures");
     let verifier = target_recipe(&makefile, "verify-test-fixtures");
 
@@ -500,7 +509,7 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
             && producer.contains("$(GMEOW_DEV) test-fixtures produce --scope all")
             && verifier.contains("$(TEST_FIXTURE_TOOL) test-fixtures verify --scope all")
             && verifier.contains("$(TEST_FIXTURE_ENV)"),
-        "one already-built maintenance binary must expose separate producer and verifier modes"
+        "one authenticated maintenance binary must expose separate producer and verifier modes"
     );
     assert!(
         makefile.contains(
