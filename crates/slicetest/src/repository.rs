@@ -148,7 +148,7 @@ pub fn produce_repository_verdict(
     repo_root: &Path,
     implementation_fingerprint: &str,
 ) -> Result<SliceSpecOutcome> {
-    paths::bind_repo_root(repo_root)?;
+    let repo_root = paths::bind_repo_root(repo_root)?;
     let context = action_context(repo_root, implementation_fingerprint)?;
     let store = ActionStore::open(
         ActionStore::default_root(repo_root),
@@ -188,7 +188,7 @@ pub fn verify_cached(
     repo_root: &Path,
     implementation_fingerprint: &str,
 ) -> Result<SliceSpecOutcome> {
-    paths::bind_repo_root(repo_root)?;
+    let repo_root = paths::bind_repo_root(repo_root)?;
     let context = action_context(repo_root, implementation_fingerprint)?;
     let store = ActionStore::open_existing_read_only(
         ActionStore::default_root(repo_root),
@@ -983,24 +983,16 @@ fn run_worker_process(
     tasks: &[SpecTask],
     inner_workers: Option<usize>,
 ) -> Result<()> {
-    let mut command = Command::new(executable);
-    command
-        .current_dir(repo_root)
-        .env("GMEOW_ROOT", repo_root)
-        .env(
-            "GMEOW_SLICE_SPEC_WORKER_AUTHORITY",
-            implementation_fingerprint,
-        )
-        .arg("slice-spec-worker")
-        .arg("--kind")
-        .arg(kind.name());
-    if let Some(workers) = inner_workers {
-        command.arg("--workers").arg(workers.to_string());
-    }
-    for task in tasks {
-        command.arg("--spec").arg(&task.path);
-    }
-    let status = command.status().map_err(|error| {
+    let status = worker_command(
+        executable,
+        repo_root,
+        implementation_fingerprint,
+        kind,
+        tasks,
+        inner_workers,
+    )?
+    .status()
+    .map_err(|error| {
         fail(format!(
             "launch isolated {} worker through {}: {error}",
             kind.name(),
@@ -1014,6 +1006,43 @@ fn run_worker_process(
         )));
     }
     Ok(())
+}
+
+/// Resolve parent-relative paths before changing the worker's working directory.
+fn worker_command(
+    executable: &Path,
+    repo_root: &Path,
+    implementation_fingerprint: &str,
+    kind: SliceSpecKind,
+    tasks: &[SpecTask],
+    inner_workers: Option<usize>,
+) -> Result<Command> {
+    let selected_root = repo_root
+        .canonicalize()
+        .map_err(|error| fail(format!("resolve worker checkout: {error}")))?;
+    let executable = executable
+        .canonicalize()
+        .map_err(|error| fail(format!("resolve worker executable: {error}")))?;
+    let mut command = Command::new(executable);
+    command
+        .current_dir(&selected_root)
+        .env("GMEOW_ROOT", &selected_root)
+        .env(
+            "GMEOW_SLICE_SPEC_WORKER_AUTHORITY",
+            implementation_fingerprint,
+        )
+        .arg("slice-spec-worker")
+        .arg("--kind")
+        .arg(kind.name());
+    if let Some(workers) = inner_workers {
+        command.arg("--workers").arg(workers.to_string());
+    }
+    for task in tasks {
+        command
+            .arg("--spec")
+            .arg(logical_path(repo_root, &task.path)?);
+    }
+    Ok(command)
 }
 
 fn validate_flagship_manifests(repo_root: &Path) -> Result<()> {
@@ -1102,7 +1131,7 @@ pub fn execute_worker(
     requested_paths: &[PathBuf],
     admitted_workers: usize,
 ) -> Result<()> {
-    paths::bind_repo_root(repo_root)?;
+    let repo_root = paths::bind_repo_root(repo_root)?;
     if requested_paths.is_empty() {
         return Err(fail("slice-spec worker received no exact spec paths"));
     }
@@ -1376,6 +1405,79 @@ mod tests {
     use tempfile::tempdir;
 
     use super::{snapshot_worker_executable_with, worker_snapshot_temporary_path};
+
+    #[test]
+    fn worker_paths_survive_a_relative_checkout_and_changed_working_directory() {
+        use std::ffi::OsStr;
+        use std::path::Path;
+
+        let directory = tempfile::tempdir_in(".").expect("relative scratch directory");
+        let root = Path::new(".")
+            .join(
+                directory
+                    .path()
+                    .file_name()
+                    .expect("scratch directory name"),
+            )
+            .join("checkout");
+        assert!(root.is_relative());
+        std::fs::create_dir(&root).expect("synthetic checkout directory");
+        let path = root.join("selected.spec");
+        std::fs::write(&path, b"path witness only").expect("synthetic path witness");
+        let tasks = [super::SpecTask {
+            kind: super::SliceSpecKind::Structural,
+            path: path.clone(),
+        }];
+        let command = super::worker_command(
+            &std::env::current_exe().expect("test executable path"),
+            &root,
+            "selected producer",
+            super::SliceSpecKind::Structural,
+            &tasks,
+            None,
+        )
+        .expect("prepare command without executing a corpus worker");
+        let canonical = root.canonicalize().expect("absolute checkout");
+        assert_eq!(command.get_current_dir(), Some(canonical.as_path()));
+        assert_eq!(
+            command
+                .get_envs()
+                .find(|(name, _)| *name == OsStr::new("GMEOW_ROOT"))
+                .and_then(|(_, value)| value),
+            Some(canonical.as_os_str()),
+        );
+        let arguments = command.get_args().collect::<Vec<_>>();
+        let selection = arguments
+            .windows(2)
+            .find(|pair| pair[0] == OsStr::new("--spec"))
+            .expect("exact spec selection")[1];
+        assert_eq!(selection, OsStr::new("selected.spec"));
+        assert_eq!(
+            canonical
+                .join(selection)
+                .canonicalize()
+                .expect("child path"),
+            path.canonicalize().expect("parent path"),
+            "changing cwd must preserve the selected file's identity",
+        );
+
+        let outside = [super::SpecTask {
+            kind: super::SliceSpecKind::Structural,
+            path: directory.path().join("outside.spec"),
+        }];
+        assert!(
+            super::worker_command(
+                Path::new(command.get_program()),
+                &root,
+                "selected producer",
+                super::SliceSpecKind::Structural,
+                &outside,
+                None,
+            )
+            .is_err(),
+            "a worker selection cannot escape the checkout",
+        );
+    }
 
     #[test]
     fn worker_receipt_follows_only_the_exact_executable_bytes() {
