@@ -27,6 +27,10 @@ pub(crate) fn bind_repo_root(root: &Path) -> gmeow_errors::Result<&'static Path>
     bind_root(&REPOSITORY_ROOT, root)
 }
 
+/// Initialize an immutable canonical directory binding, or confirm the same selection.
+///
+/// An absent path, a non-directory, or an attempted switch returns a typed error
+/// without replacing an established root.
 fn bind_root<'a>(binding: &'a OnceLock<PathBuf>, root: &Path) -> gmeow_errors::Result<&'a Path> {
     let fail = |detail| gmeow_errors::Diag::of_kind(crate::error::CellAggregate { detail });
     let selected = root
@@ -164,6 +168,7 @@ pub fn example_file(slice_dir: &Path, rel: &str) -> PathBuf {
 mod tests {
     use super::*;
 
+    /// Allow canonical aliases of one checkout while rejecting absent paths and later root changes.
     #[test]
     fn explicit_root_is_portable_immutable_and_missing_roots_fail_closed() {
         let first = tempfile::tempdir().expect("first checkout");

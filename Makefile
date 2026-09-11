@@ -1355,8 +1355,8 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# overwritten by the real sweep on the next line; a committed seed is refused by
 	@# `the_committed_winner_table_carries_real_measurements`.
 	@test -f bench/medium-baseline.json || \
-	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
-	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
+	  $(GMEOW_DEV) medium-seed --out bench/medium-baseline.json
+	$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json
 	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
 
 maint-refresh-term-release-authority: ## (maintainer) Advance the computed term-changelog authority at an accepted release boundary.
@@ -1364,7 +1364,7 @@ maint-refresh-term-release-authority: ## (maintainer) Advance the computed term-
 	@# It first renders the current manifest against the old authority, then proves
 	@# that promoting that result is a fixed point. Ordinary sync only consumes the
 	@# tracked evidence and can never advance semantic history from ignored generated/.
-	cargo run -q -p gmeow-pipeline --bin term-release-authority -- .
+	$(GMEOW_DEV) term-release-authority
 
 maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
 	@# WHAT IT COMPARES, exactly: the set of paths the declared GMN-dialect predicate

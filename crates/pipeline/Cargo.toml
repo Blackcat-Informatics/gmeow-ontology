@@ -21,16 +21,8 @@ name = "gmn-dialect-paths"
 path = "src/bin/gmn-dialect-paths.rs"
 
 [[bin]]
-name = "medium-sweep"
-path = "src/bin/medium-sweep.rs"
-
-[[bin]]
 name = "perf_gate_merge"
 path = "src/bin/perf_gate_merge.rs"
-
-[[bin]]
-name = "term-release-authority"
-path = "src/bin/term-release-authority.rs"
 
 [lib]
 # rlib-only: a pure-Rust engine crate consumed by the workspace.

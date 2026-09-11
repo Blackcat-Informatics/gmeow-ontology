@@ -70,6 +70,7 @@ fn docs_package_archives_the_console_alongside_every_other_distribution() {
     }
 }
 
+/// Keep archive and digest bytes stable by writing sidecars outside the packaged tree.
 #[test]
 fn docs_package_repackaging_with_no_intervening_sync_is_byte_idempotent() {
     let tmp = tempfile::tempdir().expect("tempdir");

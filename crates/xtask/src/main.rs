@@ -499,6 +499,10 @@ impl Drop for HostGateLock {
     }
 }
 
+/// Dispatch gate, receipt, and producer operations with explicit argument validation.
+///
+/// Plan inspection prints without acquiring the host gate lock or starting tasks;
+/// executing a check delegates lock ownership and scheduling to the gate runner.
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let command = args.next().unwrap_or_else(|| "help".to_string());
@@ -646,6 +650,11 @@ fn explain_plan(jobs: usize) {
     println!("(dry run: no host gate lock taken, no task executed)");
 }
 
+/// Execute the complete dependency graph under the host gate lock with at most `jobs` children.
+///
+/// After sync succeeds, downstream tasks use the staged producer directly. Failed
+/// dependencies prevent their descendants from running, and any task or requested
+/// timing-output failure makes the aggregate result unsuccessful.
 fn run_check(jobs: usize, timings_json: Option<&Path>) -> ExitCode {
     let root = workspace_root();
     let Some(_lock) = HostGateLock::acquire(&root) else {

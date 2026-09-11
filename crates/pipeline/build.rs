@@ -32,6 +32,10 @@ use sha2::{Digest, Sha256};
 #[path = "../../build-support/path_dependency_inputs.rs"]
 mod build_inputs;
 
+/// Embed the pipeline implementation identity and its resolved compilation context.
+///
+/// Hash library inputs and Cargo policy for action reuse, expose the executable's
+/// admission contract separately, and emit the build metadata consumed by receipts.
 fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
     // crates/pipeline → workspace root is two levels up.

@@ -15,6 +15,10 @@ use sha2::{Digest, Sha256};
 #[path = "../../build-support/path_dependency_inputs.rs"]
 mod build_inputs;
 
+/// Embed the slice-spec implementation and compilation-policy fingerprint.
+///
+/// Fold the dependency closure, compiler, and Cargo unit settings so verdict reuse
+/// stays tied to the exact producer that evaluated the declarative specifications.
 fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
     let workspace = manifest

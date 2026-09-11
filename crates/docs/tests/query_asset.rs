@@ -21,6 +21,7 @@
 //!
 use gmeow_docs::vendored_asset::QUERY_ASSET;
 
+/// Verify the shipped query image and playground API against their vendored digests.
 #[test]
 fn the_query_engine_asset_passes_the_anti_rot_gate() {
     // Structural (real `\0asm` module + plausible size), export-surface (the
@@ -29,6 +30,7 @@ fn the_query_engine_asset_passes_the_anti_rot_gate() {
     QUERY_ASSET.verify(&repo_root());
 }
 
+/// Resolve this test crate's checkout for read-only query asset verification.
 fn repo_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

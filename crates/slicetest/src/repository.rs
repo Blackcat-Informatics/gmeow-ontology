@@ -975,6 +975,10 @@ fn run_isolated_worker_processes(
     )))
 }
 
+/// Run one isolated spec worker with its exact paths and optional inner worker count.
+///
+/// Command preparation, launch, or unsuccessful completion returns a typed error;
+/// the caller publishes no success verdict for a failed worker.
 fn run_worker_process(
     executable: &Path,
     repo_root: &Path,
@@ -1406,6 +1410,7 @@ mod tests {
 
     use super::{snapshot_worker_executable_with, worker_snapshot_temporary_path};
 
+    /// Preserve selected spec identity across the child cwd change and reject paths outside the root.
     #[test]
     fn worker_paths_survive_a_relative_checkout_and_changed_working_directory() {
         use std::ffi::OsStr;
@@ -1479,6 +1484,7 @@ mod tests {
         );
     }
 
+    /// Publish worker evidence only when both the parent and copied executable match the receipt.
     #[test]
     fn worker_receipt_follows_only_the_exact_executable_bytes() {
         use gmeow_action_cache::executable::{ExecutableReceipt, ExecutableRecipe, sha256_file};

@@ -6243,7 +6243,6 @@ version = "0.2.0"
 dependencies = [
  "gmeow-action-cache",
  "gmeow-errors",
- "gmeow-logic-compile",
  "serde_json",
  "tempfile",
 ]

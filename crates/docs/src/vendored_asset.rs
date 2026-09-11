@@ -271,6 +271,11 @@ impl VendoredWasmAsset {
         self.verify_or_refresh(root, true);
     }
 
+    /// Check the selected checkout's wasm image, exports, and exact vendored bytes.
+    ///
+    /// Verification compares the recorded digest without writing. An explicit refresh resolves
+    /// the substrate identity before writing both records. Missing or invalid inputs,
+    /// digest drift during verification, and failed refresh writes panic.
     fn verify_or_refresh(&self, root: &Path, refresh: bool) {
         let dir = self.asset_dir(root);
 

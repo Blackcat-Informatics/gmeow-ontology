@@ -2376,6 +2376,7 @@ mod tests {
         .unwrap();
     }
 
+    /// Recognize the exact producer dispatch form without crediting build, inspection, or echoed text.
     #[test]
     fn producer_launcher_binds_only_the_executed_cli_operation() {
         for command in [

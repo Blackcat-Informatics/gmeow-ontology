@@ -31,6 +31,7 @@
 
 use gmeow_docs::vendored_asset::{MCP_ASSET, MCP_CORE_ASSET};
 
+/// Verify the core MCP image and loader exports against their vendored digests.
 #[test]
 fn vendored_mcp_core_segment_passes_the_anti_rot_gate() {
     // Structural (real `\0asm` module + plausible size), export-surface (the wrapper's
@@ -39,6 +40,7 @@ fn vendored_mcp_core_segment_passes_the_anti_rot_gate() {
     MCP_CORE_ASSET.verify(&repo_root());
 }
 
+/// Verify the reasoning MCP segment against its registered image and export contract.
 #[test]
 fn vendored_mcp_reasoning_segment_passes_the_anti_rot_gate() {
     MCP_ASSET.verify(&repo_root());
@@ -83,6 +85,7 @@ fn the_two_segments_are_distinct_images_not_a_superset_and_a_subset() {
     );
 }
 
+/// Resolve this test crate's checkout for read-only MCP segment verification.
 fn repo_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

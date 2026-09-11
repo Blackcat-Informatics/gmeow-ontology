@@ -111,6 +111,7 @@ pub fn project_root() -> PathBuf {
     enclosing_checkout(&cwd)
 }
 
+/// Find the nearest Cargo workspace with slices, retaining an unrelated `cwd` as selected.
 fn enclosing_checkout(cwd: &Path) -> PathBuf {
     cwd.ancestors()
         .find(|directory| {
@@ -189,6 +190,7 @@ pub const LOGIC_DRIFT_PREFIXES: &[&str] = &[
 mod tests {
     use super::*;
 
+    /// Resolve nested invocations locally and never replace an unrelated selected directory.
     #[test]
     fn checkout_discovery_preserves_the_selected_tree_without_a_compiled_fallback() {
         let directory = tempfile::tempdir().expect("isolated selection");
