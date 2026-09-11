@@ -55,6 +55,7 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         | Commands::SliceQuality { .. }
         | Commands::SliceQualityGate
         | Commands::SliceQualitySeedFloors { .. }
+        | Commands::SliceQualitySeedCeilings { .. }
         | Commands::SliceQualityRelocationPreview { .. } => true,
         // Console output-path refusal precedes admission; the handler admits
         // the producer before opening the bundle or rendering any output.
@@ -87,7 +88,6 @@ pub(crate) fn requires_admission(command: &Commands) -> bool {
         | Commands::ShapeLift { .. }
         | Commands::ShapeMigrate { .. }
         | Commands::Certify { .. }
-        | Commands::SliceQualitySeedCeilings { .. }
         | Commands::SliceQualityProjectionDebt { .. }
         | Commands::SliceFixDeps { .. }
         | Commands::BoxRoles { .. }
@@ -169,6 +169,7 @@ mod tests {
             vec!["gmeow-dev", "acceptance"],
             vec!["gmeow-dev", "slice-quality-gate"],
             vec!["gmeow-dev", "slice-quality-seed-floors", "--all-axes"],
+            vec!["gmeow-dev", "slice-quality-seed-ceilings"],
             vec![
                 "gmeow-dev",
                 "slice-quality-relocation-preview",

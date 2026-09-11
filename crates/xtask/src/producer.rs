@@ -485,7 +485,7 @@ fn verify(binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()>
         .map_err(fail)
 }
 
-/// An interrupted first publication can leave a binary without its receipt.
+/// An interrupted first publication or replacement can leave a binary without its receipt.
 /// It is a build miss, never an executable that can be reused or run. Once a
 /// receipt exists, corrupt or substituted bytes continue to fail closed.
 fn staged_is_fresh(staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe) -> Result<bool> {
@@ -499,11 +499,27 @@ fn staged_is_fresh(staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe
     Ok(&receipt.recipe == recipe)
 }
 
+/// Retire the prior receipt before replacing its executable under the builder election lock.
+///
+/// The caller authenticates any existing pair before building and publishes a new
+/// receipt after this replacement. An interruption or rename failure leaves no
+/// receipt, so a later builder recomputes instead of confusing old evidence with
+/// substituted bytes. Other receipt-removal errors leave the executable untouched.
+fn replace_staged_executable(temporary: &Path, staged: &Path, receipt_path: &Path) -> Result<()> {
+    match std::fs::remove_file(receipt_path) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(fail(error)),
+    }
+    std::fs::rename(temporary, staged).map_err(fail)
+}
+
 /// Compile the admitted recipe and publish its executable with a matching receipt.
 ///
 /// Re-resolve inputs after compilation and probe the linked identity before
-/// publication. Replace the executable through a temporary file, then atomically
-/// write its receipt; any compile, freshness, identity, or publication error fails.
+/// publication. Hash the prepared copy, retire the prior receipt, replace the
+/// executable, then atomically publish its receipt. Any compile, freshness,
+/// identity, or publication error fails.
 fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe) -> Result<()> {
     let environment = &recipe.compiler_environment;
     let mut command = cargo_build(
@@ -563,14 +579,13 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     .map_err(fail)?;
     let temporary = staged.with_extension(format!("tmp-{}", std::process::id()));
     std::fs::copy(&built, &temporary).map_err(fail)?;
-    std::fs::rename(&temporary, staged).map_err(fail)?;
-    ExecutableReceipt {
+    let receipt = ExecutableReceipt {
         schema: 1,
         recipe: recipe.clone(),
-        executable_sha256: sha256_file(staged).map_err(fail)?,
-    }
-    .write(receipt_path)
-    .map_err(fail)?;
+        executable_sha256: sha256_file(&temporary).map_err(fail)?,
+    };
+    replace_staged_executable(&temporary, staged, receipt_path)?;
+    receipt.write(receipt_path).map_err(fail)?;
     println!("optimized producer staged at {}", staged.display());
     Ok(())
 }
@@ -604,13 +619,9 @@ mod tests {
         }
     }
 
-    /// Treat an absent receipt as a build miss; reject substituted or missing receipted bytes.
-    #[test]
-    fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
-        let scratch = tempfile::tempdir().expect("scratch");
-        let binary = scratch.path().join("gmeow-dev");
-        let path = binary.with_extension("receipt.json");
-        let recipe = ExecutableRecipe {
+    /// Supply a tiny recipe for publication tests without resolving tools or repository inputs.
+    fn publication_recipe() -> ExecutableRecipe {
+        ExecutableRecipe {
             schema: 1,
             profile: "pipeline".into(),
             source_digest: "source".into(),
@@ -619,7 +630,16 @@ mod tests {
             compiler_environment: BTreeMap::new(),
             units: Vec::new(),
             roots: Vec::new(),
-        };
+        }
+    }
+
+    /// Treat an absent receipt as a build miss; reject substituted or missing receipted bytes.
+    #[test]
+    fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
+        let scratch = tempfile::tempdir().expect("scratch");
+        let binary = scratch.path().join("gmeow-dev");
+        let path = binary.with_extension("receipt.json");
+        let recipe = publication_recipe();
         assert!(!staged_is_fresh(&binary, &path, &recipe).expect("empty build miss"));
         std::fs::write(&binary, b"linked executable").expect("binary");
         assert!(!staged_is_fresh(&binary, &path, &recipe).expect("unreceipted build miss"));
@@ -634,10 +654,58 @@ mod tests {
         let mut changed = recipe.clone();
         changed.source_digest = "changed source".into();
         assert!(!staged_is_fresh(&binary, &path, &changed).expect("stale build miss"));
+        assert!(verify(&binary, &path, &changed).is_err());
         std::fs::write(&binary, b"substituted bytes").expect("replace");
         assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
         std::fs::remove_file(&binary).expect("remove binary");
         assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
+        std::fs::write(&binary, b"linked executable").expect("restore binary");
+        std::fs::write(&path, b"malformed receipt").expect("corrupt receipt");
+        assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
+    }
+
+    /// Recover an interrupted replacement of an authenticated pair through an unreceipted miss.
+    #[test]
+    fn interrupted_replacement_retires_old_receipt_before_publishing_new_bytes() {
+        let scratch = tempfile::tempdir().expect("scratch");
+        let binary = scratch.path().join("gmeow-dev");
+        let path = binary.with_extension("receipt.json");
+        let temporary = binary.with_extension("prepared");
+        let old_recipe = publication_recipe();
+        std::fs::write(&binary, b"old executable").expect("old binary");
+        ExecutableReceipt {
+            schema: 1,
+            recipe: old_recipe.clone(),
+            executable_sha256: sha256_file(&binary).expect("old digest"),
+        }
+        .write(&path)
+        .expect("old receipt");
+        assert!(staged_is_fresh(&binary, &path, &old_recipe).expect("old authenticated pair"));
+
+        let mut new_recipe = old_recipe;
+        new_recipe.source_digest = "new source".into();
+        std::fs::write(&temporary, b"new executable").expect("prepared replacement");
+        replace_staged_executable(&temporary, &binary, &path).expect("replace executable");
+        // Stop at the actual production boundary before the new receipt is published.
+        assert_eq!(
+            std::fs::read(&binary).expect("new bytes"),
+            b"new executable"
+        );
+        assert!(!path.exists(), "old evidence must not survive replacement");
+        assert!(!staged_is_fresh(&binary, &path, &new_recipe).expect("recoverable build miss"));
+        assert!(verify(&binary, &path, &new_recipe).is_err());
+
+        std::fs::write(&temporary, b"new executable").expect("prepared retry");
+        replace_staged_executable(&temporary, &binary, &path).expect("retry without a receipt");
+        ExecutableReceipt {
+            schema: 1,
+            recipe: new_recipe.clone(),
+            executable_sha256: sha256_file(&binary).expect("new digest"),
+        }
+        .write(&path)
+        .expect("new receipt");
+        verify(&binary, &path, &new_recipe).expect("recovered authenticated pair");
+        assert!(staged_is_fresh(&binary, &path, &new_recipe).expect("recovered fresh hit"));
     }
 
     /// Reject weakened dependency optimization and disabled workspace runtime checks.
