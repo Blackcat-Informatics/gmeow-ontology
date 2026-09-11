@@ -17,7 +17,6 @@ path = "src/main.rs"
 gmeow-action-cache = { path = "../action-cache" }
 serde_json.workspace = true
 gmeow-errors = { path = "../errors" }
-gmeow-logic-compile = { path = "../logic-compile" }
 
 [dev-dependencies]
 # RAII temp directories/files for tests. Every scratch path a test creates is

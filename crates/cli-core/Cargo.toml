@@ -18,8 +18,6 @@ gmeow-errors = { path = "../errors" }
 clap = { version = "4", features = ["derive"] }
 anstyle = "1"
 anstream = "0.6"
-indicatif = "0.17"
-comfy-table = "7"
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde.workspace = true

@@ -32,7 +32,8 @@ use crate::scheduler::{
     RunContext, action_key_context_from_receipts_cached, dependency_closure, run_targets,
 };
 
-const STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION: u32 = 2;
+const STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION: u32 =
+    gmeow_action_cache::selection::MANIFEST_SCHEMA_VERSION;
 const SETTLED_SOURCE_LOAD_WITNESS_CODEC: &str = "json:settled-source-load-witness:v1";
 
 /// Producer-written selector for the exact pipeline actions admitted to tests.
@@ -40,10 +41,11 @@ pub const STAGE_FIXTURE_MANIFEST_RELATIVE_PATH: &str =
     ".cache/gmeow-sync/test-fixture-manifest-v2.json";
 
 /// Runner-supplied path to the immutable stage-fixture selector.
-pub const STAGE_FIXTURE_MANIFEST_PATH_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST";
+pub const STAGE_FIXTURE_MANIFEST_PATH_ENV: &str = gmeow_action_cache::selection::MANIFEST_PATH_ENV;
 
 /// Runner-supplied SHA-256 of the immutable stage-fixture selector.
-pub const STAGE_FIXTURE_MANIFEST_SHA256_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST_SHA256";
+pub const STAGE_FIXTURE_MANIFEST_SHA256_ENV: &str =
+    gmeow_action_cache::selection::MANIFEST_SHA256_ENV;
 
 /// Complete set of production-stage identities consumed by tests.
 ///
@@ -376,7 +378,10 @@ fn validate_stage_fixture_manifest(
     Ok(())
 }
 
-/// Atomically publish the exact selected receipts emitted by the explicit producer.
+/// Atomically publish the exact selected receipts emitted by a producer.
+/// Accepts either the full synchronization run or the explicit fixture traversal;
+/// only the selected fixtures' complete dependency closure enters the selector.
+/// No stage or carrier is executed, hydrated or reconstructed here.
 ///
 /// The returned SHA-256 is runner state, not a discoverable fallback: every test
 /// process must receive it through [`STAGE_FIXTURE_MANIFEST_SHA256_ENV`].
@@ -384,30 +389,7 @@ pub fn publish_stage_fixture_manifest(
     root: &Path,
     run_receipts: &[StageReceipt],
 ) -> Result<StageFixtureManifestIdentity, gmeow_errors::Diag> {
-    let selected: BTreeSet<&str> = AUTHENTICATED_TEST_STAGE_IDS.iter().copied().collect();
-    let mut closure_receipts = BTreeMap::new();
-    let mut stages = BTreeMap::new();
-    for receipt in run_receipts {
-        let stage_id = receipt.context.stage_id.as_str();
-        if closure_receipts
-            .insert(stage_id.to_string(), receipt.clone())
-            .is_some()
-        {
-            return Err(fixture_manifest_error(format!(
-                "producer emitted duplicate closure receipt for {stage_id}"
-            )));
-        }
-        if selected.contains(stage_id) {
-            stages.insert(stage_id.to_string(), receipt.clone());
-        }
-    }
-    let manifest = StageFixtureManifest {
-        schema_version: STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION,
-        build_fingerprint: BUILD_FINGERPRINT.to_string(),
-        closure_receipts,
-        stages,
-    };
-    validate_stage_fixture_manifest(&manifest)?;
+    let manifest = stage_fixture_manifest(run_receipts)?;
 
     let mut bytes = serde_json::to_vec_pretty(&manifest)
         .map_err(|error| fixture_manifest_error(format!("encode selector: {error}")))?;
@@ -443,6 +425,52 @@ pub fn publish_stage_fixture_manifest(
         sha256: digest,
         stage_count: manifest.stages.len(),
     })
+}
+
+fn stage_fixture_manifest(
+    run_receipts: &[StageReceipt],
+) -> Result<StageFixtureManifest, gmeow_errors::Diag> {
+    let selected: BTreeSet<&str> = AUTHENTICATED_TEST_STAGE_IDS.iter().copied().collect();
+    let spec = full_spec();
+    let graph = spec.validate()?;
+    let bound = bind(&spec, &graph, &default_registry())?;
+    let targets = selected.iter().map(|stage| (*stage).to_owned()).collect();
+    let required = dependency_closure(&bound, &targets)?;
+    let mut closure_receipts = BTreeMap::new();
+    let mut stages = BTreeMap::new();
+    for receipt in run_receipts {
+        let stage_id = receipt.context.stage_id.as_str();
+        if !required.contains(stage_id) {
+            continue;
+        }
+        if closure_receipts
+            .insert(stage_id.to_string(), receipt.clone())
+            .is_some()
+        {
+            return Err(fixture_manifest_error(format!(
+                "producer emitted duplicate closure receipt for {stage_id}"
+            )));
+        }
+        if selected.contains(stage_id) {
+            stages.insert(stage_id.to_string(), receipt.clone());
+        }
+    }
+    let actual = closure_receipts.keys().cloned().collect();
+    let missing: Vec<_> = required.difference(&actual).collect();
+    if !missing.is_empty() {
+        return Err(fixture_manifest_error(format!(
+            "producer did not supply the complete fixture dependency closure: missing={missing:?}"
+        )));
+    }
+    let manifest = StageFixtureManifest {
+        schema_version: STAGE_FIXTURE_MANIFEST_SCHEMA_VERSION,
+        build_fingerprint: BUILD_FINGERPRINT.to_string(),
+        closure_receipts,
+        stages,
+    };
+    validate_stage_fixture_manifest(&manifest)?;
+
+    Ok(manifest)
 }
 
 /// Admit an unchanged producer closure without hydrating or rebuilding any carrier.
@@ -640,39 +668,8 @@ pub fn reuse_stage_fixture_manifest(
 }
 
 fn load_stage_fixture_manifest(root: &Path) -> Result<StageFixtureManifest, gmeow_errors::Diag> {
-    let selected_path = std::env::var_os(STAGE_FIXTURE_MANIFEST_PATH_ENV)
-        .filter(|value| !value.is_empty())
-        .ok_or_else(|| {
-            fixture_manifest_error(format!(
-                "{STAGE_FIXTURE_MANIFEST_PATH_ENV} is required; tests may not discover or produce a fallback selector"
-            ))
-        })?;
-    let selected_path = PathBuf::from(selected_path);
-    let path = if selected_path.is_absolute() {
-        selected_path
-    } else {
-        root.join(selected_path)
-    };
-    let expected = std::env::var(STAGE_FIXTURE_MANIFEST_SHA256_ENV)
-        .ok()
-        .filter(|value| value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()))
-        .ok_or_else(|| {
-            fixture_manifest_error(format!(
-                "{STAGE_FIXTURE_MANIFEST_SHA256_ENV} must select one exact SHA-256; tests may not infer it"
-            ))
-        })?
-        .to_ascii_lowercase();
-    let bytes = std::fs::read(&path).map_err(|error| {
-        fixture_manifest_error(format!("read selector {}: {error}", path.display()))
-    })?;
-    let actual = sha256(&bytes);
-    if actual != expected {
-        return Err(fixture_manifest_error(format!(
-            "selector identity mismatch: expected {expected}, actual {actual}"
-        )));
-    }
-    let manifest: StageFixtureManifest = serde_json::from_slice(&bytes)
-        .map_err(|error| fixture_manifest_error(format!("decode selector: {error}")))?;
+    let manifest: StageFixtureManifest = gmeow_action_cache::selection::load_manifest(root)
+        .map_err(|error| fixture_manifest_error(error.to_string()))?;
     validate_stage_fixture_manifest(&manifest)?;
     Ok(manifest)
 }
@@ -865,4 +862,92 @@ pub fn mapping_artifacts(
     jobs: usize,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     stage_artifacts(root, jobs, "stage-mappings")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cache::StageKeyContext;
+
+    // Synthetic receipt metadata only: these tests run no stage and produce no
+    // corpus or authenticated product. Blob authentication stays with the loader.
+    fn receipts() -> Vec<StageReceipt> {
+        let spec = full_spec();
+        let graph = spec.validate().unwrap();
+        bind(&spec, &graph, &default_registry())
+            .unwrap()
+            .iter()
+            .map(|stage| {
+                let context = StageKeyContext::new(stage.id(), "metadata-fixture", vec![], vec![]);
+                StageReceipt {
+                    schema_version: context.schema_version,
+                    action_key: stage_key(&context),
+                    context,
+                    stability: stage.stability().iri().into(),
+                    cache_disposition: stage.cache_policy().iri().into(),
+                    product_digest: "0".repeat(64),
+                    product_blob_digest: None,
+                    product_blob_bytes: 0,
+                    dataset_quads: 0,
+                    default_graph: None,
+                    provenance: None,
+                    content_store: None,
+                    graphs: vec![],
+                    blob_representations: vec![],
+                    logical_artifacts: vec![],
+                    typed_handles: vec![],
+                }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn full_sync_receipts_select_the_same_fixture_closure_as_the_prefix_producer() {
+        let all = receipts();
+        let full = stage_fixture_manifest(&all).unwrap();
+        assert_eq!(full.stages.len(), AUTHENTICATED_TEST_STAGE_IDS.len());
+        assert!(full.closure_receipts.len() > full.stages.len());
+        assert!(!full.closure_receipts.contains_key("stage-gts-sink"));
+        let prefix: Vec<_> = all
+            .into_iter()
+            .filter(|receipt| {
+                full.closure_receipts
+                    .contains_key(&receipt.context.stage_id)
+            })
+            .collect();
+        assert_eq!(
+            serde_json::to_vec(&full).unwrap(),
+            serde_json::to_vec(&stage_fixture_manifest(&prefix).unwrap()).unwrap(),
+        );
+    }
+
+    #[test]
+    fn fixture_selector_refuses_missing_ancestors_and_mismatched_receipt_identity() {
+        let all = receipts();
+        for missing in ["stage-snapshot", "stage-mappings"] {
+            let partial: Vec<_> = all
+                .iter()
+                .filter(|receipt| receipt.context.stage_id != missing)
+                .cloned()
+                .collect();
+            let error = stage_fixture_manifest(&partial).unwrap_err();
+            assert!(error.message().contains(missing), "{error}");
+        }
+        let mut duplicate = all.clone();
+        duplicate.push(
+            all.iter()
+                .find(|receipt| receipt.context.stage_id == "stage-mappings")
+                .unwrap()
+                .clone(),
+        );
+        assert!(stage_fixture_manifest(&duplicate).is_err());
+        let mut changed = all;
+        changed
+            .iter_mut()
+            .find(|receipt| receipt.context.stage_id == "stage-mappings")
+            .unwrap()
+            .context
+            .impl_version = "changed-after-execution".into();
+        assert!(stage_fixture_manifest(&changed).is_err());
+    }
 }

@@ -14,12 +14,10 @@
 //! [`render_book`]. Model, site, book, and pipeline stages all use the same bounded
 //! immutable receipt/blob store and per-action process election.
 //!
-//! A [`gmeow_docs_model::model::DocsModel`] build is a ~12 s repo-wide walk, and
-//! rendering the site on top of it is more; the gmeow-docs integration suite has
-//! ~40 tests that each need one or both,
-//! and the test runner executes every test in its own process — so a fresh build and
-//! render per test is paid dozens of times, and when many start at once the concurrent
-//! builds contend and each takes far longer than a single build would.
+//! Model discovery and rendering belong to the explicit producer. The integration
+//! tests run in separate processes and share its selected model and render receipts.
+//! Their action identities come from the authenticated selector, never from the
+//! consumer's checkout or a search for any available cached product.
 //!
 //! This module renders the site for EVERY available language and the default mdBook
 //! render ONCE in the explicit [`prime`] producer and stores each in a content-addressed
@@ -28,11 +26,11 @@
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
 
+use gmeow_action_cache::selection::SelectedAction;
 use gmeow_action_cache::{
-    ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, ProducerIdentity,
-    STORE_FORMAT_VERSION, StoreLimits,
+    ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, STORE_FORMAT_VERSION,
+    StoreLimits,
 };
 use serde::{Deserialize, Serialize};
 
@@ -44,8 +42,8 @@ use gmeow_docs_model::exec::ExecutableDocsData;
 // (which `include_bytes!`s ~19 MB of wasm), but a caller that already depends on the
 // renderer should not have to name a second crate to get the model.
 use gmeow_docs_model::fixture::{
-    FixtureIdentity, cache_key, load_or_build_with_identity, model_identity, payload_digest,
-    verify_payload,
+    DocsFixtureSelector, FixtureIdentity, load_or_build_with_identity, model_identity,
+    payload_digest, produced_model_selection, selected_fixtures, verify_payload,
 };
 pub use gmeow_docs_model::fixture::{load, load_or_build};
 use gmeow_docs_model::i18n::ENGLISH;
@@ -82,7 +80,6 @@ fn read_only_action_store(root: &Path) -> ActionStore {
 }
 
 fn render_context(
-    root: &Path,
     artifact: &str,
     language: Option<&str>,
     model: &FixtureIdentity,
@@ -90,7 +87,7 @@ fn render_context(
     let mut context = ActionContext::new(
         "docs-fixture",
         format!("render-{artifact}"),
-        ProducerIdentity::new(cache_key(root)),
+        model.producer.clone(),
         if artifact == "site" {
             SITE_CODEC
         } else {
@@ -168,8 +165,28 @@ fn load_cached_site(
     language: Option<&str>,
     model: &FixtureIdentity,
 ) -> Site {
+    let fixtures = selected_fixtures(root)
+        .unwrap_or_else(|error| panic!("admit selected docs fixtures: {error}"));
+    let selected = fixtures
+        .renders
+        .get(&render_selector_key(artifact, language))
+        .unwrap_or_else(|| panic!("requested docs render is absent from the producer selector"));
+    load_selected_site(root, artifact, language, model, selected)
+}
+
+fn load_selected_site(
+    root: &Path,
+    artifact: &str,
+    language: Option<&str>,
+    model: &FixtureIdentity,
+    selected: &SelectedAction,
+) -> Site {
     let store = read_only_action_store(root);
-    let context = render_context(root, artifact, language, model);
+    let context = render_context(artifact, language, model);
+    assert_eq!(
+        selected.context, context,
+        "selected docs render context mismatch"
+    );
     let cache_path = render_cache_path(root, &context);
     let entry = store
         .get::<RenderActionPayload>(&context)
@@ -184,6 +201,9 @@ fn load_cached_site(
                 "authenticated docs {artifact} fixture is absent; tests may not rebuild the corpus"
             )
         });
+    selected
+        .verify(&entry.receipt)
+        .unwrap_or_else(|error| panic!("selected docs render receipt mismatch: {error}"));
     validate_render_receipt(artifact, language, model, &entry.receipt).unwrap_or_else(|error| {
         panic!(
             "corrupt docs-fixture {artifact} action cache at {}: {error}",
@@ -219,8 +239,8 @@ fn load_or_build_cached_site_in_store(
     language: Option<&str>,
     model: &FixtureIdentity,
     build: impl FnOnce() -> Site,
-) -> (Site, bool) {
-    let context = render_context(root, artifact, language, model);
+) -> (Site, bool, SelectedAction) {
+    let context = render_context(artifact, language, model);
     let key = context.key();
     let cache_path = render_cache_path(root, &context);
     let outcome = store.coordinate::<_, ActionCacheError, _, _>(
@@ -235,19 +255,22 @@ fn load_or_build_cached_site_in_store(
                     "docs {artifact} payload JSON is corrupt: {error}"
                 ))
             })?;
-            Ok(Some(cached.into_site(&cache_path)))
+            Ok(Some((
+                cached.into_site(&cache_path),
+                SelectedAction::from_receipt(&entry.receipt),
+            )))
         },
         || {
             let site = build();
             let cached = CachedSite::from_site(&site);
             let bytes = serde_json::to_vec(&cached)?;
-            store.publish(
+            let receipt = store.publish(
                 &context,
                 cached.digest.clone(),
                 render_payload(artifact, language, model),
                 &bytes,
             )?;
-            Ok(site)
+            Ok((site, SelectedAction::from_receipt(&receipt)))
         },
     );
     let outcome = outcome.unwrap_or_else(|error| {
@@ -256,7 +279,7 @@ fn load_or_build_cached_site_in_store(
             cache_path.display()
         )
     });
-    (outcome.value, outcome.built)
+    (outcome.value.0, outcome.built, outcome.value.1)
 }
 
 /// Producer counterpart of [`load_site`].
@@ -296,6 +319,9 @@ pub fn load_book_or_build(root: &Path) -> Site {
 #[must_use]
 pub fn prime(root: &Path) -> PrimeObservation {
     let (model, identity) = load_or_build_with_identity(root);
+    let selected_model = produced_model_selection(root)
+        .unwrap_or_else(|error| panic!("select produced docs model: {error}"));
+    assert_eq!(selected_model.receipt_digest, identity.receipt_digest);
     let mut languages = model.available_languages.clone();
     languages.push(ENGLISH.to_string());
     languages.sort();
@@ -303,56 +329,79 @@ pub fn prime(root: &Path) -> PrimeObservation {
     let mut tasks = languages.into_iter().map(Some).collect::<Vec<_>>();
     tasks.push(None);
     let parallelism = render_parallelism(tasks.len());
-    let built = AtomicUsize::new(0);
+    let mut built = 0;
+    let mut renders = BTreeMap::new();
     let store = action_store(root);
     for batch in tasks.chunks(parallelism) {
-        std::thread::scope(|scope| {
-            for language in batch {
-                let built = &built;
-                let store = &store;
-                let model = &model;
-                let identity = &identity;
-                scope.spawn(move || {
-                    let was_built = if let Some(language) = language.as_deref() {
-                        load_or_build_cached_site_in_store(
+        let results = std::thread::scope(|scope| {
+            let handles = batch
+                .iter()
+                .map(|language| {
+                    let store = &store;
+                    let model = &model;
+                    let identity = &identity;
+                    scope.spawn(move || {
+                        let artifact = if language.is_some() { "site" } else { "book" };
+                        let (_, was_built, selected) = load_or_build_cached_site_in_store(
                             store,
                             root,
-                            "site",
-                            Some(language),
+                            artifact,
+                            language.as_deref(),
                             identity,
-                            || render_site_lang(model, language),
+                            || {
+                                if let Some(language) = language.as_deref() {
+                                    render_site_lang(model, language)
+                                } else {
+                                    render_book(model, &ExecutableDocsData::default())
+                                }
+                            },
+                        );
+                        (
+                            render_selector_key(artifact, language.as_deref()),
+                            was_built,
+                            selected,
                         )
-                        .1
-                    } else {
-                        load_or_build_cached_site_in_store(
-                            store,
-                            root,
-                            "book",
-                            None,
-                            identity,
-                            || render_book(model, &ExecutableDocsData::default()),
-                        )
-                        .1
-                    };
-                    if was_built {
-                        built.fetch_add(1, Ordering::Relaxed);
-                    }
-                });
-            }
+                    })
+                })
+                .collect::<Vec<_>>();
+            handles
+                .into_iter()
+                .map(|handle| handle.join().expect("docs render worker"))
+                .collect::<Vec<_>>()
         });
+        for (key, was_built, selected) in results {
+            built += usize::from(was_built);
+            assert!(
+                renders.insert(key, selected).is_none(),
+                "duplicate docs render selection"
+            );
+        }
     }
-    let built = built.load(Ordering::Relaxed);
     PrimeObservation {
         action_count: tasks.len(),
         built,
         receipt_hits: tasks.len().saturating_sub(built),
         parallelism,
+        selector: DocsFixtureSelector {
+            schema_version: 1,
+            model: selected_model,
+            renders,
+        },
     }
 }
 
+fn render_selector_key(artifact: &str, language: Option<&str>) -> String {
+    language.map_or_else(
+        || artifact.to_string(),
+        |language| format!("{artifact}:{language}"),
+    )
+}
+
 /// Observational cache/scheduling telemetry from one explicit docs-fixture producer.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct PrimeObservation {
+    /// Exact actions emitted or admitted by this producer invocation.
+    pub selector: DocsFixtureSelector,
     /// Number of independent render actions selected by the model.
     pub action_count: usize,
     /// Actions recomputed after an authenticated miss.
@@ -399,12 +448,12 @@ fn render_cache_path(root: &Path, context: &ActionContext) -> PathBuf {
 
 #[cfg(test)]
 fn site_cache_path(root: &Path, lang: &str, model: &FixtureIdentity) -> PathBuf {
-    render_cache_path(root, &render_context(root, "site", Some(lang), model))
+    render_cache_path(root, &render_context("site", Some(lang), model))
 }
 
 #[cfg(test)]
 fn book_cache_path(root: &Path, model: &FixtureIdentity) -> PathBuf {
-    render_cache_path(root, &render_context(root, "book", None, model))
+    render_cache_path(root, &render_context("book", None, model))
 }
 
 /// The serialized rendered-site envelope. Every emitted file is UTF-8 text (each
@@ -465,6 +514,7 @@ mod tests {
         FixtureIdentity {
             receipt_digest: "model-receipt".to_string(),
             product_digest: "model-product".to_string(),
+            producer: gmeow_action_cache::ProducerIdentity::new("fixture-producer"),
         }
     }
 
@@ -553,6 +603,48 @@ mod tests {
         assert_eq!(
             warm, built,
             "the warm hit verifies its payload digest and reconstructs the site"
+        );
+    }
+
+    #[test]
+    fn selected_render_uses_producer_identity_and_refuses_other_languages_or_receipts() {
+        let (_tmp, root) = temp_root("selected-render");
+        let identity = model_identity();
+        let store = action_store(&root);
+        let site = Site {
+            files: BTreeMap::from([("index.html".to_string(), b"selected".to_vec())]),
+        };
+        let (_, _, selected) = load_or_build_cached_site_in_store(
+            &store,
+            &root,
+            "site",
+            Some(ENGLISH),
+            &identity,
+            || site.clone(),
+        );
+        fs::create_dir_all(root.join("crates/docs/src")).unwrap();
+        fs::write(
+            root.join("crates/docs/src/lib.rs"),
+            b"consumer-only source edit",
+        )
+        .unwrap();
+        assert_eq!(
+            load_selected_site(&root, "site", Some(ENGLISH), &identity, &selected),
+            site
+        );
+        assert!(
+            std::panic::catch_unwind(|| {
+                load_selected_site(&root, "site", Some("fr"), &identity, &selected)
+            })
+            .is_err()
+        );
+        let mut wrong = selected;
+        wrong.receipt_digest = "0".repeat(64);
+        assert!(
+            std::panic::catch_unwind(|| {
+                load_selected_site(&root, "site", Some(ENGLISH), &identity, &wrong)
+            })
+            .is_err()
         );
     }
 

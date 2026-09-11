@@ -16,6 +16,10 @@ use sha2::{Digest, Sha256};
 #[path = "../../build-support/path_dependency_inputs.rs"]
 mod build_inputs;
 
+/// Embed the bundle import implementation and compilation-policy fingerprint.
+///
+/// Fold the dependency inputs, resolved toolchain, and Cargo unit settings; the
+/// producer compilation contract distinguishes optimized imports from test builds.
 fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
     let workspace = manifest

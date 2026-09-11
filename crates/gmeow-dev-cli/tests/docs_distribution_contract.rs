@@ -243,6 +243,7 @@ fn ac3_makefile_producer_delegates_to_gmeow_dev_sync() {
     );
 }
 
+/// Require release publication to package the docs archive that owns the console distribution.
 #[test]
 fn ac3_makefile_release_publish_attaches_docs_tar_via_docs_package() {
     let source = makefile();

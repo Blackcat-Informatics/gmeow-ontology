@@ -66,11 +66,9 @@ const MAX_STORE_BYTES: u64 = 2 * 1024 * 1024 * 1024;
 const STORE_SENTINEL: &str = ".gmeow-bundle-import-store-v1";
 const STORE_SENTINEL_BYTES: &[u8] = b"gmeow-bundle-import-store:v1\n";
 const CORPUS_ARTIFACT_CODEC: &str = "authenticated-corpus-artifact-v1";
-const TEST_FIXTURE_MANIFEST_PATH_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST";
-const TEST_FIXTURE_MANIFEST_SHA256_ENV: &str = "GMEOW_TEST_FIXTURE_MANIFEST_SHA256";
-const TEST_FIXTURE_MANIFEST_SCHEMA_VERSION: u32 = 2;
+const TEST_FIXTURE_MANIFEST_PATH_ENV: &str = gmeow_action_cache::selection::MANIFEST_PATH_ENV;
+const TEST_FIXTURE_MANIFEST_SHA256_ENV: &str = gmeow_action_cache::selection::MANIFEST_SHA256_ENV;
 const BUNDLE_FIXTURE_SELECTOR_SCHEMA_VERSION: u32 = 1;
-const MAX_TEST_FIXTURE_MANIFEST_BYTES: u64 = 16 * 1024 * 1024;
 
 /// Exact producer identity over this implementation, dependency lock/configuration,
 /// rustc, target, profile, features, and code-generation flags.
@@ -158,7 +156,6 @@ pub struct BundleFixtureSelector {
 
 #[derive(Debug, Deserialize)]
 struct TestFixtureSelectorEnvelope {
-    schema_version: u32,
     bundle_import: BundleFixtureSelector,
 }
 
@@ -237,53 +234,9 @@ fn validate_bundle_fixture_selector(selector: &BundleFixtureSelector) -> gmeow_e
 }
 
 fn load_bundle_fixture_selector() -> gmeow_errors::Result<BundleFixtureSelector> {
-    let selected_path = std::env::var_os(TEST_FIXTURE_MANIFEST_PATH_ENV)
-        .filter(|value| !value.is_empty())
-        .ok_or_else(|| {
-            diag(format!(
-                "bundle import: {TEST_FIXTURE_MANIFEST_PATH_ENV} is required; tests may not discover a producer identity"
-            ))
-        })?;
-    let selected_path = PathBuf::from(selected_path);
-    let path = if selected_path.is_absolute() {
-        selected_path
-    } else {
-        std::env::current_dir()
-            .map_err(io_diag)?
-            .join(selected_path)
-    };
-    let expected = std::env::var(TEST_FIXTURE_MANIFEST_SHA256_ENV)
-        .ok()
-        .map(|value| value.to_ascii_lowercase())
-        .filter(|value| is_digest(value))
-        .ok_or_else(|| {
-            diag(format!(
-                "bundle import: {TEST_FIXTURE_MANIFEST_SHA256_ENV} must select one exact SHA-256"
-            ))
-        })?;
-    let bytes = read_bounded(
-        &path,
-        MAX_TEST_FIXTURE_MANIFEST_BYTES,
-        "test fixture selector",
-    )?;
-    let actual = format!("{:x}", Sha256::digest(&bytes));
-    if actual != expected {
-        return Err(diag(format!(
-            "bundle import: test fixture selector identity mismatch: expected {expected}, actual {actual}"
-        )));
-    }
-    let envelope: TestFixtureSelectorEnvelope =
-        serde_json::from_slice(&bytes).map_err(|error| {
-            diag(format!(
-                "bundle import: decode test fixture selector: {error}"
-            ))
-        })?;
-    if envelope.schema_version != TEST_FIXTURE_MANIFEST_SCHEMA_VERSION {
-        return Err(diag(format!(
-            "bundle import: test fixture selector schema {} != {TEST_FIXTURE_MANIFEST_SCHEMA_VERSION}",
-            envelope.schema_version
-        )));
-    }
+    let root = std::env::current_dir().map_err(io_diag)?;
+    let envelope: TestFixtureSelectorEnvelope = gmeow_action_cache::selection::load_manifest(&root)
+        .map_err(|error| diag(format!("bundle import: {error}")))?;
     validate_bundle_fixture_selector(&envelope.bundle_import)?;
     Ok(envelope.bundle_import)
 }

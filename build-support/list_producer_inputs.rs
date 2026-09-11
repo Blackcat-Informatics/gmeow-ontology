@@ -11,6 +11,10 @@ use std::path::PathBuf;
 
 mod producer_inputs;
 
+/// Write workspace-relative producer input paths as a NUL-delimited stream.
+///
+/// Read the root crate from the first CLI argument. Inventory, path encoding, and
+/// output failures abort the fingerprint helper rather than emitting a partial identity.
 fn main() {
     let root_crate = std::env::args_os()
         .nth(1)

@@ -477,12 +477,14 @@ jobs:
           key: ${{ steps.fixture-actions.outputs.cache-primary-key }}
 
       - name: Bind the exact current-run fixture selector
+        if: success()
         id: selector
         run: |
           set -euo pipefail
           echo "sha256=$(sha256sum .cache/gmeow-sync/test-fixture-manifest-v2.json | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Transfer the selected prefix fixtures
+        if: success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: prefix-test-fixtures-${{ github.sha }}
@@ -626,12 +628,14 @@ jobs:
           key: ${{ steps.fixture-actions.outputs.cache-primary-key }}
 
       - name: Bind the exact current-run fixture selector
+        if: success()
         id: selector
         run: |
           set -euo pipefail
           echo "sha256=$(sha256sum .cache/gmeow-sync/test-fixture-manifest-v2.json | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Transfer the selected complete fixtures
+        if: success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: complete-test-fixtures-${{ github.sha }}
@@ -775,7 +779,7 @@ jobs:
         env:
           BUNDLE_DIGEST: ${{ needs.producer.outputs.bundle_digest }}
         run: |
-          target/debug/perf_sample \
+          target/debug/perf-sample \
             --pair-id "ci-${GITHUB_RUN_ID}-rust-archive-build" \
             --variant candidate \
             --sample-index 1 \
@@ -827,9 +831,9 @@ jobs:
             dist/nextest/fixture-timings-producer-independent.json
             dist/nextest/fixture-timings-producer-bound.json
             dist/nextest/archive-build-sample.json
-            dist/nextest/junit_inventory
-            dist/nextest/perf_sample
-            dist/nextest/perf_accept
+            dist/nextest/junit-inventory
+            dist/nextest/perf-sample
+            dist/nextest/perf-accept
             dist/producer-receipt.json
             .cache/gmeow-sync/actions
             .cache/gmeow-sync/test-fixture-manifest-v2.json
@@ -906,8 +910,8 @@ jobs:
 
       - name: Restore report-only evidence tool modes
         run: >-
-          chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample
-          dist/nextest/perf_accept
+          chmod +x dist/nextest/junit-inventory dist/nextest/perf-sample
+          dist/nextest/perf-accept
 
       # crates/xtask/tests/issue_refs_lint.rs drives scripts/lint-issue-refs.sh, which
       # hard-requires ripgrep and is not on the runner image by default — the same
@@ -937,7 +941,7 @@ jobs:
           )
           # The exact bundle-import product is authenticated and selected read-only by
           # digest, so isolated processes never rebuild the same whole-bundle dataset.
-          dist/nextest/perf_sample \
+          dist/nextest/perf-sample \
             --pair-id "ci-${GITHUB_RUN_ID}-rust-archive" \
             --variant candidate \
             --sample-index "${{ matrix.shard }}" \
@@ -965,7 +969,7 @@ jobs:
       - name: Authenticate JUnit inventory and durations
         if: always() && hashFiles('target/nextest/ci/junit.xml') != ''
         run: >-
-          dist/nextest/junit_inventory
+          dist/nextest/junit-inventory
           --output "dist/nextest/junit-shard-${{ matrix.shard }}.json"
           target/nextest/ci/junit.xml
 
@@ -1052,8 +1056,8 @@ jobs:
 
       - name: Restore report-only evidence tool modes
         run: >-
-          chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample
-          dist/nextest/perf_accept
+          chmod +x dist/nextest/junit-inventory dist/nextest/perf-sample
+          dist/nextest/perf-accept
 
       - name: Verify producer receipt before consumer replay
         run: ./scripts/producer-receipt.sh verify generated dist/producer-receipt.json
@@ -1063,7 +1067,7 @@ jobs:
 
       - name: Medium consumer proofs from the authenticated archive
         run: |
-          dist/nextest/perf_sample \
+          dist/nextest/perf-sample \
             --pair-id "ci-${GITHUB_RUN_ID}-rust-archive" \
             --variant candidate \
             --sample-index 1 \
@@ -1087,7 +1091,7 @@ jobs:
       - name: Authenticate JUnit inventory and durations
         if: always() && hashFiles('target/nextest/maint-heavy/junit.xml') != ''
         run: >-
-          dist/nextest/junit_inventory
+          dist/nextest/junit-inventory
           --output dist/nextest/junit-medium-consumer.json
           target/nextest/maint-heavy/junit.xml
 

@@ -140,8 +140,13 @@ pub fn compile_gts(out: Option<&Path>, sign_key: Option<&Path>, public_key: Opti
         Err(code) => return code,
     };
     // The pipeline (the build authority) folds the snapshot at its single gts_sink.
-    if let Err(e) = run_full(&root, jobs, RunMode::Update) {
-        return fail(format!("regenerate failed: {e}"));
+    let report = match run_full(&root, jobs, RunMode::Update) {
+        Ok(report) => report,
+        Err(error) => return fail(format!("regenerate failed: {error}")),
+    };
+    let reporter = reporter_for(resolve_console(None));
+    if let Err(code) = crate::dev_sync::accept_pipeline_report(reporter.as_ref(), &report, false) {
+        return code;
     }
     let snapshot = root.join(GTS_SNAPSHOT_REL);
     let bytes = match std::fs::read(&snapshot) {

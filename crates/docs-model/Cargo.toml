@@ -40,7 +40,6 @@ serde_json.workspace = true
 regex.workspace = true
 sha1.workspace = true
 blake3.workspace = true
-pulldown-cmark.workspace = true
 
 # The fixture is a native on-disk action cache. Browser/Wasm consumers use the
 # complete in-memory documentation model and must not inherit filesystem cache

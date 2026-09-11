@@ -11,6 +11,11 @@ mod embedded_logic_inputs;
 #[path = "path_dependency_inputs.rs"]
 mod path_dependency_inputs;
 
+/// Collect the producer's runtime source closure and embedded authored inputs.
+///
+/// The selected root crate contributes all its implementation inputs; dependency
+/// crates contribute library inputs. Include the build controller, Cargo policy,
+/// and shared query inventory so build and runtime admission hash the same set.
 pub fn paths(workspace: &Path, root_crate: &Path) -> BTreeSet<PathBuf> {
     let mut inputs = BTreeSet::new();
     for crate_dir in path_dependency_inputs::transitive_path_dependency_dirs(root_crate) {
@@ -45,6 +50,7 @@ pub fn paths(workspace: &Path, root_crate: &Path) -> BTreeSet<PathBuf> {
     inputs
 }
 
+/// Exclude dependency binaries and docs-only assets from the library input set.
 fn is_library_input(path: &Path, crate_dir: &Path) -> bool {
     let Ok(relative) = path.strip_prefix(crate_dir) else {
         return true;

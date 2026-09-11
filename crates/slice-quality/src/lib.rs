@@ -728,7 +728,6 @@ const SCORER_CRATE_ROOTS: &[&str] = &[
     "gts-profile",
     "lang-bridge",
     "lang-form",
-    "license",
     "logic",
     "logic-compile",
     "math",

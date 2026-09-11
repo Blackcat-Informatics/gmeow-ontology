@@ -58,7 +58,6 @@ tempfile.workspace = true
 gmeow-docs-model = { path = "../docs-model" }
 docs-print = { path = "../docs-print" }
 gmeow-slice-quality = { path = "../slice-quality" }
-gmeow-music = { path = "../music" }
 gmeow-foundation-corpus = { path = "../foundation-corpus" }
 # The RDF-1.2 umbrella: GTS read/fold, the slice ownership/fix-deps analyzer, and
 # the OpenPGP secret-key parse the signed release/compile-gts lanes need.
@@ -76,6 +75,7 @@ ureq = "3"
 ciborium.workspace = true
 
 [dev-dependencies]
+gmeow-music = { path = "../music" }
 assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"

@@ -149,6 +149,7 @@ fn logic_query_recursive_ancestor() {
     assert_eq!(ys, expect);
 }
 
+/// Reject an unknown projection mode as a CLI usage error before producer admission.
 #[test]
 fn logic_compile_unknown_mode_fails() {
     dev_cmd()
@@ -450,6 +451,7 @@ fn shape_migrate_does_not_skip_a_math_namespace_target_class() {
         );
 }
 
+/// Fail bundle discovery outside a checkout instead of reading the executable's build tree.
 #[test]
 fn info_outside_a_checkout_cannot_borrow_the_executables_build_tree() {
     let directory = tempfile::tempdir().expect("unrelated working directory");

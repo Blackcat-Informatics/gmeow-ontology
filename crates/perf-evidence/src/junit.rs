@@ -49,7 +49,8 @@ struct Testcase {
     duration_micros: u64,
 }
 
-fn main() {
+/// Execute the JUnit inventory CLI, refusing malformed or ambiguous evidence.
+pub fn run_cli() {
     match parse_args().and_then(|(output, inputs)| run(&output, &inputs)) {
         Ok(()) => {}
         Err(error) => {
@@ -74,7 +75,7 @@ fn parse_args() -> InventoryResult<(PathBuf, Vec<PathBuf>)> {
             inputs.push(PathBuf::from(argument));
         }
     }
-    let output = output.ok_or("usage: junit_inventory --output <receipt.json> <junit.xml>...")?;
+    let output = output.ok_or("usage: junit-inventory --output <receipt.json> <junit.xml>...")?;
     if inputs.is_empty() {
         return Err("at least one JUnit XML input is required".into());
     }

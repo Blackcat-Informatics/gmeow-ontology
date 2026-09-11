@@ -97,7 +97,8 @@ impl Usage {
     }
 }
 
-fn main() {
+/// Execute the report-only sampler CLI, preserving the sampled command's exit code.
+pub fn run_cli() {
     match parse_args().and_then(run) {
         Ok(code) => std::process::exit(code),
         Err(error) => {

@@ -10,6 +10,7 @@
 //! build election, reader-safe reachability GC, and explicit store quotas.
 
 pub mod executable;
+pub mod selection;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions, TryLockError};

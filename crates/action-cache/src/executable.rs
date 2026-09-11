@@ -18,13 +18,21 @@ use crate::{ActionCacheError, bytes_digest, content_digest};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CompilationUnit {
+    /// Cargo package identifier with the selected checkout root replaced by `<workspace>`.
     pub package: String,
+    /// Cargo target name for this compilation unit.
     pub target: String,
+    /// Cargo target kinds, including library, binary, build-script, or procedural-macro roles.
     pub target_kinds: Vec<String>,
+    /// Compilation mode reported by Cargo's resolved unit graph.
     pub mode: String,
+    /// Optional target platform identifier reported by Cargo for this unit.
     pub platform: Option<String>,
+    /// Features resolved by Cargo for this unit.
     pub features: Vec<String>,
+    /// Complete resolved Cargo unit profile, retained in its original JSON structure.
     pub profile: serde_json::Value,
+    /// Zero-based dependency indices into the containing [`ExecutableRecipe::units`].
     pub dependencies: Vec<usize>,
 }
 
@@ -33,13 +41,21 @@ pub struct CompilationUnit {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutableRecipe {
+    /// Recipe format version; the current receipt reader accepts version 1.
     pub schema: u32,
+    /// Selected Cargo profile name, `pipeline` for an admitted producer.
     pub profile: String,
+    /// Lowercase SHA-256 of the sorted relative-path/file-digest inventory from [`source_digest()`].
     pub source_digest: String,
+    /// Trimmed `rustc -Vv` output identifying the selected Rust compiler.
     pub rustc: String,
+    /// Trimmed `cargo --version` output identifying the selected Cargo executable.
     pub cargo: String,
+    /// Builder-selected compiler settings and compiler, target, and CPU identity records.
     pub compiler_environment: BTreeMap<String, String>,
+    /// Resolved compilation graph in Cargo's unit-index order.
     pub units: Vec<CompilationUnit>,
+    /// Zero-based indices into [`Self::units`] for the selected executable roots.
     pub roots: Vec<usize>,
 }
 
@@ -70,8 +86,11 @@ impl ExecutableRecipe {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutableReceipt {
+    /// Receipt format version; the current reader accepts version 1.
     pub schema: u32,
+    /// Complete admitted recipe whose digest is embedded in the producer executable.
     pub recipe: ExecutableRecipe,
+    /// Lowercase SHA-256 of the exact linked executable bytes.
     pub executable_sha256: String,
 }
 
@@ -169,6 +188,7 @@ pub fn source_digest(
 mod tests {
     use super::*;
 
+    /// Create a minimal recipe whose identity fields can be varied independently.
     fn recipe() -> ExecutableRecipe {
         ExecutableRecipe {
             schema: 1,
@@ -182,6 +202,7 @@ mod tests {
         }
     }
 
+    /// Require the receipt to authenticate both the recipe and exact executable bytes.
     #[test]
     fn executable_and_recipe_substitution_are_rejected() {
         let scratch = tempfile::tempdir().expect("scratch");
@@ -201,6 +222,7 @@ mod tests {
         assert!(receipt.verify(&binary, &digest).is_err());
     }
 
+    /// Keep source-only edits out of action policy while retaining compiler and flag changes.
     #[test]
     fn compilation_policy_and_executable_source_have_separate_identities() {
         let original = recipe();
@@ -230,6 +252,7 @@ mod tests {
         }
     }
 
+    /// Bind source content and inventory membership while allowing checkout relocation.
     #[test]
     fn source_inventory_detects_new_and_changed_files_but_not_location() {
         let left = tempfile::tempdir().expect("left");

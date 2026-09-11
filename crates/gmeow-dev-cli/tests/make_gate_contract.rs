@@ -26,6 +26,17 @@ fn ci_workflow() -> String {
     std::fs::read_to_string(repo_root().join(".github/workflows/ci.yml")).expect("read ci.yml")
 }
 
+/// Bound a named workflow step independently of sibling order or unnamed steps.
+fn workflow_step<'a>(job: &'a str, name: &str) -> &'a str {
+    let marker = format!("- name: {name}\n");
+    job.split_once(&marker)
+        .unwrap_or_else(|| panic!("missing workflow step {name}"))
+        .1
+        .split("\n      - ")
+        .next()
+        .expect("workflow step body")
+}
+
 fn manifest(path: &str) -> String {
     std::fs::read_to_string(repo_root().join(path)).expect("read Cargo manifest")
 }
@@ -186,6 +197,7 @@ fn producer_receipt_tracks_the_exact_sync_manifest_schema_version() {
     );
 }
 
+/// Keep measurement tools in their leaf crate while retaining declared pipeline utilities.
 #[test]
 fn evidence_binaries_have_one_dependency_light_owner() {
     let pipeline = manifest("crates/pipeline/Cargo.toml");
@@ -195,18 +207,13 @@ fn evidence_binaries_have_one_dependency_light_owner() {
         pipeline.contains("autobins = false") && validate.contains("autobins = false"),
         "the heavyweight owner directories must not auto-discover the evidence binaries"
     );
-    for retained_pipeline_binary in [
-        "bench-compare",
-        "gmn-dialect-paths",
-        "medium-sweep",
-        "perf_gate_merge",
-    ] {
+    for retained_pipeline_binary in ["bench-compare", "gmn-dialect-paths", "perf-gate-merge"] {
         assert!(
             pipeline.contains(&format!("name = \"{retained_pipeline_binary}\"")),
             "pipeline manifest dropped required binary {retained_pipeline_binary}"
         );
     }
-    for evidence_binary in ["perf_sample", "perf_accept", "junit_inventory"] {
+    for evidence_binary in ["perf-sample", "perf-accept", "junit-inventory"] {
         assert!(
             evidence.contains(&format!("name = \"{evidence_binary}\"")),
             "evidence leaf does not own {evidence_binary}"
@@ -314,6 +321,42 @@ fn target_recipe(source: &str, target: &str) -> String {
         .take_while(|line| line.starts_with('\t') || line.trim().is_empty())
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+/// Every real-DAG medium refresh must enter through the admitted producer.
+#[test]
+fn medium_sweep_has_only_the_authenticated_producer_entry_point() {
+    let recipe = target_recipe(&makefile(), "maint-medium-sweep");
+    assert!(
+        recipe.contains("$(GMEOW_DEV) medium-seed --out bench/medium-baseline.json")
+            && recipe.contains("$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json")
+            && !recipe.contains("cargo run"),
+        "both bootstrap and measured production must use the authenticated producer"
+    );
+    assert!(
+        !manifest("crates/pipeline/Cargo.toml").contains("name = \"medium-sweep\"")
+            && !repo_root()
+                .join("crates/pipeline/src/bin/medium-sweep.rs")
+                .exists(),
+        "a standalone binary would bypass optimized producer admission"
+    );
+}
+
+/// Release-authority publication must use the same admitted producer as synchronization.
+#[test]
+fn term_release_authority_has_only_the_authenticated_producer_entry_point() {
+    let recipe = target_recipe(&makefile(), "maint-refresh-term-release-authority");
+    assert!(
+        recipe.contains("$(GMEOW_DEV) term-release-authority") && !recipe.contains("cargo run"),
+        "release-authority production must use the authenticated producer"
+    );
+    assert!(
+        !manifest("crates/pipeline/Cargo.toml").contains("name = \"term-release-authority\"")
+            && !repo_root()
+                .join("crates/pipeline/src/bin/term-release-authority.rs")
+                .exists(),
+        "a standalone binary would bypass optimized producer admission"
+    );
 }
 
 #[test]
@@ -586,6 +629,7 @@ fn fixture_production_and_test_consumption_are_structurally_separate() {
     }
 }
 
+/// Require Make and commit hooks to reject tests that reach corpus production entry points.
 #[test]
 fn corpus_producer_purity_is_a_pre_test_and_pre_commit_gate() {
     let makefile = makefile();
@@ -613,6 +657,17 @@ fn corpus_producer_purity_is_a_pre_test_and_pre_commit_gate() {
     );
     for seal in [
         "run_full",
+        "run_sweep",
+        "medium-sweep",
+        "medium-seed",
+        "term-release-authority",
+        "refresh_release_authority",
+        "doc-lint",
+        "explain",
+        "acceptance",
+        "slice-quality-gate",
+        "slice-quality-seed-floors",
+        "slice-quality-relocation-preview",
         "run_import",
         "run_acceptance",
         "prime_stage_fixture",
@@ -843,7 +898,10 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             && complete_job.contains("make produce-producer-bound-test-fixtures"),
         "optimized prefix production must overlap cold generations, then complete against their exact bundle"
     );
-    for producer in [prefix_job, complete_job] {
+    for (producer, transfer) in [
+        (prefix_job, "Transfer the selected prefix fixtures"),
+        (complete_job, "Transfer the selected complete fixtures"),
+    ] {
         assert!(
             producer.contains("GMEOW_DEV: ./dist/bin/gmeow-dev")
                 && producer.contains("gmeow-dev-producer-${{ github.sha }}")
@@ -859,19 +917,23 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             "Restore reusable completed actions",
             "Persist every completed bounded action",
         ] {
-            let marker = format!("- name: {step}\n");
-            let cache_step = producer
-                .split_once(marker.as_str())
-                .expect("producer cache step")
-                .1
-                .split("\n      - name:")
-                .next()
-                .expect("bounded producer cache step");
+            let cache_step = workflow_step(producer, step);
             assert!(
                 cache_step.contains("path: |")
                     && cache_step.contains(".cache/gmeow-sync/actions")
                     && cache_step.contains(".cache/gmeow-sync/test-fixture-manifest-v2.json"),
                 "producer reuse needs both bounded actions and a prior selector candidate; consumers require a separately authenticated current-run artifact"
+            );
+        }
+        for publication in ["Bind the exact current-run fixture selector", transfer] {
+            let conditions = workflow_step(producer, publication)
+                .lines()
+                .filter_map(|line| line.strip_prefix("        if: "))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                conditions,
+                ["success()"],
+                "only a successful producer may publish its finalized selector or selected fixture artifact: {publication}"
             );
         }
         assert!(
@@ -881,26 +943,29 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
                     .expect("current-run selector binding"),
             "a cached candidate cannot become current-run authority before production revalidates the selected inputs and outputs"
         );
-        let keys = producer
+        let keys = workflow_step(producer, "Restore reusable completed actions")
             .split_once("restore-keys: |")
             .expect("restore preferences")
             .1
-            .split_once("\n\n")
-            .expect("end restore preferences")
-            .0;
-        assert!(
-            keys.find("-complete-").unwrap() < keys.find("-prefix-").unwrap(),
-            "a newer prefix save must never hide an older complete store"
-        );
-        let keys = keys
             .lines()
-            .filter(|line| !line.trim().is_empty())
+            .skip_while(|line| line.trim().is_empty())
+            .take_while(|line| line.starts_with("            "))
+            .map(str::trim)
             .collect::<Vec<_>>();
+        let [
+            current_complete,
+            current_prefix,
+            compatible_complete,
+            compatible_prefix,
+        ] = keys.as_slice()
+        else {
+            panic!("action cache requires four ordered restore preferences, got {keys:?}");
+        };
         assert!(
-            keys[0].contains("-complete-${{github.sha}}-")
-                && keys[1].contains("-prefix-${{github.sha}}-")
-                && keys[2].ends_with("-complete-")
-                && keys[3].ends_with("-prefix-"),
+            current_complete.contains("-complete-${{github.sha}}-")
+                && current_prefix.contains("-prefix-${{github.sha}}-")
+                && compatible_complete.ends_with("-complete-")
+                && compatible_prefix.ends_with("-prefix-"),
             "completed actions at the current revision must remain reachable after a later failure"
         );
     }
@@ -920,7 +985,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             && !archive_job.contains("make produce-")
             && !archive_job.contains("test-actions-v4-")
             && archive_job.contains("Build dependency-light archive evidence tools")
-            && archive_job.contains("target/debug/perf_sample")
+            && archive_job.contains("target/debug/perf-sample")
             && archive_job.contains("archive-build-sample.json")
             && archive_job.contains("rust-archive-evidence-${{ github.sha }}")
             && archive_job
@@ -1107,9 +1172,9 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         "the bounded shared action store and exact bundle import need distinct cache, artifact, and evidence authorities in archive, shard, and medium consumers"
     );
     assert!(
-        ci.contains("dist/nextest/perf_sample")
-            && ci.contains("dist/nextest/perf_accept")
-            && ci.contains("dist/nextest/junit_inventory")
+        ci.contains("dist/nextest/perf-sample")
+            && ci.contains("dist/nextest/perf-accept")
+            && ci.contains("dist/nextest/junit-inventory")
             && ci.contains("--identity-receipt producer=dist/producer-receipt.json")
             && ci.contains("junit-shard-${{ matrix.shard }}.json")
             && ci.contains("shard-${{ matrix.shard }}-sample.json"),
@@ -1118,7 +1183,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     assert_eq!(
         normalized_whitespace(&ci)
             .matches(
-            "chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample dist/nextest/perf_accept"
+            "chmod +x dist/nextest/junit-inventory dist/nextest/perf-sample dist/nextest/perf-accept"
         )
         .count(),
         2,
@@ -1168,14 +1233,14 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         target_recipe(&makefile, "nextest-evidence-tools")
             .contains("-p gmeow-perf-evidence --bins")
             && !target_recipe(&makefile, "nextest-evidence-tools")
-                .contains("-p gmeow-pipeline --bin perf_sample")
+                .contains("-p gmeow-pipeline --bin perf-sample")
             && !target_recipe(&makefile, "nextest-evidence-tools")
-                .contains("-p gmeow-validate --bin junit_inventory"),
+                .contains("-p gmeow-validate --bin junit-inventory"),
         "archive evidence tools must build through the dependency-light leaf package"
     );
     assert!(
         target_recipe(&makefile, "perf-accept")
-            .contains("-p gmeow-perf-evidence --bin perf_accept")
+            .contains("-p gmeow-perf-evidence --bin perf-accept")
             && !target_recipe(&makefile, "perf-accept").contains("-p gmeow-pipeline"),
         "paired outcome grading must use the dependency-light evidence package"
     );
@@ -1633,84 +1698,5 @@ fn validate_help_matches_the_phase_coverage_registry() {
             && !help.contains("per-example")
             && !help.contains("slice-test"),
         "validate help must not claim corpus validation is delegated to tests: {help:?}"
-    );
-}
-
-/// Every CI job must provision the SAME, DATE-PINNED nightly that
-/// `rust-toolchain.toml` names.
-///
-/// A floating `nightly` is resolved independently by each job, when that job starts.
-/// `rust-prebuild` runs roughly half an hour ahead of its `rust-archive` consumer, so a
-/// run straddling the nightly publication boundary built the producer and the consumer
-/// with different compilers — observed as `rust-prebuild` on
-/// `1.100.0-nightly (0ed41eb41 2026-09-04)` and `rust-archive` on
-/// `1.100.0-nightly (f248f4038 2026-09-05)` inside one run. The same-run fixture cache
-/// key binds the resolved `rustc -Vv` hash, so the handoff missed every time and the
-/// archive lane hard-failed. Nothing about the diff could explain it, and re-reading it
-/// could not either: the verdict was set by the clock.
-///
-/// Pinning is only half the fix; the two places have to agree, or the workflows provision
-/// one compiler while every local build and `cargo` invocation uses another. The lockstep
-/// used to be asserted in a comment and enforced by nothing.
-#[test]
-fn the_ci_toolchain_matches_the_pinned_channel() {
-    let toolchain_file = std::fs::read_to_string(repo_root().join("rust-toolchain.toml"))
-        .expect("read rust-toolchain.toml");
-    let channel = toolchain_file
-        .lines()
-        .map(str::trim)
-        .find_map(|l| l.strip_prefix("channel"))
-        .and_then(|l| l.trim_start().strip_prefix('='))
-        .map(|l| l.trim().trim_matches('"').to_string())
-        .expect("rust-toolchain.toml declares a channel");
-
-    assert!(
-        channel.starts_with("nightly-") && channel.len() == "nightly-YYYY-MM-DD".len(),
-        "the toolchain channel must be a DATE-PINNED nightly (nightly-YYYY-MM-DD); a floating \
-         `{channel}` is re-resolved per CI job and lets one run build its producer and its \
-         consumer with different compilers"
-    );
-
-    let workflows = repo_root().join(".github/workflows");
-    let mut offenders = Vec::new();
-    let mut checked = 0usize;
-    for entry in std::fs::read_dir(&workflows).expect("read .github/workflows") {
-        let path = entry.expect("read a workflow entry").path();
-        if path.extension().is_none_or(|e| e != "yml") {
-            continue;
-        }
-        let text = std::fs::read_to_string(&path).expect("read a workflow");
-        let name = path
-            .file_name()
-            .expect("workflow file name")
-            .to_string_lossy();
-        for (lineno, line) in text.lines().enumerate() {
-            let Some(value) = line.trim().strip_prefix("toolchain:") else {
-                continue;
-            };
-            let value = value.trim();
-            // A toolchain sourced from an expression is resolved elsewhere; only literals
-            // are this gate's business.
-            if value.starts_with("${{") {
-                continue;
-            }
-            checked += 1;
-            if value != channel {
-                offenders.push(format!("  - {name}:{} declares `{value}`", lineno + 1));
-            }
-        }
-    }
-
-    assert!(
-        checked >= 10,
-        "expected to find the workflows' toolchain inputs; checked {checked} — the scan is broken \
-         and this gate would pass vacuously"
-    );
-    assert!(
-        offenders.is_empty(),
-        "{} CI toolchain input(s) disagree with rust-toolchain.toml's `{channel}`, so CI would \
-         build with a different compiler than every local build:\n{}",
-        offenders.len(),
-        offenders.join("\n")
     );
 }

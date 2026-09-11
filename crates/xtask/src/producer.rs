@@ -23,10 +23,12 @@ type Result<T> = gmeow_errors::Result<T>;
 const TARGET_FLAGS: &str = "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS";
 const CONTRACT_ENV: &str = "GMEOW_PRODUCER_BUILD_CONTRACT";
 
+/// Attach producer-build context to the shared typed evidence diagnostic.
 fn fail(error: impl std::fmt::Display) -> Diag {
     crate::evidence::failure(format!("producer build: {error}"))
 }
 
+/// Dispatch a producer operation, printing typed failures and returning its exit status.
 pub(super) fn command(args: Vec<String>) -> ExitCode {
     let result = execute(&args);
     match result {
@@ -38,6 +40,11 @@ pub(super) fn command(args: Vec<String>) -> ExitCode {
     }
 }
 
+/// Resolve the admitted recipe and execute the selected build, verify, recipe, or run operation.
+///
+/// Verification never compiles. Build and run elect one builder, authenticate any
+/// staged pair, and rebuild an authenticated stale recipe or an absent receipt.
+/// Release the election lock before running the staged producer command.
 fn execute(args: &[String]) -> Result<ExitCode> {
     let root = crate::workspace_root();
     let Some(operation) = args.first() else {
@@ -76,11 +83,12 @@ fn execute(args: &[String]) -> Result<ExitCode> {
         .open(parent.join(".producer-build.lock"))
         .map_err(fail)?;
     election.lock().map_err(fail)?;
+    // A fresh hit already authenticates the executable bytes and complete recipe.
     let fresh = staged_is_fresh(&staged, &receipt_path, &recipe)?;
     if !fresh {
         build(&root, &staged, &receipt_path, &recipe)?;
+        verify(&staged, &receipt_path, &recipe)?;
     }
-    verify(&staged, &receipt_path, &recipe)?;
     election.unlock().map_err(fail)?;
     if operation == "run" {
         let status = Command::new(&staged)
@@ -95,6 +103,7 @@ fn execute(args: &[String]) -> Result<ExitCode> {
     Ok(ExitCode::SUCCESS)
 }
 
+/// Capture a command's UTF-8 stdout, rejecting launch failure or an unsuccessful exit.
 fn checked_output(mut command: Command) -> Result<String> {
     let output = command.output().map_err(fail)?;
     if !output.status.success() {
@@ -103,16 +112,23 @@ fn checked_output(mut command: Command) -> Result<String> {
     String::from_utf8(output.stdout).map_err(fail)
 }
 
+/// Read a tool's trimmed identity output using the supplied version or configuration arguments.
 fn identity(program: &str, args: &[&str]) -> Result<String> {
     let mut command = Command::new(program);
     command.args(args);
     Ok(checked_output(command)?.trim().to_owned())
 }
 
+/// Select Cargo from its explicit environment binding, or use normal executable discovery.
 fn cargo_program() -> OsString {
     std::env::var_os("CARGO").unwrap_or_else(|| OsString::from("cargo"))
 }
 
+/// Resolve rustflags in Cargo environment precedence, then reject competing codegen policy.
+///
+/// Use encoded flags first, then generic or target-specific flags, and finally
+/// Cargo's resolved x86-64 Linux target configuration. Missing or malformed
+/// configuration is an error.
 fn configured_flags(root: &Path) -> Result<Vec<String>> {
     let flags = if let Ok(encoded) = std::env::var("CARGO_ENCODED_RUSTFLAGS") {
         encoded.split('\u{1f}').map(str::to_owned).collect()
@@ -147,6 +163,10 @@ fn configured_flags(root: &Path) -> Result<Vec<String>> {
     Ok(flags)
 }
 
+/// Reject caller flags that override the producer's optimization or runtime-check policy.
+///
+/// Accept unrelated diagnostics and linker flags; the builder separately supplies
+/// its selected CPU and final symbol-stripping policy.
 fn validate_flags(flags: &[String]) -> Result<()> {
     for flag in flags {
         if flag == "-g"
@@ -178,6 +198,10 @@ fn validate_flags(flags: &[String]) -> Result<()> {
     Ok(())
 }
 
+/// Prepare a locked pipeline-profile Cargo build with admitted Rust and native flags.
+///
+/// Force the selected C/C++ settings and symbol stripping while selecting only the
+/// developer producer binary. The returned command has not been executed.
 fn cargo_build(root: &Path, flags: &str, native_flags: &str) -> Command {
     let mut command = Command::new(cargo_program());
     command
@@ -206,6 +230,11 @@ fn cargo_build(root: &Path, flags: &str, native_flags: &str) -> Command {
     command
 }
 
+/// Resolve and validate the producer's source, toolchain, flags, and runtime unit graph.
+///
+/// CI selects portable x86-64-v3 code; local builds bind native CPU identity.
+/// Reject competing native overrides or weakened runtime profiles before creating
+/// the recipe used for executable authentication and action compilation policy.
 fn resolve_recipe(root: &Path) -> Result<ExecutableRecipe> {
     for (name, _) in std::env::vars() {
         if name.starts_with("CFLAGS_")
@@ -325,6 +354,10 @@ fn resolve_recipe(root: &Path) -> Result<ExecutableRecipe> {
     })
 }
 
+/// Encode the first processor's model and feature fields in deterministic key order.
+///
+/// Require all six x86 identity fields from `/proc/cpuinfo`; incomplete host data
+/// cannot identify a native-tuned producer.
 fn native_cpu_identity() -> Result<String> {
     let cpuinfo = std::fs::read_to_string("/proc/cpuinfo").map_err(fail)?;
     let mut fields = BTreeMap::new();
@@ -349,12 +382,14 @@ fn native_cpu_identity() -> Result<String> {
     serde_json::to_string(&fields).map_err(fail)
 }
 
+/// Borrow a required string field from a Cargo unit, rejecting a missing or wrong-typed value.
 fn string<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
     value[key]
         .as_str()
         .ok_or_else(|| fail(format!("missing Cargo unit {key}")))
 }
 
+/// Read a Cargo string array without coercing or dropping malformed entries.
 fn strings(value: &Value) -> Result<Vec<String>> {
     value
         .as_array()
@@ -368,6 +403,7 @@ fn strings(value: &Value) -> Result<Vec<String>> {
         .collect()
 }
 
+/// Read a nonnegative Cargo unit index that fits the host's address space.
 fn index(value: &Value) -> Result<usize> {
     value
         .as_u64()
@@ -375,6 +411,7 @@ fn index(value: &Value) -> Result<usize> {
         .ok_or_else(|| fail("invalid Cargo unit index"))
 }
 
+/// Read every Cargo root index, rejecting absent arrays or invalid members.
 fn indices(value: &Value) -> Result<Vec<usize>> {
     value
         .as_array()
@@ -384,6 +421,11 @@ fn indices(value: &Value) -> Result<Vec<usize>> {
         .collect()
 }
 
+/// Require each reachable runtime unit to satisfy the optimized pipeline profile.
+///
+/// Workspace units retain assertions and overflow checks; dependency units retain
+/// their separate check policy. Host build scripts and procedural macros are not
+/// runtime units. Empty roots and dangling runtime dependencies fail admission.
 fn validate_units(units: &[CompilationUnit], roots: &[usize]) -> Result<()> {
     if roots.is_empty() {
         return Err(fail("producer graph has no executable root"));
@@ -427,6 +469,10 @@ fn validate_units(units: &[CompilationUnit], roots: &[usize]) -> Result<()> {
     Ok(())
 }
 
+/// Authenticate the staged bytes against a receipt with the exact currently resolved recipe.
+///
+/// A missing, malformed, stale, or substituted artifact is an error; this read-only
+/// operation never rebuilds or repairs either file.
 fn verify(binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()> {
     let receipt = ExecutableReceipt::read(path).map_err(fail)?;
     if &receipt.recipe != expected {
@@ -439,7 +485,7 @@ fn verify(binary: &Path, path: &Path, expected: &ExecutableRecipe) -> Result<()>
         .map_err(fail)
 }
 
-/// An interrupted first publication can leave a binary without its receipt.
+/// An interrupted first publication or replacement can leave a binary without its receipt.
 /// It is a build miss, never an executable that can be reused or run. Once a
 /// receipt exists, corrupt or substituted bytes continue to fail closed.
 fn staged_is_fresh(staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe) -> Result<bool> {
@@ -453,6 +499,27 @@ fn staged_is_fresh(staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe
     Ok(&receipt.recipe == recipe)
 }
 
+/// Retire the prior receipt before replacing its executable under the builder election lock.
+///
+/// The caller authenticates any existing pair before building and publishes a new
+/// receipt after this replacement. An interruption or rename failure leaves no
+/// receipt, so a later builder recomputes instead of confusing old evidence with
+/// substituted bytes. Other receipt-removal errors leave the executable untouched.
+fn replace_staged_executable(temporary: &Path, staged: &Path, receipt_path: &Path) -> Result<()> {
+    match std::fs::remove_file(receipt_path) {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(fail(error)),
+    }
+    std::fs::rename(temporary, staged).map_err(fail)
+}
+
+/// Compile the admitted recipe and publish its executable with a matching receipt.
+///
+/// Re-resolve inputs after compilation and probe the linked identity before
+/// publication. Hash the prepared copy, retire the prior receipt, replace the
+/// executable, then atomically publish its receipt. Any compile, freshness,
+/// identity, or publication error fails.
 fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRecipe) -> Result<()> {
     let environment = &recipe.compiler_environment;
     let mut command = cargo_build(
@@ -512,14 +579,13 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     .map_err(fail)?;
     let temporary = staged.with_extension(format!("tmp-{}", std::process::id()));
     std::fs::copy(&built, &temporary).map_err(fail)?;
-    std::fs::rename(&temporary, staged).map_err(fail)?;
-    ExecutableReceipt {
+    let receipt = ExecutableReceipt {
         schema: 1,
         recipe: recipe.clone(),
-        executable_sha256: sha256_file(staged).map_err(fail)?,
-    }
-    .write(receipt_path)
-    .map_err(fail)?;
+        executable_sha256: sha256_file(&temporary).map_err(fail)?,
+    };
+    replace_staged_executable(&temporary, staged, receipt_path)?;
+    receipt.write(receipt_path).map_err(fail)?;
     println!("optimized producer staged at {}", staged.display());
     Ok(())
 }
@@ -529,6 +595,7 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    /// Create an admitted synthetic runtime unit with the selected workspace check policy.
     fn runtime_unit(workspace: bool) -> CompilationUnit {
         CompilationUnit {
             package: if workspace {
@@ -552,12 +619,9 @@ mod tests {
         }
     }
 
-    #[test]
-    fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
-        let scratch = tempfile::tempdir().expect("scratch");
-        let binary = scratch.path().join("gmeow-dev");
-        let path = binary.with_extension("receipt.json");
-        let recipe = ExecutableRecipe {
+    /// Supply a tiny recipe for publication tests without resolving tools or repository inputs.
+    fn publication_recipe() -> ExecutableRecipe {
+        ExecutableRecipe {
             schema: 1,
             profile: "pipeline".into(),
             source_digest: "source".into(),
@@ -566,7 +630,16 @@ mod tests {
             compiler_environment: BTreeMap::new(),
             units: Vec::new(),
             roots: Vec::new(),
-        };
+        }
+    }
+
+    /// Treat an absent receipt as a build miss; reject substituted or missing receipted bytes.
+    #[test]
+    fn interrupted_publication_is_a_miss_but_present_receipts_must_authenticate() {
+        let scratch = tempfile::tempdir().expect("scratch");
+        let binary = scratch.path().join("gmeow-dev");
+        let path = binary.with_extension("receipt.json");
+        let recipe = publication_recipe();
         assert!(!staged_is_fresh(&binary, &path, &recipe).expect("empty build miss"));
         std::fs::write(&binary, b"linked executable").expect("binary");
         assert!(!staged_is_fresh(&binary, &path, &recipe).expect("unreceipted build miss"));
@@ -581,12 +654,61 @@ mod tests {
         let mut changed = recipe.clone();
         changed.source_digest = "changed source".into();
         assert!(!staged_is_fresh(&binary, &path, &changed).expect("stale build miss"));
+        assert!(verify(&binary, &path, &changed).is_err());
         std::fs::write(&binary, b"substituted bytes").expect("replace");
         assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
         std::fs::remove_file(&binary).expect("remove binary");
         assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
+        std::fs::write(&binary, b"linked executable").expect("restore binary");
+        std::fs::write(&path, b"malformed receipt").expect("corrupt receipt");
+        assert!(staged_is_fresh(&binary, &path, &recipe).is_err());
     }
 
+    /// Recover an interrupted replacement of an authenticated pair through an unreceipted miss.
+    #[test]
+    fn interrupted_replacement_retires_old_receipt_before_publishing_new_bytes() {
+        let scratch = tempfile::tempdir().expect("scratch");
+        let binary = scratch.path().join("gmeow-dev");
+        let path = binary.with_extension("receipt.json");
+        let temporary = binary.with_extension("prepared");
+        let old_recipe = publication_recipe();
+        std::fs::write(&binary, b"old executable").expect("old binary");
+        ExecutableReceipt {
+            schema: 1,
+            recipe: old_recipe.clone(),
+            executable_sha256: sha256_file(&binary).expect("old digest"),
+        }
+        .write(&path)
+        .expect("old receipt");
+        assert!(staged_is_fresh(&binary, &path, &old_recipe).expect("old authenticated pair"));
+
+        let mut new_recipe = old_recipe;
+        new_recipe.source_digest = "new source".into();
+        std::fs::write(&temporary, b"new executable").expect("prepared replacement");
+        replace_staged_executable(&temporary, &binary, &path).expect("replace executable");
+        // Stop at the actual production boundary before the new receipt is published.
+        assert_eq!(
+            std::fs::read(&binary).expect("new bytes"),
+            b"new executable"
+        );
+        assert!(!path.exists(), "old evidence must not survive replacement");
+        assert!(!staged_is_fresh(&binary, &path, &new_recipe).expect("recoverable build miss"));
+        assert!(verify(&binary, &path, &new_recipe).is_err());
+
+        std::fs::write(&temporary, b"new executable").expect("prepared retry");
+        replace_staged_executable(&temporary, &binary, &path).expect("retry without a receipt");
+        ExecutableReceipt {
+            schema: 1,
+            recipe: new_recipe.clone(),
+            executable_sha256: sha256_file(&binary).expect("new digest"),
+        }
+        .write(&path)
+        .expect("new receipt");
+        verify(&binary, &path, &new_recipe).expect("recovered authenticated pair");
+        assert!(staged_is_fresh(&binary, &path, &new_recipe).expect("recovered fresh hit"));
+    }
+
+    /// Reject weakened dependency optimization and disabled workspace runtime checks.
     #[test]
     fn runtime_dependency_policy_is_checked_transitively() {
         let mut root = runtime_unit(true);
@@ -618,6 +740,7 @@ mod tests {
         }
     }
 
+    /// Permit a host macro's distinct build profile without admitting the same profile for runtime code.
     #[test]
     fn host_build_tools_are_separate_from_runtime_code() {
         let mut root = runtime_unit(true);
@@ -630,6 +753,7 @@ mod tests {
         assert!(validate_units(&[root, build_tool], &[0]).is_err());
     }
 
+    /// Reject alternate codegen flag spellings while retaining unrelated warning and linker settings.
     #[test]
     fn rustflags_cannot_override_admitted_codegen_policy() {
         for flags in [
@@ -649,6 +773,7 @@ mod tests {
             .expect("non-competing flags");
     }
 
+    /// Track runtime sources and added embedded queries while excluding workflow-only edits.
     #[test]
     fn producer_inventory_tracks_embedded_queries_and_runtime_dependencies() {
         // Synthetic source tree only: inventory discovery must never invoke a

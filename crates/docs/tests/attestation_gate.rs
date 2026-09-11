@@ -6,6 +6,7 @@
 
 use gmeow_docs::vendored_asset::check_capability_attestations;
 
+/// Require each advertised interactive capability to have current backing evidence.
 #[test]
 fn every_interactive_capability_has_a_current_attestation() {
     let errors = check_capability_attestations(&repo_root());
@@ -16,6 +17,7 @@ fn every_interactive_capability_has_a_current_attestation() {
     );
 }
 
+/// Check every registered engine witness without maintaining a second asset list.
 #[test]
 fn each_witnessed_engine_attestation_is_present_and_current() {
     // The ONE registry, not a copy of it: a fifth engine added to the renderer must be
@@ -27,10 +29,12 @@ fn each_witnessed_engine_attestation_is_present_and_current() {
     }
 }
 
+/// Resolve this test crate's checkout for read-only asset verification.
 fn repo_root() -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+/// Reject missing witnesses in the selected checkout even when the build tree has assets.
 #[test]
 fn selected_checkout_with_missing_assets_cannot_use_compiled_checkout_attestations() {
     let root = tempfile::tempdir().expect("selected checkout");

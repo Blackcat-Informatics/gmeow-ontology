@@ -154,9 +154,9 @@ NEXTEST_ARCHIVE_REPLAY_ARGS = $(if $(NEXTEST_ARCHIVE_INPUT),--archive-file "$(NE
 NEXTEST_SHARDS ?= 3
 NEXTEST_FILTER ?=
 NEXTEST_FILTER_ARG := $(if $(NEXTEST_FILTER),-E '$(NEXTEST_FILTER)',)
-NEXTEST_JUNIT_INVENTORY ?= dist/nextest/junit_inventory
-NEXTEST_PERF_SAMPLE ?= dist/nextest/perf_sample
-NEXTEST_PERF_ACCEPT ?= dist/nextest/perf_accept
+NEXTEST_JUNIT_INVENTORY ?= dist/nextest/junit-inventory
+NEXTEST_PERF_SAMPLE ?= dist/nextest/perf-sample
+NEXTEST_PERF_ACCEPT ?= dist/nextest/perf-accept
 # mdBook is presentation-only LANE TOOLING: it is installed under the ignored local cache
 # by `maint-mdbook-smoke`, never added to Cargo.toml/Cargo.lock, never linked by the
 # pipeline, and never invoked by `make check` or `make heavy`.
@@ -629,12 +629,21 @@ verify-bundle-import-test-fixture: ## Authenticate only the exact generated-bund
 nextest: rust-build verify-test-fixtures ## Run the Rust workspace test suite on the gate profile without any corpus producer path.
 	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG) $(NEXTEST_FILTER_ARG)
 
+.PHONY: nextest-synthetic
+nextest-synthetic: test-corpus-purity ## Run an explicit NEXTEST_FILTER over synthetic tests without admitting any corpus fixture; development only.
+	@test -n "$(strip $(NEXTEST_FILTER))" || { echo "NEXTEST_FILTER is required for nextest-synthetic"; exit 2; }
+	@# This diagnostic selection uses the producer-independent workspace build graph.
+	@# It grants no corpus access: selected corpus consumers fail in their authenticated
+	@# loader even if the invoking shell carried credentials from a previous full run.
+	env -u GMEOW_TEST_FIXTURE_MANIFEST -u GMEOW_TEST_FIXTURE_MANIFEST_SHA256 \
+	  cargo nextest run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS) $(NEXTEST_FILTER_ARG) --no-tests=fail
+
 nextest-evidence-tools: ## Build the exact report-only resource/JUnit tools shipped beside the test archive.
 	mkdir -p $(dir $(NEXTEST_ARCHIVE))
 	cargo build --profile test -p gmeow-perf-evidence --bins
-	cp $(CARGO_TARGET_DIR)/debug/junit_inventory $(NEXTEST_JUNIT_INVENTORY)
-	cp $(CARGO_TARGET_DIR)/debug/perf_sample $(NEXTEST_PERF_SAMPLE)
-	cp $(CARGO_TARGET_DIR)/debug/perf_accept $(NEXTEST_PERF_ACCEPT)
+	cp $(CARGO_TARGET_DIR)/debug/junit-inventory $(NEXTEST_JUNIT_INVENTORY)
+	cp $(CARGO_TARGET_DIR)/debug/perf-sample $(NEXTEST_PERF_SAMPLE)
+	cp $(CARGO_TARGET_DIR)/debug/perf-accept $(NEXTEST_PERF_ACCEPT)
 
 nextest-archive: rust-build nextest-evidence-tools verify-test-fixtures ## Build one authenticated CI-profile nextest archive after read-only fixture verification.
 	mkdir -p $(dir $(NEXTEST_ARCHIVE))
@@ -688,7 +697,7 @@ wasm: ## Prove gmeow's wasm-clean crates (logic-compile + Tier-1 validator + rea
 			fi; \
 		done; \
 		echo "== validator proof: gmeow-validate (Tier-1 core) + gmeow-validate-wasm (Tier-1 SHACL + the GMN-1 codec validator) build for wasm32 =="; \
-		: "Build the Tier-1 library surface, not the package's native-only junit_inventory CI evidence binary."; \
+		: "Build the Tier-1 library surface, not the package's native-only junit-inventory CI evidence binary."; \
 		$(WASM_CARGO) build -p gmeow-validate --lib --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate library does not build for wasm32-unknown-unknown"; exit 1; }; \
 		: "gmeow-validate-wasm now also carries the GMN-1 validator (gmn_validate: gmn1_read against the embedded codebook). Its build pulls gmeow-lang-bridge's codec + dictionary; the codec path is reasoner-free and its tiktoken-rs glyph-cost analytics are cfg(not(wasm32))-gated off, so this same build proves the GMN path compiles wasm-clean."; \
 		$(WASM_CARGO) build -p gmeow-validate-wasm --target wasm32-unknown-unknown || { echo "FAIL: gmeow-validate-wasm does not build for wasm32-unknown-unknown"; exit 1; }; \
@@ -1167,14 +1176,14 @@ perf-gate: ## Report-only timings for validate, generated drift, reason, and ver
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
 	$(MAKE) check-sync SYNC_MODE=check SYNC_TIMINGS_JSON=$(PERF_DIR)/sync.json
 	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
-	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
+	cargo run -q -p gmeow-pipeline --bin perf-gate-merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
 
 perf-sample: ## Record one exact paired wall/CPU/RSS/I/O sample (PERF_SAMPLE_ARGS required).
-	cargo run -q -p gmeow-perf-evidence --bin perf_sample -- $(PERF_SAMPLE_ARGS)
+	cargo run -q -p gmeow-perf-evidence --bin perf-sample -- $(PERF_SAMPLE_ARGS)
 
 perf-accept: ## Grade 3-5 paired cold/warm/partial samples against the predeclared 2x contract.
-	cargo run -q -p gmeow-perf-evidence --bin perf_accept -- $(PERF_ACCEPT_ARGS)
+	cargo run -q -p gmeow-perf-evidence --bin perf-accept -- $(PERF_ACCEPT_ARGS)
 
 perf-ci-receipt: ## Capture one successful Actions run's actual job graph and critical path.
 	./scripts/ci-run-receipt.sh $(CI_RUN_RECEIPT_ARGS)
@@ -1250,22 +1259,24 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
 
-maint-bench-instructions: ## (maintainer) Deterministic retired-instruction counts for the engines via iai-callgrind under Valgrind (off-gate corroboration; NOT wired into `make check`).
-	@# iai-callgrind measures RETIRED INSTRUCTIONS under Valgrind Callgrind — a
+maint-bench-instructions: ## (maintainer) Deterministic retired-instruction counts for the engines via Gungraun under Valgrind (off-gate corroboration; NOT wired into `make check`).
+	@# Gungraun measures RETIRED INSTRUCTIONS under Valgrind Callgrind — a
 	@# machine-independent, run-to-run stable metric that corroborates the on-gate
 	@# steps+alloc+peak-live cost gate. It is off-gate because it needs Valgrind and
 	@# the out-of-tree runner; per the measurement doctrine, instruction-count is
 	@# CORROBORATION, not the gate. HARD FAIL (no silent skip) if either tool is
-	@# absent — the version below MUST match the iai-callgrind dev-dep in
-	@# crates/logic/Cargo.toml.
+	@# absent — the version below MUST match the gungraun dev-dep in
+	@# crates/logic/Cargo.toml and crates/validate/Cargo.toml.
 	@command -v valgrind >/dev/null 2>&1 || { \
-	  echo "ERROR: valgrind not found — it is REQUIRED for maint-bench-instructions (iai-callgrind drives Valgrind Callgrind)."; \
+	  echo "ERROR: valgrind not found — it is REQUIRED for maint-bench-instructions (gungraun drives Valgrind Callgrind)."; \
 	  echo "  Install it, e.g.: Arch: 'sudo pacman -S valgrind'; Debian/Ubuntu: 'sudo apt-get install valgrind'; Fedora: 'sudo dnf install valgrind'."; \
 	  exit 1; }
-	@command -v iai-callgrind-runner >/dev/null 2>&1 || { \
-	  echo "ERROR: iai-callgrind-runner not found — it is REQUIRED for maint-bench-instructions and must match the pinned iai-callgrind dev-dep."; \
-	  echo "  Install it with: cargo install iai-callgrind-runner --version 0.16.1"; \
+	@command -v gungraun-runner >/dev/null 2>&1 || { \
+	  echo "ERROR: gungraun-runner not found — it is REQUIRED for maint-bench-instructions and must match the pinned gungraun dev-dep."; \
+	  echo "  Install it with: cargo install gungraun-runner --version 0.19.4"; \
 	  exit 1; }
+	@# Gungraun stores measurements in the Cargo target directory under
+	@# gungraun/<package>/<benchmark>/; each benchmark retains its own history.
 	@# Give Valgrind line tables to symbolize WITHOUT touching the committed
 	@# no-debug-symbol profiles: override strip/debug for THIS invocation only via
 	@# env, so DWARF is not persisted into the checked-in bench profile.
@@ -1276,11 +1287,11 @@ maint-bench-instructions: ## (maintainer) Deterministic retired-instruction coun
 	@# defeats the whole point), and a host AVX-512 build makes Valgrind SIGILL on
 	@# newer CPUs. Same portable floor the CI/release workflows use.
 	CARGO_PROFILE_BENCH_STRIP=none CARGO_PROFILE_BENCH_DEBUG=line-tables-only \
-	  cargo --config .cargo/bench-portable.toml bench -p gmeow-logic --bench engines_iai
+	  cargo --config .cargo/bench-portable.toml bench -p gmeow-logic --bench engines_instructions
 	@# The whole-ontology-union conformance cost-partition: setup S vs per-twin scan
 	@# V, in retired instructions. Grounds the off-gate decision deterministically.
 	CARGO_PROFILE_BENCH_STRIP=none CARGO_PROFILE_BENCH_DEBUG=line-tables-only \
-	  cargo --config .cargo/bench-portable.toml bench -p gmeow-validate --bench conformance_union_cost_iai
+	  cargo --config .cargo/bench-portable.toml bench -p gmeow-validate --bench conformance_union_cost_instructions
 	@# The allocation half of the same partition (bytes / alloc count / peak-live).
 	@# Needs NO Valgrind — the counts are host-independent — so it always runs.
 	cargo bench -p gmeow-validate --bench conformance_union_cost_alloc
@@ -1355,8 +1366,8 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# overwritten by the real sweep on the next line; a committed seed is refused by
 	@# `the_committed_winner_table_carries_real_measurements`.
 	@test -f bench/medium-baseline.json || \
-	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
-	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
+	  $(GMEOW_DEV) medium-seed --out bench/medium-baseline.json
+	$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json
 	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
 
 maint-refresh-term-release-authority: ## (maintainer) Advance the computed term-changelog authority at an accepted release boundary.
@@ -1364,7 +1375,7 @@ maint-refresh-term-release-authority: ## (maintainer) Advance the computed term-
 	@# It first renders the current manifest against the old authority, then proves
 	@# that promoting that result is a fixed point. Ordinary sync only consumes the
 	@# tracked evidence and can never advance semantic history from ignored generated/.
-	cargo run -q -p gmeow-pipeline --bin term-release-authority -- .
+	$(GMEOW_DEV) term-release-authority
 
 maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
 	@# WHAT IT COMPARES, exactly: the set of paths the declared GMN-dialect predicate

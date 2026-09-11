@@ -8,7 +8,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-readme = "README.md"
 keywords = ["rdf", "rdf-star", "reasoning", "knowledge-graph"]
 
 [lib]
@@ -141,18 +140,17 @@ gmeow-cost-measure = { path = "../cost-measure" }
 # Test bundles still pass through the mandatory GMEOW authorship profile; the import
 # cache itself is a reader and keeps no production writer edge.
 gmeow-gts-profile = { path = "../gts-profile" }
-# iai-callgrind: the DETERMINISTIC instruction-count backend for the engine bench
-# (benches/engines_iai.rs). It counts retired instructions under Valgrind Callgrind
-# — a machine-independent, run-to-run stable metric — as external corroboration for
+# Gungraun: the DETERMINISTIC instruction-count backend for the engine bench
+# (benches/engines_instructions.rs). It counts retired instructions under Valgrind
+# Callgrind — a machine-independent, run-to-run stable metric — as corroboration for
 # the on-gate steps+alloc+peak-live cost gate. MAINT-ONLY: it needs the `valgrind`
-# binary and the out-of-tree `iai-callgrind-runner` (installed via
-# `cargo install iai-callgrind-runner --version 0.16.1`, which MUST match this pin),
+# binary and the out-of-tree `gungraun-runner` (installed via
+# `cargo install gungraun-runner --version 0.19.4`, which MUST match this pin),
 # so it is wired only into `make maint-bench-instructions`, never `make check`.
-# Default features only (the `#[library_benchmark]` / `main!` surface, which the
-# crate gates behind its `default` feature): the heavier `client_requests` /
-# `cachegrind` sets stay off, so the dev-dep surface (and its build RAM) is minimal
-# — same build-RAM rationale as the criterion pin above.
-iai-callgrind = "0.16.1"
+# The default `benchmark` feature supplies `#[library_benchmark]` / `main!`.
+# The extra `client_requests` and `cachegrind` features stay off, retaining the
+# instruction-only harness dependency surface.
+gungraun = "=0.19.4"
 # memmap2 + tempfile: the PURREMB relation-provider matrix asserts heap-backed
 # (Vec<u8>) vs memory-mapped artifact bytes yield byte-identical dispatch answers.
 # The immutable-mmap path is the module's documented borrow-stability case; the
@@ -181,7 +179,7 @@ name = "reason"
 harness = false
 
 [[bench]]
-name = "engines_iai"
+name = "engines_instructions"
 harness = false
 
 # Advisory-only wall-clock baseline for the verified PURREMB retrieval scan. The on-gate

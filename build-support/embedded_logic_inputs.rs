@@ -6,6 +6,15 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+/// Index every shared and slice-owned verify query by its unique file stem.
+///
+/// The same sorted inventory feeds compile-time embedding and runtime source
+/// admission, so adding a slice query changes the producer identity.
+///
+/// # Panics
+///
+/// Panics on unreadable directories, non-UTF-8 or duplicate query stems, or an
+/// empty inventory.
 pub fn verify_queries(workspace: &Path) -> BTreeMap<String, PathBuf> {
     let mut queries = BTreeMap::new();
     collect_queries(&workspace.join("queries/verify"), &mut queries);
@@ -17,6 +26,7 @@ pub fn verify_queries(workspace: &Path) -> BTreeMap<String, PathBuf> {
     queries
 }
 
+/// List a directory in deterministic path order, failing on unreadable entries.
 fn children(directory: &Path) -> Vec<PathBuf> {
     let mut paths = std::fs::read_dir(directory)
         .unwrap_or_else(|error| panic!("read {}: {error}", directory.display()))
@@ -26,6 +36,7 @@ fn children(directory: &Path) -> Vec<PathBuf> {
     paths
 }
 
+/// Add this directory's `.rq` files, rejecting duplicate or non-UTF-8 stems.
 fn collect_queries(directory: &Path, queries: &mut BTreeMap<String, PathBuf>) {
     for path in children(directory) {
         if path.extension().is_some_and(|extension| extension == "rq") {
@@ -45,6 +56,7 @@ fn collect_queries(directory: &Path, queries: &mut BTreeMap<String, PathBuf>) {
     }
 }
 
+/// Recursively include every slice's local `queries/verify` directory.
 fn collect_slices(directory: &Path, queries: &mut BTreeMap<String, PathBuf>) {
     for path in children(directory) {
         if path.is_dir() {

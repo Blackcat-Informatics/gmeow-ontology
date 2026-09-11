@@ -291,6 +291,31 @@ fn stream_report(reporter: &dyn Reporter, report: &RunReport, include_timings: b
     reporter.report(&diagnostics.normalized());
 }
 
+/// Report all collected diagnostics and enforce the native producer verdict.
+/// Every CLI producer uses this before accepting, exporting or signing output.
+pub(crate) fn accept_pipeline_report(
+    reporter: &dyn Reporter,
+    report: &RunReport,
+    include_timings: bool,
+) -> Result<(), i32> {
+    stream_report(reporter, report, include_timings);
+    if report.is_clean() {
+        return Ok(());
+    }
+    for path in &report.drifted {
+        gmeow_cli_core::note(
+            reporter,
+            "gmeow-dev",
+            "gmeow-dev.sync.drift",
+            format!("drift {path}"),
+        );
+    }
+    Err(fail(format!(
+        "pipeline failed its diagnostic/drift gate ({} drifted artifacts)",
+        report.drifted.len()
+    )))
+}
+
 /// `gmeow-dev sync`: update locally, check in CI, and produce all projections by default.
 #[allow(clippy::too_many_arguments)]
 pub fn sync(
@@ -428,20 +453,8 @@ pub fn sync(
         Ok(report) => report,
         Err(e) => return fail(format!("sync pipeline failed: {e}")),
     };
-    stream_report(reporter.as_ref(), &report, !verbose);
-    if !report.drifted.is_empty() {
-        for path in &report.drifted {
-            gmeow_cli_core::note(
-                reporter.as_ref(),
-                "gmeow-dev",
-                "gmeow-dev.sync.drift",
-                format!("drift {path}"),
-            );
-        }
-        return fail(format!(
-            "sync found {} drifted artifact(s)",
-            report.drifted.len()
-        ));
+    if let Err(code) = accept_pipeline_report(reporter.as_ref(), &report, !verbose) {
+        return code;
     }
 
     if let Err(e) = reconcile_owned_tree(

@@ -153,6 +153,7 @@ fn produce(
         .unwrap_or(1);
     let mut stage_observations = Vec::new();
     let mut stage_manifest_observation = None;
+    let mut docs_selector = None;
 
     // Run the repository verdict in a fresh process footprint, before docs and hydrated
     // stage products have populated allocator arenas. The verdict's own scheduler is
@@ -204,6 +205,7 @@ fn produce(
             prime.action_count, prime.built, prime.receipt_hits, prime.parallelism
         );
         println!("test fixture producer: phase=docs state=complete");
+        docs_selector = Some(prime.selector);
         Some(serde_json::json!({
             "fixture": "docs",
             "elapsed_ms": docs_started.elapsed().as_millis(),
@@ -423,18 +425,19 @@ fn produce(
     } else {
         None
     };
-    let (bundle_observation, finalized_selector) =
-        if let Some((observation, selector)) = bundle_phase {
-            let finalized = publish_bundle_fixture_selector(root, &selector)?;
-            println!(
-                "test fixture selector finalized: path={} sha256={}",
-                finalized.path.display(),
-                finalized.sha256,
-            );
-            (Some(observation), Some(finalized))
-        } else {
-            (None, None)
-        };
+    let (bundle_observation, finalized_selector) = if let Some((observation, selector)) =
+        bundle_phase
+    {
+        let finalized = publish_bundle_fixture_selector(root, &selector, docs_selector.as_ref())?;
+        println!(
+            "test fixture selector finalized: path={} sha256={}",
+            finalized.path.display(),
+            finalized.sha256,
+        );
+        (Some(observation), Some(finalized))
+    } else {
+        (None, None)
+    };
 
     if let Some(path) = timings_path {
         let value = serde_json::json!({
@@ -605,6 +608,7 @@ struct FinalizedFixtureSelector {
 fn publish_bundle_fixture_selector(
     root: &Path,
     bundle: &gmeow_bundle_import::BundleFixtureSelector,
+    docs: Option<&gmeow_docs_model::fixture::DocsFixtureSelector>,
 ) -> FixtureResult<FinalizedFixtureSelector> {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
     let bytes = std::fs::read(&path).map_err(|error| {
@@ -632,6 +636,13 @@ fn publish_bundle_fixture_selector(
         serde_json::to_value(bundle)
             .map_err(|error| fail(format!("encode bundle fixture selector: {error}")))?,
     );
+    if let Some(docs) = docs {
+        object.insert(
+            "docs".to_string(),
+            serde_json::to_value(docs)
+                .map_err(|error| fail(format!("encode docs fixture selector: {error}")))?,
+        );
+    }
     write_json_atomic(&path, &value).map_err(|error| {
         fail(format!(
             "publish bundle-bound fixture selector {}: {error}",
