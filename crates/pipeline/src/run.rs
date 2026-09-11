@@ -30,7 +30,8 @@ use std::time::Instant;
 
 use gmeow_cli_core::Reporter;
 use gmeow_errors::{
-    Diag, DiagLedger, Finding, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
+    Diag, DiagLedger, Finding, FindingCategory, GateVerdict, Grade, Severity, StageId, Standpoint,
+    register_code,
 };
 use gmeow_logic::dag_profile::certify_acyclic;
 use gmeow_logic::result::ReasoningResult;
@@ -184,11 +185,9 @@ pub struct RunReport {
     pub skipped_writes: usize,
     /// Stale projection-owned files removed while reconciling output trees.
     pub removed: usize,
-    /// Drift / write findings (empty ⇒ full parity). These are a *projection* of
-    /// [`ledger`](RunReport::ledger) — the drift/superset producers intern their
-    /// diagnostics into the carrier ledger, and this field is
-    /// `ledger.project_report(...).findings`, so the ledger is the single source
-    /// of truth (not a parallel path).
+    /// Every stage and reconciliation finding projected from the carrier ledger.
+    /// Informational, advisory and coherent findings remain visible on successful
+    /// runs; acceptance uses the ledger's typed gate verdict, never this projection.
     pub findings: Vec<Finding>,
     /// The carrier-borne diagnostic ledger: the hash-consed witness DAG every
     /// drift/superset finding is interned into (pin-on-attach, stage-attributed,
@@ -228,9 +227,30 @@ pub struct RunReport {
 }
 
 impl RunReport {
-    /// Whether the run reproduced every committed artifact with zero drift.
+    /// Whether every artifact is reconciled and the carrier ledger permits the run.
+    /// Collected diagnostics are retained; any fatal witness or drift refuses reuse.
     pub fn is_clean(&self) -> bool {
-        self.findings.is_empty() && self.drifted.is_empty()
+        self.ledger.verdict() == GateVerdict::Collected && self.drifted.is_empty()
+    }
+
+    /// Record only the exact receipts of a successful materializing run.
+    /// This candidate cannot replace the fixture producer's finalized runner selector.
+    fn record_fixture_candidate(&mut self, root: &Path) -> gmeow_errors::Result<()> {
+        if self.mode != RunMode::Update || !self.is_clean() {
+            return Ok(());
+        }
+        let started = Instant::now();
+        crate::fixture::record_stage_fixture_candidate(root, &self.stage_receipts)?;
+        self.timings.push(TimingRecord {
+            phase: "fixture-receipt-candidate".to_string(),
+            elapsed_ms: started.elapsed().as_millis(),
+            metadata: Some(format!(
+                "stages={};receipt-root={}",
+                crate::fixture::AUTHENTICATED_TEST_STAGE_IDS.len(),
+                self.stage_receipt_root
+            )),
+        });
+        Ok(())
     }
 }
 
@@ -1408,29 +1428,10 @@ pub fn run_full_scoped_with_progress(
     // ReasoningResult a consumer reads. Hard-fails if the plan is not certified.
     let certification = certify_build_plan(&spec)?;
 
-    timings.push(TimingRecord {
-        phase: "pipeline-total".to_string(),
-        elapsed_ms: total_started.elapsed().as_millis(),
-        metadata: Some(format!(
-            "mode={};outputs={}",
-            match mode {
-                RunMode::Check => "check",
-                RunMode::Update => "update",
-            },
-            match output_scope {
-                RunOutputScope::All => "all",
-                RunOutputScope::Committed => "committed",
-            },
-        )),
-    });
-
-    // Project the carrier ledger to the wire findings — the ledger is the single
-    // source of truth, `findings` is its lossy projection (F3: not a parallel
-    // path). The direct accessor projects the findings without building the
-    // intermediate `Report` whose other fields would be discarded here.
+    // The wire findings are projected once from the carrier ledger, without an
+    // intermediate Report or a second diagnostic authority.
     let findings = ledger.findings("gmeow-pipeline");
-
-    Ok(RunReport {
+    let mut report = RunReport {
         mode,
         produced,
         reproduced,
@@ -1448,7 +1449,26 @@ pub fn run_full_scoped_with_progress(
         stage_receipts,
         output_paths,
         certification,
-    })
+    };
+    // Reuse this run's exact receipts without walking nonpersistent dependencies.
+    // The same typed verdict governs CLI completion and manifest publication.
+    report.record_fixture_candidate(root)?;
+    report.timings.push(TimingRecord {
+        phase: "pipeline-total".to_string(),
+        elapsed_ms: total_started.elapsed().as_millis(),
+        metadata: Some(format!(
+            "mode={};outputs={}",
+            match mode {
+                RunMode::Check => "check",
+                RunMode::Update => "update",
+            },
+            match output_scope {
+                RunOutputScope::All => "all",
+                RunOutputScope::Committed => "committed",
+            },
+        )),
+    });
+    Ok(report)
 }
 
 /// Run the strict gates that historically lived only on the read-only drift path
@@ -2549,3 +2569,7 @@ ex:RequiredShape a sh:NodeShape ;
         );
     }
 }
+
+#[cfg(test)]
+#[path = "run/acceptance_tests.rs"]
+mod acceptance_tests;

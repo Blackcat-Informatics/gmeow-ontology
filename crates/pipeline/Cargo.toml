@@ -8,7 +8,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-readme = "README.md"
 keywords = ["pipeline", "dag", "build", "rdf", "gmeow"]
 autobins = false
 
@@ -21,7 +20,7 @@ name = "gmn-dialect-paths"
 path = "src/bin/gmn-dialect-paths.rs"
 
 [[bin]]
-name = "perf_gate_merge"
+name = "perf-gate-merge"
 path = "src/bin/perf_gate_merge.rs"
 
 [lib]
@@ -163,8 +162,7 @@ serde_json.workspace = true
 # The tracked term-changelog authority is bound to an ordered ontology release
 # identity; arbitrary same-release boundary rewrites are rejected.
 semver.workspace = true
-# Report-only `perf_sample` binary: Unix child CPU/RSS/fault/block-I/O counters; the
-# scheduler also uses glibc's thread-safe `malloc_trim` at declarative serialization-
+# The scheduler uses glibc's thread-safe `malloc_trim` at declarative serialization-
 # resource handoffs and the sole-terminal level boundary to return already-freed cold-
 # wave pages before the next whole-carrier serialization. Non-glibc targets compile
 # that reclamation hint as a no-op.

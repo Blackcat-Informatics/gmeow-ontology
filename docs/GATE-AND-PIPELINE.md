@@ -281,10 +281,37 @@ when a persistent leaf depends on a deliberately nonpersistent carrier stage:
 trying to rediscover the leaf key from currently persistent dependency receipts
 would either miss or pressure the runner to execute the DAG again. The recorded
 context removes that work while preserving fail-closed receipt and blob checks.
+Successful synchronization in update mode records its complete fixture dependency
+closure in `.cache/gmeow-sync/stage-fixture-candidate-v2.json`. This reusable
+receipt candidate is separate from the finalized selector: ordinary pipeline runs
+cannot overwrite the selected bundle-import or docs actions, or invalidate a
+selector digest already handed to a runner. The explicit pre-test producer
+revalidates the candidate against the current DAG, inputs, and cached products,
+then publishes the selector with every selected fixture product. A missing
+candidate causes explicit production; the finalized selector is never a candidate
+fallback. Tests cannot build anything. Read-only synchronization records neither
+file, and the two independent cold CI generations retain separate producer runs
+and identities.
+
+For development over synthetic inputs, `make nextest-synthetic
+NEXTEST_FILTER='package(gmeow-logic) & test(obligations::)'` uses the same
+producer-independent Cargo graph as `rust-prebuild`. The filter is mandatory
+and an empty selection fails. This operation supplies no corpus credentials
+and removes inherited selector credentials: selecting a corpus consumer fails
+in its authenticated loader, without discovering or producing a replacement.
+It does not produce a gate receipt or replace `make nextest` or any part of
+`make check`; the required gate still runs its complete inventory against the
+authenticated producer-selected corpus.
+
 The selector also records the producer-profile bundle-import receipt and every
 bundle-derived corpus-artifact action. Consumers compiled under the test profile
 load those selected producer actions; they do not derive a false miss from their
 own profile identity, and they never repair a miss by importing the corpus.
+Documentation uses the same selector for the model, every language render, and
+the book. Its consumers use the selected producer identity and exact receipts;
+they never recalculate action keys from the consumer checkout. A shared bounded
+reader authenticates the supplied selector digest before any domain reads its
+fields. Missing credentials fail even when the requested product is cached.
 
 Corpus production uses the dedicated `pipeline` Cargo profile: O3, full LTO,
 one codegen unit, no incremental compilation or debug information, and workspace

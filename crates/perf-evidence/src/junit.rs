@@ -7,39 +7,15 @@
 //! correctness here.  The canonical identity list does, however, let performance
 //! comparisons prove that both variants executed the same selected tests.
 
+use crate::{PerfResult as InventoryResult, write_json_atomic};
+
 use std::collections::BTreeSet;
 use std::fs;
-use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
 const SCHEMA_VERSION: u32 = 1;
-
-#[derive(Debug)]
-struct InventoryError(String);
-
-impl std::fmt::Display for InventoryError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(formatter)
-    }
-}
-
-impl std::error::Error for InventoryError {}
-
-impl From<String> for InventoryError {
-    fn from(detail: String) -> Self {
-        Self(detail)
-    }
-}
-
-impl From<&str> for InventoryError {
-    fn from(detail: &str) -> Self {
-        detail.to_string().into()
-    }
-}
-
-type InventoryResult<T> = std::result::Result<T, InventoryError>;
 
 #[derive(Debug, Clone, Eq, Ord, PartialEq, PartialOrd)]
 struct Testcase {
@@ -49,7 +25,8 @@ struct Testcase {
     duration_micros: u64,
 }
 
-fn main() {
+/// Execute the JUnit inventory CLI, refusing malformed or ambiguous evidence.
+pub fn run_cli() {
     match parse_args().and_then(|(output, inputs)| run(&output, &inputs)) {
         Ok(()) => {}
         Err(error) => {
@@ -74,7 +51,7 @@ fn parse_args() -> InventoryResult<(PathBuf, Vec<PathBuf>)> {
             inputs.push(PathBuf::from(argument));
         }
     }
-    let output = output.ok_or("usage: junit_inventory --output <receipt.json> <junit.xml>...")?;
+    let output = output.ok_or("usage: junit-inventory --output <receipt.json> <junit.xml>...")?;
     if inputs.is_empty() {
         return Err("at least one JUnit XML input is required".into());
     }
@@ -226,41 +203,6 @@ fn sha256(bytes: &[u8]) -> String {
     let mut digest = Sha256::new();
     digest.update(bytes);
     format!("{:x}", digest.finalize())
-}
-
-fn write_json_atomic(path: &Path, value: &serde_json::Value) -> InventoryResult<()> {
-    let parent = path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
-    fs::create_dir_all(parent).map_err(|error| format!("create {}: {error}", parent.display()))?;
-    let temporary = parent.join(format!(
-        ".{}.tmp.{}",
-        path.file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("junit"),
-        std::process::id()
-    ));
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&temporary)
-        .map_err(|error| format!("create {}: {error}", temporary.display()))?;
-    let write_result = serde_json::to_writer_pretty(&mut file, value)
-        .map_err(|error| format!("serialize JUnit receipt: {error}"))
-        .and_then(|()| {
-            file.write_all(b"\n")
-                .and_then(|()| file.sync_all())
-                .map_err(|error| format!("flush {}: {error}", temporary.display()))
-        })
-        .and_then(|()| {
-            fs::rename(&temporary, path)
-                .map_err(|error| format!("publish {}: {error}", path.display()))
-        });
-    if write_result.is_err() {
-        let _ = fs::remove_file(&temporary);
-    }
-    Ok(write_result?)
 }
 
 #[cfg(test)]

@@ -5,18 +5,18 @@
 //!
 //! This bench drives [`gmeow_logic::cost::run_native_forward`] over a few tiny
 //! [`gmeow_logic::synth_corpus`] workloads under Valgrind Callgrind (via
-//! `iai-callgrind`). Unlike the wall-clock criterion benches, Callgrind counts
+//! `gungraun`). Unlike the wall-clock criterion benches, Callgrind counts
 //! **retired instructions**: a run-to-run stable, machine-independent quantity that
 //! corroborates the on-gate `steps + alloc + peak-live` cost gate from a fully
 //! independent measurement path.
 //!
 //! Metric doctrine: **only the retired-instruction (`Instructions`) column
-//! is a gating-eligible metric.** iai-callgrind additionally reports estimated
+//! is a gating-eligible metric.** Gungraun additionally reports estimated
 //! cycles and L1/L2/LL cache figures — those are microarchitecture-dependent and
 //! therefore ADVISORY only; never gate on them.
 //!
 //! MAINT-ONLY: this bench cannot run without the `valgrind` binary and the
-//! out-of-tree `iai-callgrind-runner`, so it is invoked exclusively through
+//! out-of-tree `gungraun-runner`, so it is invoked exclusively through
 //! `make maint-bench-instructions` (which hard-fails with a remediation message
 //! when either tool is absent) and is NOT wired into `make check`.
 //!
@@ -27,12 +27,12 @@ use gmeow_logic::cost::{NativeForwardRun, run_native_forward};
 use gmeow_logic::synth_corpus::{
     SynthWorkload, reachability, same_generation, strongly_connected, transitive_closure,
 };
-use iai_callgrind::{library_benchmark, library_benchmark_group, main};
+use gungraun::{library_benchmark, library_benchmark_group, main};
 use std::hint::black_box;
 
 // Measure the retired-instruction cost of one native forward run over a synthetic
 // workload. Each case's argument expression is the generator call that builds the
-// workload (typed program + frozen EDB); iai-callgrind evaluates and black-boxes that
+// workload (typed program + frozen EDB); Gungraun evaluates and black-boxes that
 // expression as SETUP, OUTSIDE the measured region — so only the engine's chase is
 // counted, never workload construction. (This comment sits ABOVE
 // `#[library_benchmark]`: the macro forbids any attribute — including a `///` doc

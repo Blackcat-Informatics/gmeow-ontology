@@ -7,9 +7,10 @@
 //! acceptance contract is not demonstrated.  It is deliberately absent from
 //! `make check`: ontology correctness never depends on runner speed.
 
+use gmeow_perf_evidence::{PerfResult, write_json_atomic};
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
 const SCHEMA_VERSION: u32 = 1;
@@ -21,31 +22,6 @@ const CACHE_CLASSES: [&str; 6] = [
     "pipeline",
     "sync_manifest",
 ];
-
-#[derive(Debug)]
-struct PerfError(String);
-
-impl std::fmt::Display for PerfError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(formatter)
-    }
-}
-
-impl std::error::Error for PerfError {}
-
-impl From<String> for PerfError {
-    fn from(message: String) -> Self {
-        Self(message)
-    }
-}
-
-impl From<&str> for PerfError {
-    fn from(message: &str) -> Self {
-        message.to_string().into()
-    }
-}
-
-type PerfResult<T> = std::result::Result<T, PerfError>;
 
 #[derive(Debug)]
 struct Args {
@@ -774,30 +750,6 @@ fn median(mut values: Vec<f64>) -> f64 {
     } else {
         values[middle]
     }
-}
-
-fn write_json_atomic(path: &Path, value: &serde_json::Value) -> PerfResult<()> {
-    let parent = path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
-    fs::create_dir_all(parent).map_err(|error| format!("create {}: {error}", parent.display()))?;
-    let mut temporary = tempfile::NamedTempFile::new_in(parent)
-        .map_err(|error| format!("create temporary acceptance report: {error}"))?;
-    serde_json::to_writer_pretty(&mut temporary, value)
-        .map_err(|error| format!("serialize acceptance report: {error}"))?;
-    temporary
-        .write_all(b"\n")
-        .and_then(|()| temporary.as_file().sync_all())
-        .map_err(|error| format!("flush acceptance report: {error}"))?;
-    temporary.persist(path).map_err(|error| {
-        format!(
-            "publish acceptance report {}: {}",
-            path.display(),
-            error.error
-        )
-    })?;
-    Ok(())
 }
 
 #[cfg(test)]

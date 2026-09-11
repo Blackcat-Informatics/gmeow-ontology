@@ -211,9 +211,9 @@ pub(crate) fn write_artifacts(report: &Report, config: &DiagnosticsConfig) -> Re
 /// `gmeow-dev feedback` — fold every offline dev-gate surface into one report,
 /// project it to the console, and write the `{json,sarif,html,gts}` artifacts.
 ///
-/// The process exit code is driven SOLELY by the folded gate report: a per-surface
-/// failure is isolated as a `feedback.<label>-skipped` warning (never an abort),
-/// so `feedback` stays an artifact-builder whose verdict is the whole-gate report.
+/// Every selected surface is mandatory. The native producer verdict and aggregate
+/// verdict are retained explicitly in the report metadata shipped in JSON/GTS;
+/// collected diagnostics remain intact and are never regraded by severity.
 pub fn feedback(
     console: Option<ConsoleMode>,
     artifacts: Option<&str>,
@@ -236,21 +236,14 @@ pub fn feedback(
         Err(e) => return fail(e.to_string()),
     };
 
-    let mut report = Report::new("feedback");
-    for (label, thunk) in surfaces() {
-        match thunk(&root) {
-            Ok(surface) => {
-                for finding in surface.findings {
-                    report.add_finding(finding);
-                }
-            }
-            Err(e) => report.add_finding(Finding::new(
-                Severity::Warning,
-                format!("feedback.{label}-skipped"),
-                format!("{label} findings not folded: {e}"),
-            )),
-        }
-    }
+    // Keep the native producer verdict alongside its diagnostic projection:
+    // re-grading advisory/coherent Error rows by severity would change its policy.
+    let (mut report, accepted) = collect_feedback(
+        generated_feedback(&root),
+        surfaces()
+            .into_iter()
+            .map(|(label, thunk)| (label, thunk(&root))),
+    );
     report
         .metadata
         .insert("category".into(), serde_json::json!(config.category));
@@ -264,11 +257,55 @@ pub fn feedback(
         return code;
     }
 
-    if report.ok() {
+    if accepted {
         println!("diagnostics feedback written");
         0
     } else {
-        fail(format!("{} error(s)", report.error_count()))
+        fail("one or more required feedback surfaces failed")
+    }
+}
+
+/// Retain every selected diagnostic even when the native producer returns an error.
+/// Surface results are consumed once; their failures never suppress later surfaces.
+fn collect_feedback(
+    generated: gmeow_errors::Result<(Report, bool)>,
+    surfaces: impl IntoIterator<Item = (&'static str, gmeow_errors::Result<Report>)>,
+) -> (Report, bool) {
+    let (mut report, mut accepted) = match generated {
+        Ok(result) => result,
+        Err(error) => {
+            let mut report = Report::new("feedback");
+            record_gate_verdict(&mut report, "pipeline_gate_verdict", false);
+            append_surface_failure(&mut report, "generated", error);
+            (report, false)
+        }
+    };
+    for (label, result) in surfaces {
+        match result {
+            Ok(surface) => {
+                accepted &= surface.ok();
+                for finding in surface.findings {
+                    report.add_finding(finding);
+                }
+            }
+            Err(error) => {
+                accepted = false;
+                append_surface_failure(&mut report, label, error);
+            }
+        }
+    }
+    record_gate_verdict(&mut report, "gate_verdict", accepted);
+    (report, accepted)
+}
+
+fn append_surface_failure(report: &mut Report, label: &str, error: gmeow_errors::Diag) {
+    let mut ledger = gmeow_errors::DiagLedger::new();
+    ledger.attach(
+        error.with_context(format!("feedback surface {label} failed")),
+        gmeow_errors::StageId::new(label),
+    );
+    for finding in ledger.findings(label) {
+        report.add_finding(finding);
     }
 }
 
@@ -294,6 +331,44 @@ fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<
 }
 
 /// The `(label, thunk)` table of offline dev-gate surfaces folded into feedback.
+/// Persist a decided gate verdict beside its diagnostic projection.
+fn record_gate_verdict(report: &mut Report, key: &str, accepted: bool) {
+    let verdict = if accepted {
+        gmeow_errors::GateVerdict::Collected
+    } else {
+        gmeow_errors::GateVerdict::Fatal
+    };
+    report
+        .metadata
+        .insert(key.to_owned(), serde_json::json!(verdict));
+}
+
+/// Produce the build-drift observation once and retain its native gate decision.
+fn generated_feedback(root: &Path) -> gmeow_errors::Result<(Report, bool)> {
+    let jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
+    let run = gmeow_pipeline::run::run_full(root, jobs, gmeow_pipeline::run::RunMode::Check)?;
+    Ok(pipeline_feedback(run))
+}
+
+/// The lossy report carries every finding; acceptance stays with the native ledger.
+fn pipeline_feedback(run: gmeow_pipeline::run::RunReport) -> (Report, bool) {
+    let accepted = run.is_clean();
+    let mut report = Report::new("feedback");
+    record_gate_verdict(&mut report, "pipeline_gate_verdict", accepted);
+    for path in run.drifted {
+        let mut finding = Finding::new(Severity::Error, "generator.drift", path.clone())
+            .with_tool("pipeline")
+            .with_category(gmeow_errors::FindingCategory::ModelingDisciplineViolation)
+            .with_standpoint(gmeow_errors::Standpoint::Binding);
+        finding.add_location(gmeow_errors::Location::new(Some(path), None, None, None));
+        report.add_finding(finding);
+    }
+    for finding in run.findings {
+        report.add_finding(finding);
+    }
+    (report, accepted)
+}
+
 /// Each thunk re-runs one native gate surface and returns its `Report`.
 type SurfaceThunk = fn(&Path) -> gmeow_errors::Result<Report>;
 
@@ -376,32 +451,6 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             Ok(gmeow_pipeline::scoreboards::claim_audit_diagnostics(
                 &report,
             ))
-        }),
-        ("generated", |root| {
-            // The build-drift surface: run the pipeline in CHECK mode (the build
-            // authority) and project its drift into `generator.drift` error findings
-            // plus the run's own error findings.
-            let jobs = std::thread::available_parallelism()
-                .map(|n| n.get())
-                .unwrap_or(1);
-            let run =
-                gmeow_pipeline::run::run_full(root, jobs, gmeow_pipeline::run::RunMode::Check)
-                    .map_err(error::feedback)?;
-            let mut r = Report::new("generated");
-            let mut drifted = run.drifted.clone();
-            drifted.sort();
-            for rel in drifted {
-                let mut finding = Finding::new(Severity::Error, "generator.drift", rel.clone())
-                    .with_tool("pipeline");
-                finding.add_location(gmeow_errors::Location::new(Some(rel), None, None, None));
-                r.add_finding(finding);
-            }
-            for finding in run.findings {
-                if finding.severity == Severity::Error {
-                    r.add_finding(finding);
-                }
-            }
-            Ok(r)
         }),
         ("logic-compile", |root| {
             // The `logic:` compile diagnostics surface: parse diagnostics projected
@@ -630,12 +679,12 @@ mod tests {
         "slice-ownership",
     ];
 
-    /// `surfaces()` folds EXACTLY the canonical dev-gate surface set — no surface
-    /// silently dropped (the coverage regression) and none silently added. On-gate:
-    /// this inspects only the `(label, _)` table, never running any thunk.
+    /// The separately admitted native producer plus the report-returning surfaces
+    /// cover the exact canonical set. This reads declarations only; no thunk runs.
     #[test]
     fn surfaces_cover_exactly_the_canonical_set() {
         let mut got: Vec<&str> = surfaces().iter().map(|(label, _)| *label).collect();
+        got.push("generated"); // generated_feedback owns the native producer verdict.
         got.sort_unstable();
         let mut expected: Vec<&str> = EXPECTED_SURFACES.to_vec();
         expected.sort_unstable();
@@ -679,3 +728,7 @@ ex:isoGet gm:path ex:isoStep .
         );
     }
 }
+
+#[cfg(test)]
+#[path = "dev_feedback/acceptance_tests.rs"]
+mod acceptance_tests;

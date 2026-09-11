@@ -5,7 +5,7 @@
 //! conformance cost-partition (the callgrind half; the sibling
 //! `conformance_union_cost_alloc` bench is the always-available allocation half).
 //!
-//! Under Valgrind Callgrind (via `iai-callgrind`) this counts **retired
+//! Under Valgrind Callgrind (via `gungraun`) this counts **retired
 //! instructions** — a run-to-run stable, machine-independent quantity — for the
 //! three load-bearing regions of a single whole-ontology-union twin:
 //!   - `build_merged_ontology` — the setup cost `S_onto` a disk cache could amortize;
@@ -14,14 +14,14 @@
 //!   - `validate_fixture_only` — the tiny-data anchor `V_fixture` (~0.05 s path).
 //!
 //! The setup for each scan bench is the `#[bench::…]` argument expression, which
-//! iai-callgrind evaluates OUTSIDE the measured region, so only the scan is counted.
+//! Gungraun evaluates OUTSIDE the measured region, so only the scan is counted.
 //!
-//! Metric doctrine (mirrors `gmeow-logic`'s `engines_iai`): only the retired-
+//! Metric doctrine (mirrors `gmeow-logic`'s `engines_instructions`): only the retired-
 //! instruction (`Instructions`) column is meaningful; estimated cycles / cache
 //! figures are microarchitecture-dependent and advisory only.
 //!
 //! MAINT-ONLY: requires the `valgrind` binary + the out-of-tree
-//! `iai-callgrind-runner`; invoked exclusively through `make maint-bench-instructions`,
+//! `gungraun-runner`; invoked exclusively through `make maint-bench-instructions`,
 //! NOT wired into `make check`.
 
 #[path = "cost_common/mod.rs"]
@@ -30,7 +30,7 @@ mod cost_common;
 use std::hint::black_box;
 use std::sync::Arc;
 
-use iai_callgrind::{library_benchmark, library_benchmark_group, main};
+use gungraun::{library_benchmark, library_benchmark_group, main};
 use purrdf::RdfDataset;
 use purrdf::shapes::report::ValidationReport;
 use purrdf::shapes::shapes::Shapes;

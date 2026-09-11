@@ -174,18 +174,6 @@ pub fn write_timings_json(path: &Path, value: &serde_json::Value) -> i32 {
     0
 }
 
-/// The `logic:` relative-path prefixes the `logic compile --check` drift gate
-/// filters the whole-pipeline drift set to (mirrors the Python `_logic_prefixes`).
-pub const LOGIC_DRIFT_PREFIXES: &[&str] = &[
-    "generated/logic/",
-    "generated/owl/",
-    "generated/datalog/",
-    "generated/n3/",
-    "generated/foundation/",
-    "generated/shacl-af/",
-    "generated/cl/",
-];
-
 #[cfg(test)]
 mod tests {
     use super::*;

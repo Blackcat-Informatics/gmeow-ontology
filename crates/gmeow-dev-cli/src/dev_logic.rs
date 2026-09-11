@@ -28,7 +28,8 @@ use gmeow_pipeline::stages::compile_logic::{
     OWL_EL_PATH, PROJECTION_REPORT_PATH, XCL_PATH,
 };
 
-use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, note, project_root};
+use crate::dev_common::{fail, note, project_root, reporter_for, resolve_console, resolve_jobs};
+use crate::dev_sync::accept_pipeline_report;
 use crate::error;
 
 /// One resolved answer binding, `var → canonical-value`, plus an optional weight.
@@ -249,76 +250,32 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
     }
     let root = project_root();
 
-    // --check with no --mode: whole-pipeline drift gate, filtered to logic prefixes.
-    if check && mode.is_none() {
-        let jobs = std::thread::available_parallelism()
-            .map(|n| n.get())
-            .unwrap_or(1);
-        let report = match run_full(&root, jobs, RunMode::Check) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("pipeline check failed: {e}")),
-        };
-        let drift: Vec<&String> = report
-            .drifted
-            .iter()
-            .filter(|d| LOGIC_DRIFT_PREFIXES.iter().any(|p| d.contains(p)))
-            .collect();
-        if !drift.is_empty() {
-            let mut sorted = drift.clone();
-            sorted.sort();
-            for rel in sorted {
-                note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
-            }
-            return fail(format!(
-                "{} logic artifact(s) out of date — run `gmeow-dev logic compile`",
-                drift.len()
-            ));
-        }
-        println!("logic: committed artifacts match source (no drift)");
-        return 0;
+    let jobs = match resolve_jobs(None) {
+        Ok(jobs) => jobs,
+        Err(code) => return code,
+    };
+    let run_mode = if check {
+        RunMode::Check
+    } else {
+        RunMode::Update
+    };
+    // A mode selects the reported projection, while the single producer's whole
+    // diagnostic and drift contract remains mandatory before accepting its output.
+    let report = match run_full(&root, jobs, run_mode) {
+        Ok(report) => report,
+        Err(error) => return fail(format!("logic compile failed: {error}")),
+    };
+    let reporter = reporter_for(resolve_console(None));
+    if let Err(code) = accept_pipeline_report(reporter.as_ref(), &report, false) {
+        return code;
     }
-
-    // --mode M (with or without --check): run the REAL pipeline once and narrow
-    // to the single committed artifact for the requested back-end. There is no
-    // second, in-process compile — the whole-pipeline render is the single
-    // producer of every committed logic artifact, `report` included.
-    if let Some(mode) = mode {
-        let rel = mode_path(mode);
-        let jobs = std::thread::available_parallelism()
-            .map(|n| n.get())
-            .unwrap_or(1);
-        if check {
-            let report = match run_full(&root, jobs, RunMode::Check) {
-                Ok(r) => r,
-                Err(e) => return fail(format!("pipeline check failed: {e}")),
-            };
-            if report.drifted.iter().any(|d| d == rel) {
-                note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
-                return fail(format!("--mode {mode}: committed artifact drifted"));
-            }
-            println!("--mode {mode}: no drift");
-            return 0;
-        }
-        return match run_full(&root, jobs, RunMode::Update) {
-            Ok(_) => {
-                println!("{rel}");
-                0
-            }
-            Err(e) => fail(format!("logic compile failed: {e}")),
-        };
+    match (check, mode) {
+        (true, Some(mode)) => println!("--mode {mode}: no drift"),
+        (true, None) => println!("logic: committed artifacts match source (no drift)"),
+        (false, Some(mode)) => println!("{}", mode_path(mode)),
+        (false, None) => println!("logic: artifacts compiled"),
     }
-
-    // Default full render: the whole pipeline reproduces every committed artifact.
-    let jobs = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(1);
-    match run_full(&root, jobs, RunMode::Update) {
-        Ok(_) => {
-            println!("logic: artifacts compiled");
-            0
-        }
-        Err(e) => fail(format!("logic compile failed: {e}")),
-    }
+    0
 }
 
 /// The single committed path (relative to root) that `--mode M` narrows the

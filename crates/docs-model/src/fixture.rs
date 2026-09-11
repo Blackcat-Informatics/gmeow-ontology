@@ -5,12 +5,10 @@
 //!
 //! Building a [`DocsModel`] via [`DocsModel::discover`] walks the whole slice
 //! catalog, parses every `module.ttl`, and folds the i18n catalogs (~12 s). That
-//! cost is paid by anything that needs the live model: the gmeow-docs integration
-//! suite has ~40 tests that each need it and the test runner executes every test in
-//! its own process, `gmeow-dev doc-lint` needs it, and `gmeow-slice-quality`'s
-//! `DocMaturity` axis needs it once per repo root. A fresh `discover()` per consumer
-//! is paid dozens of times, and when many start at once the concurrent builds
-//! contend and each takes far longer than a single build would.
+//! cost belongs to the explicit producer. The documentation integration tests,
+//! `gmeow-dev doc-lint`, and `gmeow-slice-quality`'s `DocMaturity` axis share the
+//! resulting model. Tests run in separate processes and admit only the exact
+//! producer-selected action, without discovering sources or rebuilding the model.
 //!
 //! [`load`] / [`try_load`] are strict test-facing consumers: they load an exact
 //! authenticated model or fail closed, and never build on a miss. The explicitly named
@@ -32,10 +30,11 @@
 //! version bump. Publication, integrity, quota GC, and cross-process build election
 //! come from the workspace's single `gmeow-action-cache` authority.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use gmeow_action_cache::selection::{SelectedAction, load_manifest};
 use gmeow_action_cache::{
     ActionCacheError, ActionContext, ActionInput, ActionReceipt, ActionStore, FileKind,
     ProducerIdentity, STORE_FORMAT_VERSION, StoreLimits,
@@ -61,6 +60,8 @@ struct DocsActionPayload {
 pub struct FixtureIdentity {
     pub receipt_digest: String,
     pub product_digest: String,
+    /// Exact implementation/input identity chosen by the producer, not the consumer.
+    pub producer: ProducerIdentity,
 }
 
 impl FixtureIdentity {
@@ -68,8 +69,39 @@ impl FixtureIdentity {
         Self {
             receipt_digest: receipt.digest(),
             product_digest: receipt.product_digest.clone(),
+            producer: receipt.context.implementation.clone(),
         }
     }
+}
+
+/// Documentation actions bound into the runner-authenticated corpus selector.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocsFixtureSelector {
+    pub schema_version: u32,
+    pub model: SelectedAction,
+    /// `site:<language>` and `book` actions, all bound to the same model receipt.
+    pub renders: BTreeMap<String, SelectedAction>,
+}
+
+/// Read the producer-selected documentation actions without inspecting live sources.
+pub fn selected_fixtures(root: &Path) -> Result<DocsFixtureSelector, ActionCacheError> {
+    #[derive(Deserialize)]
+    struct Envelope {
+        docs: DocsFixtureSelector,
+    }
+    let selected = load_manifest::<Envelope>(root)?.docs;
+    if selected.schema_version != 1 {
+        return Err(ActionCacheError::message(
+            "docs fixture selector schema mismatch",
+        ));
+    }
+    let context = &selected.model.context;
+    if *context != model_context_for_digest(context.implementation.digest.clone()) {
+        return Err(ActionCacheError::message(
+            "selected docs model context mismatch",
+        ));
+    }
+    Ok(selected)
 }
 
 enum ModelCacheError {
@@ -101,7 +133,10 @@ fn read_only_action_store(root: &Path) -> Result<ActionStore, ActionCacheError> 
 }
 
 fn model_context(root: &Path) -> ActionContext {
-    let input_digest = cache_key(root);
+    model_context_for_digest(cache_key(root))
+}
+
+fn model_context_for_digest(input_digest: String) -> ActionContext {
     ActionContext::new(
         "docs-fixture",
         "model",
@@ -187,24 +222,55 @@ pub fn try_load(root: &Path) -> Result<DocsModel, DocsError> {
 }
 
 fn try_load_with_identity(root: &Path) -> Result<(DocsModel, FixtureIdentity), DocsError> {
+    let selected = selected_fixtures(root)
+        .map_err(|error| DocsError::FixtureUnavailable(error.to_string()))?;
+    load_selected_model(root, &selected.model)
+        .map_err(|error| DocsError::FixtureUnavailable(error.to_string()))
+}
+
+fn load_selected_model(
+    root: &Path,
+    selected: &SelectedAction,
+) -> Result<(DocsModel, FixtureIdentity), ActionCacheError> {
+    let context = &selected.context;
+    if *context != model_context_for_digest(context.implementation.digest.clone()) {
+        return Err(ActionCacheError::message(
+            "selected docs model context mismatch",
+        ));
+    }
+    let store = read_only_action_store(root)?;
+    let entry = store.get::<DocsActionPayload>(context)?.ok_or_else(|| {
+        ActionCacheError::message(format!(
+            "selected docs model action {} is absent",
+            context.key()
+        ))
+    })?;
+    selected.verify(&entry.receipt)?;
+    validate_model_receipt(context, &entry.receipt)?;
+    let identity = FixtureIdentity::from_receipt(&entry.receipt);
+    let model = decode_model(&store.receipt_path(&context.key()), &entry.bytes)?;
+    Ok((model, identity))
+}
+
+/// Select the already-produced model for binding into a test fixture manifest.
+/// This producer-side operation authenticates the current input key without building.
+pub fn produced_model_selection(root: &Path) -> Result<SelectedAction, ActionCacheError> {
     let context = model_context(root);
-    let cache_path = cache_path(root);
     let store = read_only_action_store(root).map_err(|error| {
-        DocsError::FixtureUnavailable(format!(
+        ActionCacheError::message(format!(
             "authenticated docs action store is unavailable without mutation: {error}"
         ))
     })?;
-    match probe_model(&store, &context, &cache_path) {
-        Ok(Some(hit)) => Ok(hit),
-        Ok(None) => Err(DocsError::FixtureUnavailable(format!(
-            "no receipt for action {}; run the explicit corpus producer before starting tests",
-            context.key()
-        ))),
-        Err(error) => panic!(
-            "corrupt docs-fixture action cache at {}: {error}",
-            cache_path.display()
-        ),
-    }
+    let receipt = store
+        .inspect::<DocsActionPayload>(&context)?
+        .ok_or_else(|| {
+            ActionCacheError::message(format!(
+                "current docs model action {} is absent",
+                context.key()
+            ))
+        })?;
+    validate_model_receipt(&context, &receipt)?;
+    Ok(SelectedAction::from_receipt(&receipt))
 }
 
 /// Load or produce the documentation model for an explicit producer operation.
@@ -267,9 +333,15 @@ fn try_load_or_build_with_identity(root: &Path) -> Result<(DocsModel, FixtureIde
 pub fn model_identity(root: &Path) -> FixtureIdentity {
     let store = read_only_action_store(root)
         .unwrap_or_else(|error| panic!("open authenticated docs model store read-only: {error}"));
-    let context = model_context(root);
+    let selected = selected_fixtures(root)
+        .unwrap_or_else(|error| panic!("admit selected docs fixtures: {error}"));
+    let context = selected.model.context.clone();
     match store.inspect::<DocsActionPayload>(&context) {
         Ok(Some(receipt)) => {
+            selected
+                .model
+                .verify(&receipt)
+                .unwrap_or_else(|error| panic!("selected docs model receipt mismatch: {error}"));
             validate_model_receipt(&context, &receipt)
                 .unwrap_or_else(|error| panic!("corrupt docs-fixture model receipt: {error}"));
             FixtureIdentity::from_receipt(&receipt)
@@ -716,8 +788,8 @@ fn hex(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 mod tests {
-    //! Hermetic tests for the cache machinery itself — no model build (those are
-    //! the gmeow-docs integration suite's job). They pin the model envelope round
+    //! Hermetic tests for the cache machinery itself — model builds belong only
+    //! to the explicit producer. These pin the model envelope round
     //! trip, the content-addressing contract, the derived implementation closure,
     //! and the integrity-violation panic so a key/envelope regression fails here,
     //! not as a confusing downstream golden.
@@ -776,6 +848,55 @@ mod tests {
         assert_eq!(
             recovered.available_languages, model.available_languages,
             "the reattached i18n fields survive the disk round trip"
+        );
+    }
+
+    /// A consumer loads the selected producer action even when its checkout differs;
+    /// it may neither derive a replacement identity nor accept a changed receipt.
+    #[test]
+    fn selected_model_survives_consumer_source_edits_and_refuses_receipt_changes() {
+        let (_tmp, root) = temp_root("selected-model");
+        let context = model_context(&root);
+        let cached = CachedModel::from_model(&DocsModel::default());
+        let bytes = serde_json::to_vec(&cached).unwrap();
+        let store = action_store(&root);
+        let receipt = store
+            .publish(
+                &context,
+                cached.digest.clone(),
+                model_payload(&context),
+                &bytes,
+            )
+            .unwrap();
+        let selected = SelectedAction::from_receipt(&receipt);
+        fs::create_dir_all(root.join("slices")).unwrap();
+        fs::write(
+            root.join("slices/changed.ttl"),
+            b"different consumer checkout",
+        )
+        .unwrap();
+        assert_ne!(
+            context,
+            model_context(&root),
+            "the producer must invalidate on changed inputs"
+        );
+        let (_, identity) = load_selected_model(&root, &selected).unwrap();
+        assert_eq!(identity.receipt_digest, receipt.digest());
+
+        let mut wrong = selected.clone();
+        wrong.receipt_digest = "0".repeat(64);
+        assert!(load_selected_model(&root, &wrong).is_err());
+        let mut wrong = selected.clone();
+        wrong.product_digest = "wrong product".to_string();
+        assert!(load_selected_model(&root, &wrong).is_err());
+        let mut wrong = selected.clone();
+        wrong.context.codec = "unselected codec".to_string();
+        assert!(load_selected_model(&root, &wrong).is_err());
+        fs::remove_file(store.receipt_path(&context.key())).unwrap();
+        assert!(load_selected_model(&root, &selected).is_err());
+        assert!(
+            !store.receipt_path(&context.key()).exists(),
+            "a miss never publishes a replacement"
         );
     }
 
@@ -1061,12 +1182,36 @@ gmeow-e = { path = \"../e\" }\n";
     }
 
     #[test]
-    #[should_panic(expected = "load authenticated docs model")]
-    fn present_but_corrupt_model_cache_panics() {
+    fn present_but_corrupt_model_receipt_reaches_decode_and_is_refused() {
         let (_tmp, root) = temp_root("corrupt-model");
-        let cp = cache_path(&root);
-        fs::create_dir_all(cp.parent().unwrap()).unwrap();
-        fs::write(&cp, b"{ not valid json").unwrap();
-        let _ = load(&root);
+        let context = model_context(&root);
+        let cached = CachedModel::from_model(&DocsModel::default());
+        let store = action_store(&root);
+        let receipt = store
+            .publish(
+                &context,
+                cached.digest.clone(),
+                model_payload(&context),
+                &serde_json::to_vec(&cached).unwrap(),
+            )
+            .unwrap();
+        let selected = SelectedAction::from_receipt(&receipt);
+        assert!(load_selected_model(&root, &selected).is_ok());
+
+        let path = store.receipt_path(&context.key());
+        let corrupt = b"{ not valid json";
+        fs::write(&path, corrupt).unwrap();
+        let Err(error) = load_selected_model(&root, &selected) else {
+            panic!("corrupt receipt must refuse");
+        };
+        assert!(
+            error.to_string().starts_with("action cache JSON:"),
+            "{error}"
+        );
+        assert_eq!(
+            fs::read(path).unwrap(),
+            corrupt,
+            "read-only refusal cannot repair the receipt"
+        );
     }
 }

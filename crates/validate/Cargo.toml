@@ -8,7 +8,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-readme = "README.md"
 keywords = ["rdf", "validation", "lint", "knowledge-graph", "rdf-12"]
 autobins = false
 
@@ -86,9 +85,6 @@ ureq = "3"
 # Native slice catalog + S6a semantic Merkle cache: the whole-ontology merged-SHACL
 # source key is the path-independent, comment-insensitive product key over the slice
 # composition. gmeow-slice depends only on purrdf, keeping the crate DAG acyclic.
-# Dependency-free license-token policy classifier (RUST-FIRST single source of truth):
-# the `license_policy_for` pyfunction surfaces it to the Python `LinkPolicy` shim.
-gmeow-license = { path = "../license" }
 # Native reasoning engine: the `validate --deep` semantic pass reasons over the bundle
 # (`gmeow_logic::reason::reason_all`) and reads the shared logic:ReasoningResult.
 # The edge remains acyclic because logic does not depend on validate.
@@ -107,6 +103,8 @@ tracing.workspace = true
 roxmltree.workspace = true
 
 [dev-dependencies]
+# License policy remains part of the foundational-bridging conformance contract.
+gmeow-license = { path = "../license" }
 # Read-only access to the exact producer-selected corpus and extracted shape-union
 # fixture. Tests never fall back to rebuilding either product.
 gmeow-bundle-import = { path = "../bundle-import" }
@@ -134,9 +132,9 @@ gmeow-test-batch-macros = { path = "../test-batch-macros" }
 inventory = "0.3"
 # Deterministic retired-instruction backend for the whole-ontology-union conformance
 # cost-partition bench. Pin MUST equal crates/logic/Cargo.toml (the out-of-tree
-# iai-callgrind-runner is version-locked to it). MAINT-ONLY: needs valgrind + the
+# gungraun-runner is version-locked to it). MAINT-ONLY: needs valgrind + the
 # runner, invoked via `make maint-bench-instructions`, never `make check`.
-iai-callgrind = "0.16.1"
+gungraun = "=0.19.4"
 # Deterministic allocation accounting (bytes / count / peak-live) for the same
 # cost-partition bench — the always-available half that needs no valgrind. Leaf
 # bench dep only; the CountingAllocator never reaches the shipped gmeow CLI.
@@ -154,7 +152,7 @@ harness = false
 # grounding the off-gate decision in deterministic instructions + allocations rather
 # than flaky wall time. Both MAINT-ONLY (`make maint-bench-instructions`).
 [[bench]]
-name = "conformance_union_cost_iai"
+name = "conformance_union_cost_instructions"
 harness = false
 
 [[bench]]

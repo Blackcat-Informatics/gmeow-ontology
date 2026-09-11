@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Shared build helpers for the whole-ontology-union conformance cost-partition
-//! benches (`conformance_union_cost_iai` and `conformance_union_cost_alloc`).
+//! benches (`conformance_union_cost_instructions` and `conformance_union_cost_alloc`).
 //!
 //! These reconstruct — using **owned locals only** — exactly the work the
 //! `conformance_support` test helpers do behind their process-global `OnceLock`
@@ -23,8 +23,8 @@
 //! - `V_fixture` — validate the tiny fixture ALONE (the ~0.05 s on-gate anchor).
 
 // Each bench target includes its own copy of this module via `#[path]`, and no
-// single bench exercises every helper (the iai bench never unions a fixture), so
-// per-bench "unused" is expected — mirror the conformance_support harness pattern.
+// single bench exercises every helper (the instruction-count bench never unions a
+// fixture), so per-bench "unused" is expected — mirror the conformance_support pattern.
 #![allow(dead_code)]
 
 use std::collections::BTreeMap;

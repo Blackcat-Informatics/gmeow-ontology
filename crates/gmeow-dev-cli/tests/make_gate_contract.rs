@@ -26,6 +26,17 @@ fn ci_workflow() -> String {
     std::fs::read_to_string(repo_root().join(".github/workflows/ci.yml")).expect("read ci.yml")
 }
 
+/// Bound a named workflow step independently of sibling order or unnamed steps.
+fn workflow_step<'a>(job: &'a str, name: &str) -> &'a str {
+    let marker = format!("- name: {name}\n");
+    job.split_once(&marker)
+        .unwrap_or_else(|| panic!("missing workflow step {name}"))
+        .1
+        .split("\n      - ")
+        .next()
+        .expect("workflow step body")
+}
+
 fn manifest(path: &str) -> String {
     std::fs::read_to_string(repo_root().join(path)).expect("read Cargo manifest")
 }
@@ -196,13 +207,13 @@ fn evidence_binaries_have_one_dependency_light_owner() {
         pipeline.contains("autobins = false") && validate.contains("autobins = false"),
         "the heavyweight owner directories must not auto-discover the evidence binaries"
     );
-    for retained_pipeline_binary in ["bench-compare", "gmn-dialect-paths", "perf_gate_merge"] {
+    for retained_pipeline_binary in ["bench-compare", "gmn-dialect-paths", "perf-gate-merge"] {
         assert!(
             pipeline.contains(&format!("name = \"{retained_pipeline_binary}\"")),
             "pipeline manifest dropped required binary {retained_pipeline_binary}"
         );
     }
-    for evidence_binary in ["perf_sample", "perf_accept", "junit_inventory"] {
+    for evidence_binary in ["perf-sample", "perf-accept", "junit-inventory"] {
         assert!(
             evidence.contains(&format!("name = \"{evidence_binary}\"")),
             "evidence leaf does not own {evidence_binary}"
@@ -859,29 +870,128 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     let prebuild_job = ci
         .split_once("\n  rust-prebuild:\n")
-        .and_then(|(_, tail)| tail.split_once("\n  # The receipt binds the\n"))
+        .and_then(|(_, tail)| tail.split_once("\n  # Optimized corpus work"))
         .map(|(job, _)| job)
-        .expect("producer-independent Rust prebuild job is bounded by the archive comment");
+        .expect("producer-independent Rust prebuild job precedes fixture production");
     assert!(
         prebuild_job.contains("run: make rust-prebuild")
-            && prebuild_job.contains("make produce-producer-independent-test-fixtures")
-            && prebuild_job.contains("rust-prebuild-evidence-${{ github.sha }}")
+            && job_needs(prebuild_job).is_empty()
+            && !prebuild_job.contains("test-fixtures")
             && !prebuild_job.contains("generated-tree-${{ github.sha }}"),
-        "the Rust build and explicit producer-independent fixture stage must overlap generation and must not consume its output"
+        "test compilation must start without waiting for any corpus producer"
     );
+    let prefix_job = ci
+        .split_once("\n  fixture-prefix:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # Complete the producer-selected fixtures"))
+        .map(|(job, _)| job)
+        .expect("independent optimized fixture producer");
+    let complete_job = ci
+        .split_once("\n  fixture-complete:\n")
+        .and_then(|(_, tail)| tail.split_once("\n  # The receipt binds the\n"))
+        .map(|(job, _)| job)
+        .expect("completed fixture producer");
+    assert!(
+        job_needs(prefix_job) == ["producer-build"]
+            && prefix_job.contains("make produce-producer-independent-test-fixtures")
+            && !prefix_job.contains("generated-tree-${{ github.sha }}")
+            && job_needs(complete_job) == ["producer", "fixture-prefix"]
+            && complete_job.contains("make produce-producer-bound-test-fixtures"),
+        "optimized prefix production must overlap cold generations, then complete against their exact bundle"
+    );
+    assert!(
+        workflow_step(prefix_job, "Transfer the selected prefix fixtures")
+            .contains(".cache/gmeow-sync/stage-fixture-candidate-v2.json"),
+        "the completion producer must retain the prefix's current receipt candidate in its reusable action cache"
+    );
+    for (producer, transfer) in [
+        (prefix_job, "Transfer the selected prefix fixtures"),
+        (complete_job, "Transfer the selected complete fixtures"),
+    ] {
+        assert!(
+            producer.contains("GMEOW_DEV: ./dist/bin/gmeow-dev")
+                && producer.contains("gmeow-dev-producer-${{ github.sha }}")
+                && producer.contains("actions/cache/restore@")
+                && producer.contains("actions/cache/save@")
+                && producer.contains("always() && !cancelled()")
+                && producer.contains("steps.fixture-actions.outputs.cache-primary-key")
+                && !producer.contains("cargo nextest")
+                && !producer.contains("make rust-prebuild"),
+            "the optimized producer must publish completed actions even after a later failure, independently of test compilation"
+        );
+        for step in [
+            "Restore reusable completed actions",
+            "Persist every completed bounded action",
+        ] {
+            let cache_step = workflow_step(producer, step);
+            assert!(
+                cache_step.contains("path: |")
+                    && cache_step.contains(".cache/gmeow-sync/actions")
+                    && cache_step.contains(".cache/gmeow-sync/stage-fixture-candidate-v2.json")
+                    && !cache_step.contains(".cache/gmeow-sync/test-fixture-manifest-v2.json"),
+                "producer caches contain bounded actions and untrusted receipt candidates only; finalized runner selectors belong to authenticated current-run artifacts"
+            );
+        }
+        for publication in ["Bind the exact current-run fixture selector", transfer] {
+            let conditions = workflow_step(producer, publication)
+                .lines()
+                .filter_map(|line| line.strip_prefix("        if: "))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                conditions,
+                ["success()"],
+                "only a successful producer may publish its finalized selector or selected fixture artifact: {publication}"
+            );
+        }
+        assert!(
+            producer.find("make produce-").expect("mandatory producer")
+                < producer
+                    .find("Bind the exact current-run fixture selector")
+                    .expect("current-run selector binding"),
+            "a cached candidate cannot become current-run authority before production revalidates the selected inputs and outputs"
+        );
+        let keys = workflow_step(producer, "Restore reusable completed actions")
+            .split_once("restore-keys: |")
+            .expect("restore preferences")
+            .1
+            .lines()
+            .skip_while(|line| line.trim().is_empty())
+            .take_while(|line| line.starts_with("            "))
+            .map(str::trim)
+            .collect::<Vec<_>>();
+        let [
+            current_complete,
+            current_prefix,
+            compatible_complete,
+            compatible_prefix,
+        ] = keys.as_slice()
+        else {
+            panic!("action cache requires four ordered restore preferences, got {keys:?}");
+        };
+        assert!(
+            current_complete.contains("-complete-${{github.sha}}-")
+                && current_prefix.contains("-prefix-${{github.sha}}-")
+                && compatible_complete.ends_with("-complete-")
+                && compatible_prefix.ends_with("-prefix-"),
+            "completed actions at the current revision must remain reachable after a later failure"
+        );
+    }
     let archive_job = ci
         .split_once("\n  rust-archive:\n")
         .and_then(|(_, tail)| tail.split_once("\n  # Shards execute"))
         .map(|(job, _)| job)
         .expect("Rust archive job is bounded by the shard comment");
     assert!(
-        job_needs(archive_job) == ["producer", "rust-prebuild"]
+        job_needs(archive_job) == ["producer", "rust-prebuild", "fixture-complete"]
             && archive_job.contains("Restore same-run producer-independent Rust build products")
             && archive_job
                 .contains("Verify every transferred producer-selected pipeline fixture read-only")
-            && archive_job.contains("Produce generated-bound fixtures before archive construction")
+            && archive_job.contains("complete-test-fixtures-${{ github.sha }}")
+            && archive_job.contains("needs.fixture-complete.outputs.selector_sha256")
+            && archive_job.contains("make verify-test-fixtures")
+            && !archive_job.contains("make produce-")
+            && !archive_job.contains("test-actions-v5-")
             && archive_job.contains("Build dependency-light archive evidence tools")
-            && archive_job.contains("target/debug/perf_sample")
+            && archive_job.contains("target/debug/perf-sample")
             && archive_job.contains("archive-build-sample.json")
             && archive_job.contains("rust-archive-evidence-${{ github.sha }}")
             && archive_job
@@ -1054,12 +1164,12 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         );
     }
     assert!(
-        ci.matches("key: test-actions-v3-").count() == 2
+        ci.matches("key: test-actions-v5-").count() == 2
             && ci.matches("key: bundle-import-v1-").count() == 1
             && ci
                 .matches("name: bundle-import-cache-${{ github.sha }}")
                 .count()
-                == 3
+                == 4
             && ci
                 .matches(".cache/gmeow-sync/test-fixture-manifest-v2.json")
                 .count()
@@ -1068,9 +1178,9 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         "the bounded shared action store and exact bundle import need distinct cache, artifact, and evidence authorities in archive, shard, and medium consumers"
     );
     assert!(
-        ci.contains("dist/nextest/perf_sample")
-            && ci.contains("dist/nextest/perf_accept")
-            && ci.contains("dist/nextest/junit_inventory")
+        ci.contains("dist/nextest/perf-sample")
+            && ci.contains("dist/nextest/perf-accept")
+            && ci.contains("dist/nextest/junit-inventory")
             && ci.contains("--identity-receipt producer=dist/producer-receipt.json")
             && ci.contains("junit-shard-${{ matrix.shard }}.json")
             && ci.contains("shard-${{ matrix.shard }}-sample.json"),
@@ -1079,7 +1189,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     assert_eq!(
         normalized_whitespace(&ci)
             .matches(
-            "chmod +x dist/nextest/junit_inventory dist/nextest/perf_sample dist/nextest/perf_accept"
+            "chmod +x dist/nextest/junit-inventory dist/nextest/perf-sample dist/nextest/perf-accept"
         )
         .count(),
         2,
@@ -1114,7 +1224,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
     );
     assert_eq!(
         ci.matches("      GMEOW_DEV: ./dist/bin/gmeow-dev").count(),
-        7,
+        8,
         "ontology, heavy, and fixture production lanes must use the authenticated producer binary"
     );
     assert!(
@@ -1129,14 +1239,14 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         target_recipe(&makefile, "nextest-evidence-tools")
             .contains("-p gmeow-perf-evidence --bins")
             && !target_recipe(&makefile, "nextest-evidence-tools")
-                .contains("-p gmeow-pipeline --bin perf_sample")
+                .contains("-p gmeow-pipeline --bin perf-sample")
             && !target_recipe(&makefile, "nextest-evidence-tools")
-                .contains("-p gmeow-validate --bin junit_inventory"),
+                .contains("-p gmeow-validate --bin junit-inventory"),
         "archive evidence tools must build through the dependency-light leaf package"
     );
     assert!(
         target_recipe(&makefile, "perf-accept")
-            .contains("-p gmeow-perf-evidence --bin perf_accept")
+            .contains("-p gmeow-perf-evidence --bin perf-accept")
             && !target_recipe(&makefile, "perf-accept").contains("-p gmeow-pipeline"),
         "paired outcome grading must use the dependency-light evidence package"
     );
