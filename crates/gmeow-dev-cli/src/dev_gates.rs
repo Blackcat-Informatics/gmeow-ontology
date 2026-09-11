@@ -159,7 +159,7 @@ pub fn crate_check() -> i32 {
     // in this repository from the workspace purrdf pin; the query engine's witness is the
     // digest-pinned native query attestation its own Node lane byte-compares. A
     // missing/stale attestation HARD-FAILS here.
-    for message in gmeow_docs::vendored_asset::check_capability_attestations() {
+    for message in gmeow_docs::vendored_asset::check_capability_attestations(&root) {
         report.add_finding(
             Finding::new(
                 Severity::Error,

@@ -10,7 +10,7 @@ TARGET ?= foaf
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= chore: synchronize checked-in artifacts
-GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
+GMEOW_DEV ?= cargo xtask producer run --
 # The single producer's two selectors (see the `check-sync` target). ONE variable
 # names the mode: `check` is read-only verification, `update` materializes. The
 # default is deliberately read-only so a bare `make check-sync` can never mutate the
@@ -191,7 +191,7 @@ HEAVY_TASKS := wasm-parity console-smoke acceptance bench-soak medium-consumer-s
 # environment sentinels: source timestamps decide when rebuilds are needed.
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Makefile Cargo.toml Cargo.lock .cargo/config.toml .config/nextest.toml rust-toolchain.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
-TEST_FIXTURE_TOOL := $(CARGO_TARGET_DIR)/debug/gmeow-dev
+TEST_FIXTURE_TOOL := $(abspath dist/bin/gmeow-dev)
 
 print-binaryen-ver: ## Print the pinned binaryen release tag (CI provisions exactly this).
 	@echo "$(BINARYEN_VER)"
@@ -200,7 +200,7 @@ print-mdbook-ver: ## Print the pinned mdBook lane-tool version (Pages caches exa
 	@echo "$(MDBOOK_VERSION)"
 
 .PHONY: help print-binaryen-ver print-mdbook-ver \
-	install producer-build fmt lint check-lint lint-issue-refs i18n-lint \
+	install producer-build producer-verify producer-recipe producer-contract-test fmt lint check-lint lint-issue-refs i18n-lint \
 	validate gts-frame-profile-gate medium-gate medium-consumer-surface reason verify reason-verify rust-prebuild rust-build rust-test rust-docs check heavy check-sync \
 	regen fanout commit normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
@@ -271,9 +271,8 @@ reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
 
 rust-build: test-corpus-purity $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
-rust-prebuild: test-corpus-purity ## Compile every producer-independent CI test unit; the resulting gmeow-dev binary owns fixture produce/verify (CI handoff; generated/ not required).
+rust-prebuild: test-corpus-purity ## Compile producer-independent CI test units separately from the optimized corpus producer.
 	cargo nextest run --no-run --profile ci $(RUST_PREBUILD_WORKSPACE_ARGS)
-	test -x $(TEST_FIXTURE_TOOL)
 
 rust-test: nextest doctests ## Run the Rust workspace tests (including carrier/coherence proofs) and doctests.
 
@@ -311,18 +310,24 @@ lsp-release: ## Build the gmeow-lsp release binary and stage it into dist/bin/ w
 	cp $(CARGO_TARGET_DIR)/release/gmeow-lsp dist/bin/gmeow-lsp
 	@echo "gmeow-lsp release binary staged at dist/bin/gmeow-lsp"
 
-producer-build: ## Build ONLY the gmeow-dev producer release binary and stage it into dist/bin/ (the clean-clone bootstrap entry: no generated/ bundle exists yet, so the consumer CLIs cannot compile — build ONLY the producer here, deliberately bypassing $(RUST_READY_STAMP), which would pull the whole workspace including the consumers into the build).
-	cargo build -p gmeow-dev-cli --release
-	mkdir -p dist/bin
-	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
-	@echo "gmeow-dev producer release binary staged at dist/bin/gmeow-dev"
+producer-build: ## Build and authenticate the O3/full-LTO producer independently of test/debug builds.
+	cargo xtask producer build
 
-cli-build: $(RUST_READY_STAMP) ## Build the gmeow + gmeow-dev release binaries and stage them into dist/bin/ (requires generated/dist/gmeow.gts to already be materialized — on a clean clone run 'make install', which bootstraps the producer and materializes first).
-	cargo build -p gmeow-cli -p gmeow-dev-cli --release
+producer-verify: ## Authenticate the staged producer against the current build recipe without compiling it.
+	cargo xtask producer verify
+
+producer-recipe: ## Print the resolved producer recipe digest for exact binary-cache admission.
+	@cargo xtask producer recipe
+
+producer-contract-test: ## Verify executable authentication and resolved build-policy rejection on synthetic inputs.
+	cargo test --locked -p gmeow-action-cache executable::tests
+	cargo test --locked -p xtask producer::tests
+
+cli-build: producer-build ## Build the consumer CLI against the materialized bundle and retain the authenticated producer.
+	cargo build -p gmeow-cli --release
 	mkdir -p dist/bin
 	cp $(CARGO_TARGET_DIR)/release/gmeow dist/bin/gmeow
-	cp $(CARGO_TARGET_DIR)/release/gmeow-dev dist/bin/gmeow-dev
-	@echo "gmeow + gmeow-dev release binaries staged at dist/bin/"
+	@echo "gmeow consumer and optimized gmeow-dev producer staged at dist/bin/"
 
 lsp-sarif: lsp-release ## Emit SARIF from all .ttl files in the workspace root (report-only).
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out $(CARGO_TARGET_DIR)/lsp-sarif --category rust $$(find . -maxdepth 5 -name '*.ttl' -not -path './target/*' -not -path './.venv/*' | head -20) || true
@@ -596,23 +601,23 @@ doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 rust-gate: rust-build clippy nextest doctests ## Aggregate alias: the whole Rust surface; nextest owns carrier/coherence proofs from the shared inventory.
 	@echo "rust-gate: clippy, nextest (including carrier/coherence), and doctests all passed"
 
-produce-test-fixtures: rust-build ## Explicitly produce exact content-addressed corpus fixtures before any test runner starts.
+produce-test-fixtures: ## Explicitly produce exact content-addressed corpus fixtures with the optimized producer before tests.
 	@# This is a producer DAG stage, not test setup. No test target invokes it.
-	$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope all $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope all $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
-produce-producer-independent-test-fixtures: ## Explicitly produce test-profile DAG-stage fixtures before generated/ is available.
-	$(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-independent $(FIXTURE_TIMINGS_ARG)
+produce-producer-independent-test-fixtures: ## Explicitly produce optimized DAG-stage fixtures before generated/ is available.
+	$(GMEOW_DEV) test-fixtures produce --scope producer-independent $(FIXTURE_TIMINGS_ARG)
 
-produce-producer-bound-test-fixtures: rust-build ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
-	$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+produce-producer-bound-test-fixtures: ## Explicitly produce docs plus exact generated-bundle import fixtures before archive/test execution.
+	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope producer-bound $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
-produce-bundle-import-test-fixture: rust-build ## Explicitly produce only exact bundle-bound fixtures for focused consumer diagnosis.
-	$(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures produce --scope bundle $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
+produce-bundle-import-test-fixture: ## Explicitly produce only exact bundle-bound fixtures for focused consumer diagnosis.
+	$(BUNDLE_IMPORT_CACHE_ENV) $(GMEOW_DEV) test-fixtures produce --scope bundle $(BUNDLE_IMPORT_CACHE_ARGS) $(FIXTURE_TIMINGS_ARG)
 
 verify-test-fixtures: ## Authenticate all required test fixtures read-only; fail on every miss or identity mismatch.
 	$(TEST_FIXTURE_ENV) $(BUNDLE_IMPORT_CACHE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope all $(BUNDLE_IMPORT_CACHE_ARGS)
 
-verify-producer-independent-test-fixtures: ## Authenticate test-profile DAG-stage fixtures read-only.
+verify-producer-independent-test-fixtures: ## Authenticate producer-selected DAG-stage fixtures read-only.
 	$(TEST_FIXTURE_ENV) $(TEST_FIXTURE_TOOL) test-fixtures verify --scope producer-independent
 
 verify-producer-bound-test-fixtures: ## Authenticate docs and exact generated-bundle import fixtures read-only.
@@ -1350,8 +1355,8 @@ maint-medium-sweep: ## (maintainer) Refresh bench/medium-baseline.json — the f
 	@# overwritten by the real sweep on the next line; a committed seed is refused by
 	@# `the_committed_winner_table_carries_real_measurements`.
 	@test -f bench/medium-baseline.json || \
-	  cargo run -q -p gmeow-pipeline --bin medium-sweep -- --seed bench/medium-baseline.json
-	cargo run -q -p gmeow-pipeline --bin medium-sweep -- --emit-baseline bench/medium-baseline.json
+	  $(GMEOW_DEV) medium-seed --out bench/medium-baseline.json
+	$(GMEOW_DEV) medium-sweep --out bench/medium-baseline.json
 	@echo "wrote bench/medium-baseline.json ($$(wc -c < bench/medium-baseline.json) bytes) — regenerate + commit bench/medium-baseline.json and generated/medium/dictionary-effect.ttl"
 
 maint-refresh-term-release-authority: ## (maintainer) Advance the computed term-changelog authority at an accepted release boundary.
@@ -1359,7 +1364,7 @@ maint-refresh-term-release-authority: ## (maintainer) Advance the computed term-
 	@# It first renders the current manifest against the old authority, then proves
 	@# that promoting that result is a fixed point. Ordinary sync only consumes the
 	@# tracked evidence and can never advance semantic history from ignored generated/.
-	cargo run -q -p gmeow-pipeline --bin term-release-authority -- .
+	$(GMEOW_DEV) term-release-authority
 
 maint-medium-model-facing-diff: ## (maintainer) Cross-branch ZERO-MODEL-FACING-CHANGE proof: regenerate the merge-base commit in its OWN temp worktree with its OWN toolchain, then byte-compare the GMN-dialect artifact set (generated/projections/lang ebnf|gbnf|lark dirs, the whole gmn1/ pack, token-metrics.ttl, the glyph tables) against this branch's regenerated tree.
 	@# WHAT IT COMPARES, exactly: the set of paths the declared GMN-dialect predicate
@@ -1653,7 +1658,5 @@ $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@# Match the exact nextest profile consumed by the required suite and CI archive. A
 	@# default-profile prebuild is a different inventory and makes both consumers rebuild.
 	cargo nextest run --no-run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
-	@# The already-built repository-maintenance binary owns both sides of the fixture
-	@# boundary. A second example/binary build here would create a duplicate feature lineage.
-	test -x $(TEST_FIXTURE_TOOL)
+	@# Test compilation cannot replace or create the optimized corpus producer.
 	@touch $@

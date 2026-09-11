@@ -149,6 +149,7 @@ fn logic_query_recursive_ancestor() {
     assert_eq!(ys, expect);
 }
 
+/// Reject an unknown projection mode as a CLI usage error before producer admission.
 #[test]
 fn logic_compile_unknown_mode_fails() {
     dev_cmd()
@@ -157,7 +158,7 @@ fn logic_compile_unknown_mode_fails() {
         .arg("--mode")
         .arg("bogus")
         .assert()
-        .failure()
+        .code(2)
         .stderr(predicate::str::contains("unknown --mode"));
 }
 
@@ -448,4 +449,18 @@ fn shape_migrate_does_not_skip_a_math_namespace_target_class() {
                     "https://blackcatinformatics.ca/math/PointShape",
                 )),
         );
+}
+
+/// Fail bundle discovery outside a checkout instead of reading the executable's build tree.
+#[test]
+fn info_outside_a_checkout_cannot_borrow_the_executables_build_tree() {
+    let directory = tempfile::tempdir().expect("unrelated working directory");
+    let mut command = assert_cmd::Command::cargo_bin("gmeow-dev").expect("test executable");
+    command
+        .env_remove("GMEOW_ROOT")
+        .current_dir(directory.path())
+        .arg("info")
+        .assert()
+        .code(1)
+        .stderr(predicates::str::contains("cannot read"));
 }
