@@ -233,20 +233,21 @@ impl RunReport {
         self.ledger.verdict() == GateVerdict::Collected && self.drifted.is_empty()
     }
 
-    /// Publish only the exact receipts of a successful materializing run.
-    /// This writes selection metadata; no stage or corpus producer is invoked.
-    fn publish_fixture_selector(&mut self, root: &Path) -> gmeow_errors::Result<()> {
+    /// Record only the exact receipts of a successful materializing run.
+    /// This candidate cannot replace the fixture producer's finalized runner selector.
+    fn record_fixture_candidate(&mut self, root: &Path) -> gmeow_errors::Result<()> {
         if self.mode != RunMode::Update || !self.is_clean() {
             return Ok(());
         }
         let started = Instant::now();
-        let selector = crate::fixture::publish_stage_fixture_manifest(root, &self.stage_receipts)?;
+        crate::fixture::record_stage_fixture_candidate(root, &self.stage_receipts)?;
         self.timings.push(TimingRecord {
-            phase: "fixture-selector".to_string(),
+            phase: "fixture-receipt-candidate".to_string(),
             elapsed_ms: started.elapsed().as_millis(),
             metadata: Some(format!(
-                "stages={};sha256={}",
-                selector.stage_count, selector.sha256
+                "stages={};receipt-root={}",
+                crate::fixture::AUTHENTICATED_TEST_STAGE_IDS.len(),
+                self.stage_receipt_root
             )),
         });
         Ok(())
@@ -1451,7 +1452,7 @@ pub fn run_full_scoped_with_progress(
     };
     // Reuse this run's exact receipts without walking nonpersistent dependencies.
     // The same typed verdict governs CLI completion and manifest publication.
-    report.publish_fixture_selector(root)?;
+    report.record_fixture_candidate(root)?;
     report.timings.push(TimingRecord {
         phase: "pipeline-total".to_string(),
         elapsed_ms: total_started.elapsed().as_millis(),

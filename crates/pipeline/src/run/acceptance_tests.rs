@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! GMEOW sync acceptance and selector publication over synthetic receipt metadata.
+//! GMEOW sync acceptance and candidate recording over synthetic receipt metadata.
 
 use super::*;
 use crate::cache::{StageKeyContext, stage_key};
@@ -69,7 +69,7 @@ fn ledger_for(grade: Grade) -> DiagLedger {
 }
 
 #[test]
-fn collected_diagnostics_preserve_success_and_publish_exact_receipts() {
+fn collected_diagnostics_record_receipts_without_replacing_the_final_selector() {
     // gmeow-test-input: synthetic-only
     let receipts = receipt_metadata();
     for grade in [
@@ -100,11 +100,21 @@ fn collected_diagnostics_preserve_success_and_publish_exact_receipts() {
         let findings = serde_json::to_vec(&run.findings).unwrap();
         assert_eq!(run.findings.len(), 1);
         assert!(run.is_clean(), "{grade:?}");
-        run.publish_fixture_selector(root.path()).unwrap();
-        let selector = root
+        let selector = crate::fixture::publish_stage_fixture_manifest(root.path(), &receipts)
+            .unwrap()
+            .path;
+        let mut finalized: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&selector).unwrap()).unwrap();
+        finalized["bundle_import"] = serde_json::json!({"selected": "bundle receipt"});
+        finalized["docs"] = serde_json::json!({"selected": "docs receipts"});
+        let finalized = serde_json::to_vec(&finalized).unwrap();
+        std::fs::write(&selector, &finalized).unwrap();
+        run.record_fixture_candidate(root.path()).unwrap();
+        assert_eq!(std::fs::read(&selector).unwrap(), finalized);
+        let candidate = root
             .path()
-            .join(crate::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
-        let bytes = std::fs::read(selector).unwrap();
+            .join(crate::fixture::STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH);
+        let bytes = std::fs::read(&candidate).unwrap();
         let expected_root = tempfile::tempdir().unwrap();
         let expected =
             crate::fixture::publish_stage_fixture_manifest(expected_root.path(), &receipts)
@@ -113,12 +123,20 @@ fn collected_diagnostics_preserve_success_and_publish_exact_receipts() {
         assert_eq!(serde_json::to_vec(&run.findings).unwrap(), findings);
         assert_eq!(run.ledger.len(), 1);
         assert_eq!(run.timings.len(), 1);
-        assert_eq!(run.timings[0].phase, "fixture-selector");
+        assert_eq!(run.timings[0].phase, "fixture-receipt-candidate");
+        std::fs::remove_file(candidate).unwrap();
+        assert!(
+            crate::fixture::reuse_stage_fixture_candidate(root.path())
+                .unwrap()
+                .is_none(),
+            "a finalized runner selector cannot substitute for a missing producer candidate"
+        );
+        assert_eq!(std::fs::read(selector).unwrap(), finalized);
     }
 }
 
 #[test]
-fn fatal_diagnostics_drift_and_check_mode_cannot_replace_a_selector() {
+fn fatal_diagnostics_drift_and_check_mode_cannot_replace_fixture_records() {
     // gmeow-test-input: synthetic-only
     let fatal = Grade::new(
         Severity::Error,
@@ -141,23 +159,34 @@ fn fatal_diagnostics_drift_and_check_mode_cannot_replace_a_selector() {
             .join(crate::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
         std::fs::create_dir_all(selector.parent().unwrap()).unwrap();
         std::fs::write(&selector, b"prior selection").unwrap();
-        run.publish_fixture_selector(root.path()).unwrap();
+        let candidate = root
+            .path()
+            .join(crate::fixture::STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH);
+        std::fs::write(&candidate, b"prior candidate").unwrap();
+        run.record_fixture_candidate(root.path()).unwrap();
         assert_eq!(std::fs::read(selector).unwrap(), b"prior selection");
+        assert_eq!(std::fs::read(candidate).unwrap(), b"prior candidate");
         assert!(run.timings.is_empty());
     }
 }
 
 #[test]
-fn accepted_run_with_incomplete_receipts_fails_publication() {
+fn accepted_run_with_incomplete_receipts_fails_candidate_recording() {
     // gmeow-test-input: synthetic-only
     let root = tempfile::tempdir().unwrap();
     let mut run = report(RunMode::Update, DiagLedger::new());
     assert!(run.is_clean());
-    assert!(run.publish_fixture_selector(root.path()).is_err());
+    assert!(run.record_fixture_candidate(root.path()).is_err());
     assert!(
         !root
             .path()
             .join(crate::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH)
+            .exists()
+    );
+    assert!(
+        !root
+            .path()
+            .join(crate::fixture::STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH)
             .exists()
     );
     assert!(run.timings.is_empty());

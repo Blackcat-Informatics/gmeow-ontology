@@ -224,13 +224,13 @@ fn produce(
             "test fixture producer: phase=pipeline-stages state=started targets={} jobs={jobs}",
             gmeow_pipeline::fixture::AUTHENTICATED_TEST_STAGE_IDS.len()
         );
-        let warm = gmeow_pipeline::fixture::reuse_stage_fixture_manifest(root)
+        let warm = gmeow_pipeline::fixture::reuse_stage_fixture_candidate(root)
             .map_err(|error| fail(format!("admit warm authenticated stage DAG: {error}")))?;
-        let (manifest, receipts, timings) = if let Some(warm) = warm {
+        let (receipts, timings) = if let Some(warm) = warm {
             println!(
                 "test fixture producer: phase=pipeline-stages mode=receipt-hit state=admitted"
             );
-            (warm.manifest, warm.receipts, None)
+            (warm.receipts, None)
         } else {
             let run = gmeow_pipeline::fixture::prime_stage_fixtures(
                 root,
@@ -238,13 +238,10 @@ fn produce(
                 gmeow_pipeline::fixture::AUTHENTICATED_TEST_STAGE_IDS,
             )
             .map_err(|error| fail(format!("produce authenticated stage DAG: {error}")))?;
-            let manifest =
-                gmeow_pipeline::fixture::publish_stage_fixture_manifest(root, &run.stage_receipts)
-                    .map_err(|error| {
-                        fail(format!("publish authenticated stage selector: {error}"))
-                    })?;
-            (manifest, run.stage_receipts, Some(run.stage_timings))
+            (run.stage_receipts, Some(run.stage_timings))
         };
+        let manifest = gmeow_pipeline::fixture::publish_stage_fixture_manifest(root, &receipts)
+            .map_err(|error| fail(format!("publish authenticated stage selector: {error}")))?;
         println!(
             "pipeline fixture selector interim: path={} sha256={} stages={}",
             manifest.path.display(),

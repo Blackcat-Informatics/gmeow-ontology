@@ -238,34 +238,12 @@ pub fn feedback(
 
     // Keep the native producer verdict alongside its diagnostic projection:
     // re-grading advisory/coherent Error rows by severity would change its policy.
-    let (mut report, mut accepted) = match generated_feedback(&root) {
-        Ok(result) => result,
-        Err(error) => return fail(format!("generated feedback failed: {error}")),
-    };
-    for (label, thunk) in surfaces() {
-        match thunk(&root) {
-            Ok(surface) => {
-                accepted &= surface.ok();
-                for finding in surface.findings {
-                    report.add_finding(finding);
-                }
-            }
-            Err(error) => {
-                // Every selected surface is mandatory; retain the typed diagnostic
-                // and fail the operation instead of inventing a skipped warning.
-                accepted = false;
-                let mut ledger = gmeow_errors::DiagLedger::new();
-                ledger.attach(
-                    error.with_context(format!("feedback surface {label} failed")),
-                    gmeow_errors::StageId::new(label),
-                );
-                for finding in ledger.findings(label) {
-                    report.add_finding(finding);
-                }
-            }
-        }
-    }
-    record_gate_verdict(&mut report, "gate_verdict", accepted);
+    let (mut report, accepted) = collect_feedback(
+        generated_feedback(&root),
+        surfaces()
+            .into_iter()
+            .map(|(label, thunk)| (label, thunk(&root))),
+    );
     report
         .metadata
         .insert("category".into(), serde_json::json!(config.category));
@@ -284,6 +262,50 @@ pub fn feedback(
         0
     } else {
         fail("one or more required feedback surfaces failed")
+    }
+}
+
+/// Retain every selected diagnostic even when the native producer returns an error.
+/// Surface results are consumed once; their failures never suppress later surfaces.
+fn collect_feedback(
+    generated: gmeow_errors::Result<(Report, bool)>,
+    surfaces: impl IntoIterator<Item = (&'static str, gmeow_errors::Result<Report>)>,
+) -> (Report, bool) {
+    let (mut report, mut accepted) = match generated {
+        Ok(result) => result,
+        Err(error) => {
+            let mut report = Report::new("feedback");
+            record_gate_verdict(&mut report, "pipeline_gate_verdict", false);
+            append_surface_failure(&mut report, "generated", error);
+            (report, false)
+        }
+    };
+    for (label, result) in surfaces {
+        match result {
+            Ok(surface) => {
+                accepted &= surface.ok();
+                for finding in surface.findings {
+                    report.add_finding(finding);
+                }
+            }
+            Err(error) => {
+                accepted = false;
+                append_surface_failure(&mut report, label, error);
+            }
+        }
+    }
+    record_gate_verdict(&mut report, "gate_verdict", accepted);
+    (report, accepted)
+}
+
+fn append_surface_failure(report: &mut Report, label: &str, error: gmeow_errors::Diag) {
+    let mut ledger = gmeow_errors::DiagLedger::new();
+    ledger.attach(
+        error.with_context(format!("feedback surface {label} failed")),
+        gmeow_errors::StageId::new(label),
+    );
+    for finding in ledger.findings(label) {
+        report.add_finding(finding);
     }
 }
 

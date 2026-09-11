@@ -32,17 +32,23 @@ receipts, blobs, source identity, and producer profile. The final nextest archiv
 receipt binds the same selector and the optimized executable's receipt. Cache
 keys never stand in for those checks.
 
-Fixture producers also cache the previous selector as a candidate for reuse. The
-mandatory producer rebinds the current DAG, rehashes every declared raw input,
-rederives action contexts, and authenticates the recorded stable products before
-issuing the current run's selector. Retaining these small closure receipts avoids
-reconstructing uncached cumulative carriers merely to discover that their selected
-outputs are already reusable. A candidate miss causes explicit production.
+Successful update runs record reusable closure receipts in
+`.cache/gmeow-sync/stage-fixture-candidate-v2.json`. This candidate is separate
+from the finalized test selector; only the explicit fixture producer publishes
+that selector. Ordinary synchronization cannot replace its bundle-import or docs
+actions or invalidate a digest already handed to a runner. Before reusing a
+candidate, the producer rebinds the current DAG, rehashes every declared raw input,
+rederives action contexts, and authenticates the recorded stable products.
+Retaining these small closure receipts avoids reconstructing uncached cumulative
+carriers merely to discover reusable outputs. A candidate miss causes explicit
+production; the runner selector is never used as a candidate fallback.
 
-Only producer jobs restore that candidate. The completion job downloads the
-required current-run prefix artifact after restoring its cache. Archive and test
-jobs consume the final required artifact and its exact selector digest; they do
-not restore a selector from the producer cache.
+Only producer jobs restore candidates. Their action caches contain the candidate
+and bounded actions, never a finalized selector. The completion job downloads the
+required current-run prefix artifact after restoring its cache; that artifact
+also carries the prefix's current candidate for the completed producer cache.
+Archive and test jobs consume the final required artifact and its exact selector
+digest. They never restore the producer candidate.
 
 GitHub caches are immutable. Prefix and complete producers therefore restore
 reusable stores and explicitly save under separate, fresh run/attempt keys.

@@ -898,6 +898,11 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             && complete_job.contains("make produce-producer-bound-test-fixtures"),
         "optimized prefix production must overlap cold generations, then complete against their exact bundle"
     );
+    assert!(
+        workflow_step(prefix_job, "Transfer the selected prefix fixtures")
+            .contains(".cache/gmeow-sync/stage-fixture-candidate-v2.json"),
+        "the completion producer must retain the prefix's current receipt candidate in its reusable action cache"
+    );
     for (producer, transfer) in [
         (prefix_job, "Transfer the selected prefix fixtures"),
         (complete_job, "Transfer the selected complete fixtures"),
@@ -921,8 +926,9 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             assert!(
                 cache_step.contains("path: |")
                     && cache_step.contains(".cache/gmeow-sync/actions")
-                    && cache_step.contains(".cache/gmeow-sync/test-fixture-manifest-v2.json"),
-                "producer reuse needs both bounded actions and a prior selector candidate; consumers require a separately authenticated current-run artifact"
+                    && cache_step.contains(".cache/gmeow-sync/stage-fixture-candidate-v2.json")
+                    && !cache_step.contains(".cache/gmeow-sync/test-fixture-manifest-v2.json"),
+                "producer caches contain bounded actions and untrusted receipt candidates only; finalized runner selectors belong to authenticated current-run artifacts"
             );
         }
         for publication in ["Bind the exact current-run fixture selector", transfer] {
@@ -983,7 +989,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
             && archive_job.contains("needs.fixture-complete.outputs.selector_sha256")
             && archive_job.contains("make verify-test-fixtures")
             && !archive_job.contains("make produce-")
-            && !archive_job.contains("test-actions-v4-")
+            && !archive_job.contains("test-actions-v5-")
             && archive_job.contains("Build dependency-light archive evidence tools")
             && archive_job.contains("target/debug/perf-sample")
             && archive_job.contains("archive-build-sample.json")
@@ -1158,7 +1164,7 @@ fn ci_reuses_one_authenticated_nextest_archive_without_coverage_loss() {
         );
     }
     assert!(
-        ci.matches("key: test-actions-v4-").count() == 2
+        ci.matches("key: test-actions-v5-").count() == 2
             && ci.matches("key: bundle-import-v1-").count() == 1
             && ci
                 .matches("name: bundle-import-cache-${{ github.sha }}")

@@ -1182,12 +1182,36 @@ gmeow-e = { path = \"../e\" }\n";
     }
 
     #[test]
-    #[should_panic(expected = "load authenticated docs model")]
-    fn present_but_corrupt_model_cache_panics() {
+    fn present_but_corrupt_model_receipt_reaches_decode_and_is_refused() {
         let (_tmp, root) = temp_root("corrupt-model");
-        let cp = cache_path(&root);
-        fs::create_dir_all(cp.parent().unwrap()).unwrap();
-        fs::write(&cp, b"{ not valid json").unwrap();
-        let _ = load(&root);
+        let context = model_context(&root);
+        let cached = CachedModel::from_model(&DocsModel::default());
+        let store = action_store(&root);
+        let receipt = store
+            .publish(
+                &context,
+                cached.digest.clone(),
+                model_payload(&context),
+                &serde_json::to_vec(&cached).unwrap(),
+            )
+            .unwrap();
+        let selected = SelectedAction::from_receipt(&receipt);
+        assert!(load_selected_model(&root, &selected).is_ok());
+
+        let path = store.receipt_path(&context.key());
+        let corrupt = b"{ not valid json";
+        fs::write(&path, corrupt).unwrap();
+        let Err(error) = load_selected_model(&root, &selected) else {
+            panic!("corrupt receipt must refuse");
+        };
+        assert!(
+            error.to_string().starts_with("action cache JSON:"),
+            "{error}"
+        );
+        assert_eq!(
+            fs::read(path).unwrap(),
+            corrupt,
+            "read-only refusal cannot repair the receipt"
+        );
     }
 }

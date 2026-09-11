@@ -443,22 +443,22 @@ jobs:
 
       # Cached actions accelerate production; each action authenticates its own inputs.
       # Prefer completed stores so a newer prefix cannot hide reusable docs/spec actions.
-      # A previous selector is only a producer candidate: the mandatory producer
-      # rebinds the current DAG and inputs before issuing the current-run artifact.
-      # Its closure receipts avoid reconstructing uncached cumulative carriers.
+      # Cached receipt candidates are separate from the finalized runner selector.
+      # The mandatory producer revalidates the current DAG, inputs and closure before
+      # issuing the current-run artifact, without reconstructing unchanged carriers.
       - name: Restore reusable completed actions
         id: fixture-actions
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             .cache/gmeow-sync/actions
-            .cache/gmeow-sync/test-fixture-manifest-v2.json
-          key: test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
+            .cache/gmeow-sync/stage-fixture-candidate-v2.json
+          key: test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
           restore-keys: |
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-${{github.sha}}-
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-${{github.sha}}-
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-${{github.sha}}-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-${{github.sha}}-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-
 
       - name: Produce optimized corpus fixtures before any test runner starts
         run: >-
@@ -473,7 +473,7 @@ jobs:
         with:
           path: |
             .cache/gmeow-sync/actions
-            .cache/gmeow-sync/test-fixture-manifest-v2.json
+            .cache/gmeow-sync/stage-fixture-candidate-v2.json
           key: ${{ steps.fixture-actions.outputs.cache-primary-key }}
 
       - name: Bind the exact current-run fixture selector
@@ -491,6 +491,7 @@ jobs:
           path: |
             .cache/gmeow-sync/actions
             .cache/gmeow-sync/test-fixture-manifest-v2.json
+            .cache/gmeow-sync/stage-fixture-candidate-v2.json
             dist/nextest/fixture-timings-producer-independent.json
           include-hidden-files: true
           if-no-files-found: error
@@ -564,22 +565,22 @@ jobs:
 
       # Cached actions accelerate production; each action authenticates its own inputs.
       # Prefer completed stores so a newer prefix cannot hide reusable docs/spec actions.
-      # A previous selector is only a producer candidate: the mandatory producer
-      # rebinds the current DAG and inputs before issuing the current-run artifact.
-      # Its closure receipts avoid reconstructing uncached cumulative carriers.
+      # Cached receipt candidates are separate from the finalized runner selector.
+      # The mandatory producer revalidates the current DAG, inputs and closure before
+      # issuing the current-run artifact, without reconstructing unchanged carriers.
       - name: Restore reusable completed actions
         id: fixture-actions
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             .cache/gmeow-sync/actions
-            .cache/gmeow-sync/test-fixture-manifest-v2.json
-          key: test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
+            .cache/gmeow-sync/stage-fixture-candidate-v2.json
+          key: test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-${{github.sha}}-${{github.run_id}}-${{github.run_attempt}}
           restore-keys: |
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-${{github.sha}}-
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-${{github.sha}}-
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-
-            test-actions-v4-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-${{github.sha}}-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-${{github.sha}}-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-complete-
+            test-actions-v5-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-prefix-
 
       # This artifact and selector identity are required; a cache is never a transfer.
       - name: Download the selected prefix fixtures
@@ -624,7 +625,7 @@ jobs:
         with:
           path: |
             .cache/gmeow-sync/actions
-            .cache/gmeow-sync/test-fixture-manifest-v2.json
+            .cache/gmeow-sync/stage-fixture-candidate-v2.json
           key: ${{ steps.fixture-actions.outputs.cache-primary-key }}
 
       - name: Bind the exact current-run fixture selector

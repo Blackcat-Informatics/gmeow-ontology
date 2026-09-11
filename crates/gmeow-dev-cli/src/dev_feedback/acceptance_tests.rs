@@ -3,7 +3,7 @@
 
 //! Synthetic native producer verdicts at CLI and feedback publication boundaries.
 
-use super::{pipeline_feedback, record_gate_verdict};
+use super::{collect_feedback, pipeline_feedback, record_gate_verdict};
 use gmeow_errors::{
     Diag, DiagLedger, FindingCategory, Grade, Severity, StageId, Standpoint, register_code,
 };
@@ -144,9 +144,14 @@ fn failed_selected_surface_retains_the_successful_pipeline_verdict() {
         FindingCategory::Transient,
         Standpoint::Advisory,
     ));
-    let (mut report, accepted) = pipeline_feedback(run);
-    assert!(accepted);
-    record_gate_verdict(&mut report, "gate_verdict", false);
+    let (report, accepted) = collect_feedback(
+        Ok(pipeline_feedback(run)),
+        [(
+            "selected",
+            Err(crate::error::feedback("synthetic selected surface failure")),
+        )],
+    );
+    assert!(!accepted);
     let restored: gmeow_errors::Report =
         serde_json::from_slice(&serde_json::to_vec(&report).unwrap()).unwrap();
     assert_eq!(
@@ -157,5 +162,81 @@ fn failed_selected_surface_retains_the_successful_pipeline_verdict() {
         restored.metadata["gate_verdict"],
         serde_json::json!(gmeow_errors::GateVerdict::Fatal)
     );
-    assert_eq!(restored.findings.len(), 1);
+    assert_eq!(restored.findings.len(), 2);
+    assert_eq!(restored.findings[0].message, "synthetic producer finding");
+    assert!(
+        serde_json::to_string(&restored)
+            .unwrap()
+            .contains("synthetic selected surface failure")
+    );
+}
+
+#[test]
+fn hard_producer_failure_retains_diagnostics_and_publishes_the_feedback_record() {
+    let error = Diag::new(
+        register_code("gmeow-dev.sync.drift"),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        "synthetic unreadable producer source",
+    );
+    let mut later = gmeow_errors::Report::new("later-surface");
+    later.add_finding(gmeow_errors::Finding::new(
+        Severity::Info,
+        "synthetic.later",
+        "later surface retained",
+    ));
+    let visited = std::cell::Cell::new(0);
+    let (report, accepted) = collect_feedback(
+        Err(error),
+        [("later-surface", Ok(later))].into_iter().inspect(|_| {
+            visited.set(visited.get() + 1);
+        }),
+    );
+    assert!(!accepted);
+    assert_eq!(visited.get(), 1);
+    assert_eq!(report.findings.len(), 2);
+    assert_eq!(report.findings[0].code, "gmeow-dev.sync.drift");
+    let encoded = serde_json::to_string(&report).unwrap();
+    assert!(encoded.contains("synthetic unreadable producer source"));
+    assert!(encoded.contains("feedback surface generated failed"));
+    for key in ["pipeline_gate_verdict", "gate_verdict"] {
+        assert_eq!(
+            report.metadata[key],
+            serde_json::json!(gmeow_errors::GateVerdict::Fatal)
+        );
+    }
+
+    let directory = tempfile::tempdir().unwrap();
+    let config = gmeow_cli_core::DiagnosticsConfig::resolve(
+        Some("text"),
+        Some("json,sarif"),
+        Some(directory.path()),
+        Some("producer-failure"),
+        None,
+        &std::collections::HashMap::new(),
+        false,
+        directory.path(),
+    )
+    .unwrap();
+    super::write_artifacts(&report, &config).unwrap();
+    super::write_feedback_bundle(&report, &config).unwrap();
+    let restored: gmeow_errors::Report = serde_json::from_slice(
+        &std::fs::read(directory.path().join("producer-failure.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(restored.metadata, report.metadata);
+    assert_eq!(restored.findings.len(), report.findings.len());
+    let bytes = std::fs::read(directory.path().join("producer-failure.gts")).unwrap();
+    let mut graph = purrdf::gts::reader::read(&bytes, true, None);
+    let blobs = crate::feedback_bundle::read_report_blobs(&mut graph).unwrap();
+    let bundled: gmeow_errors::Report =
+        serde_json::from_slice(&blobs[crate::feedback_bundle::REP_FINDINGS]).unwrap();
+    assert_eq!(bundled.findings, restored.findings);
+    for key in ["pipeline_gate_verdict", "gate_verdict"] {
+        assert_eq!(bundled.metadata[key], restored.metadata[key]);
+    }
+    assert!(directory.path().join("producer-failure.sarif").is_file());
 }

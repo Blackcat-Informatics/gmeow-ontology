@@ -7,6 +7,8 @@
 //! child-process resource observations in separate JSON objects; the repeated paired
 //! protocol and median comparison live in docs/rust-test-performance.md.
 
+use crate::{PerfResult, write_json_atomic};
+
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
@@ -17,31 +19,6 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use sha2::{Digest, Sha256};
 
 const SCHEMA_VERSION: u32 = 2;
-
-#[derive(Debug)]
-struct PerfError(String);
-
-impl std::fmt::Display for PerfError {
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(formatter)
-    }
-}
-
-impl std::error::Error for PerfError {}
-
-impl From<String> for PerfError {
-    fn from(message: String) -> Self {
-        Self(message)
-    }
-}
-
-impl From<&str> for PerfError {
-    fn from(message: &str) -> Self {
-        message.to_string().into()
-    }
-}
-
-type PerfResult<T> = std::result::Result<T, PerfError>;
 
 #[derive(Debug)]
 struct Args {
@@ -976,32 +953,6 @@ where
     i128: From<T>,
 {
     u64::try_from(i128::from(value)).unwrap_or(0)
-}
-
-fn write_json_atomic(path: &Path, value: &serde_json::Value) -> PerfResult<()> {
-    let parent = path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
-    fs::create_dir_all(parent)
-        .map_err(|error| format!("create output directory {}: {error}", parent.display()))?;
-    let mut temporary = tempfile::NamedTempFile::new_in(parent)
-        .map_err(|error| format!("create temporary sample in {}: {error}", parent.display()))?;
-    serde_json::to_writer_pretty(&mut temporary, value)
-        .map_err(|error| format!("serialize performance sample: {error}"))?;
-    use std::io::Write as _;
-    temporary
-        .write_all(b"\n")
-        .and_then(|_| temporary.as_file().sync_all())
-        .map_err(|error| format!("flush performance sample: {error}"))?;
-    temporary.persist(path).map_err(|error| {
-        format!(
-            "publish performance sample {}: {}",
-            path.display(),
-            error.error
-        )
-    })?;
-    Ok(())
 }
 
 #[cfg(test)]

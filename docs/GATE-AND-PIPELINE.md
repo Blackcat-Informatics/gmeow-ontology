@@ -281,13 +281,17 @@ when a persistent leaf depends on a deliberately nonpersistent carrier stage:
 trying to rediscover the leaf key from currently persistent dependency receipts
 would either miss or pressure the runner to execute the DAG again. The recorded
 context removes that work while preserving fail-closed receipt and blob checks.
-Successful synchronization in update mode publishes this selector from its own
-receipts, restricted to the complete fixture dependency closure. The explicit
-pre-test producer authenticates that closure before reuse, then supplies the
-remaining selected fixture products. A missing selector still belongs to that
-producer's recomputation path; it never authorizes a test to build anything.
-Read-only synchronization publishes no selector, and the two independent cold CI
-generations retain separate producer runs and identities.
+Successful synchronization in update mode records its complete fixture dependency
+closure in `.cache/gmeow-sync/stage-fixture-candidate-v2.json`. This reusable
+receipt candidate is separate from the finalized selector: ordinary pipeline runs
+cannot overwrite the selected bundle-import or docs actions, or invalidate a
+selector digest already handed to a runner. The explicit pre-test producer
+revalidates the candidate against the current DAG, inputs, and cached products,
+then publishes the selector with every selected fixture product. A missing
+candidate causes explicit production; the finalized selector is never a candidate
+fallback. Tests cannot build anything. Read-only synchronization records neither
+file, and the two independent cold CI generations retain separate producer runs
+and identities.
 
 For development over synthetic inputs, `make nextest-synthetic
 NEXTEST_FILTER='package(gmeow-logic) & test(obligations::)'` uses the same
