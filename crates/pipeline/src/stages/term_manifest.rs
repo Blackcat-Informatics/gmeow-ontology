@@ -537,6 +537,20 @@ pub fn refresh_release_authority(
     root: &Path,
     bootstrap: bool,
 ) -> Result<(String, usize, bool), gmeow_errors::Diag> {
+    publish_release_authority(root, bootstrap, || load_authored_no_imports(root))
+}
+
+/// Publish release evidence from an explicitly supplied dataset loader.
+///
+/// Refuse bootstrap overwrites before invoking the loader. The remaining release
+/// ordering, fixed-point and atomic-write checks operate only on that dataset and
+/// the existing authority. Tests supply tiny synthetic datasets directly, without
+/// source discovery or corpus construction.
+fn publish_release_authority(
+    root: &Path,
+    bootstrap: bool,
+    load_dataset: impl FnOnce() -> Result<Dataset, gmeow_errors::Diag>,
+) -> Result<(String, usize, bool), gmeow_errors::Diag> {
     let path = root.join(TERM_RELEASE_AUTHORITY_PATH);
     if bootstrap && path.exists() {
         return Err(manifest_error(format!(
@@ -545,7 +559,7 @@ pub fn refresh_release_authority(
         )));
     }
 
-    let dataset = load_authored_no_imports(root)?;
+    let dataset = load_dataset()?;
     let existing = if bootstrap {
         None
     } else {
@@ -849,31 +863,27 @@ gmeow:BoundaryTerm a owl:Class ;
         );
     }
 
-    fn write_release_source(root: &Path, release: &str, label: &str) {
-        let ontology = root.join("ontology");
-        std::fs::create_dir_all(&ontology).expect("ontology directory");
-        let turtle = format!(
-            r#"
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-<https://blackcatinformatics.ca/gmeow> owl:versionInfo "{release}" .
-gmeow:BoundaryTerm a owl:Class ; rdfs:label "{label}" .
-"#
-        );
-        std::fs::write(ontology.join("gmeow.ttl"), turtle).expect("write ontology source");
-    }
-
+    /// Preserve release history across refusal, advancement and no-op publication on tiny data.
     #[test]
     fn release_authority_is_ordered_and_same_release_rewrites_fail_closed() {
         let guard = tempfile::tempdir().expect("release authority repo");
         let root = guard.path();
-        write_release_source(root, "1.0.0", "Accepted definition");
-        let (release, terms, wrote) =
-            refresh_release_authority(root, true).expect("bootstrap accepted release");
+        let initial = one_term_dataset("1.0.0", "Accepted definition", None);
+        let (release, terms, wrote) = publish_release_authority(root, true, || Ok(initial))
+            .expect("bootstrap accepted release from a synthetic dataset");
         assert_eq!((release.as_str(), terms, wrote), ("1.0.0", 1, true));
         let path = root.join(TERM_RELEASE_AUTHORITY_PATH);
         let accepted = std::fs::read(&path).expect("accepted authority bytes");
+        let error = publish_release_authority(root, true, || {
+            panic!("a refused bootstrap must not invoke the dataset loader")
+        })
+        .expect_err("bootstrap must never overwrite an accepted authority")
+        .to_string();
+        assert!(error.contains("refusing to bootstrap"), "{error}");
+        assert_eq!(
+            std::fs::read(&path).expect("authority after bootstrap refusal"),
+            accepted
+        );
         assert_eq!(
             accepted.iter().filter(|byte| **byte == b'\n').count(),
             1,
@@ -887,8 +897,8 @@ gmeow:BoundaryTerm a owl:Class ; rdfs:label "{label}" .
             .to_string();
         assert!(error.contains("future evidence"), "{error}");
 
-        write_release_source(root, "1.0.0", "Unreleased rewrite");
-        let error = refresh_release_authority(root, false)
+        let rewritten = one_term_dataset("1.0.0", "Unreleased rewrite", None);
+        let error = publish_release_authority(root, false, || Ok(rewritten))
             .expect_err("same-release content must not move accepted authority")
             .to_string();
         assert!(error.contains("unchanged ontology release"), "{error}");
@@ -898,17 +908,18 @@ gmeow:BoundaryTerm a owl:Class ; rdfs:label "{label}" .
             "a refused refresh preserves every accepted byte"
         );
 
-        write_release_source(root, "1.1.0", "Accepted next definition");
-        let (release, terms, wrote) =
-            refresh_release_authority(root, false).expect("advance at newer release");
+        let next = one_term_dataset("1.1.0", "Accepted next definition", None);
+        let (release, terms, wrote) = publish_release_authority(root, false, || Ok(next))
+            .expect("advance at newer release from a synthetic dataset");
         assert_eq!((release.as_str(), terms, wrote), ("1.1.0", 1, true));
         let advanced = std::fs::read(&path).expect("advanced authority bytes");
         assert_ne!(
             advanced, accepted,
             "a new release advances authority identity"
         );
-        let (_, _, wrote) =
-            refresh_release_authority(root, false).expect("same-release fixed-point no-op");
+        let unchanged = one_term_dataset("1.1.0", "Accepted next definition", None);
+        let (_, _, wrote) = publish_release_authority(root, false, || Ok(unchanged))
+            .expect("same-release fixed-point no-op");
         assert!(
             !wrote,
             "an identical same-release refresh must not rewrite bytes"
@@ -920,6 +931,7 @@ gmeow:BoundaryTerm a owl:Class ; rdfs:label "{label}" .
         );
     }
 
+    /// Read the same accepted authority before and after writing synthetic output, preserving docs.
     #[test]
     fn fresh_and_warm_fixed_points_render_byte_identical_term_docs() {
         let guard = tempfile::tempdir().expect("synthetic clean worktree");
@@ -941,23 +953,27 @@ gmeow:BoundaryTerm a owl:Class ; rdfs:label "{label}" .
             serde_json::to_vec_pretty(&authority).expect("serialize synthetic authority"),
         )
         .expect("write synthetic authority");
-        write_release_source(root, "1.1.0", "After release");
+        let after = one_term_dataset("1.1.0", "After release", None);
 
-        // The synthetic repository has a real tracked authority and authored source,
-        // while generated/ is deliberately absent until first materialization.
+        // The tiny fixture contains only release evidence. Explicit synthetic data
+        // supplies the terms; no test discovers or compiles repository sources.
         let materialized = root.join(TERM_MANIFEST_RDF_PATH);
         assert!(
             !materialized.exists(),
             "fresh synthetic worktree starts with no generated manifest"
         );
 
-        // gmeow-test-input: synthetic-only
-        let fresh = render_term_manifest(root).expect("fresh manifest render");
+        let fresh_authority = read_release_authority(root).expect("authority before output");
+        release_boundary_order(&after, &fresh_authority).expect("newer synthetic release");
+        let fresh = render_with_authority(&after, &fresh_authority.terms)
+            .expect("render the supplied one-term dataset");
         std::fs::create_dir_all(materialized.parent().expect("manifest parent"))
             .expect("first materialization directory");
         std::fs::write(&materialized, &fresh).expect("materialize first manifest output");
-        // gmeow-test-input: synthetic-only
-        let warm = render_term_manifest(root).expect("warm manifest render");
+        let warm_authority = read_release_authority(root).expect("authority after output");
+        release_boundary_order(&after, &warm_authority).expect("same synthetic release boundary");
+        let warm = render_with_authority(&after, &warm_authority.terms)
+            .expect("render again from the supplied dataset and accepted authority");
         assert_eq!(fresh, warm, "manifest bytes must be fixed-point stable");
         assert_eq!(
             std::fs::read(&materialized).expect("read first materialization"),
@@ -965,7 +981,6 @@ gmeow:BoundaryTerm a owl:Class ; rdfs:label "{label}" .
             "warm rendering must neither read back nor rewrite the first generated output"
         );
 
-        let after = one_term_dataset("1.1.0", "After release", None);
         let fresh_records = resolve_term_records(&after, &prior).expect("fresh resolved records");
         let warm_records = resolve_term_records(&after, &prior).expect("warm resolved records");
         assert_eq!(
@@ -979,6 +994,7 @@ gmeow:BoundaryTerm a owl:Class ; rdfs:label "{label}" .
             warm
         );
 
+        /// Render the synthetic term and changelog pages with distinct authored and computed notes.
         fn docs_pages(records: &BTreeMap<String, PriorTerm>) -> (String, String) {
             let term_iri = format!("{GMEOW}BoundaryTerm");
             let record = records.get(&term_iri).expect("BoundaryTerm record");

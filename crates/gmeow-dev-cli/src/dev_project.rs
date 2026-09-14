@@ -120,7 +120,7 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
 
 /// The output bases `console-assemble` REFUSES to write into.
 ///
-/// Both are materialized by exactly one writer — `make regen SYNC_OUTPUTS=docs` — which
+/// Both are materialized by exactly one writer — `make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs` — which
 /// reconciles them as whole trees. A second command dropping a partial console tree into
 /// either would look like drift to the reconciler and would be silently reverted, or worse
 /// would be reconciled AWAY along with real output. Refusing is the honest behaviour, and
@@ -128,7 +128,8 @@ fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocs
 pub(crate) const CONSOLE_REFUSED_BASES: &[&str] = &["ontology-docs", "dist/gmeow-docs"];
 
 /// The single writer of the refused bases, named in every refusal.
-pub(crate) const CONSOLE_REFUSAL_WRITER: &str = "make regen SYNC_OUTPUTS=docs";
+pub(crate) const CONSOLE_REFUSAL_WRITER: &str =
+    "make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs";
 
 /// Whether `out` is equal to, or inside, one of [`CONSOLE_REFUSED_BASES`].
 ///
@@ -185,6 +186,9 @@ pub fn console_assemble(out: &Path) -> i32 {
             ),
             2,
         );
+    }
+    if let Err(error) = crate::dev_producer::admit() {
+        return fail(format!("producer admission: {error}"));
     }
     let exec = match playground_exec_from_bundle(&root) {
         Ok(exec) => exec,

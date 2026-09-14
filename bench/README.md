@@ -387,7 +387,7 @@ the dictionary the compaction lane pins **is** the bundle's header entry, so one
 
 ## Refreshing the sweep (maintainer only)
 
-There is **one** producer — the Rust `medium-sweep --emit-baseline` path:
+There is **one** producer — the admitted `gmeow-dev medium-sweep` command:
 
 ```sh
 make maint-medium-sweep     # runs the real DAG, then the full grid

@@ -370,6 +370,24 @@ lto = "thin"
 # already Cargo's release default (no DWARF); `strip` is not.
 strip = "symbols"
 
+# Corpus production has its own executable lineage. Runtime checks remain enabled
+# for workspace crates; tests keep their separate O3, non-LTO build.
+[profile.pipeline]
+inherits = "release"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+incremental = false
+debug = false
+strip = "symbols"
+debug-assertions = true
+overflow-checks = true
+
+[profile.pipeline.package."*"]
+opt-level = 3
+debug-assertions = false
+overflow-checks = false
+
 # === First-party release tuning ===
 # Our own crates carry the runtime hot paths (logic chase, SHACL evaluation,
 # validation lints). The default release profile splits each crate into 16

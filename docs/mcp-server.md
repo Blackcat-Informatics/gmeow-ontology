@@ -141,7 +141,7 @@ bytes folded into the `llms.txt` / `llms-full.txt` surfaces).
 
 ## Developer MCP
 
-From a checkout, `cargo run -p gmeow-dev-cli -- mcp` exposes the
+From a checkout, run `make producer-build`, then `dist/bin/gmeow-dev mcp` to expose the
 repo-maintenance server:
 
 | Tool | What it does |

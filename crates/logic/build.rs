@@ -7,9 +7,11 @@
 //! `gmeow-bundle-import` leaf. Keeping that fingerprint here made every unrelated
 //! workspace source edit rebuild the reasoning core and invalidate the shared pack.
 
-use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
+
+#[path = "../../build-support/embedded_logic_inputs.rs"]
+mod embedded_logic_inputs;
 
 fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
@@ -23,13 +25,11 @@ fn main() {
 /// Preserve the pre-existing build-script authority that embeds every authored
 /// `queries/verify/*.rq` source into `OUT_DIR/verify_queries.rs` fail-closed.
 fn embed_verify_queries(workspace: &Path) {
-    let mut by_stem: BTreeMap<String, PathBuf> = BTreeMap::new();
+    let by_stem = embedded_logic_inputs::verify_queries(workspace);
     let top = workspace.join("queries/verify");
     println!("cargo:rerun-if-changed={}", top.display());
-    collect_rq(&top, &mut by_stem);
     let slices = workspace.join("slices");
     println!("cargo:rerun-if-changed={}", slices.display());
-    collect_slice_verify(&slices, &mut by_stem);
     assert!(
         !by_stem.is_empty(),
         "the embedded verify query set must never be empty"
@@ -41,6 +41,7 @@ fn embed_verify_queries(workspace: &Path) {
          pub static VERIFY_QUERIES: &[(&str, &str)] = &[\n",
     );
     for (stem, path) in &by_stem {
+        println!("cargo:rerun-if-changed={}", path.display());
         let path = path
             .to_str()
             .unwrap_or_else(|| panic!("non-UTF-8 verify query path: {}", path.display()));
@@ -50,52 +51,4 @@ fn embed_verify_queries(workspace: &Path) {
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR");
     std::fs::write(Path::new(&out_dir).join("verify_queries.rs"), out)
         .expect("write verify_queries.rs");
-}
-
-fn collect_rq(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
-    let entries = std::fs::read_dir(dir)
-        .unwrap_or_else(|error| panic!("read verify query dir {}: {error}", dir.display()));
-    let mut paths: Vec<PathBuf> = entries
-        .filter_map(|entry| entry.ok().map(|e| e.path()))
-        .collect();
-    paths.sort();
-    for path in paths {
-        if !path.extension().is_some_and(|extension| extension == "rq") {
-            continue;
-        }
-        println!("cargo:rerun-if-changed={}", path.display());
-        let stem = path
-            .file_stem()
-            .and_then(|stem| stem.to_str())
-            .unwrap_or_else(|| panic!("non-UTF-8 verify query path: {}", path.display()))
-            .to_owned();
-        if let Some(previous) = by_stem.insert(stem.clone(), path.clone()) {
-            panic!(
-                "duplicate verify query stem {stem:?}: {} and {}",
-                previous.display(),
-                path.display()
-            );
-        }
-    }
-}
-
-fn collect_slice_verify(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
-    let entries = std::fs::read_dir(dir)
-        .unwrap_or_else(|error| panic!("read slices dir {}: {error}", dir.display()));
-    let mut paths: Vec<PathBuf> = entries
-        .filter_map(|entry| entry.ok().map(|e| e.path()))
-        .collect();
-    paths.sort();
-    for path in paths {
-        if !path.is_dir() {
-            continue;
-        }
-        println!("cargo:rerun-if-changed={}", path.display());
-        let verify = path.join("queries/verify");
-        if verify.is_dir() {
-            println!("cargo:rerun-if-changed={}", verify.display());
-            collect_rq(&verify, by_stem);
-        }
-        collect_slice_verify(&path, by_stem);
-    }
 }

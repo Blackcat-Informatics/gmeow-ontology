@@ -28,7 +28,8 @@ python3 -m http.server -d dist/console-smoke 8080   # or any static file server
 Then open `http://localhost:8080/console/`.
 
 `console-assemble` **refuses** an `--out` equal to or inside `ontology-docs/` or
-`dist/gmeow-docs/`: those bases have exactly one writer, `make regen SYNC_OUTPUTS=docs`.
+`dist/gmeow-docs/`: those bases have exactly one writer,
+`make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs`.
 
 ## The browser smoke lane
 

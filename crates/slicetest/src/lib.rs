@@ -27,7 +27,7 @@
 //! * [`native_query`] — the oxigraph-free native SPARQL substrate: the
 //!   dataset builder, the `NativeSparqlEngine` wrapper, and the canonical term
 //!   renderer the other modules share.
-//! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.
+//! * [`paths`] — explicit producer-root and standalone harness path resolution.
 //! * [`repository`] — exact-input discovery plus the cached producer/read-only
 //!   verifier boundary for the complete declarative slice verdict.
 

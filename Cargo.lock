@@ -1662,6 +1662,7 @@ dependencies = [
  "ciborium",
  "clap",
  "docs-print",
+ "gmeow-action-cache",
  "gmeow-bundle-import",
  "gmeow-cli-core",
  "gmeow-docs",
@@ -6240,8 +6241,9 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 name = "xtask"
 version = "0.2.0"
 dependencies = [
+ "gmeow-action-cache",
  "gmeow-errors",
- "gmeow-logic-compile",
+ "serde_json",
  "tempfile",
 ]
 

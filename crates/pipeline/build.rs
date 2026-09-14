@@ -32,6 +32,10 @@ use sha2::{Digest, Sha256};
 #[path = "../../build-support/path_dependency_inputs.rs"]
 mod build_inputs;
 
+/// Embed the pipeline implementation identity and its resolved compilation context.
+///
+/// Hash library inputs and Cargo policy for action reuse, expose the executable's
+/// admission contract separately, and emit the build metadata consumed by receipts.
 fn main() {
     let manifest = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
     // crates/pipeline → workspace root is two levels up.
@@ -92,6 +96,20 @@ fn main() {
     // PROFILE/FEATURE/CFG values. Doing so compares the outer Cargo environment with the
     // build-script environment and can make an otherwise warm crate rebuild forever.
     let mut context: BTreeMap<String, String> = BTreeMap::new();
+    println!("cargo:rerun-if-env-changed=GMEOW_PRODUCER_BUILD_CONTRACT");
+    let producer_contract = std::env::var("GMEOW_PRODUCER_BUILD_CONTRACT").unwrap_or_default();
+    println!("cargo:rustc-env=GMEOW_PRODUCER_BUILD_CONTRACT={producer_contract}");
+    // Action owners hash their own implementation closure above. The executable's
+    // whole-source identity remains embedded for admission, while action reuse
+    // binds only the resolved compilation policy from that admitted recipe.
+    println!("cargo:rerun-if-env-changed=GMEOW_PRODUCER_COMPILATION_CONTRACT");
+    let compilation_contract =
+        std::env::var("GMEOW_PRODUCER_COMPILATION_CONTRACT").unwrap_or_default();
+    println!("cargo:rustc-env=GMEOW_PRODUCER_COMPILATION_CONTRACT={compilation_contract}");
+    context.insert(
+        "GMEOW_PRODUCER_COMPILATION_CONTRACT".to_owned(),
+        compilation_contract,
+    );
     for name in [
         "HOST",
         "TARGET",
@@ -151,10 +169,14 @@ fn main() {
     );
     println!(
         "cargo:rustc-env=GMEOW_BUILD_PROFILE={}",
-        context
-            .get("PROFILE")
-            .map(String::as_str)
-            .unwrap_or("unknown")
+        if producer_contract.is_empty() {
+            context
+                .get("PROFILE")
+                .map(String::as_str)
+                .unwrap_or("unknown")
+        } else {
+            "pipeline"
+        }
     );
     println!(
         "cargo:rustc-env=GMEOW_BUILD_FEATURES={}",

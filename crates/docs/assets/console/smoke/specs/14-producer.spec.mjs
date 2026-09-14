@@ -84,7 +84,7 @@ test("the tree under test is exactly what the producer emits", async ({ assemble
   await fs.rm(scratch, { recursive: true, force: true });
 });
 
-test("console-assemble REFUSES the regen-owned bases, naming the one writer", async () => {
+test("console-assemble REFUSES the sync-owned bases, naming the one writer", async () => {
   for (const base of ["ontology-docs", "ontology-docs/console", "dist/gmeow-docs"]) {
     let failed = false;
     let message = "";
@@ -100,7 +100,7 @@ test("console-assemble REFUSES the regen-owned bases, naming the one writer", as
     }
     expect(failed, `console-assemble --out ${base} must refuse`).toBe(true);
     expect(message, "the refusal must name the one writer of that base").toContain(
-      "make regen SYNC_OUTPUTS=docs",
+      "make check-sync SYNC_MODE=update SYNC_OUTPUTS=docs",
     );
   }
 });

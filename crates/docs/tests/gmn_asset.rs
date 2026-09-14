@@ -17,7 +17,13 @@
 
 use gmeow_docs::vendored_asset::GMN_ASSET;
 
+/// Verify the shipped GMN image, required exports, and pinned file digests.
 #[test]
 fn vendored_gmn_asset_passes_the_anti_rot_gate() {
-    GMN_ASSET.verify();
+    GMN_ASSET.verify(&repo_root());
+}
+
+/// Resolve this test crate's checkout for read-only GMN asset verification.
+fn repo_root() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }

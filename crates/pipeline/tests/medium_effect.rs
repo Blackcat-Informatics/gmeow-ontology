@@ -145,7 +145,7 @@ fn the_declared_training_points_are_the_committed_winners() {
 }
 
 /// The committed table carries REAL measurements — the guard against a bootstrap seed
-/// (`medium-sweep --seed`, every measured field zero) ever being committed as evidence.
+/// (`gmeow-dev medium-seed`, every measured field zero) ever being committed as evidence.
 #[test]
 fn the_committed_winner_table_carries_real_measurements() {
     let baseline = committed_baseline();

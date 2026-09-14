@@ -7,6 +7,9 @@ use gmeow_docs::vendored_asset::{
     GMN_ASSET, MCP_ASSET, MCP_CORE_ASSET, QUERY_ASSET, REASON_ASSET, VALIDATE_ASSET,
 };
 
+/// Refresh the named asset's digest and substrate records in this checkout.
+///
+/// Reject an unknown asset name before invoking the explicit maintainer refresh.
 fn main() {
     let name = std::env::args()
         .nth(1)
@@ -20,5 +23,6 @@ fn main() {
         "mcp-core" => &MCP_CORE_ASSET,
         other => panic!("unknown vendored asset {other:?}"),
     };
-    asset.refresh_manifest();
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    asset.refresh_manifest(&root);
 }

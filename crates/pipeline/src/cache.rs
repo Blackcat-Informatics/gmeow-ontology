@@ -140,6 +140,10 @@ pub const TOOLCHAIN_FINGERPRINT: &str = env!("GMEOW_TOOLCHAIN_FINGERPRINT");
 /// receipt fields as well as inputs to [`BUILD_FINGERPRINT`].
 pub const BUILD_TARGET: &str = env!("GMEOW_BUILD_TARGET");
 pub const BUILD_PROFILE: &str = env!("GMEOW_BUILD_PROFILE");
+/// Admitted effective code-generation recipe; empty in separate test/debug builds.
+pub const PRODUCER_BUILD_CONTRACT: &str = env!("GMEOW_PRODUCER_BUILD_CONTRACT");
+/// Resolved compilation policy, separate from the executable-wide source identity.
+pub const PRODUCER_COMPILATION_CONTRACT: &str = env!("GMEOW_PRODUCER_COMPILATION_CONTRACT");
 pub const BUILD_FEATURES: &str = env!("GMEOW_BUILD_FEATURES");
 
 /// One typed upstream input row. `entity = None` means the producer's whole product;

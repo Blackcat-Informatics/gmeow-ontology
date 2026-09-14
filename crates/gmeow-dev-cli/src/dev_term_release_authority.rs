@@ -6,30 +6,15 @@
 //! Ordinary synchronization consumes this evidence and never rewrites it. The
 //! normal mode advances an existing accepted release boundary; `--bootstrap` is
 //! only for the repository's one-time initial authority and refuses an overwrite.
+//! The CLI authenticates its O3/full-LTO producer before dispatching this command.
 
-use std::path::PathBuf;
-
-fn main() {
-    let mut bootstrap = false;
-    let mut root: Option<PathBuf> = None;
-    for argument in std::env::args_os().skip(1) {
-        if argument == std::ffi::OsStr::new("--bootstrap") {
-            bootstrap = true;
-        } else if root.replace(PathBuf::from(argument)).is_some() {
-            eprintln!("usage: term-release-authority [--bootstrap] [REPO_ROOT]");
-            std::process::exit(2);
-        }
-    }
-    let root = match root {
-        Some(root) => root,
-        None => match std::env::current_dir() {
-            Ok(root) => root,
-            Err(error) => {
-                eprintln!("term release authority: cannot resolve current directory: {error}");
-                std::process::exit(1);
-            }
-        },
-    };
+/// Compute and publish the selected checkout's accepted release authority.
+///
+/// The CLI admits the producer first. Return 0 after a successful fixed-point
+/// check and publication (or an unchanged release), or 1 on refusal or failure.
+/// `bootstrap` permits only the initial authority and never overwrites one.
+pub(crate) fn run(bootstrap: bool) -> i32 {
+    let root = crate::dev_common::project_root();
 
     match gmeow_pipeline::stages::term_manifest::refresh_release_authority(&root, bootstrap) {
         Ok((release, terms, wrote)) => {
@@ -40,10 +25,11 @@ fn main() {
                 root.join(gmeow_pipeline::stages::term_manifest::TERM_RELEASE_AUTHORITY_PATH)
                     .display()
             );
+            0
         }
         Err(error) => {
             eprintln!("term release authority: {error}");
-            std::process::exit(1);
+            1
         }
     }
 }
