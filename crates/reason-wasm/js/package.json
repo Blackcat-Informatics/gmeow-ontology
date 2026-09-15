@@ -1,6 +1,6 @@
 {
   "name": "@blackcatinformatics/gmeow-reason-wasm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The native GMEOW structured-DL reasoner (reasoned closure + the symmetric conjecture engine) compiled to wasm32 for client-side reasoning in browsers, editors, and LLM clients.",
   "type": "module",
   "license": "AGPL-3.0-only",

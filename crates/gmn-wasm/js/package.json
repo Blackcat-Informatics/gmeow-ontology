@@ -1,6 +1,6 @@
 {
   "name": "@blackcatinformatics/gmeow-gmn-wasm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The shipped GMEOW GMN-0<->GMN-1 codec (transcode plus the glyph legend, over the embedded codebook) compiled to wasm32 for client-side use in browsers, editors, and LLM clients.",
   "type": "module",
   "license": "AGPL-3.0-only",
