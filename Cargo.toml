@@ -199,7 +199,7 @@ resolver = "2"
 # identities, RDF 1.2 directional literal datatypes, and statement graph identities.
 # Compilation errors propagate through the pipeline; all bundled wasm engines must be
 # rebuilt against this exact release with `make maint-bump-purrdf VERSION=2.0.0`.
-purrdf = "=2.0.0"
+purrdf = "2"
 
 # Harness-scoped allocation accounting. Keeping the path here makes the workspace
 # the single dependency authority while individual crates retain dev-only scope.
