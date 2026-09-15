@@ -4,15 +4,18 @@
 # Nightly Rust is required because gmeow-logic uses `portable_simd` for targeted
 # native vector kernels.
 #
-# CI uses this dated default so jobs exchanging compiled products resolve the same
-# compiler throughout a run. Local compiler selection follows host policy, which
-# can enforce floating nightly independently of this repository default.
-# Fix compiler warnings in source with warnings-as-errors enabled; selecting an
-# older compiler is not a fix. Producer and cache receipts bind the actual compiler.
+# Machine policy (Patrick, 2026-09-10): Rust is ALWAYS the floating stage
+# nightly. RUSTUP_TOOLCHAIN=nightly is enforced machine-wide, so this file
+# cannot select anything else locally; it exists so CI and other checkouts
+# follow the same floating channel. Old Rust versions are used only via
+# `rust-validate <ver> <cmd>` for validating specific external packages.
+#
+# Every `toolchain:` input in .github/workflows/ must name this exact channel;
+# `the_ci_toolchain_matches_the_pinned_channel` enforces that lockstep.
 [toolchain]
-channel = "nightly-2026-09-05"
+channel = "nightly"
 components = ["rustfmt", "clippy"]
-# The purrdf wasm engine (P10) + the wasm-clean SPARQL leaf
-# compile to wasm32-unknown-unknown; `make wasm` builds
-# for it. The manifest declares the required target for rustup-managed installs.
+# The purrdf wasm engine (P10) + the wasm-clean SPARQL leaf compile to
+# wasm32-unknown-unknown; `make wasm` builds for it. Listing it here means
+# every toolchain consumer provisions the target by default.
 targets = ["wasm32-unknown-unknown"]

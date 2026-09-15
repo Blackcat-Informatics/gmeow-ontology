@@ -1,6 +1,6 @@
 {
   "name": "@blackcatinformatics/gmeow-console",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "<gmeow-console> — the standalone, offline, zero-runtime-dependency GMEOW console as one custom element: the same consumer tool surface an agent drives, in a browser tab, with no server and no network.",
   "type": "module",
   "license": "AGPL-3.0-only",

@@ -1,6 +1,6 @@
 {
   "name": "@blackcatinformatics/gmeow-mcp-wasm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The GMEOW MCP engine's demand-loaded REASONING segment, compiled to wasm32: the full consumer tool surface over a gmeow.gts snapshot, in a browser tab with no server.",
   "type": "module",
   "license": "AGPL-3.0-only",
