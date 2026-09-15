@@ -100,11 +100,15 @@ fn collected_diagnostics_record_receipts_without_replacing_the_final_selector() 
         let findings = serde_json::to_vec(&run.findings).unwrap();
         assert_eq!(run.findings.len(), 1);
         assert!(run.is_clean(), "{grade:?}");
-        let selector = crate::fixture::publish_stage_fixture_manifest(root.path(), &receipts)
-            .unwrap()
-            .path;
-        let mut finalized: serde_json::Value =
-            serde_json::from_slice(&std::fs::read(&selector).unwrap()).unwrap();
+        let mut finalized =
+            crate::fixture::prepare_stage_fixture_candidate(root.path(), &receipts).unwrap();
+        let selector = root
+            .path()
+            .join(crate::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
+        assert!(
+            !selector.exists(),
+            "preparing stages cannot publish a runner selector"
+        );
         finalized["bundle_import"] = serde_json::json!({"selected": "bundle receipt"});
         finalized["docs"] = serde_json::json!({"selected": "docs receipts"});
         let finalized = serde_json::to_vec(&finalized).unwrap();
@@ -117,9 +121,12 @@ fn collected_diagnostics_record_receipts_without_replacing_the_final_selector() 
         let bytes = std::fs::read(&candidate).unwrap();
         let expected_root = tempfile::tempdir().unwrap();
         let expected =
-            crate::fixture::publish_stage_fixture_manifest(expected_root.path(), &receipts)
+            crate::fixture::prepare_stage_fixture_candidate(expected_root.path(), &receipts)
                 .unwrap();
-        assert_eq!(bytes, std::fs::read(expected.path).unwrap());
+        assert_eq!(
+            serde_json::from_slice::<serde_json::Value>(&bytes).unwrap(),
+            expected
+        );
         assert_eq!(serde_json::to_vec(&run.findings).unwrap(), findings);
         assert_eq!(run.ledger.len(), 1);
         assert_eq!(run.timings.len(), 1);

@@ -287,7 +287,13 @@ receipt candidate is separate from the finalized selector: ordinary pipeline run
 cannot overwrite the selected bundle-import or docs actions, or invalidate a
 selector digest already handed to a runner. The explicit pre-test producer
 revalidates the candidate against the current DAG, inputs, and cached products,
-then publishes the selector with every selected fixture product. A missing
+then retains the selection in memory until every selected phase and any requested
+telemetry have succeeded. It encodes the complete stage, bundle and documentation
+selection once and publishes it through one final atomic replacement. A failed
+phase leaves the previous runner selector intact; there is no interim stage-only
+publication during the all-fixtures operation. The independent producer publishes
+its intentional prefix at its own successful boundary, and the bound producer
+extends that prefix only after its selected work succeeds. A missing
 candidate causes explicit production; the finalized selector is never a candidate
 fallback. Tests cannot build anything. Read-only synchronization records neither
 file, and the two independent cold CI generations retain separate producer runs

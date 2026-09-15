@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write as _;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 
 use gmeow_action_cache::{
@@ -124,17 +124,6 @@ struct SettledSourceLoadWitness {
     source_receipt_digest: String,
     source_product_digest: String,
     settled_product_digest: String,
-}
-
-/// Identity of the producer-written stage-fixture selector.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct StageFixtureManifestIdentity {
-    /// Worktree-local path written atomically by the explicit producer.
-    pub path: PathBuf,
-    /// SHA-256 the runner must provide to every consumer process.
-    pub sha256: String,
-    /// Exact number of selected stage actions.
-    pub stage_count: usize,
 }
 
 /// A warm producer admission proved from current raw inputs and exact cached receipts.
@@ -382,26 +371,23 @@ fn validate_stage_fixture_manifest(
     Ok(())
 }
 
-/// Atomically publish the exact selected receipts at the explicit fixture boundary.
-/// Only the fixture producer calls this; ordinary synchronization records a reusable
-/// candidate and cannot replace a finalized selector already handed off to runners.
-/// Only the selected fixtures' complete dependency closure enters the selector.
+/// Prepare the exact stage selection without publishing a runner selector.
+/// The explicit fixture producer retains this value until every selected phase
+/// succeeds, then publishes the complete selection in one atomic replacement.
+/// Reusable candidate metadata may persist even if a later phase fails.
 /// No stage or carrier is executed, hydrated or reconstructed here.
 ///
-/// The returned SHA-256 is runner state, not a discoverable fallback: every test
-/// process must receive it through [`STAGE_FIXTURE_MANIFEST_SHA256_ENV`].
-pub fn publish_stage_fixture_manifest(
+/// # Errors
+/// Rejects an incomplete or invalid receipt closure, encoding or candidate I/O.
+pub fn prepare_stage_fixture_candidate(
     root: &Path,
     run_receipts: &[StageReceipt],
-) -> Result<StageFixtureManifestIdentity, gmeow_errors::Diag> {
+) -> gmeow_errors::Result<serde_json::Value> {
     let manifest = stage_fixture_manifest(run_receipts)?;
+    let value = serde_json::to_value(&manifest)
+        .map_err(|error| fixture_manifest_error(format!("encode fixture receipts: {error}")))?;
     write_stage_fixture_record(root, STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH, &manifest)?;
-    let digest = write_stage_fixture_record(root, STAGE_FIXTURE_MANIFEST_RELATIVE_PATH, &manifest)?;
-    Ok(StageFixtureManifestIdentity {
-        path: root.join(STAGE_FIXTURE_MANIFEST_RELATIVE_PATH),
-        sha256: digest,
-        stage_count: manifest.stages.len(),
-    })
+    Ok(value)
 }
 
 /// Record reusable receipts without mutating the runner's finalized selection.

@@ -16,6 +16,9 @@ use purrdf::ContentDigest;
 
 use crate::{TestFixtureMode, TestFixtureScope};
 
+#[cfg(test)]
+mod selection_tests;
+
 type FixtureResult<T> = gmeow_errors::Result<T>;
 
 fn fail(detail: impl std::fmt::Display) -> Diag {
@@ -152,7 +155,7 @@ fn produce(
         .map(std::num::NonZeroUsize::get)
         .unwrap_or(1);
     let mut stage_observations = Vec::new();
-    let mut stage_manifest_observation = None;
+    let mut stage_selection = None;
     let mut docs_selector = None;
 
     // Run the repository verdict in a fresh process footprint, before docs and hydrated
@@ -240,19 +243,10 @@ fn produce(
             .map_err(|error| fail(format!("produce authenticated stage DAG: {error}")))?;
             (run.stage_receipts, Some(run.stage_timings))
         };
-        let manifest = gmeow_pipeline::fixture::publish_stage_fixture_manifest(root, &receipts)
-            .map_err(|error| fail(format!("publish authenticated stage selector: {error}")))?;
-        println!(
-            "pipeline fixture selector interim: path={} sha256={} stages={}",
-            manifest.path.display(),
-            manifest.sha256,
-            manifest.stage_count
+        stage_selection = Some(
+            gmeow_pipeline::fixture::prepare_stage_fixture_candidate(root, &receipts)
+                .map_err(|error| fail(format!("prepare authenticated stage selection: {error}")))?,
         );
-        stage_manifest_observation = Some(serde_json::json!({
-            "path": manifest.path.strip_prefix(root).unwrap_or(&manifest.path),
-            "sha256": manifest.sha256,
-            "stage_count": manifest.stage_count,
-        }));
         for &stage_id in gmeow_pipeline::fixture::AUTHENTICATED_TEST_STAGE_IDS {
             let receipt = receipts
                 .iter()
@@ -422,19 +416,16 @@ fn produce(
     } else {
         None
     };
-    let (bundle_observation, finalized_selector) = if let Some((observation, selector)) =
-        bundle_phase
-    {
-        let finalized = publish_bundle_fixture_selector(root, &selector, docs_selector.as_ref())?;
-        println!(
-            "test fixture selector finalized: path={} sha256={}",
-            finalized.path.display(),
-            finalized.sha256,
-        );
-        (Some(observation), Some(finalized))
-    } else {
-        (None, None)
+    let (bundle_observation, bundle_selector) = match bundle_phase {
+        Some((observation, selector)) => (Some(observation), Some(selector)),
+        None => (None, None),
     };
+    let prepared_selector = prepare_fixture_selector(
+        root,
+        stage_selection,
+        bundle_selector.as_ref(),
+        docs_selector.as_ref(),
+    )?;
 
     if let Some(path) = timings_path {
         let value = serde_json::json!({
@@ -447,13 +438,10 @@ fn produce(
                     + usize::from(slice_spec_observation.is_some())
                     + usize::from(bundle_observation.is_some()),
                 "stage_receipts": stage_observations.iter().map(|entry| &entry["receipt"]).collect::<Vec<_>>(),
-                "stage_fixture_manifest": finalized_selector
-                    .as_ref()
-                    .map(|identity| serde_json::json!({
-                        "path": identity.path.strip_prefix(root).unwrap_or(&identity.path),
-                        "sha256": identity.sha256,
-                    }))
-                    .or(stage_manifest_observation),
+                "stage_fixture_manifest": {
+                    "path": prepared_selector.path.strip_prefix(root).unwrap_or(&prepared_selector.path),
+                    "sha256": prepared_selector.sha256,
+                },
                 "slice_spec_receipt": slice_spec_observation.as_ref().map(|entry| &entry["receipt_digest"]),
                 "bundle_import_receipt": bundle_observation.as_ref().map(|entry| &entry["receipt"]),
             },
@@ -473,6 +461,12 @@ fn produce(
             ))
         })?;
     }
+    let finalized_selector = prepared_selector.publish()?;
+    println!(
+        "test fixture selector finalized: path={} sha256={}",
+        finalized_selector.path.display(),
+        finalized_selector.sha256,
+    );
     Ok(())
 }
 
@@ -602,37 +596,45 @@ struct FinalizedFixtureSelector {
     sha256: String,
 }
 
-fn publish_bundle_fixture_selector(
+fn prepare_fixture_selector(
     root: &Path,
-    bundle: &gmeow_bundle_import::BundleFixtureSelector,
+    stage_selection: Option<serde_json::Value>,
+    bundle: Option<&gmeow_bundle_import::BundleFixtureSelector>,
     docs: Option<&gmeow_docs_model::fixture::DocsFixtureSelector>,
-) -> FixtureResult<FinalizedFixtureSelector> {
+) -> FixtureResult<PreparedFixtureSelector> {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
-    let bytes = std::fs::read(&path).map_err(|error| {
-        fail(format!(
-            "read pipeline fixture selector {} before bundle binding: {error}",
-            path.display()
-        ))
-    })?;
-    let mut value: serde_json::Value = serde_json::from_slice(&bytes)
-        .map_err(|error| fail(format!("decode pipeline fixture selector: {error}")))?;
+    let mut value = match stage_selection {
+        Some(value) => value,
+        None => {
+            let bytes = std::fs::read(&path).map_err(|error| {
+                fail(format!(
+                    "read published fixture prefix {}: {error}",
+                    path.display()
+                ))
+            })?;
+            serde_json::from_slice(&bytes)
+                .map_err(|error| fail(format!("decode published fixture prefix: {error}")))?
+        }
+    };
     if value
         .get("schema_version")
         .and_then(serde_json::Value::as_u64)
         != Some(2)
     {
         return Err(fail(
-            "pipeline fixture selector is not schema 2 before bundle binding",
+            "pipeline fixture selection is not schema 2 before publication",
         ));
     }
     let object = value
         .as_object_mut()
         .ok_or_else(|| fail("pipeline fixture selector root is not an object"))?;
-    object.insert(
-        "bundle_import".to_string(),
-        serde_json::to_value(bundle)
-            .map_err(|error| fail(format!("encode bundle fixture selector: {error}")))?,
-    );
+    if let Some(bundle) = bundle {
+        object.insert(
+            "bundle_import".to_string(),
+            serde_json::to_value(bundle)
+                .map_err(|error| fail(format!("encode bundle fixture selector: {error}")))?,
+        );
+    }
     if let Some(docs) = docs {
         object.insert(
             "docs".to_string(),
@@ -640,25 +642,50 @@ fn publish_bundle_fixture_selector(
                 .map_err(|error| fail(format!("encode docs fixture selector: {error}")))?,
         );
     }
-    write_json_atomic(&path, &value).map_err(|error| {
-        fail(format!(
-            "publish bundle-bound fixture selector {}: {error}",
-            path.display()
-        ))
-    })?;
-    let finalized = std::fs::read(&path).map_err(|error| {
-        fail(format!(
-            "read finalized fixture selector {}: {error}",
-            path.display()
-        ))
-    })?;
-    Ok(FinalizedFixtureSelector {
+    let bytes = encode_json(&value)
+        .map_err(|error| fail(format!("encode complete fixture selector: {error}")))?;
+    let sha256 = ContentDigest::of(&bytes).to_hex();
+    Ok(PreparedFixtureSelector {
         path,
-        sha256: ContentDigest::of(&finalized).to_hex(),
+        bytes,
+        sha256,
     })
 }
 
+/// A selected operation publishes only after every fallible preparation,
+/// including requested telemetry, has completed. The bytes are encoded once.
+struct PreparedFixtureSelector {
+    path: std::path::PathBuf,
+    bytes: Vec<u8>,
+    sha256: String,
+}
+
+impl PreparedFixtureSelector {
+    fn publish(self) -> FixtureResult<FinalizedFixtureSelector> {
+        write_bytes_atomic(&self.path, &self.bytes).map_err(|error| {
+            fail(format!(
+                "publish complete fixture selector {}: {error}",
+                self.path.display()
+            ))
+        })?;
+        Ok(FinalizedFixtureSelector {
+            path: self.path,
+            sha256: self.sha256,
+        })
+    }
+}
+
+fn encode_json(value: &serde_json::Value) -> std::io::Result<Vec<u8>> {
+    let mut bytes = serde_json::to_vec_pretty(value).map_err(std::io::Error::other)?;
+    bytes.push(b'\n');
+    Ok(bytes)
+}
+
 fn write_json_atomic(path: &Path, value: &serde_json::Value) -> std::io::Result<()> {
+    write_bytes_atomic(path, &encode_json(value)?)
+}
+
+fn write_bytes_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     use std::io::Write as _;
 
     let parent = path
@@ -667,8 +694,7 @@ fn write_json_atomic(path: &Path, value: &serde_json::Value) -> std::io::Result<
         .unwrap_or_else(|| Path::new("."));
     std::fs::create_dir_all(parent)?;
     let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
-    serde_json::to_writer_pretty(&mut temporary, value).map_err(std::io::Error::other)?;
-    temporary.write_all(b"\n")?;
+    temporary.write_all(bytes)?;
     temporary.as_file().sync_all()?;
     temporary
         .persist(path)
