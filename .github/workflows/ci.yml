@@ -58,6 +58,11 @@ jobs:
         with:
           toolchain: nightly-2026-09-05
 
+      - name: Install the pinned nextest identity tool for build evidence
+        uses: taiki-e/install-action@288e746965032cfcc232e09af2daf5f23c14d780 # v2
+        with:
+          tool: cargo-nextest@0.9.137
+
       - name: Fingerprint the resolved Rust toolchain
         id: toolchain
         run: |
@@ -65,40 +70,81 @@ jobs:
           sha256=$(rustc -Vv | sha256sum | cut -d' ' -f1)
           echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
 
-      - name: Fingerprint the exact producer implementation closure
+      - name: Cache Cargo dependencies and the build controller
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          key: optimized-producer
+
+      - name: Fingerprint the resolved optimized producer recipe
         id: producer-inputs
         run: |
           set -euo pipefail
-          sha256=$(./scripts/rust-producer-input-digest.sh crates/gmeow-dev-cli)
+          sha256=$(make --no-print-directory producer-recipe)
           echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
           echo "producer input sha256=$sha256"
+          mkdir -p dist
+          jq -n --arg build_fingerprint "$sha256" \
+            '{identity_kind: "producer-build-recipe-v1", build_fingerprint: $build_fingerprint}' \
+            > dist/producer-build-recipe.json
 
       - name: Restore exact-source producer binary
         id: producer-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: dist/bin/gmeow-dev
-          key: producer-bin-v2-${{runner.os}}-${{runner.arch}}-${{steps.toolchain.outputs.sha256}}-${{steps.producer-inputs.outputs.sha256}}
+          path: |
+            dist/bin/gmeow-dev
+            dist/bin/gmeow-dev.receipt.json
+          key: producer-bin-v3-${{runner.os}}-${{runner.arch}}-${{steps.toolchain.outputs.sha256}}-${{steps.producer-inputs.outputs.sha256}}
 
-      - name: Cache Cargo dependencies
-        if: steps.producer-cache.outputs.cache-hit != 'true'
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-
-      - name: Build the producer (gmeow-dev only)
-        if: steps.producer-cache.outputs.cache-hit != 'true'
-        run: make producer-build
+      - name: Build or reuse the optimized producer with resource evidence
+        env:
+          PRODUCER_CACHE_HIT: ${{ steps.producer-cache.outputs.cache-hit }}
+          PRODUCER_RECIPE: ${{ steps.producer-inputs.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          if [[ "$PRODUCER_CACHE_HIT" == 'true' ]]; then
+            cache_args="--cache-state warm --cargo-cache-state warm"
+          else
+            cache_args="--cache-state partial --cargo-cache-state partial"
+            cache_args+=" --partial-change producer-recipe:Cargo.toml:${PRODUCER_RECIPE}"
+          fi
+          make perf-sample PERF_SAMPLE_ARGS="\
+            --pair-id ci-${GITHUB_RUN_ID}-producer-build \
+            --variant candidate --sample-index 1 ${cache_args} \
+            --sync-cache-state not-applicable --pipeline-cache-state not-applicable \
+            --fixture-cache-state not-applicable --bundle-import-cache-state not-applicable \
+            --nextest-archive-cache-state not-applicable \
+            --node-class github-ubuntu-latest-x64 \
+            --runner-image ${ImageOS}@${ImageVersion} \
+            --identity-receipt producer=dist/producer-build-recipe.json \
+            --output dist/producer-build-sample.json \
+            --output-root producer=dist/bin -- make producer-build"
 
       - name: Verify the producer binary
         run: |
           set -euo pipefail
           chmod +x dist/bin/gmeow-dev
+          make producer-verify
           dist/bin/gmeow-dev version
+
+      - name: Upload producer build resource evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: producer-build-evidence-${{ github.sha }}
+          path: |
+            dist/producer-build-recipe.json
+            dist/producer-build-sample.json
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Upload the exact producer binary
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gmeow-dev-producer-${{ github.sha }}
-          path: dist/bin/gmeow-dev
+          path: |
+            dist/bin/gmeow-dev
+            dist/bin/gmeow-dev.receipt.json
           if-no-files-found: error
           retention-days: 1
 
@@ -311,6 +357,9 @@ jobs:
   # and authenticates the archive before any test runner starts. A missing target cache
   # is a normal Cargo rebuild; restored units remain subject to Cargo's fingerprints.
   rust-prebuild:
+    needs: [producer-build]
+    env:
+      GMEOW_DEV: ./dist/bin/gmeow-dev
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -370,10 +419,19 @@ jobs:
             test-actions-v3-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-${{github.sha}}-
             test-actions-v3-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/**/Cargo.toml','.cargo/config.toml','rust-toolchain.toml')}}-
 
-      - name: Compile producer-independent CI tests and shared fixture tool
+      - name: Compile producer-independent CI tests
         run: make rust-prebuild
 
-      - name: Produce test-profile corpus fixtures before any test runner starts
+      - name: Download the authenticated optimized producer
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gmeow-dev-producer-${{ github.sha }}
+          path: dist/bin
+
+      - name: Make the optimized producer executable
+        run: chmod +x dist/bin/gmeow-dev
+
+      - name: Produce optimized corpus fixtures before any test runner starts
         run: >-
           make produce-producer-independent-test-fixtures
           FIXTURE_TIMINGS_JSON=dist/nextest/fixture-timings-producer-independent.json
@@ -392,6 +450,8 @@ jobs:
   # proves that the configured slice partitions are disjoint and their union is exact.
   rust-archive:
     needs: [producer, rust-prebuild]
+    env:
+      GMEOW_DEV: ./dist/bin/gmeow-dev
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -508,7 +568,16 @@ jobs:
           restore-keys: |
             bundle-import-v1-${{runner.os}}-${{runner.arch}}-${{steps.rust-prebuild-identity.outputs.rustc}}-${{hashFiles('Cargo.lock','Cargo.toml','crates/bundle-import/**','crates/errors/**','.cargo/config.toml','rust-toolchain.toml')}}-${{hashFiles('generated/dist/gmeow.gts')}}-
 
-      - name: Verify every transferred test-profile pipeline fixture read-only
+      - name: Download the authenticated optimized producer
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gmeow-dev-producer-${{ github.sha }}
+          path: dist/bin
+
+      - name: Make the optimized producer executable
+        run: chmod +x dist/bin/gmeow-dev
+
+      - name: Verify every transferred producer-selected pipeline fixture read-only
         run: make verify-producer-independent-test-fixtures
 
       - name: Produce generated-bound fixtures before archive construction
@@ -558,6 +627,7 @@ jobs:
         with:
           name: rust-archive-evidence-${{ github.sha }}
           path: |
+            dist/bin/gmeow-dev.receipt.json
             dist/nextest/receipt.json
             dist/nextest/fixture-timings-producer-independent.json
             dist/nextest/fixture-timings-producer-bound.json
@@ -571,6 +641,7 @@ jobs:
         with:
           name: rust-test-archive-${{ github.sha }}
           path: |
+            dist/bin/gmeow-dev.receipt.json
             dist/nextest/ci.tar.zst
             dist/nextest/receipt.json
             dist/nextest/fixture-timings-producer-independent.json

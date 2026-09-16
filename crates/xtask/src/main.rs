@@ -17,6 +17,7 @@
 //! itself.
 
 mod evidence;
+mod producer;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{File, Metadata, OpenOptions, TryLockError};
@@ -68,6 +69,7 @@ const TOOLCHAIN_RECEIPT_FILES: &[&str] = &[
     "Makefile",
     "crates/xtask/src/main.rs",
     "crates/xtask/src/evidence.rs",
+    "crates/xtask/src/producer.rs",
     ".github/workflows/ci.yml",
 ];
 
@@ -91,9 +93,9 @@ const AFTER_SYNC: &[&str] = &["sync"];
 /// edge transitively carries the generated-tree dependency as well.
 const AFTER_RUST_BUILD: &[&str] = &["rust-build"];
 
-/// Corpus fixtures are produced by an explicit DAG node after the test binaries exist.
-/// Test runners depend on this node but never invoke it themselves.
-const AFTER_TEST_FIXTURES: &[&str] = &["test-fixtures"];
+/// Corpus fixtures and test binaries have independent producers.
+/// Test runners wait for both and never invoke corpus production themselves.
+const AFTER_TEST_FIXTURES: &[&str] = &["rust-build", "test-fixtures"];
 
 const FINAL_DEPS: &[&str] = &[
     "check-lint",
@@ -166,7 +168,7 @@ const CHECK_DAG: &[Task] = &[
     Task {
         name: "test-fixtures",
         target: "produce-test-fixtures",
-        dependencies: AFTER_RUST_BUILD,
+        dependencies: AFTER_SYNC,
     },
     Task {
         name: "clippy",
@@ -497,10 +499,15 @@ impl Drop for HostGateLock {
     }
 }
 
+/// Dispatch gate, receipt, and producer operations with explicit argument validation.
+///
+/// Plan inspection prints without acquiring the host gate lock or starting tasks;
+/// executing a check delegates lock ownership and scheduling to the gate runner.
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let command = args.next().unwrap_or_else(|| "help".to_string());
     match command.as_str() {
+        "producer" => producer::command(args.collect()),
         "check" => {
             let mut jobs = std::thread::available_parallelism().map_or(1, std::num::NonZero::get);
             let mut explain = false;
@@ -600,7 +607,7 @@ fn main() -> ExitCode {
         }
         _ => {
             eprintln!(
-                "usage: cargo xtask check [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list"
+                "usage: cargo xtask check [--explain] [--timings-json PATH] [-j N]\n       cargo xtask receipt create --out PATH\n       cargo xtask list\n       cargo xtask producer build|verify|recipe\n       cargo xtask producer run -- COMMAND"
             );
             ExitCode::from(2)
         }
@@ -643,6 +650,11 @@ fn explain_plan(jobs: usize) {
     println!("(dry run: no host gate lock taken, no task executed)");
 }
 
+/// Execute the complete dependency graph under the host gate lock with at most `jobs` children.
+///
+/// After sync succeeds, downstream tasks use the staged producer directly. Failed
+/// dependencies prevent their descendants from running, and any task or requested
+/// timing-output failure makes the aggregate result unsuccessful.
 fn run_check(jobs: usize, timings_json: Option<&Path>) -> ExitCode {
     let root = workspace_root();
     let Some(_lock) = HostGateLock::acquire(&root) else {
@@ -692,11 +704,22 @@ fn run_check(jobs: usize, timings_json: Option<&Path>) -> ExitCode {
             pending.remove(name);
             let spec = task(name);
             eprintln!("xtask: START {name}");
+            // Sync has already admitted the producer. Downstream tasks invoke
+            // those bytes directly so Cargo's test-build lock cannot serialize
+            // fixture production behind the independent test compilation.
+            let producer = passed.contains("sync").then(|| {
+                (
+                    "GMEOW_DEV",
+                    std::env::var("GMEOW_DEV")
+                        .unwrap_or_else(|_| "./dist/bin/gmeow-dev".to_owned()),
+                )
+            });
             let child = Command::new("make")
                 .arg(spec.target)
                 .current_dir(&root)
                 .env(LOCK_ROOT_ENV, &canonical)
                 .env(LOCK_TOKEN_ENV, &token)
+                .envs(producer)
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
@@ -894,7 +917,7 @@ mod tests {
                 "{name} must depend on rust-build and nothing else"
             );
         }
-        assert_eq!(task("test-fixtures").dependencies, AFTER_RUST_BUILD);
+        assert_eq!(task("test-fixtures").dependencies, AFTER_SYNC);
         assert_eq!(task("nextest").dependencies, AFTER_TEST_FIXTURES);
         assert!(
             !CHECK_DAG

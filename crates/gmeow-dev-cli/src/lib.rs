@@ -21,12 +21,15 @@ mod dev_feedback;
 mod dev_gates;
 mod dev_i18n;
 mod dev_logic;
+mod dev_medium_sweep;
+mod dev_producer;
 mod dev_project;
 mod dev_reason;
 mod dev_shapes;
 mod dev_slice_quality;
 mod dev_sync;
 mod dev_targets;
+mod dev_term_release_authority;
 mod dev_test_fixtures;
 mod dev_transpile;
 mod dev_validate;
@@ -113,6 +116,9 @@ pub struct Cli {
 /// The developer subcommands.
 #[derive(Debug, Subcommand)]
 pub enum Commands {
+    /// Print the build recipe embedded by the dedicated producer builder.
+    #[command(hide = true)]
+    BuildIdentity,
     /// Print the gmeow package version.
     Version,
     /// Show a summary of the bundled GMEOW ontology snapshot.
@@ -231,6 +237,24 @@ pub enum Commands {
         /// (a runtime store) is audited against — the bundle its dictionaries came from.
         #[arg(long = "registry", default_value = "generated/dist/gmeow.gts")]
         registry: PathBuf,
+    },
+    /// Measure the complete dictionary and codec grids on the optimized producer.
+    MediumSweep {
+        /// Write the complete measurement evidence to this path.
+        #[arg(long, default_value = "bench/medium-baseline.json")]
+        out: PathBuf,
+    },
+    /// Write a declaration-only bootstrap table with zero measured evidence.
+    MediumSeed {
+        /// Write the temporary seed table to this path; it is not measurement evidence.
+        #[arg(long, default_value = "bench/medium-baseline.json")]
+        out: PathBuf,
+    },
+    /// Advance the computed term-changelog authority at an accepted release boundary.
+    TermReleaseAuthority {
+        /// Initialize the authority once; refuse to overwrite an existing authority.
+        #[arg(long)]
+        bootstrap: bool,
     },
     /// Validate Turtle syntax, term annotations, and SHACL conformance.
     Validate {
@@ -713,7 +737,7 @@ pub enum LogicCommands {
     Compile {
         #[arg(long = "check")]
         check: bool,
-        #[arg(long = "mode")]
+        #[arg(long = "mode", value_parser = dev_logic::mode_parser())]
         mode: Option<String>,
     },
 }
@@ -830,9 +854,18 @@ fn mcp() -> i32 {
 /// Parse the arguments, dispatch to the wired backend, and return the exit code.
 pub fn run() -> i32 {
     let cli = Cli::parse();
+    if dev_producer::requires_admission(&cli.command)
+        && let Err(error) = dev_producer::admit()
+    {
+        return dev_common::fail(format!("producer admission: {error}"));
+    }
     let console = cli.console;
     match cli.command {
         Commands::Version => version(),
+        Commands::BuildIdentity => {
+            println!("{}", gmeow_pipeline::cache::PRODUCER_BUILD_CONTRACT);
+            0
+        }
         Commands::Info => info(),
         Commands::TestFixtures {
             mode,
@@ -899,6 +932,9 @@ pub fn run() -> i32 {
         ),
         Commands::GtsFrameProfile { gts } => dev_validate::gts_frame_profile(&gts),
         Commands::MediumGate { gts, registry } => dev_validate::medium_gate(&gts, &registry),
+        Commands::MediumSweep { out } => dev_medium_sweep::run(&out),
+        Commands::MediumSeed { out } => dev_medium_sweep::seed(&out),
+        Commands::TermReleaseAuthority { bootstrap } => dev_term_release_authority::run(bootstrap),
         Commands::Validate {
             timings,
             timings_json,

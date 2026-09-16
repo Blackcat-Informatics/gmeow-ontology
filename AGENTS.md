@@ -116,6 +116,14 @@ builds the consumer CLIs that embed that materialized bundle. There is no Git
 merge-driver step — `generated/` is never tracked, so it never participates in
 a merge.
 
+Pipeline and corpus-fixture production run only through the authenticated
+`pipeline` build: O3, full LTO, one codegen unit, no incremental compilation or
+debug information, and the existing workspace assertions/overflow checks.
+`make producer-build` creates this executable and its receipt in `dist/bin/`.
+Make producer commands establish it automatically; CI transfers the exact pair.
+Test/debug builds are separate and may never replace that producer. See
+[`docs/GATE-AND-PIPELINE.md`](./docs/GATE-AND-PIPELINE.md).
+
 Every payload-bearing frame in any production-authored GMEOW GTS bundle MUST use
 exactly `zstd-rsyncable` at compression level 12. This is a hard distribution
 contract: never substitute gzip, plain zstd, identity, or a size-dependent

@@ -188,31 +188,18 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-# PINNED BY EXACT CRATES.IO VERSION — `=1.1.0` admits exactly one release, and the
+# PINNED BY EXACT CRATES.IO VERSION — `=2.0.0` admits exactly one release, and the
 # lockfile records that release's content `checksum`, so the docs wasm engines that
 # statically link this crate cannot drift from the substrate record. The record now keys
 # off the crate version plus the registry checksum rather than a commit SHA: a published
 # release is immutable and content-addressed, so it carries the same no-drift guarantee the
 # earlier git-rev pin provided, without the git source or a rev that no release names.
 #
-# 1.1.0 is the first release after 1.0.0 and is additive over it — no published API shape
-# changed, so every 1.0.0 caller keeps working. It supersedes the previous `3aa4ba51`
-# git-rev pin (80 commits behind this release, zero divergent) and everything that pin
-# carried: the order-sorted goal-directed `resolve_fol` that the `logic:ReasoningProgram`
-# backward lane (`goal_directed.rs` / `proof_tree.rs`) resolves onto, the deterministic
-# evaluation governor (`Stopped { cause: StopCause, .. }`), and the multi-dictionary GTS
-# writer plus `DictStrategy::Pinned` that the machine-compression medium consumes.
-#
-# Three fixes in this release reach surfaces this repository depends on:
-#   * gts — RDF 1.2 literal base direction is part of a term's identity in the snapshot
-#     composer. It was missing from the intern key, so `"Cat"@en--ltr` and `"Cat"@en--rtl`
-#     merged into ONE term and every quad was repointed at the survivor. Emitted bytes are
-#     unchanged for any input carrying no directional literals.
-#   * shacl — `sh:message` templates are substituted on the `sh:sparql` path, rendered per
-#     solution from that solution's own bindings instead of once and cloned.
-#   * entail — `entails::imports::imported_iris()` is public, so a consumer reads a
-#     document's `owl:imports` without re-deriving which objects count.
-purrdf = "=1.1.0"
+# PurRDF 2.0 makes JSON Schema compilation fallible and preserves SHACL property-shape
+# identities, RDF 1.2 directional literal datatypes, and statement graph identities.
+# Compilation errors propagate through the pipeline; all bundled wasm engines must be
+# rebuilt against this exact release with `make maint-bump-purrdf VERSION=2.0.0`.
+purrdf = "2"
 
 # Harness-scoped allocation accounting. Keeping the path here makes the workspace
 # the single dependency authority while individual crates retain dev-only scope.
@@ -291,7 +278,7 @@ tracing = "0.1"
 wasm-bindgen = "=0.2.125"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 license = "AGPL-3.0-only"
 repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"
@@ -369,6 +356,24 @@ lto = "thin"
 # comment above describes, just never closed for this profile. `debug` is
 # already Cargo's release default (no DWARF); `strip` is not.
 strip = "symbols"
+
+# Corpus production has its own executable lineage. Runtime checks remain enabled
+# for workspace crates; tests keep their separate O3, non-LTO build.
+[profile.pipeline]
+inherits = "release"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+incremental = false
+debug = false
+strip = "symbols"
+debug-assertions = true
+overflow-checks = true
+
+[profile.pipeline.package."*"]
+opt-level = 3
+debug-assertions = false
+overflow-checks = false
 
 # === First-party release tuning ===
 # Our own crates carry the runtime hot paths (logic chase, SHACL evaluation,

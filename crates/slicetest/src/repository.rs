@@ -148,7 +148,7 @@ pub fn produce_repository_verdict(
     repo_root: &Path,
     implementation_fingerprint: &str,
 ) -> Result<SliceSpecOutcome> {
-    ensure_compiled_repo(repo_root)?;
+    let repo_root = paths::bind_repo_root(repo_root)?;
     let context = action_context(repo_root, implementation_fingerprint)?;
     let store = ActionStore::open(
         ActionStore::default_root(repo_root),
@@ -188,7 +188,7 @@ pub fn verify_cached(
     repo_root: &Path,
     implementation_fingerprint: &str,
 ) -> Result<SliceSpecOutcome> {
-    ensure_compiled_repo(repo_root)?;
+    let repo_root = paths::bind_repo_root(repo_root)?;
     let context = action_context(repo_root, implementation_fingerprint)?;
     let store = ActionStore::open_existing_read_only(
         ActionStore::default_root(repo_root),
@@ -262,21 +262,6 @@ fn outcome_from_entry(
         built,
         verdict: decoded,
     })
-}
-
-fn ensure_compiled_repo(repo_root: &Path) -> Result<()> {
-    let requested = repo_root
-        .canonicalize()
-        .map_err(|error| fail(format!("canonicalize repository root: {error}")))?;
-    let compiled = paths::repo_root();
-    if requested != compiled {
-        return Err(fail(format!(
-            "slice-spec producer root {} differs from compiled repository root {}",
-            requested.display(),
-            compiled.display()
-        )));
-    }
-    Ok(())
 }
 
 fn action_context(repo_root: &Path, implementation_fingerprint: &str) -> Result<ActionContext> {
@@ -787,7 +772,32 @@ fn pin_worker_executable(repo_root: &Path) -> Result<PathBuf> {
             temporary.display()
         ))
     })?;
+    pin_worker_receipt(&executable, &pinned)?;
     Ok(pinned)
+}
+
+/// Carry the authenticated executable binding with the immutable worker copy.
+/// The worker independently checks the recipe embedded in its own binary.
+fn pin_worker_receipt(executable: &Path, pinned: &Path) -> Result<()> {
+    use gmeow_action_cache::executable::ExecutableReceipt;
+
+    let receipt = ExecutableReceipt::read(&executable.with_extension("receipt.json"))
+        .map_err(|error| fail(format!("read producer worker receipt: {error}")))?;
+    let expected = receipt
+        .recipe
+        .digest()
+        .map_err(|error| fail(format!("identify producer worker recipe: {error}")))?;
+    receipt.verify(executable, &expected).map_err(|error| {
+        fail(format!(
+            "authenticate producer before worker publication: {error}"
+        ))
+    })?;
+    receipt
+        .verify(pinned, &expected)
+        .map_err(|error| fail(format!("authenticate pinned producer worker: {error}")))?;
+    receipt
+        .write(&pinned.with_extension("receipt.json"))
+        .map_err(|error| fail(format!("publish producer worker receipt: {error}")))
 }
 
 fn snapshot_worker_executable(executable: &Path, temporary: &Path) -> std::io::Result<()> {
@@ -965,6 +975,10 @@ fn run_isolated_worker_processes(
     )))
 }
 
+/// Run one isolated spec worker with its exact paths and optional inner worker count.
+///
+/// Command preparation, launch, or unsuccessful completion returns a typed error;
+/// the caller publishes no success verdict for a failed worker.
 fn run_worker_process(
     executable: &Path,
     repo_root: &Path,
@@ -973,23 +987,16 @@ fn run_worker_process(
     tasks: &[SpecTask],
     inner_workers: Option<usize>,
 ) -> Result<()> {
-    let mut command = Command::new(executable);
-    command
-        .current_dir(repo_root)
-        .env(
-            "GMEOW_SLICE_SPEC_WORKER_AUTHORITY",
-            implementation_fingerprint,
-        )
-        .arg("slice-spec-worker")
-        .arg("--kind")
-        .arg(kind.name());
-    if let Some(workers) = inner_workers {
-        command.arg("--workers").arg(workers.to_string());
-    }
-    for task in tasks {
-        command.arg("--spec").arg(&task.path);
-    }
-    let status = command.status().map_err(|error| {
+    let status = worker_command(
+        executable,
+        repo_root,
+        implementation_fingerprint,
+        kind,
+        tasks,
+        inner_workers,
+    )?
+    .status()
+    .map_err(|error| {
         fail(format!(
             "launch isolated {} worker through {}: {error}",
             kind.name(),
@@ -1003,6 +1010,43 @@ fn run_worker_process(
         )));
     }
     Ok(())
+}
+
+/// Resolve parent-relative paths before changing the worker's working directory.
+fn worker_command(
+    executable: &Path,
+    repo_root: &Path,
+    implementation_fingerprint: &str,
+    kind: SliceSpecKind,
+    tasks: &[SpecTask],
+    inner_workers: Option<usize>,
+) -> Result<Command> {
+    let selected_root = repo_root
+        .canonicalize()
+        .map_err(|error| fail(format!("resolve worker checkout: {error}")))?;
+    let executable = executable
+        .canonicalize()
+        .map_err(|error| fail(format!("resolve worker executable: {error}")))?;
+    let mut command = Command::new(executable);
+    command
+        .current_dir(&selected_root)
+        .env("GMEOW_ROOT", &selected_root)
+        .env(
+            "GMEOW_SLICE_SPEC_WORKER_AUTHORITY",
+            implementation_fingerprint,
+        )
+        .arg("slice-spec-worker")
+        .arg("--kind")
+        .arg(kind.name());
+    if let Some(workers) = inner_workers {
+        command.arg("--workers").arg(workers.to_string());
+    }
+    for task in tasks {
+        command
+            .arg("--spec")
+            .arg(logical_path(repo_root, &task.path)?);
+    }
+    Ok(command)
 }
 
 fn validate_flagship_manifests(repo_root: &Path) -> Result<()> {
@@ -1091,7 +1135,7 @@ pub fn execute_worker(
     requested_paths: &[PathBuf],
     admitted_workers: usize,
 ) -> Result<()> {
-    ensure_compiled_repo(repo_root)?;
+    let repo_root = paths::bind_repo_root(repo_root)?;
     if requested_paths.is_empty() {
         return Err(fail("slice-spec worker received no exact spec paths"));
     }
@@ -1365,6 +1409,121 @@ mod tests {
     use tempfile::tempdir;
 
     use super::{snapshot_worker_executable_with, worker_snapshot_temporary_path};
+
+    /// Preserve selected spec identity across the child cwd change and reject paths outside the root.
+    #[test]
+    fn worker_paths_survive_a_relative_checkout_and_changed_working_directory() {
+        use std::ffi::OsStr;
+        use std::path::Path;
+
+        let directory = tempfile::tempdir_in(".").expect("relative scratch directory");
+        let root = Path::new(".")
+            .join(
+                directory
+                    .path()
+                    .file_name()
+                    .expect("scratch directory name"),
+            )
+            .join("checkout");
+        assert!(root.is_relative());
+        std::fs::create_dir(&root).expect("synthetic checkout directory");
+        let path = root.join("selected.spec");
+        std::fs::write(&path, b"path witness only").expect("synthetic path witness");
+        let tasks = [super::SpecTask {
+            kind: super::SliceSpecKind::Structural,
+            path: path.clone(),
+        }];
+        let command = super::worker_command(
+            &std::env::current_exe().expect("test executable path"),
+            &root,
+            "selected producer",
+            super::SliceSpecKind::Structural,
+            &tasks,
+            None,
+        )
+        .expect("prepare command without executing a corpus worker");
+        let canonical = root.canonicalize().expect("absolute checkout");
+        assert_eq!(command.get_current_dir(), Some(canonical.as_path()));
+        assert_eq!(
+            command
+                .get_envs()
+                .find(|(name, _)| *name == OsStr::new("GMEOW_ROOT"))
+                .and_then(|(_, value)| value),
+            Some(canonical.as_os_str()),
+        );
+        let arguments = command.get_args().collect::<Vec<_>>();
+        let selection = arguments
+            .windows(2)
+            .find(|pair| pair[0] == OsStr::new("--spec"))
+            .expect("exact spec selection")[1];
+        assert_eq!(selection, OsStr::new("selected.spec"));
+        assert_eq!(
+            canonical
+                .join(selection)
+                .canonicalize()
+                .expect("child path"),
+            path.canonicalize().expect("parent path"),
+            "changing cwd must preserve the selected file's identity",
+        );
+
+        let outside = [super::SpecTask {
+            kind: super::SliceSpecKind::Structural,
+            path: directory.path().join("outside.spec"),
+        }];
+        assert!(
+            super::worker_command(
+                Path::new(command.get_program()),
+                &root,
+                "selected producer",
+                super::SliceSpecKind::Structural,
+                &outside,
+                None,
+            )
+            .is_err(),
+            "a worker selection cannot escape the checkout",
+        );
+    }
+
+    /// Publish worker evidence only when both the parent and copied executable match the receipt.
+    #[test]
+    fn worker_receipt_follows_only_the_exact_executable_bytes() {
+        use gmeow_action_cache::executable::{ExecutableReceipt, ExecutableRecipe, sha256_file};
+
+        let directory = tempdir().expect("scratch");
+        let source = directory.path().join("producer");
+        let worker = directory.path().join("worker");
+        std::fs::write(&source, b"exact executable").expect("source");
+        std::fs::write(&worker, b"exact executable").expect("worker");
+        assert!(super::pin_worker_receipt(&source, &worker).is_err());
+        let receipt = ExecutableReceipt {
+            schema: 1,
+            recipe: ExecutableRecipe {
+                schema: 1,
+                profile: "pipeline".into(),
+                source_digest: "source".into(),
+                rustc: "compiler".into(),
+                cargo: "cargo".into(),
+                compiler_environment: Default::default(),
+                units: Vec::new(),
+                roots: Vec::new(),
+            },
+            executable_sha256: sha256_file(&source).expect("digest"),
+        };
+        receipt
+            .write(&source.with_extension("receipt.json"))
+            .expect("source receipt");
+        super::pin_worker_receipt(&source, &worker).expect("carry exact binding");
+        let published = ExecutableReceipt::read(&worker.with_extension("receipt.json"))
+            .expect("worker receipt");
+        assert_eq!(published, receipt);
+        published
+            .verify(&worker, &receipt.recipe.digest().expect("recipe"))
+            .expect("worker authenticates independently");
+        std::fs::write(&worker, b"substituted worker").expect("replace");
+        assert!(super::pin_worker_receipt(&source, &worker).is_err());
+        std::fs::write(&source, b"substituted parent").expect("replace parent");
+        assert!(super::pin_worker_receipt(&source, &worker).is_err());
+    }
 
     #[test]
     fn worker_snapshot_copies_exact_bytes_when_hard_links_cross_devices() {

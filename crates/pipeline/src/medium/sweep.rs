@@ -499,7 +499,7 @@ pub fn check_dictionaries_pay_for_themselves(
     if !seeded.is_empty() {
         return Err(super::dictionary_regression(format!(
             "{MEDIUM_BASELINE_PATH} carries a ZERO no-dictionary baseline for {seeded:?} — that \
-             is the declaration-derived BOOTSTRAP seed (`medium-sweep --seed`), not evidence, and \
+             is the declaration-derived BOOTSTRAP seed (`gmeow-dev medium-seed`), not evidence, and \
              a build must never train off a table nobody measured. Run `make maint-medium-sweep`, \
              which overwrites the seed with the real grid"
         )));
@@ -649,7 +649,7 @@ pub fn check_corpus_digests(
 /// It exists to break a start-up cycle and nothing else: [`run_sweep`] runs the whole
 /// DAG to measure, and `stage-medium-dictionaries` refuses to run without a committed
 /// table, so the very first sweep in a fresh tree (or after the file is deleted) has no
-/// way in. `medium-sweep --seed` writes this, the sweep immediately OVERWRITES it with
+/// way in. `gmeow-dev medium-seed` writes this, the sweep immediately OVERWRITES it with
 /// real numbers, and `the_committed_winner_table_carries_real_measurements` refuses a
 /// seed that was ever committed — a row whose baseline is zero cannot have been
 /// measured.

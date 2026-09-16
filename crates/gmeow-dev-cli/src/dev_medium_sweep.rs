@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `medium-sweep`: the SINGLE producer of `bench/medium-baseline.json`.
+//! Authenticated `gmeow-dev medium-sweep` and `medium-seed` maintenance commands.
+//!
+//! The CLI admits its O3/full-LTO producer before dispatching either command.
 //!
 //! It runs the real DAG once, then the full `(strategy × target length)` grid per
 //! MEASURABLE declared dictionary plus the global `(codec × level)` grid, and writes
@@ -31,8 +33,7 @@
 //! In both cases the artifact IS written first: the evidence is the point, and a
 //! refusal that also discarded its own measurements would leave nothing to act on.
 
-use std::path::{Path, PathBuf};
-use std::process::ExitCode;
+use std::path::Path;
 
 use gmeow_pipeline::medium::registry::MediumRegistry;
 use gmeow_pipeline::medium::sweep::{self, MediumBaseline};
@@ -40,33 +41,19 @@ use gmeow_pipeline::medium::sweep::{self, MediumBaseline};
 /// The emitting tool name.
 const TOOL: &str = "medium-sweep";
 
-fn main() -> ExitCode {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-    let seed_only = args.first().is_some_and(|flag| flag == "--seed");
-    let out: PathBuf = match args.split_first() {
-        Some((flag, rest)) if flag == "--emit-baseline" || flag == "--seed" => match rest.first() {
-            Some(path) => PathBuf::from(path),
-            None => PathBuf::from(sweep::MEDIUM_BASELINE_PATH),
-        },
-        None => PathBuf::from(sweep::MEDIUM_BASELINE_PATH),
-        Some((flag, _)) => {
-            eprintln!(
-                "{TOOL}: unknown argument {flag:?} — the modes are `--emit-baseline [<path>]` \
-                 and `--seed [<path>]`"
-            );
-            return ExitCode::FAILURE;
-        }
-    };
-
-    let root = Path::new(".");
-    if seed_only {
-        return seed(root, &out);
-    }
+/// Measure the selected checkout and write its full evidence to `out`.
+///
+/// The CLI admits the producer first. Returns 0 on success, or 1 on a sweep,
+/// serialization, or write failure, or when a dictionary does not pay for itself.
+/// Measurement evidence is written before reporting a dictionary stop condition.
+pub(crate) fn run(out: &Path) -> i32 {
+    let root = crate::dev_common::project_root();
+    let root = root.as_path();
     let baseline = match sweep::run_sweep(root) {
         Ok(baseline) => baseline,
         Err(err) => {
             eprintln!("{TOOL}: the sweep failed: {err}");
-            return ExitCode::FAILURE;
+            return 1;
         }
     };
 
@@ -74,25 +61,25 @@ fn main() -> ExitCode {
         Ok(json) => json,
         Err(err) => {
             eprintln!("{TOOL}: cannot serialize the winner table: {err}");
-            return ExitCode::FAILURE;
+            return 1;
         }
     };
     if let Some(parent) = out.parent().filter(|p| !p.as_os_str().is_empty())
         && let Err(err) = std::fs::create_dir_all(parent)
     {
         eprintln!("{TOOL}: cannot create {}: {err}", parent.display());
-        return ExitCode::FAILURE;
+        return 1;
     }
-    if let Err(err) = std::fs::write(&out, &json) {
+    if let Err(err) = std::fs::write(out, &json) {
         eprintln!("{TOOL}: cannot write {}: {err}", out.display());
-        return ExitCode::FAILURE;
+        return 1;
     }
 
-    report(&baseline, &out, json.len());
+    report(&baseline, out, json.len());
     if stop_conditions(&baseline) {
-        return ExitCode::FAILURE;
+        return 1;
     }
-    ExitCode::SUCCESS
+    0
 }
 
 /// Write the BOOTSTRAP table derived from the authored declarations alone.
@@ -103,13 +90,16 @@ fn main() -> ExitCode {
 /// the sweep overwrites the file moments later;
 /// `the_committed_winner_table_carries_real_measurements` refuses a seed that was ever
 /// committed.
-fn seed(root: &Path, out: &Path) -> ExitCode {
+/// The CLI admits the producer first. Returns 0 after writing `out`, or 1 if
+/// source loading, declaration parsing, serialization, or writing fails.
+pub(crate) fn seed(out: &Path) -> i32 {
+    let root = crate::dev_common::project_root();
     let module = root.join("slices/core/gts/module.ttl");
     let text = match std::fs::read_to_string(&module) {
         Ok(text) => text,
         Err(err) => {
             eprintln!("{TOOL}: cannot read {}: {err}", module.display());
-            return ExitCode::FAILURE;
+            return 1;
         }
     };
     let dataset = match purrdf::parse_dataset(
@@ -120,32 +110,32 @@ fn seed(root: &Path, out: &Path) -> ExitCode {
         Ok(dataset) => dataset,
         Err(err) => {
             eprintln!("{TOOL}: the gts slice does not parse: {err}");
-            return ExitCode::FAILURE;
+            return 1;
         }
     };
     let registry = match MediumRegistry::from_dataset(&dataset) {
         Ok(registry) => registry,
         Err(err) => {
             eprintln!("{TOOL}: the medium axis does not read: {err}");
-            return ExitCode::FAILURE;
+            return 1;
         }
     };
     let json = match sweep::seed_from_registry(&registry).to_json() {
         Ok(json) => json,
         Err(err) => {
             eprintln!("{TOOL}: cannot serialize the seed table: {err}");
-            return ExitCode::FAILURE;
+            return 1;
         }
     };
     if let Some(parent) = out.parent().filter(|p| !p.as_os_str().is_empty())
         && let Err(err) = std::fs::create_dir_all(parent)
     {
         eprintln!("{TOOL}: cannot create {}: {err}", parent.display());
-        return ExitCode::FAILURE;
+        return 1;
     }
     if let Err(err) = std::fs::write(out, &json) {
         eprintln!("{TOOL}: cannot write {}: {err}", out.display());
-        return ExitCode::FAILURE;
+        return 1;
     }
     eprintln!(
         "{TOOL}: wrote a BOOTSTRAP {} with ZERO measurements — it is not evidence and must never \
@@ -153,7 +143,7 @@ fn seed(root: &Path, out: &Path) -> ExitCode {
          grid.",
         out.display()
     );
-    ExitCode::SUCCESS
+    0
 }
 
 /// Print the winner table and the codec evidence to stdout — the maintainer reads

@@ -37,7 +37,7 @@
 //! [`Site`]: crate::render::Site
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::formats::{Capability, DocFormat, format_capabilities};
 
@@ -52,15 +52,6 @@ pub const DIGEST_MANIFEST: &str = "DIGESTS.blake3";
 /// committed bytes to committed bytes and therefore cannot see either drift; this record can.
 /// See [`VendoredWasmAsset::substrate_status`].
 pub const SUBSTRATE_RECORD: &str = "SUBSTRATE.txt";
-
-/// The workspace root, derived from this crate's manifest directory.
-fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(std::path::Path::parent)
-        .expect("crates/docs sits two levels below the workspace root")
-        .to_path_buf()
-}
 
 /// The substrate identity the workspace currently RESOLVES, as a stable comparison key.
 ///
@@ -81,8 +72,8 @@ fn workspace_root() -> PathBuf {
 /// `purrdf` nor `wasm-bindgen`. An unreadable substrate is a HARD FAILURE: a comparison that
 /// cannot read its own input has not been performed, and reporting agreement for it is the
 /// silent degradation this record exists to prevent.
-pub fn workspace_substrate_key() -> gmeow_errors::Result<String> {
-    gmeow_validate::repo_static::workspace_substrate_key(&workspace_root())
+pub fn workspace_substrate_key(root: &Path) -> gmeow_errors::Result<String> {
+    gmeow_validate::repo_static::workspace_substrate_key(root)
 }
 
 /// One expected export-surface probe: `needle` must appear verbatim in the vendored
@@ -156,12 +147,10 @@ impl VendoredWasmAsset {
     }
 
     /// The on-disk directory holding the vendored files
-    /// (`crates/docs/assets/<name>/`), resolved from the crate manifest dir.
+    /// (`crates/docs/assets/<name>/`), resolved from the selected checkout.
     #[must_use]
-    pub fn asset_dir(&self) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("assets")
-            .join(self.name)
+    pub fn asset_dir(&self, root: &Path) -> PathBuf {
+        root.join("crates/docs/assets").join(self.name)
     }
 
     /// The `DIGESTS.blake3` content for the current on-disk vendored bytes: one
@@ -175,10 +164,10 @@ impl VendoredWasmAsset {
     ///
     /// Panics if a vendored file cannot be read.
     #[must_use]
-    pub fn current_manifest(&self) -> String {
+    pub fn current_manifest(&self, root: &Path) -> String {
         let mut names: Vec<&str> = self.vendored_files.to_vec();
         names.sort_unstable();
-        let dir = self.asset_dir();
+        let dir = self.asset_dir(root);
         let lines: Vec<String> = names
             .into_iter()
             .map(|name| {
@@ -203,9 +192,9 @@ impl VendoredWasmAsset {
     /// silent gap. (`Option`, not `Result<_, String>`: `gmeow_errors::Diag` is the sole
     /// first-party error type, and this "current?" query has no error channel — a stale
     /// attestation is the answer, not a failure.)
-    pub fn attestation_status(&self) -> Option<String> {
+    pub fn attestation_status(&self, root: &Path) -> Option<String> {
         let witness = self.witness_attestation?;
-        let dir = self.asset_dir();
+        let dir = self.asset_dir(root);
         match std::fs::read(dir.join(witness)) {
             Ok(bytes) if !bytes.is_empty() => {}
             Ok(_) => {
@@ -231,14 +220,14 @@ impl VendoredWasmAsset {
                 ));
             }
         };
-        if committed != self.current_manifest() {
+        if committed != self.current_manifest(root) {
             return Some(format!(
                 "engine '{}' drifted from {DIGEST_MANIFEST}: the witness attestation \
                  '{witness}' no longer describes the shipped bytes (re-run make {})",
                 self.name, self.refresh_target
             ));
         }
-        self.substrate_status()
+        self.substrate_status(root)
     }
 
     /// Whether this asset was built against the substrate the workspace CURRENTLY pins.
@@ -252,13 +241,13 @@ impl VendoredWasmAsset {
     /// Each asset therefore records the substrate identity it was built against, and
     /// this compares that record to the live root manifest. A mismatch names the
     /// refresh target rather than describing a symptom.
-    pub fn substrate_status(&self) -> Option<String> {
-        let recorded = std::fs::read_to_string(self.asset_dir().join(SUBSTRATE_RECORD));
+    pub fn substrate_status(&self, root: &Path) -> Option<String> {
+        let recorded = std::fs::read_to_string(self.asset_dir(root).join(SUBSTRATE_RECORD));
         substrate_verdict(
             self.name,
             self.refresh_target,
             recorded.as_deref().map(str::trim),
-            workspace_substrate_key().as_deref(),
+            workspace_substrate_key(root).as_deref(),
         )
     }
 
@@ -270,20 +259,25 @@ impl VendoredWasmAsset {
     ///
     /// Panics (fails the test) on any drift: a corrupt/undersized wasm module, a
     /// missing export surface, or a digest mismatch.
-    pub fn verify(&self) {
-        self.verify_or_refresh(false);
+    pub fn verify(&self, root: &Path) {
+        self.verify_or_refresh(root, false);
     }
 
     /// Refresh the digest and substrate records from the current vendored bytes.
     ///
     /// This is a producer operation exposed only to the explicit maintainer binary;
     /// tests call [`verify`](Self::verify), which has no write path.
-    pub fn refresh_manifest(&self) {
-        self.verify_or_refresh(true);
+    pub fn refresh_manifest(&self, root: &Path) {
+        self.verify_or_refresh(root, true);
     }
 
-    fn verify_or_refresh(&self, refresh: bool) {
-        let dir = self.asset_dir();
+    /// Check the selected checkout's wasm image, exports, and exact vendored bytes.
+    ///
+    /// Verification compares the recorded digest without writing. An explicit refresh resolves
+    /// the substrate identity before writing both records. Missing or invalid inputs,
+    /// digest drift during verification, and failed refresh writes panic.
+    fn verify_or_refresh(&self, root: &Path, refresh: bool) {
+        let dir = self.asset_dir(root);
 
         // Structural: real WebAssembly module, not a stub/placeholder.
         let wasm = std::fs::read(dir.join(self.wasm_file)).unwrap_or_else(|e| {
@@ -321,14 +315,14 @@ impl VendoredWasmAsset {
         // Digest: pin the exact bytes. The structural checks alone pass a
         // stale-but-still-functional engine; this gate does not.
         let manifest_path = dir.join(DIGEST_MANIFEST);
-        let current = self.current_manifest();
+        let current = self.current_manifest(root);
         if refresh {
             // Resolve the substrate BEFORE pinning anything. Writing the digests first and
             // failing here would leave bytes pinned with no record of what they were built
             // against — which every later run reads as "current". This runs only on the
             // refresh path, which depends on the Node parity lane, so a substrate record
             // can only ever describe bytes that passed parity.
-            let key = workspace_substrate_key().unwrap_or_else(|e| {
+            let key = workspace_substrate_key(root).unwrap_or_else(|e| {
                 panic!(
                     "cannot compute the substrate key to stamp {} — refusing to bless \
                      {DIGEST_MANIFEST} for bytes whose substrate would go unrecorded: {e}",
@@ -424,12 +418,12 @@ fn substrate_verdict<E: std::fmt::Display, F: std::fmt::Display>(
 /// Returns one message per (format, capability, engine) violation; an empty vector is a
 /// pass. Wired onto the `crate-check` gate surface alongside the loss-lattice gate.
 #[must_use]
-pub fn check_capability_attestations() -> Vec<String> {
+pub fn check_capability_attestations(root: &Path) -> Vec<String> {
     let mut errors = Vec::new();
     for fmt in DocFormat::ALL {
         for cap in format_capabilities(fmt).representable {
             for asset in capability_backing_assets(cap) {
-                if let Some(e) = asset.attestation_status() {
+                if let Some(e) = asset.attestation_status(root) {
                     errors.push(format!(
                         "format '{}' represents interactive capability '{}', but its backing \
                          engine's witness-attestation is not current: {e}",

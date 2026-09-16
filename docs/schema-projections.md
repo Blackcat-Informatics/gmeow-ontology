@@ -15,8 +15,8 @@
 > OWL-ABox-reading LinkML/TypeScript/GraphQL emitter was deleted, and LinkML is no
 > longer an intermediate step the TypeScript/GraphQL/Pydantic surfaces are derived
 > through. All six artifacts are independent renderings of the SAME compiled `$defs`.
-> Update: `cargo run -p gmeow-dev-cli -- sync --mode update --outputs generated`.
-> CI gate: `cargo run -p gmeow-dev-cli -- sync --mode check --outputs generated` (in the `ontology` job).
+> Update: `make check-sync SYNC_MODE=update`.
+> CI gate: `make check-sync SYNC_MODE=check`, using the authenticated producer.
 
 GMEOW is an **OWL 2 DL** ontology with a parallel layer of **SHACL** shapes, itself
 *derived* from the EL-safe cardinality/class/datatype/node-kind/value-set axioms
@@ -241,10 +241,10 @@ not open-world-vs-closed-world gaps.
 
 ```bash
 # Generate all artifacts into dist/schemas/
-cargo run -p gmeow-dev-cli -- sync --mode update --outputs generated
+make check-sync SYNC_MODE=update
 
 # Verify they match the current ontology + shapes (CI gate)
-cargo run -p gmeow-dev-cli -- sync --mode check --outputs generated
+make check-sync SYNC_MODE=check
 
 # Validate an instance document against the SHACL-derived JSON Schema
 gmeow validate --schema dist/schemas/gmeow.schema.json instance.jsonld
@@ -263,4 +263,4 @@ These are **build artifacts** (`dist/` is git-ignored). Do not edit them by hand
 If a term is wrong, fix the OWL/RDFS axioms in the slice's `module.ttl` — the
 pipeline derives the SHACL shapes those axioms compile into, and every schema
 surface above compiles from that SAME shape union — then re-run
-`cargo run -p gmeow-dev-cli -- sync --mode update --outputs generated`.
+`make check-sync SYNC_MODE=update`.

@@ -1,6 +1,6 @@
 {
   "name": "@blackcatinformatics/gmeow-mcp-core-wasm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The LEAN first-load GMEOW MCP engine, compiled to wasm32: the SAME consumer tool surface, with the reasoning segment demand-loaded through the tiered dispatcher so discovery never pays for the reasoner.",
   "type": "module",
   "license": "AGPL-3.0-only",

@@ -9,6 +9,8 @@
 //! receipts, immutable content-addressed blobs, atomic publication, process-wide
 //! build election, reader-safe reachability GC, and explicit store quotas.
 
+pub mod executable;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions, TryLockError};
 use std::io::{Read, Write};

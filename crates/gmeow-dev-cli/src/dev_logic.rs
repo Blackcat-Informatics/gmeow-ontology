@@ -14,6 +14,7 @@
 
 use std::path::Path;
 
+use clap::builder::{StringValueParser, TypedValueParser};
 use gmeow_logic::counterfactual;
 use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::probabilistic;
@@ -217,16 +218,34 @@ pub const LOGIC_MODES: &[&str] = &[
     "report",
 ];
 
+/// Validate a selected projection before admitting a corpus-producing command.
+pub fn parse_mode(mode: &str) -> gmeow_errors::Result<String> {
+    if LOGIC_MODES.contains(&mode) {
+        Ok(mode.to_owned())
+    } else {
+        Err(error::logic(format!(
+            "unknown --mode {mode:?} (valid: {})",
+            LOGIC_MODES.join(", ")
+        )))
+    }
+}
+
+/// Adapt the typed diagnostic to Clap's external parsing-error boundary.
+pub fn mode_parser() -> impl TypedValueParser<Value = String> {
+    StringValueParser::new().try_map(|mode| {
+        parse_mode(&mode).map_err(|diagnostic| {
+            clap::Error::raw(clap::error::ErrorKind::InvalidValue, diagnostic.to_string())
+        })
+    })
+}
+
 /// `gmeow-dev logic compile [--check] [--mode M]` — emit or drift-check the
 /// generated logic artifacts.
 pub fn compile(check: bool, mode: Option<&str>) -> i32 {
-    if let Some(m) = mode
-        && !LOGIC_MODES.contains(&m)
+    if let Some(mode) = mode
+        && let Err(error) = parse_mode(mode)
     {
-        return fail(format!(
-            "unknown --mode {m:?} (valid: {})",
-            LOGIC_MODES.join(", ")
-        ));
+        return fail(error);
     }
     let root = project_root();
 

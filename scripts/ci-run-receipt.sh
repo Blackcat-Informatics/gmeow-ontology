@@ -179,6 +179,7 @@ github_sha_template="\${{ github.sha }}"
 matrix_generation_template="\${{ matrix.generation }}"
 matrix_shard_template="\${{ matrix.shard }}"
 generation_evidence_declaration="generation-evidence-${github_sha_template}-${matrix_generation_template}"
+producer_build_evidence_declaration="producer-build-evidence-${github_sha_template}"
 rust_prebuild_evidence_declaration="rust-prebuild-evidence-${github_sha_template}"
 rust_archive_evidence_declaration="rust-archive-evidence-${github_sha_template}"
 reason_evidence_declaration="reason-evidence-${github_sha_template}"
@@ -192,6 +193,10 @@ if grep -Fq -- "$generation_evidence_declaration" \
       "$generation_evidence_declaration"
   done
 fi
+download_declared_artifact \
+  "producer-build-evidence-$artifact_sha" \
+  "$evidence_dir/producer-build" \
+  "$producer_build_evidence_declaration"
 download_declared_artifact \
   "rust-prebuild-evidence-$artifact_sha" \
   "$evidence_dir/rust-prebuild" \
@@ -393,7 +398,7 @@ job_block() {
 
 # These five required job groups invoke Make targets backed by GMEOW_DEV. Without
 # an explicit artifact-backed override they each fall through to Make's source
-# `cargo run -p gmeow-dev-cli` default. Count the authored fallback groups exactly;
+# `cargo xtask producer run --` default. Count the authored fallback groups exactly;
 # the counter is causal work, independent of runner timing or cache warmth.
 producer_fallback_groups=$tmp_dir/producer-fallback-groups.txt
 : > "$producer_fallback_groups"

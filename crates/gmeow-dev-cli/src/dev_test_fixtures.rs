@@ -3,9 +3,8 @@
 
 //! Strict producer/consumer boundary for corpus-backed test fixtures.
 //!
-//! This lives in the already-built `gmeow-dev` maintenance binary. Keeping it out of
-//! standalone examples avoids a second Cargo feature/build lineage after nextest has
-//! compiled the workspace.
+//! Production uses the authenticated O3/full-LTO `gmeow-dev` executable. Test
+//! binaries independently consume its selected receipts, even across Cargo profiles.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -85,6 +84,9 @@ pub(crate) fn run_slice_spec_worker(
     workers: usize,
 ) -> i32 {
     let expected = gmeow_slicetest::BUILD_FINGERPRINT;
+    if gmeow_pipeline::cache::PRODUCER_BUILD_CONTRACT.is_empty() {
+        return crate::dev_common::fail("slice-spec-worker requires an optimized producer build");
+    }
     let authority = std::env::var("GMEOW_SLICE_SPEC_WORKER_AUTHORITY").unwrap_or_default();
     if authority != expected {
         return crate::dev_common::fail(

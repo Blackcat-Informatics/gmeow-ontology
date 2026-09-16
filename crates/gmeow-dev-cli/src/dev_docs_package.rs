@@ -27,6 +27,9 @@
 //! `dist/gmeow-docs/manifest/docs-manifest.ttl` file is a HARD FAIL — never a
 //! silently skipped asset.
 
+#[cfg(test)]
+mod tests;
+
 use std::path::PathBuf;
 
 use crate::dev_common::{fail, project_root};
@@ -41,7 +44,12 @@ const DOCS_MANIFEST_REL: &str = "dist/gmeow-docs/manifest/docs-manifest.ttl";
 
 /// `gmeow-dev docs-package [--out PATH]`.
 pub fn docs_package(out: &std::path::Path) -> i32 {
-    let root = project_root();
+    package_at_root(&project_root(), out)
+}
+
+/// Package an already-materialized directory. The CLI admits the producer before
+/// reaching this function; unit tests supply only their own synthetic documents.
+fn package_at_root(root: &std::path::Path, out: &std::path::Path) -> i32 {
     let docs_dir = root.join(DOCS_DIST_REL);
     let manifest_path = root.join(DOCS_MANIFEST_REL);
 

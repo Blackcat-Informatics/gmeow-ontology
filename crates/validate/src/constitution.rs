@@ -1224,6 +1224,22 @@ enum ExecKind {
 
 /// Classify one already-var-expanded, tokenised leaf command.
 fn classify_command(cmd: &[String]) -> ExecKind {
+    // The producer launcher is an explicit dispatch boundary. Only this exact
+    // executable/operation form delegates to the developer CLI. A build, recipe
+    // inspection, different xtask operation, or echoed command binds no handler.
+    let mut invocation = cmd;
+    if invocation.first().is_some_and(|word| word == "env") {
+        invocation = &invocation[1..];
+    }
+    while invocation.first().is_some_and(|word| word.contains('=')) {
+        invocation = &invocation[1..];
+    }
+    if invocation.len() >= 6
+        && invocation[..5] == ["cargo", "xtask", "producer", "run", "--"]
+        && !invocation[5].starts_with('-')
+    {
+        return ExecKind::Subcommand(invocation[5].clone());
+    }
     let has = |w: &str| cmd.iter().any(|t| t == w);
     if has("cargo") && (has("nextest") || has("test")) {
         if has("--doc") {
@@ -2358,6 +2374,39 @@ mod tests {
             "## 1. Be good\n\nprose\n",
         )
         .unwrap();
+    }
+
+    /// Recognize the exact producer dispatch form without crediting build, inspection, or echoed text.
+    #[test]
+    fn producer_launcher_binds_only_the_executed_cli_operation() {
+        for command in [
+            "cargo xtask producer run -- validate",
+            "env BUNDLE_DIGEST=abc cargo xtask producer run -- validate --strict",
+        ] {
+            let words = command
+                .split_whitespace()
+                .map(str::to_owned)
+                .collect::<Vec<_>>();
+            assert_eq!(
+                classify_command(&words),
+                ExecKind::Subcommand("validate".into())
+            );
+        }
+        for command in [
+            "cargo xtask producer build",
+            "cargo xtask producer recipe",
+            "cargo xtask producer verify",
+            "cargo xtask producer run --",
+            "cargo xtask producer run -- --help",
+            "cargo xtask other run -- validate",
+            "echo cargo xtask producer run -- validate",
+        ] {
+            let words = command
+                .split_whitespace()
+                .map(str::to_owned)
+                .collect::<Vec<_>>();
+            assert_eq!(classify_command(&words), ExecKind::Opaque, "{command}");
+        }
     }
 
     #[test]

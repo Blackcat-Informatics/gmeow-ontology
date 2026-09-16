@@ -53,7 +53,7 @@ fn gmeow_namespaces() -> json_schema::Namespaces {
 /// Compile a shapes Turtle document into `(schema_bytes, parsed_schema)`.
 fn compile_schema(shapes_ttl: &str) -> (Vec<u8>, serde_json::Value) {
     let shapes = engine::parse_shapes(shapes_ttl, None).expect("parse shapes");
-    let compiled = json_schema::compile(&shapes, &gmeow_namespaces());
+    let compiled = json_schema::compile(&shapes, &gmeow_namespaces()).expect("compile shapes");
     let parsed: serde_json::Value =
         serde_json::from_str(&compiled.schema_json).expect("compiled schema is valid JSON");
     (compiled.schema_json.into_bytes(), parsed)

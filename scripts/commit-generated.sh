@@ -16,7 +16,7 @@
 # Makefile stays the single place `gmeow-dev` and the commit message text are
 # configured:
 #
-#   GMEOW_DEV   the gmeow-dev invocation (e.g. `cargo run -q -p gmeow-dev-cli --`).
+#   GMEOW_DEV   the admitted producer invocation (e.g. `cargo xtask producer run --`).
 #               This is intentionally expanded UNQUOTED below so a multi-word
 #               invocation word-splits into its executable + arguments, exactly
 #               as the Makefile's own bare `$(GMEOW_DEV)` expansions already do.
