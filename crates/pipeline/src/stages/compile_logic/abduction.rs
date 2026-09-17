@@ -7,11 +7,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::frontend::{CompiledTheory, Diagnostic, reconstruct_formula};
 use gmeow_logic_compile::ir::Formula;
-use purrdf::RdfTerm;
+use purrdf::TermRef;
 use serde::{Deserialize, Serialize};
 
 const CHANNEL: &str = "pipeline/logic-module-abduction.json";
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const ABDUCTIVE_SCHEMA: &str = "https://blackcatinformatics.ca/logic/AbductiveSchema";
+const COMPLETENESS_FORMULA: &str = "https://blackcatinformatics.ca/logic/completenessFormula";
 const REQUIRED_ROOTS: &[&str] = &[
     "relatorMediationComplete",
     "referenceFrameComplete",
@@ -37,19 +40,24 @@ pub(super) fn record(
     let program = theory.program();
     let mut schemas = BTreeSet::new();
     let mut roots: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for quad in source.owned_quads() {
-        if quad.graph_name.is_some() {
+    for quad in source.quads() {
+        if quad.g.is_some() {
             continue;
         }
-        let (RdfTerm::Iri(subject), RdfTerm::Iri(object)) = (quad.subject, quad.object) else {
+        let (TermRef::Iri(subject), TermRef::Iri(predicate), TermRef::Iri(object)) = (
+            source.resolve(quad.s),
+            source.resolve(quad.p),
+            source.resolve(quad.o),
+        ) else {
             continue;
         };
-        if quad.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-            && object == format!("{LOGIC}AbductiveSchema")
-        {
-            schemas.insert(subject);
-        } else if quad.predicate == format!("{LOGIC}completenessFormula") {
-            roots.entry(subject).or_default().insert(object);
+        if predicate == RDF_TYPE && object == ABDUCTIVE_SCHEMA {
+            schemas.insert(subject.to_owned());
+        } else if predicate == COMPLETENESS_FORMULA {
+            roots
+                .entry(subject.to_owned())
+                .or_default()
+                .insert(object.to_owned());
         }
     }
     let declared_roots: BTreeSet<_> = schemas
