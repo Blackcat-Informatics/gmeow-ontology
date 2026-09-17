@@ -233,7 +233,17 @@ pub fn validate(
         // assembled in ONE testable place (`authored_source_invocation`) so the
         // wiring cannot silently regress to the historical defect of empty DSL
         // args. `authored_source_invocation_wires_every_dsl_surface` binds it.
-        let inv = match authored_source_invocation(&root, collect_timings, deep, merged_shacl) {
+        let implementation = match crate::dev_producer::admitted_identity() {
+            Ok(identity) => identity,
+            Err(error) => return fail(error.to_string()),
+        };
+        let inv = match authored_source_invocation(
+            &root,
+            collect_timings,
+            deep,
+            merged_shacl,
+            implementation,
+        ) {
             Ok(inv) => inv,
             Err(code) => return code,
         };
@@ -267,6 +277,7 @@ pub fn validate(
                 "phase": timing.phase,
                 "elapsed_ms": timing.elapsed_ms,
                 "work_metadata": timing.metadata,
+                "example_work": timing.example_work,
             })
         })
         .collect::<Vec<_>>();
@@ -347,6 +358,7 @@ pub(crate) fn authored_source_invocation(
     timings: bool,
     deep: bool,
     merged_shacl: MergedShacl,
+    implementation: gmeow_action_cache::ProducerIdentity,
 ) -> Result<AuthoredSourceInvocation, i32> {
     let source_paths: Vec<String> = match gmeow_pipeline::stages::source_load::authored_files(root)
     {
@@ -360,6 +372,7 @@ pub(crate) fn authored_source_invocation(
     let options = ValidateOptions {
         timings,
         project_root: Some(root.to_path_buf()),
+        cache_implementation: Some(implementation),
         deep,
         shape_union_root: Some(root.to_path_buf()),
         merged_shacl,

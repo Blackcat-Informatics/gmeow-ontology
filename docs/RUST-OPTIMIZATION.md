@@ -85,6 +85,24 @@ verification still uses the repo Makefile targets.
 Report exactly what ran. Do not invent percentages, extrapolate from unrelated
 inputs, or claim a speedup from a benchmark that did not exercise the changed path.
 
+The validation timing JSON's `example-shacl.example_work` separates shared base
+projection and shape preparation from each example's parse, canonical projection,
+view binding and complete validation. Durations use microseconds; parallel example
+durations overlap, while the enclosing phase's `elapsed_ms` measures wall time.
+An authenticated verdict hit has `execution: null`: observations from the original
+execution are never replayed as current work. A partial miss reports only the
+examples actually evaluated, in deterministic source-path order.
+
+Each completed example reports PurRDF's composite copy, freeze and materialization
+counters, retained payload and adapter bookkeeping charges. These counters cover
+the composite and its Core/query adapters; they do not measure source parsing,
+GMEOW's canonical projection allocations, allocator overhead or process RSS.
+Retained payload includes the shared base for each binding, and Core/query adapters
+may also share storage. Do not sum those charges as resident memory. Pair these
+observations with separately scoped peak-memory measurements on the authenticated
+O3/full-LTO producer. They explain conversion removal and reuse; they cannot stand
+in for fusion or scheduling measurements, semantic certificates, or output parity.
+
 ## Preferred Rust Optimization Shapes
 
 ### 1. Static Iterator Seams

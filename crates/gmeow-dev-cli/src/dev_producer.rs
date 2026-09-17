@@ -3,10 +3,23 @@
 
 //! Runtime admission of the producer selected by the explicit build stage.
 
+use std::sync::OnceLock;
+
+use gmeow_action_cache::ProducerIdentity;
 use gmeow_action_cache::executable::ExecutableReceipt;
 use gmeow_errors::Diag;
 
 use crate::{Commands, LogicCommands, TestFixtureMode};
+
+static ADMITTED_IDENTITY: OnceLock<ProducerIdentity> = OnceLock::new();
+
+/// Return the exact identity of the producer after executable and source admission.
+pub(crate) fn admitted_identity() -> gmeow_errors::Result<ProducerIdentity> {
+    ADMITTED_IDENTITY
+        .get()
+        .cloned()
+        .ok_or_else(|| crate::error::sync("validation requires an admitted producer identity"))
+}
 
 /// Classify commands that must authenticate the optimized producer before dispatch.
 ///
@@ -143,6 +156,22 @@ pub(crate) fn admit() -> gmeow_errors::Result<()> {
         return Err(fail(
             "producer source inventory changed; run make producer-build".into(),
         ));
+    }
+    let identity = ProducerIdentity {
+        digest: contract.to_owned(),
+        toolchain: Some(receipt.recipe.rustc.clone()),
+        target: None,
+        profile: Some(receipt.recipe.profile.clone()),
+        features: Vec::new(),
+    };
+    if let Some(previous) = ADMITTED_IDENTITY.get() {
+        if previous != &identity {
+            return Err(fail("producer identity changed after admission".into()));
+        }
+    } else {
+        ADMITTED_IDENTITY
+            .set(identity)
+            .map_err(|_| fail("concurrent producer identity admission".into()))?;
     }
     Ok(())
 }

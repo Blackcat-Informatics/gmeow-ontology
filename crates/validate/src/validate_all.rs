@@ -22,6 +22,9 @@ use gmeow_errors::{
     Standpoint, register_code,
 };
 use gmeow_logic::certificate::ContradictionPolicy;
+use purrdf::ir::{CompositeDatasetView, ViewLimits};
+use purrdf::shapes::data_view::ShaclDatasetView;
+use purrdf::shapes::engine::PreparedShapes;
 use purrdf::{PROJECTION_CODECS, RdfDataset, RdfDatasetBuilder, pair_loss_ledger};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -38,6 +41,11 @@ use crate::report_bridge::shacl_findings_from_report;
 use crate::signature;
 use crate::store;
 
+mod example_work;
+pub use example_work::{
+    ExampleExecution, ExampleValidationMeasurements, ExampleValidationSample, ExampleViews,
+};
+
 #[cfg(test)]
 pub(crate) mod verification_fixture;
 
@@ -51,6 +59,9 @@ pub struct Timing {
     /// Optional free-form metadata (e.g. number of files processed).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<String>,
+    /// Current invocation's example work; never loaded from a cached verdict.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub example_work: Option<ExampleValidationMeasurements>,
 }
 
 /// Signature/trust policy configuration for the GTS verification pre-gate.
@@ -134,6 +145,9 @@ pub struct ValidateOptions {
     /// `None`, caching is disabled; `gmeow-dev validate` passes `PROJECT_ROOT`
     /// so CI/local reruns share the same cache.
     pub project_root: Option<PathBuf>,
+    /// Exact implementation identity admitted by the caller. Required whenever
+    /// repository caching is selected.
+    pub cache_implementation: Option<gmeow_action_cache::ProducerIdentity>,
     /// Optional GTS byte bundle. When present, the orchestration builds the
     /// shared store from the bundle instead of from `source_paths`, and the
     /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
@@ -275,6 +289,16 @@ fn intern_finding(
     if let Some(detail) = &finding.detail {
         diag = diag.with_context(detail.clone());
     }
+    if let Some(class) = &finding.failure_class {
+        diag = diag.with_failure_class(class.clone());
+    }
+    for term in &finding.documented_terms {
+        diag = diag.with_documented_term(term.clone());
+    }
+    for guidance in &finding.guidance {
+        diag = diag.with_guidance(guidance.clone());
+    }
+    diag = diag.with_derived_from_quads(finding.derived_from_quads.clone());
     for suggestion in &finding.suggestions {
         diag = diag.with_advice(Advice {
             standpoint,
@@ -441,6 +465,17 @@ impl ValidationRun {
         lint_config: &LintConfig,
         options: &ValidateOptions,
     ) -> gmeow_errors::Result<Self> {
+        let cache = match (&options.project_root, &options.cache_implementation) {
+            (Some(root), Some(implementation)) => {
+                Some(ValidationCache::new(root, implementation.clone())?)
+            }
+            (None, None) => None,
+            _ => {
+                return Err(Diag::of_kind(crate::error::Engine {
+                    detail: "repository validation cache requires both root and admitted implementation identity".into(),
+                }));
+            }
+        };
         let mut timings: Vec<Timing> = Vec::new();
         // The SINGLE run-level carrier: every producer — the cheap string phases,
         // the SHACL/ownership/signature findings, the lint sub-ledgers, and the
@@ -630,9 +665,6 @@ impl ValidationRun {
         });
         intern_phase(&mut run_ledger, result);
 
-        // Initialize the content-addressed cache if a project root was supplied.
-        let cache = options.project_root.as_ref().map(ValidationCache::new);
-
         // Phase 5: slice ownership defects. The full slice-ownership feedback
         // surface still reports dependency observations as warnings; the validate
         // gate folds only ownership defects, preserving the same gating surface
@@ -787,7 +819,10 @@ impl ValidationRun {
                 // not run the ownership analyzer twice. A catalog/ownership failure
                 // when slices_dir IS present is a HARD failure — never a silent
                 // fall-back to the byte-sensitive files key.
-                merged_shacl_merkle_root_from_parts(catalog, &ownership.edges)?
+                let composition = merged_shacl_merkle_root_from_parts(catalog, &ownership.edges)?;
+                let selected = cache
+                    .files_cache_key(&source_paths.iter().map(PathBuf::from).collect::<Vec<_>>())?;
+                ValidationCache::cache_key(&[composition.as_bytes(), selected.as_bytes()])
             } else {
                 let source_paths_buf: Vec<PathBuf> =
                     source_paths.iter().map(PathBuf::from).collect();
@@ -846,6 +881,7 @@ impl ValidationRun {
                 phase: "merged-shacl".to_owned(),
                 elapsed_ms: start.elapsed().as_millis(),
                 metadata: meta,
+                example_work: None,
             });
         }
         intern_shacl_findings(&mut run_ledger, result);
@@ -859,7 +895,7 @@ impl ValidationRun {
 
             // Phase 10: per-example SHACL via per-example base ∪ example dataset.
             let start = Instant::now();
-            let (result, meta) = check_examples(
+            let (result, meta, work) = check_examples(
                 &dataset,
                 &shapes,
                 &failure_classes,
@@ -872,6 +908,7 @@ impl ValidationRun {
                     phase: "example-shacl".to_owned(),
                     elapsed_ms: start.elapsed().as_millis(),
                     metadata: meta,
+                    example_work: Some(work),
                 });
             }
             intern_shacl_findings(&mut run_ledger, result);
@@ -901,6 +938,7 @@ impl ValidationRun {
                     phase: "mapping-dsl-shacl".to_owned(),
                     elapsed_ms: start.elapsed().as_millis(),
                     metadata: meta,
+                    example_work: None,
                 },
             )))
         };
@@ -921,6 +959,7 @@ impl ValidationRun {
                     phase: "statement-dsl-shacl".to_owned(),
                     elapsed_ms: start.elapsed().as_millis(),
                     metadata: meta,
+                    example_work: None,
                 },
             )))
         };
@@ -950,6 +989,7 @@ impl ValidationRun {
                     phase: "test-dsl-shacl".to_owned(),
                     elapsed_ms: start.elapsed().as_millis(),
                     metadata: meta,
+                    example_work: None,
                 },
             )))
         };
@@ -1699,6 +1739,7 @@ where
         phase: phase.to_owned(),
         elapsed_ms: start.elapsed().as_millis(),
         metadata,
+        example_work: None,
     });
     result
 }
@@ -1720,7 +1761,7 @@ where
     F: FnOnce() -> gmeow_errors::Result<Vec<Finding>>,
 {
     if let Some(cache) = cache {
-        if let Some(cached) = cache.read_cached_result(kind, key) {
+        if let Some(cached) = cache.read_cached_result(kind, key)? {
             return Ok((cached.findings, Some("cache-hit".to_owned())));
         }
         let findings = compute()?;
@@ -1926,13 +1967,16 @@ fn check_example_coverage(slices_dir: &str) -> gmeow_errors::Result<PhaseResult>
     Ok(result)
 }
 
-/// One cached SHACL phase outcome: the structured findings plus a cache-status tag
-/// (`"cache-hit"` / `"cache-miss"` / `"cache-disabled"`), or a hard error. Matches
-/// the return shape of [`run_cached`].
-type CachedPhaseResult = gmeow_errors::Result<(Vec<Finding>, Option<String>)>;
+/// One example's findings, cache status and current execution observations.
+type CachedExampleResult =
+    gmeow_errors::Result<(Vec<Finding>, Option<String>, ExampleValidationSample)>;
+
+/// Complete example findings and observations, folded in source order.
+type ExampleBatchResult =
+    gmeow_errors::Result<(Vec<Finding>, Option<String>, ExampleValidationMeasurements)>;
 
 /// Phase 10: validate every slice example against the ontology, in parallel, over a
-/// fresh `base ∪ example` native dataset per example.
+/// fresh `base ∪ example` view per example, sharing base indexes and shape analysis.
 fn check_examples(
     dataset: &RdfDataset,
     shapes: &purrdf::shapes::shapes::Shapes,
@@ -1940,15 +1984,15 @@ fn check_examples(
     slices_dir: &str,
     cache: Option<&ValidationCache>,
     base_key: &str,
-) -> gmeow_errors::Result<(Vec<Finding>, Option<String>)> {
+) -> ExampleBatchResult {
     // `find_example_files` returns a name-sorted list (see its `sort_by`). Each
     // example is an independent whole-ontology SHACL pass — the dominant cost of
     // `validate` — so validate them in parallel.
     //
     // The SHACL shapes include SHACL-SPARQL targets, which need a queryable
     // `base ∪ example` graph. Project the base ontology into the flattened SHACL
-    // view ONCE, then each example only projects its own small graph before merging
-    // the two projected datasets under fresh blank scopes.
+    // view ONCE, then each example only projects its own small graph before binding
+    // a composite view under fresh blank scopes. No combined dataset is frozen.
     let examples = find_example_files(slices_dir)?;
     // Older entries were computed with an unsound touched-term filter. They
     // cannot certify complete example validation even when input bytes match.
@@ -1964,7 +2008,7 @@ fn check_examples(
         let mut all_hit = true;
         for (_, path) in &examples {
             let example_key = example_shacl_key(cache, &base_key, path)?;
-            let Some(cached) = cache.read_cached_result("example-shacl", &example_key) else {
+            let Some(cached) = cache.read_cached_result("example-shacl", &example_key)? else {
                 all_hit = false;
                 break;
             };
@@ -1974,16 +2018,34 @@ fn check_examples(
             return Ok((
                 cached_findings,
                 Some(format!("cache-hit:{};cache-miss:0", examples.len())),
+                ExampleValidationMeasurements {
+                    examples: examples
+                        .into_iter()
+                        .map(|(example, _)| ExampleValidationSample {
+                            example,
+                            execution: None,
+                        })
+                        .collect(),
+                    ..ExampleValidationMeasurements::default()
+                },
             ));
         }
     }
 
+    let start = Instant::now();
     let base_projected = gmeow_logic_compile::projections::reader_view::shacl_reader_view(dataset);
-    let prepared_shapes = purrdf::shapes::engine::PreparedShapes::new(Arc::new(shapes.clone()));
+    let base_projection_us = start.elapsed().as_micros();
+    let start = Instant::now();
+    let prepared_shapes = PreparedShapes::new(Arc::new(shapes.clone()));
+    let mut work = ExampleValidationMeasurements {
+        base_projection_us,
+        shape_preparation_us: start.elapsed().as_micros(),
+        examples: Vec::with_capacity(examples.len()),
+    };
 
-    let results: Vec<CachedPhaseResult> = examples
+    let results: Vec<CachedExampleResult> = examples
         .par_iter()
-        .map(|(name, path)| -> CachedPhaseResult {
+        .map(|(name, path)| -> CachedExampleResult {
             let example_key = if let Some(cache) = cache {
                 let file_key = cache.files_cache_key(std::slice::from_ref(path))?;
                 ValidationCache::cache_key(&[base_key.as_bytes(), file_key.as_bytes()])
@@ -1993,15 +2055,26 @@ fn check_examples(
                     path.to_string_lossy().as_bytes(),
                 ])
             };
-            run_cached(cache, "example-shacl", &example_key, || {
-                run_example_shacl(
+            let mut execution = None;
+            let (findings, status) = run_cached(cache, "example-shacl", &example_key, || {
+                let (findings, observed) = run_example_shacl(
                     &base_projected,
                     &prepared_shapes,
                     failure_classes,
                     path,
                     name,
-                )
-            })
+                )?;
+                execution = Some(observed);
+                Ok(findings)
+            })?;
+            Ok((
+                findings,
+                status,
+                ExampleValidationSample {
+                    example: name.clone(),
+                    execution,
+                },
+            ))
         })
         .collect();
 
@@ -2012,13 +2085,14 @@ fn check_examples(
     let mut hits: usize = 0;
     let mut misses: usize = 0;
     for result in results {
-        let (example_findings, meta) = result?;
+        let (example_findings, meta, observed) = result?;
         match meta.as_deref() {
             Some("cache-hit") => hits += 1,
             Some("cache-miss") => misses += 1,
             _ => {}
         }
         findings.extend(example_findings);
+        work.examples.push(observed);
     }
 
     let metadata = if cache.is_some() {
@@ -2026,12 +2100,9 @@ fn check_examples(
     } else {
         Some("cache-disabled".to_owned())
     };
-    Ok((findings, metadata))
+    Ok((findings, metadata, work))
 }
 
-/// Validate one example file against the ontology + shapes over a fresh
-/// projected `base ∪ example` native dataset.
-///
 /// The per-example SHACL cache key: the base graph key combined with the example
 /// file's content key, so an example re-validates only when the base graph OR the
 /// example file changes.
@@ -2048,68 +2119,95 @@ fn example_shacl_key(
 }
 
 /// The example file is parsed under its own blank scope, projected into the SHACL
-/// flattened view, merged with the already-projected base graph, then validated
-/// with the native SHACL engine.
+/// flattened view, and composed with the already-projected base through shared
+/// indexes. Shape analysis is batch-owned; targets and data-dependent analysis
+/// belong to this exact example view and are never reused across examples.
 fn run_example_shacl(
     base_projected: &Arc<RdfDataset>,
-    shapes: &purrdf::shapes::engine::PreparedShapes,
+    shapes: &PreparedShapes,
     failure_classes: &FailureClassIndex,
     path: &Path,
     name: &str,
-) -> gmeow_errors::Result<Vec<Finding>> {
-    let example_ds = match store::parse_file_dataset(path) {
+) -> gmeow_errors::Result<(Vec<Finding>, ExampleExecution)> {
+    let start = Instant::now();
+    let parsed = store::parse_file_dataset(path);
+    let mut work = ExampleExecution {
+        parse_us: start.elapsed().as_micros(),
+        ..ExampleExecution::default()
+    };
+    let example_ds = match parsed {
         Ok(ds) => ds,
         Err(e) => {
-            return Ok(vec![
-                Finding::new(
-                    Severity::Error,
-                    crate::codes::EXAMPLE_PARSE,
-                    format!(
-                        "example {name}: failed to parse {}: {}",
-                        path.display(),
-                        e.message()
-                    ),
-                )
-                .with_tool("validate"),
-            ]);
+            return Ok((
+                vec![
+                    Finding::new(
+                        Severity::Error,
+                        crate::codes::EXAMPLE_PARSE,
+                        format!(
+                            "example {name}: failed to parse {}: {}",
+                            path.display(),
+                            e.message()
+                        ),
+                    )
+                    .with_tool("validate"),
+                ],
+                work,
+            ));
         }
     };
+    let start = Instant::now();
     let example_projected =
         gmeow_logic_compile::projections::reader_view::shacl_reader_view(&example_ds);
-    let mut builder = RdfDatasetBuilder::new();
-    builder.push_dataset(base_projected);
-    builder.push_dataset(&example_projected);
+    work.projection_us = start.elapsed().as_micros();
+    let start = Instant::now();
+    let limits = ViewLimits::default();
+    let merged =
+        CompositeDatasetView::new(vec![Arc::clone(base_projected), example_projected], limits)
+            .map_err(|e| {
+                Diag::of_kind(crate::error::Engine {
+                    detail: format!("example {name}: projected base ∪ example view refused: {e}"),
+                })
+            })?;
+    let merged = Arc::new(merged);
+    let view = ShaclDatasetView::composite(Arc::clone(&merged), false, limits).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("example {name}: projected SHACL view refused: {e}"),
+        })
+    })?;
     // The base graph carries the class hierarchy (`rdfs:subClassOf` edges) and the example
     // asserts only the most-specific type; class membership is resolved by the engine
     // (`sh:class`/`sh:targetClass`) and by the `a/<subClassOf>*` property path the projected
     // `sh:sparql` / `sh:SPARQLTarget` bodies carry, so no `rdf:type` pre-materialization is
     // needed over the merged projected dataset.
-    let merged = builder.freeze().map_err(|e| {
-        Diag::of_kind(crate::error::Serialize {
-            detail: format!("example {name}: projected base ∪ example freeze failed: {e}"),
-        })
-    })?;
     // Target dependencies may reach arbitrary nodes through property paths,
     // SPARQL, class membership or custom expressions. Mentioning only ABox
     // terms does not prove that untouched focus nodes are unaffected. Until an
     // effect analysis certifies the complete affected set, evaluate all targets.
-    let mut report = shapes
-        .bind_projected_dataset(merged)
-        .and_then(|validator| validator.validate())
-        .map_err(|e| {
-            Diag::of_kind(crate::error::Engine {
-                detail: format!("example {name}: SHACL validation failed: {e}"),
-            })
-        })?;
+    let validator = shapes.bind_view(Arc::new(view)).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("example {name}: SHACL binding failed: {e}"),
+        })
+    })?;
+    work.binding_us = start.elapsed().as_micros();
+    let start = Instant::now();
+    let mut report = validator.validate().map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("example {name}: SHACL validation failed: {e}"),
+        })
+    })?;
+    work.validation_us = start.elapsed().as_micros();
+    work.views = Some(ExampleViews::observed(
+        merged.stats(),
+        validator.view_stats(),
+    ));
     // The per-example path calls the engine directly, so it applies the same
     // result-set collapse
     // `store::shacl_validate_dataset` does — a violation reported twice is one
     // violation on every validate surface, not just the bundle-driven one.
     store::dedupe_validation_results(&mut report);
-    Ok(shacl_findings_from_report(
-        &report,
-        Some(name),
-        failure_classes,
+    Ok((
+        shacl_findings_from_report(&report, Some(name), failure_classes),
+        work,
     ))
 }
 

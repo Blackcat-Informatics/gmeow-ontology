@@ -1,27 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Content-addressed validation cache under `.cache/validate`.
-//!
-//! The cache persists JSON objects `{"findings": [...]}` under
-//! `<project-root>/.cache/validate/<kind>/<key>.json`, where each finding is a
-//! serialized [`gmeow_errors::Finding`] — so the structured SHACL focus
-//! nodes and GTS wire coordinates survive a cache hit, not just a fresh compute
-//! . Keys are short SHA-256 hashes of NUL-delimited byte parts, matching
-//! the Python `_cache_key` algorithm. Invalidation is purely content-based;
-//! there is no TTL. Older `{"errors","warnings"}` entries simply fail to
-//! deserialize and are treated as a miss, so the cache self-heals on upgrade.
+//! Complete validation verdicts in the shared authenticated action store.
 
 use std::fs;
-use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
+use gmeow_action_cache::{
+    ActionContext, ActionInput, ActionStore, FileKind, ProducerIdentity, STORE_FORMAT_VERSION,
+    StoreLimits, bytes_digest, content_digest,
+};
 use gmeow_errors::{Diag, Finding};
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
-
-static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// A cached validation result: the structured findings produced by one cached
 /// phase. Serialized as `{"findings": [...]}`.
@@ -43,226 +34,187 @@ impl CachedResult {
     }
 }
 
-/// Manages the `.cache/validate` content-addressed cache.
-#[derive(Debug, Clone)]
+const CODEC: &str = "gmeow-validation-findings-v2";
+
+/// Repository-local validation cache with explicit implementation authority.
+#[derive(Clone)]
 pub struct ValidationCache {
-    /// Project root: cache files live under `.cache/validate` here.
     project_root: PathBuf,
+    implementation: ProducerIdentity,
+    store: Arc<ActionStore>,
+}
+
+impl std::fmt::Debug for ValidationCache {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ValidationCache")
+            .field("project_root", &self.project_root)
+            .field("implementation", &self.implementation)
+            .finish_non_exhaustive()
+    }
+}
+
+fn cache_error(error: impl std::fmt::Display) -> Diag {
+    Diag::of_kind(crate::error::Io {
+        detail: format!("validation action cache: {error}"),
+    })
 }
 
 impl ValidationCache {
-    /// Create a cache rooted at `<project_root>/.cache/validate`.
-    ///
-    /// `project_root` is resolved to an absolute path when possible so that
-    /// relative file cache keys match the Python `generator.source_hash`
-    /// behavior.
-    pub fn new(project_root: impl AsRef<Path>) -> Self {
-        let path = project_root.as_ref();
-        let resolved = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
-        Self {
-            project_root: resolved,
+    /// Select repository caching under an exact, caller-admitted implementation.
+    /// The caller owns producer admission; package versions alone are insufficient.
+    pub fn new(
+        project_root: impl AsRef<Path>,
+        implementation: ProducerIdentity,
+    ) -> gmeow_errors::Result<Self> {
+        if implementation.digest.len() != 64
+            || !implementation.digest.bytes().all(|b| b.is_ascii_hexdigit())
+        {
+            return Err(cache_error(
+                "implementation requires a complete SHA-256 identity",
+            ));
         }
+        let project_root = project_root.as_ref().canonicalize().map_err(cache_error)?;
+        if project_root.to_str().is_none() {
+            return Err(cache_error("repository path is not UTF-8"));
+        }
+        let store = ActionStore::open(
+            ActionStore::default_root(&project_root),
+            STORE_FORMAT_VERSION,
+            StoreLimits::default(),
+        )
+        .map_err(cache_error)?;
+        Ok(Self {
+            project_root,
+            implementation,
+            store: Arc::new(store),
+        })
     }
 
-    /// Return the cache directory root (`<project_root>/.cache/validate`).
+    /// Shared store root. Validation does not own a separate quota or JSON tree.
     pub fn cache_dir(&self) -> PathBuf {
-        self.project_root.join(".cache").join("validate")
+        self.store.root().to_path_buf()
     }
 
-    /// Return a short stable hash for cache-key parts.
-    ///
-    /// Mirrors Python `_cache_key`: SHA-256 over each part followed by a NUL
-    /// byte, truncated to 16 hex characters.
+    /// Complete, length-framed content identity; embedded separators cannot alias.
     pub fn cache_key(parts: &[&[u8]]) -> String {
-        let mut h = Sha256::new();
-        for part in parts {
-            h.update(part);
-            h.update(b"\0");
-        }
-        hex_encode(&h.finalize())[..16].to_owned()
+        content_digest(parts)
     }
 
-    /// Return a content hash for a list of input files.
-    ///
-    /// Mirrors Python `generator.source_hash`: paths are resolved and sorted,
-    /// then each contributes its path (relative to the project root when
-    /// possible), file size, and raw content to a SHA-256 hash. Missing paths
-    /// are skipped with a `tracing` warning rather than failing, matching the
-    /// lenient behavior.
+    /// Hash the ordered source selection, including diagnostic paths. Missing inputs fail.
     pub fn files_cache_key(&self, paths: &[PathBuf]) -> gmeow_errors::Result<String> {
         Self::files_cache_key_with_root(paths, &self.project_root)
     }
 
-    /// Core implementation of [`Self::files_cache_key`] with an explicit root.
+    /// The same input identity for callers that have not selected a cache store.
     pub fn files_cache_key_with_root(
         paths: &[PathBuf],
         root: &Path,
     ) -> gmeow_errors::Result<String> {
-        let mut h = Sha256::new();
-        let mut sorted: Vec<PathBuf> = paths
-            .iter()
-            .map(|p| p.canonicalize().unwrap_or_else(|_| p.clone()))
-            .collect();
-        sorted.sort();
-        for path in sorted {
-            if !path.exists() {
-                tracing::warn!(
-                    target: "validation_cache",
-                    path = %path.display(),
-                    "validation cache input missing; skipping",
-                );
-                continue;
-            }
-            let rel = if let Ok(r) = path.strip_prefix(root) {
-                r.to_string_lossy().into_owned()
+        let mut inputs = Vec::with_capacity(paths.len());
+        for path in paths {
+            // Preserve the caller's spelling: DSL findings contain this exact path.
+            let selected = path
+                .to_str()
+                .ok_or_else(|| cache_error("selected path is not UTF-8"))?;
+            let absolute = if path.is_absolute() {
+                path.clone()
             } else {
-                path.to_string_lossy().into_owned()
+                std::env::current_dir().map_err(cache_error)?.join(path)
             };
-            let meta = fs::metadata(&path).map_err(|e| {
-                Diag::of_kind(crate::error::Io {
-                    detail: format!("metadata for {}: {e}", path.display()),
-                })
-            })?;
-            let bytes = fs::read(&path).map_err(|e| {
-                Diag::of_kind(crate::error::Io {
-                    detail: format!("read {} for cache key: {e}", path.display()),
-                })
-            })?;
-            h.update(rel.as_bytes());
-            h.update(meta.len().to_string().as_bytes());
-            h.update(&bytes);
+            let logical = absolute.strip_prefix(root).unwrap_or(&absolute);
+            let logical = logical
+                .to_str()
+                .ok_or_else(|| cache_error("input path is not UTF-8"))?;
+            let metadata = fs::symlink_metadata(&absolute).map_err(cache_error)?;
+            let (file_kind, link_target) = if metadata.is_symlink() {
+                let target = fs::read_link(&absolute).map_err(cache_error)?;
+                let target = target
+                    .to_str()
+                    .ok_or_else(|| cache_error("symlink target is not UTF-8"))?
+                    .to_owned();
+                (FileKind::Symlink, target)
+            } else {
+                (FileKind::File, String::new())
+            };
+            let bytes = fs::read(&absolute).map_err(cache_error)?;
+            inputs.push(ActionInput::Raw {
+                logical_path: logical.to_owned(),
+                file_kind,
+                executable: false,
+                digest: content_digest(&[selected.as_bytes(), link_target.as_bytes(), &bytes]),
+            });
         }
-        Ok(hex_encode(&h.finalize())[..16].to_owned())
+        // Order and repetitions affect first-source attribution and blank scoping.
+        // This sequence is hashed before ActionContext normalizes its input set.
+        Ok(content_digest(&[
+            b"validation-file-inputs-v2",
+            &serde_json::to_vec(&inputs).map_err(cache_error)?,
+        ]))
     }
 
-    /// Return a cache salt for the SHACL validation toolchain versions.
-    ///
-    /// Mirrors Python `_validation_toolchain_salt`: hashes version strings for
-    /// `gmeow-shacl`, `gmeow-validate`, and the `gmeow-gts` wire-format version.
-    /// Because these are Rust crates, the package version from
-    /// `CARGO_PKG_VERSION` is used instead of Python `importlib.metadata.version`.
+    /// Additional vocabulary/codec dimensions. The required implementation identity
+    /// is bound separately into every action; these versions never establish freshness.
     pub fn toolchain_salt() -> String {
-        let validate_version = env!("CARGO_PKG_VERSION");
-        let shacl_version = purrdf::shapes::VERSION;
-        let gts_version = purrdf::gts::wire::VERSION;
         Self::cache_key(&[
-            // Native segment scopes and all three RDF 1.2 tables define the
-            // validation input. Older Graph-fold verdicts cannot certify this view,
-            // even when package and wire versions happen to match.
-            b"gmeow-validation-input:native-scoped-flat-three-table-v1",
-            format!("gmeow-validate={validate_version}").as_bytes(),
-            format!("gmeow-shacl={shacl_version}").as_bytes(),
-            format!("gmeow-gts-wire={gts_version}").as_bytes(),
+            CODEC.as_bytes(),
+            env!("CARGO_PKG_VERSION").as_bytes(),
+            purrdf::shapes::VERSION.as_bytes(),
+            &purrdf::gts::wire::VERSION.to_le_bytes(),
         ])
     }
 
-    /// Read a cached result if present and valid.
-    pub fn read_cached_result(&self, kind: &str, key: &str) -> Option<CachedResult> {
-        let path = self.cache_path(kind, key);
-        let bytes = fs::read(&path).ok()?;
-        let result: CachedResult = serde_json::from_slice(&bytes).ok()?;
-        Some(result)
+    fn context(&self, kind: &str, key: &str) -> ActionContext {
+        ActionContext::new(
+            "validation",
+            kind,
+            self.implementation.clone(),
+            CODEC,
+            Vec::new(),
+        )
+        .with_dimension("input-context", key)
+        .with_dimension(
+            "repository-location",
+            self.project_root
+                .to_str()
+                .expect("validated repository path"),
+        )
     }
 
-    /// Persist a cached result atomically.
-    ///
-    /// Writes to a temporary file in the same directory and renames it into
-    /// place so concurrent readers never see a partial JSON object.
+    /// Read complete findings only after receipt/context/blob verification. A missing
+    /// action is a miss; a corrupt entry is an explicit failure, never an empty verdict.
+    pub fn read_cached_result(
+        &self,
+        kind: &str,
+        key: &str,
+    ) -> gmeow_errors::Result<Option<CachedResult>> {
+        let Some(entry) = self
+            .store
+            .get::<()>(&self.context(kind, key))
+            .map_err(cache_error)?
+        else {
+            return Ok(None);
+        };
+        if entry.receipt.product_digest != bytes_digest(&entry.bytes) {
+            return Err(cache_error(
+                "findings product digest disagrees with authenticated bytes",
+            ));
+        }
+        serde_json::from_slice(&entry.bytes)
+            .map(Some)
+            .map_err(cache_error)
+    }
+
+    /// Publish a complete deterministic verdict under the exact selected context.
     pub fn write_cached_result(
         &self,
         kind: &str,
         key: &str,
         result: &CachedResult,
     ) -> gmeow_errors::Result<()> {
-        let path = self.cache_path(kind, key);
-        let parent = path.parent().ok_or_else(|| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("cache path has no parent: {}", path.display()),
-            })
-        })?;
-        fs::create_dir_all(parent).map_err(|e| {
-            Diag::of_kind(crate::error::Io {
-                detail: format!("create cache dir {}: {e}", parent.display()),
-            })
-        })?;
-
-        let payload = serde_json::to_vec(result).map_err(|e| {
-            Diag::of_kind(crate::error::Serialize {
-                detail: format!("serialize cached result: {e}"),
-            })
-        })?;
-
-        let tmp_name = format!(
-            ".{}.{}.{}",
-            path.file_name().unwrap_or_default().to_string_lossy(),
-            std::process::id(),
-            TMP_COUNTER.fetch_add(1, Ordering::Relaxed)
-        );
-        let tmp_path = parent.join(tmp_name);
-        let write_result: gmeow_errors::Result<()> = (|| {
-            let mut file = fs::OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(&tmp_path)
-                .map_err(|e| {
-                    Diag::of_kind(crate::error::Io {
-                        detail: format!("create temp cache file {}: {e}", tmp_path.display()),
-                    })
-                })?;
-            file.write_all(&payload).map_err(|e| {
-                Diag::of_kind(crate::error::Io {
-                    detail: format!("write temp cache file {}: {e}", tmp_path.display()),
-                })
-            })?;
-            fs::rename(&tmp_path, &path).map_err(|e| {
-                Diag::of_kind(crate::error::Io {
-                    detail: format!(
-                        "rename cache file {} -> {}: {e}",
-                        tmp_path.display(),
-                        path.display()
-                    ),
-                })
-            })
-        })();
-        if write_result.is_err() {
-            let _ = fs::remove_file(&tmp_path);
-        }
-        write_result
-    }
-
-    /// Return the filesystem path for a cached result.
-    fn cache_path(&self, kind: &str, key: &str) -> PathBuf {
-        let safe_kind = sanitize_kind(kind);
-        self.cache_dir().join(safe_kind).join(format!("{key}.json"))
+        let bytes = serde_json::to_vec(result).map_err(cache_error)?;
+        self.store
+            .publish(&self.context(kind, key), bytes_digest(&bytes), (), &bytes)
+            .map_err(cache_error)?;
+        Ok(())
     }
 }
-
-/// Replace any run of characters that are not alphanumeric, dot, underscore, or
-/// hyphen with a single hyphen, matching Python `_validation_cache_path`.
-fn sanitize_kind(kind: &str) -> String {
-    let mut out = String::with_capacity(kind.len());
-    let mut prev_dash = false;
-    for ch in kind.chars() {
-        if ch.is_ascii_alphanumeric() || ch == '.' || ch == '_' || ch == '-' {
-            out.push(ch);
-            prev_dash = false;
-        } else if !prev_dash {
-            out.push('-');
-            prev_dash = true;
-        }
-    }
-    out
-}
-
-/// Encode a byte slice as lowercase hexadecimal.
-fn hex_encode(bytes: &[u8]) -> String {
-    let mut s = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        s.push_str(&format!("{b:02x}"));
-    }
-    s
-}
-
-#[path = "cache.tests.rs"]
-#[cfg(test)]
-mod tests;
