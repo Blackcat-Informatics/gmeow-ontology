@@ -903,7 +903,7 @@ fn st_goal_directed(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 /// Run the FULL dogfooded build single-pass and either write every produced
 /// artifact (update) or compare it to the committed bytes (check).
 ///
-/// `jobs` is the per-level parallelism budget. Returns a [`RunReport`]; in check
+/// `jobs` is the completion-ready frontier's parallelism budget. Returns a [`RunReport`]; in check
 /// mode `report.is_clean()` is the cutover gate (zero drift across every
 /// committed artifact). RDF artifacts compare by bytes (they are byte
 /// deterministic); the `gmeow.gts` bundle is compared by the production superset
