@@ -62,6 +62,7 @@ use crate::stages::diag_render::{
     DiagnosticsPaths, RenderedDiagnostics, render_diagnostics_artifacts,
 };
 
+mod abduction;
 mod correspondence_roundtrip;
 mod formula_fixtures;
 mod native_carrier;
@@ -741,6 +742,7 @@ impl Stage for CompileLogicStage {
             axes.report()?,
         );
         let grounding = catalog.compiled_document(SOURCE_PATH, Some(SOURCE_IRI.to_owned()))?;
+        abduction::record(&grounding, &mut artifacts)?;
         roundtrip::record(grounding.program(), &mut artifacts)?;
         vocabulary_fixtures::record(catalog.document(SOURCE_PATH)?, &mut artifacts)?;
         validation_fixtures::record(catalog, input.root, &mut artifacts)?;
