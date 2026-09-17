@@ -6,7 +6,7 @@
 //! Turtle round-trip. P2: the self-verifying cache, provenance stamping, and
 //! scheduler determinism.
 
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -790,6 +790,303 @@ impl Reporter for RecordingReporter {
     }
 
     fn summary(&self, _report: &Report) {}
+}
+
+struct CompletionProbeStage {
+    id: String,
+    capabilities: Vec<String>,
+    consumes: Vec<String>,
+    resources: Vec<String>,
+    delay: Duration,
+    started: Arc<AtomicBool>,
+    finished: Arc<AtomicBool>,
+    observe_running: Option<(Arc<AtomicBool>, Arc<AtomicBool>, Arc<AtomicBool>)>,
+}
+
+impl Stage for CompletionProbeStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+
+    fn capabilities(&self) -> &[String] {
+        &self.capabilities
+    }
+
+    fn resources(&self) -> &[String] {
+        &self.resources
+    }
+
+    fn impl_version(&self) -> &str {
+        "completion-probe-v1"
+    }
+
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        self.started.store(true, Ordering::SeqCst);
+        if let Some((observed_started, observed_finished, observation)) = &self.observe_running {
+            let deadline = std::time::Instant::now() + Duration::from_secs(1);
+            while !observed_started.load(Ordering::SeqCst) && std::time::Instant::now() < deadline {
+                std::thread::yield_now();
+            }
+            observation.store(
+                observed_started.load(Ordering::SeqCst)
+                    && !observed_finished.load(Ordering::SeqCst),
+                Ordering::SeqCst,
+            );
+        }
+        std::thread::sleep(self.delay);
+        self.finished.store(true, Ordering::SeqCst);
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            crate::cache::content_digest(&[self.id.as_bytes()]),
+        )))
+    }
+}
+
+#[test]
+fn completed_stage_publishes_before_an_unrelated_sibling_finishes() {
+    // `fast-child` is level 2 because it consumes `fast`, while `slow` is an unrelated
+    // level-1 sibling. A level barrier forces `fast-child` to observe `slow` complete;
+    // completion-driven readiness starts it as soon as `fast` publishes.
+    let pipeline = PipelineSpec {
+        id: "completion-driven".to_string(),
+        stages: vec![
+            spec("source", &[]),
+            spec("fast", &["source"]),
+            spec("slow", &["source"]),
+            spec("fast-child", &["fast"]),
+            spec("sink", &["fast-child", "slow"]),
+        ],
+    };
+    let graph = pipeline.validate().expect("completion probe DAG");
+    let slow_started = Arc::new(AtomicBool::new(false));
+    let slow_finished = Arc::new(AtomicBool::new(false));
+    let child_saw_slow_running = Arc::new(AtomicBool::new(false));
+    let mut registry = StageRegistry::new();
+    for stage in &pipeline.stages {
+        let delay = if stage.id == "slow" {
+            Duration::from_millis(200)
+        } else if stage.id == "fast" {
+            Duration::from_millis(10)
+        } else {
+            Duration::ZERO
+        };
+        registry.register(
+            stage.impl_key.clone(),
+            Arc::new(CompletionProbeStage {
+                id: stage.id.clone(),
+                capabilities: stage.capabilities.clone(),
+                consumes: stage.consumes.clone(),
+                resources: stage.resources.clone(),
+                delay,
+                started: if stage.id == "slow" {
+                    Arc::clone(&slow_started)
+                } else {
+                    Arc::new(AtomicBool::new(false))
+                },
+                finished: if stage.id == "slow" {
+                    Arc::clone(&slow_finished)
+                } else {
+                    Arc::new(AtomicBool::new(false))
+                },
+                observe_running: (stage.id == "fast-child").then(|| {
+                    (
+                        Arc::clone(&slow_started),
+                        Arc::clone(&slow_finished),
+                        Arc::clone(&child_saw_slow_running),
+                    )
+                }),
+            }),
+        );
+    }
+    let bound = bind(&pipeline, &graph, &registry).expect("bind completion probe");
+    let dir = tempfile::tempdir().expect("scratch");
+    let mut context = RunContext::open_uncached(dir.path(), 4);
+
+    run(&graph, &bound, &mut context).expect("completion-driven run");
+
+    assert!(slow_finished.load(Ordering::SeqCst));
+    assert!(
+        child_saw_slow_running.load(Ordering::SeqCst),
+        "a completed fast branch must publish without waiting for an unrelated slow sibling"
+    );
+}
+
+#[test]
+fn resource_waiter_does_not_occupy_a_worker_needed_by_unrelated_ready_work() {
+    const RESOURCE: &str = "https://example.test/exclusive";
+    let mut pipeline = PipelineSpec {
+        id: "resource-ready-frontier".to_string(),
+        stages: vec![
+            spec("source", &[]),
+            spec("a-resource", &["source"]),
+            spec("b-resource", &["source"]),
+            spec("z-free", &["source"]),
+            spec("sink", &["a-resource", "b-resource", "z-free"]),
+        ],
+    };
+    for stage in &mut pipeline.stages {
+        if matches!(stage.id.as_str(), "a-resource" | "b-resource") {
+            stage.resources = vec![RESOURCE.to_string()];
+        }
+    }
+    let graph = pipeline.validate().expect("resource frontier DAG");
+    let a_started = Arc::new(AtomicBool::new(false));
+    let a_finished = Arc::new(AtomicBool::new(false));
+    let free_saw_a_running = Arc::new(AtomicBool::new(false));
+    let mut registry = StageRegistry::new();
+    for stage in &pipeline.stages {
+        registry.register(
+            stage.impl_key.clone(),
+            Arc::new(CompletionProbeStage {
+                id: stage.id.clone(),
+                capabilities: stage.capabilities.clone(),
+                consumes: stage.consumes.clone(),
+                resources: stage.resources.clone(),
+                delay: if stage.id == "a-resource" {
+                    Duration::from_millis(200)
+                } else {
+                    Duration::ZERO
+                },
+                started: if stage.id == "a-resource" {
+                    Arc::clone(&a_started)
+                } else {
+                    Arc::new(AtomicBool::new(false))
+                },
+                finished: if stage.id == "a-resource" {
+                    Arc::clone(&a_finished)
+                } else {
+                    Arc::new(AtomicBool::new(false))
+                },
+                observe_running: (stage.id == "z-free").then(|| {
+                    (
+                        Arc::clone(&a_started),
+                        Arc::clone(&a_finished),
+                        Arc::clone(&free_saw_a_running),
+                    )
+                }),
+            }),
+        );
+    }
+    let bound = bind(&pipeline, &graph, &registry).expect("bind resource frontier");
+    let dir = tempfile::tempdir().expect("scratch");
+    let mut context = RunContext::open_uncached(dir.path(), 2);
+
+    run(&graph, &bound, &mut context).expect("resource-aware run");
+
+    assert!(
+        free_saw_a_running.load(Ordering::SeqCst),
+        "the second resource waiter must stay off-pool while unrelated ready work runs"
+    );
+}
+
+struct FailureProbeStage {
+    id: String,
+    capabilities: Vec<String>,
+    consumes: Vec<String>,
+    delay: Duration,
+    fail: bool,
+    runs: Arc<AtomicUsize>,
+}
+
+impl Stage for FailureProbeStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+
+    fn capabilities(&self) -> &[String] {
+        &self.capabilities
+    }
+
+    fn impl_version(&self) -> &str {
+        "failure-probe-v1"
+    }
+
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        self.runs.fetch_add(1, Ordering::SeqCst);
+        std::thread::sleep(self.delay);
+        if self.fail {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id.clone(),
+                message: "intentional synthetic failure".to_string(),
+            }));
+        }
+        Ok(StageOutput::new(StageProduct::new(
+            self.id.clone(),
+            crate::cache::content_digest(&[self.id.as_bytes()]),
+        )))
+    }
+}
+
+#[test]
+fn successful_sibling_receipt_survives_a_later_stage_failure() {
+    let pipeline = PipelineSpec {
+        id: "failure-retention".to_string(),
+        stages: vec![
+            spec("source", &[]),
+            spec("a-good", &["source"]),
+            spec("b-bad", &["source"]),
+            spec("sink", &["a-good", "b-bad"]),
+        ],
+    };
+    let graph = pipeline.validate().expect("failure retention DAG");
+    let source_runs = Arc::new(AtomicUsize::new(0));
+    let good_runs = Arc::new(AtomicUsize::new(0));
+    let bad_runs = Arc::new(AtomicUsize::new(0));
+    let sink_runs = Arc::new(AtomicUsize::new(0));
+    let mut registry = StageRegistry::new();
+    for stage in &pipeline.stages {
+        let runs = match stage.id.as_str() {
+            "source" => Arc::clone(&source_runs),
+            "a-good" => Arc::clone(&good_runs),
+            "b-bad" => Arc::clone(&bad_runs),
+            "sink" => Arc::clone(&sink_runs),
+            _ => unreachable!(),
+        };
+        registry.register(
+            stage.impl_key.clone(),
+            Arc::new(FailureProbeStage {
+                id: stage.id.clone(),
+                capabilities: stage.capabilities.clone(),
+                consumes: stage.consumes.clone(),
+                delay: if stage.id == "b-bad" {
+                    Duration::from_millis(100)
+                } else {
+                    Duration::ZERO
+                },
+                fail: stage.id == "b-bad",
+                runs,
+            }),
+        );
+    }
+    let bound = bind(&pipeline, &graph, &registry).expect("bind failure retention");
+    let dir = tempfile::tempdir().expect("scratch");
+    let mut failed_context = RunContext::open(dir.path(), 2).expect("cache");
+
+    let error = run(&graph, &bound, &mut failed_context).expect_err("bad stage fails");
+    assert!(error.to_string().contains("intentional synthetic failure"));
+    assert_eq!(source_runs.load(Ordering::SeqCst), 1);
+    assert_eq!(good_runs.load(Ordering::SeqCst), 1);
+    assert_eq!(bad_runs.load(Ordering::SeqCst), 1);
+    assert_eq!(sink_runs.load(Ordering::SeqCst), 0);
+
+    let mut replay_context = RunContext::open(dir.path(), 2).expect("reopen cache");
+    let target = std::collections::BTreeSet::from(["a-good".to_string()]);
+    let replay = run_targets(&graph, &bound, &mut replay_context, &target) // gmeow-test-input: synthetic-only
+        .expect("completed prefix replays from exact receipts");
+    assert!(replay.stage_timings.iter().all(|timing| timing.cached));
+    assert_eq!(
+        good_runs.load(Ordering::SeqCst),
+        1,
+        "the successful sibling must not recompute after a later failure"
+    );
 }
 
 #[test]

@@ -39,7 +39,7 @@ stage's cache on only those graphs' digests — artifact-level incremental rebui
 `gmeow:sinkCapability` (the single serialization exit — the gts narrow waist; the loader HARD-fails
 unless exactly one stage holds it) and `gmeow:sourceOrigin` (the authored-source loader, whose emitted
 quads' provenance origin is `Source`). A stage holding no capability is a plain transform / validate /
-export leaf — provenance-`Generated`, non-sink, parallel-eligible within its topological level.
+export leaf — provenance-`Generated`, non-sink, and eligible as soon as its own producers publish on the completion-driven ready frontier.
 Serialization treatment is not a kind either — it is a declared resource conflict. Two resources are
 minted, for two different reasons. The reasoning stage `gmeow:requiresResource` `gmeow:engineResource`
 because the process-wide reasoning state is shared mutable state. The two whole-dataset serialization

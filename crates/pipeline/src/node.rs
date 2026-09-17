@@ -9,7 +9,7 @@
 //! upstream stages (live handles, not re-parsed files) and emits one product.
 //! Each resource a stage [`Stage::resources`] declares is held exclusively while
 //! it runs — two stages competing for the same resource serialize; everything
-//! else is parallel within its topological level. The reasoning stage requires
+//! else is eligible on the completion-driven ready frontier. The reasoning stage requires
 //! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive); carrier-scale
 //! serializers and dictionary materialization require
 //! [`SERIALIZATION_BUFFER_RESOURCE`] (their peak residency is exclusive).
@@ -522,8 +522,8 @@ pub trait Stage: Send + Sync {
     /// Whether this stage READS `stage-source-load`'s source-span table (via
     /// [`StageProduct::span_index`]). Overridden to `true` by the two diagnostics
     /// consumers (`stage-validate` / `stage-compile-logic`) ONLY. The scheduler folds the
-    /// max topological level holding a span-table consumer into the drop-after-last-consumer
-    /// point: after that level commits, the span-table blob is stripped from the source-load
+    /// exact remaining-consumer count into the drop-after-last-consumer point: after the
+    /// final declared reader commits, the span-table blob is stripped from the source-load
     /// product, so every later stage that reaches for it HARD-fails and the shipped bundle
     /// never carries it. The default is `false` — a stage that does not read spans.
     fn consumes_span_table(&self) -> bool {

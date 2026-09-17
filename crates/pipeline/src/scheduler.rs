@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The level-parallel scheduler + the [`RunContext`] (P2).
+//! The completion-driven scheduler + the [`RunContext`] (P2).
 //!
-//! Stages run by topological level (from [`crate::graph::StageGraph`]); within a
-//! level, independent stages run in parallel (rayon). A stage that declares a
+//! Every stage becomes runnable as soon as its own declared producers publish,
+//! without waiting for unrelated siblings in the same topological level. A stage that declares a
 //! shared resource (`gmeow:requiresResource`, e.g. the reasoning stage's
 //! [`crate::node::ENGINE_RESOURCE`]) holds it exclusively while it runs, so two
 //! stages competing for the same resource serialize — the declarative
@@ -17,12 +17,8 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::io::Read as _;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, LazyLock, Mutex};
+use std::sync::{Arc, LazyLock, Mutex, mpsc};
 use std::time::Duration;
-
-use gmeow_cli_core::Reporter;
-use purrdf::provenance::DatasetProvenance;
-use rayon::prelude::*;
 
 use crate::bundle::set_bundle_provenance;
 use crate::cache::{
@@ -32,10 +28,12 @@ use crate::cache::{
 };
 use crate::graph::StageGraph;
 use crate::node::{
-    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, SINK_CAPABILITY, Stage, StageInput, StageProduct,
-    StageRunTiming, StageStability,
+    CachePolicy, SERIALIZATION_BUFFER_RESOURCE, Stage, StageInput, StageProduct, StageRunTiming,
+    StageStability,
 };
 use crate::provenance::register_stage_unit;
+use gmeow_cli_core::Reporter;
+use purrdf::provenance::DatasetProvenance;
 
 /// The process-wide registry of per-resource mutexes. A stage that declares a
 /// `gmeow:requiresResource` acquires that resource's permit before running, so two
@@ -65,11 +63,10 @@ fn resource_lock(resource: &str) -> Arc<Mutex<()>> {
 ///
 /// Dropping a carrier makes its allocations unreachable, but glibc may retain their
 /// pages in process arenas. A cold run can otherwise carry mapping/dictionary arena
-/// slack into the terminal's necessarily large canonical payload construction and cross
-/// the 16-GiB runner boundary even though the live Rust values fit. `malloc_trim` is
-/// thread-safe; calls occur either while the declarative serialization permit excludes
-/// every other carrier-scale serializer or at the terminal's topological level barrier.
-/// Cheap siblings may still be active at a permit handoff, which is safe under that
+/// slack into a large canonical payload construction and cross the 16-GiB runner boundary
+/// even though the live Rust values fit. `malloc_trim` is thread-safe; calls occur while
+/// the declarative serialization permit excludes every other carrier-scale serializer.
+/// Other cheap stages may still be active at a permit handoff, which is safe under that
 /// process-wide MT-Safe contract. It is only a reclamation hint and cannot change a
 /// product, cache key, or stage order. Allocators without this interface keep the
 /// ordinary drop behavior.
@@ -98,8 +95,8 @@ fn reclaim_allocator_slack_before_serialization() {}
 /// consumer can still read stays resident for the life of the [`RunResult`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CarrierRetention {
-    /// Release each stage's carrier at its drop-after-last-carrier-consumer point
-    /// ([`last_consumer_levels`]): the frozen dataset, typed handles, blob records,
+    /// Release each stage's carrier when its exact remaining carrier-reader count
+    /// reaches zero: the frozen dataset, typed handles, blob records,
     /// provenance, and internal `pipeline/` byte artifacts are freed as soon as no
     /// stage can still read them, bounding peak residency to the live frontier plus
     /// every run OUTPUT. THE profile for the whole-repository build
@@ -127,7 +124,7 @@ pub enum CarrierRetention {
 pub struct RunContext {
     /// The repository root the build operates over.
     pub root: PathBuf,
-    /// Maximum concurrent stages within a level (rayon pool size).
+    /// Maximum concurrent stages across the ready frontier (rayon pool size).
     pub jobs: usize,
     /// The persistent, self-verifying per-stage cache.
     pub cache: PipelineCache,
@@ -288,11 +285,12 @@ pub struct RunResult {
     pub retained_artifacts: BTreeMap<(String, String), Vec<u8>>,
     /// The hex SHA-256 over the sorted `(id, product-digest)` pairs.
     pub combined_digest: String,
-    /// Per-stage wall-clock timings in topological execution order.
+    /// Per-stage wall-clock timings in deterministic topological order.
     pub stage_timings: Vec<StageTiming>,
     /// Internal phase timings emitted by freshly executed stages.
     pub stage_phase_timings: Vec<StagePhaseTiming>,
-    /// Per-level critical-stage timings in topological level order.
+    /// Observed per-level critical-stage timings in topological level order. Levels
+    /// remain a reporting dimension; they are not execution barriers.
     pub level_timings: Vec<LevelTiming>,
     /// Deterministic stage receipts in topological commit order.
     pub stage_receipts: Vec<StageReceipt>,
@@ -303,7 +301,7 @@ pub struct RunResult {
     /// replaying each stage's `diags` (fresh run) or its cache-restored
     /// `diagnostics:nodes` blob (cache hit) into one hash-consed ledger; `replay` +
     /// content-addressed fingerprints make a warm-cache run byte-identical to a cold
-    /// one regardless of level/commit interleaving. `run_full` threads this into
+    /// one regardless of worker-completion order. `run_full` threads this into
     /// `RunReport.ledger` and attaches its own run-level reconcile findings to it.
     pub ledger: gmeow_errors::DiagLedger,
 }
@@ -311,7 +309,7 @@ pub struct RunResult {
 /// One stage's wall-clock timing.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StageTiming {
-    /// The topological level index the stage ran in.
+    /// The stage's topological reporting level; execution is completion-driven.
     pub level: usize,
     /// The stage identifier.
     pub stage_id: String,
@@ -347,7 +345,7 @@ pub struct StagePhaseTiming {
     pub metadata: Option<String>,
 }
 
-/// The slowest stage in one scheduler level.
+/// The slowest observed stage assigned to one topological reporting level.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LevelTiming {
     /// The topological level index.
@@ -359,7 +357,7 @@ pub struct LevelTiming {
 }
 
 /// One stage's execution outcome, carrying the cache key so a freshly-computed
-/// product can be persisted after the parallel phase of its level.
+/// product can be persisted immediately when the worker completes.
 struct StageRun {
     id: String,
     key_context: StageKeyContext,
@@ -506,6 +504,8 @@ pub fn run_without(
     }
 
     // A local rayon pool honours the jobs budget without touching the global one.
+    // The coordinator publishes each completed action immediately and releases the
+    // exact dependents it satisfies; topological levels remain telemetry only.
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(ctx.jobs)
         .build()
@@ -518,85 +518,169 @@ pub fn run_without(
 
     let mut products: BTreeMap<String, StageProduct> = BTreeMap::new();
     let mut retained_artifacts = BTreeMap::new();
-    // Opt-in per-stage profiling (GMEOW_PIPELINE_TIMING=1): accumulate
-    // (stage_id, elapsed_ms, cached) and dump the slowest stages at the end so the
-    // critical path is visible without changing default behaviour.
     let profile = std::env::var_os("GMEOW_PIPELINE_TIMING").is_some();
     let mut stage_timings: Vec<StageTiming> = Vec::new();
     let mut stage_phase_timings: Vec<StagePhaseTiming> = Vec::new();
-    // (level_index, slowest-stage ms in the level, slowest-stage id): the sum of the
-    // per-level maxima is the critical-path floor the level-barrier scheduler imposes.
-    let mut level_timings: Vec<LevelTiming> = Vec::new();
-    let mut stage_receipts: Vec<StageReceipt> = Vec::new();
-    // The run-wide FORWARD diagnostics ledger: each stage's `diags` (fresh or cache-
-    // restored) are replayed here in the sequential commit phase. `replay` hash-conses
-    // by content-addressed fingerprint, so the folded ledger is byte-identical
-    // regardless of level order or fresh/cache interleaving.
-    let mut run_ledger = gmeow_errors::DiagLedger::new();
-
-    // Drop-after-last-consumer point for stage-source-load's source-span table: the MAX
-    // topological level holding a stage that declares `consumes_span_table()`. The real
-    // consumers (stage-validate / stage-compile-logic) all run at or before this level, so
-    // stripping the span blob AFTER this level commits keeps the drop reachable but never
-    // spurious — every legitimate reader has already run, and any later reader HARD-fails.
-    let span_drop_level: Option<usize> = graph
+    let mut level_timings: Vec<LevelTiming> = graph
         .levels
         .iter()
         .enumerate()
-        .rev()
-        .find(|(_, level)| {
-            level.iter().any(|id| {
-                by_id
-                    .get(id.as_str())
-                    .is_some_and(|s| s.consumes_span_table())
-            })
+        .map(|(level, _)| LevelTiming {
+            level,
+            elapsed_ms: 0,
+            critical_stage: String::new(),
         })
-        .map(|(idx, _)| idx);
+        .collect();
+    let mut stage_receipts: Vec<StageReceipt> = Vec::new();
+    let mut run_ledger = gmeow_errors::DiagLedger::new();
 
-    // Drop-after-last-consumer point for every stage's WHOLE carrier — the general law the
-    // span-table strip above is one early, finer-grained instance of. Computed once, from
-    // the same levelling, by exactly the same argument.
-    let carrier_drop_level = last_consumer_levels(graph, &by_id);
+    let level_by_stage: BTreeMap<&str, usize> = graph
+        .levels
+        .iter()
+        .enumerate()
+        .flat_map(|(level, stages)| stages.iter().map(move |stage| (stage.as_str(), level)))
+        .collect();
+    let order = graph.order();
+    let order_index: BTreeMap<&str, usize> = order
+        .iter()
+        .enumerate()
+        .map(|(index, stage)| (stage.as_str(), index))
+        .collect();
+    let executed: BTreeSet<String> = order
+        .iter()
+        .filter(|stage| !skip.contains(stage.as_str()))
+        .cloned()
+        .collect();
+    if executed.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "<scheduler>".to_string(),
+            message: "selected pipeline executes no stages".to_string(),
+        }));
+    }
 
-    for (level_idx, level) in graph.levels.iter().enumerate() {
-        // The sink is unique by loader contract. Reclaim pages freed by every completed
-        // wave before it builds the one whole-carrier wire payload; doing this at the
-        // level boundary also guarantees no sibling allocation is in flight.
-        if level.iter().any(|id| {
-            by_id.get(id.as_str()).is_some_and(|stage| {
-                stage
-                    .capabilities()
-                    .iter()
-                    .any(|capability| capability == SINK_CAPABILITY)
-            })
-        }) {
-            reclaim_allocator_slack_before_serialization();
+    // Readiness is an exact count over the selected graph. `dependents` is sorted so
+    // simultaneous publications produce a stable ready frontier independently of worker
+    // completion order.
+    let mut remaining_dependencies: BTreeMap<String, usize> = BTreeMap::new();
+    let mut dependents: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut logically_consumed: BTreeSet<String> = BTreeSet::new();
+    let mut remaining_carrier_readers: BTreeMap<String, usize> = BTreeMap::new();
+    let mut span_consumers_remaining = 0usize;
+    for stage_id in &executed {
+        let stage = by_id[stage_id.as_str()];
+        let dependencies = stage
+            .consumes()
+            .iter()
+            .filter(|producer| executed.contains(producer.as_str()))
+            .count();
+        remaining_dependencies.insert(stage_id.clone(), dependencies);
+        for producer in stage
+            .consumes()
+            .iter()
+            .filter(|producer| executed.contains(producer.as_str()))
+        {
+            dependents
+                .entry(producer.clone())
+                .or_default()
+                .insert(stage_id.clone());
+            logically_consumed.insert(producer.clone());
         }
-        // Parallel phase: every stage in the level runs concurrently; stages that
-        // declare a shared resource serialize internally on that resource's permit.
-        // `products` and `cache` are read-only here — siblings in one level never
-        // depend on each other, so no stage can hit another's same-level cache write.
-        let root: &Path = &ctx.root;
-        let cache = &ctx.cache;
-        let stage_cache_enabled = ctx.stage_cache_enabled;
-        let progress = ctx.progress.as_deref();
-        let runs: Vec<StageRun> = pool.install(|| {
-            level
-                .par_iter()
-                .filter(|id| !skip.contains(id.as_str()))
-                .map(|id| -> Result<StageRun, gmeow_errors::Diag> {
-                    let stage = by_id.get(id.as_str()).ok_or_else(|| {
-                        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                            stage: id.clone(),
-                            message: "stage in graph was not bound".to_string(),
-                        })
-                    })?;
-                    if let Some(progress) = progress {
-                        progress.stage_start(stage.id());
-                    }
+        for producer in stage
+            .carrier_consumes()
+            .iter()
+            .filter(|producer| executed.contains(producer.as_str()))
+        {
+            *remaining_carrier_readers
+                .entry(producer.clone())
+                .or_default() += 1;
+        }
+        if stage.consumes_span_table() {
+            span_consumers_remaining += 1;
+        }
+    }
+    let declared_level_frontier = last_consumer_levels(graph, &by_id);
+    let mut ready: BTreeSet<String> = remaining_dependencies
+        .iter()
+        .filter(|(_, remaining)| **remaining == 0)
+        .map(|(stage, _)| stage.clone())
+        .collect();
+
+    let root: &Path = &ctx.root;
+    let cache = &ctx.cache;
+    let stage_cache_enabled = ctx.stage_cache_enabled;
+    let stage_receipts_enabled = ctx.stage_receipts_enabled;
+    let progress = ctx.progress.clone();
+    let provenance = &mut ctx.provenance;
+    let retained_carriers = &ctx.retained_carriers;
+    let retained_artifact_selection = &ctx.retained_artifacts;
+    let carrier_retention = ctx.carrier_retention;
+    let jobs = ctx.jobs;
+
+    let scheduling_result = pool.in_place_scope_fifo(|scope| -> Result<(), gmeow_errors::Diag> {
+        let (tx, rx) =
+            mpsc::channel::<(String, Vec<String>, Result<StageRun, gmeow_errors::Diag>)>();
+        let mut active = 0usize;
+        let mut completed = 0usize;
+        let mut active_resources = BTreeSet::new();
+        let mut first_error: Option<gmeow_errors::Diag> = None;
+
+        while completed < executed.len() || active > 0 {
+            // Fill every free worker from the sorted ready frontier. A locally active
+            // declared resource is excluded before dispatch, so a blocked resource user
+            // never occupies a worker while unrelated ready work exists. The process-wide
+            // locks in `exec_stage` remain authoritative across concurrent pipeline runs.
+            while first_error.is_none() && active < jobs {
+                let next = ready
+                    .iter()
+                    .find(|stage_id| {
+                        by_id[stage_id.as_str()]
+                            .resources()
+                            .iter()
+                            .all(|resource| !active_resources.contains(resource))
+                    })
+                    .cloned();
+                let Some(stage_id) = next else { break };
+                ready.remove(&stage_id);
+                let stage = Arc::clone(by_id[stage_id.as_str()]);
+                let resources = stage.resources().to_vec();
+                active_resources.extend(resources.iter().cloned());
+                let carrier_inputs: BTreeSet<&str> = stage
+                    .carrier_consumes()
+                    .iter()
+                    .map(String::as_str)
+                    .collect();
+                let upstream = stage
+                    .consumes()
+                    .iter()
+                    .map(|producer| {
+                        let product = products.get(producer).cloned().ok_or_else(|| {
+                            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                                stage: stage_id.clone(),
+                                message: format!("missing published upstream product {producer}"),
+                            })
+                        })?;
+                        // Artifact-only edges never need to retain a live carrier Arc in
+                        // their worker snapshot. Preserve the producer identity and
+                        // committed artifact lane while releasing transport state before
+                        // dispatch.
+                        let product = if carrier_inputs.contains(producer.as_str()) {
+                            product
+                        } else {
+                            product.into_carrier_released()?
+                        };
+                        Ok::<_, gmeow_errors::Diag>((producer.clone(), product))
+                    })
+                    .collect::<Result<BTreeMap<_, _>, _>>()?;
+                if let Some(progress) = progress.as_deref() {
+                    progress.stage_start(&stage_id);
+                }
+                let tx = tx.clone();
+                let progress = progress.clone();
+                active += 1;
+                scope.spawn_fifo(move |_| {
                     let result =
-                        exec_stage(stage.as_ref(), root, &products, cache, stage_cache_enabled);
-                    if let (Some(progress), Ok(run)) = (progress, &result) {
+                        exec_stage(stage.as_ref(), root, &upstream, cache, stage_cache_enabled);
+                    if let (Some(progress), Ok(run)) = (progress.as_deref(), &result) {
                         progress.stage_end(
                             stage.id(),
                             Duration::from_millis(
@@ -604,140 +688,206 @@ pub fn run_without(
                             ),
                         );
                     }
-                    result
+                    // The coordinator outlives every scoped worker. A disconnected
+                    // receiver therefore means the scope is already unwinding.
+                    let _ = tx.send((stage_id, resources, result));
+                });
+            }
+
+            if active == 0 {
+                if first_error.is_some() || completed == executed.len() {
+                    break;
+                }
+                return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "<scheduler>".to_string(),
+                    message: format!(
+                        "completion-driven scheduling stalled with ready frontier {:?}",
+                        ready
+                    ),
+                }));
+            }
+
+            let (stage_id, resources, result) = rx.recv().map_err(|error| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "<scheduler>".to_string(),
+                    message: format!("scheduler worker channel closed: {error}"),
                 })
-                .collect::<Result<Vec<_>, _>>()
-        })?;
+            })?;
+            active -= 1;
+            for resource in resources {
+                active_resources.remove(&resource);
+            }
 
-        // Sequential commit phase: persist cache entries, stamp provenance, and
-        // publish products for the next level.
-        let mut level_max: u128 = 0;
-        let mut level_max_id = String::new();
-        for mut r in runs {
-            let stage = by_id[r.id.as_str()];
-            if ctx.stage_cache_enabled
-                && !r.cached
-                && stage.stability() == StageStability::StablePrefix
-                && stage.cache_policy() == CachePolicy::Persistent
-            {
-                let receipt = ctx.cache.put(
-                    &r.key_context,
-                    stage.stability().iri(),
-                    stage.cache_policy().iri(),
-                    &r.output_selection,
-                    &r.product,
-                )?;
-                r.cache_write_bytes = receipt.product_blob_bytes;
-                r.receipt = Some(receipt);
-            }
-            if ctx.stage_receipts_enabled && r.receipt.is_none() {
-                r.receipt = Some(PipelineCache::receipt_only(
-                    &r.key_context,
-                    stage.stability().iri(),
-                    stage.cache_policy().iri(),
-                    &r.output_selection,
-                    &r.product,
-                )?);
-            }
-            if let Some(receipt) = r.receipt.clone() {
-                stage_receipts.push(receipt);
-            }
-            // Fold this stage's forward diagnostic nodes into the run-wide ledger.
-            run_ledger.replay(std::mem::take(&mut r.diags));
-            // Register this stage as a provenance unit in the run-wide sidecar
-            // (capability-derived origin: sourceOrigin → Source, else → Generated).
-            register_stage_unit(&mut ctx.provenance, &r.id, stage.capabilities());
-            // Thread a per-stage provenance into the produced bundle so the carrier
-            // CARRIES a provenance sidecar (C4 deliverable 3). The producing stage is
-            // MERGED into whatever provenance the bundle already carries (e.g.
-            // reconstituted from cache, or accumulated upstream) rather than replacing
-            // it, so carried occurrences/units are never dropped; `register_unit`
-            // dedups by name so re-stamping a cache-restored unit is idempotent.
-            // Stamping AFTER the cache `put` keeps the persisted product's cache-key
-            // digest stable, and `combined()` still folds sorted `(id, digest)` — the
-            // digest is the value the product was cached under.
-            let mut stage_prov = r.product.bundle.provenance().clone();
-            register_stage_unit(&mut stage_prov, &r.id, stage.capabilities());
-            set_bundle_provenance(&mut r.product.bundle, stage_prov);
-            if r.elapsed_ms > level_max {
-                level_max = r.elapsed_ms;
-                level_max_id = r.id.clone();
-            }
-            stage_timings.push(StageTiming {
-                level: level_idx,
-                stage_id: r.id.clone(),
-                elapsed_ms: r.elapsed_ms,
-                cached: r.cached,
-                cache_outcome: r.cache_outcome,
-                cache_read_bytes: r.cache_read_bytes,
-                cache_write_bytes: r.cache_write_bytes,
-                cache_hydration_rss_delta_kib: r.cache_hydration_rss_delta_kib,
-            });
-            stage_phase_timings.extend(r.timings.drain(..).map(|timing| StagePhaseTiming {
-                stage_id: r.id.clone(),
-                phase: timing.phase,
-                elapsed_ms: timing.elapsed_ms,
-                metadata: timing.metadata,
-            }));
-            for (stage, path) in &ctx.retained_artifacts {
-                if stage != &r.id {
+            let mut run = match result {
+                Ok(run) => run,
+                Err(error) => {
+                    if first_error.is_none() {
+                        first_error = Some(error);
+                    }
                     continue;
                 }
-                let bytes = r.product.artifact(path).ok_or_else(|| {
-                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                        stage: stage.clone(),
-                        message: format!("required post-run artifact `{path}` is missing"),
-                    })
-                })?;
-                retained_artifacts.insert((stage.clone(), path.clone()), bytes.to_vec());
-            }
-            products.insert(r.id, r.product);
-        }
-        level_timings.push(LevelTiming {
-            level: level_idx,
-            elapsed_ms: level_max,
-            critical_stage: level_max_id,
-        });
+            };
+            let stage = by_id[stage_id.as_str()];
+            let level = level_by_stage[stage_id.as_str()];
+            let carrier_inputs = stage.carrier_consumes().to_vec();
+            let consumes_spans = stage.consumes_span_table();
 
-        // Once the last span-table consumer's level has committed, STRIP the source-span
-        // blob from the stage-source-load product: every later stage that calls
-        // `span_index()` now HARD-fails, and the shippable bundle the sink assembles from
-        // this product never carries the span table. Deterministic and idempotent — the
-        // published product identity survives payload release, so later live action
-        // keys still agree with their immutable upstream receipts. (source-load is at level 0, so it is committed well before any
-        // consumer level; the guard is defensive.)
-        if Some(level_idx) == span_drop_level
-            && let Some(product) = products.get("stage-source-load")
-        {
-            let stripped = crate::bundle::strip_rep_blob(
-                product.bundle(),
-                crate::stages::carrier::REP_SPAN_TABLE,
-            )?;
-            let stage_id = product.stage_id.clone();
-            products.insert(stage_id.clone(), product.with_released_bundle(stripped));
-        }
-
-        // ── Drop-after-last-carrier-consumer, generalized to the WHOLE carrier ──
-        // Every stage whose LAST declared carrier reader ran in this level can now shed
-        // the transport lanes: `exec_stage` still hands later artifact-only consumers the
-        // same declared product, but only its COMMITTED byte-artifact residue remains.
-        // Dataset, typed handles, blob records, provenance, and internal `pipeline/`
-        // artifacts are released; `digest` remains verbatim so `combined()` is
-        // byte-identical to a retain-all run. A caller may preserve an exact intermediate
-        // carrier through `retained_carriers` for a post-run proof without retaining the
-        // rest of the DAG.
-        if ctx.carrier_retention == CarrierRetention::DropAfterLastConsumer {
-            for (stage_id, drop_level) in &carrier_drop_level {
-                if *drop_level != level_idx || ctx.retained_carriers.contains(stage_id) {
-                    continue;
+            // Publish each completed action immediately. Persistent cache publication
+            // happens before downstream readiness, so a later failure retains every exact
+            // successful action receipt instead of discarding the completed prefix.
+            let commit_result = (|| -> Result<(), gmeow_errors::Diag> {
+                if stage_cache_enabled
+                    && !run.cached
+                    && stage.stability() == StageStability::StablePrefix
+                    && stage.cache_policy() == CachePolicy::Persistent
+                {
+                    let receipt = cache.put(
+                        &run.key_context,
+                        stage.stability().iri(),
+                        stage.cache_policy().iri(),
+                        &run.output_selection,
+                        &run.product,
+                    )?;
+                    run.cache_write_bytes = receipt.product_blob_bytes;
+                    run.receipt = Some(receipt);
                 }
-                let Some(product) = products.remove(stage_id.as_str()) else {
-                    continue;
-                };
-                products.insert(stage_id.clone(), product.into_carrier_released()?);
+                if stage_receipts_enabled && run.receipt.is_none() {
+                    run.receipt = Some(PipelineCache::receipt_only(
+                        &run.key_context,
+                        stage.stability().iri(),
+                        stage.cache_policy().iri(),
+                        &run.output_selection,
+                        &run.product,
+                    )?);
+                }
+                if let Some(receipt) = run.receipt.clone() {
+                    stage_receipts.push(receipt);
+                }
+                run_ledger.replay(std::mem::take(&mut run.diags));
+                register_stage_unit(provenance, &run.id, stage.capabilities());
+                let mut stage_prov = run.product.bundle.provenance().clone();
+                register_stage_unit(&mut stage_prov, &run.id, stage.capabilities());
+                set_bundle_provenance(&mut run.product.bundle, stage_prov);
+
+                let level_timing = &mut level_timings[level];
+                if level_timing.critical_stage.is_empty()
+                    || run.elapsed_ms > level_timing.elapsed_ms
+                    || (run.elapsed_ms == level_timing.elapsed_ms
+                        && run.id < level_timing.critical_stage)
+                {
+                    level_timing.elapsed_ms = run.elapsed_ms;
+                    level_timing.critical_stage = run.id.clone();
+                }
+                stage_timings.push(StageTiming {
+                    level,
+                    stage_id: run.id.clone(),
+                    elapsed_ms: run.elapsed_ms,
+                    cached: run.cached,
+                    cache_outcome: run.cache_outcome,
+                    cache_read_bytes: run.cache_read_bytes,
+                    cache_write_bytes: run.cache_write_bytes,
+                    cache_hydration_rss_delta_kib: run.cache_hydration_rss_delta_kib,
+                });
+                stage_phase_timings.extend(run.timings.drain(..).map(|timing| StagePhaseTiming {
+                    stage_id: run.id.clone(),
+                    phase: timing.phase,
+                    elapsed_ms: timing.elapsed_ms,
+                    metadata: timing.metadata,
+                }));
+                for (selected_stage, path) in retained_artifact_selection {
+                    if selected_stage != &run.id {
+                        continue;
+                    }
+                    let bytes = run.product.artifact(path).ok_or_else(|| {
+                        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                            stage: selected_stage.clone(),
+                            message: format!("required post-run artifact `{path}` is missing"),
+                        })
+                    })?;
+                    retained_artifacts
+                        .insert((selected_stage.clone(), path.clone()), bytes.to_vec());
+                }
+                products.insert(run.id.clone(), run.product);
+                completed += 1;
+
+                if consumes_spans {
+                    span_consumers_remaining = span_consumers_remaining
+                        .checked_sub(1)
+                        .expect("completed span consumer was counted");
+                    if span_consumers_remaining == 0
+                        && let Some(product) = products.get("stage-source-load")
+                    {
+                        let stripped = crate::bundle::strip_rep_blob(
+                            product.bundle(),
+                            crate::stages::carrier::REP_SPAN_TABLE,
+                        )?;
+                        let source_id = product.stage_id.clone();
+                        products.insert(source_id, product.with_released_bundle(stripped));
+                    }
+                }
+
+                if carrier_retention == CarrierRetention::DropAfterLastConsumer {
+                    for producer in carrier_inputs {
+                        let remaining = remaining_carrier_readers
+                            .get_mut(&producer)
+                            .expect("carrier producer has a counted reader");
+                        *remaining = remaining
+                            .checked_sub(1)
+                            .expect("completed carrier reader was counted");
+                        if *remaining == 0 && !retained_carriers.contains(&producer) {
+                            if let Some(product) = products.remove(&producer) {
+                                products.insert(producer, product.into_carrier_released()?);
+                            }
+                        }
+                    }
+                    if logically_consumed.contains(&stage_id)
+                        && remaining_carrier_readers
+                            .get(&stage_id)
+                            .copied()
+                            .unwrap_or(0)
+                            == 0
+                        && !retained_carriers.contains(&stage_id)
+                        && let Some(product) = products.remove(&stage_id)
+                    {
+                        products.insert(stage_id.clone(), product.into_carrier_released()?);
+                    }
+                }
+
+                if let Some(consumers) = dependents.get(&stage_id) {
+                    for consumer in consumers {
+                        let remaining = remaining_dependencies
+                            .get_mut(consumer)
+                            .expect("dependent has a readiness counter");
+                        *remaining = remaining
+                            .checked_sub(1)
+                            .expect("completed dependency was counted");
+                        if *remaining == 0 {
+                            ready.insert(consumer.clone());
+                        }
+                    }
+                }
+                Ok(())
+            })();
+            if let Err(error) = commit_result {
+                if first_error.is_none() {
+                    first_error = Some(error);
+                }
             }
         }
-    }
+
+        if let Some(error) = first_error {
+            Err(error)
+        } else {
+            Ok(())
+        }
+    });
+    scheduling_result?;
+
+    // Completion order is deliberately observational. Present receipts and timings in
+    // the certified topological order so output identities and reports remain byte-stable.
+    stage_receipts.sort_by_key(|receipt| order_index[receipt.context.stage_id.as_str()]);
+    stage_timings.sort_by_key(|timing| order_index[timing.stage_id.as_str()]);
+    stage_phase_timings.sort_by_key(|timing| order_index[timing.stage_id.as_str()]);
 
     if profile {
         let floor: u128 = level_timings.iter().map(|l| l.elapsed_ms).sum();
@@ -746,8 +896,9 @@ pub fn run_without(
             target: "pipeline_timing",
             stages = stage_timings.len(),
             levels = level_timings.len(),
+            declared_carrier_frontier_stages = declared_level_frontier.len(),
             summed_ms = total,
-            level_barrier_floor_ms = floor,
+            level_max_sum_ms = floor,
             "pipeline timing summary",
         );
         let mut slowest = stage_timings.clone();
@@ -787,9 +938,14 @@ pub fn run_without(
     })
 }
 
-/// For each stage that ANY other stage logically consumes, the topological level of its
-/// LAST carrier consumer — or its own production level when all later consumers are
-/// artifact-only. This is the level after whose commit its carrier is provably dead.
+/// Compute the former level-bound carrier frontier for invariant tests and diagnostic
+/// comparison with the completion-driven scheduler.
+///
+/// For each stage that ANY other stage logically consumes, this returns the topological
+/// level of its LAST carrier consumer — or its own production level when all later
+/// consumers are artifact-only. Production release now uses exact remaining-reader
+/// counters at completion time; this independent level formulation remains useful for
+/// proving the same declared ownership relation over a levelled graph.
 ///
 /// A stage with NO logical consumer has no entry: its product is a run OUTPUT, retained
 /// for the life of the [`RunResult`]. The map is total over logically consumed stages,

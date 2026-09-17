@@ -8,8 +8,9 @@
 //! An edge runs **producer → consumer**: if stage `A` declares `B` in its
 //! `dataflowConsumes`, then `B` must run before `A`, so the edge is `B → A`.
 //! Stages with no unscheduled dependencies form level 0; each subsequent level
-//! holds the stages whose every dependency landed in an earlier level. Stages
-//! within a level are independent and the scheduler may run them in parallel.
+//! holds the stages whose every dependency landed in an earlier level. Levels are
+//! deterministic certification and reporting strata; execution readiness is released
+//! per stage as soon as that stage's own producers publish.
 //!
 //! Determinism mirrors `gmeow-slice::cache`: nodes and edges are inserted in
 //! sorted order, and each level is sorted, so the levelling is identical
@@ -23,8 +24,8 @@ use gmeow_logic::dag_profile::{DagCertification, certify_acyclic};
 /// (producers first), plus the flat topological order.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StageGraph {
-    /// Topological levels, producers first. Stages within a level are mutually
-    /// independent (parallel-eligible) and sorted for determinism.
+    /// Topological certification/reporting levels, producers first. Stages within a
+    /// level are mutually independent and sorted for determinism.
     pub levels: Vec<Vec<String>>,
 }
 

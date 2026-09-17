@@ -17,7 +17,7 @@
 //! * [`loader`] — parse the dogfooded DAG, validate it, bind stages to impls.
 //! * [`registry`] — the `STAGE_REGISTRY` (`gmeow:stageImpl` → Rust [`Stage`]).
 //! * [`cache`] — content-addressed, self-verifying per-stage cache (P2).
-//! * [`scheduler`] — level-parallel execution + per-resource serialization (P2).
+//! * [`scheduler`] — completion-driven execution + per-resource serialization (P2).
 //! * [`provenance`] — per-stage `OriginKind` / `UnitId` stamping (P2).
 //! * [`stages`] — the concrete production stages (P3–P5).
 //! * [`docs_measure`] — measured, deterministic per-format documentation byte

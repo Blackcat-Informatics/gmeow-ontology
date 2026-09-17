@@ -154,8 +154,8 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// Everything a DECLARED CONSUMER could have read is released: the frozen dataset (an
 /// empty one replaces it), the typed-handle lane, every by-reference blob record, the
 /// provenance sidecar, and every internal `pipeline/`-prefixed artifact. The scheduler
-/// calls this at each stage's drop-after-last-consumer point
-/// ([`crate::scheduler::last_consumer_levels`]); the resulting product is a TOMBSTONE —
+/// calls this as soon as its exact remaining carrier-reader count reaches zero; the
+/// resulting product is a TOMBSTONE —
 /// [`StageProduct::carrier_released`](crate::node::StageProduct::carrier_released) is
 /// set and the product keeps its ORIGINAL `digest`, because the digest is the identity
 /// witness of the carrier that was released, not a fold over this residue.
@@ -163,8 +163,8 @@ pub const INTERNAL_ARTIFACT_PREFIX: &str = "pipeline/";
 /// Determinism: the surviving lane is rebuilt in the source lookaside's iteration order
 /// over a strict subset of its entries, so the operation is a pure, idempotent function
 /// of the input bundle. No stage can observe it — `exec_stage` hands a stage exactly the
-/// products it declared in `consumes()`, and the release happens only after the last
-/// such declarer has run.
+/// products it declared in `consumes()`, and the release happens only after every
+/// dispatched reader has completed.
 ///
 /// # Errors
 /// A malformed artifact-resource content digest, or a lane entry whose bytes are missing
