@@ -36,7 +36,7 @@ struct Edge {
     /// `None` is support from an equivalence axiom and cannot be removed by a
     /// subsumption probe. `Some` retains the exact authored spelling so deleting a
     /// canonical edge does not accidentally delete a separately authored RDFS twin.
-    source_predicate: Option<String>,
+    source: Option<(String, String, String)>,
 }
 
 #[derive(Default)]
@@ -45,7 +45,13 @@ struct Reachability {
 }
 
 impl Reachability {
-    fn insert(&mut self, world: &str, subject: &str, object: &str, source_predicate: Option<&str>) {
+    fn insert(
+        &mut self,
+        world: &str,
+        subject: &str,
+        object: &str,
+        source: Option<(&str, &str, &str)>,
+    ) {
         self.worlds
             .entry(world.to_owned())
             .or_default()
@@ -53,26 +59,27 @@ impl Reachability {
             .or_default()
             .push(Edge {
                 object: object.to_owned(),
-                source_predicate: source_predicate.map(str::to_owned),
+                source: source.map(|(s, p, o)| (s.to_owned(), p.to_owned(), o.to_owned())),
             });
     }
 
     fn rederived_without(&self, axiom: &LeaveOneOutAxiom) -> bool {
         self.worlds.values().any(|adjacency| {
-            let mut visited = BTreeSet::from([axiom.subject.as_str()]);
-            let mut frontier = vec![axiom.subject.as_str()];
+            let target_subject = calculus_term(&axiom.subject);
+            let target_object = calculus_term(&axiom.object);
+            let mut visited = BTreeSet::from([target_subject]);
+            let mut frontier = vec![target_subject];
             while let Some(subject) = frontier.pop() {
                 let Some(edges) = adjacency.get(subject) else {
                     continue;
                 };
                 for edge in edges {
-                    if subject == axiom.subject
-                        && edge.object == axiom.object
-                        && edge.source_predicate.as_deref() == Some(axiom.predicate.as_str())
-                    {
+                    if edge.source.as_ref().is_some_and(|(s, p, o)| {
+                        s == &axiom.subject && p == &axiom.predicate && o == &axiom.object
+                    }) {
                         continue;
                     }
-                    if edge.object == axiom.object {
+                    if edge.object == target_object {
                         return true;
                     }
                     if visited.insert(edge.object.as_str()) {
@@ -97,8 +104,17 @@ impl Reachability {
 pub(super) struct BatchAnalysis {
     subclass: Reachability,
     subproperty: Reachability,
-    triples: Vec<(String, String, String, String)>,
+    triples: Vec<SourceTriple>,
     predicates: BTreeSet<String>,
+}
+
+struct SourceTriple {
+    subject: String,
+    predicate: String,
+    object: String,
+    raw_subject: String,
+    raw_predicate: String,
+    raw_object: String,
 }
 
 impl BatchAnalysis {
@@ -116,30 +132,42 @@ impl BatchAnalysis {
                 else {
                     continue;
                 };
+                let normalized_subject = calculus_term(subject);
                 let predicate = calculus_term(&fact.predicate);
+                let normalized_object = calculus_term(object);
                 out.predicates.insert(predicate.to_owned());
-                out.triples.push((
-                    subject.clone(),
-                    predicate.to_owned(),
-                    object.clone(),
-                    fact.predicate.clone(),
-                ));
+                out.triples.push(SourceTriple {
+                    subject: normalized_subject.to_owned(),
+                    predicate: predicate.to_owned(),
+                    object: normalized_object.to_owned(),
+                    raw_subject: subject.clone(),
+                    raw_predicate: fact.predicate.clone(),
+                    raw_object: object.clone(),
+                });
                 match predicate {
-                    RDFS_SUBCLASS => {
-                        out.subclass
-                            .insert(world, subject, object, Some(&fact.predicate))
-                    }
-                    RDFS_SUBPROPERTY => {
-                        out.subproperty
-                            .insert(world, subject, object, Some(&fact.predicate))
-                    }
+                    RDFS_SUBCLASS => out.subclass.insert(
+                        world,
+                        normalized_subject,
+                        normalized_object,
+                        Some((subject, &fact.predicate, object)),
+                    ),
+                    RDFS_SUBPROPERTY => out.subproperty.insert(
+                        world,
+                        normalized_subject,
+                        normalized_object,
+                        Some((subject, &fact.predicate, object)),
+                    ),
                     OWL_EQUIVALENT_CLASS => {
-                        out.subclass.insert(world, subject, object, None);
-                        out.subclass.insert(world, object, subject, None);
+                        out.subclass
+                            .insert(world, normalized_subject, normalized_object, None);
+                        out.subclass
+                            .insert(world, normalized_object, normalized_subject, None);
                     }
                     OWL_EQUIVALENT_PROPERTY => {
-                        out.subproperty.insert(world, subject, object, None);
-                        out.subproperty.insert(world, object, subject, None);
+                        out.subproperty
+                            .insert(world, normalized_subject, normalized_object, None);
+                        out.subproperty
+                            .insert(world, normalized_object, normalized_subject, None);
                     }
                     _ => {}
                 }
@@ -153,22 +181,24 @@ impl BatchAnalysis {
     }
 
     fn has_pattern(&self, subject: Option<&str>, predicate: &str, object: Option<&str>) -> bool {
-        self.triples.iter().any(|(s, p, o, _)| {
-            subject.is_none_or(|wanted| s == wanted)
-                && p == predicate
-                && object.is_none_or(|wanted| o == wanted)
+        self.triples.iter().any(|triple| {
+            subject.is_none_or(|wanted| triple.subject == wanted)
+                && triple.predicate == predicate
+                && object.is_none_or(|wanted| triple.object == wanted)
         })
     }
 
     /// Conservative open-head test matching the schema routes that can mint a
     /// predicate not already present as that exact authored relation.
     fn may_generate(&self, target: &str) -> bool {
-        self.triples.iter().any(|(subject, predicate, object, _)| {
-            (*predicate == OWL_ON_PROPERTY && object == target)
-                || (*predicate == RDFS_SUBPROPERTY && (subject == target || object == target))
-                || ((*predicate == OWL_INVERSE || *predicate == OWL_EQUIVALENT_PROPERTY)
-                    && (subject == target || object == target))
-                || (*predicate == OWL_PROPERTY_CHAIN && subject == target)
+        self.triples.iter().any(|triple| {
+            (triple.predicate == OWL_ON_PROPERTY && triple.object == target)
+                || (triple.predicate == RDFS_SUBPROPERTY
+                    && (triple.subject == target || triple.object == target))
+                || ((triple.predicate == OWL_INVERSE
+                    || triple.predicate == OWL_EQUIVALENT_PROPERTY)
+                    && (triple.subject == target || triple.object == target))
+                || (triple.predicate == OWL_PROPERTY_CHAIN && triple.subject == target)
         })
     }
 
@@ -186,14 +216,16 @@ impl BatchAnalysis {
     }
 
     fn direct_alternate_support(&self, axiom: &LeaveOneOutAxiom, predicate: &str) -> bool {
-        self.triples
-            .iter()
-            .any(|(subject, existing, object, source_predicate)| {
-                subject == &axiom.subject
-                    && existing == predicate
-                    && object == &axiom.object
-                    && source_predicate != &axiom.predicate
-            })
+        let subject = calculus_term(&axiom.subject);
+        let object = calculus_term(&axiom.object);
+        self.triples.iter().any(|triple| {
+            triple.subject == subject
+                && triple.predicate == predicate
+                && triple.object == object
+                && (triple.raw_subject != axiom.subject
+                    || triple.raw_predicate != axiom.predicate
+                    || triple.raw_object != axiom.object)
+        })
     }
 
     fn characteristic_has_no_alternative_producer(&self, axiom: &LeaveOneOutAxiom) -> bool {
@@ -253,7 +285,7 @@ impl BatchAnalysis {
         }
 
         if self.characteristic_has_no_alternative_producer(axiom) {
-            return Some(false);
+            return Some(self.direct_alternate_support(axiom, predicate));
         }
 
         // Keep rdf:type and every unclassified family on the native path. Their

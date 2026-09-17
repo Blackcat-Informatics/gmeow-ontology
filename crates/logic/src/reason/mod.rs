@@ -400,21 +400,20 @@ pub fn leave_one_out_rederived(
         .flat_map(|(world, facts)| facts.iter().cloned().map(|fact| (world.clone(), fact)))
         .collect();
     let session = NativeReasoningSession::new(input, domains, potential)?;
-    let resolved = slow
-        .par_iter()
-        .map(|(index, axiom)| {
-            let result = session.retract(axiom)?;
-            let answer = result.inferred().iter().any(|row| {
-                row.subject == axiom.subject
-                    && crate::native_semantics::SemanticVocabulary::GroundedLogicV1
-                        .predicate(&axiom.predicate)
-                        == crate::native_semantics::SemanticVocabulary::GroundedLogicV1
-                            .predicate(&row.predicate)
-                    && row.object.as_iri() == Some(axiom.object.as_str())
-            });
-            Ok((*index, answer))
-        })
-        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    let resolved =
+        slow.par_iter()
+            .map(|(index, axiom)| {
+                let result = session.retract(axiom)?;
+                let answer = result.inferred().iter().any(|row| {
+                    calculus_term(&row.subject) == calculus_term(&axiom.subject)
+                        && calculus_term(&row.predicate) == calculus_term(&axiom.predicate)
+                        && row.object.as_iri().is_some_and(|object| {
+                            calculus_term(object) == calculus_term(&axiom.object)
+                        })
+                });
+                Ok((*index, answer))
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
     for (index, answer) in resolved {
         answers[index] = answer;
     }
