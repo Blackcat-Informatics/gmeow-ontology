@@ -5,6 +5,7 @@
 
 use super::*;
 
+/// Load the exact producer-selected abductive-schema observation.
 fn observation() -> Observation {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
@@ -12,6 +13,7 @@ fn observation() -> Observation {
     serde_json::from_slice(&bytes).expect("complete typed abduction observation")
 }
 
+/// Authored abductive vocabulary must survive compilation without malformed nodes.
 #[test]
 fn abductive_vocabulary_parses_without_malformed_nodes() {
     let observed = observation();
@@ -28,6 +30,7 @@ fn abductive_vocabulary_parses_without_malformed_nodes() {
     );
 }
 
+/// Completeness roots remain reconstructable metadata and never become domain axioms.
 #[test]
 fn completeness_formulas_reconstruct_but_never_become_axioms() {
     let observed = observation();

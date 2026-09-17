@@ -28,6 +28,7 @@ struct Observation {
     axiom_predicates: BTreeSet<String>,
 }
 
+/// Publish the complete abductive-schema observation from the already compiled theory.
 pub(super) fn record(
     theory: &CompiledTheory,
     artifacts: &mut BTreeMap<String, Vec<u8>>,
