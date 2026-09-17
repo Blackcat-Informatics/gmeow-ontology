@@ -21,6 +21,7 @@ pub(crate) use session::NativeReasoningSession;
 pub mod dl;
 pub mod el;
 pub(crate) mod enactment;
+mod leave_one_out;
 pub mod ledger;
 pub mod math_gate;
 pub mod perf_ledger;
@@ -377,26 +378,47 @@ pub fn leave_one_out_rederived(
     if axioms.is_empty() {
         return Ok(Vec::new());
     }
+    let analysis = leave_one_out::BatchAnalysis::new(&input);
+    let mut answers = vec![false; axioms.len()];
+    let slow = axioms
+        .iter()
+        .enumerate()
+        .filter_map(|(index, axiom)| match analysis.answer(axiom) {
+            Some(answer) => {
+                answers[index] = answer;
+                None
+            }
+            None => Some((index, axiom)),
+        })
+        .collect::<Vec<_>>();
+    if slow.is_empty() {
+        return Ok(answers);
+    }
     let potential = input
         .facts
         .iter()
         .flat_map(|(world, facts)| facts.iter().cloned().map(|fact| (world.clone(), fact)))
         .collect();
     let session = NativeReasoningSession::new(input, domains, potential)?;
-    axioms
+    let resolved = slow
         .par_iter()
-        .map(|axiom| {
+        .map(|(index, axiom)| {
             let result = session.retract(axiom)?;
-            Ok(result.inferred().iter().any(|row| {
+            let answer = result.inferred().iter().any(|row| {
                 row.subject == axiom.subject
                     && crate::native_semantics::SemanticVocabulary::GroundedLogicV1
                         .predicate(&axiom.predicate)
                         == crate::native_semantics::SemanticVocabulary::GroundedLogicV1
                             .predicate(&row.predicate)
                     && row.object.as_iri() == Some(axiom.object.as_str())
-            }))
+            });
+            Ok((*index, answer))
         })
-        .collect()
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    for (index, answer) in resolved {
+        answers[index] = answer;
+    }
+    Ok(answers)
 }
 
 /// Execute the complete selected native calculus over the caller's logical worlds.

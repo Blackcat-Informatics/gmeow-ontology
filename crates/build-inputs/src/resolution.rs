@@ -168,7 +168,19 @@ fn resolution_environment(
     let mut result = BTreeMap::new();
     for (name, value) in values {
         let Some(name) = name.to_str() else { continue };
-        if name == "CARGO_TARGET_TMPDIR" {
+        // Output placement changes where Cargo writes bytes, never which packages,
+        // features, target, or sources it resolves. The machine-level Cargo launcher
+        // leases these directories per invocation, so admitting them would make a
+        // freshly built producer stale merely because the next command received a
+        // different output slot.
+        if [
+            "CARGO_TARGET_DIR",
+            "CARGO_TARGET_TMPDIR",
+            "CARGO_BUILD_TARGET_DIR",
+            "CARGO_BUILD_BUILD_DIR",
+        ]
+        .contains(&name)
+        {
             continue;
         }
         if [

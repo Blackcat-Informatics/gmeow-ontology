@@ -3771,12 +3771,12 @@ msgid "program query"
 msgstr "程序查询"
 
 msgctxt "https://blackcatinformatics.ca/logic/ProjectionLoss|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "Projection Loss"
-msgstr "投影损失"
+msgid "Projection Loss Declaration"
+msgstr "投影损失声明"
 
 msgctxt "https://blackcatinformatics.ca/logic/projectionLoss|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "projection loss"
-msgstr "投影损失"
+msgid "projection loss code"
+msgstr "投影损失代码"
 
 msgctxt "https://blackcatinformatics.ca/logic/ProjectionTarget|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Projection Target"
@@ -19910,7 +19910,7 @@ msgstr "完整降低程序的保留判定，受其明确损失证据约束。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lossyDrop|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "lossy drop"
-msgstr "投影损失"
+msgstr "有损丢弃"
 
 msgctxt "https://blackcatinformatics.ca/logic/lossyDrop|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An explicit explanation of source content that a lowered projection cannot represent."
