@@ -371,6 +371,13 @@ three mechanisms:
   data/rule/contract/annotation/fragment coverage for free — the same `assert_matches` hard-fail
   discipline a signed-ledger consumer already uses to refuse an entry under a wrong signature.
 
+Attributed contextual evaluation and native typed result carriers change the engine's
+content descriptor. They do not change session digest framing or the outcome wire bytes,
+so the existing serialization domain tags remain in force. The engine and fixed-input
+session golden pins explicitly admit that executable contract; restoring a checkpoint
+from the previous descriptor still fails the exact identity gate. A serialization tag
+change is required only when the framing itself changes incompatibly.
+
 ---
 
 *Types named here — `ReasoningSession`, `SessionIdentity`, `SessionDelta`, `Checkpoint`,
